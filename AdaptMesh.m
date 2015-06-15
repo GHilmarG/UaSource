@@ -4,10 +4,11 @@ function [CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
     AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
     GF,GLdescriptors,alpha,...
     s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
-
+% added
 narginchk(40,40)
 
 persistent MUA_Background
+
 
 MUAnew=MUAold;
 hOld=h;
