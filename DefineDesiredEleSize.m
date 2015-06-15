@@ -1,0 +1,17 @@
+function [x,y,EleSize]=DefineDesiredEleSize(x,y,EleSize,CtrlVar,coordinates,connectivity,s,b,S,B,rho,rhow)
+  
+    % Allows user to set desired ele sizes (EleSize) at given locations (x,y).
+    %
+    % on input x, y, EleSize are desired ele sizes at (x,y)
+    % these input values are calculated by Ua based on some user-defined criteria
+    %
+    % on output x,y,EleSize are user-modified values
+    %
+    % 
+    
+  fprintf('Using default DefineDesiredEleSize \n')    
+   % just a dummy if nothing in user directory 
+    
+    return
+    
+end

@@ -1,0 +1,253 @@
+function  [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar)
+
+narginchk(7,7)
+
+
+%save TestSave
+%error('fsad')
+
+%     m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
+%     save TestSave A B f g x0 y0 CtrlVar AA bb
+%     error('asdf')
+
+% Solves:
+%
+%  [A   B'] [x]= [f]
+%  [B  -C ] [y]  [g]
+%
+% where A is nxn, C is mxm , B is mxn
+
+
+[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
+
+if nA~=mA
+    fprintf(' A must be square ')
+end
+
+if mB~=0 && (nA~=mB || mA ~= mB)
+    fprintf('size of A (%-i,%-i) and B (%-i,%-i) matrices not consistent \n',nA,mA,nB,mB)
+    error('error in solveKApe')
+end
+
+if nf~=nA
+    fprintf('f must have same number of elements as there are rows in A \n')
+    error('error in solveKApe')
+end
+
+if ng~=nB
+    fprintf('g has %g but must have same number of elements as there are rows in B ie %g \n ',ng,nB)
+    error('error in solveKApe')
+end
+
+if nx0~=nA
+    fprintf('x0 must have same number of elements as there are rows in A\n')
+    error('error in solveKApe')
+end
+
+if ny0~=nB
+    fprintf('y0 must have same number of elements as there are rows in B\n')
+    error('error in solveKApe')
+end
+
+
+n=size(A,1) ; m=size(B,1);
+if isempty(B) || numel(B)==0
+    CtrlVar.AsymmSolver='Bempty';
+elseif isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+    CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+end
+
+tSolve=tic; 
+
+switch CtrlVar.AsymmSolver
+    case 'Bempty'
+        
+        x=A\f; y=[];
+        
+    case 'Backslash'
+        
+        m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
+        sol=AA\bb; x=sol(1:n) ; y=sol(n+1:end);
+        if CtrlVar.InfoLevelLinSolve>=1;
+            fprintf(' Constraint matrix NOT empty. Solving system directly using the backslash operator \n ')
+        end
+        
+    case 'EliminateBCsSolveSystemDirectly'
+        if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
+        
+        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
+        iFreeDOF=setdiff(1:n,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
+        
+        
+        AA=A; ff=f;
+        AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
+        sol=AA\ff;
+        
+        x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
+        y=B*(f-A*x);
+        
+    case 'AugmentedLagrangian'
+        
+        CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=0;
+        [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
+        
+    case 'EliminateBCsSolveSystemIterativly'
+        
+        if CtrlVar.InfoLevelLinSolve>2; fprintf(' Eliminating constraints and solving system iterativly \n') ; end
+        
+        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
+        iFreeDOF=setdiff(1:n,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
+        
+        
+        AA=A; ff=f; xx0=x0;
+        AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
+        xx0(iConstrainedDOF)=[];
+        
+        tstart=tic;
+        tluinc=tic;
+        %setup.type = 'crout'; setup.milu = 'off'; setup.droptol = 0.1;
+        %setup.type = 'ilutp'; setup.milu = 'off'; setup.droptol = 0.15;
+        setup.type = 'nofill'; setup.milu = 'off';
+        
+        [L1,U1] = ilu(AA,setup);
+        tluinc=toc(tluinc);
+        
+        
+        tol=1e-6 ; maxit=10;
+        
+        t1=tic ;
+        %[sol,flag,relres,iter,resvec]=bicgstabl(AA,ff,tol,maxit,L1,U1,xx0);
+        restart=10;
+        [sol,flag,relres,iter,resvec]=gmres(AA,ff,restart,tol,maxit,L1,U1,xx0);
+        t2=toc(t1);
+        
+        %sol=AA\ff;
+        x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol; y=B*(f-A*x);
+        
+        
+        tend=toc(tstart);
+        
+        if CtrlVar.InfoLevelLinSolve>=1;
+            disp([' ilu in  ',num2str(tluinc),' sec '])
+            disp([' gmres  ',num2str(t2),' sec '])
+            disp([' total solution time  ',num2str(tend),' sec '])
+        end
+        
+        if CtrlVar.InfoLevelLinSolve>=10;
+            
+            
+            figure
+            fprintf(' flag=%-i, iter=%-g, relres=%-g \n ',flag,iter,relres)
+            nnn=numel(resvec);
+            semilogy((0:nnn-1)/2,resvec,'-o')
+            xlabel('Iteration Number')
+            ylabel('Relative Residual')
+        end
+        
+    otherwise
+        
+        error(' which case ? ')
+        
+end
+
+tSolve=tic; 
+if CtrlVar.InfoLevelLinSolve>=10;
+    fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
+        n+m,n,m,tSolve,CtrlVar.AsymmSolver)
+end
+
+if CtrlVar.InfoLevelCPU ;  fprintf(CtrlVar.fidlog,' in %-g sec. \n',toc(tSolve)) ; end ;
+
+
+end
+
+% 		%[ Schur complement reduction
+% 		%  -S:=B/A*B'+C  (negative Schur compliment)
+% 		% (5.1):  (B/A*B'+C)*y=B/A*f-g;
+% 		% (5.2):   A x=f-B'*y
+% 		% When A and -S are symmetric positive definite, solve using chol or CG.
+%
+% 		C=sparse(m,m);
+%
+% 		%C=eps*speye(m);  % just a slight regularistation is sufficient to make S pos. definite
+%
+% 		if Schur==1
+% 			tSchur=tic;
+% 			T=B/A; % T=B*inv(A) = B/A  = (A'\B')'  so T=(A'\B')'=(A\B')' if A=A'
+% 			S=T*B'+C ;
+% 			y=S\(T*f-g);
+% 			x=A\(f-B'*y);
+%
+%
+% 			tSchur=toc(tSchur) ;
+%
+% 			AA=[A B' ;B -C] ; bb=[f;g];
+% 			test=AA*[x;y]-bb; disp([' direct Schur : ',num2str(max(abs(test))),' in ',num2str(tSchur)])
+%
+% 		end
+%
+%
+%
+% 		%
+% 		if AugmentedLagrangian==1
+%
+%
+%
+% 		end
+%
+%
+%
+% 		if Bicgstab==1   % seems to work fine with using ilu with setup.type='nofill';
+% 			tstart=tic ;
+% 			% no modification of system,
+% 			AA=[A B' ;B -C] ; bb=[f;g];
+% 			if mod(iteration,10)==1
+%
+% 				AAA=[A B' ;B  sparse(1:m,1:m,1)] ;
+%
+%
+% 				tluinc=tic;
+% 				%setup.type = 'crout'; setup.milu = 'row'; setup.droptol = 0.1;
+% 				setup.type = 'nofill'; setup.milu = 'off';
+%
+% 				[L1,U1] = ilu(AAA,setup);
+% 				%[L1,U1] = luinc(AAA,0);
+% 				tluinc=toc(tluinc);
+% 				disp([' ilu in  ',num2str(tluinc),' sec '])
+% 			end
+%
+%
+% 			tol=1e-7 ; maxit=50;
+%
+% 			if nargin<5 ; x0=zeros(n,1) ; y0=zeros(m,1) ; end
+%
+% 			%M1=sparse(1:n+m,1:n+m,[spdiags(A,0);ones(m,1)],n+m,n+m);
+% 			%sol=bicgstab(AA,bb,tol,maxit,M1,[],[x0;y0]);
+%
+%
+% 			t1=tic ;
+%
+% 			[sol,flag,relres,iter,resvec]=bicgstabl(AA,bb,tol,maxit,L1,U1,[x0;y0]);
+%
+%
+% 			t2=toc(t1);
+% 			disp([' bicgstab  ',num2str(t2),' sec '])
+%
+%
+%
+% 			x=sol(1:n) ; y=sol(n+1:end);
+% 			tend=toc(tstart);
+% 			disp([' total solution time  ',num2str(tend),' sec '])
+%
+% 			figure
+% 			fprintf(' flag=%-i, iter=%-g, relres=%-g \n ',flag,iter,relres)
+% 			nnn=numel(resvec);
+% 			semilogy((0:nnn-1)/2,resvec/norm(bb),'-o')
+% 			xlabel('Iteration Number')
+% 			ylabel('Relative Residual')
+%
+% 		end
+%
+% 	end
+% end
+%
