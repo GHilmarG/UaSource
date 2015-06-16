@@ -23,10 +23,10 @@ I=1; Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\G
 %I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
 
 plots='-ubvb-';
-%plots='-h-';
-plots='-s-';
+plots='-h-';
+%plots='-s-';
 %plots='-dhdt-';
-plots='-ab-';
+%plots='-ab-';
 %plots='-mesh-';
 %plots='-ab-h-';
 %plots='-MeltNodes-';
