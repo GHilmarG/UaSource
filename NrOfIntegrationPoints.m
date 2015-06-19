@@ -1,4 +1,4 @@
-function [nip,niph]=NrOfIntegrationPoints(CtrlVar)
+function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     %%
     %  [nip,niph,BoundaryEdge]=NrOfIntegrationPoints(CtrlVar)
     %  defines nr of integration points for diagnostic (nip) and prognostic (nihp) equations
@@ -28,13 +28,18 @@ function [nip,niph]=NrOfIntegrationPoints(CtrlVar)
     % 
     %%
 
+    persistent nCalls  
+   
+    if isempty(nCalls) ; nCalls=0 ; end
+    
+    nCalls=nCalls+1; 
+    
     switch CtrlVar.TriNodes
         case 3 % minimum of 1 needed for a linear problem
             
-            %nip=3;
+
             %nip=1 ; niph=1 ;  % not OK for both semi and fully implicit
             %nip=1; niph=3;    % OK for semi-implicit
-            
             nip=3; niph=3;   % OK for implicit and semi-implicit 
             
             %niph=3;
@@ -45,15 +50,15 @@ function [nip,niph]=NrOfIntegrationPoints(CtrlVar)
             
         case 6   % minimum of 4 needed for a liner problem
             
-            % nip=4 ; % results in a singular system for implicit uvh
+            %nip=4 ; % results in a singular system for implicit uvh
             %nip=6;
             %nip=6;   %  for GL problems overintegrating leads to impoved rates of convergence
             %nip=12;
             
-            nip=6 ; niph=6;
-            %nip=12 ; niph=12;   % test
-            %niph=12;
-            %niph=16;
+            %nip=6 ; niph=6;
+            %nip=7 ; niph=7;  
+            %nip=12 ; niph=12;  
+            nip=16; niph=16;
             
             
             
@@ -61,7 +66,7 @@ function [nip,niph]=NrOfIntegrationPoints(CtrlVar)
             %nip=7;
             %nip=7; niph=12;
             nip=12 ; niph=12; 
-            
+            %nip=16; niph=16;
             
             
         otherwise
@@ -70,6 +75,13 @@ function [nip,niph]=NrOfIntegrationPoints(CtrlVar)
     
     %if CtrlVar.Implicituvh ; nip=niph ; end
     
+   
+    if isempty(CtrlVar.nip) ;  CtrlVar.nip=nip ; end
+    if isempty(CtrlVar.niph) ;  CtrlVar.niph=niph ; end
+   
+    if nCalls==1
+        fprintf('Number of integration points: nip=%-i niph=%-i \n',CtrlVar.nip,CtrlVar.niph)
+    end
     
     
     

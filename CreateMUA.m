@@ -20,7 +20,8 @@ MUA.Nnodes=size(MUA.coordinates,1);
 MUA.Nele=size(MUA.connectivity,1);
 MUA.nod=size(MUA.connectivity,2);
 
-[MUA.nip,MUA.niph]=NrOfIntegrationPoints(CtrlVar);
+CtrlVar=NrOfIntegrationPoints(CtrlVar); MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
+
 
 ndim=2; 
 [MUA.points,MUA.weights]=sample('triangle',MUA.nip,ndim);

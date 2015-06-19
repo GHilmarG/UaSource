@@ -17,7 +17,7 @@ end
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
 
 
-[nip,niph]=NrOfIntegrationPoints(CtrlVar);
+CtrlVar=NrOfIntegrationPoints(CtrlVar);
 
 
 %% Now consider the possibility the FE coordinates and connectivity has changed
@@ -27,10 +27,10 @@ MeshHasChanged = ...
     MUA.nod~=size(MUA.connectivity,2) || ...
     MUA.Nele~=size(MUA.connectivity,1) || ...
     MUA.Nnodes~=size(MUA.coordinates,1) || ...
-    MUA.nip~=nip && MUA.niph~=niph ;
+    MUA.nip~=CtrlVar.nip && MUA.niph~=CtrlVar.niph ;
 
 %    all(MUA.points==points) && ...
-%    all(MUA.weights==weights) ;
+%    all(MUA.weights==weights) ;Ct
 
 if MeshHasChanged
     if CtrlVar.InfoLevel>=10;
@@ -39,7 +39,10 @@ if MeshHasChanged
         fprintf('UpdateMUA: Calculating mesh derivatives \n ')
     end
     MUA.ndim=2;
-    [MUA.nip,MUA.niph]=NrOfIntegrationPoints(CtrlVar);
+    
+    CtrlVar=NrOfIntegrationPoints(CtrlVar); 
+    MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
+    
     MUA.Nele=size(MUA.connectivity,1);
     MUA.Nnodes=size(MUA.coordinates,1);
     MUA.nod=size(MUA.connectivity,2);
@@ -61,7 +64,7 @@ end
 
 if ~isfield(MUA,'points')  || ~isfield(MUA,'weights')
     MUA.ndim=2;
-    [MUA.nip,MUA.niph]=NrOfIntegrationPoints(CtrlVar);
+    CtrlVar=NrOfIntegrationPoints(CtrlVar); MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
     [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
 end
 

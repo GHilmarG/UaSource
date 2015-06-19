@@ -155,7 +155,7 @@ CtrlVar.TriNodes=6 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubi
 CtrlVar.nTimeSteps=1;            % maximum number of time steps
 CtrlVar.TotalTime=1e10;          % maximum model time
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the Ua2D_InitialUserInputFile
-CtrlVar.dtmin=1e-10;             % for numerical reasons the time step should always be larger than some very small value
+CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
 CtrlVar.InitialDiagnosticStep=1; % start implicit transient (prognostic) run with an initial diagnostic step (a good idea, do this always)
 
@@ -317,6 +317,12 @@ CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into ba
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Piccard backtracking
+
+%% Number of integration points
+% if left empty, the number of integration points is set automatically
+
+CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
+CtrlVar.nip=[] ;   % number of integration points for the uv solver
 
 
 %% Backtracking parameters  -line search 
