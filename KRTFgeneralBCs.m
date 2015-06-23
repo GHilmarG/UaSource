@@ -1,4 +1,4 @@
-function [R,K,T,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g)
+function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g)
                  
 % KRTFgeneralBCs(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
 
@@ -6,9 +6,9 @@ if nargout==1 ; Ronly=1; else Ronly=0;end
 
 % calculates the tangent matrix (K) and right-hand side (-R) in a vectorized form
 
-%	R=T-F;
-%   F are the `external forces', i.e. right-hand side of the original system
-%   T are the `internal forces'. The equation is considered solved once internal and external forces are
+%	Ruv=Tuv-Fuv;
+%   Fuv are the `external forces', i.e. right-hand side of the original system
+%   Tuv are the `internal forces'. The equation is considered solved once internal and external forces are
 %   equal to within a given tolerance
 
 if any(h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
@@ -241,19 +241,19 @@ end
 
 % assemble right-hand side
 
-T=sparse(neq,1); F=sparse(neq,1);
+Tuv=sparse(neq,1); Fuv=sparse(neq,1);
 
 for Inod=1:MUA.nod
     
     
-    T=T+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    T=T+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+    Tuv=Tuv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+    Tuv=Tuv+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
     
-    F=F+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    F=F+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+    Fuv=Fuv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+    Fuv=Fuv+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
 end
 
-R=T-F;
+Ruv=Tuv-Fuv;
 
 if ~Ronly
     
@@ -291,23 +291,23 @@ if ~Ronly
         % nzmax=size(unique([Iind Jind],'rows'),1) ; K=sparse(Iind,Jind,Xval,neq,neq,nzmax); not sure why this
         % does not work
         
-        K=sparse2(Iind,Jind,Xval,neq,neq);
+        Kuv=sparse2(Iind,Jind,Xval,neq,neq);
         
     else
         % creates the sparse matrix in steps, requires no extra
         for Inod=1:MUA.nod
             for Jnod=1:MUA.nod
-                K=K+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
-                K=K+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
-                K=K+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
-                K=K+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
                 %K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d1d2(:,Jnod,Inod),neq,neq);
             end
         end
     end
     
     
-    K=(K+K.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
+    Kuv=(Kuv+Kuv.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
     % Note: for numerical verificatin of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
     %whos('K')
@@ -318,7 +318,7 @@ if ~Ronly
         [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
         
         %save TestSave K KBoundary R rhsBoundary
-        K=K+KBoundary ; R=R+rhsBoundary;
+        Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
     end
 end
 end

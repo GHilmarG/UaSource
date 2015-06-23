@@ -1,4 +1,4 @@
-function [K,R,T,F]=KRTF(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
+function [Kuv,Ruv,Tuv,Fuv]=KRTF(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
 	               
 	
 	% calculates the tangent matrix (K) and right-hand side (-R) in a vectorized form
@@ -223,19 +223,19 @@ function [K,R,T,F]=KRTF(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundar
 	
 	% assemble right-hand side
 	
-	T=sparse(neq,1); F=sparse(neq,1);
+	Tuv=sparse(neq,1); Fuv=sparse(neq,1);
 	
 	for Inod=1:nod
 		
 		
-		T=T+sparse(connectivity(:,Inod),ones(Nele,1),Tx(:,Inod),neq,1);
-		T=T+sparse(connectivity(:,Inod)+neqx,ones(Nele,1),Ty(:,Inod),neq,1);
+		Tuv=Tuv+sparse(connectivity(:,Inod),ones(Nele,1),Tx(:,Inod),neq,1);
+		Tuv=Tuv+sparse(connectivity(:,Inod)+neqx,ones(Nele,1),Ty(:,Inod),neq,1);
 		
-		F=F+sparse(connectivity(:,Inod),ones(Nele,1),Fx(:,Inod),neq,1);
-		F=F+sparse(connectivity(:,Inod)+neqx,ones(Nele,1),Fy(:,Inod),neq,1);
+		Fuv=Fuv+sparse(connectivity(:,Inod),ones(Nele,1),Fx(:,Inod),neq,1);
+		Fuv=Fuv+sparse(connectivity(:,Inod)+neqx,ones(Nele,1),Fy(:,Inod),neq,1);
 	end
 	
-	R=T-F;
+	Ruv=Tuv-Fuv;
 	
 	%K=spalloc(neq,neq,neq*25); % not sure how much space is needed but this seems reasonable
 	%K=sparse(neq,neq);
@@ -271,23 +271,23 @@ function [K,R,T,F]=KRTF(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundar
 		% nzmax=size(unique([Iind Jind],'rows'),1) ; K=sparse(Iind,Jind,Xval,neq,neq,nzmax); not sure why this
 		% does not work
 				
-		K=sparse(Iind,Jind,Xval,neq,neq);
+		Kuv=sparse(Iind,Jind,Xval,neq,neq);
 		
 	else
 		% creates the sparse matrix in steps, requires no extra
 		for Inod=1:nod
 			for Jnod=1:nod
-				K=K+sparse(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
-				K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
-				K=K+sparse(connectivity(:,Inod),connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
-				K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
+				Kuv=Kuv+sparse(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+				Kuv=Kuv+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
+				Kuv=Kuv+sparse(connectivity(:,Inod),connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
+				Kuv=Kuv+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
 				%K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d1d2(:,Jnod,Inod),neq,neq);
 			end
 		end
 	end
 
 	
-	K=(K+K.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
+	Kuv=(Kuv+Kuv.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
 	% Note: for numerical verificatin of distributed parameter gradient it is important to
 	% not to use the complex conjugate transpose.
 	%whos('K')
@@ -298,7 +298,7 @@ function [K,R,T,F]=KRTF(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundar
 		[KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(coordinates,connectivity,Boundary,nip,h,u,v,AGlen,n,alpha,rho,rhow,g,CtrlVar);
         
         %save TestSave K KBoundary R rhsBoundary
-		K=K+KBoundary ; R=R+rhsBoundary;
+		Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
 	end
 end
 

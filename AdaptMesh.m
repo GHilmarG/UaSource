@@ -3,11 +3,16 @@ function [CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
     s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
     AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
     GF,GLdescriptors,alpha,...
-    s,b,h,S,B,ub,vb,ud,vd,rh,ubvbL,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
-% 
-narginchk(40,40)
+    s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
 
+narginchk(42,42)
 persistent MUA_Background
+
+%%
+%save TestSave
+%error('fsda')
+
+
 
 
 MUAnew=MUAold;
@@ -228,14 +233,15 @@ for JJ=1:Iterations
                     
                     if CalcVel
                         MUAold=UpdateMUA(CtrlVar,MUAold);
-                         [ub,vb,ud,vd,ubvbLambda,udvdLambda,kv,rh,RunInfo,ubvbL]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                         [ub,vb,ud,vd,ubvbLambda,udvdLambda,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                     end
  
                 end
                 
+                %save TestSave ; error('afds')
                 [MUAnew,xGLmesh,yGLmesh,CtrlVar]=...
                     RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,...
-                    S,B,h,s,b,ub,vb,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,rh,ubvbL,ubvbLambda);
+                    S,B,h,s,b,ub,vb,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,ubvbLambda);
                 
                 CtrlVar.MeshChanged=1;
                 
@@ -363,7 +369,7 @@ for JJ=1:Iterations
             ub=ub*0 ; vb=vb*0 ; ubvbLambda=ubvbLambda*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
             ud=ud*0 ; vd=vd*0;
             MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            [ub,vb,ud,vd,ubvbLambda,udvdLambda,kv,rh,RunInfo]= uv(CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+            [ub,vb,ud,vd,ubvbLambda,udvdLambda,Kuv,Ruv,RunInfo]= uv(CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
         end
         
         

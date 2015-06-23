@@ -1,4 +1,4 @@
-function  [x,y,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,rh,ubvbL,ubvbLambda)
+function  [x,y,EleSize,EleSize0,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ;error('fdsa')
@@ -61,7 +61,11 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 figure(1710) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar); 
                                title('Relative error based on effective strain rates') ;
             end
-
+            
+            
+            NodalErrorIndicators.StrainRates=NodalErrorIndicator;
+ 
+ 
         case '|dhdt|'
             
             NodalErrorIndicator=abs(dhdt);
@@ -83,6 +87,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+                NodalErrorIndicators.RateOfThicknessChange=NodalErrorIndicator;
                 
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1720) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
@@ -91,11 +96,11 @@ for I=1:numel(CtrlVar.RefineCriteria)
             end
             
         case 'residuals'
-            if ~isempty(L)
-                rh=rh+ubvbL'*ubvbLambda;
+            if ~isempty(Lubvb)
+                Ruv=Ruv+Lubvb'*ubvbLambda;
             end
             
-            NodalErrorIndicator=sqrt((rh(1:Nnodes)).^2+(rh(Nnodes+1:2*Nnodes)).^2)
+            NodalErrorIndicator=sqrt((Ruv(1:MUA.Nnodes)).^2+(Ruv(MUA.Nnodes+1:2*MUA.Nnodes)).^2);
             
             if all(NodalErrorIndicator<1e-5)  % this could for example happen at a start of a run where dhdt has not been calculated
                 NodalErrorIndicator=NodalErrorIndicator*0 ;
@@ -115,6 +120,8 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+                
+                NodalErrorIndicators.Residuals=NodalErrorIndicator;
                 
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1725) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
@@ -144,6 +151,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+                NodalErrorIndicators.dhdtGradient=NodalErrorIndicator;
                 
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1730) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
@@ -192,6 +200,8 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
                 
+                NodalErrorIndicators.dhdtCurvature=NodalErrorIndicator;
+                
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1740) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
                     title('Relative error based on dhdt curvature ')
@@ -221,7 +231,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
-                
+                NodalErrorIndicators.ThicknessGradient=NodalErrorIndicator;
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1750) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
                     title('Relative error based on norm of thickness gradient ')
@@ -268,6 +278,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
                 NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+                NodalErrorIndicators.ThicknessCurvature=NodalErrorIndicator;
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1760) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
                     title('Relative error based on norm of thickness curvature ')
@@ -282,6 +293,8 @@ for I=1:numel(CtrlVar.RefineCriteria)
             NodalErrorIndicator=dgf;
             
             NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+            
+            NodalErrorIndicators.Flotation=NodalErrorIndicator;
             
             if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                 figure(1770) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);  title(' error estimate based on flotation criterion')
@@ -298,6 +311,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
             
             NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
             
+            NodalErrorIndicators.fFactor=NodalErrorIndicator;
             
             if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                 figure(1800) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);

@@ -1,5 +1,5 @@
 function [MUA,xGLmesh,yGLmesh,CtrlVar]=...
-    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,S0,B0,h0,s0,b0,u0,v0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,CtrlVar,GF0,rh,ubvbL,ubvbLambda)
+    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,S0,B0,h0,s0,b0,u0,v0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,CtrlVar,GF0,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ; error('dfsa')
@@ -22,7 +22,7 @@ hf=(S-B)*rhow./rho ;
 
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
-[x0,y0,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,u0,v0,dhdt0,h0,hf,AGlen0,n,GF0,rh,ubvbL,ubvbLambda);
+[x0,y0,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,u0,v0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
 
 if strcmp(CtrlVar.MeshGenerator,'gmesh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps

@@ -1,4 +1,4 @@
-function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g)
+function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g)
                    
     narginchk(18,18)
  
@@ -65,9 +65,9 @@ function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B
         iteration=iteration+1;
         
         if CtrlVar.CalvingFrontFullyFloating
-            [K,R,~,F]=KRTF(s,S,B,h,ub,vb,AGlen,n,C,m,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,alpha,rho,rhow,g,CtrlVar);
+            [Kuv,Ruv,~,F]=KRTF(s,S,B,h,ub,vb,AGlen,n,C,m,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,alpha,rho,rhow,g,CtrlVar);
         else
-            [R,K,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
+            [Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
         end
         
         F0=F;
@@ -79,14 +79,14 @@ function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B
         
         
         if numel(ubvbL)==0
-            r0=ResidualCostFunction(R,F0);
+            r0=ResidualCostFunction(Ruv,F0);
         else
-            r0=ResidualCostFunction(R+ubvbL'*ubvbLambda,F0);
+            r0=ResidualCostFunction(Ruv+ubvbL'*ubvbLambda,F0);
         end
         
-        if ~isreal(K) ; save TestSave K ; error('SSTREAM2dNR: K not real') ;  end
+        if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
         if ~isreal(ubvbL) ; save TestSave ubvbL ; error('SSTREAM2dNR: L not real') ;  end
-        if any(isnan(K)) ; save TestSave K ; error('SSTREAM2dNR: K nan') ;  end
+        if any(isnan(Kuv)) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
         if any(isnan(ubvbL)) ; save TestSave ubvbL ; error('SSTREAM2dNR: L nan') ;  end
         
         
@@ -94,14 +94,14 @@ function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B
             
             CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
             if numel(ubvbL)==0
-                [sol,dlambda]=solveKApeSymmetric(K,ubvbL,-R,ubvbRhs,[dub;dvb],dlambda,CtrlVar);
+                [sol,dlambda]=solveKApeSymmetric(Kuv,ubvbL,-Ruv,ubvbRhs,[dub;dvb],dlambda,CtrlVar);
             else
-                [sol,dlambda]=solveKApeSymmetric(K,ubvbL,-R-ubvbL'*ubvbLambda,ubvbRhs-ubvbL*[ub;vb],[dub;dvb],dlambda,CtrlVar);
+                [sol,dlambda]=solveKApeSymmetric(Kuv,ubvbL,-Ruv-ubvbL'*ubvbLambda,ubvbRhs-ubvbL*[ub;vb],[dub;dvb],dlambda,CtrlVar);
             end
 
         else
             CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=0;
-            [sol,dlambda]=solveKApe(K,ubvbL,-R-ubvbL'*ubvbLambda,ubvbRhs-ubvbL*[ub;vb],[dub;dvb],dlambda,CtrlVar);
+            [sol,dlambda]=solveKApe(Kuv,ubvbL,-Ruv-ubvbL'*ubvbLambda,ubvbRhs-ubvbL*[ub;vb],[dub;dvb],dlambda,CtrlVar);
         end
         
         
@@ -161,7 +161,7 @@ function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B
         
         
         if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
-            PlotForceResidualVectors('uv',R,ubvbL,ubvbLambda,MUA.coordinates,CtrlVar) ; axis equal tight
+            PlotForceResidualVectors('uv',Ruv,ubvbL,ubvbLambda,MUA.coordinates,CtrlVar) ; axis equal tight
         end
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(CtrlVar.fidlog,'NRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g \n ',...
