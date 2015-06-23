@@ -89,7 +89,7 @@ function Ua2D(UserRunParameters)
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
                 GF,GLdescriptors]=GetInputsForForwardRestartRun(CtrlVar);
             
-            ub=ub*0 ; vb=vb*0 ; fprintf('resetting velocities! \n')
+       
         else % New forward run (ie not a restart)
             [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
@@ -173,7 +173,7 @@ function Ua2D(UserRunParameters)
         
         
         % this calculation not really needed as AdjointNR2D should return converged ub,vb,ud,vd values for Cest and AGlenEst
-        [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+        [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo,ubvbL]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
         
 
         if CtrlVar.doplots
@@ -299,7 +299,7 @@ function Ua2D(UserRunParameters)
                 s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
                 AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUA,BCs,time,Itime,...
                 GF,GLdescriptors,alpha,...
-                s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1);
+                s,b,h,S,B,ub,vb,ud,vd,rh,ubvbL,l.ubvb,l.udvd,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1);
           
             
             if MUA.Nele==0 ;
@@ -326,7 +326,7 @@ function Ua2D(UserRunParameters)
         if CtrlVar.doDiagnostic==1 || ( CtrlVar.doPrognostic==1 && CtrlVar.Implicituvh==0)
             %% Diagnostic calculation
             tdiagnostic=tic;                  % -uv
-            [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+            [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo,ubvbL]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
             
             
             tdiagnostic=toc(tdiagnostic);
@@ -363,7 +363,7 @@ function Ua2D(UserRunParameters)
                     
                     tdiagnostic=tic;    
                     
-                    [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                    [ub,vb,ud,vd,l.ubvb,l.udvd,kv,rh,RunInfo,ubvbL]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                                                            
                 
                     tdiagnostic=toc(tdiagnostic);

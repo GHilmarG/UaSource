@@ -2,7 +2,8 @@ function [MeshDeriv,MeshDetJ]=CalcMeshDerivatives(CtrlVar,connectivity,coordinat
 
 
 dof=2; [Nele,nod]=size(connectivity);
-nip=NrOfIntegrationPoints(CtrlVar);
+CtrlVar=NrOfIntegrationPoints(CtrlVar);
+nip=CtrlVar.nip;
 MeshDeriv=zeros(Nele,dof,nod,nip);
 MeshDetJ=zeros(Nele,nip);
 

@@ -1,4 +1,4 @@
-function  [x,y,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF)
+function  [x,y,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,rh,ubvbL,ubvbLambda)
 
 
 %save TestSave ;error('fdsa')
@@ -69,7 +69,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 NodalErrorIndicator=NodalErrorIndicator*0 ;
                 ErrorIndicatorUsefull=0;
             else
-                % smoth this over a few elements
+                % smooth this over a few elements
                 
                 for II=1:CtrlVar.NumberOfSmoothingErrorIndicatorIterations
                     EleErrorIndicator=Nodes2EleMean(MUA.connectivity,NodalErrorIndicator);  NodalErrorIndicator=M*EleErrorIndicator;
@@ -87,6 +87,38 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                     figure(1720) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
                     title('Relative error based on |dhdt| ')
+                end
+            end
+            
+        case 'residuals'
+            if ~isempty(L)
+                rh=rh+ubvbL'*ubvbLambda;
+            end
+            
+            NodalErrorIndicator=sqrt((rh(1:Nnodes)).^2+(rh(Nnodes+1:2*Nnodes)).^2)
+            
+            if all(NodalErrorIndicator<1e-5)  % this could for example happen at a start of a run where dhdt has not been calculated
+                NodalErrorIndicator=NodalErrorIndicator*0 ;
+                ErrorIndicatorUsefull=0;
+            else
+                % smooth this over a few elements
+                
+                for II=1:CtrlVar.NumberOfSmoothingErrorIndicatorIterations
+                    EleErrorIndicator=Nodes2EleMean(MUA.connectivity,NodalErrorIndicator);  NodalErrorIndicator=M*EleErrorIndicator;
+                end
+                
+                
+                if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
+                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    NodalErrorIndicator(ind)=0;
+                end
+                
+                
+                NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+                
+                if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
+                    figure(1725) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
+                    title('Relative error based on residuals ')
                 end
             end
             

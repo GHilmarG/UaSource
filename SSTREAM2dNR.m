@@ -1,4 +1,4 @@
-function  [ub,vb,ubvbLambda,K,R,RunInfo]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g)
+function  [ub,vb,ubvbLambda,K,R,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g)
                    
     narginchk(18,18)
  

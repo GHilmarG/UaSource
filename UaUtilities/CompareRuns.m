@@ -65,7 +65,7 @@ else
     for I=1:N
         
         Figs{I}=figure(I);
-        PlotNodalBasedQuantities(F{I}.MUA.connectivity,F{I}.MUA.coordinates,eval(['F{',num2str(I),'}.',Var]),F{I}.CtrlVar);
+        PlotMeshScalarVariable(F{I}.CtrlVar,F{I}.MUA,eval(['F{',num2str(I),'}.',Var]));
         F{I}.GLgeo=GLgeometry(F{I}.MUA.connectivity,F{I}.MUA.coordinates,F{I}.GF,F{I}.CtrlVar);
         if I==3
             hold on

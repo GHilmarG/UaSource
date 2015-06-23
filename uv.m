@@ -1,4 +1,4 @@
-function [ub,vb,ud,vd,ubvbLambda,udvdLambda,kv,rh,RunInfo]= ...
+function [ub,vb,ud,vd,ubvbLambda,udvdLambda,kv,rh,RunInfo,ubvbL]= ...
     uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF)
 
 narginchk(23,23)
@@ -12,6 +12,8 @@ if ~isreal(vb) ; save TestSave ; error('uv:vdNotReal','vb not real!') ; end
 if ~isreal(ubvbLambda) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
 if ~isreal(udvdLambda) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 
+
+ubvbL=[];
 
 %% force C and AGlen to be within given max and min limits
 [C,iU,iL]=kk_proj(C,CtrlVar.Cmax,CtrlVar.Cmin);
@@ -43,8 +45,8 @@ switch lower(CtrlVar.FlowApproximation)
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         
-        [ub,vb,ubvbLambda,kv,rh,RunInfo]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g);
-        
+        [ub,vb,ubvbLambda,kv,rh,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,ubvbLambda,AGlen,C,n,m,alpha,rho,rhow,g);
+
         
     case 'ssheet'
         
