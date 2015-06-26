@@ -435,7 +435,7 @@ switch CtrlVar.RefineCriteria{1}
         % at any given refinement step
         
         test=sort(eRatio);
-        ElementsToBeRefined=eRatio<test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
+        ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
 end
 
 

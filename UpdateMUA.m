@@ -19,7 +19,13 @@ end
 
 CtrlVar=NrOfIntegrationPoints(CtrlVar);
 
+if ~isfield(MUA,'niph')
+    MUA.niph=CtrlVar.niph;
+end
 
+if ~isfield(MUA,'nip')
+    MUA.nip=CtrlVar.nip;
+end
 %% Now consider the possibility the FE coordinates and connectivity has changed
 % and that the other fields are not up to date
 

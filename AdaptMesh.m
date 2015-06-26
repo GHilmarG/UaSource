@@ -1,11 +1,11 @@
 
 function [CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
-    s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
+    s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
     AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
     GF,GLdescriptors,alpha,...
-    s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,ubvbLambda,udvdLambda,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
+    s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
 
-narginchk(42,42)
+narginchk(41,41)
 persistent MUA_Background
 
 %%
@@ -215,7 +215,7 @@ for JJ=1:Iterations
                 
                 error(' implicit error estimate not fully implemented \n')
                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(Experiment,MeshBoundaryCoordinates,Boundary,...
-                    s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g,Itime,CtrlVar);
+                    s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,Itime,CtrlVar);
                 
             case {'explicit:global','explicit:local'}
                 
@@ -233,7 +233,7 @@ for JJ=1:Iterations
                     
                     if CalcVel
                         MUAold=UpdateMUA(CtrlVar,MUAold);
-                         [ub,vb,ud,vd,l.ubvb,l.udvd,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                         [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                     end
  
                 end
@@ -241,7 +241,7 @@ for JJ=1:Iterations
                 %save TestSave ; error('afds')
                 [MUAnew,xGLmesh,yGLmesh,CtrlVar]=...
                     RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,...
-                    S,B,h,s,b,ub,vb,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,ubvbLambda);
+                    S,B,h,s,b,ub,vb,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,l.ubvb);
                 
                 CtrlVar.MeshChanged=1;
                 
@@ -372,10 +372,10 @@ for JJ=1:Iterations
                 
         if CalcVel
             
-            ub=ub*0 ; vb=vb*0 ; ubvbLambda=ubvbLambda*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
+            ub=ub*0 ; vb=vb*0 ; l.ubvb=l.ubvb*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
             ud=ud*0 ; vd=vd*0;
             MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            [ub,vb,ud,vd,ubvbLambda,udvdLambda,Kuv,Ruv,RunInfo]= uv(CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+            [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo]= uv(CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
         end
         
         

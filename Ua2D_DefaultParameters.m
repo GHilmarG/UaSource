@@ -3,11 +3,14 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %% Running Úa:
 %
-% 1) Add the folder with the Úa m-files to your matlab path.
+% 1) Add the folder with the Úa m-files, and its subfolders, to your matlab path.
+%    This can be done using the 'Home/Set' Path menu item, or from the
+%    command prompt doing something like:
+%    addpath('MyUaSourceFileFolder')
 %
 % 2) Define the Matlab environmental variable 'UaHomeDirectory'.
 % This can for example be done as follows:
-%                 setenv('UaHomeDirectory','MyDrive/Ua2D')
+%                 setenv('UaHomeDirectory','MyUaSourceFileFolder')
 %
 % 3) If using the mesh generator `gmsh' (almost always the case) then also define 
 % the Matlab environmental variable 'GmeshHomeDirectory'. The gmsh program
@@ -18,6 +21,7 @@ function CtrlVar=Ua2D_DefaultParameters
 % to set the Matlab environmental variable 'GmeshHomeDirectory'. 
 %
 % Now you can run Úa from within Matlab by writing Ua2D [Ret]
+%
 %
 %% Defining model run
 % Whenever setting up your own model, create your own working directory for your model runs. 

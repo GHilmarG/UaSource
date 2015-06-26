@@ -1,5 +1,4 @@
-function [x,y,EleSize]=DefineDesiredEleSize(x,y,EleSize,CtrlVar,coordinates,connectivity,s,b,S,B,rho,rhow)
-  
+function [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,GF,NodalErrorIndicators)
     % Allows user to set desired ele sizes (EleSize) at given locations (x,y).
     %
     % on input x, y, EleSize are desired ele sizes at (x,y)
