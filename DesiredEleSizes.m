@@ -1,4 +1,5 @@
-function  [x,y,EleSize,EleSize0,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
+function  [x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
+    DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ;error('fdsa')
@@ -13,11 +14,11 @@ function  [x,y,EleSize,EleSize0,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MU
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
 [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-EleSize0=sqrt(M*EleArea);
+EleSizeCurrent=sqrt(M*EleArea);
 % figure ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize0);
 % title('Nodal areas')
 
-x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2); EleSize=zeros(numel(x),1)+CtrlVar.MeshSizeMax ;
+x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2); EleSizeDesired=zeros(numel(x),1)+CtrlVar.MeshSizeMax ;
 
 for I=1:numel(CtrlVar.RefineCriteria)
     fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.RefineCriteria{I});
@@ -381,53 +382,83 @@ for I=1:numel(CtrlVar.RefineCriteria)
     end
     
     % take the minimum of each error indicator as measure for ele size
-    EleSize=min(EleSize,EleSizeIndicator);
+    EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
     
 end
 
-if all(EleSize==CtrlVar.MeshSizeMax)
+if all(EleSizeDesired==CtrlVar.MeshSizeMax)
     % if none of the explicit error indicators was usefull then set ele size to user-defined ele size
     fprintf(CtrlVar.fidlog,' All desired ele sizes equal to MeshSizeMax \n ');
     %   save TestSave
     %   error('asdf')
-    EleSize=zeros(MUA.Nnodes,1)+CtrlVar.MeshSize;
+    EleSizeDesired=zeros(MUA.Nnodes,1)+CtrlVar.MeshSize;
 end
 
 % do not allow EleSize to change too much and take a weighted average of
 % the previous and the new EleSize:
-EleSize=0.95*EleSize+0.05*EleSize0;
+EleSizeDesired=0.95*EleSizeDesired+0.05*EleSizeCurrent;
 
 % and also put strickt limits on change in EleSize:
-EleSizeRatio=EleSize./EleSize0;
+EleSizeRatio=EleSizeDesired./EleSizeCurrent;
 
 I=EleSizeRatio>CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing; 
-EleSize(I)=CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing*EleSize0(I);
+EleSizeDesired(I)=CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing*EleSizeCurrent(I);
 
 I=EleSizeRatio<CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing ; 
-EleSize(I)=CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing*EleSize0(I);
+EleSizeDesired(I)=CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing*EleSizeCurrent(I);
 
 
 if CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
     figure(1820) ;
-    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize,CtrlVar);
+    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
     colorbar ;  title(sprintf(' combined desired ele sizes ')) ;
 end
 
-% further user defined modifications to EleSize
+% No further user defined modifications to EleSizeDesired
 
-[x,y,EleSize]=DefineDesiredEleSize(x,y,EleSize,CtrlVar,MUA,s,b,S,B,rho,rhow,GF);
+%% now create a (logical) list of elements to be refined, i.e. split up into four sub-elements
 
-assert(numel(x)==numel(y) && numel(x)==numel(EleSize),' Number of elements in x, y, and EleSize must be the same \n')
+switch CtrlVar.RefineCriteria{1}
+    
+    case 'residuals'
+        
+        EleResiduals=Nodes2EleMean(MUA.connectivity,NodalErrorIndicators.Residuals);
+        EleResidualsSorted=sort(EleResiduals);
+        ElementsToBeRefined=EleResiduals>EleResidualsSorted(end-CtrlVar.LocalAdaptMeshMaxNrOfElementsToBeRefined);
+        
+    otherwise
+        
+        eRatio=EleSizeDesired./EleSizeCurrent;
+        eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
+        
+        % do not refine a greater number of elements than CtrlVar.MeshRefinementRatio*CurrentNumberOfElements
+        % at any given refinement step
+        
+        test=sort(eRatio);
+        ElementsToBeRefined=eRatio<test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
+end
+
+
+if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
+    figure ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,double(ElementsToBeRefined))  ;  title(' Refine Elements')
+end
+
+
+%% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
+
+[EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,GF,NodalErrorIndicators);
+
+assert(numel(x)==numel(y) && numel(x)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 
 
 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
     figure(1830)
     subplot(1,2,1,'replace')
-    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize,CtrlVar);
+    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
     title(' final desired ele sizes after user modification ');
 
     subplot(1,2,2,'replace')
-    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize0,CtrlVar);
+    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeCurrent,CtrlVar);
     title(' current ele sizes  ');
     hold off
 end

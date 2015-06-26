@@ -67,8 +67,22 @@ if  time> CtrlVar.TotalTime
 end
 
 CtrlVar.MeshChanged=0;
-
-
+if CtrlVar.ReadInitialMesh==1
+    fprintf(CtrlVar.fidlog,' On restart loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
+    fprintf(CtrlVar.fidlog,' This new mesh will replace the mesh in restart file. \n')
+    CtrlVar.ReadInitialMesh=0;
+    MUAold=MUA;
+    try
+        load(CtrlVar.ReadInitialMeshFileName,'MUA')
+        MUA=UpdateMUA(CtrlVar,MUA);
+    catch
+        load(CtrlVar.ReadInitialMeshFileName,'coordinates','connectivity')
+        MUA=CreateMUA(CtrlVar,connectivity,coordinates);
+        clear connectivity coordinates
+    end
+    CtrlVar.MeshChanged=1;
+end
+    
 for I=1:CtrlVar.RefineMeshOnRestart
     fprintf(CtrlVar.fidlog,' All triangle elements are subdivided into four triangles \n');
     MUAold=MUA;
@@ -87,25 +101,30 @@ end
 
 if CtrlVar.MeshChanged
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
-    x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
     
     
     OutsideValues=0;
-    [s,b,ub,vb,ud,vd]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValues,s,b,ub,vb,ud,vd);
+    [s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd,dubdt]=...
+        MapQuantitiesToNewFEmesh(CtrlVar,MUA,MUAold,h,time,OutsideValues,...
+        ub,vb,ud,vd);
+    
+    %     OutsideValues=0;
+    %    x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
+    %     [s,b,ub,vb,ud,vd]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValues,s,b,ub,vb,ud,vd);
     clear MUAold
-    h=s-b;
+    %h=s-b;
     
-    Nnodes=length(x);
-    dubdt=zeros(Nnodes,1); dvbdt=zeros(Nnodes,1);
-    duddt=zeros(Nnodes,1); dvddt=zeros(Nnodes,1);
-    dhdt=zeros(Nnodes,1);
-    dsdt=zeros(Nnodes,1);
-    dubdtm1=zeros(Nnodes,1); dvbdtm1=zeros(Nnodes,1);
-    duddtm1=zeros(Nnodes,1); dvddtm1=zeros(Nnodes,1);
-    dhdtm1=zeros(Nnodes,1);
+    %     Nnodes=length(x);
+    dubdt=zeros(MUA.Nnodes,1); dvbdt=zeros(MUA.Nnodes,1);
+    duddt=zeros(MUA.Nnodes,1); dvddt=zeros(MUA.Nnodes,1);
+    dhdt=zeros(MUA.Nnodes,1);
+    dsdt=zeros(MUA.Nnodes,1);
+    dubdtm1=zeros(MUA.Nnodes,1); dvbdtm1=zeros(MUA.Nnodes,1);
+    duddtm1=zeros(MUA.Nnodes,1); dvddtm1=zeros(MUA.Nnodes,1);
+    dhdtm1=zeros(MUA.Nnodes,1);
     
     
-    MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
+    %MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
     
 end
 
@@ -113,7 +132,7 @@ end
 
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
-
+%% In principle these calls to Define.. routines should not be needed
 [~,~,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,'SB');
 if any(isnan(S)) ; error(' S returned by DefineGeometry contains NaN') ; end
 if any(isnan(B)) ; error(' B returned by DefineGeometry contains NaN') ; end

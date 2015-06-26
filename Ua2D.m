@@ -327,7 +327,7 @@ function Ua2D(UserRunParameters)
             %% Diagnostic calculation
             tdiagnostic=tic;                  % -uv
             [ub,vb,ud,vd,l.ubvb,l.udvd,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
-            
+           
             
             tdiagnostic=toc(tdiagnostic);
             
@@ -363,7 +363,7 @@ function Ua2D(UserRunParameters)
                     
                     tdiagnostic=tic;    
                     
-                    [ub,vb,ud,vd,l.ubvb,l.udvd,Kuv,Ruv,RunInfo,L]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                    [ub,vb,ud,vd,l.ubvb,l.udvd,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                                                            
                 
                     tdiagnostic=toc(tdiagnostic);

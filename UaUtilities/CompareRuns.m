@@ -1,5 +1,9 @@
 function [Figs,F]=CompareRuns(files,Var)
 
+persistent FigCounter
+
+if isempty(FigCounter) ; FigCounter=1; end
+
 N=numel(files);
 
 if ischar(files{1})
@@ -36,7 +40,7 @@ end
 
 if strcmp(Var,'ubvb')
     for I=1:N
-        Figs{I}=figure(I);
+        Figs{I}=figure(FigCounter); FigCounter=FigCounter+1;
         k=2;
         
         PlotBoundary(F{I}.MUA.Boundary,F{I}.MUA.connectivity,F{I}.MUA.coordinates,F{I}.CtrlVar,'b')
@@ -54,7 +58,8 @@ if strcmp(Var,'ubvb')
     end
 elseif strcmp(Var,'mesh')
     for I=1:N
-        Figs{I}=figure(I);
+       
+        Figs{I}=figure(FigCounter); FigCounter=FigCounter+1;
         PlotFEmesh(F{I}.MUA.coordinates,F{I}.MUA.connectivity,F{I}.CtrlVar)
         title(sprintf('#Ele=%-i, #Nodes=%-i, #nod=%-i',...
             F{I}.MUA.Nele,F{I}.MUA.Nnodes,F{I}.MUA.nod))
@@ -64,7 +69,7 @@ else
     
     for I=1:N
         
-        Figs{I}=figure(I);
+        Figs{I}=figure(FigCounter); FigCounter=FigCounter+1;
         PlotMeshScalarVariable(F{I}.CtrlVar,F{I}.MUA,eval(['F{',num2str(I),'}.',Var]));
         F{I}.GLgeo=GLgeometry(F{I}.MUA.connectivity,F{I}.MUA.coordinates,F{I}.GF,F{I}.CtrlVar);
         if I==3

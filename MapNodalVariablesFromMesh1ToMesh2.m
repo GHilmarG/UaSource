@@ -9,7 +9,8 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideV
 % example:
 % [h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,h1,s1,rho1)
 % interpolates from FE Mesh MUA1 onto (x2,y2).
-% OutsideValues must be a vector with 3 elements
+% In this case OutsideValues must be a vector with 3 elements
+
 
 
 
@@ -42,8 +43,8 @@ end
 F = scatteredInterpolant();
 F.Points=MUA1.coordinates;
 
-F.Method='linear';
-F.ExtrapolationMethod='linear';
+F.Method='natural';
+F.ExtrapolationMethod='nearest';
 
 for iVar=1:nVar
     F.Values=double(varargin{iVar});
@@ -58,21 +59,25 @@ end
 % locate all points outside of the boundary as defined in MUA1 (i.e. old mesh)
 % and set values outside to `OutsideValue'
 
-if CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull
+if strcmp(F.ExtrapolationMethod,'none')
     
-    % now check if there are locations inside of the convex hull but outside of the
-    % FE mesh boundaries.
-    % p=([x2(~I)  y2(~I)]) ; % only need to check for points inside of the convex hull
-    
-    p=([x2(:) y2(:)]);
-    node=MUA1.coordinates;
-    edge=MUA1.Boundary.Edges(:,[1 end]);  % here I assume straight element edges!
-    
-    [in,on]=inpoly(p,node,edge,CtrlVar.InpolyTol);
-                               
-    % set all values outside of the FE boundary to the OutsideValue
-    for iVar=1:nVar
-        varargout{iVar}(~in)=OutsideValues(iVar);   % outside of mesh boundary
+    if CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull
+        
+        % now check if there are locations inside of the convex hull but outside of the
+        % FE mesh boundaries.
+        % p=([x2(~I)  y2(~I)]) ; % only need to check for points inside of the convex hull
+        
+        p=([x2(:) y2(:)]);
+        node=MUA1.coordinates;
+        edge=MUA1.Boundary.Edges(:,[1 end]);  % here I assume straight element edges!
+        
+        [in,on]=inpoly(p,node,edge,CtrlVar.InpolyTol);
+        
+        % set all values outside of the FE boundary to the OutsideValue
+        for iVar=1:nVar
+            varargout{iVar}(~in)=OutsideValues(iVar);   % outside of mesh boundary
+        end
+        
     end
     
 end

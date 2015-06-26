@@ -233,7 +233,7 @@ for JJ=1:Iterations
                     
                     if CalcVel
                         MUAold=UpdateMUA(CtrlVar,MUAold);
-                         [ub,vb,ud,vd,ubvbLambda,udvdLambda,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                         [ub,vb,ud,vd,l.ubvb,l.udvd,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                     end
  
                 end
@@ -325,6 +325,7 @@ for JJ=1:Iterations
         MapQuantitiesToNewFEmesh(CtrlVar,MUAnew,MUAold,hOld,time,OutsideValues,...
         ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1);
     
+    %[~,~,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUAnew,time,'SB')
     BCsNew=BoundaryConditions;
     BCsNew=GetBoundaryConditions(Experiment,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
         
@@ -359,11 +360,16 @@ for JJ=1:Iterations
     if JJ<Iterations
         
         % do I need to calculate velocities for error estimates?
+        
         CalcVel=0;
         for J=1:length(CtrlVar.RefineCriteria)
             if strcmp(CtrlVar.RefineCriteria{J},'effective strain rates') ; CalcVel=1 ; end
+            if strcmp(CtrlVar.RefineCriteria{J},'residuals') ; CalcVel=1 ; end
+            if CalcVel
+                break
+            end
         end
-        
+                
         if CalcVel
             
             ub=ub*0 ; vb=vb*0 ; ubvbLambda=ubvbLambda*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero

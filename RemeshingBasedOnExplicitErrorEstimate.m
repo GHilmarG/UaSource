@@ -22,7 +22,7 @@ hf=(S-B)*rhow./rho ;
 
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
-[x0,y0,EleSize,EleSize0]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,u0,v0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
+[x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,u0,v0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
 
 if strcmp(CtrlVar.MeshGenerator,'gmesh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
@@ -34,7 +34,7 @@ end
 TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh over which
 % the error estimation is performed
 
-if any(isnan(EleSize)) ; save TestSave ; error('fdsa') ; end
+if any(isnan(EleSizeDesired)) ; save TestSave ; error('fdsa') ; end
 
 %% mesh refinement or global remeshing
 
@@ -44,25 +44,11 @@ switch lower(CtrlVar.MeshRefinementMethod)
     case 'explicit:local'
         
 
-        % first average these nodal values for each element
-        EleSize0=Nodes2EleMean(MUA.connectivity,EleSize0);
-        EleSize=Nodes2EleMean(MUA.connectivity,EleSize);
-        
-        eRatio=EleSize./EleSize0;
-        
-        % do not refine a greater number of elements than CtrlVar.MeshRefinementRatio*CurrentNumberOfElements
-        % at any given refinement step
-        
-        test=sort(eRatio);
-        RefineElements=eRatio<test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
-        
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-            figure ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,double(RefineElements))  ;  title(' Refine Elements')
-        end
+     
         
         % refine and smoothmesh only works for 3-nod elements
         [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,3);
-        [MUA.coordinates,MUA.connectivity] = refine(MUA.coordinates,MUA.connectivity,RefineElements);
+        [MUA.coordinates,MUA.connectivity] = refine(MUA.coordinates,MUA.connectivity,ElementsToBeRefined);
         [MUA.coordinates] = GHGsmoothmesh(MUA.coordinates,MUA.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
          MUA.connectivity=FlipElements(MUA.connectivity); 
           
@@ -75,11 +61,11 @@ switch lower(CtrlVar.MeshRefinementMethod)
         switch lower(CtrlVar.MeshGenerator)
             case 'mesh2d'
                 CtrlVar.MeshSize=zeros(length(x0),3);
-                CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSize;
+                CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
             case 'gmesh'
                 
                 GmeshBackgroundScalarField.xy=[x0(:) y0];
-                GmeshBackgroundScalarField.EleSize=EleSize(:) ;
+                GmeshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
                 GmeshBackgroundScalarField.TRI=TRIxy0;
                 
                 
@@ -126,14 +112,14 @@ switch lower(CtrlVar.MeshRefinementMethod)
             %CtrlVar.MeshSize(EleSize>CtrlVar.MeshSizeMax,3)=CtrlVar.MeshSizeMax;
             
             % rescale elements sizes so that maximum size is still MeshSizeMax but min ele size is scaled either up or down
-            maxE=max(EleSize);
-            minE=min(EleSize);
+            maxE=max(EleSizeDesired);
+            minE=min(EleSizeDesired);
             
             NewMinE=min([minE*ScalingFactor,0.9*CtrlVar.MeshSizeMax]);
             if maxE~=minE
-                EleSize=NewMinE+(CtrlVar.MeshSizeMax-NewMinE)*(EleSize-minE)/(maxE-minE);
+                EleSizeDesired=NewMinE+(CtrlVar.MeshSizeMax-NewMinE)*(EleSizeDesired-minE)/(maxE-minE);
             else
-                EleSize=NewMinE+EleSize*0;
+                EleSizeDesired=NewMinE+EleSizeDesired*0;
             end
             
             It=It+1;
@@ -143,13 +129,13 @@ switch lower(CtrlVar.MeshRefinementMethod)
             switch lower(CtrlVar.MeshGenerator)
                 case 'mesh2d'
                     CtrlVar.MeshSize=zeros(length(x0),3);
-                    CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSize;
+                    CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
                 case 'gmesh'
                     GmeshBackgroundScalarField.xy=[x0(:) y0(:)] ;
-                    GmeshBackgroundScalarField.EleSize=EleSize(:) ;
+                    GmeshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
                     GmeshBackgroundScalarField.TRI=TRIxy0 ;
                     
-                    if any(isnan(EleSize)) ; error('fdsa') ; end
+                    if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
                 otherwise
                     error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmesh} ')
             end
