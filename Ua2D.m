@@ -8,7 +8,7 @@ function Ua2D(UserRunParameters)
 
     SetUaPath() %% set path
 
-    %%
+
     warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
     
     
