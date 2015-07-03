@@ -28,8 +28,6 @@ end
 % Deriv : MUA.Nele x dof x nod
 %  detJ : MUA.Nele
 
-dudt1nod=(unod-u0nod)/dt; dvdt1nod=(vnod-v0nod)/dt;
-
 % values at integration this point
 Hnod=Snod-Bnod;
 
@@ -111,12 +109,7 @@ Heint = HeavisideApprox(kH,hint-hfint,CtrlVar.Hh0);  % important to calculate He
 HEint = HeavisideApprox(kH,hfint-hint,CtrlVar.Hh0);
 deltaint=DiracDelta(kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
 Deltaint=DiracDelta(kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
-
-%dintTest = HeavisideApprox(CtrlVar.kH,Sint-bint).*(Sint-bint);
-%dintTest and dint are very similar
 dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;
-%Dddhint=HEint.*rhoint/rhow+deltaint.*(Hint-rhoint.*hint/rhow);
-
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint;
 
 
@@ -165,48 +158,17 @@ for Inod=1:MUA.nod
 end
 
 CtrlVar.GroupRepresentation=0;
-if CtrlVar.GroupRepresentation
-    
-    q0xnod=rhonod.*h0nod.*u0nod; q0ynod=rhonod.*h0nod.*v0nod;
-    qxnod=rhonod.*hnod.*unod;     qynod=rhonod.*hnod.*vnod;
-    
-    qx1dx=zeros(MUA.Nele,1); qy1dy=zeros(MUA.Nele,1);
-    qx0dx=zeros(MUA.Nele,1); qy0dy=zeros(MUA.Nele,1);
-    
-    h1dudt1=hnod.*dudt1nod ;  h1dvdt1=hnod.*dvdt1nod ;
-    h0dudt0=h0nod.*dudt0nod ;  h0dvdt0=h0nod.*dvdt0nod ;
-    
-    h1dudt1dx=zeros(MUA.Nele,1) ;
-    h1dvdt1dy=zeros(MUA.Nele,1) ;
-    h0dudt0dx=zeros(MUA.Nele,1) ;
-    h0dvdt0dy=zeros(MUA.Nele,1) ;
-    
-    
-    for Inod=1:MUA.nod
-        
-        qx1dx=qx1dx+Deriv(:,1,Inod).*qxnod(:,Inod);
-        qy1dy=qy1dy+Deriv(:,2,Inod).*qynod(:,Inod);
-        qx0dx=qx0dx+Deriv(:,1,Inod).*q0xnod(:,Inod);
-        qy0dy=qy0dy+Deriv(:,2,Inod).*q0ynod(:,Inod);
-        
-        h1dudt1dx=h1dudt1dx+Deriv(:,1,Inod).*h1dudt1(:,Inod);
-        h1dvdt1dy=h1dvdt1dy+Deriv(:,2,Inod).*h1dvdt1(:,Inod);
-        h0dudt0dx=h0dudt0dx+Deriv(:,1,Inod).*h0dudt0(:,Inod);
-        h0dvdt0dy=h0dvdt0dy+Deriv(:,2,Inod).*h0dvdt0(:,Inod);
-        
-    end
-    
-else
-    
-    qx1dx=rhoint.*exx(:,Iint).*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
-    qy1dy=rhoint.*eyy(:,Iint).*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
-    qx0dx=rhoint.*du0dx.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
-    qy0dy=rhoint.*dv0dy.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
-    
-end
 
 
-%%
+qx1dx=rhoint.*exx(:,Iint).*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
+qy1dy=rhoint.*eyy(:,Iint).*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
+qx0dx=rhoint.*du0dx.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
+qy0dy=rhoint.*dv0dy.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
+
+
+
+
+%% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
 
 l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
 
@@ -218,7 +180,7 @@ kappa=coth(Pe)-1./Pe;
 tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
-f=rhoint.*((hint-h0int)/dt-(1-theta)*h0barr-theta*h1barr)+(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy)-rhoint.*((1-theta)*a0int+theta*a1int);
+f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
 SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
 SUPGv=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-vint.*vint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
 
@@ -298,20 +260,20 @@ for Inod=1:MUA.nod
             
             Khu(:,Inod,Jnod)=Khu(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdx.*fun(Jnod)+drhodx.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,1,Jnod))...
-                .*SUPG.*detJw+dSUPGu.*detJw;
+                .*SUPG.*detJw*dt+dSUPGu.*detJw*dt;
             
             
             Khv(:,Inod,Jnod)=Khv(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdy.*fun(Jnod)+drhody.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,2,Jnod))...
-                .*SUPG.*detJw+dSUPGv.*detJw;
+                .*SUPG.*detJw*dt+dSUPGv.*detJw*dt;
             
        
            
             Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
-                +(rhoint.*fun(Jnod)/dt...
-                -theta*rhoint.*dadhint.*fun(Jnod)...
-                +theta*rhoint.*fun(Jnod).*h1barr/lambda_h...
-                +theta.*(rhoint.*exx(:,Iint).*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
+                +(rhoint.*fun(Jnod)...
+                -dt*theta*rhoint.*dadhint.*fun(Jnod)...
+                +dt*theta*rhoint.*fun(Jnod).*h1barr/lambda_h...
+                +dt*theta.*(rhoint.*exx(:,Iint).*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
                          rhoint.*eyy(:,Iint).*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
                 .*SUPG.*detJw;
             
@@ -365,9 +327,10 @@ for Inod=1:MUA.nod
         +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
   
   
-    qterm=  (theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;
-    dhdt=  rhoint.*((h0int-hint)/dt+(1-theta)*h0barr+theta*h1barr).*SUPG;
-    accterm=  rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
+    qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;
+    dhdt=  rhoint.*(h0int-hint+dt*(1-theta)*h0barr+dt*theta*h1barr).*SUPG;
+    accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
+    
     th=-dhdt;
     fh=  accterm - qterm;
     

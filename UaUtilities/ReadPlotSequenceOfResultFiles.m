@@ -21,6 +21,7 @@ I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG
 I=1; Run{I}='JenkinsVer2-Tw150Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
+I=1 ; Run{I}='MeltRate0-ahFeedback3Edge-Wise-supg' ; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 
 plots='-ubvb-';
 plots='-h-';
@@ -32,7 +33,7 @@ plots='-h-';
 %plots='-MeltNodes-';
 %plots='-log10(BasalSpeed)-';
 %plots='-sbB-';
-dt=10;
+dt=20;
 PlotMinThickLocations=1;   % nodes at min thickness shown as red dots
 
 %%
