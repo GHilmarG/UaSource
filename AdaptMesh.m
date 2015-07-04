@@ -329,7 +329,7 @@ for JJ=1:Iterations
     BCsNew=BoundaryConditions;
     BCsNew=GetBoundaryConditions(Experiment,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
         
-    [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
+    [as,ab]=GetMassBalance(Experiment,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
     
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
         if CtrlVar.PlotBCs

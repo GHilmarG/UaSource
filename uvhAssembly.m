@@ -39,10 +39,10 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
     
     switch CtrlVar.MassBalanceGeometryFeedback
         case 2
-            [as1,ab1]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as1,ab1]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
             dadh=zeros(MUA.Nnodes,1);
         case 3
-            [as1,ab1,dasdh,dabdh]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as1,ab1,dasdh,dabdh]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
             dadh=dasdh+dabdh;
     end
     

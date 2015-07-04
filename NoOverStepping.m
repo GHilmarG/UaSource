@@ -5,7 +5,7 @@ function dtOut=NoOverStepping(CtrlVar,time,dtIn,Dt)
 %
 %
 
-dtOut=round(dtIn,10); % round to 10 significant digits.
+dtOut=round(dtIn,14); % round to 10 significant digits.
                       % this is needed so that the sum time+dtOut is always numerically different from time
 
 LimitTime=Dt*ceil(time/Dt);  % time that should not be overstepped.

@@ -111,7 +111,6 @@ else
     CtrlVar.AdjointRestart=0 ;
     if CtrlVar.doDiagnostic  ; % diagnostic takes precedence over prognostic, if conflict
         CtrlVar.doPrognostic=0 ;
-        CtrlVar.nTimeSteps=1;
     end
 end
 

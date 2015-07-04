@@ -68,7 +68,7 @@ function dtOut=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping:  #Non-Lin Iterations over last %-i time steps: (max|mean|min)=(%-g|%-g|%-g). Target is %-i. \t TimeStepUpRatio=%-g \n ',...
             nItVector,max(ItVector),mean(ItVector),min(ItVector),CtrlVar.ATSTargetIterations,TimeStepUpRatio);
         
-        if RunInfo.Iterations>25
+        if icount>2 && RunInfo.Iterations>25
             icount=0;
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);

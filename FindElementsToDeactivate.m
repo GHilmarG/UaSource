@@ -7,8 +7,7 @@ function Iele=FindElementsToDeactivate(CtrlVar,MUA,h)
 %
 % I need to know the surface mass balance at ice free reagions where s=b=B
 [~,~,S,B]=DefineGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
-[as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,B,B,h,S,B,[],[],[]);
-%DefineMassBalance(CtrlVar.Experiment,CtrlVar.time,B,B,S,B,coordinates,connectivity,[],[],[],[],CtrlVar,[]);
+[as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,B,B,h,S,B,[],[],[]);
 I=find(as >= CtrlVar.MinSurfAccRequiredToReactivateNodes & h<=CtrlVar.ThickMinDeactivateElements);
 h(I)=CtrlVar.ThickMinDeactivateElements+0.001; % the simplest way of assuring that the elements with these nodes are not eliminated is to reset the thickness 
 

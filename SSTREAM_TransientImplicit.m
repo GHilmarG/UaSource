@@ -225,7 +225,7 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
         if rdamp~=0
             as1Old=as1 ; ab1Old=ab1;
         end
-        [as1,ab1]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+        [as1,ab1]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
         
         if rdamp~=0
             % If Hessian inaccurate, or too non-linear, then

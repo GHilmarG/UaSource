@@ -20,7 +20,8 @@ function Ua2D(UserRunParameters)
     
     RunInfo=[];
     Lubvb=[];
-    GLdescriptors=[] ; Itime=0; da0dt=[];
+    GLdescriptors=[] ; Itime=0; 
+    da0dt=[];
     dsdt=NaN; dbdt=NaN; dhdt=NaN; Ruv=[];
     dGFdt=[];  % get rid of this at a later stage
     
@@ -31,8 +32,9 @@ function Ua2D(UserRunParameters)
     
     
     %% Get user-defined values for Ctrl Variable and FE mesh outline
+    %  CtrlVar,UsrVar,Info,UaOuts
     [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
-    CtrlVar.Experiment=Experiment; CtrlVar.time=time ; CtrlVar.dt=dt;
+    CtrlVar.Experiment=Experiment; CtrlVar.time=time ; CtrlVar.dt=dt; CtrlVar.Itime=Itime;
     CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates; 
     
     if ~isfield(CtrlVar,'fidlog')
@@ -87,7 +89,7 @@ function Ua2D(UserRunParameters)
             
             [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-                GF,GLdescriptors]=GetInputsForForwardRestartRun(CtrlVar);
+                GF,GLdescriptors,Itime]=GetInputsForForwardRestartRun(CtrlVar);
             
        
         else % New forward run (ie not a restart)
@@ -245,7 +247,7 @@ function Ua2D(UserRunParameters)
     while 1 
         
         if Itime >=( CtrlVar.nTimeSteps+Itime0)
-            fprintf('Exiting time loop because total number of time steps reached. \n')
+            fprintf('Exiting time loop because total number of steps reached. \n')
             break
         end
 
@@ -254,8 +256,8 @@ function Ua2D(UserRunParameters)
             break
         end
         
-        if dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
-            fprintf('Exiting time loop because time step too small (%g<%g)\n',dt,CtrlVar.dt)
+        if CtrlVar.TimeDependentRun && dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
+            fprintf('Exiting time loop because time step too small (%g<%g)\n',dt,CtrlVar.dtmin)
             TempFile=[Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
             break
         end
@@ -275,16 +277,18 @@ function Ua2D(UserRunParameters)
             dt=AdaptiveTimeStepping(CtrlVar,time,dt,RunInfo,dubdt,dvbdt,dhdt);
             dtRatio=dt/CtrlVar.dt;
             CtrlVar.dt=dt;
+        else
+            dt=0; CtrlVar.dt=dt;
         end
         
         if CtrlVar.DefineOceanSurfaceAtEachTimeStep
-            [~,~,S,~,~]=DefineGeometry(Experiment,CtrlVar,MUA,time,'S');
+            [~,~,S,~,~]=GetGeometry(Experiment,CtrlVar,MUA,time,'S');
         end
         
         [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
         GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);  
         [C,m]=GetSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-        [AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [AGlen,n]=GetAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
         if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
             BCs=GetBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
         end
@@ -319,7 +323,7 @@ function Ua2D(UserRunParameters)
         %%
         
         ub0=ub ; vb0=vb; ud0=ud ; vd0=vd ; h0=h; s0=s ; b0=b;
-        [as0,ab0]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [as0,ab0]=GetMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
         a0=as0+ab0;
         
         
@@ -405,7 +409,7 @@ function Ua2D(UserRunParameters)
             uvhStep=1;
             while uvhStep==1  && dt > CtrlVar.dtmin % if uvh step does not converge, it is repeated with a smaller dt value
                 
-                [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
+                [as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
                 as1=as ; ab1=ab; 
                 %        0  : values at t
                 %        1  : explicit guess for values at t+dt
@@ -453,7 +457,7 @@ function Ua2D(UserRunParameters)
             [ub1,vb1]=ExplicitEstimation(dt,dtRatio,Itime,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1);
 
             dub1dt=dubdt; dvb1dt=dvbdt ;  dub0dt=dubdt; dvb0dt=dvbdt ; % could possibly be done a bit better
-            [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
             a1=as+ab; da0dt=(a1-a0)/dt ; da1dt=da0dt; 
             if dt==0 ; da0dt=zeros(MUA.Nnodes,1); da1dt=zeros(MUA.Nnodes,1) ; end
             [h,l.h]=SSS2dPrognostic(dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.niph,Lh,Lhrhs,l.h,Itime,CtrlVar);
@@ -514,7 +518,7 @@ function Ua2D(UserRunParameters)
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;    
         
         if CtrlVar.MassBalanceGeometryFeedback>0
-            [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
         end
         
         UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
@@ -605,7 +609,7 @@ function Ua2D(UserRunParameters)
         CtrlVar.UaOutputsInfostring='Last call';
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
         if CtrlVar.MassBalanceGeometryFeedback>0
-            [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
         end
         
         UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);

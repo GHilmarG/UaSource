@@ -11,26 +11,6 @@ Itime=[] ; time=[];
 x=coordinates(:,1); y=coordinates(:,2);
 %if I==1
     S=S0 ; B=B0;h=h0;u=u0;v=v0;wSurf=wSurf0 ; dhdt=dhdt0; AGlen=AGlen0; rho=rho0; DTxy=DTxy0; TRIxy=TRIxy0;
-% else
-%     % interpolate field variables onto new mesh
-%     [~,~,S,B,alpha]=DefineGeometry(Experiment,coordinates,CtrlVar);
-%     % Interpolate field variables on new grid
-%     
-%     u=Grid1toGrid2(DTxy0,u0,x,y);
-%     v=Grid1toGrid2(DTxy0,v0,x,y);
-%     h=Grid1toGrid2(DTxy0,h0,x,y);
-%     wSurf=Grid1toGrid2(DTxy0,wSurf0,x,y);
-%     dhdt=Grid1toGrid2(DTxy0,dhdt0,x,y);
-%     
-%     rho=Grid1toGrid2(DTxy0,rho,x,y);  % bit akward but I need rho to calculate b and h
-%     [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar);
-%     
-%     [rho,rhow,g]=DefineDensities(Experiment,coordinates,connectivity,s,b,h,S,B,Itime,time,CtrlVar);
-%     %[C,m]=DefineSlipperyDistribution(Experiment,coordinates,connectivity,s,b,h,S,B,rho,rhow,Itime,time,CtrlVar);
-%     [AGlen,n]=DefineAGlenDistribution(Experiment,coordinates,connectivity,s,b,h,S,B,rho,rhow,Itime,time,CtrlVar);
-%     [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(coordinates,connectivity,MeshBoundaryCoordinates,nip);
-% end
-% 
 
 hf=(S-B)*rhow./rho ;
 

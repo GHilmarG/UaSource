@@ -88,12 +88,12 @@ end
 
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
-[s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,'sbSB');
+[s,b,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,s,b,S,B);
 
 
 h=s-b;
-[rho,rhow,g]=DefineDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
+[rho,rhow,g]=GetDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
 GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
 [C,m]=GetSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);

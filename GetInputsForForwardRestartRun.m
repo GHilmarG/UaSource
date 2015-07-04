@@ -1,6 +1,6 @@
 function    [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-    GF,GLdescriptors]=GetInputsForForwardRestartRun(CtrlVar)
+    GF,GLdescriptors,Itime]=GetInputsForForwardRestartRun(CtrlVar)
 
 
 
@@ -47,7 +47,7 @@ CtrlVar.time=time; CtrlVar.dt=dt;
 
 if CtrlVar.ResetTime==1 ;
     time=0;  CtrlVar.time=time;
-    Itime=0;
+    Itime=0; CtrlVar.Itime=Itime;
     fprintf(CtrlVar.fidlog,' Time reset to %-g \n',time);
 end
 
@@ -133,12 +133,12 @@ end
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
 %% In principle these calls to Define.. routines should not be needed
-[~,~,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,'SB');
+[~,~,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time,'SB');
 if any(isnan(S)) ; error(' S returned by DefineGeometry contains NaN') ; end
 if any(isnan(B)) ; error(' B returned by DefineGeometry contains NaN') ; end
 
 
-[rho,rhow,g]=DefineDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
+[rho,rhow,g]=GetDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
 rho=rho+zeros(length(MUA.coordinates),1);  % make sure that rho is a nodal vector
 GF=GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
