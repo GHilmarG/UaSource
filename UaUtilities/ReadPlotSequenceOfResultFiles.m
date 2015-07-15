@@ -11,17 +11,25 @@ cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 pwd
 
 %% variables:
-CreateVideo=0;
+CreateVideo=1; pos=[40 200 2300 1800];
 I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
 
 %I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='JenkinsVer20Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-I=1; Run{I}='JenkinsVer2-Tw150Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+%I=1; Run{I}='JenkinsVer2-Tw150Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 %I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
-I=1 ; Run{I}='MeltRate0-ahFeedback3Edge-Wise-supg' ; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+%I=1 ; Run{I}='MeltRate3-ahFeedback3Edge-Wise-supg' ; cd DG\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
+
+%I=1;  Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+%I=2;  Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
+%I=1;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+I=1;  Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
 
 plots='-ubvb-';
 plots='-h-';
@@ -33,17 +41,18 @@ plots='-h-';
 %plots='-MeltNodes-';
 %plots='-log10(BasalSpeed)-';
 %plots='-sbB-';
-dt=20;
+dt=5;
 PlotMinThickLocations=1;   % nodes at min thickness shown as red dots
 
 %%
 PlotArea=NaN;
 PlotRegion='pigiceshelf';
-PlotRegion=[];usrstr=[]; TRI=[]; DT=[] ;
+%PlotRegion=[];
+usrstr=[]; TRI=[]; DT=[] ;
 
 k=0;
 
-for J=1
+for J=1:numel(Run)
     
     %   FileName=F{J};
     
@@ -157,7 +166,7 @@ for J=1
                 end
                 
                 if CreateVideo
-                    fab.Position=[300 100 750 520];
+                    fab.Position=pos;
                 end
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,ab,CtrlVar);
@@ -185,7 +194,7 @@ for J=1
                     figure(fab)
                 end
                 if CreateVideo
-                    fab.Position=[300 100 750 520];
+                    fab.Position=pos;
                 end
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,b,CtrlVar);
@@ -213,7 +222,7 @@ for J=1
                     figure(fas)
                 end
                 if CreateVideo
-                    fab.Position=[300 100 750 520];
+                    fab.Position=pos;
                 end
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,s,CtrlVar);
@@ -241,7 +250,7 @@ for J=1
                     figure(fas)
                 end
                 if CreateVideo
-                    fab.Position=[300 100 750 520];
+                    fas.Position=pos;
                 end
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,dhdt,CtrlVar);
@@ -270,7 +279,7 @@ for J=1
                     figure(fh)
                 end
                 if CreateVideo
-                    fh.Position=[300 100 750 520];
+                    fh.Position=pos;
                 end
                 hold off
                 
@@ -304,7 +313,7 @@ for J=1
                     figure(fsbB)
                 end
                 if CreateVideo
-                    fsbB.Position=[300 100 750 520];
+                    fsbB.Position=pos;
                 end
                 hold off
                 
@@ -330,7 +339,7 @@ for J=1
                     figure(MN)
                 end
                 if CreateVideo
-                    MN.Position=[300 100 750 520];
+                    MN.Position=pos;
                 end
                 hold off
                 
@@ -404,6 +413,7 @@ for J=1
         fprintf('\n video file closed \n')
     end
     cd(CurDir)
+    close all
 end
 
 cd(CurDir)
