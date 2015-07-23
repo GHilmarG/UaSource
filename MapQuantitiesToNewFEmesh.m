@@ -18,6 +18,9 @@ x=MUAnew.coordinates(:,1); y=MUAnew.coordinates(:,2);
 
 if CtrlVar.doDiagnostic
     % if a dignostic step then surface (s) and bed (b), and hence the thickness (h), are defined by the user
+    fprintf('Note that as this is a diagnostic step the ice upper and lower surfaces (s and b) are always defined by the user. \n')
+    fprintf('When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
+    fprintf('are therfore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n') 
     [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUAnew,time,'sbSB');
     h=s-b;
 else

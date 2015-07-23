@@ -28,8 +28,9 @@ I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG
 %I=2;  Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 
 %I=1;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-I=1;  Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-
+I=1; Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+I=1; Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+%I=1; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 
 plots='-ubvb-';
 plots='-h-';
@@ -80,7 +81,7 @@ for J=1:numel(Run)
         
         %if strcmp(list(I).name(6:7),'00')
         t=str2double(list(I).name(1:7))/100;
-        if mod(t,dt)==0
+        if mod(t,dt)==0 %&& t<50
             
             try
                 load(list(I).name)
@@ -88,6 +89,12 @@ for J=1:numel(Run)
             catch
                 fprintf('could not load %s \n ',list(I).name)
             end
+            if ~isempty(strfind(CtrlVar.Experiment,'Jenkins'))
+                Tw=CtrlVar.Tw+CtrlVar.DeltaTw*sin(2*pi*CtrlVar.time/CtrlVar.PeriodTw);
+            else
+                Tw=[];
+            end
+            
             GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
             TRI=[]; DT=[];
             x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
@@ -286,7 +293,7 @@ for J=1:numel(Run)
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,h,CtrlVar);
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
                 
-                title(sprintf('ice shelf thickness at t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+                title(sprintf('ice shelf thickness at t=%-g. Tw=%-g ',CtrlVar.time,Tw)) ; xlabel('x (km)') ; ylabel('y (km)')
                 title(colorbar,'(m)')
                 %                 if PlotMinThickLocations
                 %                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');

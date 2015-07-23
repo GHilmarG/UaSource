@@ -8,7 +8,7 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideV
 %
 % example:
 % [h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,h1,s1,rho1)
-% interpolates from FE Mesh MUA1 onto (x2,y2).
+% interpolates h,s and rho, from FE Mesh MUA1 onto (x2,y2).
 % In this case OutsideValues must be a vector with 3 elements
 
 
