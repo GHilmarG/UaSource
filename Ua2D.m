@@ -4,7 +4,7 @@ function Ua2D(UserRunParameters)
     if nargin==0
         UserRunParameters=[];
     end
-        
+            
 
     SetUaPath() %% set path
 
@@ -33,10 +33,10 @@ function Ua2D(UserRunParameters)
     
     %% Get user-defined values for Ctrl Variable and FE mesh outline
     %  CtrlVar,UsrVar,Info,UaOuts
-    [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
-    CtrlVar.Experiment=Experiment; CtrlVar.time=time ; CtrlVar.dt=dt; 
-    nStep=0 ; CtrlVar.nStep=nStep; 
-    CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates; 
+    [CtrlVar.Experiment,CtrlVar,CtrlVar.time,CtrlVar.dt,CtrlVar.MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
+    %CtrlVar.Experiment=Experiment;
+    CtrlVar.CurrentRunStepNumber=0 ; 
+    %CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates; 
     
     if ~isfield(CtrlVar,'fidlog')
         CtrlVar.fidlog=1;
@@ -46,13 +46,13 @@ function Ua2D(UserRunParameters)
     CtrlVar=CtrlVarValidityCheck(CtrlVar);
     
     
-    CtrlVar.Logfile=[Experiment,'.log'];
+    CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
     [pathstr,name,ext]=fileparts(CtrlVar.GmeshFile); CtrlVar.GmeshFile=[pathstr,name]; % get rid of eventual file extension
    
     if CtrlVar.Restart || CtrlVar.AdjointRestart
-        CtrlVar.InfoFile = fopen([Experiment,'-RunInfo.txt'],'a');
+        CtrlVar.InfoFile = fopen([CtrlVar.Experiment,'-RunInfo.txt'],'a');
     else
-        CtrlVar.InfoFile = fopen([Experiment,'-RunInfo.txt'],'w');
+        CtrlVar.InfoFile = fopen([CtrlVar.Experiment,'-RunInfo.txt'],'w');
     end
 
     
@@ -88,13 +88,13 @@ function Ua2D(UserRunParameters)
         
         if CtrlVar.Restart  % Forward restart run
             
-            [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-                GF,GLdescriptors,nStep]=GetInputsForForwardRestartRun(CtrlVar);
+                GF,GLdescriptors,CtrlVar.CurrentRunStepNumber]=GetInputsForForwardRestartRun(CtrlVar);
             
        
         else % New forward run (ie not a restart)
-            [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
                 GF]=GetInputsForForwardRun(CtrlVar);
             
@@ -107,17 +107,17 @@ function Ua2D(UserRunParameters)
         
         if CtrlVar.AdjointRestart==1  % inverse restarted run
 
-            [Experiment,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+            [CtrlVar.Experiment,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
                 GetInputsForInverseRestartRun(CtrlVar);
             
         else % New inverse run
             
             % first get variables defining the forward run
-            [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=GetInputsForForwardRun(CtrlVar);
             
             % now get the additional variables specific to an inverse run
-            [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+            [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
             
         end
     end
@@ -168,7 +168,7 @@ function Ua2D(UserRunParameters)
         %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
        
         [InvFinalValues,ub,vb,ud,vd,l.ubvb,l.udvd,xAdjoint,yAdjoint,Info]=...
-            InvertForModelParameters(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+            InvertForModelParameters(CtrlVar.Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l.ubvb,l.udvd,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
         
         C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
         AGlen=InvFinalValues.AGlen  ; fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
@@ -180,15 +180,15 @@ function Ua2D(UserRunParameters)
         
 
         if CtrlVar.doplots
-            AdjointResultsPlots(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
+            AdjointResultsPlots(CtrlVar.Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
                 InvStartValues,Priors,Meas,BCsAdjoint,Info,InvFinalValues,xAdjoint,yAdjoint);
         end
 
         if CtrlVar.AdjointWriteRestartFile==1
             
-            fprintf(CtrlVar.fidlog,' %s saving adjoint restart file: %s \n ',Experiment,CtrlVar.NameOfAdjointRestartFiletoWrite);
+            fprintf(CtrlVar.fidlog,' %s saving adjoint restart file: %s \n ',CtrlVar.Experiment,CtrlVar.NameOfAdjointRestartFiletoWrite);
             save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
-                'Experiment','CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
+                'CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
                 'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint');
             
             xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
@@ -208,15 +208,15 @@ function Ua2D(UserRunParameters)
     %%
     
     CtrlVar.FE2dTransientPlotsCounter=0;
-    if ReminderFraction(time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0
+    if ReminderFraction(CtrlVar.time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0
         
         CtrlVar.FE2dTransientPlotsCounter=CtrlVar.FE2dTransientPlotsCounter+1;
         CtrlVar.FE2dTransientPlotsInfostring='First transient plot';
         [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
         [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,MUA.coordinates,MUA.connectivity,MUA.nip,CtrlVar);
         [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-        FE2dTransientPlots(CtrlVar,DTxy,TRIxy,MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
-            b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,time,...
+        FE2dTransientPlots(CtrlVar,DTxy,TRIxy,CtrlVar.MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
+            b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,CtrlVar.time,...
             rho,rhow,as+ab,as,ab,MUA.Boundary,MUA.nip);
         
         if CtrlVar.OnlyDoFirstTransientPlotAndThenStop
@@ -227,11 +227,11 @@ function Ua2D(UserRunParameters)
     
     % UaOutputs
     CtrlVar.UaOutputsCounter=0;
-    if (ReminderFraction(time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
+    if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
         CtrlVar.UaOutputsInfostring='First call ';
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
           
-        UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
+        UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
         
         if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
             fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -241,62 +241,65 @@ function Ua2D(UserRunParameters)
     end
     %
 
-    nStep0=nStep;  CtrlVar.nStep0=nStep;
+    %nStep0=CurrentRunStepNumber;  
+    CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
  %   if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
     
     %%  time loop
     while 1 
         
-        if nStep >=( CtrlVar.nTimeSteps+nStep0)
+        if CtrlVar.CurrentRunStepNumber >=( CtrlVar.nTimeSteps+CtrlVar.CurrentRunStepNumber0)
             fprintf('Exiting time loop because total number of steps reached. \n')
             break
         end
 
-        if (CtrlVar.TotalTime - time) <= CtrlVar.dtmin
+        if (CtrlVar.TotalTime - CtrlVar.time) <= CtrlVar.dtmin
             fprintf('Exiting time loop because total time reached. \n')
             break
         end
         
-        if CtrlVar.TimeDependentRun && dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
-            fprintf('Exiting time loop because time step too small (%g<%g)\n',dt,CtrlVar.dtmin)
-            TempFile=[Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
+        if CtrlVar.TimeDependentRun && CtrlVar.dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
+            fprintf('Exiting time loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
+            TempFile=[CtrlVar.Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
             break
         end
         
-        nStep=nStep+1;  CtrlVar.nStep=nStep;
+        %CurrentRunStepNumber=CurrentRunStepNumber+1;  CtrlVar.CurrentRunStepNumber=CurrentRunStepNumber;
+        CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;  
         
         if CtrlVar.PlotWaitBar ;
-            multiWaitbar('Time Steps','Value',(nStep-1-nStep0)/CtrlVar.nTimeSteps);
-            multiWaitbar('Model Run Time','Value',time/CtrlVar.TotalTime);
+            multiWaitbar('Time Steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.nTimeSteps);
+            multiWaitbar('Model Run Time','Value',CtrlVar.time/CtrlVar.TotalTime);
         end
         
         MUA=UpdateMUA(CtrlVar,MUA);
         
         % -adapt time step
         if CtrlVar.doPrognostic
-            dt=AdaptiveTimeStepping(CtrlVar,time,dt,RunInfo,dubdt,dvbdt,dhdt);
-            dtRatio=dt/CtrlVar.dt;
-            CtrlVar.dt=dt;
+            dtOld=CtrlVar.time;
+            CtrlVar.dt=AdaptiveTimeStepping(CtrlVar,CtrlVar.time,CtrlVar.dt,RunInfo,dubdt,dvbdt,dhdt);
+            dtRatio=CtrlVar.dt/dtOld;
+           
         else
-            dt=0; CtrlVar.dt=dt;
+            CtrlVar.dt=0;
         end
         
         
         if CtrlVar.doDiagnostic
             % in a diagnostic run I always always use the user-defined geometry
             % for each and every step of the calculation
-            [s,b,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time,'sbSB');
+            [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
             h=s-b;
         elseif CtrlVar.DefineOceanSurfaceAtEachTimeStep
-            [~,~,S,~,~]=GetGeometry(Experiment,CtrlVar,MUA,time,'S');
+            [~,~,S,~,~]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'S');
         end
         
         [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
         GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);  
-        [C,m]=GetSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-        [AGlen,n]=GetAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [C,m]=GetSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+        [AGlen,n]=GetAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
         if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
-            BCs=GetBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+            BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
         end
 
         
@@ -305,9 +308,9 @@ function Ua2D(UserRunParameters)
             
             % looks like far too many parameters here, but I need the whole model definition 
             % and on return everything will be defined on a new mesh
-            [CtrlVar,MUA,BCs,MeshBoundaryCoordinates,GF,GLdescriptors,...
+            [CtrlVar,MUA,BCs,CtrlVar.MeshBoundaryCoordinates,GF,GLdescriptors,...
                 s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-                AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUA,BCs,time,nStep,...
+                AdaptMesh(CtrlVar,CtrlVar.Experiment,CtrlVar.MeshBoundaryCoordinates,MUA,BCs,CtrlVar.time,CtrlVar.CurrentRunStepNumber,...
                 GF,GLdescriptors,alpha,...
                 s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1);
           
@@ -329,7 +332,7 @@ function Ua2D(UserRunParameters)
         %%
         
         ub0=ub ; vb0=vb; ud0=ud ; vd0=vd ; h0=h; s0=s ; b0=b;
-        [as0,ab0]=GetMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [as0,ab0]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
         a0=as0+ab0;
         
         
@@ -343,12 +346,12 @@ function Ua2D(UserRunParameters)
             
             dubdtm1=dubdt ; dvbdtm1=dvbdt; duddtm1=duddt ; dvddtm1=dvddt;
             
-            if dt==0 ;
+            if CtrlVar.dt==0 ;
                 dubdt=zeros(MUA.Nnodes,1) ;  dvbdt=zeros(MUA.Nnodes,1);
                 duddt=zeros(MUA.Nnodes,1) ;  dvddt=zeros(MUA.Nnodes,1);
             else
-                dubdt=(ub-ub0)/dt ; dvbdt=(vb-vb0)/dt;
-                duddt=(ud-ud0)/dt ; dvddt=(vd-vd0)/dt;
+                dubdt=(ub-ub0)/CtrlVar.dt ; dvbdt=(vb-vb0)/CtrlVar.dt;
+                duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt;
             end
             
             
@@ -360,7 +363,7 @@ function Ua2D(UserRunParameters)
             
             fprintf(CtrlVar.fidlog,...
                 '\n ===== Implicit uvh going from t=%-.15g to t=%-.15g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps \n ',...
-                time,time+dt,dt,100*time/CtrlVar.TotalTime,100*(nStep-1-nStep0)/CtrlVar.nTimeSteps);
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.nTimeSteps);
             
             %% possibly start with one diagnostic step
             if CtrlVar.InitialDiagnosticStep==1
@@ -369,7 +372,7 @@ function Ua2D(UserRunParameters)
                 while RunInfo.converged==0
                     dIt=dIt+1;
                     
-                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',time);
+                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
                     
                     tdiagnostic=tic;    
                     
@@ -380,13 +383,13 @@ function Ua2D(UserRunParameters)
                     if  RunInfo.converged==1 || dIt==2
                         break
                     end
-                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-g did not converge. Resetting (u,v) to zero and trying again \n ',time);
-                    TempFile=[Experiment,'-UaDumpDiagnosticStepNotConverged.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
+                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-g did not converge. Resetting (u,v) to zero and trying again \n ',CtrlVar.time);
+                    TempFile=[CtrlVar.Experiment,'-UaDumpDiagnosticStepNotConverged.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
                     ub=ub*0 ; vb=vb*0 ; ud=ud*0 ; vd=vd*0;  l.ubvb=l.ubvb*0; % if did not converge try to reset
                 end
                 
                 if dIt==2 && RunInfo.converged==0
-                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-g did not converge despite resetting (u,v) to zero \n ',time);
+                    fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-g did not converge despite resetting (u,v) to zero \n ',CtrlVar.time);
                     fprintf(CtrlVar.fidlog,' saving variables in UaDump2 \n ') ; save UaDump2
                 end
                 
@@ -394,10 +397,10 @@ function Ua2D(UserRunParameters)
                 CtrlVar.InitialDiagnosticStep=0;
             end
             
-            if (ReminderFraction(time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
+            if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
                 CtrlVar.UaOutputsInfostring='Diagnostic step';
                 CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
-                UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
+                UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
                 if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
                     fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
                         CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
@@ -409,19 +412,19 @@ function Ua2D(UserRunParameters)
             
             %% get an explicit estimate for u, v and h at the end of the time step
             
-            [ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(dt,dtRatio,nStep,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1,ud,duddt,duddtm1,vd,dvddt,dvddtm1,h,dhdt,dhdtm1);
+            [ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1,ud,duddt,duddtm1,vd,dvddt,dvddtm1,h,dhdt,dhdtm1);
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
             uvhStep=1;
-            while uvhStep==1  && dt > CtrlVar.dtmin % if uvh step does not converge, it is repeated with a smaller dt value
+            while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin % if uvh step does not converge, it is repeated with a smaller dt value
                 
-                [as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
+                [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
                 as1=as ; ab1=ab; 
                 %        0  : values at t
                 %        1  : explicit guess for values at t+dt
                 % on output : converged values at t+dt
-                [ub,vb,ud,vd,h,l.ubvb,l.h,RunInfo,CtrlVar,BCs,dt]=...
-                    FIuvh2D(CtrlVar,MUA,BCs,dt,S,B,ub0,vb0,ud0,vd0,h0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,...
+                [ub,vb,ud,vd,h,l.ubvb,l.h,RunInfo,CtrlVar,BCs,CtrlVar.dt]=...
+                    FIuvh2D(CtrlVar,MUA,BCs,CtrlVar.dt,S,B,ub0,vb0,ud0,vd0,h0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,...
                     dubdt,dvbdt,duddt,dvddt,...
                     l.ubvb,l.h,...
                     AGlen,C,n,m,alpha,rho,rhow,g);
@@ -429,8 +432,8 @@ function Ua2D(UserRunParameters)
                 
                 if RunInfo.converged==0
                     
-                    fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dt,dt/10);
-                    dt=dt/10; CtrlVar.dt=dt;
+                    fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
+                    CtrlVar.dt=CtrlVar.dt/10; 
                     uvhStep=1;  % continue within while loop
                     
                     fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
@@ -440,14 +443,14 @@ function Ua2D(UserRunParameters)
                 end
             end
             
-            time=time+dt; CtrlVar.time=time;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
             
             dhdtm1=dhdt ; dubdtm1=dubdt ; dvbdtm1=dvbdt;
-            if dt==0 ;
+            if CtrlVar.dt==0 ;
                 dhdt=zeros(MUA.Nnodes,1) ;  dubdt=zeros(MUA.Nnodes,1); dvbdt=zeros(MUA.Nnodes,1); dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
             else
-                dhdt=(h-h0)/dt; dubdt=(ub-ub0)/dt ; dvbdt=(vb-vb0)/dt; duddt=(ud-ud0)/dt ; dvddt=(vd-vd0)/dt; dsdt=(s-s0)/dt; dbdt=(b-b0)/dt;
+                dhdt=(h-h0)/CtrlVar.dt; dubdt=(ub-ub0)/CtrlVar.dt ; dvbdt=(vb-vb0)/CtrlVar.dt; duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;
             end
             
         end
@@ -455,29 +458,29 @@ function Ua2D(UserRunParameters)
         
         if CtrlVar.doPrognostic==1 && CtrlVar.Implicituvh==0
             
-            if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Prognostic, semi-implicit, advancing time from t=%-g to t=%-g \n',time,time+dt);end
+            if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Prognostic, semi-implicit, advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+dt);end
             
             
             tprognostic=tic;
             
-            [ub1,vb1]=ExplicitEstimation(dt,dtRatio,nStep,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1);
+            [ub1,vb1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1);
 
             dub1dt=dubdt; dvb1dt=dvbdt ;  dub0dt=dubdt; dvb0dt=dvbdt ; % could possibly be done a bit better
-            [as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time+dt,s,b,h,S,B,rho,rhow,GF);
-            a1=as+ab; da0dt=(a1-a0)/dt ; da1dt=da0dt; 
+            [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            a1=as+ab; da0dt=(a1-a0)/CtrlVar.dt ; da1dt=da0dt; 
             if dt==0 ; da0dt=zeros(MUA.Nnodes,1); da1dt=zeros(MUA.Nnodes,1) ; end
-            [h,l.h]=SSS2dPrognostic(dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.niph,Lh,Lhrhs,l.h,nStep,CtrlVar);
+            [h,l.h]=SSS2dPrognostic(CtrlVar.dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.niph,Lh,Lhrhs,l.h,CtrlVar.CurrentRunStepNumber,CtrlVar);
             
-            time=time+dt; CtrlVar.time=time;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; %CtrlVar.time=time;
             
             
             [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
             
             dhdtm1=dhdt ;
-            if dt==0 ;
+            if CtrlVar.dt==0 ;
                 dhdt=zeros(MUA.Nnodes,1) ; dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
             else
-                dhdt=(h-h0)/dt; dsdt=(s-s0)/dt; dbdt=(b-b0)/dt;
+                dhdt=(h-h0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;
             end
             
             
@@ -503,7 +506,7 @@ function Ua2D(UserRunParameters)
             
         end
         %% plotting results
-        if ReminderFraction(time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0 
+        if ReminderFraction(CtrlVar.time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0 
             
             
             
@@ -512,14 +515,14 @@ function Ua2D(UserRunParameters)
             [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
             [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,MUA.coordinates,MUA.connectivity,MUA.nip,CtrlVar);
             [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-            FE2dTransientPlots(CtrlVar,DTxy,TRIxy,MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
-                b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,time,...
+            FE2dTransientPlots(CtrlVar,DTxy,TRIxy,CtrlVar.MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
+                b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,CtrlVar.time,...
                 rho,rhow,as+ab,as,ab,MUA.Boundary,MUA.nip);
         end
         
            % UaOutputs
     
-    if (ReminderFraction(time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 ) 
+    if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 ) 
         CtrlVar.UaOutputsInfostring='inside transient loop';
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;    
         
@@ -527,7 +530,7 @@ function Ua2D(UserRunParameters)
             [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
         end
         
-        UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
+        UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
         
         if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
             fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -543,11 +546,11 @@ function Ua2D(UserRunParameters)
 %             switch Experiment
 %                 
 %                 case 'TestGaussPeak'
-%                     CompareRestultsWithAnalyticalTransferFunctions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
+%                     CompareRestultsWithAnalyticalTransferFunctions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
 %                 case 'Test1dIceStream'
-%                     CompareRestultsWith1dIceStreamSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
+%                     CompareRestultsWith1dIceStreamSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
 %                 case 'Test1dIceShelf'
-%                     CompareRestultsWith1dIceShelfSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
+%                     CompareRestultsWith1dIceShelfSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
 %                 otherwise
 %                     fprintf(CtrlVar.fidlog,' case not found for analytical comparison \n');
 %             end
@@ -556,31 +559,31 @@ function Ua2D(UserRunParameters)
 %%
 % 
 %         if CtrlVar.CompareResultsWithPreviouslyObtainedResults
-%             CompareResultsWithPreviouslyObtainedResults(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
+%             CompareResultsWithPreviouslyObtainedResults(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
 %         end
 %         
         
-        if CtrlVar.WriteRestartFile==1 && mod(nStep,CtrlVar.WriteRestartFileInterval)==0
+        if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
             WriteRestartFile()
         end
         
         %% write a dump file
         %if CtrlVar.WriteDumpFile && (mod(nStep,CtrlVar.WriteDumpFileStepInterval)==0 || mod(time,CtrlVar.WriteDumpFileTimeInterval)==0 )
-        if CtrlVar.WriteDumpFile && (ReminderFraction(time,CtrlVar.WriteDumpFileTimeInterval)<1e-5 || ReminderFraction(nStep,CtrlVar.WriteDumpFileStepInterval)==0)
+        if CtrlVar.WriteDumpFile && (ReminderFraction(CtrlVar.time,CtrlVar.WriteDumpFileTimeInterval)<1e-5 || ReminderFraction(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteDumpFileStepInterval)==0)
             
             
-            if ReminderFraction(time,CtrlVar.WriteDumpFileTimeInterval)<1e-5
-                dumpfile=sprintf('%s-DumpFile%-gT-',Experiment,time);  dumpfile=regexprep(dumpfile,'\.','k');
+            if ReminderFraction(CtrlVar.time,CtrlVar.WriteDumpFileTimeInterval)<1e-5
+                dumpfile=sprintf('%s-DumpFile%-gT-',CtrlVar.Experiment,CtrlVar.time);  dumpfile=regexprep(dumpfile,'\.','k');
             else
-                dumpfile=sprintf('%sDumpFile%i',Experiment,nStep);
+                dumpfile=sprintf('%sDumpFile%i',CtrlVar.Experiment,CtrlVar.CurrentRunStepNumber);
             end
             
-            fprintf(CtrlVar.fidlog,' Saving everything in file %s  at t=%-g \n',dumpfile,time);
+            fprintf(CtrlVar.fidlog,' Saving everything in file %s  at t=%-g \n',dumpfile,CtrlVar.time);
             
             try
-                save(dumpfile,'Experiment','nStep','s','h','b','B','S','ub','vb','wSurf','wBed','as','ab','time','MUA','AGlen','C',...
+                save(dumpfile','s','h','b','B','S','ub','vb','wSurf','wBed','as','ab','time','MUA','AGlen','C',...
                     'Luv','Luvrhs','lambdauv','Lh','Lhrhs','lambdah','n','m','alpha','rhow','rho','g',...
-                    'dubdt','dvbdt','a0','da0dt','dhdt','dhdtm1','dubdtm1','dvbdtm1','DTxy','TRIxy','MeshBoundaryCoordinates','CtrlVar')
+                    'dubdt','dvbdt','a0','da0dt','dhdt','dhdtm1','dubdtm1','dvbdtm1','DTxy','TRIxy','CtrlVar')
             catch exception
                 fprintf(CtrlVar.fidlog,' Could not save file %s \n ',dumpfile);
                 fprintf(CtrlVar.fidlog,'%s \n',exception.message);
@@ -590,8 +593,8 @@ function Ua2D(UserRunParameters)
     end
     
     if CtrlVar.PlotWaitBar 
-        multiWaitbar('Time Steps','Value',(nStep-nStep0)/CtrlVar.nTimeSteps);
-        multiWaitbar('Model Run Time','Value',time/CtrlVar.TotalTime);
+        multiWaitbar('Time Steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/CtrlVar.nTimeSteps);
+        multiWaitbar('Model Run Time','Value',CtrlVar.time/CtrlVar.TotalTime);
     end
     
         
@@ -600,25 +603,25 @@ function Ua2D(UserRunParameters)
     [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
     [wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,MUA.coordinates,MUA.connectivity,MUA.nip,CtrlVar);
     
-    if ReminderFraction(time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0 
+    if ReminderFraction(CtrlVar.time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0 
         
         
         CtrlVar.FE2dTransientPlotsCounter=CtrlVar.FE2dTransientPlotsCounter+1;
         CtrlVar.FE2dTransientPlotsInfostring='Last transient plot';
         [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-        FE2dTransientPlots(CtrlVar,DTxy,TRIxy,MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
-            b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,time,...
+        FE2dTransientPlots(CtrlVar,DTxy,TRIxy,CtrlVar.MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
+            b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,CtrlVar.time,...
             rho,rhow,as+ab,as,ab,MUA.Boundary,MUA.nip);
     end
     
-    if (ReminderFraction(time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
+    if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
         CtrlVar.UaOutputsInfostring='Last call';
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
         if CtrlVar.MassBalanceGeometryFeedback>0
             [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
         end
         
-        UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
+        UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
         
         if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
             fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -629,8 +632,8 @@ function Ua2D(UserRunParameters)
     
     if CtrlVar.doplots && CtrlVar.FE2dPlots
         [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-        FE2dPlots(CtrlVar,DTxy,TRIxy,MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
-            b,B,S,s,h,ub,vb,wSurf,dhdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,time,...
+        FE2dPlots(CtrlVar,DTxy,TRIxy,CtrlVar.MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
+            b,B,S,s,h,ub,vb,wSurf,dhdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,CtrlVar.time,...
             rho,rhow,as+ab,as,ab,txx,tyy,txy);
     end
     
@@ -644,7 +647,7 @@ function Ua2D(UserRunParameters)
         save(CtrlVar.SurfaceDataFile,'sMeas','uMeas','vMeas','wMeas','bMeas','BMeas','xMeas','yMeas')
     end
     
-    if CtrlVar.WriteRestartFile==1 &&  mod(nStep,CtrlVar.WriteRestartFileInterval)~=0
+    if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
         
         WriteRestartFile()
 
@@ -664,10 +667,13 @@ function Ua2D(UserRunParameters)
     
     function WriteRestartFile
         RestartFile=CtrlVar.NameOfRestartFiletoWrite;
-        fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writing restart file %s  at t=%-g \n %s \n ',Experiment,datestr(now),RestartFile,time);
+        fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writing restart file %s  at t=%-g \n %s \n ',CtrlVar.Experiment,datestr(now),RestartFile,CtrlVar.time);
         %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
         CtrlVarInRestartFile=CtrlVar;
-        Itime=nStep;  % later get rid of Itime from all restart files
+        nStep=CtrlVar.CurrentRunStepNumber;  % later get rid of nStep from all restart files
+        Itime=CtrlVar.CurrentRunStepNumber;  % later get rid of Itime from all restart files
+        time=CtrlVar.time;
+        dt=CtrlVar.dt;
         try
             save(RestartFile,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
                 'nStep','Itime','a0','da0dt','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...

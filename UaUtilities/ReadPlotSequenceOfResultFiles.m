@@ -28,9 +28,33 @@ I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG
 %I=2;  Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 
 %I=1;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
 I=1; Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 I=1; Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+%I=1; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg'; 
+
+cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
+% I=1 ; Run{I}='Nodes78485-Ele38912-Tri6-kH1000-PIG-TG-MeltRate0-ahFeedback3Edge-Wise-supg';
+% I=2 ; Run{I}='Nodes78485-Ele38912-Tri6-kH1000-PIG-TG-MeltRate1-ahFeedback3Edge-Wise-supg';
+% I=3 ; Run{I}='Nodes78485-Ele38912-Tri6-kH1000-PIG-TG-MeltRate2-ahFeedback3Edge-Wise-supg';
+% I=4 ; Run{I}='Nodes78485-Ele38912-Tri6-kH1000-PIG-TG-MeltRate3-ahFeedback3Edge-Wise-supg';
+% 
+% 
+% I=5 ; Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg';
+% I=6 ; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw50-ahFeedback0Edge-Wise-supg';
+% I=7 ; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg';
+% I=8 ; Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg';
+% I=9 ; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg';
+% I=10; Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+% I=11 ; Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+% I=12 ; Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+% I=13 ; Run{I}='JenkinsVer2-Tw250Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+% I=14 ; Run{I}='JenkinsVer2-Tw150Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+% I=15; Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';
+
+
+I=1 ; Run{I}='Nodes78485-Ele38912-Tri6-kH1000-PIG-TG-MeltRate3-ahFeedback3Edge-Wise-supg';
 
 plots='-ubvb-';
 plots='-h-';
@@ -60,8 +84,14 @@ for J=1:numel(Run)
     fprintf(' %i \t %s: \n',J,Run{J})
     
     if CreateVideo
+        
+        %hFig = figure('Visible','off');
+        %set(hFig, 'PaperPositionMode','auto')
+        %vidObj = VideoWriter([Run{J},plots,'.avi'],'Archival');
+        
+        
         vidObj = VideoWriter([Run{J},plots,'.avi']);
-        vidObj.FrameRate=1;   % frames per sec
+        %vidObj.FrameRate=1;   % frames per sec
         open(vidObj);
     end
     
@@ -74,14 +104,21 @@ for J=1:numel(Run)
     
     
     
-    I=1;
+    I=1; 
+    iFrame=0; 
+    %nFrames=100 ; Frame(nFrames) = struct('cdata',[],'colormap',[]);
+    
+  
+    
+    
     while I<=nFiles
         
         %for I=1:100
         
         %if strcmp(list(I).name(6:7),'00')
         t=str2double(list(I).name(1:7))/100;
-        if mod(t,dt)==0 %&& t<50
+        if mod(t,dt)==0 && t<=125
+            
             
             try
                 load(list(I).name)
@@ -102,8 +139,8 @@ for J=1:numel(Run)
             
             
             if CreateVideo
-                set(gca,'nextplot','replacechildren');
-                set(gcf,'Renderer','zbuffer');
+                %set(gca,'nextplot','replacechildren');
+                %set(gcf,'Renderer','zbuffer');
             end
             
             if ~isempty(strfind(plots,'-mesh-'))
@@ -285,15 +322,27 @@ for J=1:numel(Run)
                 else
                     figure(fh)
                 end
+                
                 if CreateVideo
                     fh.Position=pos;
+                    %hfig.Position=pos;
                 end
                 hold off
+                
+                %fh.NextPlot='replacechildren';  % slows things down
+               
                 
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,h,CtrlVar);
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
                 
-                title(sprintf('ice shelf thickness at t=%-g. Tw=%-g ',CtrlVar.time,Tw)) ; xlabel('x (km)') ; ylabel('y (km)')
+                if ~isempty(strfind(CtrlVar.Experiment,'Jenkins'))
+                    title(sprintf('ice thickness at t=%-g. Tw=%-g ',CtrlVar.time,Tw)) ;
+                else
+                    title(sprintf('ice thickness at t=%-g.',CtrlVar.time)) ;
+                end
+                
+                
+                xlabel('x (km)') ; ylabel('y (km)')
                 title(colorbar,'(m)')
                 %                 if PlotMinThickLocations
                 %                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
@@ -385,11 +434,14 @@ for J=1:numel(Run)
                 end
             end
             
-            drawnow
+            %drawnow
             
             if CreateVideo
-                currFrame = getframe(gcf);
-                writeVideo(vidObj,currFrame);
+                iFrame=iFrame+1; 
+                Frame = getframe(gcf); 
+                %Frame = hardcopy(hFig, '-opengl', '-r0');
+                writeVideo(vidObj,Frame);
+                hold off
             else
                 
                 if ~strcmpi(usrstr,'C')
