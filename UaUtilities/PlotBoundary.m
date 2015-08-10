@@ -4,7 +4,7 @@ function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
     % Plots/labels boundary nodes, edges and elements
     % if Boundary=[], it is created by a call to FindBoundary(connectivity,coordinates)
     %
-    % For just plotting the boundary edges, do: 
+    % For just plotting the boundary edges as a black line, do: 
     % figure ; PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
     %
     % CtrlVar.PlotBooundaryElements

@@ -1,4 +1,4 @@
-function  [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+function  [CtrlVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
     GF]=GetInputsForForwardRun(CtrlVar)
 
@@ -8,7 +8,7 @@ nargoutchk(36,36)
 
 Experiment=CtrlVar.Experiment;
 time=CtrlVar.time;
-dt=CtrlVar.dt;
+
 %for I=1:CtrlVar.nInitialRemeshSteps+1
 
 if CtrlVar.ReadInitialMesh==1

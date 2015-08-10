@@ -33,7 +33,14 @@ function Ua2D(UserRunParameters)
     
     %% Get user-defined values for Ctrl Variable and FE mesh outline
     %  CtrlVar,UsrVar,Info,UaOuts
-    [CtrlVar.Experiment,CtrlVar,CtrlVar.time,CtrlVar.dt,CtrlVar.MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
+    [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
+    
+    CtrlVar.Experiment=Experiment;
+    CtrlVar.time=time;
+    CtrlVar.dt=dt;
+    CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+    clear Experiment time dt MeshBoundaryCoordinates;
+    
     %CtrlVar.Experiment=Experiment;
     CtrlVar.CurrentRunStepNumber=0 ; 
     %CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates; 
@@ -88,15 +95,20 @@ function Ua2D(UserRunParameters)
         
         if CtrlVar.Restart  % Forward restart run
             
-            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-                GF,GLdescriptors,CtrlVar.CurrentRunStepNumber]=GetInputsForForwardRestartRun(CtrlVar);
+                GF,GLdescriptors,CurrentRunStepNumber]=GetInputsForForwardRestartRun(CtrlVar);
+            CtrlVar.time=time;
+            CtrlVar.dt=dt;
+            CtrlVar.CurrentRunStepNumber=CurrentRunStepNumber;
+            clear time dt CurrentRunStepNumber
             
-       
+            
         else % New forward run (ie not a restart)
-            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
                 GF]=GetInputsForForwardRun(CtrlVar);
+            
             
             if CtrlVar.OnlyMeshDomainAndThenStop
                 return
@@ -113,9 +125,9 @@ function Ua2D(UserRunParameters)
         else % New inverse run
             
             % first get variables defining the forward run
-            [CtrlVar,MUA,BCs,CtrlVar.time,CtrlVar.dt,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+            [CtrlVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
                 dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=GetInputsForForwardRun(CtrlVar);
-            
+
             % now get the additional variables specific to an inverse run
             [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
             
@@ -285,7 +297,7 @@ function Ua2D(UserRunParameters)
         end
         
         
-        if CtrlVar.doDiagnostic
+        if CtrlVar.doDiagnostic  && CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep
             % in a diagnostic run I always always use the user-defined geometry
             % for each and every step of the calculation
             [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');

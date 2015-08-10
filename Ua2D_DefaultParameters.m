@@ -143,7 +143,9 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 CtrlVar.DefineOceanSurfaceAtEachTimeStep=0;   % if true,  `DefineGeometry.m' is called at each time step, returning S, and only S.
                                               % if false, `DefineGeometry.m' is only called at the beginning of a run
                                               %            and when the FE-mesh changes
-
+CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep=1;  % If true, the user-defined geometry (sbSB) is always used at each run step in a 
+                                                            % diagnostic calculation.
+                                                        
 %%
 CtrlVar.TestUserInputs=1;  % By default user inputs will be tested at the start of the run
                            % to suppress set TestUserInputs=0
