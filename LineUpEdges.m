@@ -1,19 +1,36 @@
 function [xEdge,yEdge,EdgeIndex]=LineUpEdges(CtrlVar,xa,xb,ya,yb,LineMax)
 
-% now just walk through the points always moving to the next closest point
+
+% [xEdge,yEdge,EdgeIndex]=LineUpEdges(CtrlVar,xa,xb,ya,yb,LineMax)
+%
+% Lines up edges. 
+% Takes edges (i.e. line segments) and lines them up to form continous lines, with NaN where there is a gap between edges
+%
+%
+%  xa,  xb, ya, yb     : vectors defining the start and end x,y coordinates of the edges 
+%                        for example: the n-th edge goes from [xa(n) ya(n)] to [xb(n) yb(n)]
+%  LineMax             : maximum number of lined-up edges returned. Edges are returned in the order of the number of points in each edge.
+%                        If, for example, LineMax=1, then only the single longest line is returned
+%
+%
+%
+
+if isempty(CtrlVar)
+    CtrlVar.InfoLevel=1;
+end
 
 N=length(xa);
-xEdge=zeros(3*N,1)+Inf ; yEdge=zeros(3*N,1)+Inf; % upper estimate, all GL elements have seperate GLs
+xEdge=zeros(3*N,1)+inf ; yEdge=zeros(3*N,1)+inf; % upper estimate, all edges are seperate lines segments
 
 i=1;
 xEdge(i)=xa(1) ;  yEdge(i)=yb(1) ;  i=i+1 ;
 xEdge(i)=xa(1) ;  yEdge(i)=ya(1)  ; i=i+1 ;
-xa(1)=[] ; ya(1)=[] ; xb(1)=[] ; yb(1)=[] ;
+xa(1)=NaN ; ya(1)=NaN ; xb(1)=NaN ; yb(1)=NaN ;
 
 
 k=2; % last found output GL point
 
-while ~isempty(xa)
+while ~all(isnan(xa))
     
     
     % find input GL location closest to last included output GL pos
@@ -31,13 +48,13 @@ while ~isempty(xa)
         xEdge(i)=xa(ia) ;  yEdge(i)=ya(ia) ;  i=i+1;
         xEdge(i)=xb(ia) ;  yEdge(i)=yb(ia) ;  i=i+1;
         k=i-1;
-        xa(ia)=[] ; ya(ia)=[] ; xb(ia)=[] ; yb(ia)=[] ;
+        xa(ia)=NaN ; ya(ia)=NaN ; xb(ia)=NaN ; yb(ia)=NaN ;
     elseif distb<100*eps
         %fprintf('distb==0\n')
         xEdge(i)=xb(ib) ;  yEdge(i)=yb(ib) ;  i=i+1;
         xEdge(i)=xa(ib) ;  yEdge(i)=ya(ib) ;  i=i+1;
         k=i-1;
-        xa(ib)=[] ; ya(ib)=[] ; xb(ib)=[] ; yb(ib)=[] ;
+        xa(ib)=NaN ; ya(ib)=NaN ; xb(ib)=NaN ; yb(ib)=NaN ;
     else
         
         xEdge(i)=NaN ;  yEdge(i)=NaN ;  i=i+1; % NaN put between GLs
@@ -48,14 +65,14 @@ while ~isempty(xa)
             xEdge(i)=xa(ia) ;  yEdge(i)=ya(ia) ;  i=i+1;
             xEdge(i)=xb(ia) ;  yEdge(i)=yb(ia) ;  i=i+1;
             k=i-1;
-            xa(ia)=[] ; ya(ia)=[] ; xb(ia)=[] ; yb(ia)=[] ;
+            xa(ia)=NaN ; ya(ia)=NaN ; xb(ia)=NaN ; yb(ia)=NaN ;
         else
             %fprintf('distb smaller\n')
             
             xEdge(i)=xb(ib) ;  yEdge(i)=yb(ib) ;  i=i+1;
             xEdge(i)=xa(ib) ;  yEdge(i)=ya(ib) ;  i=i+1;
             k=i-1;
-            xa(ib)=[] ; ya(ib)=[] ; xb(ib)=[] ; yb(ib)=[] ;
+            xa(ib)=NaN ; ya(ib)=NaN ; xb(ib)=NaN ; yb(ib)=NaN ;
         end
     end
     
@@ -69,13 +86,14 @@ xEdge(I)=[] ; yEdge(I)=[];
 
 xEdge=[xEdge;NaN] ; yEdge=[yEdge;NaN];
 temp=sort(find(isnan(xEdge))) ; temp=[0;temp;numel(xEdge)];
-[temp2,I]=sort(diff(temp),'descend');
+[~,I]=sort(diff(temp),'descend');
 
 NGL=min([numel(I),LineMax]);
 
 if CtrlVar.InfoLevel>=10;
     fprintf('LineUpEdges: Found %-i grounding lines. Returning %-i.  \n',numel(I),NGL)
 end
+
 xx=[] ; yy=[]; EdgeIndex=1;
 for l=1:NGL
     
@@ -83,6 +101,7 @@ for l=1:NGL
     EdgeIndex=[EdgeIndex;numel(xx)+2+n2-n1];
     xx=[xx;xEdge(n1:n2)] ; yy=[yy;yEdge(n1:n2)];
     
+     
 end
 EdgeIndex(end)=[]; xx(end)=[] ;yy(end)=[];
 

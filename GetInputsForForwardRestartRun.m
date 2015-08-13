@@ -20,6 +20,12 @@ catch exception
     error('could not load restart file ')
 end
 
+% Thickness should only depend on s and b in restart file
+% (The only exeption being that if h is less than CtrlVar.ThickMin, 
+% and CtrlVar.ResetThicknessToMinThickness true, then h is first modified accordingly.)
+h=s-b;
+[b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+
 if exist('MUA','var')==0
     fprintf(' The variable MUA not found in restart file. Try to read connectivity and coordinates from restart file and then to create MUA \n')
     load(RestartFile,'connectivity','coordinates')
@@ -69,7 +75,7 @@ end
 CtrlVar.MeshChanged=0;
 if CtrlVar.ReadInitialMesh==1
     fprintf(CtrlVar.fidlog,' On restart loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
-    fprintf(CtrlVar.fidlog,' This new mesh will replace the mesh in restart file. \n')
+    fprintf(CtrlVar.fidlog,' This new mesh will replace the mesh in restart file. \n');
     CtrlVar.ReadInitialMesh=0;
     MUAold=MUA;
     try

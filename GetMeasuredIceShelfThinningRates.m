@@ -8,30 +8,42 @@ if isempty(AntarcticGlobalDataSets)
 end
 
 locdir=pwd;
+
+
 cd(AntarcticGlobalDataSets);
-cd IceShelfThinningRates/dzdt/dzdt/
-load('ice_shelf_dzdt_v01.mat','lat','lon','dzdt')
+cd IceShelfThinningRates/dzdt_v3/dzdt_v3/
+
+data=load('ice_shelf_dzdt_v3.mat');
+[x,y]=ll2xy(data.lat,data.lon);
+x=x(:) ; y=y(:) ; dzdt=data.dzdt_raw(:);
+
+
+% cd(AntarcticGlobalDataSets);
+% cd IceShelfThinningRates/dzdt/dzdt/
+% load('ice_shelf_dzdt_v01.mat','lat','lon','dzdt')
+% 
+% [x,y]=ll2xy(lat,lon);
+% x=x(:) ; y=y(:) ; dzdt=dzdt(:);
+
 cd(locdir)
 
-[x,y]=ll2xy(lat,lon);
-x=x(:) ; y=y(:) ; dzdt=dzdt(:);
+% 
+% Interpolation='ReplaceNaNWithInterpolatedValues';
+% 
+% switch Interpolation
+% 
+%         
+%     case 'ReplaceNaNWithInterpolatedValues'
+%         
+%         
+%         I=~isnan(dzdt); x=x(I) ; y=y(I); dzdt=dzdt(I); 
+%         
+%         % Excluding NaN. This has the effect that the interpolation/extrapolation gives values over the whole area of each and every ice shelf
+%         % If I keep the NaNs, then I get NaN in interpolated values that I can then later replace with zeros
+%         
+% end
 
-Interpolation='ReplaceNaNWithInterpolatedValues';
-
-switch Interpolation
-
-        
-    case 'ReplaceNaNWithInterpolatedValues'
-        
-        
-        I=~isnan(dzdt); x=x(I) ; y=y(I); dzdt=dzdt(I); 
-        
-        % Excluding NaN. This has the effect that the interpolation/extrapolation gives values over the whole area of each and every ice shelf
-        % If I keep the NaNs, then I get NaN in interpolated values that I can then later replace with zeros
-        
-end
-
-Fdhdt=scatteredInterpolant(x,y,dzdt,'linear','nearest');
+Fdhdt=scatteredInterpolant(x,y,dzdt,'natural','nearest');
 
 if nargin==2
     dhdt=Fdhdt(xps,yps);

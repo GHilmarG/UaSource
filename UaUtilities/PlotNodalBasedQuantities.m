@@ -1,4 +1,4 @@
-function [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinates,Value,CtrlVar,varargin)
+function [PatchObject,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinates,Value,CtrlVar,varargin)
 
 % [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinates,Value,CtrlVar,varargin)
 % plots nodal-based quantities in a map-plane view
@@ -35,7 +35,7 @@ end
 %view(0,90)
 %tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)]);
 
-FigHandle=patch('faces',tri,'vertices',coordinates/CtrlVar.PlotXYscale,...
+PatchObject=patch('faces',tri,'vertices',coordinates/CtrlVar.PlotXYscale,...
     'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp',varargin{:}) ;
 
 axis equal tight

@@ -26,7 +26,7 @@ function [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,Boundary,connectivity,coo
 
         GFtemp=GF; GFtemp.node(Boundary.Nodes)=0;  % I need to `close' the grounding line, so I set all boundary nodes to floating status
         GLgeo=GLgeometry(connectivity,coordinates,GFtemp,CtrlVar);
-        [xGL,yGL,GLindex] = ArrangeGroundingLinePos(CtrlVar,GLgeo,1);
+        [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo,1);
   
         x=coordinates(:,1); y=coordinates(:,2);        
         %  IN = inpolygon(x(I),y(I),xGL,yGL);  % for some reason this standard matlab routine is much slower than inpoly
