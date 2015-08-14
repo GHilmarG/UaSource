@@ -9,8 +9,14 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
     ubvbL=MLC.ubvbL; ubvbRhs=MLC.ubvbRhs;
 
     
-    if numel(ubvbLambda)~=numel(ubvbRhs) ; ubvbLambda=zeros(numel(ubvbRhs),1) ; end
-  
+    
+    
+    if isempty(ubvbRhs)
+        ubvbLambda=[];
+    elseif numel(ubvbLambda)~=numel(ubvbRhs) ;
+        ubvbLambda=zeros(numel(ubvbRhs),1) ;
+    end
+    
     if any(isnan(C)) ; save TestSave ; error( ' C nan ') ; end
     if any(isnan(AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
     if any(isnan(S)) ; save TestSave ; error( ' S nan ') ; end
@@ -54,7 +60,7 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
     
     diffVector=zeros(CtrlVar.NRitmax+1,1); diffDu=1e10; r=1e10 ;
     
-    dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dlambda=zeros(length(ubvbLambda),1);
+    dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dlambda=zeros(numel(ubvbLambda),1);
     
     
     
@@ -156,7 +162,9 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
         diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
         diffVector(iteration+1)=r;
         
-        ub=ub+gamma*dub ; vb=vb+gamma*dvb; ubvbLambda=ubvbLambda+gamma*dlambda;
+        ub=ub+gamma*dub ; 
+        vb=vb+gamma*dvb; 
+        ubvbLambda=ubvbLambda+gamma*dlambda;
         
         
         

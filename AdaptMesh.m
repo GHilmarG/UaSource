@@ -388,7 +388,11 @@ end
 %MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 
-CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
+if CtrlVar.InitialDiagnosticStepAfterRemeshing;  
+    CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
+end
+
+
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;

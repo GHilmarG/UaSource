@@ -1,17 +1,11 @@
-function    [CtrlVar,MUA,BCs,time,dt,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+function    [MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-    GF,GLdescriptors,Itime]=GetInputsForForwardRestartRun(CtrlVar)
+    GF,GLdescriptors]=GetInputsForForwardRestartRun(CtrlVar)
 
 
-
-RestartFile=CtrlVar.NameOfRestartFiletoRead;
-Experiment=CtrlVar.Experiment;
-
-
-dtTemp=CtrlVar.dt;
 try
     
-    load(RestartFile,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
+    load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
         'Itime','a0','da0dt','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
         'GLdescriptors','l');
     
@@ -19,6 +13,8 @@ catch exception
     fprintf(CtrlVar.fidlog,'%s \n',exception.message);
     error('could not load restart file ')
 end
+
+CurrentRunStepNumber=Itime;  % I used to refer to this as Itime, change later
 
 % Thickness should only depend on s and b in restart file
 % (The only exeption being that if h is less than CtrlVar.ThickMin, 
@@ -28,7 +24,7 @@ h=s-b;
 
 if exist('MUA','var')==0
     fprintf(' The variable MUA not found in restart file. Try to read connectivity and coordinates from restart file and then to create MUA \n')
-    load(RestartFile,'connectivity','coordinates')
+    load(CtrlVar.NameOfRestartFiletoRead,'connectivity','coordinates')
     MUA=CreateMUA(CtrlVar,connectivity,coordinates,1,1);
 end
 
@@ -49,22 +45,22 @@ if exist('ub','var')==0   % needed if restart file is from the time when ud was 
     dubdtm1=zeros(MUA.Nnodes,1) ; dvbdtm1=zeros(MUA.Nnodes,1) ; duddtm1=zeros(MUA.Nnodes,1) ; dvddtm1=zeros(MUA.Nnodes,1) ;
 end
 
-CtrlVar.time=time; CtrlVar.dt=dt;
+
 
 if CtrlVar.ResetTime==1 ;
-    time=0;  CtrlVar.time=time;
-    Itime=0; CtrlVar.Itime=Itime;
+    time=CtrlVar.time;
+    CurrentRunStepNumber=0; 
     fprintf(CtrlVar.fidlog,' Time reset to %-g \n',time);
 end
 
 if CtrlVar.ResetTimeStep==1 ;
-    dt=dtTemp ;  CtrlVar.dt=dt;
+    dt=CtrlVar.dt;
     fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',dt);
 end
 
-fprintf(CtrlVar.fidlog,' Read restart file %s.  Starting restart run at t=%-g with dt=%-g \n',RestartFile,time,dt);
+fprintf(CtrlVar.fidlog,' Read restart file %s.  Starting restart run at t=%-g with dt=%-g \n',CtrlVar.NameOfRestartFiletoRead,time,dt);
 
-CtrlVar.RestartTime=time;
+
 
 
 if  time> CtrlVar.TotalTime
@@ -72,11 +68,11 @@ if  time> CtrlVar.TotalTime
     return
 end
 
-CtrlVar.MeshChanged=0;
+MeshChanged=0;
 if CtrlVar.ReadInitialMesh==1
     fprintf(CtrlVar.fidlog,' On restart loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
     fprintf(CtrlVar.fidlog,' This new mesh will replace the mesh in restart file. \n');
-    CtrlVar.ReadInitialMesh=0;
+    
     MUAold=MUA;
     try
         load(CtrlVar.ReadInitialMeshFileName,'MUA')
@@ -86,7 +82,7 @@ if CtrlVar.ReadInitialMesh==1
         MUA=CreateMUA(CtrlVar,connectivity,coordinates);
         clear connectivity coordinates
     end
-    CtrlVar.MeshChanged=1;
+    MeshChanged=1;
 end
     
 for I=1:CtrlVar.RefineMeshOnRestart
@@ -94,7 +90,7 @@ for I=1:CtrlVar.RefineMeshOnRestart
     MUAold=MUA;
     [MUA.coordinates,MUA.connectivity]=FE2dRefineMesh(MUA.coordinates,MUA.connectivity);
     MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
-    CtrlVar.MeshChanged=1;
+    MeshChanged=1;
 end
 
 if CtrlVar.TriNodes~=size(MUA.connectivity,2)
@@ -102,16 +98,16 @@ if CtrlVar.TriNodes~=size(MUA.connectivity,2)
     MUAold=MUA;
     [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
     MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
-    CtrlVar.MeshChanged=1;
+    MeshChanged=1;
 end
 
-if CtrlVar.MeshChanged
+if MeshChanged
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
     
     
     OutsideValues=0;
     [s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd]=...
-        MapQuantitiesToNewFEmesh(CtrlVar,MUA,MUAold,h,time,OutsideValues,...
+        MapQuantitiesToNewFEmesh(CtrlVar,MUA,MUAold,h,CtrlVar.time,OutsideValues,...
         ub,vb,ud,vd);
     
     %     OutsideValues=0;
@@ -139,18 +135,18 @@ end
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
 %% In principle these calls to Define.. routines should not be needed
-[~,~,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time,'SB');
+[~,~,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
 if any(isnan(S)) ; error(' S returned by DefineGeometry contains NaN') ; end
 if any(isnan(B)) ; error(' B returned by DefineGeometry contains NaN') ; end
 
 
-[rho,rhow,g]=GetDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
+[rho,rhow,g]=GetDensities(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
 rho=rho+zeros(length(MUA.coordinates),1);  % make sure that rho is a nodal vector
 GF=GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
-[C,m]=GetSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-[AGlen,n]=GetAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-[as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+[C,m]=GetSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[AGlen,n]=GetAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 
 if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(C))
     error(' C is element-based but does not have same number of elements as there are elements in mesh ')
@@ -159,7 +155,7 @@ elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(C))
 end
 
 
-BCs=GetBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1 ;
     
@@ -168,6 +164,6 @@ if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1 ;
     
 end
 
-CtrlVar.MeshChanged=0;
+
 
 end

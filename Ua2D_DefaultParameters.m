@@ -164,6 +164,7 @@ CtrlVar.dt=1;                    % time step (usually overwritten by user by def
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
 CtrlVar.InitialDiagnosticStep=1; % start implicit transient (prognostic) run with an initial diagnostic step (a good idea, do this always)
+CtrlVar.InitialDiagnosticStepAfterRemeshing=1 ; % after each remeshing, do an initial diagnostic step before continuing with further prognostic steps 
 
 %% Restart option
 CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run
@@ -512,10 +513,17 @@ CtrlVar.WriteDumpFile=0;                      % a dumpfile is created containing
 CtrlVar.WriteDumpFileStepInterval=1000;       % number of time steps between writing a dump file
 CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a dump file
 
-%%  Call a user output routine
+%%  Outputs
+%
+% For outputs Ua calls a routine called 'UaOutputs.m'
+% Write your own version of this routine to fit your own output/plotting needs and keep 
+% the routine into you local run directory, i.e. the directory from which you run Ua
+% Start by copying the example UaOutput.m routine from the Ua source installation folder
+% to you local run directory.
+%
 
 CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
-                       % if set to zero UaOutputs is called at every time step
+                       % if set to zero UaOutputs is called at every time/run step
                        % if set to a negative number, or NaN, UaOutputs is never called
 CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
                                     % Once this limit is reached, the run stops. (Setting this to 1 or some low number
@@ -944,10 +952,6 @@ CtrlVar.MeltNodesDefinition='Edge-Wise';
 % 
 CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; % for non evolving mesh boundaries, can be set to 0/false
 CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element
-
-%% internal variables  (do not change these)
-CtrlVar.FE2dTransientPlotsCounter=0; 
-CtrlVar.MeshChanged=0;               
 
                            
 end
