@@ -26,7 +26,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %% Defining model run
 % Whenever setting up your own model, create your own working directory for your model runs. 
 % Most of the parameters of a given model run are defined by the user through m-files 
-% called by Úa during the run. 
+% that are called by Úa during the run. 
 %
 % These m-files are:
 % DefineAGlenDistribution.m

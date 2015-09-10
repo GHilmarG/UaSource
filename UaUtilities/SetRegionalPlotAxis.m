@@ -9,11 +9,12 @@ switch lower(Region)
     case 'thwaitesiceshelf'
         
         axis([-1620 -1500 -520 -400])
-       
-    case 'pig-thwaites' 
+        
+    case {'pig-thwaites','pt','pig-twg'}
         
         axis([-1720 -1350 -520 -210])
-        
+    case{'filcner-ronne','fr','rf'}
+        axis([-1600 -400 100 1100])
 end
 
 

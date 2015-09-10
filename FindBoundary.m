@@ -26,6 +26,7 @@ if Nele==0;
     Boundary.FreeElements=[];
     Boundary.Edges=[];
     Boundary.Edge=[];
+    Boundary.x=[]; Boundary.y=[];
     return
 end
 
@@ -90,6 +91,12 @@ for II=1:3
     %Boundary.ElementsBCv{II}=find(logical(prod(double(ismember(connectivity(:,Boundary.Edge{II}),vfixednode)'))));
     Boundary.Elements{II}=find(logical(prod(double(ismember(connectivity(:,Boundary.Edge{II}),Boundary.Nodes)')))); %
 end
+
+xa=coordinates(Boundary.Edges(:,1),1); xb=coordinates(Boundary.Edges(:,end),1);
+ya=coordinates(Boundary.Edges(:,1),2); yb=coordinates(Boundary.Edges(:,end),2);
+
+[Boundary.x,Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
+
 
 end
 

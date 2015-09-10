@@ -2,7 +2,7 @@ function MUA=UpdateMUA(CtrlVar,MUA)
 
 %%
 % MUA=UpdateMUA(CtrlVar,MUA)
-% This updates MUA and calculates any missing fields
+% Updates MUA and calculates any missing fields
 % On input MUA must have the fields coordinates and connectivity
 
 if ~isfield(MUA,'coordinates')
@@ -84,6 +84,19 @@ end
 if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
 end
+
+if ~isfield(MUA,'Boundary.x') || ~isfield(MUA,'Boundary.y')
+    xa=MUA.coordinates(MUA.Boundary.Edges(:,1),1); xb=MUA.coordinates(MUA.Boundary.Edges(:,end),1);
+    ya=MUA.coordinates(MUA.Boundary.Edges(:,1),2); yb=MUA.coordinates(MUA.Boundary.Edges(:,end),2);
+    
+    [MUA.Boundary.x,MUA.Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
+    
+end
+
+
+
+
+
 
 
 end
