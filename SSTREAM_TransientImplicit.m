@@ -90,7 +90,7 @@ dlambda=[dlambdauv;dlambdah];
 iteration=0 ; Stagnated=0;
 r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlambda=1e10;
 
-while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) &&  iteration <= CtrlVar.NRitmax && ~Stagnated)  || iteration < CtrlVar.NRitmin
+while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) &&  iteration <= CtrlVar.NRitmax && ~Stagnated) ) || iteration < CtrlVar.NRitmin
     iteration=iteration+1;
     
     %[R,K,~,FI]=KRTFuvhGeneralTG3(CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
@@ -182,9 +182,9 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
     
     
     %% calculate statistics on change in speed, thickness and Lagrange parameters
-    D=mean(sqrt(ub.*ub+vb.*vb));
+    D=mean(sqrt(ub.*ub+vb.*vb))+CtrlVar.SpeedZero;
     diffDu=gamma*full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-    diffDh=gamma*full(max(abs(dh))/mean(abs(h)));            % max change in thickness divided by mean thickness
+    diffDh=gamma*full(max(abs(dh))/(mean(abs(h)))+0.01);            % max change in thickness divided by mean thickness
     diffDlambda=gamma*max(abs(dlambda))/mean(abs(lambda));
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;

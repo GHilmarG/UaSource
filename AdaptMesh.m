@@ -241,7 +241,7 @@ for JJ=1:Iterations
                 %save TestSave ; error('afds')
                 [MUAnew,xGLmesh,yGLmesh,CtrlVar]=...
                     RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,...
-                    S,B,h,s,b,ub,vb,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,l.ubvb);
+                    S,B,h,s,b,ub,vb,ud,vd,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,l.ubvb);
                 
                 CtrlVar.MeshChanged=1;
                 

@@ -1,4 +1,4 @@
-function dtOut=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
+function [dtOut,dtRatio]=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
             
     %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
     %  modifies time step size
@@ -44,13 +44,14 @@ function dtOut=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
     % however if dt has not been changed outside of function
     if ~isempty(dtOutLast) ;
         if dtIn==dtOutLast  % dt not modified outside of function
-            if ~isempty(dtNotUserAdjusted) ;
+            if ~isempty(dtNotUserAdjusted) ;  
                 dtIn=dtNotUserAdjusted ; 
             end
         end
     end
     
     dtOut=dtIn ;
+    
     
     %%
     if CtrlVar.AdaptiveTimeStepping && ~isempty(RunInfo) ;
@@ -176,6 +177,8 @@ function dtOut=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
     
     dtOutLast=dtOut;
     
+    
+    dtRatio=dtOut/dtIn;
     
     %%
     if dtOut==0

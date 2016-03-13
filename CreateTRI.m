@@ -1,10 +1,9 @@
 function [TRI,DT]=CreateTRI(MUA,DT)
 
 % [TRI,DT]=CreateTRI(MUA,DT)
-% creates a delaunay triangulation from the nodal points, and takes out
-% those triangles within the convex hull but outside of the FE mesh
-% Usefull, for example, when plotting with trisurf
-% DT is optional
+% creates a delaunay triangulation from the nodal points, and then eliminates
+% triangles outside of the mesh boundary. 
+% DT is an optional input
 
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ; 
 

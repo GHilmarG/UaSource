@@ -15,7 +15,7 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %
 % Note: As a part of the Mapping Toolbox there is a matlab routine `polymerge' that
 %       can also be used to do this, but this routine is
-%       hoplessly slow and memory hungry for a large number of line segments.
+%       hopelessly slow and memory hungry for a large number of line segments.
 %
 %
 %
@@ -37,7 +37,30 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %aCase=0; bCase=0;
 
 
-%Tolerance=100*eps;
+
+%save TestLineUpEdges2
+
+if numel(xa) ~= numel(xb)
+    error('LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in xb')
+end
+
+if numel(xa) ~= numel(ya)
+    error('LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in ya')
+end
+
+
+if numel(ya) ~= numel(yb)
+    error('LineUpEdges:IncorrectNumberOfElements','number of elements in ya must equal number of elements in yb')
+end
+
+
+if isempty(xa)
+    xPolygon=[] ; yPolygon=[];
+    return
+end
+
+
+
 
 if isempty(CtrlVar)
     CtrlVar.InfoLevel=0;
@@ -48,7 +71,7 @@ end
 if ~isfield(CtrlVar,'InfoLevel') ; CtrlVar.InfoLevel=0 ; end
 if ~isfield(CtrlVar,'LineUpTolerance') ; CtrlVar.LineUpTolerance=100*eps ; end
 
-% Tolerance controls how close endpoints of edges must be for them to be considered to be a part of the 
+% Tolerance controls how close endpoints of edges must be for them to be considered to be a part of the
 % same polygon.
 % Tolerance2 is a numerical tolerance used to determine if a x,y coordinate is identical to another
 % x,y coordinate.
@@ -60,6 +83,8 @@ if nargin<6
     LineMax=inf;
 end
 
+% sort values in a circular manner around the mean centerpoint.
+% This usually speeds things up as it makes it more likely that individual line segments are already aligned.
 Theta=atan2(ya-mean(ya),xa-mean(xa));
 [~,I]=sort(Theta);
 xa=xa(I) ; ya=ya(I) ; xb=xb(I) ; yb=yb(I);
@@ -97,11 +122,11 @@ while ~all(isnan(xa))
     %
     % Algorithm:
     % -Take edge points as defined by [xa ya ; xb yb] and add to Polygon
-    % Find endpoints of edges closest to last added point in Polygon. If distance to either end points of 
+    % Find endpoints of edges closest to last added point in Polygon. If distance to either end points of
     % some edges is within a given tolerance, add those to Polygon and delete the edge.
     % If no such point is found, consider the possibility that there are some such edges close to the
     % other end of current Polygon and therefore flip the polygon once.
-    % If no such edges are found, start a new polygon, and define the new starting point.
+    % If no such edges are found, after having flipped once, start a new polygon, and define the new starting point.
     %
     if dista< Tolerance || distb<Tolerance
         
@@ -138,7 +163,7 @@ while ~all(isnan(xa))
             k=i-1;
             xa(ib)=NaN ; ya(ib)=NaN ; xb(ib)=NaN ; yb(ib)=NaN ;
             
-            while ia<=(numel(xa)-1)
+            while ib<=(numel(xa)-1)
                 %bCase=bCase+1;
                 Test=abs(xa(ib+1)-xPolygon(k))+abs(ya(ib+1)-yPolygon(k));
                 if Test<Tolerance2
@@ -162,8 +187,8 @@ while ~all(isnan(xa))
         
         
     else  % dist larger than tolerance, must start a new line-segment.
-          % Put NaN to mark the division between line segments, and find a starting point
-          % for the next line segment.
+        % Put NaN to mark the division between line segments, and find a starting point
+        % for the next line segment.
         
         
         flipped=0;
@@ -187,14 +212,14 @@ while ~all(isnan(xa))
         end
     end
     
-%     figure(10) ; hold on  ; plot(xPolygon,yPolygon,'o-')
-%     prompt = 'Do you want more? Y/N [Y]: ';
-%     [xa(:) ya(:) xb(:) yb(:)]
-%     str = input(prompt,'s');
-%     if isempty(str)
-%         str = 'Y';
-%     end
-
+    %     figure(10) ; hold on  ; plot(xPolygon,yPolygon,'o-')
+    %     prompt = 'Do you want more? Y/N [Y]: ';
+    %     [xa(:) ya(:) xb(:) yb(:)]
+    %     str = input(prompt,'s');
+    %     if isempty(str)
+    %         str = 'Y';
+    %     end
+    
 end
 
 I=isinf(xPolygon);
@@ -210,24 +235,36 @@ temp=sort(find(isnan(xPolygon))) ; temp=[0;temp;numel(xPolygon)];
 NGL=min([numel(I),LineMax]);
 
 if CtrlVar.InfoLevel>=10;
-    fprintf('LineUpEdges: Found %-i grounding lines. Returning %-i.  \n',numel(I),NGL)
+    fprintf('LineUpEdges2: Found %-i grounding lines. Returning %-i.  \n',numel(I),NGL)
 end
-xx=[] ; yy=[];
+
+
+M=10000;
+xx=zeros(M,1) ; yy=zeros(M,1) ;
+N=0;
 for l=1:NGL
     
-    n1=temp(I(l))+1 ; n2=temp(I(l)+1) ;
-    xx=[xx;xPolygon(n1:n2)] ; yy=[yy;yPolygon(n1:n2)];
+    n1=temp(I(l))+1 ;
+    n2=temp(I(l)+1) ;
+    n=n2-n1+1;
+    
+    
+    if length(xx)<(N+n)
+        M=2*M;
+        xx=[xx;zeros(M,1)];
+        yy=[yy;zeros(M,1)];
+    end
+    
+    xx(N+1:N+n)=xPolygon(n1:n2) ; yy(N+1:N+n)=yPolygon(n1:n2) ;
+    N=N+n;
     
     
 end
 
-xx(end)=[] ;yy(end)=[];
+
+xx(N:end)=[] ;  yy(N:end)=[] ; 
 
 xPolygon=xx; yPolygon=yy;
-
-
-%[aCase bCase]
-
 
 
 end

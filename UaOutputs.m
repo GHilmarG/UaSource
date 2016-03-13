@@ -1,9 +1,14 @@
 function  UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
 
  
+
+
+
 if nargin==1
     load(CtrlVar) ; CtrlVar=CtrlVarInRestartFile;
 end
+
+CtrlVar.UaOutputs='-sbB-ubvb-BCs-';
 
 
 %%
@@ -22,7 +27,7 @@ CtrlVar.QuiverColorPowRange=2;
 
 %%
 GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
-TRI=[]; DT=[];
+TRI=[]; DT=[]; xGL=[] ; yGL=[] ;
 x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
 
 
@@ -32,7 +37,7 @@ if ~isempty(strfind(plots,'-save-'))
     % save data in files with running names
     % check if folder 'ResultsFiles' exists, if not create
 
-    if strcmp(CtrlVar.UaOutputsInfostring,'First call ') && exist('ResultsFiles','dir')~=7 ;
+   if strcmp(CtrlVar.UaOutputsInfostring,'First call ') && exist(fullfile(cd,'ResultsFiles'),'dir')~=7 ;
         mkdir('ResultsFiles') ;
     end
     
@@ -46,19 +51,37 @@ if ~isempty(strfind(plots,'-save-'))
     end
 end
 
+
+
 % only do plots at end of run
 if ~strcmp(CtrlVar.UaOutputsInfostring,'Last call') ; return ; end
+
+if ~isempty(strfind(plots,'-BCs-'))
+    figure ;
+    PlotBoundaryConditions(CtrlVar,MUA,BCs)
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
+end
 
 
 if ~isempty(strfind(plots,'-sbB-'))
 %%
     figure
     hold off
-    AspectRatio=10; 
-    ViewAndLight(1)=260 ;  ViewAndLight(2)=10 ;
+    AspectRatio=3; 
+    ViewAndLight(1)=-40 ;  ViewAndLight(2)=20 ;
     ViewAndLight(3)=90 ;  ViewAndLight(4)=50;
     [TRI,DT]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight);
 %%   
+end
+
+if ~isempty(strfind(plots,'-B-'))
+    figure ;
+    PlotMeshScalarVariable(CtrlVar,MUA,B);
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'g');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
 end
 
 
@@ -74,7 +97,9 @@ if ~isempty(strfind(plots,'-ubvb-'))
     %CtrlVar.RelativeVelArrowSize=10;
     
     QuiverColorGHG(x(1:N:end),y(1:N:end),ub(1:N:end),vb(1:N:end),CtrlVar);
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ; 
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('(ub,vb) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     %%
     
@@ -90,7 +115,9 @@ if ~isempty(strfind(plots,'-udvd-'))
     %CtrlVar.RelativeVelArrowSize=10;
     %CtrlVar.VelColorMap='hot';
     QuiverColorGHG(x(1:N:end),y(1:N:end),ud(1:N:end),vd(1:N:end),CtrlVar);
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('(ud,vd) t=%-g ',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
     axis equal tight
     
@@ -107,7 +134,9 @@ if ~isempty(strfind(plots,'-e-'))
     
     figure
     [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,eNod,CtrlVar)    ;
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ; 
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('e t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     
 end
@@ -116,7 +145,9 @@ if ~isempty(strfind(plots,'-ub-'))
     
     figure
     [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,ub,CtrlVar)    ;
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('ub t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     
 end
@@ -126,7 +157,9 @@ if ~isempty(strfind(plots,'-log10(AGlen)-'))
 %%    
     figure
     PlotMeshScalarVariable(CtrlVar,MUA,log10(AGlen));
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ; 
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('log_{10}(AGlen) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(yr^{-1} kPa^{-3})')
 %%
@@ -137,7 +170,9 @@ if ~isempty(strfind(plots,'-log10(C)-'))
 %%    
     figure
     PlotMeshScalarVariable(CtrlVar,MUA,log10(C));
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on 
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     title(sprintf('log_{10}(C) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(m yr^{-1} kPa^{-3})')
 %%
@@ -155,12 +190,14 @@ end
 
 if ~isempty(strfind(plots,'-log10(SurfSpeed)-'))
     
-    us=ub+ud;  vs=vb+vd; 
-    SurfSpeed=sqrt(us.*us+vs.*vs); 
+    us=ub+ud;  vs=vb+vd;
+    SurfSpeed=sqrt(us.*us+vs.*vs);
     
     figure
     PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
-    hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+    PlotMuaBoundary(CtrlVar,MUA,'b')
     
     title(sprintf('log_{10}(Surface speed) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(m/yr)')
@@ -230,15 +267,7 @@ end
 if ~isempty(strfind(plots,'-stresses-'))
     
     figure
-    %PathName='E:/GHG/Satellite Images/Landsat/Brunt/Landsat 8/2015-02-06/';
-    %ImageFile='LC81841142015037LGN00_B3.TIF';
-    %[Image,ImageFile,PathName]=ReadLandsatFile(ImageFile,PathName);
-    %
-    %low=0.1 ; high=0.4 ;
-    
-    %MapHandle=PlotStreachedLandsatImage(Image,low,high,CtrlVar.PlotXYscale);
-    
-    hold on
+
     [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd);
     N=10;
     

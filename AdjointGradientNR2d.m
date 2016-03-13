@@ -1,5 +1,5 @@
-function [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=AdjointGradientNR2d(...
-    Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas)
+function [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=AdjointGradientNR2d(...
+    Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas)
 
 
 % [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
@@ -9,12 +9,12 @@ function [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlend
 %     Luv,Luvrhs,lambdauv,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,K)
 % 
 
-narginchk(27,27)
+narginchk(26,26)
 
 dIdAGlendata=zeros(MUA.Nele,1) ; dIdCdata=zeros(MUA.Nele,1);
 
 % Step 1: solve linearized forward problem
-[ub,vb,ud,vd,ubvbLambda,udvdLambda,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+[ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
 
 % Step 2:  Solve adjoint equation, i.e.   K l=-r
 % fprintf(' Solve ajoint problem \n ')
@@ -50,7 +50,7 @@ if ~isreal(l) ;
     save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
 end
 
-lx=real(l(1:MUA.Nnodes)) ; ly=real(l(MUA.Nnodes+1:2*MUA.Nnodes));
+xAdjoint=real(l(1:MUA.Nnodes)) ; yAdjoint=real(l(MUA.Nnodes+1:2*MUA.Nnodes));
 
 if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
     
@@ -68,11 +68,11 @@ if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
     
     subplot(2,2,3)
-    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,lx,CtrlVar);  title('lx')
+    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,xAdjoint,CtrlVar);  title('lx')
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
     
     subplot(2,2,4)
-    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,ly,CtrlVar);  title('ly')
+    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,yAdjoint,CtrlVar);  title('ly')
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
 end
 
@@ -89,7 +89,7 @@ if ~isempty(strfind(CtrlVar.AdjointGrad,'C'))
             Cnode=C;
         end
         
-        dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*lx+v.*ly);
+        dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*xAdjoint+v.*yAdjoint);
         
         if CtrlVar.CisElementBased
             dIdCdata=Nodes2EleMean(MUA.connectivity,dIdCdata);
@@ -101,7 +101,7 @@ if ~isempty(strfind(CtrlVar.AdjointGrad,'C'))
         %fprintf(' Adjoint integral \n ')
         
         %dIdCdata=dIdCqEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-        dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+        dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
         
         if CtrlVar.AdjointGradientEleAverage
             fprintf(' averaging dIdC over elements \n')
@@ -118,7 +118,7 @@ if ~isempty(strfind(CtrlVar.AdjointGrad,'A'))
     
     %fprintf(' Adjoint integral \n ')
     %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
     %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,VUA,lx,ly,h,AGlen,n);
     if CtrlVar.AdjointGradientEleAverage
         fprintf(' averaging dIdAGlen over elements \n')

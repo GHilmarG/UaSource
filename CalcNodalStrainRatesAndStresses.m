@@ -1,13 +1,31 @@
-function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
+function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
 
-% calculates nodal strains and stresses
+% Calculates strains and devitoric stresses. 
+%
+% [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
+%
+% Strains and stresses are first calculated at integration points, then projeted onto nodes.
+% On output all variables are nodal variables. 
+%
+% txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
+% txx,tyy,txy   : horizontal deviatoric stresses 
+% exx,eyy,exy   : horizontal strain rates
+% e             : effective strain rate  
+% eta           : effective viscosity
+%
 % the basal stress caculation is done using the basal boundary condition as:
 % txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
 %   < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
+%
+% Stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz}
+% wheere \sigma_{zz}= - \rho g (s-z)
+% Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} 
+% Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h 
+%
+%
 
-
-narginchk(11,13)
-nargoutchk(1,9);
+%narginchk(11,13)
+%nargoutchk(1,9);
 
 
 
@@ -94,7 +112,7 @@ sol=M\[rhx rhy] ;
 txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 
 if nargout>2
-    [txx,tyy,txy,exx,eyy,exy,e]=ProjectFintOntoNodes(MUA,txx,tyy,txy,exx,eyy,exy,e);
+    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
 end
 
 if ~isreal(txzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txzbNotReal','txzb not real!') ; end

@@ -1,17 +1,21 @@
-function [Fdhdt,dhdt]=GetMeasuredIceShelfThinningRates(xps,yps)
+function [Fdhdt,dhdt]=GetMeasuredIceShelfThinningRates(xps,yps,dhdzGL)
 
 %%
+
+if nargin<3
+    dhdzGL=NaN;
+end
+
 AntarcticGlobalDataSets=getenv('AntarcticGlobalDataSets');
 
-if isempty(AntarcticGlobalDataSets)
-    error('The environmental variable AntarcticDataSets not defined' )
-end
 
 locdir=pwd;
 
 
 cd(AntarcticGlobalDataSets);
 cd IceShelfThinningRates/dzdt_v3/dzdt_v3/
+%%
+
 
 data=load('ice_shelf_dzdt_v3.mat');
 [x,y]=ll2xy(data.lat,data.lon);
@@ -43,9 +47,30 @@ cd(locdir)
 %         
 % end
 
+if ~isnan(dhdzGL)
+    [xGLbob,yGLbob]=ReadBindschadlerGroundingLine;
+    R=sqrt(x.*x+y.*y);
+    Rgl=sqrt(xGLbob.*xGLbob+yGLbob.*yGLbob);
+    I=Rgl<min(R);
+    
+    % add fictious data points along grounding line where no data is available
+    % set these points to some values representing possible range
+    
+    
+    xDataAdded=xGLbob(I) ;  yDataAdded=yGLbob(I) ;
+    DataAdded=yDataAdded*0+dhdzGL;
+    
+    
+    x=[x(:) ; xDataAdded];
+    y=[y(:) ; yDataAdded];
+    dzdt=[dzdt(:) ; DataAdded];
+    I=~isnan(dzdt); x=x(I) ; y=y(I); dzdt=dzdt(I);
+    
+end
+
 Fdhdt=scatteredInterpolant(x,y,dzdt,'natural','nearest');
 
-if nargin==2
+if nargin>=2
     dhdt=Fdhdt(xps,yps);
 else
     dhdt=[];

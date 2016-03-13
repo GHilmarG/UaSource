@@ -7,11 +7,15 @@ function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 % For just plotting the boundary edges as, for example, a black line, do:
 % figure ; PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 %
+% Notes: 
+% 
+% Another option of just plotting the mesh boundaries is simply to do: 
+% figure ; plot(MUA.coordinates(MUA.Boundary.Edges,1)/CtrlVar.PlotXYscale, MUA.coordinates(MUA.Boundary.Edges,2)/CtrlVar.PlotXYscale, 'k', 'LineWidth',2) ;
+% in which case the `PlotBoundary' m-file is not used.
 %
 %
-% CtrlVar.PlotBooundaryElements
-% CtrlVar.PlotBoundaryLabels
-% CtrlVar.PlotBoundaryNodes
+% Sea also 
+% PlotMuaBoundary
 
 if nargin < 4 || isempty(CtrlVar)
     CtrlVar.PlotLabels=0;
@@ -87,7 +91,7 @@ end
 
 %title(sprintf('boundary t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
 axis equal tight
-hold off
+
 
 
 

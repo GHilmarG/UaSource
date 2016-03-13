@@ -1,19 +1,18 @@
 function PrintRunInfo(CtrlVar)
     
     fprintf(CtrlVar.fidlog,'\n \n');
-    fprintf(CtrlVar.fidlog,' **************************     Úa version: 14 August, 2015  ********************** \n');
+    fprintf(CtrlVar.fidlog,' **************************     Úa version: 20 Feb. 2016  ********************** \n');
     fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datestr(now));
     fprintf(CtrlVar.fidlog,'   Experiment %s  \n ',CtrlVar.Experiment);
     
     if CtrlVar.doInverseStep
-        if CtrlVar.AdjointRestart
+        if CtrlVar.Restart
             fprintf(CtrlVar.fidlog,'   Inverse-modelling restart run  \n ');
         else
             fprintf(CtrlVar.fidlog,'   Inverse-modelling run  \n ');
         end
     end
-    
-    
+        
     
     if  CtrlVar.doDiagnostic
         if CtrlVar.Restart
@@ -31,7 +30,11 @@ function PrintRunInfo(CtrlVar)
         end
     end
     
-    
+%     poolobj = gcp('nocreate');
+%     if ~isempty(poolobj)
+%         fprintf(CtrlVar.fidlog,'   Number of workers in pool is %i \n ',poolobj.NumWorkers);
+%     end
+%     
     
     fprintf(CtrlVar.fidlog,'***************************************************************************** \n \n');
     

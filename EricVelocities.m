@@ -13,10 +13,10 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
     if isempty(x)
         
         AntarcticGlobalDataSets=getenv('AntarcticGlobalDataSets');
-        
-        if isempty(AntarcticGlobalDataSets)
-            error('The environmental variable AntarcticDataSets not defined' )
-        end
+%         
+%         if isempty(AntarcticGlobalDataSets)
+%             error('The environmental variable AntarcticDataSets not defined' )
+%         end
         
         switch DataSet
             case 'Eric'  % possible the same as 990m, a bit older version
@@ -31,8 +31,12 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
             case '990m'
                 fprintf(' loading MEASURES 990m velocity data ')
                 locdir=pwd;
-                cd(AntarcticGlobalDataSets)
-                cd MEASURES/990m
+                
+                if ~isempty(AntarcticGlobalDataSets)
+                    cd(AntarcticGlobalDataSets)
+                    cd MEASURES/990m
+                end
+                
                 load MEASURES_990m_x_y_vx_vy_err.mat x y vx vy err
                 fprintf(' done \n ')
                 

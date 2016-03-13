@@ -4,6 +4,7 @@ classdef UaRunInfo
         
         JoptVector=[];
         InverseIterations=0;
+        AdjointGrad=[];
     end
     
 end

@@ -1,34 +1,41 @@
-
 function AdjointResultsPlots(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
                 InvStartValues,Priors,Meas,BCsAdjoint,Info,InvFinalValues,xAdjoint,yAdjoint)
 
+%save TestSave
+%error('fdas')
+
+%%
 if nargin==0
     fprintf('loading AdjointRestart')
     load AdjointRestart
-    fprintf('done.\n')
+    fprintf(' done.\n')
 end
 
 if nargin==1 % if only one input argument is given, it is assumed that it is the name of an input file
     fprintf('loading %s',Experiment)
     load(Experiment)
-    fprintf('done.\n')
+    fprintf(' done.\n')
 end
 
+%%
 us=ub+ud; vs=vb+vd;
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 tri=MUA.connectivity;
 GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+xGL=[] ; yGL=[] ; 
 
 figure(3000)
 
 subplot(1,2,1)
 [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,Meas.us,CtrlVar);  title('us Meas on numerical grid') ; colorbar
-hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+hold on ; 
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 
 subplot(1,2,2)
 [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,Meas.vs,CtrlVar);  title('vs Meas on numerical grid') ; colorbar
-hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+hold on ; 
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 
 %%
@@ -38,13 +45,15 @@ vsError=sqrt(spdiags(Meas.vsCov));
 wsError=sqrt(spdiags(Meas.wsCov));
 figure(3010) 
 subplot(2,1,1)
-[FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,usError,CtrlVar);  title('usError on numerical grid') ; colorbar
-hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+[FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,usError,CtrlVar);  
+title('usError on numerical grid') ; colorbar
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 
 subplot(2,1,2) 
-[FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,vsError,CtrlVar);  title('vsError on numerical grid') ; colorbar
-hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+[FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,vsError,CtrlVar);  
+title('vsError on numerical grid') ; colorbar
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 
 if strcmp(CtrlVar.AdjointGrad,'A')
@@ -87,21 +96,33 @@ title(' tb ') ; cbar=colorbar; title(cbar, '(kPa)');
 CtrlVar.VelPlotIntervalSpacing='log10';
 figure(3020)
 subplot(2,2,1); 
-QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar); axis equal ; title('((us-Meas.us)/usError,(vs-Meas.vs)/vsError)') ;
-hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar); 
+title('((us-Meas.us)/usError,(vs-Meas.vs)/vsError)') ;
+hold on
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
+axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 subplot(2,2,2); 
-QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ; hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ; 
+hold on ; 
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
+axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 subplot(2,2,3);
-QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ; title('(Meas.us,Meas.vs)') ; hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ; title('(Meas.us,Meas.vs)') ; 
+hold on ; 
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 subplot(2,2,4);
-QuiverColorGHG(x,y,us,vs,CtrlVar); axis equal ; title('(us,vs)') ; hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1)
+QuiverColorGHG(x,y,us,vs,CtrlVar); axis equal ; title('(us,vs)') ; 
+hold on ; 
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r'); 
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 %%
 figure   

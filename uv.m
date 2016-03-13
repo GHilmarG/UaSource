@@ -1,5 +1,4 @@
-function [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]= ...
-    uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
+function [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
 
 narginchk(22,22)
 

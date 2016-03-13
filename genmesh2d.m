@@ -5,6 +5,8 @@ function [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,
 %    triangles! Interior and edge nodes of higher order elements missing
 
 
+
+
 options.output=false;
 
 switch lower(CtrlVar.MeshGenerator)
@@ -65,8 +67,10 @@ clear M
 % tolerance=100*eps;
 % [coordinates,connectivity]=RemoveDuplicateNodes(coordinates,connectivity,tolerance);
 
-
 connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity);
+
+[coordinates,connectivity]=UserMeshModifications(CtrlVar,coordinates,connectivity);
+
 
 FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates);
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
@@ -74,6 +78,9 @@ MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 if  CtrlVar.doplots==1 && CtrlVar.PlotMesh==1
      figure(1500+CtrlVar.GmeshMeshingAlgorithm) ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
 end
+
+
+
 
 end
 

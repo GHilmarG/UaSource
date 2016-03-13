@@ -1,5 +1,5 @@
 function  [x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
-    DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,u,v,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
+    DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,ub,vb,ud,vd,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ;error('fdsa')
@@ -29,7 +29,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
         
         case 'effective strain rates';
             
-            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,u,v,AGlen,n);
+            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
             NodalErrorIndicator=ProjectFintOntoNodes(MUA,e);
             NodalErrorIndicator(NodalErrorIndicator<0)=0;
             
@@ -446,7 +446,7 @@ end
 
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
-[EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,GF,NodalErrorIndicators);
+[EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators);
 
 assert(numel(x)==numel(y) && numel(x)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 

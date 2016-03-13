@@ -1,5 +1,17 @@
-function PlotTensor(x,y,exx,exy,eyy,scale,LineWidth)
-    
+function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+
+% Plots a 2x2 symmetrical tensor quantity.
+% PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+%
+% Tensor T=[txx  txy]
+%          [txy  tyy]
+%
+% Compression is plotted in red, extension in blue.
+%
+
+
+
+
     headscale=0.3;
     sharp=0.3;
     
@@ -7,8 +19,8 @@ function PlotTensor(x,y,exx,exy,eyy,scale,LineWidth)
     
     for k=1:length(x)
         
-        if ~isnan(exx(k))
-            D=[exx(k) exy(k) ; exy(k) eyy(k)];
+        if ~isnan(txx(k))
+            D=[txx(k) txy(k) ; txy(k) tyy(k)];
             [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
             
             

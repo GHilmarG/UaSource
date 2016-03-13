@@ -23,7 +23,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     %        nip=7, niph=12 stable in semi-impicit scemes
     %        nip=12, niph=12 stable in both semi and implicit
     %
-    %  The rule is that niph must be >= to 3, 6, and 12 for 3, 6 and 10 node elements, respectively
+    %  The rule is that niph must be >=  3, 6, and 12 for 3, 6 and 10 node elements, respectively
     %  i.e. the prognostic equation must always be integrated with 1-order higher intergration scheme
     % 
     %%
@@ -48,7 +48,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             %nip=3 ; niph=4 ; % test
             
             
-        case 6   % minimum of 4 needed for a liner problem
+        case 6   % minimum of 4 needed for a linear problem
             
             %nip=4 ; % results in a singular system for implicit uvh
             %nip=6;
@@ -56,9 +56,9 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             %nip=12;
             
             %nip=6 ; niph=6;
-            %nip=7 ; niph=7;  
+            nip=7 ; niph=7;  
             %nip=12 ; niph=12;  
-            nip=16; niph=16;
+            %nip=16; niph=16;
             
             
             

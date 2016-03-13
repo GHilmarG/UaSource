@@ -78,6 +78,7 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt
             exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*ubnod(:,I);
             eyy(:,Iint)=eyy(:,Iint)+Deriv(:,2,I).*vbnod(:,I);
             exy(:,Iint)=exy(:,Iint)+0.5*(Deriv(:,1,I).*vbnod(:,I) + Deriv(:,2,I).*ubnod(:,I));
+          
         end
     
         

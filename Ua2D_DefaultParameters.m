@@ -1,134 +1,53 @@
 function CtrlVar=Ua2D_DefaultParameters
 
 
-%% Running Úa:
+%%
+% CtrlVar=Ua2D_DefaultParameters
 %
-% 1) Add the folder with the Úa m-files, and its subfolders, to your matlab path.
-%    This can be done using the 'Home/Set' Path menu item, or from the
-%    command prompt doing something like:
-%    addpath('MyUaSourceFileFolder')
+%  set the fields of the CtrlVar to their default values
 %
-% 2) Define the Matlab environmental variable 'UaHomeDirectory'.
-% This can for example be done as follows:
-%                 setenv('UaHomeDirectory','MyUaSourceFileFolder')
-%
-% 3) If using the mesh generator `gmsh' (almost always the case) then also define 
-% the Matlab environmental variable 'GmeshHomeDirectory'. The gmsh program
-% can be found below the Úa main folder, so something like
-%                 setenv('GmeshHomeDirectory','MyDrive/Ua2D/gmsh-2.8.4-Windows')  
-% will do. Alternativily you might want to install your own copy of gmsh.
-% If running on a Unix system, then most likely gmsh can be called without the need
-% to set the Matlab environmental variable 'GmeshHomeDirectory'. 
-%
-% Now you can run Úa from within Matlab by writing Ua2D [Ret]
-%
-%
-%% Defining model run
-% Whenever setting up your own model, create your own working directory for your model runs. 
-% Most of the parameters of a given model run are defined by the user through m-files 
-% that are called by Úa during the run. 
-%
-% These m-files are:
-% DefineAGlenDistribution.m
-% DefineSlipperyDistribution.m
-% DefineBoundaryConditions.m  (also possible to use the more limited but easier to use `DefineBCs.m' instead)          
-% DefineGeometry.m                
-% DefineDensities.m          
-% DefineMassBalance.m
-%
-% Optionally one can also define start values for (u,v) using:
-% DefineStartVelValues.m
-%
-% If adaptive meshing is used, then optionally one can define desired ele sizes using 'DefineDesiredEleSize.m'
-% However, Úa also has various automated in-built options of specifying ele sizes based on various criteria and
-% in many cases one does not need to do any further modifications.
-%
-% If used in an inverse mode then 'DefineInverseModellingVariables.m' is required.
-%
-% If any of the above listed m-Files are not found in the run directory, the corresponding m-Files in the Úa home directory are used instead.
-%
-% When defining a new model-run, just copy these files from the Úa home directory into your own model-run directory 
-% and modify as needed. 
-% 
-% The calls to these functions are: 
-% [rho,rhow,g]=DefineDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
-% 
-% [C,m]=DefineSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-% [AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-% [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% or if mass-balance geometry feedback option 3 is used:
-% [as,ab,dasdh,dabdh]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF); 
-% 
-% BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
-% BCs is an instant of the class `BoundaryConditions' which in fact is just a simple structure with a number of fields. 
-% To see the fields of BCs have a look at BoundaryConditions.m 
-% The fancy way of doing this is to do: publish('BoundaryConditions.m') ; web('html\BoundaryConditions.html')
-% from the Ua home directory.
-%
-% Alternativily, instead of `DefineBoundaryConditioins' one can use:
-% [ufixednode,ufixedvalue,vfixednode,vfixedvalue,utiedA,utiedB,vtiedA,vtiedB,hfixednode,hfixedvalue,htiedA,htiedB]=...
-%     DefineBCs(Experiment,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF);
-% 
-% [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined);
-% 
-% [ub,vb,ud,vd]=DefineStartVelValues(Experiment,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-%  
-% [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA);
 %
 
-%% Name of variables
+
+
+%%
 %  
-% Throughout the following variables stand for:
-%
-%   s          : upper glacier surface elevation 
-%   b          : lower glacier surface elevation 
-%   S          : ocean surface elevation
-%   B          : bedrock elevation 
-%   (ub,vb,wb) : sliding velocity components
-%   (ud,vd,wd) : deformational velocity components
-%    rho       : ice density (defined at nodes and does not have to be spatially uniform)
-%    rhow      : ocean density (a scalar)
-%    AGlen     : the rate factor in Glen's flow law  (either a nodal or an element variable)
-%    n         : stress exponent in Glen's flow law  (either a nodal or an element variable)
-%    C         : basal slipperiness (a scalar)
-%    m         : stress exponent in basal sliding law (a scalar)
-%
-%  
-%  MUA :        The finite-element mesh structure 
-%               The values of MUA should never be changed directly by the user.
-%               MUA has the following fields              
-%      coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal points
-%     connectivity:  mesh connectivity 
-%           Nnodes:  number of nodes in mesh
-%             Nele:  number of elements in mesh
-%              nod:  number of nodes per element
-%              nip:  number of integration points
-%           points:  integration points
-%          weights:  weights of integration points
-%         Boundary: a structure containing info about mesh boundary
-%                   This structure is calculated as:
-%                   MUA.Boundary=FindBoundary(connectivity,coordinates);
-%                   and info about the fields can be found in `FindBoundary.m'
-%            Deriv:  element derivatives
-%             DetJ:  elemnt determinants
-%
+%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Changine the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'. 
+%  This user m-file should be located in a separate run-directory, together with all the other user m-files
+
+
 %%
 
-CtrlVar.fidlog=1;
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=NaN;
 %% Types of run
 % 
-CtrlVar.TimeDependentRun=0 ;  % any of [0|1].  
+CtrlVar.TimeDependentRun=0 ;  % eiter [0|1].  
                               % If true (i.e. set to 1) then the run is a forward transient one, if not
                               % then velocities based on the current geometry are calculated. 
 CtrlVar.InverseRun=0;         % if true then a surface-to-bed inversion is to be performed.
                               % (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)
+                              
+CtrlVar.Restart=0;            % If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.
+                              % For example setting: 
+                              %       CtrlVar.InverseRun=1; 
+                              %       CtrlVar.Restart=1;
+                              % will give a restarted inverse run. (make sure a corresponding restart file does exist, see below.)
+                              %
 
+                              
+CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
+                                          % In a non-transient (stationary) run, this will be the maxiumu number of diagnostic calculations.
+                                          % (Typically, the number of forward run steps in a non-transient run will be 1, and the user must make sure to set 
+                                          % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
+                                          % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that reastart run, i.e.
+                                          % not the total accumulated number of forward run steps.
+                              
 %% Ice flow approximation
-CtrlVar.FlowApproximation='SSTREAM' ;  % any off ['SSTREAM'|'SSHEET'|'Hybrid']
+CtrlVar.FlowApproximation='SSTREAM' ;  % any off ['SSTREAM'|'SSHEET'|'Hybrid']  
+                                       % Note, both SSTREAM and SSHEET are implemented.
+                                       % But Hybrid is still in develoment and should not be used for the time being.
 
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBCs' is called at the beginning of each time step and boundary conditions are updated
@@ -158,18 +77,24 @@ CtrlVar.TriNodes=6 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubi
 %% Control on transient runs
 % Once either the number of time steps or total time modelled reaches prescribed values
 % the run stops.
-CtrlVar.nTimeSteps=1;            % maximum number of time steps
+
 CtrlVar.TotalTime=1e10;          % maximum model time
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the Ua2D_InitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
-CtrlVar.InitialDiagnosticStep=1; % start implicit transient (prognostic) run with an initial diagnostic step (a good idea, do this always)
-CtrlVar.InitialDiagnosticStepAfterRemeshing=1 ; % after each remeshing, do an initial diagnostic step before continuing with further prognostic steps 
+CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnostic step, even if the step is a restart step.
+                                 % Irrespectivly of the value of this variable, an initial diagnostic step is always performed at the beginning of a transient run if it is not a restart run.
+                                 % An inital diagnostic step is therefore done at the beginning of a transient run if:
+                                 % 1) so asked by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
+                                 % 2) at the start of an implicut uvh transient run.
+                                 % Unless asked by the user, no initial diagnostic step is done at the beginning of a transient restart run.
+
+CtrlVar.InitialDiagnosticStepAfterRemeshing=1 ; % after each remeshing, do an initial diagnostic step before continuing with further prognostic steps. (Always a good idea.) 
 
 %% Restart option
-CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run
+CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)
 CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
-CtrlVar.WriteRestartFileInterval=100;    % restart file written at this time-step interval  (these are time steps, not model time)
+CtrlVar.WriteRestartFileInterval=100;    % restart file written at this time-step interval  (note, these are run steps, not model time)
 CtrlVar.ResetTime=0 ;                    % set to 1 to reset (model) time at start of restart run
 CtrlVar.RestartTime=NaN;                 % if ResetTime is true, then this is the model time at the start of the restart run
 CtrlVar.ResetTimeStep=0;                 % 1 if time step should be reset to dt given in the Ua2D_InitialUserInputFile
@@ -182,7 +107,7 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %% Plotting
 %
 % Most plotting is typically done by the user using his own version of the `UaOutputs.m',
-% or in a separated post-processing step
+% or in a separate post-processing step
 % However, some basic plots can be generated directly from within Ua.
 %
 
@@ -200,27 +125,30 @@ CtrlVar.OnlyDoFirstTransientPlotAndThenStop=0; % stops run after first transient
 CtrlVar.PlotStrains=0;
 CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.FE2dPlots=0;                 % if true/1 then FE2dPlots.m is called at the end of run. User would generally make his own version of this m-file
-CtrlVar.PlotBackgroundImage=0;
-
 CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
 CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
-
-CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
-CtrlVar.FEmeshPlotTitle=[]; % Title for FE mesh plot, if left empty then something sensible is used instead
-CtrlVar.PlotFEmeshAndSaveMesh=0 ; % when plotting mesh also save mesh to a file
-CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
-CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;
-CtrlVar.PlotNodes=0;       % If true then nodes are plotted when FE mesh is shown
-CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labelled with their respective numbers
-CtrlVar.PlotNodesSymbol='o';
-CtrlVar.PlotNodesSymbolSize=3;
-CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 CtrlVar.GLresolutionWhenPlotting=2000;      % when plotting GL the GF mask is (sometimes) mapped on a regular grid
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
                                             % equal to this value  (setting this to a large value makes all arrows
                                             % equally long)
+
+CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;
+
+%% Plotting mesh
+% The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
+% either PlotFEmesh or PlotMuaMesh (see help PlotFEmesh)
+CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
+CtrlVar.FEmeshPlotTitle=[]; % Title for FE mesh plot, if left empty then something sensible is used instead
+CtrlVar.PlotFEmeshAndSaveMesh=0 ; % when plotting mesh also save mesh to a file
+CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
+CtrlVar.PlotNodes=0;       % If true then nodes are plotted when FE mesh is shown
+CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labelled with their respective numbers
+CtrlVar.LabelNodes=0;      % Nodal labels are plotted
+CtrlVar.LabelElements=0;   % Element labels are plotted
+CtrlVar.PlotNodesSymbol='o';
+CtrlVar.PlotNodesSymbolSize=3;
+CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 
 
 %% Numerical variables related to transient runs
@@ -271,12 +199,12 @@ CtrlVar.etaIntMax=1e10 ;    % max value of effective viscosity
 CtrlVar.etaIntMin=1e-6;     % min value of effective viscosity
 CtrlVar.Czero=1e-10;        % 
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq
-CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope can lead to occillations,
-CtrlVar.dbdyZero=1;   % therfore surpress bedslopes to less than 45 degrees
+CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
+CtrlVar.dbdyZero=1;   % a crude solution is to limit bedslopes to 45 degrees 
 
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when invertion for A and/or C.
-% (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less thatn Czero!)
+% (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less than Czero!)
 %
 switch lower(CtrlVar.FlowApproximation)
     case 'sstream'
@@ -293,22 +221,22 @@ CtrlVar.AGlenmax=1e10;
 % and the normalised chances in u,h and \lambda smaller than du, dh and dl.
 %
 % The most (arguably even the only) important number is NLtol.
-% NLtol is a tolerance on the norm of the actual solution residuals, i.e. the resulting residuals once the solution is
+% NLtol is a tolerance on the norm of the solution residuals, i.e. the resulting residuals once the solution is
 % plugged back into the equation. So NLtol should ALWAYS be set to a small value (for example <1e-10)
 %
-% The CtrlVar.du/dh/dl are tolerances for the chance in u,h, and \lambda, respectively, between non-linear iterations.
+% The CtrlVar.du/dh/dl are tolerances for the chance in u,h, and \lambda, respectively, between subsequent non-linear iteration steps.
 % Although one would expect these to go to zero with increasing iteration number, these are not very reliable
 % estimates of the actual error.  Generally set du and dh to not too large value, but do not focus too much on those numbers
 % (The error in solving the boundary conditions is always checked internally.)
-CtrlVar.NLtol=1e-15; % this is the square of the error, i.e. not root-mean-square error
+CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
 CtrlVar.du=1e-2;     % tolerance for change in (normalised) speed
 CtrlVar.dh=1e-2;     % tolerance for change in (normalised) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalised) lambda variables used to enforced BCs
 %    Note: there is no need to put any constrains on the Lagrange variables
 %    used to enforce the BCs because 1) the BCs are currently always linear,
 %    and 2) it is always checked internally that the BCs have been solved correctly.
-%    In fact it can be a bad idea to enforce a limit on this chance.
-%    (Sometimes the change in lambda between non-linear iteration steps is just a
+%    In fact, it can be a bad idea to enforce a limit on this chanc becaues
+%    sometimes the change in lambda between non-linear iteration steps is just a
 %    direct response to how the primary variables (u,v,h) change.  The norm
 %    of these changes can then be large despite the BCs being exactly fulfilled.)
 
@@ -323,7 +251,7 @@ CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
-CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Piccard backtracking
+CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Piccard backtracking as a fraction of the full Newton/Picard step.
 
 %% Number of integration points
 % if left empty, the number of integration points is set automatically
@@ -407,7 +335,6 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %% Adjoint variables
 CtrlVar.AdjointGrad='C';  % {'C'|'A'}
 CtrlVar.MaxAdjointIterations=1;
-CtrlVar.AdjointRestart=0;
 CtrlVar.AdjointWriteRestartFile=1;
 CtrlVar.NameOfAdjointRestartFiletoWrite='AdjointRestart.mat';
 CtrlVar.NameOfAdjointRestartFiletoRead=CtrlVar.NameOfAdjointRestartFiletoWrite;
@@ -436,7 +363,7 @@ CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works
 %CtrlVar.AdjointMinimisationMethod='FixPointEstimationOfSlipperiness';  % works
 %CtrlVar.AdjointMinimisationMethod='AdjointProjectedGradient' ;  % works
 %CtrlVar.AdjointMinimisationMethod='MatlabConstrainedMinimisation'; % works
-% CtrlVar.AdjointMinimisationMethod='ProjectedBFGS';  % broken
+%CtrlVar.AdjointMinimisationMethod='ProjectedBFGS';  % broken
 
 
 CtrlVar.RescaleAdjointGradient=0;  % rescales analytical gradient to agree with a numerically calculated one (only use for testing purposes)
@@ -468,7 +395,7 @@ CtrlVar.MisfitMultiplier=1;   % the misfit term is multiplied with this number
 
 
 
-% Conjugent gradient parameters: 
+% Conjugated gradient parameters: 
 CtrlVar.AdjointConjugatedGradients=1; 
 CtrlVar.ConjugatedGradientsRestartThreshold=0.2;
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
@@ -529,56 +456,54 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
                                     % Once this limit is reached, the run stops. (Setting this to 1 or some low number
                                     % can sometimes be usefull for testing/control purposes)
                                     % if set to NaN implies no limit to the number of calls 
+                                    
+                                    
+CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each time step.
+                                  % Here the start value is defined as zero. 
 %% Meshing
 % There are various ways of meshing the computational domain.
 %
-% The simplest option tends to be to use the external mesh generator `gmsh' directly from within Úa
-% If that is done, only the outlines of the mesh need to be defined in the variable 'MeshBoundaryCoordinates'
-% and the variables CtrlVar.MeshSizeMin and CtrlVar.MeshSizeMax set. However there are various other options.
+% In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput.
+% In that case Úa will call an external mesh generator.
+% The external mesh generator used by Ua is "gmsh" which is a well known and well supported open source mesh generator (http://geuz.org/gmsh/)
+% The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible
+% and allows for complicated computational domains containing holes and/or separated domains.
 %
-%  For examples of how to generate different type of meshes look at `ExamplesOfMeshGeneration.m'
+% *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
+% Whether done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
-% The main Options are:
-%
-% # Read the initial FE mesh (coordinates, connectivity) directly into Ua from a previously generated .mat file:
-%   (set CtrlVar.ReadInitialMesh to true)
-% # Use `mesh2d.m' to generate the mesh (set CtrlVar.MeshGenerator='mesh2d')
-% # Use `gmesh'  to generate the mesh (set CtrlVar.MeshGenerator='gmesh')
-%
-% Note: mesh2d is excellent, but unfortunately does not work with matlab2011b or later.
-% Therefore `gmesh' is at the moment the best option to use.
-%
-% In general using `gmesh' involves:
-% *             a) creating an inputfile for gmesh (.geo)
-% *             b) calling gmesh for that input file
-% *             c) reading the resulting gmesh output file (.msh) with the mesh
+% *             a) create an inputfile for gmesh (.geo)
+% *             b) call gmesh for that input file (.geo). gmsh in turn generates an output file (.msh)
+% *             c) read into Úa the resulting gmesh output file (.msh) with the mesh
 % All, or some of these three steps can be done withing Úa.
 %
-% When using gmesh it is possible to select between these option:
+% More specifically the options are:
 %
 % *    i)  Directly read existing gmesh output file (.msh)
 % *   ii)  First run gmesh with an existing gmesh input file (.geo) and then read the resulting gmesh output file (.msh)
 % *   iii) First generate gmesh input file (geo), then run gmesh for that input file, and finally read the resulting gmesh output file (.msh)
 %
-% To select between 3i and 3iii set CtrlVar.GmeshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmesh .geo input file and mesh domain and load .msh file'}
+% Option iii is the default option, in which case Úa generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
-% In most cases running gmesh from within Úa is the simplest way of meshing the domain.
-% Only the outlines of the domain need to be defined as well as a few parameters that control
-% the element sizes.
+% To select between i, ii and iii set CtrlVar.GmeshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmesh .geo input file and mesh domain and load .msh file'}
 %
-
-CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (coordinates, connectivity) directly from a .mat file 
+% CtrlVar.GmeshMeshingMode='load .msh'                                                               % option i
+% CtrlVar.GmeshMeshingMode='mesh domain and load .msh file'                                          % option ii
+ CtrlVar.GmeshMeshingMode='create new gmesh .geo input file and mesh domain and load .msh file';    % option iii, which is the default option
+% 
+% After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.
+% 
+CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable) directly from a .mat file 
                               % unless the adaptive meshing option is used, no further meshing is done.
 CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';
 CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
+% By default, the mesh is always saved into a file, and that file can later be re-read.
+% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
+% So for example:  load Restartfile ; save MyNewMeshFile MUA
+% Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
+
 CtrlVar.MeshGenerator='gmesh';  % possible values: {mesh2d|gmesh}
-
-% CtrlVar.GmeshMeshingMode='load .msh'                                                              % option 3i
-% CtrlVar.GmeshMeshingMode='mesh domain and load .msh file'                                         % option 3ii
-CtrlVar.GmeshMeshingMode='create new gmesh .geo input file and mesh domain and load .msh file';     % option 3iii
-
-
 CtrlVar.GmeshFile='GmeshFile';  % name of gmesh input/output files (no file extensions)
 
 CtrlVar.GmeshMeshingAlgorithm=1;    % see gmsh manual
@@ -589,14 +514,18 @@ CtrlVar.GmeshMeshingAlgorithm=1;    % see gmsh manual
                                     % 7=bamg
                                     % 8=DelQuad (experimental)
                                     
-
+CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+                           % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
+                           % Format 1 is simpler
+                           % Fromat 2 is closer to the actual inpuyt format of Gmsh (.geo) and is more
+                           % flexible. See ExamplesOfMeshGeneration.m for further description and examples.
 CtrlVar.GmeshBoundaryType='lines';   % (spline|lines)
 CtrlVar.GmeshCharacteristicLengthExtendFromBoundary=0;
 CtrlVar.GmeshCharacteristicLengthFromCurvature = 0 ;
 CtrlVar.GmshGeoFileAdditionalInputLines{1}='   ';  % these lines are added to the gmsh .geo input file each time such a file is created
 
 CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;
+CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
 
 %% Controlling element sizes
 % if no adaptive meshing is used then the element size is given by
@@ -612,7 +541,6 @@ CtrlVar.MaxNumberOfElements=100e3;           % max number of elements. If #eleme
 CtrlVar.MaxNumberOfElementsUpperLimitFactor=1.3;  % if actual number of elements is larger than CtrlVar.MaxNumberOfElements by this factor
                                                   % the domain is remeshed by modifying MeshSizeMin 
 CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
-
 
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:
@@ -758,11 +686,6 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
 CtrlVar.AdaptMeshInitial=1  ; % remesh in first iteration (Itime=1)  even if mod(Itime,CtrlVar.AdaptMeshInterval)~=0.
 CtrlVar.AdaptMeshInterval=1 ; % remesh whenever mod(Itime,CtrlVar.AdaptMeshInterval)==0
 
-CtrlVar.AdaptMeshAndThenStop=0;    % if true, then mesh will be adapted but no further calculations performed
-                                   % useful, for example, when trying out different remeshing options (then use CtrlVar.doAdaptMeshPlots=1 to get plots)
-
-
-                                           
 CtrlVar.hpower=1;         % used to go from an error estimate to a size estimate for an element
                           % h=1/error^hpower ,  where `h' is the desired element size and `error' a local
                           % error estimate
@@ -846,7 +769,7 @@ CtrlVar.AGlenisElementBased=0;
 CtrlVar.CisElementBased=0;
 
 CtrlVar.registerGLpos=0;
-CtrlVar.Parallel=0; CtrlVar.ParallelAssembly=0;
+
 CtrlVar.registerGLposFilename='GLposition';
 CtrlVar.calcDerivedGLquantitiesForGLeleOnly=1;
 
@@ -953,7 +876,27 @@ CtrlVar.MeltNodesDefinition='Edge-Wise';
 CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; % for non evolving mesh boundaries, can be set to 0/false
 CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element
 
-                           
+%%
+% Parallel options:
+%
+% 
+% The parallel profile is not modfied within Úa.
+% Set the properties of the local profile through the general Matlab settings. See the matlab 
+% manual for further information.
+% If needed, the properties of the local profile can be adjusted in the Ua2D_InitialInput file
+%
+% For example, to change the number of local workers to 6, one can do the following:
+% myCluster = parcluster('local')
+% myCluster.NumWorkers = 6;
+% saveProfile(myCluster)
+%
+% Consult the matlab manual for further information
+%
+CtrlVar.ParallelAssembly=1;
+
+%%
+CtrlVar.fidlog=1;  % unit number for standart output, no need to change.
+
 end
 
 

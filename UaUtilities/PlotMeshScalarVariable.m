@@ -1,4 +1,4 @@
-function PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
+function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 
 % PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 % path plot of variable
@@ -15,7 +15,7 @@ if N==MUA.Nnodes && M==1   % nodal variable
         NodTri=MUA.connectivity;
     end
     
-    [FigHandle,ColorbarHandel,NodTri]=PlotNodalBasedQuantities(NodTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
+    [FigHandle,ColorbarHandle,NodTri]=PlotNodalBasedQuantities(NodTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
     
 elseif N==MUA.Nele && M==1 % element variable
     

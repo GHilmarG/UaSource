@@ -10,32 +10,34 @@ function  [MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rh
 narginchk(1,1)
 nargoutchk(34,34)
 
-
-
 %for I=1:CtrlVar.nInitialRemeshSteps+1
 
 if CtrlVar.ReadInitialMesh==1
-    fprintf(CtrlVar.fidlog,' loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
-    CtrlVar.ReadInitialMesh=0;
     
-    try
-        load(CtrlVar.ReadInitialMeshFileName,'MUA')
+    fprintf(CtrlVar.fidlog,' loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
+      
+    Temp=load(CtrlVar.ReadInitialMeshFileName);
+    
+    if isfield(Temp,'MUA')
+        MUA=Temp.MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
-    catch
-        load(CtrlVar.ReadInitialMeshFileName,'coordinates','connectivity')
-        MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-        clear connectivity coordinates
+    elseif isfield(Temp,'coordinates') &&  isfield(Temp,'connectivity')
+        MUA=CreateMUA(CtrlVar,Temp.connectivity,Temp.coordinates);
+    else
+        fprintf('Neither MUA  or connectivity and coordinates found in %s \n',CtrlVar.ReadInitialMeshFileName)
+        error('Input file does not contain expected variables')
     end
+    clear Temp
     
     for I=1:CtrlVar.RefineMeshOnStart
         fprintf(CtrlVar.fidlog,' All triangle elements are subdivided into four triangles \n');
         [MUA.coordinates,MUA.connectivity]=FE2dRefineMesh(MUA.coordinates,MUA.connectivity);
         MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
-        MeshChanged=1;
+       
     end
     
 else
-    MeshChanged=1;
+   
     MUA=genmesh2d(CtrlVar,CtrlVar.MeshBoundaryCoordinates);
     
     
@@ -84,9 +86,9 @@ if CtrlVar.OnlyMeshDomainAndThenStop
     
     s=[]; b=[] ; S=[] ; B=[] ; rho=[] ; rhow=[]; alpha=[] ; g=[] ;
     C=[] ; m=[] ; AGlen=[] ; n=[] ; ud=[] ; vd=[] ; ub=[] ;vb=[] ;as=[] ; ab=[] ; GF=[];
+    MeshChanged=[];
     
-    
-    fprintf(CtrlVar.fidlog,' Exiting\n');
+    fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return
 end
 

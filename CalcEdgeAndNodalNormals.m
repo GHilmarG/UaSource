@@ -15,21 +15,21 @@ function [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(connectivity,coordinates,
 %               Edges=[node1 node2 node3 ; node1 node2 node3 ; etc ] for a 6-node element
 %               Edges=[node1 node2 node3 node4 ; node1 node2 node3  node4 ; etc ] for a 10-node element
 %
-% For 6 and 10 node elemetns, each edge therefore consists of 2 and 3, respectivily, sub-edges. 
+% For 6 and 10 node elemetns, each edge therefore consists of 2 and 3, respectivily, sub-edges.
 %
 % MUA.Boundary.Edges is in this format
 %
 % Note that since for higher order elements MUA.Boundary.Edges returns edges and sub-edges
 % nx, ny, xn, and yn are returned as #Edges x #NumSubEdges
-% 
 %
-% Nx and Ny are optional outputs. These are arrays with equal elements as the total number of nodes 
+%
+% Nx and Ny are optional outputs. These are arrays with equal elements as the total number of nodes
 % in mesh. For nodes not in Edges, Nx and Ny are not calculated and NaN is returned
 % Nodal normals are defined as the average of the edge normals on both the sides of the node.
-% Although nodal normals can be calculated for all nodes, it generally only makes sense to calculate 
+% Although nodal normals can be calculated for all nodes, it generally only makes sense to calculate
 % them for (free) boundary nodes.
 %
-% Examples: 
+% Examples:
 %
 % To calculate and plot normals to all free edges:
 % [nx,ny,xn,yn] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);

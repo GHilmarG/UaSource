@@ -5,13 +5,13 @@ narginchk(15,15)
 
 % does DefineBoundaryConditions.m exist in the run directory?
 % if so then use that instead of DefineBCs.m
-listing=dir('DefineBoundaryConditions.m') ;
 
-if numel(listing)~=0
- 
+
+if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
+
     fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
     BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
- 
+    
     
 else
     
@@ -35,7 +35,7 @@ else
     BCs.hFixedValue=hFixedValue;
     BCs.hTiedNodeA=hTiedNodeA;
     BCs.hTiedNodeB=hTiedNodeB;
-        
+    
 end
 
 switch lower(CtrlVar.FlowApproximation)

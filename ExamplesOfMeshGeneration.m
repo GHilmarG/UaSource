@@ -1,10 +1,13 @@
-%% examples of how to generate FE mesh using genmesh2d 
+%% Examples of how to specify `MeshBoundaryCoordinates' to generate various types of FE meshes 
 %
-% When usign Ua, the call to genmesh2d is not needed as this call is done from within Ua
+% Note that when using Úa, the call to genmesh2d is not needed as this call is done from within Úa
+% 
 %
+%
+
 %% example: simple square
 % mesh boundary coordinates should go clockwise around the domain
-% (although if this is done incorrectly, Ua will automatically correct for this anyhow.)
+% (although if this is done incorrectly, Úa will automatically correct for this anyhow.)
 %
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
@@ -32,8 +35,7 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}='Periodic Line {1,2} = {3,4};';
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 
-
-
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 
 %% example: sinusoidal bed
 
@@ -63,6 +65,7 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}='Physical Surface(1) = {1};';
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 %% example% ice dome
 
 
@@ -88,13 +91,13 @@ CtrlVar.GmshGeoFileAdditionalInputLines{2}='Physical Surface(1) = {1};';
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
-
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 
 %% example:  house withouth a window
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ] ;
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
-
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 %% example: a house with a window! :-)
 %
 % when creating holes within a mesh, separate boundaries by NaN NaN
@@ -104,17 +107,18 @@ MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Ou
                NaN NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
                NaN NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ];         % another innner boundary (anticlockwise orientation)
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
-
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 %% a house with a tree
 %
 % When generating separate meshed domains, label each domain with a number.
-% The label is the specified by puttin `Label NaN' ahead of the corresponding boundary
+% The label is the specified by putting `Label NaN' ahead of the corresponding boundary
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...                                                     % boundary of mesh 1
                          2 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];       % boundary of mesh 2
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
-
+%%
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 %% a house with windows and a tree
 % When generating several separate meshed domains with holes, make sure
 % to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs
@@ -124,7 +128,7 @@ MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...   
     1 NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ; ...                          % a further hole within mesh 1 (anticlockwise)
     3 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];   % another mesh (clockwise). mesh labels do not need to be in sequential order
 [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
-
+str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
 %% mesh with several holes and islands
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
 MeshBoundaryCoordinates=...
@@ -147,13 +151,276 @@ CtrlVar.GmeshMeshingAlgorithm=8;    % see gmsh manual
 QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
      Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),[]);
 
-%uiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),Nx,Ny,[]);  % This would also work
 
-%% example of running gmsh directly for a given input file
-status=system('C:\cygwin64\home\Hilmar\GHG\ssa\Ua2D_Development\gmsh-2.8.4-Windows\gmsh.exe GmeshFileHole.geo -2 -v 1');
-Gmesh=load_gmshGHG('GmeshFileHole.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
+ str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
+
+%%
+% example: a constrainted meshing with two joined meshes sharing the same boundary
+%
+% Since here the same line belongs to more then one mesh we need to specify
+% the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface
+
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
+                         1 NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
+                         1 NaN ; -0.1 -0.5 ; 0 0.3 ; -0.95 0 ; -0.8 -0.9 ];         % another innner boundary (anticlockwise orientation)
+
+CtrlVar.GmshPlaneSurface{1}=[1 2 3]; % mesh 1 is defined by boundaries 1, 2 and 3
+CtrlVar.GmshPlaneSurface{2}=[-2];  % mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering
+CtrlVar.GmshPlaneSurface{3}=[-3];  % mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering
+[MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
+%str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
+
+%%
+% example: two separate meshes in contact
+
+
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; ...      
+                         2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
+
+[MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
+%str=input('Next example? y/n [y] ? '); if strcmpi(str,'n') ; return ; end
+
+%%
+% example: two separate meshes in contact
+
+
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
+MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
+                         2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
+
+[MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
+%str=input('Next example? y/n [y] ? '); if strcmpind
+
+%%
+clc
+clear all
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar.GmshInputFormat=2;
+
+
+CtrlVar.Gmsh.Points=[0 0 ;...  
+                     0 0.5 ; ...
+                     0 1 ;   ...
+                     1 1 ;  ...
+                     1 0 ; ... 
+                     -1 0 ; ...
+                     -1 0.5];
+
+CtrlVar.Gmsh.Lines{1}=[1 , 2];
+CtrlVar.Gmsh.Lines{2}=[2 , 3];
+CtrlVar.Gmsh.Lines{3}=[ 3 ; 4 ; 5 ; 1 ];
+CtrlVar.Gmsh.Lines{4}=[ 1 ;  6 ; 7 ; 2 ];
+
+CtrlVar.Gmsh.Loops{1}=[1 ; 2 ; 3 ];
+CtrlVar.Gmsh.Loops{2}=[4 ; -1];
+
+CtrlVar.Gmsh.PlaneSurfaces{1} = [1];
+CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
+
+CtrlVar.MeshSize=1000;
+
+MeshBoundaryCoordinates=[];
+[MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+hold on ; PlotGmshGeometryDefinition(CtrlVar)
+%%
+clc ; clear all
+CtrlVar=Ua2D_DefaultParameters(); 
+MeshBoundaryCoordinates=[];
+CtrlVar.GmshInputFormat=2;
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3;
+
+CtrlVar.Gmsh.Points=[0 0 ;...  
+                     0 0.5 ; ...
+                     0 1 ;   ...
+                     1 1 ;  ...
+                     1 0 ; ... 
+                     -1 0 ; ...
+                     -1 0.5 ; ...
+                     0.25 0.25 ; ...
+                     0.35 0.75 ; ...
+                     0.65 0.75 ;
+                     0.80 0.25 ;
+                     -0.5 1 ; ...
+                     -1 2 ; ...
+                     1 2 ; ...
+                     ];
+
+CtrlVar.Gmsh.Lines{1}=[1 ; 2];
+CtrlVar.Gmsh.Lines{2}=[2 ; 3];
+CtrlVar.Gmsh.Lines{3}=[ 3 ; 4 ; 5 ; 1 ];
+CtrlVar.Gmsh.Lines{4}=[ 1 ;  6 ; 7 ; 2 ];
+CtrlVar.Gmsh.Lines{5}=[ 8 ; 9 ; 10 ; 11 ; 8];
+CtrlVar.Gmsh.Lines{6}=[ 12 ; 13 ; 14 ; 12];
+
+CtrlVar.Gmsh.Loops{1}=[1 ; 2 ; 3 ];
+CtrlVar.Gmsh.Loops{2}=[4 ; -1];
+CtrlVar.Gmsh.Loops{3}=[-5];
+CtrlVar.Gmsh.Loops{4}=[6];
+CtrlVar.Gmsh.Loops{5}=[5];
+
+CtrlVar.Gmsh.PlaneSurfaces{1} = [1 ; 3 ];
+CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
+CtrlVar.Gmsh.PlaneSurfaces{3} = [4];
+CtrlVar.Gmsh.PlaneSurfaces{4} = [5];
+
+CtrlVar.MeshSize=1000;
+
+
+MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+
+
+% plotting mesh
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+hold on
+
+PlotGmshGeometryDefinition(CtrlVar)
+
+
+%%
+
+clear all 
+load BruntMeshBoundaryCoordinates.mat
+
+I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2)));
+
+i1a=I(1)+1 ; i1b=I(2)-1;  
+i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
+
+
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.GmshInputFormat=2;
+CtrlVar.MeshSizeMax=5e3; 
+CtrlVar.MeshSizeMin=1e3; 
+CtrlVar.TriNodes=3;
+
+
+CtrlVar.Gmsh.Points=MeshBoundaryCoordinates(i1a:i1b,:);
+
+CtrlVar.Gmsh.Loops{1}=[1];
+CtrlVar.Gmsh.PlaneSurfaces{1} = [1];
+CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
+MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+
+
+% plotting mesh
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+%%
+CtrlVar.Gmsh.Points=[MeshBoundaryCoordinates(i1a:i1b,:); MeshBoundaryCoordinates(i2a:i2b,:) ];
+l1a=1 ; l1b=l1a+i1b-i1a;
+l2a=l1b+1 ; l2b=l2a+i2b-i2a;
+CtrlVar.Gmsh.Lines{1}=[(l1a:l1b)';l1a];
+CtrlVar.Gmsh.Lines{2}=[(l2a:l2b)';l2a];
+CtrlVar.Gmsh.Loops{1}=[1];
+CtrlVar.Gmsh.Loops{2}=[2];
+CtrlVar.Gmsh.PlaneSurfaces{1} = [1,-2];
+CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
+
+
+MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
+
+% plotting mesh
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+hold on ; PlotGmshGeometryDefinition(CtrlVar)
+
+%%
+clear all ; close all
+load BruntMeshBoundaryCoordinates.mat
+
+I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2)));
+
+i1a=I(1)+1 ; i1b=I(2)-1;  
+i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
+
+
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.GmshInputFormat=2;
+CtrlVar.MeshSizeMax=5e3; 
+CtrlVar.MeshSizeMin=1e3; 
+CtrlVar.TriNodes=3;
+CtrlVar.Gmsh.Points=[MeshBoundaryCoordinates(i1a:i1b,:); MeshBoundaryCoordinates(i2a:i2b,:) ];
+l1a=1 ; l1b=l1a+i1b-i1a;
+l2a=l1b+1 ; l2b=l2a+i2b-i2a;
+CtrlVar.Gmsh.Lines{1}=[(l1a:l1b)';l1a];
+CtrlVar.Gmsh.Lines{2}=[(l2a:l2b)';l2a];
+
+
+
+Box=[-7.02e+05  -6.4314e+05   1.4651e+06   1.505e+06];
+I=CtrlVar.Gmsh.Points(:,1) > Box(1) & CtrlVar.Gmsh.Points(:,1) < Box(2) ...
+    & CtrlVar.Gmsh.Points(:,2) > Box(3) & CtrlVar.Gmsh.Points(:,2) < Box(4) ;
+
+
+% now must line 1 into two lines, with one convering the BIS-SW chasm outlines only
+
+x=CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},1);
+y=CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},2);
+K=x > Box(1) & x < Box(2) ...
+    & y > Box(3) & y < Box(4) ;
+
+temp=CtrlVar.Gmsh.Lines{1};
+temp(K)=NaN; temp(end)=[];
+J=find(isnan(temp));
+tt=[temp(J(end)+1:end,end);temp(1:J(1)-1)];
+CtrlVar.Gmsh.Lines{3}=tt;
+CtrlVar.Gmsh.Lines{4}=find(K);
+CtrlVar.Gmsh.Lines{4}=[CtrlVar.Gmsh.Lines{3}(end); CtrlVar.Gmsh.Lines{4};CtrlVar.Gmsh.Lines{3}(1)];
+
+CtrlVar.Gmsh.Lines{5}=[CtrlVar.Gmsh.Lines{3}(end);CtrlVar.Gmsh.Lines{3}(1)];
+CtrlVar.Gmsh.Lines{6}=[CtrlVar.Gmsh.Lines{4}(end);CtrlVar.Gmsh.Lines{4}(1)];
+
+figure 
+plot(CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},1),CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},2),'.-')
+hold on
+plot(CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{2},1),CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{2},2),'^-')
+plot(CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{3},1),CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{3},2),'+-')
+hold on
+plot(CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{4},1),CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{4},2),'O-')
+plot(CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{5},1),CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{5},2),'*-')
+legend('1','2','3','4','5')
+
+
+CtrlVar.Gmsh.Loops{1}=[3,4];
+CtrlVar.Gmsh.Loops{2}=[2];
+CtrlVar.Gmsh.Loops{3}=[-4,5];
+
+CtrlVar.Gmsh.PlaneSurfaces{1} = [1,-2];
+CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
+CtrlVar.Gmsh.PlaneSurfaces{3} = [3];
+
+
+MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
+
+% plotting mesh
+figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+hold on ; PlotGmshGeometryDefinition(CtrlVar)
+
+
+%%
+% example of running gmsh directly for a given input file
+clc
+status=system([getenv('GmeshHomeDirectory'),'\gmsh.exe GmeshFile.geo -2 -v 5']);
+Gmesh=load_gmshGHG('GmeshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
 TRI=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
 xy=Gmesh.POS(1:Gmesh.nbNod,1:2);
 figure
 triplot(TRI,xy(:,1),xy(:,2)) ; axis equal
+%hold on
+%plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
 
+%%

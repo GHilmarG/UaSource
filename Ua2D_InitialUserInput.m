@@ -11,7 +11,7 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
     CtrlVar.Restart=0;  
     
     CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    time=0 ; dt=1; CtrlVar.nTimeSteps=1;
+    time=0 ; dt=1; CtrlVar.TotalNumberOfForwardRunSteps=1;
     
     CtrlVar.FlowApproximation='hybrid';
     

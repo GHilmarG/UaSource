@@ -46,6 +46,9 @@ F.Points=MUA1.coordinates;
 F.Method='natural';
 F.ExtrapolationMethod='nearest';
 
+% The underlying triangulation is only done once, and when interpolating different fields
+% only the values are changed.
+
 for iVar=1:nVar
     F.Values=double(varargin{iVar});
     varargout{iVar}=F(x2,y2);

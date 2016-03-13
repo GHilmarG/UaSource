@@ -44,21 +44,6 @@ else
     CtrlVar.doInverseStep=0 ;
 end
 
-% if  a restart and an inverse run
-% then interpret this as a restarted inversion and
-% set AdjointRestart to true and Restart to false
-if CtrlVar.Restart && CtrlVar.InverseRun
-    CtrlVar.AdjointRestart=1;
-    CtrlVar.Restart=0;
-end
-
-
-if CtrlVar.AdjointRestart && ~CtrlVar.InverseRun
-    fprintf('CtrlVar.AdjointRestart set to true, but CtrlVar.InverseRun not.\n')
-    fprintf('Set either AdjointRestart to false or InverseRun to true.\n')
-    error('Inconsistent definition of CtrlVar')
-end
-
 if ~ismember(CtrlVar.TriNodes,[3 6 10])
     fprintf(CtrlVar.fidlog,'CtrlVar.Trinodes=%-i but must be either 3, 6 or 10 \n',CtrlVar.TriNodes);
     error('CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
@@ -102,16 +87,10 @@ if n2~=m2 ;
 end
 
 %% if user requires an inverse step, set prognostic and diagnostic flags to zero
-if CtrlVar.InverseRun==1    % inverse step takes precedence over prognostic and diagnostic, if conflict
+if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict
     CtrlVar.doDiagnostic=0  ;
     CtrlVar.doPrognostic=0 ;
     CtrlVar.AdaptMesh=0;
-    CtrlVar.Restart=0;
-else
-    CtrlVar.AdjointRestart=0 ;
-    if CtrlVar.doDiagnostic  ; % diagnostic takes precedence over prognostic, if conflict
-        CtrlVar.doPrognostic=0 ;
-    end
 end
 
 if CtrlVar.doplots==0 ; CtrlVar.PlotMesh=0; end
@@ -129,6 +108,27 @@ if strcmpi(CtrlVar.FlowApproximation,'ssheet') || strcmpi(CtrlVar.FlowApproximat
         CtrlVar.Cmin=0;
     end
 end
+
+if CtrlVar.TimeDependentRun &&  ~CtrlVar.Restart
+    CtrlVar.InitialDiagnosticStep=1;  % Always do an initial diagnostic step when starting a transient run. But if a restart run, then do not change this value from that set by the user.
+                                      % An inital diagnostic step is therefore done if:
+                                      % 1) so asked by the user, ie if the user sets CtrlVar.InitialDiagnosticStep=1, and
+                                      % 2) at the beginning of an implicut uvh transient run.
+                                      % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicut uvh transient restart run.
+end                 
+
+
+if isfield(CtrlVar,'AdjointRestart')
+    warning('CtrlVarValidityCheck:AdjointRestart','The field AdjointRestart in the strucure array CtlrVar no longer used. Use the Restart field instead')
+end
+
+
+if isfield(CtrlVar,'nTimeSteps')
+    warning('CtrlVarValidityCheck:nTimeSteps','The field nTimeSteps in the strucure array CtlrVar no longer used. Use the TotalNumberOfForwardRunSteps field instead')
+    CtrlVar.TotalNumberOfForwardRunSteps=CtrlVar.nTimeSteps;
+end
+
+
 
 end
 

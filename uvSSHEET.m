@@ -87,17 +87,17 @@ end
 
 % assemble right-hand side
 
-rhx=sparse(neq,1); rhy=sparse(neq,1);
+rhx=sparse2(neq,1); rhy=sparse2(neq,1);
 for Inod=1:MUA.nod
-    rhx=rhx+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
-    rhy=rhy+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
+    rhx=rhx+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
+    rhy=rhy+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
 end
 
 
 M=MassMatrix2D1dof(MUA);
 
 if isempty(Ludvd)
-    sol=M\[rhx rhy] ;
+    sol=M\[rhx rhy] ;  % solve this for two right-hand sides
     ud=full(sol(:,1)) ; vd=full(sol(:,2));
 else
 

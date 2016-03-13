@@ -16,7 +16,7 @@ if CtrlVar.CisElementBased
 end
 
 % I calculate: 
-%beta2int=(Cint+CtrlVar.Czero).^(-1/m).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;
+% beta2int=(Cint+CtrlVar.Czero).^(-1/m).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;
 % therefore both speed and C must be modified accordingly 
 % taub=beta2 ub
 % In the limiting case C=0 and ub=0 I get

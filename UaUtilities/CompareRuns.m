@@ -1,7 +1,9 @@
 function [Figs,F]=CompareRuns(files,Var)
 
+  
 persistent FigCounter
 
+  
 if isempty(FigCounter) ; FigCounter=1; end
 
 N=numel(files);

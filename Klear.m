@@ -1,1 +1,1 @@
-clc ; clear variables ; close all
+clc ; clear all ; close all

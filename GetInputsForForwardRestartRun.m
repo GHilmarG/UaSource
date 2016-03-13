@@ -11,7 +11,7 @@ try
     
 catch exception
     fprintf(CtrlVar.fidlog,'%s \n',exception.message);
-    error('could not load restart file ')
+    error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
 end
 
 CurrentRunStepNumber=Itime;  % I used to refer to this as Itime, change later
@@ -74,15 +74,28 @@ if CtrlVar.ReadInitialMesh==1
     fprintf(CtrlVar.fidlog,' This new mesh will replace the mesh in restart file. \n');
     
     MUAold=MUA;
-    try
-        load(CtrlVar.ReadInitialMeshFileName,'MUA')
+    clear MUA
+    
+    Temp=load(CtrlVar.ReadInitialMeshFileName);
+    
+    if isfield(Temp,'MUA')
+        MUA=Temp.MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
-    catch
-        load(CtrlVar.ReadInitialMeshFileName,'coordinates','connectivity')
-        MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-        clear connectivity coordinates
+    elseif isfield(Temp,'coordinates') &&  isfield(Temp,'connectivity')
+        MUA=CreateMUA(CtrlVar,Temp.connectivity,Temp.coordinates);
+    else
+        fprintf('Neither MUA  or connectivity and coordinates found in %s \n',CtrlVar.ReadInitialMeshFileName)
+        error('Input file does not contain expected variables')
     end
-    MeshChanged=1;
+    clear Temp
+    
+    MeshChanged=HasMeshChanged(MUAold,MUA);
+    
+    if ~MeshChanged
+        fprintf(CtrlVar.fidlog,' The new mesh in %s is found to be identical to the mesh in restart file (%s).\n',CtrlVar.ReadInitialMeshFileName,CtrlVar.NameOfRestartFiletoRead);
+        fprintf(CtrlVar.fidlog,' No mapping of variables between meshes needed. \n');
+    end
+    
 end
     
 for I=1:CtrlVar.RefineMeshOnRestart
@@ -126,6 +139,7 @@ if MeshChanged
     dhdtm1=zeros(MUA.Nnodes,1);
     
     
+    l=UaLagrangeVariables;
     %MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
     
 end

@@ -129,7 +129,7 @@ else
 end
 
 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel)
-axis equal tight
+axis equal
 
 end
 

@@ -1,13 +1,14 @@
 function Reactions=CalculateReactions(MLC,l)
 
-% Reactions=CalculateReactions(MLC,l)
 % calculates nodal reactions
+% Reactions=CalculateReactions(MLC,l)
+% 
 % MLC  : muliple-linear-constraint matrix 
 %   l  : Lagrange variables 
 %
 %   l is one of the outputs of Ua available in UaOutputs
 %
-%   If MLC is not availabel, calculate MLC using MLC=BCs2MLC(MUA,BCs)
+%   If MLC is not available, calculate MLC using MLC=BCs2MLC(MUA,BCs)
 %
 %   Example: 
 %   To calculate and plot reactions from within UaOutputs
@@ -15,6 +16,10 @@ function Reactions=CalculateReactions(MLC,l)
 %   Reactions=CalculateReactions(MLC,l)
 %   PlotReactions(CtrlVar,MUA,Reactions);
 %
+% Reactions are defined for all the nodes, but for nodes where no BCs have been applied, 
+% they will automatically be equal to zero. However, in the special case where no (non-natural) 
+% BCs are applied, reactions are returned as an empty matrix.
+% 
 %
 
 if ~isempty(l.ubvb)
@@ -28,6 +33,7 @@ if ~isempty(l.udvd)
 else
     Reactions.udvd=[];
 end
+
 if ~isempty(l.h)
     Reactions.h=MLC.hL'*l.h;
 else

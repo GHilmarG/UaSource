@@ -20,15 +20,13 @@ xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);
 % dfdx(nEle)=Dx
 
 for Iint=1:MUA.nip
-        
     
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);
-    else
-        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
-    
-    %[Deriv]=derivVector(coordinates,connectivity,MUA.nip,Iint); %  Deriv : Nele x dof x nod
+    %    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+    Deriv=MUA.Deriv(:,:,:,Iint);
+    %    else
+    %        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+    %    end
+
     
     for I=1:MUA.nod
         dfdx(:,Iint)=dfdx(:,Iint)+Deriv(:,1,I).*fnod(:,I);

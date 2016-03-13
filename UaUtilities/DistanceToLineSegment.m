@@ -5,6 +5,9 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     % 1) the distance normal to the line segment B-A (vector notation) to the point p is less than tolerance, and
     % 2) if the distance along the line segment is less than the length of the line segment using same tolerance
     %
+    % [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
+    % [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, coo , [],tolerance)
+    %
     % usefull to determine if point p is on or close to the line segment B-A
     % and to find all nodal points along the boundary defined by the pairwise joining
     % of points in A and B.
@@ -15,6 +18,10 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
     % p  : Nx2 matrix of points
     % A , B ; Mx2 matrix defining start and end points of M line segments
+    %
+    % [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, coo , [],tolerance
+    %  finds p along coo with tolerance
+    %
     %
     % Ind : all points in p that are close to some of the line segments defined by A and B
     %
@@ -30,10 +37,16 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     % that are along the line segments joining (x,y) in the following manner:
     %
     % A=[xx(1:end-1) yy(1:end-1)] ; B=[xx(2:end) yy(2:end)]; tolerance=eps;
-    % [Ind,AlongDist,NormDist] = DistanceToLineSegment([x(Boundary.Nodes) y(Boundary.Nodes)],A,B,tolerance);
+    % [Ind,AlongDist,NormDist] = DistanceToLineSegment([x(Boundary.Nodes) y(Boundary.Nodes)],[xx(:) yy(:)],[],tolerance);
     % Boundary.Nodes(Ind) now gives me the nodal numbers of all nodes along the boundary defined by the line segments 
     % 
     %
+    
+    
+    if nargin<3 || isempty(B)
+        B=[A(2:end,1) A(2:end,2)];
+        A=[A(1:end-1,1) A(1:end-1,2)] ;
+    end
     
     if nargin<4 ; tolerance=eps ; end;
     

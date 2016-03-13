@@ -39,7 +39,7 @@ for Inod=1:MUA.nod
     end
 end
 
-M=sparse(Iind,Jind,Xval,neq,neq);
+M=sparse2(Iind,Jind,Xval,neq,neq);
 M=(M+M.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
 
 

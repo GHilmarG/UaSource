@@ -3,16 +3,19 @@ function [R,K,T,F]=KRTFuvhGeneral(u,v,h,S,B,s,b,u0,v0,h0,as,ab,dt,AGlen,n,C,m,co
     
     
     if nargout==1 ; Ronly=1; else Ronly=0;end
-    
-    if ~CtrlVar.ParallelAssembly
-        nips=1:nip; [etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(u,v,coordinates,connectivity,nip,AGlen,n,CtrlVar);
-    else
-       % fprintf(' parallel assembly ')
-        if nargin< 27 ;
-            fprintf(' Not all required input variables defined for parallel assembly \n') ;
-            nips=1:nip; [etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(u,v,coordinates,connectivity,nip,AGlen,n,CtrlVar);
-        end
-    end
+%     
+%     if ~CtrlVar.ParallelAssembly
+         nips=1:nip;
+         [etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(u,v,coordinates,connectivity,nip,AGlen,n,CtrlVar);
+%         
+%     else
+%         fprintf(' parallel assembly \n')
+%         if nargin< 27 ;
+%             fprintf(' Not all required input variables defined for parallel assembly \n') ;
+%             nips=1:nip;
+%             [etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(u,v,coordinates,connectivity,nip,AGlen,n,CtrlVar);
+%         end
+%     end
     
     Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
     ndim=2;  neq=3*Nnodes;

@@ -1,49 +1,32 @@
-% a simple plotting routine to plot a sequence of results files
-%
-% I assume that the results files are named something like:
-% FileName=sprintf('ResultsFiles/%07i-Nodes%i-Ele%i-Tri%i-kH%i-%s.mat',...
-%            round(100*time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*CtrlVar.kH,CtrlVar.Experiment);
-%   I assume that the time can be extracted from the file name as: t=str2double(FileName(1:7))/100
-%
-
-
-CurDir=pwd;
-
-%cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-pwd
-
+% a simple plotting routine to plot a sequence of results filesm
 %% variables:
 CreateVideo=1;
 pos=[40 200 2300 1800]; % hig res
 pos=[200 50 1200 900];
-%I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
 
-%I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer2-100Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer20Sw3460tcDe-500-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer2-Tw150Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%I=1; Run{I}='Ex3a3D-StraightChannelWidth50Acc0k30supg'; cd G:\GHG\Ua2D-ResultsFiles\MISMIP3D\SUPG
-%I=1 ; Run{I}='MeltRate3-ahFeedback3Edge-Wise-supg' ; cd DG\GHG\Ua2D-ResultsFiles\PIG-Thwaites
+cd C:\cygwin64\home\Hilmar\GHG\Ua\Runs\PIG\PIG_Thwaites
+CurDir=pwd;
+RunTable=readtable('RunTable.csv');
 
+%Run=RunTable.RunId;
 
-%I=1;  Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd G:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-%
+clear Run
+Run{1}=RunTable.RunId{2};
+%Run{2}=RunTable.RunId{2};
+%Run{3}=RunTable.RunId{3};
 
 
-% I=1;  Run{I}='JenkinsVer2-Tw-200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd E:\GHG\Ua2D-ResultsFiles\PIG-Thwaites;  
-% I=2;  Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg'; cd E:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-% I=3;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';    cd E:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-% I=4;  Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';  cd E:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
-% I=5;  Run{I}='JenkinsVer2-Tw200Sw3460tcDe-700-ahFeedback0Edge-Wise-supg';  cd E:\GHG\Ua2D-ResultsFiles\PIG-Thwaites
 
-cd F:\GHG
-cd Ua2D-ResultsFiles\PIG-Thwaites
-%I=1;  Run{I}='JenkinsVer2-Tw-100Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg'; 
-%I=2;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw10-PeriodTw100-ahFeedback0Edge-Wise-supg';    
-%I=1;  Run{I}='JenkinsVer2-Tw0Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg';    
-I=1;  Run{I}='JenkinsVer2-Tw100Sw3460tcDe-700-DeltaTw20-PeriodTw100-ahFeedback0Edge-Wise-supg';  
+
+
+cd(DriveName2DriveLetter('WorkSSD1')) ; cd GHG\Ua2D-ResultsFiles\PIG-Thwaites
+
+
+% 
+% iRun=1;  Run{iRun}='J2-Tw-100-tcDe700-Sw3460-sin-deltaTw0-PeriodTw100-ahFeedback0Edge-Wise-supg';
+
+
+
 
 
 plots='-ubvb-';
@@ -56,18 +39,20 @@ plots='-ab-';%plots='-mesh-';%plots='-ab-h-';
 %plots='-sbB-';
 plots='-Bab-';
 dt=5;
-PlotMinThickLocations=1;   % nodes at min thickness shown as red dots
+PlotMinThickLocations=0;   % nodes at min thickness shown as red dots
 
 %%
 PlotArea=NaN;
 PlotRegion='pigiceshelf';
 PlotRegion='pig-twg';
 %PlotRegion=[];
-usrstr=[]; TRI=[]; DT=[] ;
 
-k=0;
+
+
 
 for J=1:numel(Run)
+    
+    usrstr=[]; TRI=[]; DT=[] ; Par=[]; iFile=1; iFrame=0; k=0; 
     
     %   FileName=F{J};
     
@@ -86,7 +71,7 @@ for J=1:numel(Run)
         open(vidObj);
     end
     
-    list=dir(['*',Run{J},'.mat']);
+    list=dir(['*',Run{J},'*.mat']);
     nFiles=length(list);
     
     
@@ -95,36 +80,31 @@ for J=1:numel(Run)
     
     
     
-    I=1;
-    iFrame=0;
+   
     %nFrames=100 ; Frame(nFrames) = struct('cdata',[],'colormap',[]);
     
     
     
     
-    while I<=nFiles
+    while iFile<=nFiles
         
         %for I=1:100
         
         %if strcmp(list(I).name(6:7),'00')
-        t=str2double(list(I).name(1:7))/100;
+        t=str2double(list(iFile).name(1:7))/100;
         if mod(t,dt)==0 && t<=500
             
             
             try
-                load(list(I).name)
-                fprintf(' %s \n ',list(I).name)
+                load(list(iFile).name)
+                fprintf(' %s \n ',list(iFile).name)
             catch
-                fprintf('could not load %s \n ',list(I).name)
+                fprintf('could not load %s \n ',list(iFile).name)
             end
-            if ~isempty(strfind(CtrlVar.Experiment,'Jenkins'))
-                
-                if isfield(CtrlVar,'DeltaTw') ;
-                    Tw=CtrlVar.Tw+CtrlVar.DeltaTw*sin(2*pi*CtrlVar.time/CtrlVar.PeriodTw);
-                else
-                    Tw=CtrlVar.Tw;
-                end
-                
+            
+            if ~isempty(strfind(CtrlVar.Experiment,'Jenkins')) || ~isempty(strfind(CtrlVar.Experiment,'J2'))
+                [Tw,Sw,tcDe]=TwSwtcDe(CtrlVar,time);
+                fprintf('time=%f \t Tw=%f \t De=%f \n',time,Tw,tcDe)
             else
                 Tw=[];
             end
@@ -283,10 +263,8 @@ for J=1:numel(Run)
                 fig=gcf;
                 ax=gca;
                 
-                if CreateVideo
-                    fab.Position=pos;
-                    %fab.NextPlot='replacechildren';  % slows things down
-                end
+                fab.Position=pos;
+                
                 
                 %ax.NextPlot='replace';
                 
@@ -316,19 +294,47 @@ for J=1:numel(Run)
                         axis(PlotArea)
                     end
                 end
-                caxis([-100 0])
-                PlotLatLonGrid(1000);
+                caxis([0 100])
+                PlotLatLonGrid(1000,2,10);
                 ax1=gca;
                 
                 
-                ax2=axes('Position',[0.35 0.78 0.05 0.1]);
+                ax2=axes('Position',[0.34 0.8 0.04 0.1]);
                 ax2.XLim=[0 1];
-                ax2.YLim=[-2 2];
+                
+                TwMax=CtrlVar.Tw+CtrlVar.DeltaTw;
+                TwMin=CtrlVar.Tw-CtrlVar.DeltaTw;
+                
+                ax2.YLim=[TwMin-0.5 TwMax+0.5];
                 ax2.XAxis.Visible='off';
                 ax2.XAxis.LineWidth=2;
                 line([0 1],[Tw Tw],'Parent',ax2,'color','r','LineWidth',2)
                 ax2.YAxis.Label.String='T_{CDW} (C^\circ)';
                 ax2.Color=[0.95 0.95 0.95];
+                
+                
+                
+                ax3=axes('Position',[0.34 0.68 0.04 0.1]);
+                ax3.XLim=[0 1];
+                
+               
+                temp1=CtrlVar.tcDe+CtrlVar.DeltaDe;
+                temp2=CtrlVar.tcDe-CtrlVar.DeltaDe;
+                DeMin=min([temp1 ; temp2]);
+                DeMax=max([temp1 ; temp2]);
+                
+                
+                ax3.YLim=[DeMin-50 DeMax+50];
+                
+                
+                
+                ax3.XAxis.Visible='off';
+                ax3.XAxis.LineWidth=2;
+                line([0 1],[tcDe tcDe],'Parent',ax3,'color','r','LineWidth',2)
+                ax3.YAxis.Label.String='De (m)';
+                ax3.Color=[0.95 0.95 0.95];
+                
+                
                 
                 subplot(2,2,2,'Position',[0.55 0.55 0.43 0.43])
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,B,CtrlVar);
@@ -351,16 +357,35 @@ for J=1:numel(Run)
                 
                 subplot(2,2,3,'Position',[0.05 0.05 0.43 0.43])
                 N=10;
-                QuiverColorGHG(x(1:N:end),y(1:N:end),ub(1:N:end),vb(1:N:end),CtrlVar);
+                PlotMuaBoundary(CtrlVar,MUA,'b') ; hold on
+                
+                if isempty(Par)
+                    Par.MaxPlottedSpeed=4000;
+                    Par.MinPlottedSpeed=100;
+                    Par.VelPlotIntervalSpacing='log10';
+                    Par.VelColorBarTitle='(m a^{-1})' ;
+                    Par.PlotXYscale=1000;
+                end
+                
+                
+                [cbar,Qhandle,Par]=QuiverColorGHG(x(1:N:end),y(1:N:end),ub(1:N:end),vb(1:N:end),Par);
+                
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 title(sprintf('Ice velocity at t=%-g (yr)',time)) ;
                 SetRegionalPlotAxis(PlotRegion);
                 xlabel('xps (km)') ; ylabel('yps (km)')
-                caxis([0 3500])
-                title(colorbar,'(m/yr)')
+                
                 PlotLatLonGrid(1000);
-                hold off
+                
+                
+                cbar=colorbar;
+                cbar.TickLabels=Par.ticklable;
+                cbar.Ticks=Par.tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
+                
+                
+                
+
                 
                 subplot(2,2,4,'Position',[0.55 0.05 0.43 0.43])
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,h,CtrlVar);
@@ -624,21 +649,26 @@ for J=1:numel(Run)
                     if strcmpi(usrstr,'E')
                         break
                     elseif strcmpi(usrstr,'B')
-                        I=IIlist(k-iback)-1;
+                        iFile=IIlist(k-iback)-1;
                         iback=iback+1;
                     else
                         iback=0;
-                        k=k+1; IIlist(k)=I;
+                        k=k+1; IIlist(k)=iFile;
                     end
                 end
             end
             PlotArea=axis;
         end
         
-      
-        
-        
-        I=I+1;
+%{        
+        reply = input('Do you want more? Y/N [Y]:','s');
+        if isempty(reply)
+            reply = 'Y';
+        else
+            break
+        end
+%}        
+        iFile=iFile+1;
         
     end
     
@@ -646,7 +676,7 @@ for J=1:numel(Run)
         close(vidObj);
         fprintf('\n video file closed \n')
     end
-    cd(CurDir)
+  
     close all
 end
 

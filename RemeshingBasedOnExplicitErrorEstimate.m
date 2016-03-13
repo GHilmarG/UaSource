@@ -1,5 +1,5 @@
 function [MUA,xGLmesh,yGLmesh,CtrlVar]=...
-    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,S0,B0,h0,s0,b0,u0,v0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,CtrlVar,GF0,Ruv,Lubvb,ubvbLambda)
+    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,S0,B0,h0,s0,b0,ub0,vb0,ud0,vd0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,CtrlVar,GF0,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ; error('dfsa')
@@ -22,7 +22,7 @@ hf=(S-B)*rhow./rho ;
 
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
-[x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,u0,v0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
+[x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,ub0,vb0,ud0,vd0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
 
 if strcmp(CtrlVar.MeshGenerator,'gmesh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
@@ -44,16 +44,17 @@ switch lower(CtrlVar.MeshRefinementMethod)
     case 'explicit:local'
         
 
-     
         
-        % refine and smoothmesh only works for 3-nod elements
-        [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,3);
-        [MUA.coordinates,MUA.connectivity] = refine(MUA.coordinates,MUA.connectivity,ElementsToBeRefined);
-        [MUA.coordinates] = GHGsmoothmesh(MUA.coordinates,MUA.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
-         MUA.connectivity=FlipElements(MUA.connectivity); 
-          
-        % create MUA (this takes care of any eventual change in element type as well)
-        MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
+        MUA=LocalMeshRefinement(CtrlVar,MUA,ElementsToBeRefined);
+        
+%         % refine and smoothmesh only works for 3-nod elements
+%         [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,3);
+%         [MUA.coordinates,MUA.connectivity] = refine(MUA.coordinates,MUA.connectivity,ElementsToBeRefined);
+%         [MUA.coordinates] = GHGsmoothmesh(MUA.coordinates,MUA.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
+%          MUA.connectivity=FlipElements(MUA.connectivity); 
+%           
+%         % create MUA (this takes care of any eventual change in element type as well)
+%         MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
 
            
     case 'explicit:global'
@@ -123,6 +124,11 @@ switch lower(CtrlVar.MeshRefinementMethod)
             end
             
             It=It+1;
+            
+            if NewMinE ~=CtrlVar.MeshSizeMin
+                warning('RmeshingBasedOnExplicitErrorEstimate:NewMeshSizeMin','CtrlVar.MeshSizeMin set to %f',CtrlVar.MeshSizeMin)
+            end
+            
             CtrlVar.MeshSizeMin=NewMinE;
             
             
