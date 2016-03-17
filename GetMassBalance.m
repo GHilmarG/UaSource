@@ -9,6 +9,30 @@ else
 end
 
 
+% some input checks
+
+errorStruct.identifier = 'GetMassBalance:NaNinInput';
+if any(isnan(as))
+    errorStruct.message = 'nan in as';
+    error(errorStruct)
+end
+
+if any(isnan(ab))
+    errorStruct.message = 'nan in ab';
+    error(errorStruct)
+end
+
+if any(isnan(dasdh))
+    errorStruct.message = 'nan in dasdh';
+    error(errorStruct)
+end
+
+if any(isnan(dabdh))
+    errorStruct.message = 'nan in dabdh';
+    error(errorStruct)
+end
+
+
 if numel(as)==1
     as=as+zeros(MUA.Nnodes,1);
 end
