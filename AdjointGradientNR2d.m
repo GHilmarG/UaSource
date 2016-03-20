@@ -1,22 +1,15 @@
-function [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=AdjointGradientNR2d(...
+function [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+    AdjointGradientNR2d(...
     Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas)
-
-
-% [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
-%     AdjointGradientNR2d(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,...
-%     sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-%     Priors.AGlen,Priors.CovAGlen,Priors.C,Priors.CovC,b_prior,Cd,...
-%     Luv,Luvrhs,lambdauv,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,K)
-% 
 
 narginchk(26,26)
 
 dIdAGlendata=zeros(MUA.Nele,1) ; dIdCdata=zeros(MUA.Nele,1);
 
-% Step 1: solve linearized forward problem
+%% Step 1: solve linearized forward problem
 [ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
 
-% Step 2:  Solve adjoint equation, i.e.   K l=-r
+%% Step 2:  Solve adjoint equation, i.e.   K l=-r
 % fprintf(' Solve ajoint problem \n ')
 % I need to impose boundary conditions on lx and ly
 % if the problem is (fully) adjoint I have exactly the same BC
@@ -29,11 +22,10 @@ dIdAGlendata=zeros(MUA.Nele,1) ; dIdCdata=zeros(MUA.Nele,1);
 % Luv is #uv constraints x 2 Nnodes
 
 
-%% forming right-hand side of the adjoint equations
+% forming right-hand side of the adjoint equations
 
 [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(Experiment,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas);
-%[~,~,~,~,dIdu]=MisfitFunction(CtrlVar,MUA,us,vs,ws,sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,C,Priors.C,AGlen,Priors.AGlen,Cd,Priors.CovAGlen,Priors.CovC,GF);
-%MisfitFunction(CtrlVar,MUA,VUA,NaN,uMeas,vMeas,wMeasInt,C,Priors.C,AGlen,Priors.AGlen,Cd,Priors.CovAGlen,Priors.CovC,GF);
+
 
 rhs=dIduv(:);
 
@@ -44,7 +36,7 @@ LAdjointrhs=MLC_Adjoint.ubvbRhs;
 lambdaAdjoint=zeros(numel(LAdjointrhs),1) ;
 
 [l,lambdaAdjoint]=solveKApeSymmetric(kv,LAdjoint,rhs,LAdjointrhs,[],lambdaAdjoint,CtrlVar);
-%[l,lambdaAdjoint]=solveKApeSymmetric(kv,LAdjoint,rhs,LAdjointrhs,l,lambdaAdjoint,CtrlVar);
+
 
 if ~isreal(l) ;
     save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')

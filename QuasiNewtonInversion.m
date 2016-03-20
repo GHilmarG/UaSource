@@ -11,7 +11,10 @@ function [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=Quasi
                
     xAdjoint=[] ;yAdjoint=[];
     
-    iA=strfind(CtrlVar.AdjointGrad,'A'); iC=strfind(CtrlVar.AdjointGrad,'C'); isAgrad=~isempty(iA); isCgrad=~isempty(iC);
+    iA=strfind(CtrlVar.AdjointGrad,'A'); 
+    iC=strfind(CtrlVar.AdjointGrad,'C'); 
+    isAgrad=~isempty(iA); 
+    isCgrad=~isempty(iC);
         
     AGlenEst=InvStartValues.AGlen;
     Cest=InvStartValues.C;
@@ -41,10 +44,6 @@ function [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=Quasi
     end
     
     if gammaAdjoint==0 ; gammaAdjoint=1 ; end
-    
-    
-%     [J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,ubvbLambda,udvdLambda,dIdu,kv,rh,nlInfo]=...
-%         CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,ubvbLambda,udvdLambda,AGlenEst,Cest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
         
      dJdC=Cest*0;
                                      
