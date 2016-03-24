@@ -6,7 +6,7 @@ function dIdC=dIdCq(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow
 % integration loop
 %
 
-persistent F
+
 
 
 ndim=2;
@@ -68,32 +68,14 @@ end
 
 if CtrlVar.MeshIndependentAdjointGradients
     
-    figure
+    M=MassMatrix2D1dof(MUA);
+    dIdCm=M\dIdC;
     
-    subplot(1,3,1); PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC nonscaled')
+%     figure
+%     subplot(1,2,1); PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC nonscaled')
+%     subplot(1,2,2); PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ; title('M\\dIdC')
     
-    P=NodalFormFunctionInfluence(MUA);
-    
-    subplot(1,3,2); PlotMeshScalarVariable(CtrlVar,MUA,P) ; title('P')
-    
-    if any(P==0)
-        save dIdCqErrorFile
-        error('dIdCq:ZerosInP','zero in P. Can not create MeshIndependentAdjointGradients')
-    end
-    
-    switch CtrlVar.TriNodes
-        
-        case 3
-            dIdC=dIdC./P;
-        case 6
-            dIdC=dIdC./P;
-            [dIdC,F]=MapVariableFromMidNodesToCornerNodesOfNod6Tri(F,MUA.connectivity,MUA.coordinates,dIdC);
-        case 10
-            dIdC=dIdC./P;
-            
-    end
-    
-    subplot(1,3,3); PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC scaled')
+    dIdC=dIdCm;
     
 end
 

@@ -1,6 +1,6 @@
 function M=MassMatrix2D(coordinates,connectivity,nip) % old version, not used anymore
 	
-	% old version, not used anymore
+	% old version, not used anymore (MassMatrix2D1dof preferred)
 	% calculates the mass matrix, ie : int N_p N_q
 	
 	
