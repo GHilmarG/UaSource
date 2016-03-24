@@ -58,15 +58,15 @@ xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
 if strcmp(CtrlVar.AdjointGrad,'A')
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvFinalValues.AGlen));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
     title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvStartValues.AGlen));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
     title('log10(Astart)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 end
@@ -74,15 +74,15 @@ end
 
 if strcmp(CtrlVar.AdjointGrad,'C')
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvFinalValues.C));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
     title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvStartValues.C));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
     title('log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
     
-    figure ; hPatch=PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates/CtrlVar.PlotXYscale,log10(InvFinalValues.C)-log10(InvStartValues.C));
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel); 
 end

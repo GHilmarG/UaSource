@@ -378,6 +378,8 @@ CtrlVar.AdjointGradientEvaluation='integral';
 CtrlVar.NormalizeWithAreas=1 ;  % Cost function normalized with element areas. 
                                 % (generally a good idea as it makes gradient indpended of ele size)
 
+CtrlVar.MeshIndependentAdjointGradients=1; % being tested
+                                
 CtrlVar.AdjointEleConst=1 ;
 
 

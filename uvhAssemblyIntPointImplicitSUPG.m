@@ -38,7 +38,7 @@ vint=vnod*fun;
 if CtrlVar.CisElementBased
     Cint=C;
 else
-    Cint=C*fun;
+    Cint=C*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
 end
 
 h0int=h0nod*fun;

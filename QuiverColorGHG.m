@@ -25,6 +25,10 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                                  Default is  Par.QuiverColorPowRange=3, i.e. the smallest color is that of spee
 %                                                  10^3 smaller than the largest speed
 %                                                  Setting, for example, Par.QuiverColorPowRange=2 narrows the plotted range
+%
+% Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scalings as in previous call. In this case
+%                                               Par from previous call must be given as an input.
+%
 % varargin is passed on to quiver
 %
 % Examples:
@@ -40,7 +44,10 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Par.MinPlottedSpeed=max(speed);
 % QuiverColorGHG(x,y,ub,vb,Par);
 %
-
+% Two calls with same velocity scaling:
+% [c~,~,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par)  ; % first call, here Par is not needed as input
+%  Par.QuiverSameVelocityScalingsAsBefore=1; 
+% [c~,~,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par) ; % second call using same scalings as the previous one
 %
 % Note: When doing further contour plots on top of velocity plot, matlab will possibly change the
 % limits of the colorbar and the position of the ticklables will no longer be correct.
@@ -49,7 +56,7 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % cbar.Ticks=Par.QuiverTicks*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
 % cbar.TickLabels=Par.QuiverTickLabels;
 % title(cbar,'(m/d)')   ;
-
+%%
 
 
 if numel(x) ==0
@@ -57,7 +64,7 @@ if numel(x) ==0
 end
 
 
-%%
+%
 % The expected typical useage is to plot one-dimentional arrays of velocites
 % But u, v, x ,and y can also be given on a grid.
 % If u and v is given on a grid, create vectors
@@ -93,7 +100,8 @@ if nargin>4 && ~isempty(Par)
             ticks=logticks(speed,Par.QuiverColorPowRange);
             Par.MaxPlottedSpeed=max(ticks);
         else
-            Par.MaxPlottedSpeed=max(speed(:))*1.001;
+            %Par.MaxPlottedSpeed=max(speed(:))*1.001;
+            Par.MaxPlottedSpeed=max(speed(:));
         end
         
     end
@@ -109,7 +117,7 @@ if nargin>4 && ~isempty(Par)
         switch Par.VelPlotIntervalSpacing
             case 'log10'
                 
-                ticks=logticks(speed,Par.QuiverColorPowRange);
+                ticks=logticks(speed,12,Par.QuiverColorPowRange);
                 Par.MinPlottedSpeed=min(ticks);
                 %                 temp1=floor(10*min(speed(:)))/10;
                 %                 temp2=Par.MaxPlottedSpeed/1e3;
@@ -315,7 +323,7 @@ else
         else
             % this is for more pleasing interval between labels (but needs to be improved)
             %D=(max(sp)-min(sp))/10 ; D=10.^round(log10(D)) ; ticklabel=unique(D*round(sp/D));
-            ticklabel=logticks(speed,nPowRange);
+            ticklabel=logticks(speed,nPowRange,12,Par.SpeedPlotIntervals);
         end
         
         

@@ -34,11 +34,16 @@ function ddIddCfp=Calc_FixPoint_ddIddC(CtrlVar,MUA,ub,vb,ud,vd,C,GF)
     %
     % Hence: Delta C= He (umeas-u) speed/C
     %
-    uEle=Nodes2EleMean(MUA.connectivity,ub); vEle=Nodes2EleMean(MUA.connectivity,vb); speedEle=sqrt(uEle.*uEle+vEle.*vEle);
     
+    if CtrlVar.CisElementBased
+        ub=Nodes2EleMean(MUA.connectivity,ub); 
+        vb=Nodes2EleMean(MUA.connectivity,vb); 
+        
+    end
     
+    speed=sqrt(ub.*ub+vb.*vb);
     
-    ddIddCfp=((speedEle+CtrlVar.SpeedZero)./(C+CtrlVar.Cmin)).^2;
+    ddIddCfp=((speed+CtrlVar.SpeedZero)./(C+CtrlVar.Cmin)).^2;
     %ddIddCfp=GF.ele.*ddIddCfp;
     ddIddCfp=CtrlVar.MisfitMultiplier*ddIddCfp;
     

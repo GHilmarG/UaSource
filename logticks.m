@@ -1,4 +1,4 @@
-function ticks=logticks(x,nPowRange,nTicks)
+function ticks=logticks(x,nPowRange,nTicks,SpeedPlotIntervals)
 
 % just a rough way of generating approximatly sensible tickmarks for a log scale
 % on input x is a set of numbers
@@ -18,6 +18,10 @@ end
 
 if nargin<3
     nTicks=12;
+end
+
+if nargin<4
+    SpeedPlotIntervals=[min(x) max(x)];
 end
 
 if all(x==0)
@@ -45,8 +49,13 @@ while numel(ticks)< nTicks && iCount<numel(tv)
     
     if numel(ticks)>2
         if ticks(end-1)>=max(x) ; ticks=ticks(1:end-1) ; end
+
     end
 end
 
+if numel(ticks)== 2 && min(x)>ticks(1) && max(x) < ticks(2)
+    %ticks=[min(x) max(x)];
+    ticks=[SpeedPlotIntervals(1) SpeedPlotIntervals(end)];
+end
 
 end

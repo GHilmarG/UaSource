@@ -198,19 +198,35 @@ if CtrlVar.doInverseStep==1;   % -inverse
             InvStartValues,Priors,Meas,BCsAdjoint,Info,InvFinalValues,xAdjoint,yAdjoint);
     end
     
-    if CtrlVar.AdjointWriteRestartFile==1
+    if CtrlVar.AdjointWriteRestartFile
         
         fprintf(CtrlVar.fidlog,' %s saving adjoint restart file: %s \n ',CtrlVar.Experiment,CtrlVar.NameOfAdjointRestartFiletoWrite);
         save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
             'CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
-            'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint');
+            'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint','-v7.3');
         
-        xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-        yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+        
+        if CtrlVar.AGlenisElementBased
+            xA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
+            yA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+        else
+            xA=MUA.coordinates(:,1);
+            yA=MUA.coordinates(:,2);
+        end
+        
+        if CtrlVar.CisElementBased
+            xC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
+            yC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+        else
+            xC=MUA.coordinates(:,1);
+            yC=MUA.coordinates(:,2);
+        end
+        
         fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
-        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xEle','yEle','MUA')
+        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xC','yC','MUA')
+        
         fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
-        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xEle','yEle','MUA')
+        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA')
         
     end
     
@@ -256,7 +272,7 @@ while 1
     
     if CtrlVar.TimeDependentRun && CtrlVar.dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
         fprintf('Exiting time loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
-        TempFile=[CtrlVar.Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
+        TempFile=[CtrlVar.Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile,'-v7.3')
         break
     end
     
@@ -386,7 +402,7 @@ while 1
                         break
                     end
                     fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-g did not converge. Resetting (u,v) to zero and trying again \n ',CtrlVar.time);
-                    TempFile=[CtrlVar.Experiment,'-UaDumpDiagnosticStepNotConverged.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile)
+                    TempFile=[CtrlVar.Experiment,'-UaDumpDiagnosticStepNotConverged.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile,'-v7.3')
                     ub=ub*0 ; vb=vb*0 ; ud=ud*0 ; vd=vd*0;  l.ubvb=l.ubvb*0; % if did not converge try to reset
                 end
                 
@@ -596,7 +612,7 @@ while 1
         try
             save(dumpfile','s','h','b','B','S','ub','vb','wSurf','wBed','as','ab','time','MUA','AGlen','C',...
                 'Luv','Luvrhs','lambdauv','Lh','Lhrhs','lambdah','n','m','alpha','rhow','rho','g',...
-                'dubdt','dvbdt','a0','da0dt','dhdt','dhdtm1','dubdtm1','dvbdtm1','DTxy','TRIxy','CtrlVar')
+                'dubdt','dvbdt','a0','da0dt','dhdt','dhdtm1','dubdtm1','dvbdtm1','DTxy','TRIxy','CtrlVar','-v7.3')
         catch exception
             fprintf(CtrlVar.fidlog,' Could not save file %s \n ',dumpfile);
             fprintf(CtrlVar.fidlog,'%s \n',exception.message);
@@ -678,7 +694,7 @@ SayGoodbye(CtrlVar)
         try
             save(RestartFile,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
                 'nStep','Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
-                'GLdescriptors','l','alpha','g');
+                'GLdescriptors','l','alpha','g','-v7.3');
             
            
             

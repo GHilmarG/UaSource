@@ -30,18 +30,14 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
     
     
     [points,weights]=sample('triangle',MUA.nip,ndim);
-    
-    
     dIdCdata=zeros(MUA.Nele,1); EleArea=zeros(MUA.Nele,1);
     
     for Iint=1:MUA.nip
         
         
         fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-        %[~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
         
-         if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-            %Deriv=MUA.Deriv(:,:,:,Iint);
+        if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
             detJ=MUA.DetJ(:,Iint);
         else
             [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
@@ -64,12 +60,9 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
         rhoint=rhonod*fun;
         lxint=lxnod*fun;
         lyint=lynod*fun;
-        
         hfint=(Sint-Bint)*rhow./rhoint;
         Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); 
         
-        
-        %Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
         Ctemp= -(1/m)*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ; % this is correct
         %Ctemp= -(1/m)*(Cint+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;  % used for testing purposes
         

@@ -92,7 +92,7 @@ if ~isempty(strfind(plots,'-ubvb-'))
     N=1;
     %speed=sqrt(ub.*ub+vb.*vb);
     %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
-    CtrlVar.VelPlotIntervalSpacing='log10';
+    CtrlVar.VelPlotIntervalSpacing='lin';
     %CtrlVar.VelColorMap='hot';
     %CtrlVar.RelativeVelArrowSize=10;
     

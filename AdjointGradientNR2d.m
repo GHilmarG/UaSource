@@ -4,7 +4,20 @@ function [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCda
 
 narginchk(26,26)
 
-dIdAGlendata=zeros(MUA.Nele,1) ; dIdCdata=zeros(MUA.Nele,1);
+if CtrlVar.AGlenisElementBased
+    dIdAGlendata=zeros(MUA.Nele,1) ;
+else
+    dIdAGlendata=zeros(MUA.Nnodes,1);
+end
+
+if CtrlVar.CisElementBased
+    dIdCdata=zeros(MUA.Nele,1);
+else
+    dIdCdata=zeros(MUA.Nnodes,1);
+end
+
+
+
 
 %% Step 1: solve linearized forward problem
 [ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
@@ -93,12 +106,19 @@ if ~isempty(strfind(CtrlVar.AdjointGrad,'C'))
         %fprintf(' Adjoint integral \n ')
         
         %dIdCdata=dIdCqEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-        dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
         
-        if CtrlVar.AdjointGradientEleAverage
-            fprintf(' averaging dIdC over elements \n')
-            dIdCdata=EleAverageInterpolate(dIdCdata,MUA.coordinates,MUA.connectivity);
+        if CtrlVar.CisElementBased
+            
+            dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+            
+            if CtrlVar.AdjointGradientEleAverage
+                fprintf(' averaging dIdC over elements \n')
+                dIdCdata=EleAverageInterpolate(dIdCdata,MUA.coordinates,MUA.connectivity);
+            end
+        else
+            dIdCdata=dIdCq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
         end
+        
         
     else
         error(' what case ? ' )
@@ -108,13 +128,19 @@ end
 
 if ~isempty(strfind(CtrlVar.AdjointGrad,'A'))
     
-    %fprintf(' Adjoint integral \n ')
-    %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
-    %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,VUA,lx,ly,h,AGlen,n);
-    if CtrlVar.AdjointGradientEleAverage
-        fprintf(' averaging dIdAGlen over elements \n')
-        dIdAGlendata=EleAverageInterpolate(dIdAGlendata,MUA.coordinates,MUA.connectivity);
+    if CtrlVar.AGlenisElementBased
+        %fprintf(' Adjoint integral \n ')
+        %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
+        dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+        %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,VUA,lx,ly,h,AGlen,n);
+        if CtrlVar.AdjointGradientEleAverage
+            fprintf(' averaging dIdAGlen over elements \n')
+            dIdAGlendata=EleAverageInterpolate(dIdAGlendata,MUA.coordinates,MUA.connectivity);
+        end
+    else
+        
+        warning('AGlen nodal based gradient not yet implemented. Setting to zero')
+        dIdAGlendata=zeros(MUA.Nnodes,1);
     end
 end
 
@@ -153,19 +179,28 @@ if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
         figure
         hold off
         subplot(2,2,1)
-        PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCdata,CtrlVar) ; title('dIdCdata')
+        %PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCdata,CtrlVar) ; 
+        
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdCdata);
+        title('dIdCdata')
         hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
         
         subplot(2,2,2)
-        PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCreg,CtrlVar) ; title('dIregdC')
+        %PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCreg,CtrlVar) ; 
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdCreg);
+        title('dIregdC')
         hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
         
         subplot(2,2,3)
-        PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCbarrier,CtrlVar) ; title('dIdCbarrier')
+        %PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dIdCbarrier,CtrlVar) ; 
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdCbarrier);
+        title('dIdCbarrier')
         hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
         
         subplot(2,2,4)
-        PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dJdC,CtrlVar) ; title('dJdC')
+        %PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dJdC,CtrlVar) ;
+        PlotMeshScalarVariable(CtrlVar,MUA,dJdC);
+        title('dJdC')
         hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
     end
 end

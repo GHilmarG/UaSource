@@ -54,7 +54,7 @@ switch lower(CtrlVar.MisfitFunction)
         dIduv=[dIdu(:);dIdv(:)];
         
         if ~isreal(dIduv)
-            save TestSave ; error('MisfitFunction:dIduv not real','dIduv is not real! Possibly a problem with covariance of data.')
+            save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
         end
         
         % Two methods resulting in the same answer

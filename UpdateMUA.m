@@ -2,8 +2,9 @@ function MUA=UpdateMUA(CtrlVar,MUA)
 
 %%
 % MUA=UpdateMUA(CtrlVar,MUA)
-% Updates MUA and calculates any missing fields
-% On input MUA must have the fields coordinates and connectivity
+% Updates MUA and calculates any missing fields.
+% On input MUA must have the fields coordinates and connectivity.
+%
 
 if ~isfield(MUA,'coordinates')
     error('MUA must have a coordinates field')

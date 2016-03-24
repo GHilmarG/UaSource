@@ -86,6 +86,7 @@ for Iint=1:MUA.nip
         Cint=C;
     else
         Cint=Cnod*fun;
+        Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
     end
     
     
@@ -101,10 +102,10 @@ for Iint=1:MUA.nip
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
     [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,m,Heint,CtrlVar);
-    if ~isreal(beta2int) ; save TestFile beta2int ; error('KRTF: beta2int not real ') ; end
-    if ~isreal(Dbeta2Duuint) ; error('KRTF: Dbeta2Duuint not real ') ; end
-    if ~isreal(Dbeta2Dvvint) ; error('KRTF: Dbeta2Dvvint not real ') ; end
-    if ~isreal(Dbeta2Duvint) ; error('KRTF: Dbeta2Duvint not real ') ; end
+    if ~isreal(beta2int)     ; save KRTFgeneralBCsErrorFile  ; error('KRTF: beta2int not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
+    if ~isreal(Dbeta2Duuint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duuint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
+    if ~isreal(Dbeta2Dvvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Dvvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
+    if ~isreal(Dbeta2Duvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
     
     
     etaint=etaInt(:,Iint) ;  % I could consider calculating this here

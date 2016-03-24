@@ -574,29 +574,29 @@ for iteration=1:nIt
     fprintf(' \t  \t \t  a=%-g \t  b=%-g \t  c=%-g  \t gamma_Min=%-g \t gamma_MinEstimate=%-g \n',gamma_a,gamma_b,gamma_c,gammaAdjoint,gamma_MinEstimate)
     
     
-    if CtrlVar.AdjointWriteRestartFile==1
-        
-        xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-        yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
-        fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
-        C=Cest; AGlen=AGlenEst;
-        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xEle','yEle','MUA')
-        fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
-        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xEle','yEle','MUA')
-        clear C AGlen
-    end
+%     if CtrlVar.AdjointWriteRestartFile==1
+%         
+%         xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
+%         yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+%         fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
+%         C=Cest; AGlen=AGlenEst;
+%         save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xEle','yEle','MUA')
+%         fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+%         save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xEle','yEle','MUA')
+%         clear C AGlen
+%     end
     %%
 end
 
 if CtrlVar.InfoLevelAdjoint>=5 && CtrlVar.doplots==1;
     
     figure(120)
-    PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,Cest);
+    PlotMeshScalarVariable(CtrlVar,MUA,Cest);
     title('Cest') ; xlabel('x') ; ylabel('y') ; colorbar
     
     
     figure(121) ;
-    PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,AGlenEst);
+    PlotMeshScalarVariable(CtrlVar,MUA,AGlenEst);
     title('AGlenest') ;  colorbar  ; xlabel('x') ; ylabel('y')
     
     figure(iteration+1000000) ;

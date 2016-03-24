@@ -181,25 +181,13 @@ function [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=Quasi
         if  (iteration==nIt  || iteration==1 ) && CtrlVar.doplots==1
             
             figure ;
-            subplot(2,2,1) ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dJdC);  title(sprintf('dJdC it=%-i',iteration)) ; axis equal tight ; colorbar
-            subplot(2,2,2) ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,Cest); title(sprintf('C it=%-i',iteration)) ; axis equal tight ; colorbar
-            subplot(2,2,3) ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,log10(Cest)); title(sprintf('log10(C) it=%-i',iteration)) ; axis equal tight ; colorbar
-            subplot(2,2,4) ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,Cest-C0); title(sprintf('changes in C it=%-i',iteration)) ; axis equal tight ; colorbar
+            subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,dJdC);  title(sprintf('dJdC it=%-i',iteration)) ; axis equal tight ; colorbar
+            subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,Cest); title(sprintf('C it=%-i',iteration)) ; axis equal tight ; colorbar
+            subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,log10(Cest)); title(sprintf('log10(C) it=%-i',iteration)) ; axis equal tight ; colorbar
+            subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,Cest-C0); title(sprintf('changes in C it=%-i',iteration)) ; axis equal tight ; colorbar
             
         end
         
-        
-        if CtrlVar.AdjointWriteRestartFile==1
-            
-            
-            xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-            yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
-            fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
-            C=Cest;
-            save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xEle','yEle','MUA')
-            
-            
-        end
         
         if gammaAdjoint==0 ;
             fprintf(' gamma returned equal to zero. line search has stagnated. breaking out \n')
