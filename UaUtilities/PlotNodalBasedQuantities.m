@@ -9,7 +9,7 @@ function [PatchObject,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinat
 % then a 3-node triangulation is created prior to plotting, and this triangulation is returned as tri
 
 
-if nargin<4
+if nargin<4 || isempty(CtrlVar)
     CtrlVar.PlotXYscale=1;
     CtrlVar.PlotsXaxisLabel=' ';
     CtrlVar.PlotsYaxisLabel=' ';

@@ -109,8 +109,6 @@ GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 
 
-% [ufixednode,ufixedvalue,vfixednode,vfixedvalue,utiedA,utiedB,vtiedA,vtiedB,hfixednode,hfixedvalue,htiedA,htiedB,FixedNormalVelocityNode,FixedNormalVelocityValue]=...
-%     DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
 BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
@@ -122,34 +120,6 @@ if CtrlVar.doplots==1
     end
 end
 
-
-%
-% if ~MLC.ubvbTies && ~MLC.hTies ;
-%     if CtrlVar.InfoLevel>0
-%         fprintf(CtrlVar.fidlog,' No uv ties found \n ');
-%     end
-%     CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
-%     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
-% end
-% %]
-
-%% test if variables are OK
-if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(C))
-    save TestSave ;
-    error(' C is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
-elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(C))
-    save TestSave ;
-    error(' C is node-based but does not have same number of elements as there are nodes in mesh. All variables saved in TestSave.mat ')
-    
-end
-
-if CtrlVar.AGlenisElementBased  && ~(length(MUA.connectivity)==length(AGlen))
-    save TestSave ;
-    error(' AGlen is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
-elseif ~CtrlVar.AGlenisElementBased && ~(length(MUA.coordinates) == length(AGlen))
-    save TestSave ;
-    error(' AGlen is node-based but does not have same number of elements as there are nodes in mesh. All variables saved in TestSAve.mat ')
-end
 
 MeshChanged=0;
 

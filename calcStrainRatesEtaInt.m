@@ -1,4 +1,5 @@
-function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
+function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
+    calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
          
     % [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,u,v,AGlen,n)
     % calculates strain rates and effective viscosity at integration points and Eint needed for the directional
@@ -25,17 +26,15 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt
     coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
     cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
     
-    if nargin>4
-        if ~isempty(AGlen)
-            if ~CtrlVar.AGlenisElementBased ;
-                AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-            else
-                AGlennod=[];
-            end
+    if nargin>4 && ~isempty(AGlen)
+        if CtrlVar.AGlenisElementBased ;
+            AGlennod=[];
+        else
+            AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
         end
     end
-    
-    exx=zeros(MUA.Nele,MUA.nip); eyy=zeros(MUA.Nele,MUA.nip); exy=zeros(MUA.Nele,MUA.nip); 
+        
+        exx=zeros(MUA.Nele,MUA.nip); eyy=zeros(MUA.Nele,MUA.nip); exy=zeros(MUA.Nele,MUA.nip);
     xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);  
    
     if nargin>4
@@ -58,7 +57,9 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt
                 if CtrlVar.AGlenisElementBased ;
                     AGlenint(:,Iint)=AGlen;
                 else
-                    AGlenint(:,Iint)=AGlennod*fun;
+                    temp=AGlennod*fun;
+                    temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+                    AGlenint(:,Iint)=temp;
                 end
             end
         end

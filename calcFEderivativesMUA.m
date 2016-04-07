@@ -11,7 +11,7 @@ ndim=2;
 fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 dfdx=zeros(MUA.Nele,MUA.nip); dfdy=zeros(MUA.Nele,MUA.nip);
-xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);
+
 
 % f is a vector with nod values
 % the derivative at a given integration point is
@@ -37,6 +37,7 @@ end
 
 if nargout>2
     
+    xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);
     coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,nod);
     cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,nod);
     
@@ -46,8 +47,9 @@ if nargout>2
         xint(:,Iint)=coox*fun;
         yint(:,Iint)=cooy*fun;
         
-        
     end
+else
+    xint=[] ; yint=[];
 end
 
 

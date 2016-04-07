@@ -4,7 +4,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 % CtrlVar=Ua2D_DefaultParameters
 %
-%  set the fields of the CtrlVar to their default values
+%  sets the fields of the CtrlVar to their default valuesadjoint
 %
 %
 
@@ -369,20 +369,25 @@ CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works
 CtrlVar.RescaleAdjointGradient=0;  % rescales analytical gradient to agree with a numerically calculated one (only use for testing purposes)
 CtrlVar.CalcBrutForceGradient=0;
 
+% If the problem is badly scaled then one can scale the cost function and the gradients
+% Usually this is not needed, and such issues seem to be better addressed by
+% specifying the initial step size through CtrlVar.AdjointInitialSearchStepSize
 CtrlVar.AdjointfScale=1;
 CtrlVar.AdjointxScale=1;
 
-CtrlVar.MisfitFunction='uvintegral';
+% the costfunctions and the (adjoint) gradients can be expressed 
+% either as integrals or discrete sums.  The integral representation is 
+% generally the preferred one and the default option.
+%
+CtrlVar.MisfitFunction='uvintegral'; % {'uvintegra','uvdiscrete'}
 CtrlVar.AdjointGradientEvaluation='integral';
-%CtrlVar.MisfitFunction='uvdiscrete';
+
 CtrlVar.NormalizeWithAreas=1 ;  % Cost function normalized with element areas. 
                                 % (generally a good idea as it makes gradient indpended of ele size)
+                                % This is only relevant if A and C are element based.
 
-CtrlVar.MeshIndependentAdjointGradients=1; % being tested
+CtrlVar.MeshIndependentAdjointGradients='M'; % {'I','M','P'} being tested
                                 
-CtrlVar.AdjointEleConst=1 ;
-
-
 CtrlVar.isBarrierC=1     ; CtrlVar.muBarrierCmin=1e-10     ; CtrlVar.muBarrierCmax=1e-10 ;  % note: in most cases with constraints the muBarrier parameters should initially be set to fairly large values
 CtrlVar.isBarrierAGlen=1 ; CtrlVar.muBarrierAGlenmin=1e-10 ; CtrlVar.muBarrierAGlenmax=1e-10 ;
 CtrlVar.isRegC=1; CtrlVar.isRegAGlen=1;
@@ -406,9 +411,8 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % HR: Hestenes-Stiefel
                                         % DY :Dai-Yan
                             
-CtrlVar.AdjointGradientEleAverage=0;
-CtrlVar.AGlenAdjointZero=1e-10; 
-CtrlVar.AdjointEpsZero=1e-10;
+CtrlVar.AGlenAdjointZero=100*eps; 
+CtrlVar.AdjointEpsZero=100*eps;
 CtrlVar.AdjointMaxLineSearchIterations=20;
 CtrlVar.CalcBruteForceGradient=0;
 CtrlVar.RescaleAdjointGradient=0;

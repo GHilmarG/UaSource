@@ -6,9 +6,6 @@ function dIdC=dIdCq(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow
 % integration loop
 %
 
-
-
-
 ndim=2;
 
 hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -66,20 +63,36 @@ for Inod=1:MUA.nod
     dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-if CtrlVar.MeshIndependentAdjointGradients
+if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
     
-    M=MassMatrix2D1dof(MUA);
-    dIdCm=M\dIdC;
+    switch upper(CtrlVar.MeshIndependentAdjointGradients)
+        
+        case 'P'
+            P=NodalFormFunctionInfluence(MUA);
+            dIdCm=dIdC./P;
+        case 'M'
+            M=MassMatrix2D1dof(MUA);
+            dIdCm=M\dIdC;
+    end
     
-%     figure
-%     subplot(1,2,1); PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC nonscaled')
-%     subplot(1,2,2); PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ; title('M\\dIdC')
+    if  CtrlVar.doplots && CtrlVar.InfoLevelAdjoint>100
+        figure ;
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; 
+        title('dIdC nonscaled, i.e. \deltaJ(C,N) ')
+        figure
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ; 
+        title(['Mesh-independent representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
+    end
     
     dIdC=dIdCm;
     
 end
 
+
+
 end
+
+
 
 
 

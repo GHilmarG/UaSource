@@ -66,7 +66,8 @@ function Ua
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
-% * DefineInverseModellingVariables.m
+% * DefineInputsForInverseRun.m
+% * DefineInverseModellingVariables.m (older approach, use DefineInputsForInversion.m instead)
 % * UaOutputs.m
 %
 % 

@@ -1,17 +1,27 @@
 function [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
 
-
-listing=dir('DefineInputsForInverseRun.m') ;
-
 BCsAdjoint=BoundaryConditions;
 Meas=Measurements;
 Priors=PriorProbabilityDistribution;
 InvStartValues=InversionStartValues;
 
-if numel(listing)==0
+if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
+    
+    [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     
     
-    [s_prior,b_prior,S_prior,B_prior,Priors.AGlen,Priors.C,Priors.n,Priors.m,rho_prior,rhow_prior,...
+    
+    
+else
+    
+    fprintf('\n-----------------------------------------------------------------------')
+    fprintf(' Found ''DefineInverseModellingVariables.m'' in local run directory.\n')
+    fprintf(' That m-file will be used to define inputs for inversion.\n')
+    fprintf(' However, this is no longer the recomended approach.\n')
+    fprintf(' Suggest switching to using ''DefineInputsForInverseRun.m'' \n')
+    fprintf('-----------------------------------------------------------------------\n')
+    
+    [s_prior,b_prior,S_prior,B_prior,Priors.AGlen,Priors.C,Priors.n,Priors.m,Priors.rho,Priors.rhow,...
         Priors.CovAGlen,Priors.CovC,...
         lxFixedNode,lyFixedNode,lxFixedValue,lyFixedValue,lxtiedA,lxtiedB,lytiedA,lytiedB,...
         s_meas,Meas.us,Meas.vs,Meas.ws,b_meas,B_meas,...
@@ -37,17 +47,22 @@ if numel(listing)==0
     InvStartValues.AGlen=Priors.AGlen;
     
     
-    Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);   
-    Meas.vsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,vsError.^2,MUA.Nnodes,MUA.Nnodes);   
-    Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);   
-       
-else
+    Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);
+    Meas.vsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,vsError.^2,MUA.Nnodes,MUA.Nnodes);
+    Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);
     
-    [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     
     
 end
 
+
+[InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
+[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
+
+[InvStartValues.C,InvStartValues.m]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m);
+[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);
+
+[Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
 
 if isempty(InvStartValues.AGlen) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.AGlen is empty') ; end
 if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.C is empty') ; end
@@ -56,4 +71,28 @@ if isempty(InvStartValues.m) ; save TestSave ; error('GetInputsForInverseRun:emp
 
 
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

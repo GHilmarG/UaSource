@@ -74,13 +74,9 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
         
     end
     
+    % make mesh independent by dividing with element areas
+    dIdCdata=dIdCdata./EleArea;
     
-    if CtrlVar.NormalizeWithAreas
-        %dIdCNorm=norm(dIdC);
-        dIdCdata=dIdCdata./EleArea;
-        %dIdC=sum(EleArea)*dIdC;
-        %dIdC=dIdC*norm(dIdCNorm)/norm(dIdC) ; % ensure that both estimates of dIdC have the same norm
-    end
     
     
     

@@ -118,7 +118,8 @@ for iteration=1:nIt
     
     %% Adjoint method
     
-      [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=AdjointGradientNR2d(...
+      [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+          AdjointGradientNR2d(...
                     Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
 %     
 %     
@@ -239,7 +240,7 @@ for iteration=1:nIt
             %% rescale AGlen gradient
             
             gamma=gamma_eps;
-            AGlentest=kk_proj(AGlen0-gamma*dJdAGlen,upA,lowA,EpsA);  % changing AGlen in the steepest decent direction
+            AGlentest=kk_proj(AGlen0-gamma*dJdAGlen,upA,lowA);  % changing AGlen in the steepest decent direction
             
             [Jeps,Idataeps,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
                 CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
@@ -586,31 +587,24 @@ for iteration=1:nIt
 %         clear C AGlen
 %     end
     %%
-end
-
-if CtrlVar.InfoLevelAdjoint>=5 && CtrlVar.doplots==1;
     
-    figure(120)
-    PlotMeshScalarVariable(CtrlVar,MUA,Cest);
-    title('Cest') ; xlabel('x') ; ylabel('y') ; colorbar
+    if CtrlVar.InfoLevelAdjoint > 1000
+        
+        filename=sprintf('%s-AdjointIteration%04i',CtrlVar.Experiment,iteration);
+        fprintf('Saving current estimate of C in %s \n',filename)
+        save(filename,'CtrlVar','MUA','Cest','dJdC')
+        
+        
+    end
     
-    
-    figure(121) ;
-    PlotMeshScalarVariable(CtrlVar,MUA,AGlenEst);
-    title('AGlenest') ;  colorbar  ; xlabel('x') ; ylabel('y')
-    
-    figure(iteration+1000000) ;
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,1),'-+b') ; hold on
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,2),'-og') ; hold on
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,3),'-xr') ; hold on
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,4),'-xc') ; hold on
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,5),'-xy') ; hold on
-    semilogy(0:iJ-1,Info.JoptVector(1:iJ,6),'-xm') ; hold on
-    legend('J','DataMisfit','||C||','||A||','C barrier','A barrier')
+      if gammaAdjoint==0 ;
+        fprintf(' gamma returned equal to zero. line search has stagnated. breaking out \n')
+        break
+      end
     
 end
 
-
+I=isnan(Info.JoptVector(:,1)) ; Info.JoptVector(I,:)=[];
 Info.InverseIterations=Info.InverseIterations+iteration;
 
 end

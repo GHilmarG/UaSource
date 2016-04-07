@@ -2,8 +2,7 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
 
 % calculates dIdAGlendata for step shifts within each element, returning element values
 %
-    
-    
+     
     
     ndim=2;
     
@@ -14,9 +13,9 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
     lxnod=reshape(lx(MUA.connectivity,1),MUA.Nele,MUA.nod);
     lynod=reshape(ly(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
-    if ~CtrlVar.AGlenisElementBased
-        AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
+    %if ~CtrlVar.AGlenisElementBased
+    %    AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    %end
     
     [points,weights]=sample('triangle',MUA.nip,ndim);
     [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
@@ -26,8 +25,8 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
     for Iint=1:MUA.nip
         
         
-        fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-        %[Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+        fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+        
         if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
             Deriv=MUA.Deriv(:,:,:,Iint);
             detJ=MUA.DetJ(:,Iint);
@@ -36,11 +35,11 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
         end
         
         hint=hnod*fun;
-        if ~CtrlVar.AGlenisElementBased
-            AGlenInt=AGlennod*fun;
-        else
+        %if ~CtrlVar.AGlenisElementBased
+        %    AGlenInt=AGlennod*fun;
+        %else
             AGlenInt=AGlen;
-        end
+        %end
         
         dudx=zeros(MUA.Nele,1); dvdx=zeros(MUA.Nele,1); dudy=zeros(MUA.Nele,1); dvdy=zeros(MUA.Nele,1);
         dlxdx=zeros(MUA.Nele,1); dlydx=zeros(MUA.Nele,1); dlxdy=zeros(MUA.Nele,1); dlydy=zeros(MUA.Nele,1);
@@ -69,11 +68,11 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
         dIdAGlendata=dIdAGlendata-dEtadA.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*detJw;
     end
     
-    if CtrlVar.NormalizeWithAreas
-        dIdAGlendataNorm=norm(dIdAGlendata);
-        dIdAGlendata=dIdAGlendata./EleArea;
-        dIdAGlendata=dIdAGlendata*dIdAGlendataNorm/norm(dIdAGlendata);
-    end
+    % make mesh independent by dividing with element areas
+    dIdAGlendataNorm=norm(dIdAGlendata);
+    dIdAGlendata=dIdAGlendata./EleArea;
+    dIdAGlendata=dIdAGlendata*dIdAGlendataNorm/norm(dIdAGlendata);
+    
     
     
 end

@@ -81,67 +81,65 @@ if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
 end
 
-if ~isempty(strfind(CtrlVar.AdjointGrad,'C'))
-    
-    if  ~isempty(strfind(lower(CtrlVar.AdjointGradientEvaluation),'discrete'))
-        
-        % Direct gradient evaluated from nodal points.
-        if CtrlVar.CisElementBased
-            
-            M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-            Cnode=M*C;
-        else
-            Cnode=C;
-        end
-        
-        dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*xAdjoint+v.*yAdjoint);
-        
-        if CtrlVar.CisElementBased
-            dIdCdata=Nodes2EleMean(MUA.connectivity,dIdCdata);
-        end
-        
-        
-    elseif  ~isempty(strfind(lower(CtrlVar.AdjointGradientEvaluation),'integral'))
-        
-        %fprintf(' Adjoint integral \n ')
-        
-        %dIdCdata=dIdCqEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-        
-        if CtrlVar.CisElementBased
-            
-            dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
-            
-            if CtrlVar.AdjointGradientEleAverage
-                fprintf(' averaging dIdC over elements \n')
-                dIdCdata=EleAverageInterpolate(dIdCdata,MUA.coordinates,MUA.connectivity);
-            end
-        else
-            dIdCdata=dIdCq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
-        end
-        
-        
-    else
-        error(' what case ? ' )
-    end
-    
-end
 
-if ~isempty(strfind(CtrlVar.AdjointGrad,'A'))
+switch upper(CtrlVar.AdjointGrad)
     
-    if CtrlVar.AGlenisElementBased
-        %fprintf(' Adjoint integral \n ')
-        %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
-        dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
-        %dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,VUA,lx,ly,h,AGlen,n);
-        if CtrlVar.AdjointGradientEleAverage
-            fprintf(' averaging dIdAGlen over elements \n')
-            dIdAGlendata=EleAverageInterpolate(dIdAGlendata,MUA.coordinates,MUA.connectivity);
-        end
-    else
+    case 'C'
         
-        warning('AGlen nodal based gradient not yet implemented. Setting to zero')
-        dIdAGlendata=zeros(MUA.Nnodes,1);
-    end
+        switch lower(CtrlVar.AdjointGradientEvaluation)
+            
+            case 'discrete' % Direct gradient evaluated from nodal points.
+                
+                if CtrlVar.CisElementBased
+                    M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
+                    Cnode=M*C;
+                else
+                    Cnode=C;
+                end
+                
+                dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*xAdjoint+v.*yAdjoint);
+                
+                if CtrlVar.CisElementBased
+                    dIdCdata=Nodes2EleMean(MUA.connectivity,dIdCdata);
+                end
+                
+            case 'integral'
+                
+                if CtrlVar.CisElementBased
+                    
+                    dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    
+                else
+                    dIdCdata=dIdCq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                end
+
+                
+            otherwise
+                error(' what case ? ' )
+        end
+        
+    case 'A'
+        switch lower(CtrlVar.AdjointGradientEvaluation)
+            
+            case 'discrete' % Direct gradient evaluated from nodal points.
+                
+                
+                fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inverstion\n')
+                error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
+            case 'integral'
+                if CtrlVar.AGlenisElementBased
+                    
+                    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                                        
+                else
+                    
+                    dIdAGlendata=dIdAq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    
+                end
+            otherwise
+                error(' what case ? ' )
+        end
+        
 end
 
 
