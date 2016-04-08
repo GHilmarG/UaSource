@@ -122,9 +122,9 @@ if ~CtrlVar.InverseRun %  forward run
     
 else % inverse run
     
-    if CtrlVar.Restart %  inverse restarted run
+    if CtrlVar.Restart %  inverse restart run
         
-        [CtrlVar.Experiment,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+        [MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
             GetInputsForInverseRestartRun(CtrlVar);
         
     else % New inverse run
