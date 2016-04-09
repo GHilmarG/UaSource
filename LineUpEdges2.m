@@ -1,37 +1,33 @@
 function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 
-
+%% Line up line segments to form continous lines with NaN where gaps.
 % [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %
-% Lines up edges.
-% Takes edges (i.e. line segments) and lines them up to form continous lines, with NaN where there is a gap between edges
+% Lines up edges. Takes edges (i.e. line segments) and lines them up to form
+% continous lines, with NaN where there is a gap between edges
 %
 %
-%  xa,  xb, ya, yb     : vectors defining the start and end x,y coordinates of the edges
-%                        for example: the n-th edge goes from [xa(n) ya(n)] to [xb(n) yb(n)]
-%  LineMax             : maximum number of lined-up edges returned. Edges are returned in the order of the number of points in each edge.
-%                        If, for example, LineMax=1, then only the single longest line is returned
+%  xa,  xb, ya, yb     : vectors defining the start and end x,y coordinates of
+%  the edges
+%                        for example: the n-th edge goes from [xa(n) ya(n)] to
+%                        [xb(n) yb(n)]
+%  LineMax             : maximum number of lined-up edges returned. Edges are
+%                        returned in the order of the number of points in each edge.
+%                        If, for example, LineMax=1, then only the single
+%                        longest line is returned
 %
 %
-% Note: As a part of the Mapping Toolbox there is a matlab routine `polymerge' that
-%       can also be used to do this, but this routine is
-%       hopelessly slow and memory hungry for a large number of line segments.
-%
-%
-%
+% Note: As a part of the Mapping Toolbox there is a matlab routine `polymerge'
+% that can also be used to do this, but this routine is hopelessly slow and
+% memory hungry for a large number of line segments.
 %
 %  To plot:   plot(xPolygon,yPolygon)
 %
 %  To plot in different colours showing individual line segments
-% figure ;
-% i=0;
-% I=find(isnan(xPolygon)) ;
-% I=[1;I(:)];
-% col=['b','r','c','g','k','m'];
-% for ii=1:numel(I)-1
-%     i=i+1;
-%     plot(xPolygon(I(ii):I(ii+1)),yPolygon(I(ii):I(ii+1)),col(i)) ; axis equal ; hold on ;
-%     if i==numel(col) ; i=0 ; end
+% figure ; i=0; I=find(isnan(xPolygon)) ; I=[1;I(:)];
+% col=['b','r','c','g','k','m']; for ii=1:numel(I)-1
+%     i=i+1; plot(xPolygon(I(ii):I(ii+1)),yPolygon(I(ii):I(ii+1)),col(i)) ; axis
+%     equal ; hold on ; if i==numel(col) ; i=0 ; end
 % end
 
 %aCase=0; bCase=0;

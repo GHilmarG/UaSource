@@ -45,9 +45,8 @@ switch nod
         error(' case not recognized')
 end
 
-warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
-%TR = TriRep(con3,coordinates(:,1),coordinates(:,2));
-%TR = triangulation(con3,coordinates(:,1),coordinates(:,2));
+
+
 TR=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 
 
