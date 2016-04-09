@@ -1,9 +1,6 @@
 function  [x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
     DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,ub,vb,ud,vd,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
 
-
-%save TestSave ;error('fdsa')
-
 %
 % Estimates optimal element sizes based on number of explicit error estimators
 % The estimates are given at the nodal points of the current FE mesh

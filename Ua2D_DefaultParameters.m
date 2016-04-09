@@ -477,7 +477,7 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
-% Whether done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
+% Both when done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
 % *             a) create an inputfile for gmesh (.geo)
 % *             b) call gmesh for that input file (.geo). gmsh in turn generates an output file (.msh)
@@ -640,7 +640,7 @@ CtrlVar.MinSurfAccRequiredToReactivateNodes=0;  % If surface accumulation is lar
 CtrlVar.RefineMeshOnRestart=0;
 CtrlVar.RefineMeshOnStart=0;
 
-%% Global adaptive mesh refinement  , adapt mesh 
+%% Global adaptive mesh refinement, adapt mesh 
 % There are various adapt meshing options.
 % The most general one is global remeshing using explicit error estimate
 %
@@ -680,7 +680,11 @@ CtrlVar.RefineMeshOnStart=0;
 % For example, for CtrlVar.RefineCriteriaFlotationLimit=[100,NaN]
 % the first refinement criteria will only be applied to area where the glacier bed (b) is within 100 vertical distance units from flotation
 %
-
+% One can also specify directly the desired element sizes (explicit:global
+% option) or the elements to be refined (explicit:local option), using the user
+% m-file `DefineDesireEleSizes.m'
+%
+%
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global'
@@ -688,13 +692,20 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
                                                    % 'implicit:global'  (broken at the moment, do not use)
                                                    % 'implicit:local'   (broken at the moment, do not use)
 
+% `explicit:global' implies a global remeshing of the whole domain. This is a very flexible approach 
+%  allowing for both increasing and decreasing mesh resolution.
+% 'explicit:local' implies a local adaptive mesh refinement obtained by splitting
+% individual triangles up into four subtriangles. This is often a very elegant
+% way of refining the mesh, but does not allow for subsequent mesh coarsening.
+%
+                                                                                                      
                                                    
 CtrlVar.AdaptMeshInitial=1  ; % remesh in first iteration (Itime=1)  even if mod(Itime,CtrlVar.AdaptMeshInterval)~=0.
 CtrlVar.AdaptMeshInterval=1 ; % remesh whenever mod(Itime,CtrlVar.AdaptMeshInterval)==0
 
 CtrlVar.hpower=1;         % used to go from an error estimate to a size estimate for an element
                           % h=1/error^hpower ,  where `h' is the desired element size and `error' a local
-                          % error estimate
+                          % error estimate.
 
 CtrlVar.AdaptMeshIterations=1;  % Number of global adapt mesh iterations within each adapt step
                                 % This is seldom anything else but 1, except potentially in a either diagnostic calculation (time independent)

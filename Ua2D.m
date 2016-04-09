@@ -21,8 +21,8 @@ if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
     
 end
 
-warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
-
+%warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
+warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
 %% initialize some variables
 Info=UaRunInfo;

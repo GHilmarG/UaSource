@@ -7,7 +7,7 @@ CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1];
 
 
-[MUA1,FEmeshTriRep1]=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+MUA1=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA1.coordinates,MUA1.connectivity)
 
 h1=2*abs(MUA1.coordinates(:,1)); 
@@ -24,7 +24,7 @@ PlotBoundary(MUA1.Boundary,MUA1.connectivity,MUA1.coordinates,CtrlVar)
 %%
 % grid 2
 MeshBoundaryCoordinates=[-1 -1 ; -1 1 ; 1 1 ; 1 -1];
-[MUA2,FEmeshTriRep2]=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+MUA2=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
 CtrlVar.MeshColor='g';
 CtrlVar.PlotMesh=1;
 PlotFEmesh(MUA2.coordinates,MUA2.connectivity,CtrlVar)
@@ -47,7 +47,7 @@ h1=MUA1.coordinates(:,1);
 s1=h1+10;
 rho1=s1*0+900;
 
-[h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValue,h1,s1,rho1)
+[h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValue,h1,s1,rho1);
 h2'
 s2'
 rho2'

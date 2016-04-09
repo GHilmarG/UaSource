@@ -1,5 +1,10 @@
 function  BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
-
+%%
+% User m-file to define boundary conditions 
+% BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+%
+% BC is a matlab object with the following fields 
+%
 % BCs = 
 % 
 %   BoundaryConditions with properties:
@@ -34,6 +39,7 @@ function  BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B
                
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
+% implementing periodic boundary conditions
 % find nodes along boundary 
 xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
 nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);

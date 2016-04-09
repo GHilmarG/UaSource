@@ -1,11 +1,11 @@
-function [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmeshBackgroundScalarField)
+function MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmeshBackgroundScalarField)
 
+%% Generate FE mesh
+%
+% [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmeshBackgroundScalarField)
 %
 % FEmeshTriRep is an instance of matlab TriRep class. Only based on the corner nodes of
 %    triangles! Interior and edge nodes of higher order elements missing
-
-
-
 
 options.output=false;
 
@@ -26,40 +26,27 @@ switch lower(CtrlVar.MeshGenerator)
         if nargin<5;
             GmeshBackgroundScalarField=[];
         end
-        
-        
+
         [coordinates,connectivity]=GmeshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmeshBackgroundScalarField);
-        
         
     otherwise
         error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmesh} ')
 end
 
 
-% make sure that FE nodes are labelled clockwise
-%temp=connectivity; connectivity(:,2)=temp(:,3); connectivity(:,3)=temp(:,2); clear temp;
-
-
 [coordinates,connectivity]=ChangeElementType(coordinates,connectivity,CtrlVar.TriNodes);
 
-%if CtrlVar.doplots==1 && CtrlVar.PlotMesh==1; figure ; subplot(1,2,1) ; spy(M) ; end
-%[i,j]=find(M); bw=max(i-j)+1;
-%fprintf(CtrlVar.fidlog,' initial bandwidth : %-i , ',bw);
-
-if CtrlVar.sweep==1
+if CtrlVar.sweep
     [coordinates,connectivity] = ElementSweep(coordinates,connectivity,CtrlVar.SweepAngle);
     [coordinates,connectivity] = NodalSweep(coordinates,connectivity,CtrlVar.SweepAngle);
 end
 
-if CtrlVar.CuthillMcKee==1
+
+if CtrlVar.CuthillMcKee
     M=connectivity2adjacency(connectivity);
     [coordinates,connectivity] = CuthillMcKeeFE(coordinates,connectivity,M);
 end
 
-%if CtrlVar.doplots==1 && CtrlVar.PlotMesh==1 ; subplot(1,2,2); spy(M) ; end
-%[i,j]=find(M); bw=max(i-j)+1;
-%fprintf(CtrlVar.fidlog,' final bandwidth : %-i \n',bw);
-clear M
 
 % removing possible duplicate nodes
 % There should in principle be no need to do this
@@ -69,10 +56,12 @@ clear M
 
 connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity);
 
-[coordinates,connectivity]=UserMeshModifications(CtrlVar,coordinates,connectivity);
+%% Possible user modifications to coordinates and connectivity
+[coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,connectivity);
 
 
-FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates);
+%FEmeshTriangulation=CreateFEmeshTriRep(connectivity,coordinates);
+
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 if  CtrlVar.doplots==1 && CtrlVar.PlotMesh==1
