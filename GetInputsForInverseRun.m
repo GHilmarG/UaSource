@@ -9,9 +9,6 @@ if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
     
     [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     
-    
-    
-    
 else
     
     fprintf('\n-----------------------------------------------------------------------')
@@ -55,6 +52,8 @@ else
     
 end
 
+%% Test inputs
+Meas=TestMeas(CtrlVar,MUA,Meas);
 
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
 [Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
