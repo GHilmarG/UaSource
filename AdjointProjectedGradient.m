@@ -1,15 +1,16 @@
 function   [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
-                Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
- 
-%             
+    Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
+
+%
 %                [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
 %                 Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
-            
+
 % Minimisation using the projected (conjugated) gradient method.
 
 if CtrlVar.InfoLevelAdjoint>=10;
     fprintf(' minimisation method AdjointProjectedGradient \n ')
 end
+
 
 AGlenEst=InvStartValues.AGlen;
 Cest=InvStartValues.C;
@@ -77,8 +78,8 @@ for iteration=1:nIt
     [J0,Idata0,IRegC0,IRegAGlen0,IBarrierC0,IBarrierAGlen0,ub,vb,ud,vd,l,dIdu0,kv,rh,nlInfo]=...
         CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
     
- 
-
+    
+    
     JMin=J0 ; IdataMin=Idata0 ;
     IRegCmin=IRegC0; IRegAGlenmin=IRegAGlen0;
     IBarrierCmin=IBarrierC0 ; IBarrierAGlenmin=IBarrierAGlen0;
@@ -118,16 +119,16 @@ for iteration=1:nIt
     
     %% Adjoint method
     
-      [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
-          AdjointGradientNR2d(...
-                    Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-%     
-%     
-%     [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
-%         AdjointGradientNR2d(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlenEst,n,Cest,m,rho,rhow,alpha,g,...
-%         sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-%         AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-%         Luv,Luvrhs,ubvbLambda,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,kv);
+    [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+        AdjointGradientNR2d(...
+        Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+    %
+    %
+    %     [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
+    %         AdjointGradientNR2d(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlenEst,n,Cest,m,rho,rhow,alpha,g,...
+    %         sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
+    %         AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
+    %         Luv,Luvrhs,ubvbLambda,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,kv);
     
     indA=AGlen0 == upA | AGlen0 ==lowA ;
     indC=C0 == upC | C0 ==lowC ;
@@ -199,18 +200,18 @@ for iteration=1:nIt
             
             dJdgamma=(Jeps-J0)/gamma_eps;
             %dIdatadgamma=(Idataeps-Idata0)/gamma_eps;
-%             if dIdatadgamma >=0
-%                 warning('MinimisationSimple:desent','not a desent direction, i.e. going in the direction dIdatadC does not decrease the Idata cost function. ')
-%                 save TestSave
-%                 error('afsd')
-%             end
+            %             if dIdatadgamma >=0
+            %                 warning('MinimisationSimple:desent','not a desent direction, i.e. going in the direction dIdatadC does not decrease the Idata cost function. ')
+            %                 save TestSave
+            %                 error('afsd')
+            %             end
             
             scale=abs(dJdgamma)/(dJdC'*dJdC); % this involves an approximation assuming that dIdCest is in same direction as dIdC
             if CtrlVar.InfoLevelAdjoint>=10
                 fprintf(' gradient scaling factor is %-g \n ',scale)
             end
             dJdC=scale*dJdC;
-           
+            
         end
         
         dJdCdescentlast=dJdCdescent;
@@ -228,8 +229,8 @@ for iteration=1:nIt
         
         dJdCsearch(AGlen0<=lowA & dJdCsearch<0)=0;  % project element of gradients of active set when point out of region
         dJdCsearch(AGlen0>=upA  & dJdCsearch>0)=0;
-  
-  
+        
+        
         
     end
     
@@ -257,7 +258,7 @@ for iteration=1:nIt
             scale=abs(dJdgamma)/(dJdAGlen'*dJdAGlen); % this involves an approximation
             fprintf(' scale for A is %-g \n ',scale)
             dJdAGlen=scale*dJdAGlen;
-           
+            
             
         end
         
@@ -275,7 +276,7 @@ for iteration=1:nIt
         dJdAGlensearch(AGlen0<=lowA & dJdAGlensearch <0)=0;  % project element of gradients of active set when point out of region
         dJdAGlensearch(AGlen0>=upA & dJdAGlensearch > 0)=0;
         
-     end
+    end
     
     % Now dJdCsearch and dJdAGlensearch have bee determined
     
@@ -297,15 +298,22 @@ for iteration=1:nIt
             kappa=0.1 ; gamma_MinEstimate=kappa*J0/Slope0;
         end
     else
-        gamma_MinEstimate=gammaAdjoint;
+        gamma_MinEstimate=gammaAdjoint; % last gammaAdjoint used as initial guess for step sized
     end
+    
+    
+    gammaAdjoint=0 ; % now set gammaAdjoint to zero since at the start of line search this is where the current min is found (ie at gamma=0)
     
     if gamma_MinEstimate==0 ; gamma_MinEstimate=1 ; end
     % close to zero f=f0-Slope0*gamma,  aiming at reduction by kappa: kappa f0=f0-Slope gamma => gamma= f0 (1-kappa)/Slope
-    if iteration==1
-        fprintf('\n +++++++++++ At start of inversion:  \t Cost=%-g \t Idata=%-g \t RegC=%-g \t BarrierC=%-g \t RegAGlen=%-g \t BarrierAGlen=%-g \t gamma=%-g \n \n',...
-            J0,Idata0,IRegC0,IBarrierC0,IRegAGlen0,IBarrierAGlen0,gamma_MinEstimate)
-    end
+    %if iteration==1
+    fprintf('\n ++++Inv. it. (start): %-i \t J/J0=%-g  \t J=%-g  \t J0=%-g \t Idata=%-g \t IRegC=%-g \t IBarrierC=%-g \t IRegAGlen=%-g \t IBarrierAGlen=%-g  \n \n ',...
+        iteration+Info.InverseIterations,JMin/J0,JMin,J0,IdataMin,IRegCmin,IBarrierCmin,IRegAGlenmin,IBarrierAGlenmin)
+    
+    %
+    %    fprintf('\n +++++++++++ At start of line search:  \t J0=%-g \t Idata=%-g \t RegC=%-g \t BarrierC=%-g \t RegAGlen=%-g \t BarrierAGlen=%-g \t gamma=%-g \n \n',...
+    %        J0,Idata0,IRegC0,IBarrierC0,IRegAGlen0,IBarrierAGlen0,gamma_MinEstimate)
+    %end
     
     gamma_a=0 ; Ja=J0 ; gamma_c=gamma_MinEstimate ; gamma_Eps=gamma_MinEstimate/1000;
     
@@ -319,7 +327,7 @@ for iteration=1:nIt
         
         Ctest=kk_proj(C0+gamma*dJdCsearch,upC,lowC);
         AGlentest=kk_proj(AGlen0+gamma*dJdAGlensearch,upA,lowA);
-
+        
         [ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF);
         
         
@@ -332,7 +340,7 @@ for iteration=1:nIt
     
     [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
         CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-     
+    
     Jvalue=Jc;
     ig=ig+1; fVector(ig,1)=Jc; fVector(ig,2)=Idata ; fVector(ig,3)=IRegC;
     fVector(ig,4)=IRegAGlen; gamma_Vector(ig)= gamma;
@@ -371,10 +379,10 @@ for iteration=1:nIt
             gamma=gamma_b;
             Ctest=kk_proj(C0+gamma*dJdCsearch,upC,lowC);
             AGlentest=kk_proj(AGlen0+gamma*dJdAGlensearch,upA,lowA);
-          
+            
             Jvaluelast=Jvalue;
-          
-            % [ub,vb]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,Ctest,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);  
+            
+            % [ub,vb]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,Ctest,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
             % [Jb,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(Experiment,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas);
             
             [Jb,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
@@ -401,8 +409,8 @@ for iteration=1:nIt
                     iarm,Ja,Jb,Jc,JMin,JMin/target,JMin/J0)
                 fprintf('                         a=%-10.5g  \t   b=%-10.5g  \t    c=%-10.5g   \t    g=%-10.5g \n ',gamma_a,gamma_b,gamma_c,gammaAdjoint)
             end
-
-
+            
+            
             [gamma_Test,ParStatus ] = parabolamin(gamma_a,gamma_b,gamma_c,Ja,Jb,Jc);
             
             if ParStatus==1  % parabolic fit did not give an acceptable minimum
@@ -455,7 +463,7 @@ for iteration=1:nIt
                 
                 [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
                     CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-
+                
                 Jvaluelast=Jvalue ; Jvalue=Jc; if Jvalue < Jvaluelast  ; iFminTry=0 ; end
                 if Jc <JMin ;
                     JMin=Jc ;
@@ -560,8 +568,8 @@ for iteration=1:nIt
         
     end
     
-    fprintf('\n +++++++++++ Iteration %-i \t Cost=%-g \t \t J/J0=%-g \t Idata=%-g \t IRegC=%-g \t IBarrierC=%-g \t IRegAGlen=%-g \t IBarrierAGlen=%-g  \n \n ',...
-        iteration+Info.InverseIterations,JMin,JMin/J0,IdataMin,IRegCmin,IBarrierCmin,IRegAGlenmin,IBarrierAGlenmin)
+    fprintf('\n ++++ Inv. it. (end): %-i \t J/J0=%-g  \t J=%-g  \t J0=%-g \t Idata=%-g \t IRegC=%-g \t IBarrierC=%-g \t IRegAGlen=%-g \t IBarrierAGlen=%-g  \n \n ',...
+        iteration+Info.InverseIterations,JMin/J0,JMin,J0,IdataMin,IRegCmin,IBarrierCmin,IRegAGlenmin,IBarrierAGlenmin)
     iJ=iJ+1;  Info.JoptVector(iJ,1)=JMin; Info.JoptVector(iJ,2)=IdataMin;
     Info.JoptVector(iJ,3)=IRegCmin; Info.JoptVector(iJ,4)=IRegAGlenmin;
     Info.JoptVector(iJ,5)=IBarrierCmin; Info.JoptVector(iJ,6)=IBarrierAGlenmin;
@@ -569,38 +577,28 @@ for iteration=1:nIt
     Info.AdjointGrad{iJ}=CtrlVar.AdjointGrad;
     %%
     
+    %Cest=Ctest;
+    %AGlenEst=AGlentest;
     Cest=kk_proj(C0+gammaAdjoint*dJdCsearch,upC,lowC);
     AGlenEst=kk_proj(AGlen0+gammaAdjoint*dJdAGlensearch,upA,lowA);
     
     fprintf(' \t  \t \t  a=%-g \t  b=%-g \t  c=%-g  \t gamma_Min=%-g \t gamma_MinEstimate=%-g \n',gamma_a,gamma_b,gamma_c,gammaAdjoint,gamma_MinEstimate)
     
     
-%     if CtrlVar.AdjointWriteRestartFile==1
-%         
-%         xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-%         yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
-%         fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
-%         C=Cest; AGlen=AGlenEst;
-%         save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xEle','yEle','MUA')
-%         fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
-%         save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xEle','yEle','MUA')
-%         clear C AGlen
-%     end
     %%
     
-    if CtrlVar.InfoLevelAdjoint > 1000
+    if CtrlVar.InfoLevelAdjoint > 10000
         
         filename=sprintf('%s-AdjointIteration%04i',CtrlVar.Experiment,iteration);
         fprintf('Saving current estimate of C in %s \n',filename)
         save(filename,'CtrlVar','MUA','Cest','dJdC')
         
-        
     end
     
-      if gammaAdjoint==0 ;
+    if gammaAdjoint==0 ;
         fprintf(' gamma returned equal to zero. line search has stagnated. breaking out \n')
         break
-      end
+    end
     
 end
 

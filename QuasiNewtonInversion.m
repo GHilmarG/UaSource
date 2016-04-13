@@ -201,7 +201,6 @@ for iteration=1:nIt
 end
 
 I=isnan(Info.JoptVector(:,1)) ; Info.JoptVector(I,:)=[];
-
 Info.InverseIterations=Info.InverseIterations+iteration;
 
 
