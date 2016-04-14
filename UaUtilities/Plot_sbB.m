@@ -1,10 +1,14 @@
 function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
 
-%  Creates a perspective plot of s,b and B
+%%  Creates a perspective plot of s,b and B
+%
+% [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
+%
 %  TRI and DT are optional, can be empty.
+%  If TRI and DT are available as outputs from a previous call, then give those
+%  as input to following calls to speed things up.
 %
-%
-%  Note: AspectRatio is not the actual aspect ratio between xy and z,  
+%  Note: AspectRatio is not the actual aspect ratio between xy and z,
 %        just a number that affects the aspect ratio.
 %        To see what the aspect ratio is use the matlab commant `daspect'
 %
@@ -12,7 +16,11 @@ function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,View
 % ViewAndLight(2)=EL
 %
 %
-% CtrlVar.ThicknessCutOffForPlotting  :  Ice only plotted as ice if thickness greater than this. 
+% CtrlVar.ThicknessCutOffForPlotting  :  Ice only plotted as ice if thickness greater than this.
+%
+% Examples:
+%  Plot_sbB(CtrlVar,MUA,s,b,B);
+%
 %
 %
 
@@ -49,7 +57,7 @@ ColorIndex=Variable2ColorIndex(s); sCol(:,:)=sCol(ColorIndex,:);
 ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
 ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
 
-h=s-b; 
+h=s-b;
 
 
 if isfield(CtrlVar,'ThicknessCutOffForPlotting')
@@ -93,8 +101,8 @@ zlabel('z (m a.s.l.)')
 hold on
 
 title(sprintf('t=%f (yr)',CtrlVar.time))
-axis equal ; tt=daspect ; 
-daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/10/AspectRatio]); 
+axis equal ; tt=daspect ;
+daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/10/AspectRatio]);
 axis tight
 hold off
 

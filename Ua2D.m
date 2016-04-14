@@ -1,10 +1,9 @@
 function Ua2D(UserRunParameters)
 
-% Driver for the 2HD Ua model 
+% Driver for the 2HD Ua model
 % Ua2D(UserRunParameters)
 %
 %
-
 
 if nargin==0
     UserRunParameters=[];
@@ -14,14 +13,13 @@ end
 SetUaPath() %% set path
 
 if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
-   
+    
     fprintf('The input-file Ua2D_InitialUserInput.m not found in the working directory (%s).\n',pwd)
     fprintf('This input-file is required for Ua to run.\n')
     return
     
 end
 
-%warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
 %% initialize some variables
@@ -75,7 +73,7 @@ CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
 %%  A RunInfo file is created and some basic information about the run is added to that file
 %   Inspecting the contents of this run info file is sometimes a convenient way of
 %   checking the status of the run.
-if CtrlVar.Restart 
+if CtrlVar.Restart
     CtrlVar.InfoFile = fopen([CtrlVar.Experiment,'-RunInfo.txt'],'a');
 else
     CtrlVar.InfoFile = fopen([CtrlVar.Experiment,'-RunInfo.txt'],'w');
@@ -93,8 +91,8 @@ if ~CtrlVar.InverseRun %  forward run
     if CtrlVar.Restart  % Forward restart run
         
         [MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
-            dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-            GF,GLdescriptors]=GetInputsForForwardRestartRun(CtrlVar);
+            dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GLdescriptors]=...
+            GetInputsForForwardRestartRun(CtrlVar);
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
         % however:
@@ -109,8 +107,8 @@ if ~CtrlVar.InverseRun %  forward run
         
     else % New forward run (ie not a restart)
         [MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
-            dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,...
-            GF]=GetInputsForForwardRun(CtrlVar);
+            dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
+            GetInputsForForwardRun(CtrlVar);
         
         
         CtrlVar.MeshChanged=MeshChanged;
@@ -124,7 +122,7 @@ else % inverse run
     
     if CtrlVar.Restart %  inverse restart run
         
-        [MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+        [MUA,BCs,s,b,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
             GetInputsForInverseRestartRun(CtrlVar);
         
     else % New inverse run
@@ -158,14 +156,14 @@ h=s-b;
 [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
 GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
-%[nip,niph]=NrOfIntegrationPoints(CtrlVar);
+
 
 % pointers to the elements of Boundary.Edges where u and v are fixed
-%Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
-%Boundary.vFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,vfixednode)')));
+% Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
+% Boundary.vFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,vfixednode)')));
 % xint, yint :  matrices of coordinates of integration points. Nele  x nip
 % Xint, Yint :  vectors of unique coordinates of integration points
-%[DTxy,TRIxy,DTint,TRIint,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA);
+% [DTxy,TRIxy,DTint,TRIint,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA);
 
 
 %%
@@ -371,18 +369,14 @@ while 1
             duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt;
         end
         
-    
+        
     else   % Time-dependent run
         
-        if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)   
+        if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
             fprintf(CtrlVar.fidlog,...
                 '\n ===== Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
-            
-            
-            
-            
             
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
@@ -478,7 +472,7 @@ while 1
             
             
             
-        elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.   
+        elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
             if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+dt);end
             
@@ -567,30 +561,6 @@ while 1
             return
         end
     end
-    %
-    
-    %%  Better done outside Ua as a part of post-analysis
-    %         if CtrlVar.CompareWithAnalyticalSolutions
-    %
-    %             switch Experiment
-    %
-    %                 case 'TestGaussPeak'
-    %                     CompareRestultsWithAnalyticalTransferFunctions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
-    %                 case 'Test1dIceStream'
-    %                     CompareRestultsWith1dIceStreamSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
-    %                 case 'Test1dIceShelf'
-    %                     CompareRestultsWith1dIceShelfSolutions(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
-    %                 otherwise
-    %                     fprintf(CtrlVar.fidlog,' case not found for analytical comparison \n');
-    %             end
-    %
-    %         end
-    %%
-    %
-    %         if CtrlVar.CompareResultsWithPreviouslyObtainedResults
-    %             CompareResultsWithPreviouslyObtainedResults(Experiment,MUA.coordinates,MUA.connectivity,ub,vb,s,b,S,B,time,CtrlVar.dt,AGlen,C,n,m,rho,rhow,g,alpha,nip,DTxy,TRIxy,DTint,TRIint,CtrlVar);
-    %         end
-    %
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
         WriteRestartFile()
@@ -631,17 +601,6 @@ end
 
 %[etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
 %[wSurf,wSurfInt,wBedInt,wBed]=calcVerticalSurfaceVelocity(rho,rhow,h,S,B,b,ub,vb,as,ab,exx,eyy,xint,yint,MUA.coordinates,MUA.connectivity,MUA.nip,CtrlVar);
-
-% if ReminderFraction(CtrlVar.time,CtrlVar.TransientPlotDt)<1e-5 || CtrlVar.TransientPlotDt==0
-%
-%
-%     CtrlVar.FE2dTransientPlotsCounter=CtrlVar.FE2dTransientPlotsCounter+1;
-%     CtrlVar.FE2dTransientPlotsInfostring='Last transient plot';
-%     [DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-%     FE2dTransientPlots(CtrlVar,DTxy,TRIxy,CtrlVar.MeshBoundaryCoordinates,GF,dGFdt,MUA.coordinates,MUA.connectivity,...
-%         b,B,S,s,h,ub,vb,wSurf,dhdt,dsdt,dbdt,C,AGlen,m,n,xint,yint,wSurfInt,etaInt,exx,eyy,exy,e,CtrlVar.time,...
-%         rho,rhow,as+ab,as,ab,MUA.Boundary,MUA.nip);
-% end
 
 if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
     CtrlVar.UaOutputsInfostring='Last call';
@@ -696,7 +655,7 @@ SayGoodbye(CtrlVar)
                 'nStep','Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
                 'GLdescriptors','l','alpha','g','-v7.3');
             
-           
+            
             
         catch exception
             fprintf(CtrlVar.fidlog,' Could not save restart file %s \n ',RestartFile);

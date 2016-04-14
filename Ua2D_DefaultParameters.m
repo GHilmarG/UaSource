@@ -13,8 +13,8 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 %  
 %  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
-%  Changine the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'. 
-%  This user m-file should be located in a separate run-directory, together with all the other user m-files
+%  Changing the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'. 
+%  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
 
 %%
@@ -460,8 +460,8 @@ CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
                        % if set to a negative number, or NaN, UaOutputs is never called
 CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
                                     % Once this limit is reached, the run stops. (Setting this to 1 or some low number
-                                    % can sometimes be usefull for testing/control purposes)
-                                    % if set to NaN implies no limit to the number of calls 
+                                    % can sometimes be useful for testing/control purposes)
+                                    % NaN implies no limit to the number of calls 
                                     
                                     
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each time step.
@@ -535,11 +535,9 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 
 %% Controlling element sizes
 % if no adaptive meshing is used then the element size is given by
-CtrlVar.MeshSize=10e3;                       % over-all desired element size (however if gmsh is used without automated mesh adapting
-                                             % then only CtrlVar.MeshSizeMin and CtrlVar.MeshSizeMax are used)
+CtrlVar.MeshSize=10e3;                       % over-all desired element size (however if gmsh is used without adaptive meshing
+                                             % only CtrlVar.MeshSizeMin and CtrlVar.MeshSizeMax are used)
                                              % 
-
-% if adaptive meshing is used then the range of min to max element sizes is:
 CtrlVar.MeshSizeMin=0.1*CtrlVar.MeshSize;    % min element size
 CtrlVar.MeshSizeMax=CtrlVar.MeshSize;        % max element size
 
@@ -897,14 +895,13 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Parallel options:
 %
 % 
-% The parallel profile is not modfied within Úa.
-% Set the properties of the local profile through the general Matlab settings. See the matlab 
-% manual for further information.
-% If needed, the properties of the local profile can be adjusted in the Ua2D_InitialInput file
+% The parallel profile is not modfied within Úa. Set the properties of the local
+% profile through the general Matlab settings. See the matlab manual for further
+% information. If needed, the properties of the local profile can be adjusted in
+% the Ua2D_InitialInput file
 %
-% For example, to change the number of local workers to 6, one can do the following:
-% myCluster = parcluster('local')
-% myCluster.NumWorkers = 6;
+% For example, to change the number of local workers to 6, one can do the
+% following: myCluster = parcluster('local') myCluster.NumWorkers = 6;
 % saveProfile(myCluster)
 %
 % Consult the matlab manual for further information

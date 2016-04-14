@@ -1,8 +1,8 @@
 function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour)
 
-%
+%% 
 % Plots a lat lon grid
-%[Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing)
+% [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour)
 %
 %      scale :  distance units, if using m set to 1 (default), if using km set to 1000
 % dlat, dlon :  spacing between lat and lon lines (default is dlat=2, dlon=5)
@@ -13,9 +13,13 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,Labe
 % Clat and Clon are the contour matrixes
 % hlat and hlon the contour objects
 %
-% Example:
-% [~,~,~,~,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing)
+% Examples:
 % 
+% PlotLatLonGrid(1000)   ; 
+% xy axis in the units of km
+%
+% PlotLatLonGrid(1000,0.5,1,[],'r')   ; 
+% xy axis in the units of km and lat lon, lines in red
 %
 
 tt=axis;

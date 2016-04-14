@@ -1,9 +1,9 @@
 function [Figs,F]=CompareRuns(files,Var)
 
-  
+
 persistent FigCounter
 
-  
+
 if isempty(FigCounter) ; FigCounter=1; end
 
 N=numel(files);
@@ -21,18 +21,18 @@ if ischar(files{1})
         end
     end
     
-    if N==2
-        F{3}=F{1} ;
-        F{3}.s=F{1}.s-F{2}.s;
-        F{3}.b=F{1}.b-F{2}.b;
-        F{3}.h=F{1}.h-F{2}.h;
-        F{3}.B=F{1}.B-F{2}.B;
-        F{3}.ub=F{1}.ub-F{2}.ub;
-        F{3}.vb=F{1}.vb-F{2}.vb;
-        F{3}.dhdt=F{1}.dhdt-F{2}.dhdt;
-        N=N+1;
-    end
-  
+    %     if N==2
+    %         F{3}=F{1} ;
+    %         F{3}.s=F{1}.s-F{2}.s;
+    %         F{3}.b=F{1}.b-F{2}.b;
+    %         F{3}.h=F{1}.h-F{2}.h;
+    %         F{3}.B=F{1}.B-F{2}.B;
+    %         F{3}.ub=F{1}.ub-F{2}.ub;
+    %         F{3}.vb=F{1}.vb-F{2}.vb;
+    %         F{3}.dhdt=F{1}.dhdt-F{2}.dhdt;
+    %         N=N+1;
+    %     end
+    
     for I=1:N
         F{I}.GLgeo=GLgeometry(F{I}.MUA.connectivity,F{I}.MUA.coordinates,F{I}.GF,F{I}.CtrlVar);
     end
@@ -60,7 +60,7 @@ if strcmp(Var,'ubvb')
     end
 elseif strcmp(Var,'mesh')
     for I=1:N
-       
+        
         Figs{I}=figure(FigCounter); FigCounter=FigCounter+1;
         PlotFEmesh(F{I}.MUA.coordinates,F{I}.MUA.connectivity,F{I}.CtrlVar)
         title(sprintf('#Ele=%-i, #Nodes=%-i, #nod=%-i',...

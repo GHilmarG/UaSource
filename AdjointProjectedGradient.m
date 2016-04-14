@@ -484,8 +484,9 @@ for iteration=1:nIt
         
     end
     
+%% plotting
     if CtrlVar.InfoLevelAdjoint>=100 && CtrlVar.doplots==1;
-        %% plotting
+        
         nLS=5;
         
         gamma_StepVector=gammaAdjoint*[-1/3,1/3,2/3,4/3,5/3];
@@ -524,10 +525,7 @@ for iteration=1:nIt
         fVector(:,3)=fVector(ind,3);fVector(:,4)=fVector(ind,4);
         fVector(:,5)=fVector(ind,5); fVector(:,6)=fVector(ind,6);
         
-        
-        % error('asdf')
-        %%
-        % load TestSave
+   
         
         figure; hold off ;
         plot(gamma_Vector,fVector(:,1),'-ob','LineWidth',2)
@@ -564,10 +562,10 @@ for iteration=1:nIt
             plot([gamma_Vector(2),gamma_eps],[fVector(2,2),fVector(2,2)-SlopeCdata*gamma_eps],'r','LineWidth',2)
         end
         
-        %%
+        
         
     end
-    
+%%   
     fprintf('\n ++++ Inv. it. (end): %-i \t J/J0=%-g  \t J=%-g  \t J0=%-g \t Idata=%-g \t IRegC=%-g \t IBarrierC=%-g \t IRegAGlen=%-g \t IBarrierAGlen=%-g  \n \n ',...
         iteration+Info.InverseIterations,JMin/J0,JMin,J0,IdataMin,IRegCmin,IBarrierCmin,IRegAGlenmin,IBarrierAGlenmin)
     iJ=iJ+1;  Info.JoptVector(iJ,1)=JMin; Info.JoptVector(iJ,2)=IdataMin;
