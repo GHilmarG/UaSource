@@ -33,6 +33,26 @@ if ischar(files{1})
     %         N=N+1;
     %     end
     
+    
+    for I=1:N
+        if ~isfield(F{I},'MUA')
+            F{I}.CtrlVar.niph=F{I}.nip ;
+            F{I}.CtrlVar.nip=F{I}.nip ;
+            F{I}.MUA=CreateMUA(F{I}.CtrlVar,F{I}.connectivity,F{I}.coordinates);
+        end
+        
+        if ~isfield(F{I},'GF')
+            F{I}.GF = GL2d(F{I}.B,F{I}.S,F{I}.h,F{I}.rhow,F{I}.rho,F{I}.MUA.connectivity,F{I}.CtrlVar);
+        end
+        
+        if ~isfield(F{I},'ub')
+            F{I}.ub=F{I}.u;
+            F{I}.vb=F{I}.v;
+        end
+        
+    end
+    
+    
     for I=1:N
         F{I}.GLgeo=GLgeometry(F{I}.MUA.connectivity,F{I}.MUA.coordinates,F{I}.GF,F{I}.CtrlVar);
     end

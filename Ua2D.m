@@ -1,6 +1,6 @@
 function Ua2D(UserRunParameters)
 
-% Driver for the 2HD Ua model
+%% Driver for the 2HD Úa model
 % Ua2D(UserRunParameters)
 %
 %

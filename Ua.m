@@ -2,8 +2,6 @@
 function Ua
 
 
-
-
 %% Úa
 % A finite-element ice-flow model.
 % 
@@ -11,6 +9,8 @@ function Ua
 %                      Shallow Ice Stream Flow Approximatoin (SSTREAM or SSA)
 %                      Hybrid combinations of SIA and SSA (already implemented,
 %                      but still being developed further...)
+%
+% The code is developed by Hilmar Gudmundsson (ghg@bas.ac.uk).
 %
 %% Running Úa:
 %
@@ -75,10 +75,12 @@ function Ua
 % * UaOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
-% example: help DefineGeometry Make sure to do this from the Úa home directory.
+% example: help DefineGeometry 
+% Make sure to do this from the Úa home directory, or at least not from another
+% directory that has a m-file with the same name.
 %
 %
-% When defining a new model-run, just copy these files from the Úa home
+% When defining a new model-run, just copy these user m-files from the Úa home
 % directory into your own model-run directory and modify as needed.
 %
 % Not all of these user m-files are always needed. For example
@@ -98,15 +100,29 @@ function Ua
 % 
 % Throughout the following variables stand for:
 %
-%  s          : upper glacier surface elevation b          : lower glacier
-%  surface elevation S          : ocean surface elevation B          : bedrock
-%  elevation (ub,vb,wb) : sliding velocity components (ud,vd,wd) : deformational
-%  velocity components rho        : ice density (defined at nodes and does not
-%  have to be spatially uniform) rhow       : ocean density (a scalar) AGlen
-%  : the rate factor in Glen's flow law  (either a nodal or an element variable)
-%  n          : stress exponent in Glen's flow law  (either a nodal or an
-%  element variable) C          : basal slipperiness (a scalar) m          :
-%  stress exponent in basal sliding law (a scalar)
+%  s          : upper glacier surface elevation 
+%  b          : lower glacier surface elevation 
+%  S          : ocean surface elevation 
+%  B          : bedrock elevation 
+%  (ub,vb,wb) : sliding velocity components 
+%  (ud,vd,wd) : deformational  velocity components 
+%  rho        : ice density (defined at nodes and does not have to be spatially uniform) 
+%  rhow       : ocean density (a scalar) 
+%  AGlen      : rate factor of Glen's flow law  (either a nodal or an element variable)
+%  n          : stress exponent of the Glen's flow law  
+%  C          : basal slipperiness ((either a nodal or an element variable) 
+%  m          : stress exponent of the basal sliding law (a scalar)
+%  as, ab     : mass balance distribution over the upper (as) and lower (ab) glacier surfaces. 
+%               The mass balance is given in units distance/time, and should be
+%               in same units as the velocity.
+% alpha       : Slope of the coordinate system with respect to gravity.
+% g           : The gravitational acceleration.
+% GF          : a floating/grounded mask. This is a structure with the two
+%                fields: node and ele. This are 1 if a node/element is grounded, 0 if
+%                node/element is afloat.
+%    
+%
+%
 %
 %% Calls to user m-files:
 % The calls to these functions are:
@@ -126,7 +142,9 @@ function Ua
 %    BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
 %
 % BCs is an instant of the class `BoundaryConditions'. To see the fields of BCs
-% have a look at BoundaryConditions.m The fancy way of doing this is to do:
+% have a look at BoundaryConditions.m in the editor or do help
+% BoundaryConditions.m .
+% The fancy way of doing this is to do:
 % publish('BoundaryConditions.m') ; web('html\BoundaryConditions.html') from the
 % Úa home directory.
 %
@@ -141,18 +159,18 @@ function Ua
 % In all user m-files the variable MUA is given as an input.
 %  MUA is a structured variable with the following fields
 %      coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal
-%      points
+%                    points
 %     connectivity:  mesh connectivity
 %           Nnodes:  number of nodes in mesh
 %             Nele:  number of elements in mesh
 %              nod:  number of nodes per element nip:  number of integration
-%              points
+%                    points
 %           points:  local element coordinates of integration points
 %          weights:  weights of integration points
-%         Boundary: a structure containing info about mesh boundary
-%                   This structure is calculated as:
-%                   MUA.Boundary=FindBoundary(connectivity,coordinates); and
-%                   info about the fields can be found in `FindBoundary.m'
+%         Boundary:  a structure containing info about mesh boundary
+%                    This structure is calculated as:
+%                    MUA.Boundary=FindBoundary(connectivity,coordinates); and
+%                    info about the fields can be found in `FindBoundary.m'
 %            Deriv:  element derivatives
 %             DetJ:  element determinants
 %
