@@ -10,7 +10,7 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % x , y , u , v : vectors of same length. But if using regular grid x and y can
 % be grid vectors. (In matlab speak grid vectors are a set of vectors that serve
 % as a compact representation of a grid in ndgrid format. For example, [X,Y] =
-% ndgrid(xg,yg) returns a full grid in the matrices X and Y. You can represent
+% ndgrid(xg,yg) returns a full grid in the maQuiverCtrices X and Y. You can represent
 % the same grid using the grid vectors, xg and yg.)
 %
 %
@@ -37,6 +37,8 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                               Par from previous call must be given as an input.
 %
 % varargin is passed on to quiver
+%
+% Par.SpeedRange
 %
 % Examples:
 % QuiverColorGHG(x,y,ub,vb);
@@ -65,6 +67,9 @@ function [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % title(cbar,'(m/d)')   ;
 %%
 
+%
+% To do: introduce a SpeedTickLabelMax and SpeedTickLabelMin
+%
 
 if numel(x) ==0
     return
@@ -115,24 +120,32 @@ if nargin>4 && ~isempty(Par)
     end
     
     
+    if ~isfield(Par,'MinPlottedSpeed')  || isempty(Par.MinPlottedSpeed)
+        Par.MinPlottedSpeed=0;
+    end
+    
     if ~isfield(Par,'VelPlotIntervalSpacing') || isempty(Par.VelPlotIntervalSpacing)
         Par.VelPlotIntervalSpacing='lin';
     end
     
     
-    if ~isfield(Par,'MinPlottedSpeed')  || isempty(Par.MinPlottedSpeed)
+    if ~isfield(Par,'QuiverColorSpeedLimits')  || isempty(Par.QuiverColorSpeedLimits)
         
         switch Par.VelPlotIntervalSpacing
             case 'log10'
                 
                 ticks=logticks(speed,12,Par.QuiverColorPowRange);
-                Par.MinPlottedSpeed=min(ticks);
+                %Par.MinPlottedSpeed=min(ticks);
                 %                 temp1=floor(10*min(speed(:)))/10;
                 %                 temp2=Par.MaxPlottedSpeed/1e3;
                 %                 Par.MinPlottedSpeed=max([temp1 temp2]);
                 
+                Par.QuiverColorSpeedLimits=min(ticks);
+                Par.QuiverColorSpeedLimits(2)=max(ticks);
             case 'lin'
-                Par.MinPlottedSpeed=min(speed(:));
+                %Par.MinPlottedSpeed=min(speed(:));
+                Par.QuiverColorSpeedLimits(1)=min(speed);
+                Par.QuiverColorSpeedLimits(2)=max(speed);
         end
     end
     
@@ -190,6 +203,8 @@ else
     Par.MaxPlottedSpeed=max(speed(:));
     Par.MinPlottedSpeed=min(speed(:));
     Par.VelPlotIntervalSpacing='lin';
+    Par.QuiverColorSpeedLimits(1)=min(speed(:));
+    Par.QuiverColorSpeedLimits(2)=max(speed(:));
     Par.MinSpeedToPlot=0;
     Par.SpeedTickLabels=[];
     Par.QuiverColorPowRange=3;
@@ -208,7 +223,7 @@ if Par.QuiverSameVelocityScalingsAsBefore
     
 else
     
-    if ~isfield(Par,'SpeedPlotIntervals') || isempty(Par.SpeedPlotIntervals)
+    %if ~isfield(Par,'SpeedPlotIntervals') || isempty(Par.SpeedPlotIntervals)
         
         switch Par.VelPlotIntervalSpacing
             
@@ -218,17 +233,19 @@ else
                 
                 MinTick=min(ticks);
                 
-                if Par.MinPlottedSpeed<MinTick
+                if Par.QuiverColorSpeedLimits<MinTick
                     
-                    Par.MinPlottedSpeed=MinTick;
-                    
+                    %Par.MinPlottedSpeed=MinTick;
+                    Par.QuiverColorSpeedLimits(1)=MinTick;
                 end
                 
                 
-                Par.SpeedPlotIntervals=logspace(log10(Par.MinPlottedSpeed),log10(Par.MaxPlottedSpeed),N+1);
+                Par.SpeedPlotIntervals=logspace(log10(Par.QuiverColorSpeedLimits(1)),log10(Par.QuiverColorSpeedLimits(2)),N+1);
                 
             case 'lin'
-                Par.SpeedPlotIntervals=linspace(Par.MinPlottedSpeed,Par.MaxPlottedSpeed,N+1);
+                
+                %Par.SpeedPlotIntervals=linspace(Par.MinPlottedSpeed,Par.MaxPlottedSpeed,N+1);
+                Par.SpeedPlotIntervals=linspace(Par.QuiverColorSpeedLimits(1),Par.QuiverColorSpeedLimits(2),N+1);
                 
             otherwise
                 fprintf(' which case {log10,lin}?' )
@@ -236,7 +253,7 @@ else
         end
         
         
-    end
+    %end
     
     %%
     % Now all Par fields have been checked or set to some reasonable values
@@ -255,17 +272,8 @@ else
     end
     
     Par.QuiverCmap=cmap;
-    
-    
-    % set velocities within plotting range
-    Ind=speed > Par.MaxPlottedSpeed;
-    u(Ind)=u(Ind)*Par.MaxPlottedSpeed./speed(Ind);
-    v(Ind)=v(Ind)*Par.MaxPlottedSpeed./speed(Ind);
-    
-    Ind=speed < Par.MinPlottedSpeed;
-    u(Ind)=u(Ind)*Par.MinPlottedSpeed./speed(Ind);
-    v(Ind)=v(Ind)*Par.MinPlottedSpeed./speed(Ind);
-    
+
+  
     % scaling of velocity to get resonably sized arrows
     
     
@@ -274,12 +282,21 @@ else
     if Np<30 ; Np=30 ; end
     
     ps=min([max(x)-min(x) max(y)-min(y)])/Par.PlotXYscale*Par.RelativeVelArrowSize/Np;
-    Par.uvPlotScale = Par.MaxPlottedSpeed/ps  ;
+    Par.uvPlotScale = Par.QuiverColorSpeedLimits(2)/ps  ;
     
     
 end
 
+% set velocities within plotting range
+Ind=speed > Par.MaxPlottedSpeed;
+u(Ind)=u(Ind)*Par.MaxPlottedSpeed./speed(Ind);
+v(Ind)=v(Ind)*Par.MaxPlottedSpeed./speed(Ind);
 
+Ind=speed < Par.MinPlottedSpeed;
+u(Ind)=u(Ind)*Par.MinPlottedSpeed./speed(Ind);
+v(Ind)=v(Ind)*Par.MinPlottedSpeed./speed(Ind);
+
+speed=sqrt(u.*u+v.*v); % 
 
 fprintf('QuiverColorGHG: uvPlotScale=%f \n',Par.uvPlotScale)
 
@@ -402,7 +419,7 @@ else
     
     Par.QuiverTickLabels=ticklabel;
     Par.QuiverTicks=Ticks;
-    Par.QuiverLimits=cbar.Limits;
+    
 end
 
 
@@ -410,6 +427,10 @@ cbar=colorbar ;
 title(cbar,Par.VelColorBarTitle)   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
+
+Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
+
+Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call
 
 Colorbar.handle=cbar;
 Colorbar.Ticklabels=Par.QuiverTickLabels;
