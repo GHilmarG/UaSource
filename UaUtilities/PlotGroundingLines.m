@@ -5,11 +5,24 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 % [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 %
 % Examples:
+%
+% PlotGroundingLines(CtrlVar,MUA,GF);
+% Plots grounding lines for a given FE-mesh MUA and the floating mask GF.
+%
 % [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r')
-%           
+% Plots grounding lines in red color.
+%
 % [xGL,yGL,GLgeo]=PlotGroundingLines([],[],[],GLgeo,[],[],'r');
+% Plots previously calculated grounding lines.
 %
 % [xGL,yGL,GLgeo]=PlotGroundingLines([],[],[],[],xGL,yGL,'r'); 
+% Plots previously calculated grounding lines.
+% 
+% Repeated use:
+% GLgeo=[] ; xGL=[], yGL=[];
+% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%
 %
 % If xGL and yGL are empty on input, they are calculated from MUA and GLgeo.
 % If GLgeo, xGL and yGL are empty on input, then GLgeo is first calculated from from GF and MUA, 
@@ -21,11 +34,6 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % varagin is passed on to plot
 %
-% Examples: [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r')
-%           
-%           [xGL,yGL,GLgeo]=PlotGroundingLines([],[],[],GLgeo,[],[],'r');
-%
-%           [xGL,yGL,GLgeo]=PlotGroundingLines([],[],[],[],xGL,yGL,'r'); 
 % 
 %  Note: If MUA and GF have not changed from a previous call to PlotGroundingLines, always give xGL and yGL from 
 %  the previous call as inputs to all following calls as doing so saves time when plotting complicated 

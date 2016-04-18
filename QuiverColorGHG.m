@@ -221,6 +221,11 @@ if Par.QuiverSameVelocityScalingsAsBefore
     
     colormap(Par.QuiverCmap)
     
+    if isempty(Par.uvPlotScale) || ~isfield(Par,'uvPlotScale')
+        fprintf('In QuiverColorGHG same scaling as in a previous call is requested, but the velocity scaling factor is not defined.\n')
+        fprintf('Use parameters from previous call in this call!\n')
+        error('Ua:QuiverColorGHG','The field uvPlotScale is not defiend')
+    end
 else
     
     %if ~isfield(Par,'SpeedPlotIntervals') || isempty(Par.SpeedPlotIntervals)
@@ -233,7 +238,7 @@ else
                 
                 MinTick=min(ticks);
                 
-                if Par.QuiverColorSpeedLimits<MinTick
+                if Par.QuiverColorSpeedLimits(1)<MinTick
                     
                     %Par.MinPlottedSpeed=MinTick;
                     Par.QuiverColorSpeedLimits(1)=MinTick;
@@ -349,6 +354,7 @@ else
             % this is for more pleasing interval between labels (but needs to be improved)
             %D=(max(sp)-min(sp))/10 ; D=10.^round(log10(D)) ; ticklabel=unique(D*round(sp/D));
             ticklabel=logticks(speed,nPowRange,12,Par.SpeedPlotIntervals);
+            %ticks=logticks(speed,12,Par.QuiverColorPowRange);
         end
         
         

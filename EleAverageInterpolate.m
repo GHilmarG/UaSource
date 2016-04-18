@@ -1,10 +1,14 @@
 function AveragedNodalValues=EleAverageInterpolate(NodalValues,coordinates,connectivity,TriAreas,CtrlVar)
     
-    
+    %% Averages from nodes to elements and then maps back to nodes
     %
-    %  AveragedNodalValues=EleAverageInterpolate(NodalValues,coordinates,connectivity,TriAreas,CtrlVar)
+    % AveragedNodalValues=EleAverageInterpolate(NodalValues,coordinates,connectivity,TriAreas,CtrlVar)
+    %  
     %  TirAreas and CtrlVar are optional
     %
+    %
+    %
+    
     persistent DT
     
     % Averages nodal values over each element
@@ -21,13 +25,10 @@ function AveragedNodalValues=EleAverageInterpolate(NodalValues,coordinates,conne
     yEle=mean(reshape(coordinates(connectivity,2),Nele,nod),2);
     
     % normalize with area?
-    if CtrlVar.NormalizeWithAreas==1
+    if CtrlVar.NormalizeWithAreas
         fprintf(' Normalizing ele averages with ele areas \n ')
         EleAverage=EleAverage./TriAreas;
     end
-    
-    %save SaveAveragedNodalValues NodalValues EleAverage xEle yEle
-    
     
     
     if isempty(DT) || length(DT.X)~=length(xEle)

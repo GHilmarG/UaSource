@@ -1,9 +1,16 @@
 function [GLx,GLy,GLxUpper,GLyUpper,GLxLower,GLyLower] = FindGL(DTxy,gfnod,CtrlVar,xBoundary,yBoundary)
 
     
-    % calculates an approximate GL boundary by finding the coordinates of a contourline around all non-floting areas
+    %% calculates an approximate GL boundary by finding the coordinates of a contourline around all non-floting areas
     % 
-        
+    % [GLx,GLy,GLxUpper,GLyUpper,GLxLower,GLyLower] = FindGL(DTxy,gfnod,CtrlVar,xBoundary,yBoundary)
+    %
+    % An old m-file and not recomended for use.
+    %
+    % Instead use:
+    % [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)    
+    %
+    
     F=TriScatteredInterp(DTxy,double(gfnod));
     Resolution=CtrlVar.GLresolutionWhenPlotting;    
     xgrid= min(DTxy.X(:,1)):Resolution:max(DTxy.X(:,1)) ;  
