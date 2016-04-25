@@ -166,7 +166,7 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 % The 'supg' method is a Streamline-Upwind Petrov-Galerkin method. The supg-method uses the same
 % weighting as the 'theta' method, but the test function for the mass-conservation equation is different.
 %
-% The default time-stepping method is: Fuly implicit Streamline-Upwind Petrov-Galerkin with theta=0.5 (Lax Wendroff).
+% The default time-stepping method is: Fully implicit Streamline-Upwind Petrov-Galerkin with theta=0.5 (Lax Wendroff).
 %
 %
 CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)

@@ -9,10 +9,10 @@ function Iele=FindElementsToDeactivate(CtrlVar,MUA,h)
 [~,~,S,B]=DefineGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
 [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,B,B,h,S,B,[],[],[]);
 I=find(as >= CtrlVar.MinSurfAccRequiredToReactivateNodes & h<=CtrlVar.ThickMinDeactivateElements);
-h(I)=CtrlVar.ThickMinDeactivateElements+0.001; % the simplest way of assuring that the elements with these nodes are not eliminated is to reset the thickness 
+h(I)=CtrlVar.ThickMinDeactivateElements+0.001; % the simplest way of ensuring that the elements with these nodes are not eliminated is to reset the thickness 
 
 if numel(find(I))>0
-    fprintf('FindElementsToDeactivate: Found %-i nodes where ice thickenss is less or equal to CtrlVar.ThickMinDeactivateElements, \n',numel(find(I)))
+    fprintf('FindElementsToDeactivate: Found %-i nodes where ice thickness is less or equal to CtrlVar.ThickMinDeactivateElements, \n',numel(find(I)))
     fprintf('                          but where surface accumulation is larger than CtrlVar.MinSurfAccRequiredToReactivateNodes\n')
 end
     

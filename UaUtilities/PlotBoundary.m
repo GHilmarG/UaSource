@@ -90,9 +90,9 @@ if CtrlVar.PlotBoundaryLabels
 end
 
 %title(sprintf('boundary t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
-axis equal tight
+%axis equal tight
 
-
+ax=gca; ax.DataAspectRatio=[1 1 1];
 
 
 end

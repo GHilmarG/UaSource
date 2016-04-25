@@ -108,7 +108,15 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
             end
         else
             fprintf('File with background meshfile %s could not be found \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
-            error(' exiting ' )
+            fprintf('Note: When using the''FEmeshAdvanceRetreat'' option, a background mesh must be defined.\n')
+            fprintf('The background mesh is usually same as the intial mesh used in the run, but must be defined by the user.\n')
+            fprintf('Possible solution: \n')
+            fprintf('Load a MUA structure previously created in an initial meshing step and save in a seperate file. \n')
+            fprintf('For example: load NewMeshFile.mat ; MUA_Background=MUA ; save(''Backgroundmesh'',''MUA_Background'') \n')
+            fprintf('And in Ua2D_InitialUserInput: CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName=''Backgroundmesh'' ; \n')
+            fprintf('                              CtrlVar.FEmeshAdvanceRetreat=1 ; \n')
+            
+            error('Ua:AdaptMesh:NoBackgroundMeshfile',' exiting ' )
         end
 
     end
@@ -156,7 +164,7 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
         yEleBackground=Nodes2EleMean(MUA_Background.connectivity,MUA_Background.coordinates(:,2));
         
         plot(xEleBackground(iDeactivatedElements)/CtrlVar.PlotXYscale,yEleBackground(iDeactivatedElements)/CtrlVar.PlotXYscale,'og')
-        title(sprintf('time=%-g \t #Ele=%-i, #Nodes=%-i, #nod=%-i, # EleBG=%-i, #NodesBG=%-i, #nodBG=%-i',...
+        title(sprintf('time=%-g \t #Ele=%-i, #Nodes=%-i, #nod=%-i, \n # EleBG=%-i, #NodesBG=%-i, #nodBG=%-i \n Green=Elements to deactivate',...
             CtrlVar.time,MUAold.Nele,MUAold.Nnodes,MUAold.nod,MUA_Background.Nele,MUA_Background.nod,MUA_Background.Nnodes))
         axis equal tight
     end

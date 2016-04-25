@@ -175,8 +175,67 @@ l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
 speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
-Pe=100*speed0.*dt./l+eps;
-kappa=coth(Pe)-1./Pe;
+%
+% The SUPG adds a term to the weighting function on the form
+%
+%  N -> N+ N'
+%
+%  where
+%
+%   N'=tau \bm{u} \cdot \grad N 
+%     = tau (u dNdx + v dNdy)
+%
+% where tau is a parameter having the dimension time. In a transient run a
+% possible choice for tau is simply dt However we would like the aditional SUPG
+% term to go to zero as u->0 and as h->0, in fact we expect the `element Courant
+% number' ECN defined as 
+%
+%               ECN = dt |\bm{u}|/L, 
+%
+% where u is some typical velocity and L a scale for element size to be of relevance. 
+%
+%  Typical suggestions in the litterature are on the form
+%
+%  N'= kappa (L/2) u/|u| dNdx
+% 
+% for a 1D situation on a regular grid, with]%
+%
+% kappa=cosh(Pe) -1/Pe
+% 
+% and Pe=U L / (2 k)  , where k is the diffusivity constant. 
+%
+% Huges et al suggest
+%
+%          tau= \frac{L}{2 |\bm{u}|}    (coth ( Pe) - 1/Pe ) 
+%
+% with Pe=|bm{u}| L / 2 k,  where k is the diffusion coefficient.
+% It is unclear what the diffusion coefficient will be. In the hyperbolic 
+% limit of a k->0, kappa=cosh(Pe)-1/Pe -> 1 and the SUPG becomes
+%
+%  N'=   (L/2|u|)  \bm{u} \cdot \grad N 
+%
+% This terms goes to zero with decreasing element size.
+%
+%
+% Heuristic arguments
+% suggest \alpha=ECN as this gives plausible limites, i.e. 1 for ECN->\infty and
+% 0 for ECN-> 0.
+%
+%
+% (L/speed)* coth( speed dt/L)  * (u dN/dx + v dN/dy)
+% _
+% Note: ((coth(x)-1/x)/x -> 1/3 for x ->0
+%       ((coth(1/x)-x) x -> 1/3 for x -> infty
+%       ((coth(x)-1/x)  -> 0 for x ->0
+%       ((coth(x)-1/x)  -> 1 for x -> infty
+%
+% this term is zero for L->0, or speed->0, or dt-> 0
+%
+%       dN/dX for u-> infty ,  dt-> infty 
+%  1/3  dN/dX for L -> infty
+%
+ECN=100*speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
+kappa=coth(ECN)-1./ECN;
 tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
@@ -323,8 +382,8 @@ for Inod=1:MUA.nod
     %                    +(1-theta).* tau.*u0int.*Deriv(:,2,Inod)+v0int.*Deriv(:,2,Inod))
     %
     
-    SUPG=fun(Inod)+      theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
-        +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    SUPG=fun(Inod)+    theta .*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
+                  +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
   
   
     qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;

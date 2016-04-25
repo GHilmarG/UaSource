@@ -12,6 +12,28 @@ if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda no
 if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 
 
+if any(h<0)
+    
+    indh0=find(h<0);
+    fprintf('uv: Found negative ice thicknesses in a diagnostic forward run.\n')
+    fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(h));
+    
+    if CtrlVar.ResetThicknessToMinThickness==0
+        CtrlVar.ResetThicknessToMinThickness=1; 
+    end
+    
+    
+    if CtrlVar.ThickMin<0;
+        CtrlVar.ThickMin=0;
+    end
+    
+    fprintf('These thicknes values will be set to %f \n',CtrlVar.ThickMin)
+    
+    [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+    
+end
+
+
 ubvbL=[];
 
 %% force C and AGlen to be within given max and min limits

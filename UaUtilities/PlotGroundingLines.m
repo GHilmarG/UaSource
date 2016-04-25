@@ -82,7 +82,7 @@ end
 if CtrlVar.PlotGLs
     
     plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
-    axis equal
+    
     
 elseif CtrlVar.PlotIndividualGLs
     
@@ -97,5 +97,8 @@ elseif CtrlVar.PlotIndividualGLs
         if i==numel(col) ; i=0 ; end
     end
 end
+
+ax=gca; ax.DataAspectRatio=[1 1 1];
+
 
 end

@@ -1,7 +1,7 @@
 function [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,coordinates)
     
     
-    %
+    %% Calculates b, s, and h, consistent with the floating condition.
     % [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
     % sets b and b given h, S and B and the densities rho and rhow
     %
