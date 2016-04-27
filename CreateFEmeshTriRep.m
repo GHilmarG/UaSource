@@ -3,12 +3,13 @@ function FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates)
 % [FEmeshTriRep]=CreateFEmeshTriRep(connectivity,coordinates)
 %  creates a triangulation (see matlab documentation) from the corner nodes of the FE mesh
 %
+% Usefull for performing topological and geometric queries.
 %
 % Note: use
 % tri=TriFE(connectivity)
-% to get 3-node connectiviy matrix using all the nodes of higher-order elements
+% to get 3-node connectiviy matrix using all the nodes of higher-order elements.
 % 
-%
+% See also TriFE
 
 [Nele,nod]=size(connectivity);
 

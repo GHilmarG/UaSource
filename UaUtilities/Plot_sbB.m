@@ -22,7 +22,8 @@ function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,View
 %  Plot_sbB(CtrlVar,MUA,s,b,B);
 %
 %
-%
+% Note: TRI and DT are now calculated more efficiently and there is no longer
+% any noticable gain in speed by giving those as an input.
 
 
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;

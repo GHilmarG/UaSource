@@ -47,8 +47,8 @@ end
 
 
 
-TR=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
-
+%TR=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
+TR=CreateFEmeshTriRep(connectivity,coordinates);
 
 Boundary.Edges=freeBoundary(TR) ; % misses the interor nodes for higher order tri
 %Boundary.EdgeCornerNodes=unique(Boundary.Edges(:));

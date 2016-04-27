@@ -1,7 +1,14 @@
 function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 
+%% Plots/labels boundary nodes, edges and elements
+%
+% PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
+%
+% Examples:
 % PlotBoundary(Boundary,connectivity,coordinates,CtrlVar)
-% Plots/labels boundary nodes, edges and elements
+% 
+% PlotBoundary([],connectivity,coordinates,CtrlVar)
+%
 % if Boundary=[], it is created by a call to FindBoundary(connectivity,coordinates)
 %
 % For just plotting the boundary edges as, for example, a black line, do:
@@ -14,7 +21,7 @@ function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 % in which case the `PlotBoundary' m-file is not used.
 %
 %
-% Sea also 
+% See also: 
 % PlotMuaBoundary
 
 if nargin < 4 || isempty(CtrlVar)

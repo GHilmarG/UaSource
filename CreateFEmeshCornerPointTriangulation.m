@@ -4,7 +4,8 @@ function FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates
     %  creates a Triangulation representation
     % (see matlab documentation) from the corner nodes of the FE mesh
     %
-    %
+    % Note: Duplication, same as FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates)
+    %       Do not use.
     
     
     [Nele,nod]=size(connectivity);

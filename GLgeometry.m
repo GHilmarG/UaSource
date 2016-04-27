@@ -1,19 +1,19 @@
 function [GLgeo,GLinfo,GLnodes]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 
-
-    %
-    % GLgeo=GLgeometry(connectivity,coordinates,GF)
     %
     % Calculates grounding lines based on the floating/grounding condition at each node.
     %
-    % Does a reasonable job, but can only handle one grounding line going through each element    
-    % Is fairly well vectorized with running time increasing linearly with problem size,
+    % Examples:
+    % [GLgeo,GLinfo,GLnodes]=GLgeometry(connectivity,coordinates,GF,CtrlVar);
     %
-    % By default GL position is calculated from GF.node values, using only the corner points and assuming a linear
-    % variation within element. 
+    % [GLgeo,GLinfo,GLnodes]=GLgeometry(connectivity,coordinates,GF);
     %
-    % If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,
-    % and the grounding line is calculated for each sub-triangle
+    % CtrlVar is optional. If given then only CtrlVar.GLsubdivide and
+    % CtrlVar.GLthreshold are needed.
+    %
+    %
+    % CtrlVar.GLsubdivide   :  If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,
+    %                          and the grounding line is calculated for each sub-triangle
     %
     %  CtrlVar.GLthreshold  : A threshold value determining where the GL is located with respect to the values of 
     %                         flotation mask.  Usually CtrlVar.GLthreshold=0.5
@@ -34,6 +34,13 @@ function [GLgeo,GLinfo,GLnodes]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
     % GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
     %           This list is a reasonably good approximation to grounding line nodes (although always slightly upsream of GL)
     % 
+    % Does a reasonable job, but can only handle one grounding line going through each element    
+    % Is fairly well vectorized with running time increasing linearly with problem size,
+    %
+    % By default GL position is calculated from GF.node values, using only the corner points and assuming a linear
+    % variation within element. 
+    %
+    %  
     % The  grounding line edges can be plotted as: 
     %       plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')
     %
