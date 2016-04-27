@@ -9,7 +9,7 @@ function PlotMuaBoundary(CtrlVar,MUA,varargin)
 % Examples: 
 % PlotMuaBoundary(CtrlVar,MUA)
 % PlotMuaBoundary(CtrlVar,MUA,'b')  % plots the boundaries in blue
-
+% PlotMuaBoundary([],MUA,'r','LineWidth',2)
 
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,varargin{:})
 

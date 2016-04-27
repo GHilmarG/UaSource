@@ -25,7 +25,6 @@ function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,View
 %
 
 
-
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
 
 if nargin<10
@@ -33,8 +32,12 @@ if nargin<10
 end
 
 if nargin<6 || isempty(TRI)
-    [TRI,DT]=CreateTRI(MUA);
+    %[TRI,DT]=CreateTRI(MUA);
+    TRI=TriFE(MUA.connectivity);
 end
+
+
+
 
 if nargin<8  || isempty(AspectRatio)
     AspectRatio=1;

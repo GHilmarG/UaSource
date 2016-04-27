@@ -1,9 +1,9 @@
 function connectivityOut=FlipElements(connectivityIn,I)
     
     %
-    % connectivityOut=FlipElements(connectivityIn)
-    % Reverses the connectvity of elements, ie flips them inside-out
-    % If the optional list I is given then only those elements will be flipped
+    % connectivityOut=FlipElements(connectivityIn,I)
+    % Reverses the connectvity of elements, ie flips them inside-out.
+    % If the optional list I is given then only those elements will be flipped.
     % The list `I' can be either a logical list or a list of elements.
     
     [Nele,nod]=size(connectivityIn);

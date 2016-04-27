@@ -80,7 +80,7 @@ if ~isempty(strfind(lower(CtrlVar.GmeshMeshingMode),'mesh domain'))
     if status~=0
         fprintf(CtrlVar.fidlog,'gmesh returns with an error running (%s) \n',RunString);
         fprintf(CtrlVar.fidlog,' A possible reason is that the environmetal variable GmeshHomeDirectory is not set correctly\n');
-        error(' Fix this somehow!')
+        error('Ua:GmeshInterfaceRoutine:GmshRunFailed',' Fix this somehow!')
     end
 end
 
@@ -94,7 +94,9 @@ if ~isempty(strfind(lower(CtrlVar.GmeshMeshingMode),'load .msh'))
     connectivity=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
     coordinates=Gmesh.POS(1:Gmesh.nbNod,1:2);
     
-    if numel(coordinates)==0 ; error(' no coordinates in meshfile %s/%s \n',pwd,FileName) ; end
+    if numel(coordinates)==0 ;
+        error('Ua:GmeshInterfaceRoutine:NoCoordinatesInMeshFile',' no coordinates in meshfile %s/%s \n',pwd,FileName) ;
+    end
     
     [coordinates,connectivity]=RemoveNodesNotInConnectivity(coordinates,connectivity);
     
