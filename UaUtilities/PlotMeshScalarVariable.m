@@ -25,6 +25,11 @@ elseif N==MUA.Nele && M==1 % element variable
     
     [FigHandle,ColorbarHandle,EleTri]=PlotElementBasedQuantities(EleTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
     
+else
+    
+    error('Ua:PlotMeshScalarVariable:InconsistentDimentionis','Inconsitent dimentions')
+    
+    
 end
 
 Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod; 

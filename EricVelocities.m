@@ -4,7 +4,7 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
     % Mask is true where returned values are zero, ie where there is no underlying data available
     %
     
-    persistent  x y vx vy Fvx Fvy 
+    persistent  x y vx vy Fvx Fvy Ferr
     
     if nargin<3
         DataSet='990m';
@@ -57,9 +57,12 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
         % in Eric's data set, no meas are replaced by zero (!)
         vx(vx==0)=NaN; vy(vy==0)=NaN;  % here put no values to NaN
         
+        err=single(err); % this is byte signed in the original data set
+        
         [X,Y]= ndgrid(x,y);
         Fvx = griddedInterpolant(X,Y,flipud(rot90(vx,2)), 'linear');
         Fvy = griddedInterpolant(X,Y,flipud(rot90(vy,2)), 'linear');
+        Ferr = griddedInterpolant(X,Y,flipud(rot90(err,2)), 'linear');
         
     end
     
@@ -73,8 +76,9 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
     % I can then afterwards find the NaN and put in some data with very high errors
     uMeas=Fvx(coordinates(:,1),coordinates(:,2));
     vMeas=Fvy(coordinates(:,1),coordinates(:,2));
-    uMeas=double(uMeas) ; vMeas=double(vMeas);
-    Err=zeros(length(coordinates),1)+1;
+    Err=Ferr(coordinates(:,1),coordinates(:,2));
+    uMeas=double(uMeas) ; vMeas=double(vMeas); Err=double(Err);
+    %Err=zeros(length(coordinates),1)+1;
     
     
     % I need values everywhere, so I now set vel to zero where no measurments are available, 

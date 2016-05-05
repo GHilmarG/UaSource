@@ -8,13 +8,18 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %
 %
 %  xa,  xb, ya, yb     : vectors defining the start and end x,y coordinates of
-%  the edges
-%                        for example: the n-th edge goes from [xa(n) ya(n)] to
+%                        edges, for example: the n-th edge goes from [xa(n) ya(n)] to
 %                        [xb(n) yb(n)]
 %  LineMax             : maximum number of lined-up edges returned. Edges are
 %                        returned in the order of the number of points in each edge.
 %                        If, for example, LineMax=1, then only the single
 %                        longest line is returned
+%
+%
+% Line segments are considered to belong to seperate lines if the distance between start/end points
+% is larger than CtrlVar.LineUpTolerance
+%
+% The default value is CtrlVar.LineUpTolerance=100*eps ;
 %
 %
 % Note: As a part of the Mapping Toolbox there is a matlab routine `polymerge'
@@ -30,23 +35,18 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %     equal ; hold on ; if i==numel(col) ; i=0 ; end
 % end
 
-%aCase=0; bCase=0;
-
-
-
-%save TestLineUpEdges2
 
 if numel(xa) ~= numel(xb)
-    error('LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in xb')
+    error('Ua:LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in xb')
 end
 
 if numel(xa) ~= numel(ya)
-    error('LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in ya')
+    error('Ua:LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in ya')
 end
 
 
 if numel(ya) ~= numel(yb)
-    error('LineUpEdges:IncorrectNumberOfElements','number of elements in ya must equal number of elements in yb')
+    error('Ua:LineUpEdges:IncorrectNumberOfElements','number of elements in ya must equal number of elements in yb')
 end
 
 
@@ -231,7 +231,7 @@ temp=sort(find(isnan(xPolygon))) ; temp=[0;temp;numel(xPolygon)];
 NGL=min([numel(I),LineMax]);
 
 if CtrlVar.InfoLevel>=10;
-    fprintf('LineUpEdges2: Found %-i grounding lines. Returning %-i.  \n',numel(I),NGL)
+    fprintf('LineUpEdges2: Found %-i seperate lines. Returning %-i.  \n',numel(I),NGL)
 end
 
 

@@ -77,7 +77,7 @@ if numel(x) ==0
     return
 end
 
-if numel(x) ~= numel(y)
+if size(u,2)== 1 && (numel(x) ~= numel(y))
     error('Ua:QuiverColorGHG:xyDimentionsNotCompatible','x and y must have the same number of elements.')
 end
 
@@ -95,10 +95,24 @@ if size(u,1)> 1 && size(u,2)>1
     
     if size(u)==size(v)
         
-        %[X,Y]=meshgrid(x,y) ;
-        [X,Y]=ndgrid(x,y) ;
-        x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
-        clear X Y
+        if (size(x,1)==size(u,1)) && (size(y,1)==size(u,2))
+            
+            %[X,Y]=meshgrid(x,y) ;
+            [X,Y]=ndgrid(x,y) ;
+            x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
+            clear X Y
+            
+        elseif (size(x,1)==size(u,2)) && (size(y,1)==size(u,1))
+            
+            error('QuiverColorGHG:wrongdimentions','x and y are not grid vectors')
+%               
+%             [X,Y]=meshgrid(x,y) ;
+%             %[X,Y]=ndgrid(x,y) ;
+%             x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
+%             clear X Y
+            
+        end
+        
     end
     
 end
@@ -330,8 +344,11 @@ for J=1:N
             I=speed>Par.SpeedPlotIntervals(J) & speed <= Par.SpeedPlotIntervals(J+1) & speed>Par.MinSpeedToPlot;
     end
     
-    QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
-        'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
+    if numel(x(I))>0  % This should not be needed, but saving resulting figures in matlab fig format
+                      % results in errors in Matlab2016a
+        QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
+            'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
+    end
 end
 
 
