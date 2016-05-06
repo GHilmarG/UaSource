@@ -5,8 +5,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Just a wrapper around quiver to generate coloured arrow field with a colorbar
 %
-% Examples: QuiverColorGHG(x,y,u,v)
-%           QuiverColorGHG(x,y,u,v,Par,varargin)
+% [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can
 % be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve
@@ -20,7 +19,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                              colored will be some fraction of the
 %                                              max speed based on the value of
 %                                              Par.QuiverColorPowRange
-% Par.RelativeVelArrowSize                   : scaling factor for arrrow size, default value is 1
+% Par.RelativeVelArrowSize                   : scaling factor for arrow size, default value is 1
 % Par.VelArrowColorSteps                     : number of coloring steps, default is 20
 % Par.VelColorBarTitle                       : default value is '(m a^{-1})' ;
 % Par.PlotXYscale                            : default value is 1
@@ -97,7 +96,6 @@ if size(u,1)> 1 && size(u,2)>1
         
         if (size(x,1)==size(u,1)) && (size(y,1)==size(u,2))
             
-            %[X,Y]=meshgrid(x,y) ;
             [X,Y]=ndgrid(x,y) ;
             x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
             clear X Y
