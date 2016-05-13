@@ -18,9 +18,9 @@ if CtrlVar.ReadInitialMesh==1
         MUA=CreateMUA(CtrlVar,Temp.connectivity,Temp.coordinates);
     else
         fprintf('Neither MUA  or connectivity and coordinates found in %s \n',CtrlVar.ReadInitialMeshFileName)
-        error('Input file does not contain expected variables')
+        error('Ua:GetInputsForForwardRun:ReadInitialMeshFileName','Input file does not contain expected variables')
     end
-    clear Temp
+    clearvars Temp
     
     for I=1:CtrlVar.RefineMeshOnStart
         fprintf(CtrlVar.fidlog,' All triangle elements are subdivided into four triangles \n');
