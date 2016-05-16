@@ -5,10 +5,6 @@ function FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates)
 %
 % Usefull for performing topological and geometric queries.
 %
-% Note: use
-% tri=TriFE(connectivity)
-% to get 3-node connectiviy matrix using all the nodes of higher-order elements.
-% 
 % See also TriFE
 
 [Nele,nod]=size(connectivity);
@@ -18,8 +14,8 @@ if Nele==0
     return
 end
 
-warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
 
+warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
 switch nod
     case 3
@@ -31,7 +27,9 @@ switch nod
     otherwise
         error(' case not recognized')
 end
-warning('on','MATLAB:TriRep:PtsNotInTriWarnId')
+
+warning('on','MATLAB:triangulation:PtsNotInTriWarnId')
+%warning('on','MATLAB:TriRep:PtsNotInTriWarnId')
 % FEedges=edges(FEmeshTriRep);
 % FEneighbors=neighbors(FEmeshTriRep)
 % triplot(FEmeshTriRep,'color','k') ;

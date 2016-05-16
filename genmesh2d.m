@@ -59,6 +59,9 @@ connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity
 %% Possible user modifications to coordinates and connectivity
 [coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,connectivity);
 
+% [K,~,J]=unique(connectivity(:));
+% connectivity=reshape(J,size(connectivity));
+% coordinates=coordinates(K,:);
 
 %FEmeshTriangulation=CreateFEmeshTriRep(connectivity,coordinates);
 

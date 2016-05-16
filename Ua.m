@@ -6,7 +6,7 @@ function Ua
 % A finite-element ice-flow model.
 % 
 % Flow approximations: Shallow Ice Sheet Flow Approximation (SSHEET or SIA)
-%                      Shallow Ice Stream Flow Approximatoin (SSTREAM or SSA)
+%                      Shallow Ice Stream Flow Approximation (SSTREAM or SSA)
 %                      Hybrid combinations of SIA and SSA (already implemented,
 %                      but still being developed further...)
 %

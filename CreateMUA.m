@@ -14,6 +14,12 @@ if nargin<5;
     FindMUA_Boundary=1;
 end
 
+
+% eliminate coordinates that are not part of mesh, and update connectivity accordingly
+[K,~,J]=unique(connectivity(:));
+connectivity=reshape(J,size(connectivity));
+coordinates=coordinates(K,:);
+
 % First check if element type on input is as reqested by user, and if not change
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(coordinates,connectivity,CtrlVar.TriNodes);
 MUA.Nnodes=size(MUA.coordinates,1);
