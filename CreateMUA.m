@@ -2,8 +2,12 @@ function MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,Find
 
 % MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,FindMUA_Boundary)
 %
-% Creates the Ua mesh structure containing all information about the FE mesh such as coordinates, connectivity, boundary nodes, etc
-% Also (optionally) calculates element derivatives used in the matrix assembly.
+% Creates the Úa mesh structure containing all information about the FE mesh
+% such as coordinates, connectivity, boundary nodes, etc Also (optionally)
+% calculates element derivatives used in the matrix assembly.
+%
+% Example: MUA=CreateMUA(CtrlVar,connectivity,coordinates);
+%
 %
 
 if nargin<4
@@ -13,7 +17,6 @@ end
 if nargin<5;
     FindMUA_Boundary=1;
 end
-
 
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
@@ -26,12 +29,12 @@ MUA.Nnodes=size(MUA.coordinates,1);
 MUA.Nele=size(MUA.connectivity,1);
 MUA.nod=size(MUA.connectivity,2);
 
-CtrlVar=NrOfIntegrationPoints(CtrlVar); 
-MUA.nip=CtrlVar.nip ; 
+CtrlVar=NrOfIntegrationPoints(CtrlVar);
+MUA.nip=CtrlVar.nip ;
 MUA.niph=CtrlVar.niph;
 
 
-ndim=2; 
+ndim=2;
 [MUA.points,MUA.weights]=sample('triangle',MUA.nip,ndim);
 
 

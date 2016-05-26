@@ -24,23 +24,22 @@ function Ua
 %                 setenv('UaHomeDirectory','MyUaSourceFileFolder')
 %
 % 3) If using the mesh generator `gmsh' (almost always the case) then also
-% define
-%    the Matlab environmental variable 'GmeshHomeDirectory'. The gmsh program
-%    can be found below the Úa main folder, so something like
-%                 setenv('GmeshHomeDirectory','MyDrive/Ua2D/gmsh-2.8.4-Windows')
+%    define the Matlab environmental variable 'GmeshHomeDirectory'. 
+%    The gmsh program for windows is in a subfolder of Ua/Source
+%    So if you are running windows
+%                 setenv('GmeshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
 %   will do. Alternativily you might want to install your own copy of gmsh. If
 %   running on a Unix system, then most likely gmsh can be called without the
 %   need to set the Matlab environmental variable 'GmeshHomeDirectory'.
 %
-% Now you can run Úa from within Matlab by writing Ua2D [Ret]
+% Now you can run Úa from within Matlab by writing Ua [Ret]
 %
-% Example:
-%
-%   setenv('UaHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\Ua2D_Development')
-%   setenv('GmeshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\gmsh-2.11.0-Windows')
+%  Summary: Before running Ua do
+%   setenv('UaHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source')
+%   setenv('GmeshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows')
 %   UaHomeDirectory=getenv('UaHomeDirectory'); addpath(genpath(UaHomeDirectory))
 %
-%
+%  Then run Ua from the Source directory to see if everyting is OK.
 %% Getting help
 % You can get help on the use of Úa in the same way as you would get help on
 % various in-build matlab commands by writing `help Ua'  in the matlab command

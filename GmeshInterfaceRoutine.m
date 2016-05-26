@@ -25,7 +25,7 @@ str=computer;
 if  strcmp(str,'GLNXA64')     % Unix
     gmshRunString='gmsh ';
 else
-    GmeshHomeDirectory=getenv('GmeshHomeDirectory');    % Windows
+    GmeshHomeDirectory=getenv('GmeshHomeDirectory');    % not unix
     gmshRunString=fullfile(GmeshHomeDirectory,'gmsh.exe ');
 end
 

@@ -12,14 +12,13 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     %        nip=1 and niph=1 in semi-implicit is unstable
     %        nip=1 and niph=3 in semi-implicit is stable
     %        nip=3 and niph=3 in semi-implicit is stable
-
     % 6 node: 
     %        nip=4 in implicit uvh transient calculation leads to singular system
     %        nip=4 and niph=4  in semi-implicit transient calculation leads to singular system
     %        nip=4 and niph=6  in semi-implicit is fine
     %
     % 10 node;
-    %        nip=7, niph=7 unstable in semi-implicit and impicit scemes 
+    %        nip=7, niph=7 unstable in semi-implicit and implicit scemes 
     %        nip=7, niph=12 stable in semi-impicit scemes
     %        nip=12, niph=12 stable in both semi and implicit
     %
@@ -62,7 +61,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             
             
             
-        case 10 % minimum of 7 needed for a liner problem
+        case 10 % minimum of 7 needed for a linear problem
             %nip=7;
             %nip=7; niph=12;
             nip=12 ; niph=12; 
