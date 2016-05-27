@@ -1,8 +1,15 @@
 function PlotBoundaryConditions(CtrlVar,MUA,BCs)
+%%
+%  PlotBoundaryConditions(CtrlVar,MUA,BCs)
+%
+%  Gives a graphical representation of boundary conditions. 
+%
+%%
 
 CtrlVar.PlotMesh=1;
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar); hold on
+%PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar); hold on
+PlotMuaMesh(CtrlVar,MUA)  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
 

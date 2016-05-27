@@ -1,12 +1,12 @@
 function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
 
-%%%
+%%
 % An example of how to define inputs for an inverse run
 %
 % If doing an inverse run then a good starting point might be to 
 % put a copy of this file into your local run directory and then change as needed.
 %
-%
+%%
 
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
 

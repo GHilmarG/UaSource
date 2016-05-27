@@ -7,6 +7,7 @@ function [C,m]=DefineSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,
 % Usually C is defined on the nodes, but sometimes in an inverse run C might be
 % defined as an element variable. The user makes this decision by setting
 % CtrlVar.CisElementBased to true or false in Ua2D_InitialUserInput
+%%
 
 warning('Ua:DefaultDefine','Using default DefineSlipperyDistribution \n')
 

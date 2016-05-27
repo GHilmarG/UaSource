@@ -21,7 +21,7 @@ function [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
-%
+%%
     
   fprintf('Using default DefineDesiredEleSize \n')    
 

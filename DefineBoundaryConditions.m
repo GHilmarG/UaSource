@@ -35,7 +35,12 @@ function  BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B
 %               hTiedNodeB: []
 %                 hPosNode: []
 %                hPosValue: []
-%                
+%       
+%
+% see also BoundaryConditions.m
+%
+%
+% Example:
                
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 

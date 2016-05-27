@@ -1,7 +1,12 @@
 function  UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
 
- 
-
+%%
+% UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
+%
+%  This routine is called a given intervals during the run. Write your own
+%  version of this routine and put it in you local run directory. This can be
+%  used to perform plots and/or save data.
+%%
 
 
 if nargin==1

@@ -36,7 +36,7 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
 % (s,b,S,B) are always defined over the new mesh through a call to
 % [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined).
 %       
-%
+%%
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
     
     alpha=0.01; % tilt of the coordinate system with respect to gravity

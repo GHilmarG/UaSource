@@ -1,9 +1,21 @@
 function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 
+%%
+% Plots a scalar variable over the mesh domain as a patch (see help patch)
+%
 % PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
-% path plot of variable
+%
 % variable can be either nodal or element variable
-
+%
+%
+% vararing is passed on to the patch command
+%
+% Examples:
+%
+% figure ; PlotMeshScalarVariable(CtrlVar,MUA,h)   
+% plots the thickness distribution
+%
+%%
 
 persistent NodTri EleTri Nele Nnodes nod
 
@@ -27,7 +39,7 @@ elseif N==MUA.Nele && M==1 % element variable
     
 else
     
-    error('Ua:PlotMeshScalarVariable:InconsistentDimentionis','Inconsitent dimentions')
+    error('Ua:PlotMeshScalarVariable:InconsistentDimentions','Inconsitent dimentions')
     
     
 end

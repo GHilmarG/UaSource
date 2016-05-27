@@ -23,6 +23,7 @@ function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 %
 % See also: 
 % PlotMuaBoundary
+%%
 
 if nargin < 4 || isempty(CtrlVar)
     CtrlVar.PlotLabels=0;

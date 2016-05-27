@@ -11,6 +11,7 @@ addpath([UaHomeDirectory,'/SuiteSparse/CHOLMOD/MATLAB'],'-begin')
 addpath([UaHomeDirectory,'/Mesh2d/Mesh2d v24'],'-begin')
 addpath(genpath([UaHomeDirectory,'/mutils-0.2']),'-begin')
 addpath(genpath([UaHomeDirectory,'/UaUtilities']),'-begin')
+addpath(genpath([UaHomeDirectory,'/html']),'-begin')
 addpath(UaHomeDirectory,'-begin')
 addpath(pwd,'-begin')
 

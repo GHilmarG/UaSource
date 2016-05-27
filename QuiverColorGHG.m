@@ -2,7 +2,6 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 
 %% Plot velocity using colours/colors
 %
-% [cbar,QuiverHandel,Par,Colorbar]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Just a wrapper around quiver to generate coloured arrow field with a colorbar
 %
 % [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
@@ -26,9 +25,9 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Par.VelColorMap                            : default value is 'jet'
 % Par.MinSpeedToPlot                         : where speed is less, speed is not plotted, default value is zero
 % Par.VelPlotIntervalSpacing='lin'|'log10'   : lin or log10 vel scale
-% Par.MaxPlottedSpeed                        : When plotting speed above this value is set equal to this value, i.e. this is the maximum plotted speed
+% Par.MaxPlottedSpeed                        : When plotting, speed above this value is set equal to this value, i.e. this is the maximum plotted speed
 %                                                  Default is max(speed(:))
-% Par.MinPlottedSpeed                        : When plotting speed below this value is set equal to this value, i.e. this is the mainimum plotted speed
+% Par.MinPlottedSpeed                        : When plotting, speed below this value is set equal to this value, i.e. this is the mainimum plotted speed
 %                                                  Default is min(speed(:)).
 %                                                  However, if using log10 the minimum plotted speed is never smaller than 10^QuiverColorPowRange times MaxPlottedSpeed
 % Par.SpeedTickLabels                        : numerical array of values
@@ -58,7 +57,8 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Two calls with same velocity scaling:
 % [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par)  ; % first call, here Par is not strickly needed as an input
 %  Par.QuiverSameVelocityScalingsAsBefore=1;
-% [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scalings as the previous one
+% [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scalings as
+%                                            % the previous one, Par from previous call given as an input
 %
 % Note: When doing further contour plots on top of velocity plot, matlab will possibly change the
 % limits of the colorbar and the position of the ticklables will no longer be correct.
