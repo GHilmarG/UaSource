@@ -1,0 +1,278 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Plot_sbB</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="Plot_sbB.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Creates a perspective plot of s,b and B</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
+</pre><h2>Creates a perspective plot of s,b and B<a name="2"></a></h2><p>[TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)</p><pre>TRI and DT are optional, can be empty.
+If TRI and DT are available as outputs from a previous call, then give those
+as input to following calls to speed things up.</pre><pre>Note: AspectRatio is not the actual aspect ratio between xy and z,
+      just a number that affects the aspect ratio.
+      To see what the aspect ratio is use the matlab commant `daspect'</pre><p>ViewAndLight(1)=AZ ViewAndLight(2)=EL</p><p>CtrlVar.ThicknessCutOffForPlotting  :  Ice only plotted as ice if thickness greater than this.</p><p>Examples:  Plot_sbB(CtrlVar,MUA,s,b,B);</p><p>Note: TRI and DT are now calculated more efficiently and there is no longer any noticable gain in speed by giving those as an input.</p><pre class="codeinput">x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
+
+<span class="keyword">if</span> nargin&lt;10
+    LightHandle=[];
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin&lt;6 || isempty(TRI)
+    <span class="comment">%[TRI,DT]=CreateTRI(MUA);</span>
+    TRI=TriFE(MUA.connectivity);
+<span class="keyword">end</span>
+
+
+
+
+<span class="keyword">if</span> nargin&lt;8  || isempty(AspectRatio)
+    AspectRatio=1;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin&lt;9 || isempty(ViewAndLight)
+    ViewAndLight(1)=-70 ;  ViewAndLight(2)=20 ;
+    ViewAndLight(3)=-45 ;  ViewAndLight(4)=50;
+<span class="keyword">end</span>
+
+hold <span class="string">off</span>
+
+
+
+sCol=copper(numel(s));
+bCol=copper(numel(s));
+BCol=copper(numel(s));
+
+ColorIndex=Variable2ColorIndex(s); sCol(:,:)=sCol(ColorIndex,:);
+ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
+ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
+
+h=s-b;
+
+
+<span class="keyword">if</span> isfield(CtrlVar,<span class="string">'ThicknessCutOffForPlotting'</span>)
+    I=h&gt;CtrlVar.ThicknessCutOffForPlotting;
+<span class="keyword">else</span>
+    I=h&gt;2*CtrlVar.ThickMin;
+<span class="keyword">end</span>
+
+
+sCol(I,:)=zeros(numel(find(I)),3)+1;
+bCol(I,:)=zeros(numel(find(I)),3)+1;
+<span class="comment">%BCol(I,:)=zeros(numel(find(I)),3)+1;</span>
+
+<span class="keyword">if</span> ~isempty(s)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,s,<span class="string">'FaceVertexCData'</span>,sCol,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>) ;
+<span class="keyword">end</span>
+
+hold <span class="string">on</span>
+<span class="keyword">if</span> ~isempty(b)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,b,<span class="string">'FaceVertexCData'</span>,bCol,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>) ;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> ~isempty(B)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,B,<span class="string">'FaceVertexCData'</span>,BCol,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>) ;
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">if</span> ishandle(LightHandle)
+    LightHandle=lightangle(LightHandle,ViewAndLight(3),ViewAndLight(4)) ;
+<span class="keyword">else</span>
+    LightHandle=lightangle(ViewAndLight(3),ViewAndLight(4)) ;
+<span class="keyword">end</span>
+
+lighting <span class="string">phong</span> ;
+
+xlabel(CtrlVar.PlotsXaxisLabel) ;
+ylabel(CtrlVar.PlotsYaxisLabel) ;
+zlabel(<span class="string">'z (m a.s.l.)'</span>)
+<span class="comment">%colorbar ; title(colorbar,'(m)')</span>
+hold <span class="string">on</span>
+
+title(sprintf(<span class="string">'t=%f (yr)'</span>,CtrlVar.time))
+axis <span class="string">equal</span> ; tt=daspect ;
+daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/10/AspectRatio]);
+axis <span class="string">tight</span>
+hold <span class="string">off</span>
+
+view(ViewAndLight(1),ViewAndLight(2));
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
+
+%%  Creates a perspective plot of s,b and B
+%
+% [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
+%
+%  TRI and DT are optional, can be empty.
+%  If TRI and DT are available as outputs from a previous call, then give those
+%  as input to following calls to speed things up.
+%
+%  Note: AspectRatio is not the actual aspect ratio between xy and z,
+%        just a number that affects the aspect ratio.
+%        To see what the aspect ratio is use the matlab commant `daspect'
+%
+% ViewAndLight(1)=AZ
+% ViewAndLight(2)=EL
+%
+%
+% CtrlVar.ThicknessCutOffForPlotting  :  Ice only plotted as ice if thickness greater than this.
+%
+% Examples:
+%  Plot_sbB(CtrlVar,MUA,s,b,B);
+%
+%
+% Note: TRI and DT are now calculated more efficiently and there is no longer
+% any noticable gain in speed by giving those as an input.
+%%
+
+x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
+
+if nargin<10
+    LightHandle=[];
+end
+
+if nargin<6 || isempty(TRI)
+    %[TRI,DT]=CreateTRI(MUA);
+    TRI=TriFE(MUA.connectivity);
+end
+
+
+
+
+if nargin<8  || isempty(AspectRatio)
+    AspectRatio=1;
+end
+
+if nargin<9 || isempty(ViewAndLight)
+    ViewAndLight(1)=-70 ;  ViewAndLight(2)=20 ;
+    ViewAndLight(3)=-45 ;  ViewAndLight(4)=50;
+end
+
+hold off
+
+
+
+sCol=copper(numel(s));
+bCol=copper(numel(s));
+BCol=copper(numel(s));
+
+ColorIndex=Variable2ColorIndex(s); sCol(:,:)=sCol(ColorIndex,:);
+ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
+ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
+
+h=s-b;
+
+
+if isfield(CtrlVar,'ThicknessCutOffForPlotting')
+    I=h>CtrlVar.ThicknessCutOffForPlotting;
+else
+    I=h>2*CtrlVar.ThickMin;
+end
+
+
+sCol(I,:)=zeros(numel(find(I)),3)+1;
+bCol(I,:)=zeros(numel(find(I)),3)+1;
+%BCol(I,:)=zeros(numel(find(I)),3)+1;
+
+if ~isempty(s)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,s,'FaceVertexCData',sCol,'EdgeColor','none') ;
+end
+
+hold on
+if ~isempty(b)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,b,'FaceVertexCData',bCol,'EdgeColor','none') ;
+end
+
+if ~isempty(B)
+    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,B,'FaceVertexCData',BCol,'EdgeColor','none') ;
+end
+
+
+
+if ishandle(LightHandle)
+    LightHandle=lightangle(LightHandle,ViewAndLight(3),ViewAndLight(4)) ;
+else
+    LightHandle=lightangle(ViewAndLight(3),ViewAndLight(4)) ;
+end
+
+lighting phong ;
+
+xlabel(CtrlVar.PlotsXaxisLabel) ;
+ylabel(CtrlVar.PlotsYaxisLabel) ;
+zlabel('z (m a.s.l.)')
+%colorbar ; title(colorbar,'(m)')
+hold on
+
+title(sprintf('t=%f (yr)',CtrlVar.time))
+axis equal ; tt=daspect ;
+daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/10/AspectRatio]);
+axis tight
+hold off
+
+view(ViewAndLight(1),ViewAndLight(2));
+
+end
+##### SOURCE END #####
+--></body></html>

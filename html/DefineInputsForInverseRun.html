@@ -1,0 +1,256 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DefineInputsForInverseRun</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="DefineInputsForInverseRun.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#4">define measurements and measurement errors</a></li><li><a href="#5">define boundary conditions of adjoint problem</a></li><li><a href="#6">now define priors</a></li><li><a href="#7">Define start values</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+</pre><p>An example of how to define inputs for an inverse run</p><p>If doing an inverse run then a good starting point might be to put a copy of this file into your local run directory and then change as needed.</p><pre class="codeinput">x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+</pre><h2>define measurements and measurement errors<a name="4"></a></h2><p>Here it is assumed that one is inverting measurements of surface velocities and that scattered interpolants have already been defined and stored in a file</p><pre class="codeinput">fprintf(<span class="string">' Loading measured velocities \n'</span>)
+load(<span class="string">'MyMeasurements'</span>,<span class="string">'Fu'</span>,<span class="string">'Fv'</span>)
+
+Meas.us=Fu(x,y);  <span class="comment">% Mapping measurments onto FE mesh</span>
+Meas.vs=Fv(x,y);
+Meas.ws=Meas.vs*0 ;
+
+<span class="comment">% Defining data erros and data covariance matrices.</span>
+<span class="comment">% Often errors are uncorelated and the covariance matrices</span>
+<span class="comment">% are therefore diagonal.</span>
+usError=1; vsError=1  ; wsError=1;
+Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);
+Meas.vsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,vsError.^2,MUA.Nnodes,MUA.Nnodes);
+Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);
+
+<span class="comment">% if add errors</span>
+<span class="comment">%uMeas=uMeas+uError.*randn(MUA.Nnodes,1);</span>
+<span class="comment">%vMeas=vMeas+vError.*randn(MUA.Nnodes,1);</span>
+<span class="comment">%wMeas=wMeas+wError*randn(MUA.Nnodes,1);</span>
+</pre><h2>define boundary conditions of adjoint problem<a name="5"></a></h2><p>The boundary conditions of the adjoint problem need to be defined. Often the BCs of the adjoint problem are homogeneous. If the forward problem uses periodic boundary conditions, then those of the adjoint problem are usually periodic as well</p><pre class="codeinput"><span class="comment">% If, for example, adjoint problem has the same boundary conditions as the forward, set:</span>
+<span class="comment">% BCsAdjoint=BCs; % this would, for example, be the case if the forward problem has periodic BCs,</span>
+                  <span class="comment">% in which case the adjoint problem will have periodic BCs as well.</span>
+
+<span class="comment">% If the adjoint problem has homogenous BCs (a very common case) then do:</span>
+BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
+BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
+</pre><h2>now define priors<a name="6"></a></h2><p>covariance matrices for priors these covariance matrices are typically not diagonal make sure to define those on nodes if A and C are defined on nodes and on elements if A and C are defined as elemetn values. This here is just an examle and might need to be adjusted.</p><pre class="codeinput"><span class="keyword">if</span> CtrlVar.AGlenisElementBased
+    CAGlen=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
+<span class="keyword">else</span>
+    CAGlen=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> CtrlVar.isRegC    <span class="comment">% only create a full covariance matrix if isRegC is on.</span>
+    Err=1e-5 ; Sigma=10e3 ; DistanceCutoff=10*Sigma;
+
+    <span class="keyword">if</span> CtrlVar.CisElementBased
+        xEle=mean(reshape(x(MUA.connectivity,1),MUA.Nele,MUA.nod),2);  yEle=mean(reshape(y(MUA.connectivity,1),MUA.Nele,MUA.nod),2);
+        [CC]=SparseCovarianceDistanceMatrix(xEle,yEle,Err,Sigma,DistanceCutoff);
+    <span class="keyword">else</span>
+        [CC]=SparseCovarianceDistanceMatrix(x,y,Err,Sigma,DistanceCutoff);
+    <span class="keyword">end</span>
+
+<span class="keyword">else</span>
+    <span class="keyword">if</span> CtrlVar.CisElementBased
+        CC=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
+    <span class="keyword">else</span>
+        CC=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+Priors.CovAGlen=CAGlen;
+Priors.CovC=CC;
+
+Priors.s=s;
+Priors.b=b;
+Priors.S=S;
+Priors.B=B;
+
+<span class="comment">% Priors for C and A need to be defined</span>
+<span class="comment">% Here something simple is prescribed but this might be based on some</span>
+<span class="comment">% previous estimates, for example A could be based on some temperature model, etc.</span>
+<span class="comment">%</span>
+Priors.C=1e-6+zeros(MUA.Nnodes,1); <span class="comment">% assuming C defined on nodes</span>
+Priors.m=3;
+Priors.AGlen=AGlenVersusTemp(-10)+zeros(MUA.Nnodes,1);
+Priors.n=3;
+
+Priors.rho=rho;
+Priors.rhow=rhow;
+</pre><h2>Define start values<a name="7"></a></h2><p>I'm here setting starting values equal to priors</p><pre class="codeinput">[InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+[InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+
+%%
+% An example of how to define inputs for an inverse run
+%
+% If doing an inverse run then a good starting point might be to 
+% put a copy of this file into your local run directory and then change as needed.
+%
+%%
+
+x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+
+%% define measurements and measurement errors
+% Here it is assumed that one is inverting measurements of surface velocities 
+% and that scattered interpolants have already been defined and stored in a file
+% 
+fprintf(' Loading measured velocities \n')
+load('MyMeasurements','Fu','Fv')
+
+Meas.us=Fu(x,y);  % Mapping measurments onto FE mesh
+Meas.vs=Fv(x,y);
+Meas.ws=Meas.vs*0 ;
+
+% Defining data erros and data covariance matrices.
+% Often errors are uncorelated and the covariance matrices
+% are therefore diagonal.
+usError=1; vsError=1  ; wsError=1;
+Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);
+Meas.vsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,vsError.^2,MUA.Nnodes,MUA.Nnodes);
+Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);
+
+% if add errors
+%uMeas=uMeas+uError.*randn(MUA.Nnodes,1);
+%vMeas=vMeas+vError.*randn(MUA.Nnodes,1);
+%wMeas=wMeas+wError*randn(MUA.Nnodes,1);
+
+%% define boundary conditions of adjoint problem
+% The boundary conditions of the adjoint problem need to be defined.
+% Often the BCs of the adjoint problem are homogeneous.
+% If the forward problem uses periodic boundary conditions,
+% then those of the adjoint problem are usually periodic as well
+
+% If, for example, adjoint problem has the same boundary conditions as the forward, set: 
+% BCsAdjoint=BCs; % this would, for example, be the case if the forward problem has periodic BCs,
+                  % in which case the adjoint problem will have periodic BCs as well.
+
+% If the adjoint problem has homogenous BCs (a very common case) then do: 
+BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
+BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
+
+
+
+%% now define priors
+% covariance matrices for priors
+% these covariance matrices are typically not diagonal
+% make sure to define those on nodes if A and C are defined on nodes
+% and on elements if A and C are defined as elemetn values.
+% This here is just an examle and might need to be adjusted.
+if CtrlVar.AGlenisElementBased
+    CAGlen=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
+else
+    CAGlen=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
+end
+
+if CtrlVar.isRegC    % only create a full covariance matrix if isRegC is on.
+    Err=1e-5 ; Sigma=10e3 ; DistanceCutoff=10*Sigma;
+    
+    if CtrlVar.CisElementBased
+        xEle=mean(reshape(x(MUA.connectivity,1),MUA.Nele,MUA.nod),2);  yEle=mean(reshape(y(MUA.connectivity,1),MUA.Nele,MUA.nod),2);
+        [CC]=SparseCovarianceDistanceMatrix(xEle,yEle,Err,Sigma,DistanceCutoff);
+    else
+        [CC]=SparseCovarianceDistanceMatrix(x,y,Err,Sigma,DistanceCutoff);
+    end
+    
+else
+    if CtrlVar.CisElementBased
+        CC=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
+    else
+        CC=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
+    end
+end
+
+Priors.CovAGlen=CAGlen;
+Priors.CovC=CC;
+
+Priors.s=s;
+Priors.b=b;
+Priors.S=S;
+Priors.B=B;
+
+% Priors for C and A need to be defined
+% Here something simple is prescribed but this might be based on some
+% previous estimates, for example A could be based on some temperature model, etc.
+% 
+Priors.C=1e-6+zeros(MUA.Nnodes,1); % assuming C defined on nodes
+Priors.m=3;
+Priors.AGlen=AGlenVersusTemp(-10)+zeros(MUA.Nnodes,1); 
+Priors.n=3;
+
+Priors.rho=rho;
+Priors.rhow=rhow;
+
+%% Define start values
+% I'm here setting starting values equal to priors
+[InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+[InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+
+
+end
+
+##### SOURCE END #####
+--></body></html>

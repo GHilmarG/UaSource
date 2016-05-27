@@ -1,0 +1,260 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PlotBoundary</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="PlotBoundary.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Plots/labels boundary nodes, edges and elements</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
+</pre><h2>Plots/labels boundary nodes, edges and elements<a name="2"></a></h2><p>PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)</p><p>Examples: PlotBoundary(Boundary,connectivity,coordinates,CtrlVar)</p><p>PlotBoundary([],connectivity,coordinates,CtrlVar)</p><p>if Boundary=[], it is created by a call to FindBoundary(connectivity,coordinates)</p><p>For just plotting the boundary edges as, for example, a black line, do: figure ; PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')</p><p>Notes:</p><p>Another option of just plotting the mesh boundaries is simply to do: figure ; plot(MUA.coordinates(MUA.Boundary.Edges,1)/CtrlVar.PlotXYscale, MUA.coordinates(MUA.Boundary.Edges,2)/CtrlVar.PlotXYscale, 'k', 'LineWidth',2) ; in which case the `PlotBoundary' m-file is not used.</p><p>See also: PlotMuaBoundary</p><pre class="codeinput"><span class="keyword">if</span> nargin &lt; 4 || isempty(CtrlVar)
+    CtrlVar.PlotLabels=0;
+    CtrlVar.MeshColor=<span class="string">'k'</span>;
+    CtrlVar.NodeColor=<span class="string">'k'</span>;
+    CtrlVar.PlotXYscale=1;
+    CtrlVar.PlotNodesSymbolSize=3;
+    CtrlVar.PlotNodesSymbol=<span class="string">'o'</span>;
+    CtrlVar.PlotNodes=0;
+    CtrlVar.PlotMesh=1;
+    CtrlVar.time=NaN;
+    CtrlVar.PlotBoundaryLabels=0;
+    CtrlVar.PlotBoundaryElements=0;
+    CtrlVar.PlotBoundaryNodes=0;
+<span class="keyword">else</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotLabels'</span>) ; CtrlVar.PlotLabels=0; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'MeshColor'</span>) ; CtrlVar.MeshColor=<span class="string">'k'</span>; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'NodeColor'</span>) ; CtrlVar.NodeColor=<span class="string">'k'</span>; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotXYscale'</span>) ; CtrlVar.PlotXYscale=1; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotNodesSymbol'</span>) ; CtrlVar.PlotNodesSymbol=<span class="string">'o'</span>; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotNodesSymbolSize'</span>) ; CtrlVar.PlotNodesSymbolSize=3; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotNodes'</span>) ; CtrlVar.PlotNodes=0; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotMesh'</span>) ; CtrlVar.PlotMesh=1; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'time'</span>) ; CtrlVar.time=NaN; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotBoundaryLabels'</span>); CtrlVar.PlotBoundaryLabels=0;  <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotBoundaryElements'</span>); CtrlVar.PlotBoundaryElements=0; <span class="keyword">end</span>
+    <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'PlotBoundaryNodes'</span>); CtrlVar.PlotBoundaryNodes=0; <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> isempty(Boundary)
+    [Boundary,~]=FindBoundary(connectivity,coordinates);
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> ~isfield(Boundary,<span class="string">'x'</span>) || ~isfield(Boundary,<span class="string">'y'</span>)
+    xa=coordinates(Boundary.Edges(:,1),1); xb=coordinates(Boundary.Edges(:,end),1);
+    ya=coordinates(Boundary.Edges(:,1),2); yb=coordinates(Boundary.Edges(:,end),2);
+    [Boundary.x,Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
+
+<span class="keyword">end</span>
+
+plot(Boundary.x/CtrlVar.PlotXYscale,Boundary.y/CtrlVar.PlotXYscale,varargin{:}) ;
+
+<span class="comment">% plot boundary elements,  do not label nodes or elements here because</span>
+<span class="comment">% the labelling will be incorrect</span>
+CtrlVar.PlotLabels=0;
+<span class="keyword">if</span> CtrlVar.PlotBoundaryElements
+    PlotFEmesh(coordinates,connectivity(Boundary.FreeElements,:),CtrlVar)
+<span class="keyword">end</span>
+
+hold <span class="string">on</span>
+
+<span class="keyword">if</span> CtrlVar.PlotBoundaryNodes
+    plot(coordinates(Boundary.EdgeCornerNodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.EdgeCornerNodes,2)/CtrlVar.PlotXYscale,<span class="string">'ok'</span>)
+    plot(coordinates(Boundary.Nodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.Nodes,2)/CtrlVar.PlotXYscale,<span class="string">'xr'</span>)
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% this gives correct labeling of nodes and elemetns</span>
+<span class="keyword">if</span> CtrlVar.PlotBoundaryLabels
+    labels = arrayfun(@(n) {sprintf(<span class="string">' N%d'</span>, n)}, Boundary.Nodes(:));
+    text(coordinates(Boundary.Nodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.Nodes,2)/CtrlVar.PlotXYscale,labels)
+
+    xEle=Nodes2EleMean(connectivity,coordinates(:,1));
+    yEle=Nodes2EleMean(connectivity,coordinates(:,2));
+    labels = arrayfun(@(n) {sprintf(<span class="string">' T%d'</span>, n)}, Boundary.FreeElements(:));
+    text(xEle(Boundary.FreeElements)/CtrlVar.PlotXYscale,yEle(Boundary.FreeElements)/CtrlVar.PlotXYscale,labels,<span class="keyword">...</span>
+        <span class="string">'HorizontalAlignment'</span>, <span class="string">'center'</span>, <span class="string">'Color'</span>, <span class="string">'blue'</span>);
+
+<span class="keyword">end</span>
+
+<span class="comment">%title(sprintf('boundary t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')</span>
+<span class="comment">%axis equal tight</span>
+
+ax=gca; ax.DataAspectRatio=[1 1 1];
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in PlotBoundary (line 57)
+if isempty(Boundary)
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
+
+%% Plots/labels boundary nodes, edges and elements
+%
+% PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
+%
+% Examples:
+% PlotBoundary(Boundary,connectivity,coordinates,CtrlVar)
+% 
+% PlotBoundary([],connectivity,coordinates,CtrlVar)
+%
+% if Boundary=[], it is created by a call to FindBoundary(connectivity,coordinates)
+%
+% For just plotting the boundary edges as, for example, a black line, do:
+% figure ; PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
+%
+% Notes: 
+% 
+% Another option of just plotting the mesh boundaries is simply to do: 
+% figure ; plot(MUA.coordinates(MUA.Boundary.Edges,1)/CtrlVar.PlotXYscale, MUA.coordinates(MUA.Boundary.Edges,2)/CtrlVar.PlotXYscale, 'k', 'LineWidth',2) ;
+% in which case the `PlotBoundary' m-file is not used.
+%
+%
+% See also: 
+% PlotMuaBoundary
+%%
+
+if nargin < 4 || isempty(CtrlVar)
+    CtrlVar.PlotLabels=0;
+    CtrlVar.MeshColor='k';
+    CtrlVar.NodeColor='k';
+    CtrlVar.PlotXYscale=1;
+    CtrlVar.PlotNodesSymbolSize=3;
+    CtrlVar.PlotNodesSymbol='o';
+    CtrlVar.PlotNodes=0;
+    CtrlVar.PlotMesh=1;
+    CtrlVar.time=NaN;
+    CtrlVar.PlotBoundaryLabels=0;
+    CtrlVar.PlotBoundaryElements=0;
+    CtrlVar.PlotBoundaryNodes=0;
+else
+    if ~isfield(CtrlVar,'PlotLabels') ; CtrlVar.PlotLabels=0; end
+    if ~isfield(CtrlVar,'MeshColor') ; CtrlVar.MeshColor='k'; end
+    if ~isfield(CtrlVar,'NodeColor') ; CtrlVar.NodeColor='k'; end
+    if ~isfield(CtrlVar,'PlotXYscale') ; CtrlVar.PlotXYscale=1; end
+    if ~isfield(CtrlVar,'PlotNodesSymbol') ; CtrlVar.PlotNodesSymbol='o'; end
+    if ~isfield(CtrlVar,'PlotNodesSymbolSize') ; CtrlVar.PlotNodesSymbolSize=3; end
+    if ~isfield(CtrlVar,'PlotNodes') ; CtrlVar.PlotNodes=0; end
+    if ~isfield(CtrlVar,'PlotMesh') ; CtrlVar.PlotMesh=1; end
+    if ~isfield(CtrlVar,'time') ; CtrlVar.time=NaN; end
+    if ~isfield(CtrlVar,'PlotBoundaryLabels'); CtrlVar.PlotBoundaryLabels=0;  end
+    if ~isfield(CtrlVar,'PlotBoundaryElements'); CtrlVar.PlotBoundaryElements=0; end
+    if ~isfield(CtrlVar,'PlotBoundaryNodes'); CtrlVar.PlotBoundaryNodes=0; end
+end
+
+
+if isempty(Boundary)
+    [Boundary,~]=FindBoundary(connectivity,coordinates);
+end
+
+
+if ~isfield(Boundary,'x') || ~isfield(Boundary,'y')
+    xa=coordinates(Boundary.Edges(:,1),1); xb=coordinates(Boundary.Edges(:,end),1);
+    ya=coordinates(Boundary.Edges(:,1),2); yb=coordinates(Boundary.Edges(:,end),2);
+    [Boundary.x,Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
+    
+end
+
+plot(Boundary.x/CtrlVar.PlotXYscale,Boundary.y/CtrlVar.PlotXYscale,varargin{:}) ;
+
+% plot boundary elements,  do not label nodes or elements here because
+% the labelling will be incorrect
+CtrlVar.PlotLabels=0;
+if CtrlVar.PlotBoundaryElements
+    PlotFEmesh(coordinates,connectivity(Boundary.FreeElements,:),CtrlVar)
+end
+
+hold on
+
+if CtrlVar.PlotBoundaryNodes
+    plot(coordinates(Boundary.EdgeCornerNodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.EdgeCornerNodes,2)/CtrlVar.PlotXYscale,'ok')
+    plot(coordinates(Boundary.Nodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.Nodes,2)/CtrlVar.PlotXYscale,'xr')
+end
+
+
+
+% this gives correct labeling of nodes and elemetns
+if CtrlVar.PlotBoundaryLabels
+    labels = arrayfun(@(n) {sprintf(' N%d', n)}, Boundary.Nodes(:));
+    text(coordinates(Boundary.Nodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.Nodes,2)/CtrlVar.PlotXYscale,labels)
+    
+    xEle=Nodes2EleMean(connectivity,coordinates(:,1));
+    yEle=Nodes2EleMean(connectivity,coordinates(:,2));
+    labels = arrayfun(@(n) {sprintf(' T%d', n)}, Boundary.FreeElements(:));
+    text(xEle(Boundary.FreeElements)/CtrlVar.PlotXYscale,yEle(Boundary.FreeElements)/CtrlVar.PlotXYscale,labels,...
+        'HorizontalAlignment', 'center', 'Color', 'blue');
+    
+end
+
+%title(sprintf('boundary t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
+%axis equal tight
+
+ax=gca; ax.DataAspectRatio=[1 1 1];
+
+
+end
+##### SOURCE END #####
+--></body></html>
