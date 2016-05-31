@@ -1,5 +1,6 @@
 function [coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,connectivity)
 
+%%
 % This m-file is called directly after each meshing step to allow for 
 % further modifications of the FE mesh.
 %
@@ -24,6 +25,6 @@ function [coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,
 %     [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,coordinates,connectivity);
 %
 % See also DeactivateElements, inpoly
-%
+%%
 
 end 

@@ -13,7 +13,7 @@ function  [ub,vb,ud,vd]=DefineStartVelValues(Experiment,CtrlVar,MUA,ub,vb,ud,vd,
 % default approach. So generally this m-file is not required to obtain a solution,
 % but it may speed things up.
 %
-%
+%%
 
 
   fprintf('Using default DefineStartVelValues \n')

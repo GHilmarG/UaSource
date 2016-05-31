@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding="utf-8"?>
 <toc version="2.0">
 
-       <tocitem target="Ua.html">Ua
+       <tocitem target="Ua.html">Úa
             
             <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
             <tocitem target="UserInputRoutines.html">User input 
@@ -12,10 +12,12 @@
                 <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
                 <tocitem target="DefineGeometry.html">Define geometry </tocitem>
                 <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>
-                <tocitem target="DefineStartVelocityValues.html">Define start velocity values </tocitem>
+                <tocitem target="DefineStartVelValues.html">Define start velocity values </tocitem>
                 <tocitem target="DefineDesiredEleSize.html">Define desired element sizes </tocitem>
                 <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
+                <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
             </tocitem>
+            <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
             <tocitem target="UaOutputs.html">Output </tocitem>
             <tocitem target="Utilities.html">Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>

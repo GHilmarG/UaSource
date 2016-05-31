@@ -1,15 +1,20 @@
 
 function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+
 %%
-%  Defining geometrical variables
+%  Defines geometrical variables
 % [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
 %
-% s : upper glacier surface b : lower glacier surface S : ocean surface B :
-% bedrock
+% Outputs:
 %
-% All these variables are nodal variables.
+% * s : upper glacier surface 
+% * b : lower glacier surface 
+% * S : ocean surface 
+% * B : bedrock
+% * alpha : tilt of the coordinate system with respect to gravity.
+% 
+% s, b, S and B are nodal variables.
 %
-% alpha : tilt of the coordinate system with respect to gravity.
 %
 % FieldsToBeDefined    : a string indicating which output variables are required
 %                        at the current stage of the run.

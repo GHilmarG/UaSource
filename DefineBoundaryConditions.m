@@ -1,6 +1,5 @@
 function  BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
 %%
-% User m-file to define boundary conditions 
 % BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
 %
 % BC is a matlab object with the following fields 
@@ -41,7 +40,8 @@ function  BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B
 %
 %
 % Example:
-               
+%%
+
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
 % implementing periodic boundary conditions
