@@ -4,7 +4,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 % CtrlVar=Ua2D_DefaultParameters
 %
-%  sets the fields of the CtrlVar to their default valuesadjoint
+%  sets the fields of the CtrlVar to their default values
 %
 %
 
@@ -875,7 +875,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
                                                % end of the time step.
                                                % The value must be in the range [0,1]
                                                % Only use this if encountering convergence problems.  
-                                               % Should always be equal to 0 if only possible.
+                                               % Should always be equal to 0 if possible.
                                                % If not equal to 0, the algorithim converges to a wrong solution (!),
                                                % although the error might be very small if mass-balance geometry feedback is not that strong.
       

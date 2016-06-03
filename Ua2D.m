@@ -132,6 +132,8 @@ else % inverse run
             GF]=GetInputsForForwardRun(CtrlVar);
         CtrlVar.MeshChanged=MeshChanged;
         
+        
+        
         % now get the additional variables specific to an inverse run
         [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
         
