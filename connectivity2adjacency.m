@@ -24,7 +24,7 @@ function [M] = connectivity2adjacency(connectivity)
         end
     end
 
-    M=sparse2(i,j,s,Nnod,Nnod);
+    M=sparseUA(i,j,s,Nnod,Nnod);
     
 end
 

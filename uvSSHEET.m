@@ -18,7 +18,7 @@ hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 snod=reshape(s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.AGlenisElementBased ;
+if ~CtrlVar.AGlenisElementBased
     AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
@@ -51,7 +51,7 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     rhoint=rhonod*fun;
     
-    if ~CtrlVar.AGlenisElementBased ;
+    if ~CtrlVar.AGlenisElementBased 
         AGlen=AGlennod*fun;
     end
     
@@ -87,10 +87,10 @@ end
 
 % assemble right-hand side
 
-rhx=sparse2(neq,1); rhy=sparse2(neq,1);
+rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
 for Inod=1:MUA.nod
-    rhx=rhx+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
-    rhy=rhy+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
+    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
+    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
 end
 
 

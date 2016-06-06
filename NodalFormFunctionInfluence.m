@@ -42,7 +42,7 @@ for Inod=1:MUA.nod
 end
 
 Jind=Iind*0+1;
-P=sparse2(Iind,Jind,Xval,neq,1);
+P=sparseUA(Iind,Jind,Xval,neq,1);
 P=full(P);
 %M=(M+M.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
 

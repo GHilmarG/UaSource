@@ -3,9 +3,11 @@ function  UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGle
 %%
 % UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
 %
-%  This routine is called a given intervals during the run. Write your own
-%  version of this routine and put it in you local run directory. This can be
-%  used to perform plots and/or save data.
+%  This routine is called during the run and can be used for saving and/or
+%  plotting data.
+%  
+%  Write your own version of this routine and put it in you local run directory.
+%  
 %%
 
 

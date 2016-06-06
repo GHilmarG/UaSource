@@ -7,8 +7,8 @@
             <tocitem target="UserInputRoutines.html">User input 
                 <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
                 <tocitem target="DefineGeometry.html">Define geometry </tocitem>
-                <tocitem target="DefineSlipperiness.html">Define basal slipperiness </tocitem>
-                <tocitem target="DefineAGlen.html">Define A in Glen's flow law </tocitem>
+                <tocitem target="DefineSlipperyDistribution.html">Define basal slipperiness </tocitem>
+                <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
                 <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
                 <tocitem target="DefineGeometry.html">Define geometry </tocitem>
                 <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>

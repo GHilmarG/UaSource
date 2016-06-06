@@ -99,10 +99,10 @@ end
 
 % assemble right-hand side
 
-rhx=sparse2(neq,1); rhy=sparse2(neq,1);
+rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
 for Inod=1:MUA.nod
-    rhx=rhx+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    rhy=rhy+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);
 end
 
 

@@ -242,16 +242,16 @@ end
 
 % assemble right-hand side
 
-Tuv=sparse(neq,1); Fuv=sparse(neq,1);
+Tuv=sparseUA(neq,1); Fuv=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
     
     
-    Tuv=Tuv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    Tuv=Tuv+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+    Tuv=Tuv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+    Tuv=Tuv+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
     
-    Fuv=Fuv+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    Fuv=Fuv+sparse(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+    Fuv=Fuv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+    Fuv=Fuv+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
 end
 
 Ruv=Tuv-Fuv;
@@ -292,16 +292,16 @@ if ~Ronly
         % nzmax=size(unique([Iind Jind],'rows'),1) ; K=sparse(Iind,Jind,Xval,neq,neq,nzmax); not sure why this
         % does not work
         
-        Kuv=sparse2(Iind,Jind,Xval,neq,neq);
+        Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
         
     else
         % creates the sparse matrix in steps, requires no extra
         for Inod=1:MUA.nod
             for Jnod=1:MUA.nod
-                Kuv=Kuv+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparse(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparse(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
+                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
                 %K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d1d2(:,Jnod,Inod),neq,neq);
             end
         end

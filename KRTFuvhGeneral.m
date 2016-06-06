@@ -280,18 +280,18 @@ function [R,K,T,F]=KRTFuvhGeneral(u,v,h,S,B,s,b,u0,v0,h0,as,ab,dt,AGlen,n,C,m,co
     
     %% assemble right-hand side
     
-    T=sparse2(neq,1); F=sparse2(neq,1);
+    T=sparseUA(neq,1); F=sparseUA(neq,1);
     
     for Inod=1:nod
         
         
-        T=T+sparse2(connectivity(:,Inod),ones(Nele,1),Tx(:,Inod),neq,1);
-        T=T+sparse2(connectivity(:,Inod)+neqx,ones(Nele,1),Ty(:,Inod),neq,1);
-        T=T+sparse2(connectivity(:,Inod)+2*neqx,ones(Nele,1),Th(:,Inod),neq,1);
+        T=T+sparseUA(connectivity(:,Inod),ones(Nele,1),Tx(:,Inod),neq,1);
+        T=T+sparseUA(connectivity(:,Inod)+neqx,ones(Nele,1),Ty(:,Inod),neq,1);
+        T=T+sparseUA(connectivity(:,Inod)+2*neqx,ones(Nele,1),Th(:,Inod),neq,1);
         
-        F=F+sparse2(connectivity(:,Inod),ones(Nele,1),Fx(:,Inod),neq,1);
-        F=F+sparse2(connectivity(:,Inod)+neqx,ones(Nele,1),Fy(:,Inod),neq,1);
-        F=F+sparse2(connectivity(:,Inod)+2*neqx,ones(Nele,1),Fh(:,Inod),neq,1);
+        F=F+sparseUA(connectivity(:,Inod),ones(Nele,1),Fx(:,Inod),neq,1);
+        F=F+sparseUA(connectivity(:,Inod)+neqx,ones(Nele,1),Fy(:,Inod),neq,1);
+        F=F+sparseUA(connectivity(:,Inod)+2*neqx,ones(Nele,1),Fh(:,Inod),neq,1);
     end
     %%
     
@@ -347,7 +347,7 @@ function [R,K,T,F]=KRTFuvhGeneral(u,v,h,S,B,s,b,u0,v0,h0,as,ab,dt,AGlen,n,C,m,co
 %            tSparse=toc(tSparse)   ;         
             
 %            tSparse2=tic; 
-            K=sparse2(Iind,Jind,Xval,neq,neq);
+            K=sparseUA(Iind,Jind,Xval,neq,neq);
 %            tSparse2=toc(tSparse2)    ;    
             
 
@@ -358,7 +358,7 @@ function [R,K,T,F]=KRTFuvhGeneral(u,v,h,S,B,s,b,u0,v0,h0,as,ab,dt,AGlen,n,C,m,co
             
         else
             Iind=zeros(9*nod*Nele,1); Jind=zeros(9*nod*Nele,1);Xval=zeros(9*nod*Nele,1);
-            K=sparse2(neq,neq);
+            K=sparseUA(neq,neq);
             
             for Inod=1:nod
                 istak=0;
@@ -391,7 +391,7 @@ function [R,K,T,F]=KRTFuvhGeneral(u,v,h,S,B,s,b,u0,v0,h0,as,ab,dt,AGlen,n,C,m,co
                     Iind(istak+1:istak+Nele)=connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+Nele)=connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+Nele)=Khh(:,Inod,Jnod);
                     istak=istak+Nele;
                 end
-                K=K+sparse2(Iind,Jind,Xval,neq,neq);
+                K=K+sparseUA(Iind,Jind,Xval,neq,neq);
             end
         end
     end

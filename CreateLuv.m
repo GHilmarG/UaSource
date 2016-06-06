@@ -36,14 +36,14 @@ II=1; JJ=1;
 % JJ is the constraint number, ie the equation number in Luv (each equation is represented by one row in the matrix)
 
 % u ties
-for I=1:numel(utiedA) ;
+for I=1:numel(utiedA) 
     ia(II)=JJ ; ib(II)=utiedA(I) ; xval(II)=1; II=II+1;
     ia(II)=JJ ; ib(II)=utiedB(I) ; xval(II)=-1; II=II+1;
     b(JJ)=0;  JJ=JJ+1;
 end
 
 % v ties
-for I=1:numel(vtiedA) ;
+for I=1:numel(vtiedA) 
     
     ia(II)=JJ ; ib(II)=vtiedA(I)+MUA.Nnodes ; xval(II)=1; II=II+1;
     ia(II)=JJ ; ib(II)=vtiedB(I)+MUA.Nnodes ; xval(II)=-1; II=II+1;
@@ -73,7 +73,7 @@ if numel(FixedNormalVelocityNode)>0
     end
 end
 
-Luv=sparse2(ia,ib,xval,Nconstrains,2*MUA.Nnodes);
+Luv=sparseUA(ia,ib,xval,Nconstrains,2*MUA.Nnodes);
 
 end
 

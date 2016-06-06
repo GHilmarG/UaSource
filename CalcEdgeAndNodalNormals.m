@@ -1,5 +1,6 @@
 function [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(connectivity,coordinates,Edges)
 
+%%
 % [nx,ny,xn,yn] = EdgeNormals(connectivity,coordinates,Edges)
 % calculates edge and (optionally) nodal normals
 %
@@ -39,6 +40,7 @@ function [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(connectivity,coordinates,
 % [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 % QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
 %    Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),CtrlVar);
+%%
 
 [nEdges,nod]=size(Edges); nSubEdges=nod-1 ;
 Ax=zeros(nEdges,nSubEdges) ;  Ay=zeros(nEdges,nSubEdges) ;

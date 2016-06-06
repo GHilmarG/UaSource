@@ -1,5 +1,6 @@
 function [M] = AdjacentNodes(connectivity,EleList)
 
+%%
 % [M] = AdjacentNodes(connectivity,EleList)
 %  creates the (nodal) neighbour matrix
 % (i,j)>=1 if node j is a neighbouring node to node i.
@@ -12,6 +13,7 @@ function [M] = AdjacentNodes(connectivity,EleList)
 %  [M] = AdjacentNodes(connectivity)
 %  find(M(10,:))
 %
+%%
 
 Nnod=max(connectivity(:));
 [Nele,nod]=size(connectivity);
@@ -49,7 +51,7 @@ for J=1:nod
     end
 end
 
-M=sparse2(i,j,s,Nnod,Nnod);
+M=sparseUA(i,j,s,Nnod,Nnod);
 
 end
 

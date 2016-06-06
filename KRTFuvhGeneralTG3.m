@@ -15,7 +15,11 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
     persistent nSave
     
     
-    if nargout==1 ; Ronly=1; else Ronly=0;end
+    if nargout==1 
+        Ronly=1; 
+    else
+        Ronly=0;
+    end
 
     if any(isnan(u)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to KRTFuvhGeneralTG3 \n'); end
     if any(isnan(v)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to KRTFuvhGeneralTG3 \n'); end
@@ -83,7 +87,7 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
     unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
-    if ~CtrlVar.CisElementBased ;
+    if ~CtrlVar.CisElementBased 
         C=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);  % This could be called Cnod
     end
     
@@ -128,7 +132,7 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
     
    
     
-    if CtrlVar.InfoLevelCPU ;  tAssembly=tic ; end
+    
     
     parfor Iint=1:MUA.nip
         
@@ -160,18 +164,18 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
     
     %% assemble right-hand side
     
-    T=sparse2(neq,1); F=sparse2(neq,1);
+    T=sparseUA(neq,1); F=sparseUA(neq,1);
     
     for Inod=1:MUA.nod
         
         
-        T=T+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-        T=T+sparse2(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-        T=T+sparse2(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
+        T=T+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+        T=T+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+        T=T+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
         
-        F=F+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-        F=F+sparse2(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-        F=F+sparse2(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
+        F=F+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+        F=F+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+        F=F+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
     end
     %%
     
@@ -227,7 +231,7 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
             %            tSparse=toc(tSparse)   ;
             
             %            tSparse2=tic;
-            K=sparse2(Iind,Jind,Xval,neq,neq);
+            K=sparseUA(Iind,Jind,Xval,neq,neq);
             %            tSparse2=toc(tSparse2)    ;
             
             
@@ -238,7 +242,7 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
             
         else
             Iind=zeros(9*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.Nele,1);
-            K=sparse2(neq,neq);
+            K=sparseUA(neq,neq);
             
             for Inod=1:MUA.nod
                 istak=0;
@@ -271,7 +275,7 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
                     Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
                     istak=istak+MUA.Nele;
                 end
-                K=K+sparse2(Iind,Jind,Xval,neq,neq);
+                K=K+sparseUA(Iind,Jind,Xval,neq,neq);
             end
         end
     end
@@ -292,19 +296,19 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
     minh=min(h);
     
 
-    if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100;   % if min thickness is approaching ThickMin give some information on h within NR loop
+    if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100   % if min thickness is approaching ThickMin give some information on h within NR loop
         msg=sprintf('In NRuvh loop, assembly stage: min(h) %-f \t max(h) %-g \n ',minh,max(h)) ;
         fprintf(CtrlVar.fidlog,msg) ; 
     end
     
-    if ~Ronly ; 
+    if ~Ronly  
         if full(any(isnan(diag(K))))
             save TestSave  ;  
             error(' NaN in K ' ) ;
         end ; 
     end
     
-    if any(isnan(R)) ; 
+    if any(isnan(R))  
         save TestSave  ;  
         error(' NaN in R ' ) ; 
     end

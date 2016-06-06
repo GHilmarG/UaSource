@@ -225,18 +225,18 @@ end
 
 %% assemble right-hand side
 
-T=sparse2(neq,1); F=sparse2(neq,1);
+T=sparseUA(neq,1); F=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
     
     
-    T=T+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    T=T+sparse2(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-    T=T+sparse2(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
+    T=T+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+    T=T+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+    T=T+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
     
-    F=F+sparse2(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    F=F+sparse2(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-    F=F+sparse2(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
+    F=F+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+    F=F+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+    F=F+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
 end
 %%
 
@@ -292,7 +292,7 @@ if ~Ronly
         %            tSparse=toc(tSparse)   ;
         
         %            tSparse2=tic;
-        K=sparse2(Iind,Jind,Xval,neq,neq);
+        K=sparseUA(Iind,Jind,Xval,neq,neq);
         %            tSparse2=toc(tSparse2)    ;
         
         
@@ -303,7 +303,7 @@ if ~Ronly
         
     else
         Iind=zeros(9*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.Nele,1);
-        K=sparse2(neq,neq);
+        K=sparseUA(neq,neq);
         
         for Inod=1:MUA.nod
             istak=0;
@@ -336,7 +336,7 @@ if ~Ronly
                 Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
                 istak=istak+MUA.Nele;
             end
-            K=K+sparse2(Iind,Jind,Xval,neq,neq);
+            K=K+sparseUA(Iind,Jind,Xval,neq,neq);
         end
     end
 end
