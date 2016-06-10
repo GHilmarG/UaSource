@@ -79,7 +79,7 @@ if ~isempty(strfind(lower(CtrlVar.GmeshMeshingMode),'mesh domain'))
     
     if status~=0
         fprintf(CtrlVar.fidlog,'gmesh returns with an error running (%s) \n',RunString);
-        fprintf(CtrlVar.fidlog,' A possible reason is that the environmetal variable GmeshHomeDirectory is not set correctly\n');
+        fprintf(CtrlVar.fidlog,' A possible reason is that the environment variable GmeshHomeDirectory is not set correctly\n');
         error('Ua:GmeshInterfaceRoutine:GmshRunFailed',' Fix this somehow!')
     end
 end

@@ -1,25 +1,26 @@
 <?xml version='1.0' encoding="utf-8"?>
 <toc version="2.0">
-
-       <tocitem target="Ua.html">Úa
-            
-            <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
-            <tocitem target="UserInputRoutines.html">User input 
-                <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
-                <tocitem target="DefineGeometry.html">Define geometry </tocitem>
-                <tocitem target="DefineSlipperyDistribution.html">Define basal slipperiness </tocitem>
-                <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
-                <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
-                <tocitem target="DefineGeometry.html">Define geometry </tocitem>
-                <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>
-                <tocitem target="DefineStartVelValues.html">Define start velocity values </tocitem>
-                <tocitem target="DefineDesiredEleSize.html">Define desired element sizes </tocitem>
-                <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
-                <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
-            </tocitem>
-            <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
-            <tocitem target="UaOutputs.html">Output </tocitem>
-            <tocitem target="Utilities.html">Utilities 
+    
+    <tocitem target="Ua.html">Úa
+        
+        <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
+        <tocitem target="UserInputRoutines.html">User input 
+            <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
+            <tocitem target="DefineGeometry.html">Define geometry </tocitem>
+            <tocitem target="DefineSlipperyDistribution.html">Define basal slipperiness </tocitem>
+            <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
+            <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
+            <tocitem target="DefineGeometry.html">Define geometry </tocitem>
+            <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>
+            <tocitem target="DefineStartVelValues.html">Define start velocity values </tocitem>
+            <tocitem target="DefineDesiredEleSize.html">Define desired element sizes </tocitem>
+            <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
+            <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
+        </tocitem>
+        <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
+        <tocitem target="UaOutputs.html">Output </tocitem>
+        <tocitem target="Utilities.html">Utilities 
+            <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
                 <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable</tocitem>
                 <tocitem target="QuiverColorGHG.html">QuiverColorGHG</tocitem>
@@ -28,7 +29,10 @@
                 <tocitem target="PlotBoundaryConditions.html">Plot boundary conditions</tocitem>
                 <tocitem target="Plot_sbB.html">Plot upper and lower surfaces and bedrock </tocitem>
             </tocitem>
+            <tocitem target="ComputationalUtilities.html">Computational Utilities 
+                <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
+            </tocitem>
+        </tocitem>
     </tocitem>
-
-
+    
 </toc>

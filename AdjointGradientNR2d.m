@@ -51,7 +51,7 @@ lambdaAdjoint=zeros(numel(LAdjointrhs),1) ;
 [l,lambdaAdjoint]=solveKApeSymmetric(kv,LAdjoint,rhs,LAdjointrhs,[],lambdaAdjoint,CtrlVar);
 
 
-if ~isreal(l) ;
+if ~isreal(l) 
     save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
 end
 

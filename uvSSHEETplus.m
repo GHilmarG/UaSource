@@ -60,7 +60,7 @@ for Iint=1:MUA.nip
     txzbint=txzbnod*fun;
     tyzbint=tyzbnod*fun;
     
-    if ~CtrlVar.AGlenisElementBased ;
+    if ~CtrlVar.AGlenisElementBased 
         AGlen=AGlennod*fun;
     end
  

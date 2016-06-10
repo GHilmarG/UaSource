@@ -90,7 +90,6 @@ FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 triplot(FEmeshCPT,'color',CtrlVar.MeshColor) ;
 hold on
 
-
 if nargin>3
     nodes=unique(connectivity);
 else
@@ -104,7 +103,6 @@ if CtrlVar.PlotNodes==1
     plot(coordinates(nodes,1),coordinates(nodes,2),CtrlVar.PlotNodesSymbol,...
         'color',CtrlVar.NodeColor,'MarkerSize',CtrlVar.PlotNodesSymbolSize)
 end
-
 
 if CtrlVar.PlotLabels==1
     fprintf(' labeling nodes and elements\n')

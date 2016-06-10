@@ -1,3 +1,3 @@
 %%
-% Ua utilties
+% Ua computational utilties
 %

@@ -68,7 +68,7 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
 [status,message]=copyfile(CtrlVar.Logfile,[CtrlVar.Logfile,'~']);  %  copy potential previous logfile
 
-[pathstr,name,ext]=fileparts(CtrlVar.GmeshFile); CtrlVar.GmeshFile=[pathstr,name]; % get rid of eventual file extension
+[pathstr,name]=fileparts(CtrlVar.GmeshFile); CtrlVar.GmeshFile=[pathstr,name]; % get rid of eventual file extension
 
 %%  A RunInfo file is created and some basic information about the run is added to that file
 %   Inspecting the contents of this run info file is sometimes a convenient way of
@@ -377,7 +377,7 @@ while 1
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
             fprintf(CtrlVar.fidlog,...
-                '\n ===== Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps \n ',...
+                '\n ===== Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
             
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
@@ -415,7 +415,7 @@ while 1
                     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
                     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
                     UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
-                    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
+                    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
                         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
                             CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
                         return
@@ -658,6 +658,7 @@ SayGoodbye(CtrlVar)
                 'GLdescriptors','l','alpha','g','-v7.3');
             
             
+            fprintf(CtrlVar.fidlog,' Writing restart file was successful. \n');
             
         catch exception
             fprintf(CtrlVar.fidlog,' Could not save restart file %s \n ',RestartFile);

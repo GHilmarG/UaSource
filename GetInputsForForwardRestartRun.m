@@ -7,7 +7,7 @@ try
     
     load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
         'Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
-        'GLdescriptors','l');
+        'GLdescriptors','l','alpha','g');
     
 catch exception
     fprintf(CtrlVar.fidlog,'%s \n',exception.message);
@@ -47,13 +47,13 @@ end
 
 
 
-if CtrlVar.ResetTime==1 ;
+if CtrlVar.ResetTime==1 
     time=CtrlVar.time;
     CurrentRunStepNumber=0; 
     fprintf(CtrlVar.fidlog,' Time reset to %-g \n',time);
 end
 
-if CtrlVar.ResetTimeStep==1 ;
+if CtrlVar.ResetTimeStep==1 
     dt=CtrlVar.dt;
     fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',dt);
 end

@@ -14,7 +14,11 @@ end
 persistent nSave
 
 
-if nargout==1 ; Ronly=1; else Ronly=0;end
+if nargout==1
+    Ronly=1;
+else
+    Ronly=0;
+end
 
 if any(isnan(u)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to KRTFuvhGeneralTG3 \n'); end
 if any(isnan(v)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to KRTFuvhGeneralTG3 \n'); end
@@ -82,7 +86,7 @@ hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.CisElementBased ;
+if ~CtrlVar.CisElementBased
     C=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);  % This could be called Cnod
 end
 
@@ -127,8 +131,6 @@ Kxu0=Kxu ; Kxv0=Kxv ; Kyu0=Kyu ; Kyv0=Kyv ; Kxh0=Kxh ; Kyh0=Kyh ; Khu0=Khu ; Khv
 
 
 
-if CtrlVar.InfoLevelCPU ;  tAssembly=tic ; end
-
 uvhTimeSteppingMethod=lower(CtrlVar.uvhTimeSteppingMethod);
 
 
@@ -138,7 +140,7 @@ switch  uvhTimeSteppingMethod
     case 'theta'
         
         parfor Iint=1:MUA.nip
-
+            
             [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
                 uvhAssemblyIntPointImplicitTheta(Iint,ndim,MUA,...
                 bnod,hnod,unod,vnod,C,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dudtnod,dvdtnod,dadhnod,Bnod,Snod,rhonod,...
@@ -357,19 +359,19 @@ end
 minh=min(h);
 
 
-if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100;   % if min thickness is approaching ThickMin give some information on h within NR loop
+if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100   % if min thickness is approaching ThickMin give some information on h within NR loop
     msg=sprintf('In NRuvh loop, assembly stage: min(h) %-f \t max(h) %-g \n ',minh,max(h)) ;
     fprintf(CtrlVar.fidlog,msg) ;
 end
 
-if ~Ronly ;
+if ~Ronly
     if full(any(isnan(diag(K))))
         save TestSave  ;
         error(' NaN in K ' ) ;
     end ;
 end
 
-if any(isnan(R)) ;
+if any(isnan(R))
     save TestSave  ;
     error(' NaN in R ' ) ;
 end

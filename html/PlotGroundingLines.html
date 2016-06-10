@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotGroundingLines</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="PlotGroundingLines.m"><style type="text/css">
+      --><title>PlotGroundingLines</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-06-08"><meta name="DC.source" content="PlotGroundingLines.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,18 +67,18 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Plots grounding lines</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
-</pre><h2>Plots grounding lines<a name="2"></a></h2><p>[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)</p><p>Examples:</p><p>Plot grounding lines for a given FE-mesh MUA and the floating mask GF: PlotGroundingLines(CtrlVar,MUA,GF);</p><p>Plot grounding lines in red: [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r')</p><p>Repeated use: GLgeo=[] ; xGL=[], yGL=[]; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);</p><p>Plot previously calculated grounding lines in red and bold: [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);</p><p>To plot grounding lines for higher-order elements with sub-element resolution set CtrlVar.GLsubdivide=1. Doing so causes higher-order elements to be split into sub-elements allowing for more accurate representation of the grounding line within an element.</p><p>To plot individual grounding lines in different colours set CtrlVar.PlotIndividualGLs=1</p><p>If xGL and yGL are empty on input, they are calculated from MUA and GLgeo.</p><p>If GLgeo, xGL and yGL are all empty on input, then GLgeo is first calculated from from GF and MUA, and then xGL and yGL are calculated from GLgeo.</p><p>If GLgeo, xGL and yGL are all empty, then MUA and GF can not be empty.</p><p>If xGL and yGL are not empty, then all other fields can be left empty.</p><p>varagin is passed on to plot</p><pre>Note: If MUA and GF have not changed from a previous call to
-PlotGroundingLines, always give xGL and yGL from the previous call as inputs
-to all following calls as doing so saves time when plotting complicated
-grounding lines. In an initial call, where MUA and GF are available, do for
-example:
-GLgeo=[] ; xGL=[] ; yGL=[];
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are all empty
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are known from
-                                                                   the previous call (they will not be
-Hint: Once xGL and yGL have been calculated, for example through a previous call to
-PlotGroundingLines, one can also simply plot the grounding lines as:
-plot(xGL,yGL)</pre><p>See also: PlotMuaBoundary</p><pre class="codeinput"><span class="keyword">if</span> isempty(CtrlVar)
+</pre><h2 id="2">Plots grounding lines</h2><p>[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)</p><p>Examples:</p><pre class="language-matlab">PlotGroundingLines(CtrlVar,MUA,GF);
+</pre><pre class="language-matlab">[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],<span class="string">'r'</span>) <span class="comment">% plot GL in</span>
+                                                                <span class="comment">% red</span>
+</pre><pre class="language-matlab">GLgeo=[] ; xGL=[], yGL=[]; <span class="comment">% repeated use</span>
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+</pre><pre class="language-matlab">[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+</pre><p>To plot grounding lines for higher-order elements with sub-element resolution set CtrlVar.GLsubdivide=1. Doing so causes higher-order elements to be split into sub-elements allowing for more accurate representation of the grounding line within an element.</p><p>To plot individual grounding lines in different colours set CtrlVar.PlotIndividualGLs=1</p><p>If xGL and yGL are empty on input, they are calculated from MUA and GLgeo.</p><p>If GLgeo, xGL and yGL are all empty on input, then GLgeo is first calculated from from GF and MUA, and then xGL and yGL are calculated from GLgeo.</p><p>If GLgeo, xGL and yGL are all empty, then MUA and GF can not be empty.</p><p>If xGL and yGL are not empty, then all other fields can be left empty.</p><p>varagin is passed on to plot</p><p>Note: If MUA and GF have not changed from a previous call to PlotGroundingLines, always give xGL and yGL from the previous call as inputs to all following calls as doing so saves time when plotting complicated grounding lines. In an initial call, where MUA and GF are available, do for example:</p><pre class="language-matlab">GLgeo=[] ; xGL=[] ; yGL=[];
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); <span class="comment">% here GLgeo, xGL and yGL are all empty</span>
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); <span class="comment">% here GLgeo, xGL and yGL are known from</span>
+                                                                  <span class="comment">% the previous call (they will not be</span>
+</pre><p>Hint: Once xGL and yGL have been calculated, for example through a previous call to PlotGroundingLines, one can also simply plot the grounding lines as: plot(xGL,yGL)</p><p>See also: PlotMuaBoundary</p><pre class="codeinput"><span class="keyword">if</span> isempty(CtrlVar)
     CtrlVar.XYscale=1;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
@@ -113,7 +113,7 @@ plot(xGL,yGL)</pre><p>See also: PlotMuaBoundary</p><pre class="codeinput"><span 
 <span class="keyword">if</span> CtrlVar.PlotGLs &amp;&amp; ~CtrlVar.PlotIndividualGLs
 
     plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
-
+    ax=gca; ax.DataAspectRatio=[1 1 1];
 
 <span class="keyword">elseif</span> CtrlVar.PlotIndividualGLs
 
@@ -127,11 +127,10 @@ plot(xGL,yGL)</pre><p>See also: PlotMuaBoundary</p><pre class="codeinput"><span 
         plot(xGL(I(ii):I(ii+1)),yGL(I(ii):I(ii+1)),col(i)) ; axis <span class="string">equal</span> ; hold <span class="string">on</span> ;
         <span class="keyword">if</span> i==numel(col) ; i=0 ; <span class="keyword">end</span>
     <span class="keyword">end</span>
+    ax=gca; ax.DataAspectRatio=[1 1 1];
 <span class="keyword">end</span>
-
-ax=gca; ax.DataAspectRatio=[1 1 1];
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 
@@ -141,19 +140,18 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Examples:
 %
-% Plot grounding lines for a given FE-mesh MUA and the floating mask GF:
-% PlotGroundingLines(CtrlVar,MUA,GF);
+%   
+%   PlotGroundingLines(CtrlVar,MUA,GF);
 %
-% Plot grounding lines in red:
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r')
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in 
+%                                                                   % red
+%   
 %
-% Repeated use:
-% GLgeo=[] ; xGL=[], yGL=[];
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%   GLgeo=[] ; xGL=[], yGL=[]; % repeated use
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
 %
-% Plot previously calculated grounding lines in red and bold:
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
 %
 % To plot grounding lines for higher-order elements with sub-element resolution
 % set CtrlVar.GLsubdivide=1. Doing so causes higher-order elements to be split
@@ -174,15 +172,17 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % varagin is passed on to plot
 %
-%  Note: If MUA and GF have not changed from a previous call to
-%  PlotGroundingLines, always give xGL and yGL from the previous call as inputs
-%  to all following calls as doing so saves time when plotting complicated
-%  grounding lines. In an initial call, where MUA and GF are available, do for
-%  example:
-%  GLgeo=[] ; xGL=[] ; yGL=[];
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are all empty
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are known from
-%                                                                     the previous call (they will not be
+% Note: If MUA and GF have not changed from a previous call to
+% PlotGroundingLines, always give xGL and yGL from the previous call as inputs
+% to all following calls as doing so saves time when plotting complicated
+% grounding lines. In an initial call, where MUA and GF are available, do for
+% example:
+%  
+%   GLgeo=[] ; xGL=[] ; yGL=[];
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are all empty
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are known from
+%                                                                     % the previous call (they will not be
+%
 % Hint: Once xGL and yGL have been calculated, for example through a previous call to
 % PlotGroundingLines, one can also simply plot the grounding lines as:
 % plot(xGL,yGL)
@@ -226,7 +226,7 @@ end
 if CtrlVar.PlotGLs && ~CtrlVar.PlotIndividualGLs
     
     plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
-    
+    ax=gca; ax.DataAspectRatio=[1 1 1];
     
 elseif CtrlVar.PlotIndividualGLs
     
@@ -240,9 +240,10 @@ elseif CtrlVar.PlotIndividualGLs
         plot(xGL(I(ii):I(ii+1)),yGL(I(ii):I(ii+1)),col(i)) ; axis equal ; hold on ;
         if i==numel(col) ; i=0 ; end
     end
+    ax=gca; ax.DataAspectRatio=[1 1 1];
 end
 
-ax=gca; ax.DataAspectRatio=[1 1 1];
+
 
 
 end
