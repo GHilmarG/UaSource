@@ -17,12 +17,12 @@ x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
 fprintf(' Loading measured velocities \n')
 load('MyMeasurements','Fu','Fv')
 
-Meas.us=Fu(x,y);  % Mapping measurments onto FE mesh
+Meas.us=Fu(x,y);  % Mapping measurements onto FE mesh
 Meas.vs=Fv(x,y);
 Meas.ws=Meas.vs*0 ;
 
-% Defining data erros and data covariance matrices.
-% Often errors are uncorelated and the covariance matrices
+% Defining data errors and data covariance matrices.
+% Often errors are uncorrelated and the covariance matrices
 % are therefore diagonal.
 usError=1; vsError=1  ; wsError=1;
 Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);
@@ -44,7 +44,7 @@ Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);
 % BCsAdjoint=BCs; % this would, for example, be the case if the forward problem has periodic BCs,
                   % in which case the adjoint problem will have periodic BCs as well.
 
-% If the adjoint problem has homogenous BCs (a very common case) then do: 
+% If the adjoint problem has homogeneous BCs (a very common case) then do: 
 BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
 BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
 
@@ -54,8 +54,8 @@ BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.vbFixedValue=BCsAdjoint.v
 % covariance matrices for priors
 % these covariance matrices are typically not diagonal
 % make sure to define those on nodes if A and C are defined on nodes
-% and on elements if A and C are defined as elemetn values.
-% This here is just an examle and might need to be adjusted.
+% and on elements if A and C are defined as element values.
+% This here is just an example and might need to be adjusted.
 if CtrlVar.AGlenisElementBased
     CAGlen=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
 else

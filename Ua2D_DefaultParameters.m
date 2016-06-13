@@ -689,6 +689,11 @@ CtrlVar.RefineMeshOnStart=0;
 % option) or the elements to be refined (explicit:local option), using the user
 % m-file `DefineDesireEleSizes.m'
 %
+% Note: Adapt meshing can only be done in a combination with a forward run.
+% Adapt meshing can not be done in an inverse run. Usually before starting with
+% an inverse run you may find it usefull to do a number of forward (time
+% independent) forward runs and use those to optimize the mesh prior to start of
+% any inverse runs.
 %
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:

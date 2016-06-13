@@ -37,7 +37,7 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
 %
 % Note: After remeshing, variables are generally mapped internally from the old
 % to the new mesh using some interpolation methods (Usually a natural neighbour
-% scatterd interpolant). But in a diagnostic/static run, geometric variables
+% scattered interpolant). But in a diagnostic/static run, geometric variables
 % (s,b,S,B) are always defined over the new mesh through a call to
 % [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined).
 %       
@@ -52,7 +52,7 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
     Deltab=ampl_b*exp(-((x/sigma_bx).^2+(y/sigma_by).^2));
     Deltab=Deltab-mean(Deltab);
     
-    B=zeros(MUA.Nnodes,1) + Deltab;  % Guassian bedrock
+    B=zeros(MUA.Nnodes,1) + Deltab;  % Gaussian bedrock
     S=B*0-1e10;                      % Put ocean surface so low that no sections of the glacier will be afloat
     b=B;                             % Set lower glacier surface elevation to that of bedrock
     s=B*0+hmean;                     % Upper glacier surface.
