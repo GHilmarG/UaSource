@@ -23,7 +23,7 @@ if any(h<0)
     end
     
     
-    if CtrlVar.ThickMin<0;
+    if CtrlVar.ThickMin<0
         CtrlVar.ThickMin=0;
     end
     
@@ -62,7 +62,7 @@ end
 switch lower(CtrlVar.FlowApproximation)
     
     
-    case 'sstream';
+    case 'sstream'
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         

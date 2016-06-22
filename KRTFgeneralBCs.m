@@ -2,7 +2,11 @@ function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,
                  
 % KRTFgeneralBCs(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
 
-if nargout==1 ; Ronly=1; else Ronly=0;end
+if nargout==1
+    Ronly=1;
+else
+    Ronly=0;
+end
 
 % calculates the tangent matrix (K) and right-hand side (-R) in a vectorized form
 
@@ -140,26 +144,32 @@ for Iint=1:MUA.nip
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                     +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
-                    +beta2int.*fun(Jnod).*fun(Inod)...
-                    +Dbeta.*Dbeta2Duuint.*fun(Jnod).*fun(Inod)).*detJw;  % beta derivative
+                    +beta2int           .*fun(Jnod).*fun(Inod)...    % basal friction, Weertman
+                    +Dbeta.*Dbeta2Duuint.*fun(Jnod).*fun(Inod))...   % basal friction, Weertman, directional derivative, uu
+                    .*detJw;  
                 
                 
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                     +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
-                    +beta2int.*fun(Jnod).*fun(Inod)...
-                    +Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod)).*detJw ;
+                    +beta2int           .*fun(Jnod).*fun(Inod)...  % basal friction, Weertman
+                    +Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... % basal friction, Weertman, directional derivative, vv
+                    .*detJw ;
+               
+                
+                
                 %+Dbeta*vint.*Dbeta2Dvint.*fun(Jnod).*fun(Inod)).*detJw ;
                 
                 
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
-                    +Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative
+                    +Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod))...    % beta derivative, uv
+                    .*detJw; 
                 
                 
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
-                    +Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative
+                    +Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative, uv
                 
                 
                 %                dxu=E (2 exx+eyy)
@@ -216,7 +226,7 @@ for Iint=1:MUA.nip
         t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
         t3=hint.*etaint.*(4*exx(:,Iint)+2*eyy(:,Iint)).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,2,Inod);
-        t5=beta2int.*uint.*fun(Inod);
+        t5=beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
         
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
@@ -225,7 +235,7 @@ for Iint=1:MUA.nip
         t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,2,Inod);
         t3=hint.*etaint.*(4*eyy(:,Iint)+2*exx(:,Iint)).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,1,Inod);
-        t5=beta2int.*vint.*fun(Inod);
+        t5=beta2int.*vint.*fun(Inod); % basal friction, Weertman, v
         
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;

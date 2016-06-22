@@ -241,6 +241,30 @@ CtrlVar.dl=100;      % tolerance for change in (normalised) lambda variables use
 %    of these changes can then be large despite the BCs being exactly fulfilled.)
 
 CtrlVar.NR=1;             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
+% Modified Newton-Raphson only evaluates the left-hand side (the stiffness matrix) if certain
+% criteria are fullfilled. This will reduced time spend with matrix assembly but
+% also reduced the rate of convergence. Depending on the problem using the
+% modified NR method may, or may not, lead to an overall reduction in
+% computational time.
+%
+% There are two criteria that determine if the left-hand side is updated or not:
+% 1) interval and 2) (residual) reduction criteria. The interval criteria
+% determines the number of iterations between updates. (The matris is always
+% updated at the beginning of the non-linear iteration.) The reduction criteria
+% forces re-assembly if the reduciton in last iteration was not greater than
+% a given fraction.
+%
+CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
+CtrlVar.ModifiedNRuvReductionCriterion=1; % fractional reduction forcing a 
+CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
+CtrlVar.ModifiedNRuvhReductionCriterion=1;
+% Settingn for example:
+% CtrlVar.ModifiedNRuvIntervalCriterion=10;     
+% CtrlVar.ModifiedNRuvReductionCriterion=0.95;
+% will cause the matrix only to be updated every 10-th non-linear iteration, unless
+% the fractional reduction r/r0 over previous iteration was less than 0.95.
+%
+
 CtrlVar.Piccard=0;        % 1 gives Piccard iteration
 CtrlVar.NRviscosity=1;    % if 1 derivatives with respect to viscosity are included in the NR method
 CtrlVar.NRbeta2=1;        % if 1 derivatives with respect to slipperiness are included in the NR method

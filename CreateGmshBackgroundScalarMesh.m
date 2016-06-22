@@ -31,7 +31,7 @@ function io = CreateGmshBackgroundScalarMesh(arg1,arg2,TargetSize,FileName)
     else
         
         error('inputs not consistent')
-        
+        io=1;
     end
     
     z=zeros(length(xTRI),1);

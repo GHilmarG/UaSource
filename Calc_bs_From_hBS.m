@@ -15,8 +15,8 @@ function [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,coordinates)
     %
     
       
-    if nargin~=7  ; error(' number of input arguments incorrect ' ) ; end
-    if nargout~=3 ; error(' number of output arguments incorrect ' ) ; end
+    %if nargin~=7  ; error(' number of input arguments incorrect ' ) ; end
+    %if nargout~=3 ; error(' number of output arguments incorrect ' ) ; end
     
     
     if CtrlVar.ResetThicknessToMinThickness==1
@@ -31,11 +31,10 @@ function [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,coordinates)
     %     gf = HeavisideApprox(CtrlVar.kH,B-df,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
     %
     %     figure ; plot3(coordinates(:,1)/CtrlVar.PlotXYscale,coordinates(:,2)/CtrlVar.PlotXYscale,gf,'.')  ; title('gf')
-    
+
     
     hf=rhow*(S-B)./rho ;
     gf = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
-    
     
     bfloat=S-rho.*h/rhow;
     

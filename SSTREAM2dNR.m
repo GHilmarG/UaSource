@@ -64,24 +64,32 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
     
     
     
-    iteration=0;
+    iteration=0;  ResidualReduction=1e10;
     while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitmax  )  || (iteration < CtrlVar.NRitmin && (n~=1 || m~=1))
   
         
         iteration=iteration+1;
         
         if CtrlVar.CalvingFrontFullyFloating
+            warning('Ua:SSTREAM2dNR:CalvingFrontFullyFloating','CalvingFrontFullyFloating set to true. Only use this option for testing purposes!')
             [Kuv,Ruv,~,F]=KRTF(s,S,B,h,ub,vb,AGlen,n,C,m,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,alpha,rho,rhow,g,CtrlVar);
         else
-            [Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
+            if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
+                %0.95 
+                [Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
+                NRincomplete=0;
+            else
+                Ruv=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
+                NRincomplete=1;
+           end
         end
         
-        F0=F;
+        if iteration==1
+            F0=F ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
+                   % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
+                   % without affecting its value.
+        end
         
-        %
-        % 		[Ktest,Rtest]=KRTFloop(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar);
-        % 		save TestSave Ktest Rtest K R
-        % 		error('sfda')
         
         
         if numel(ubvbL)==0
@@ -96,7 +104,7 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
         if any(isnan(ubvbL)) ; save TestSave ubvbL ; error('SSTREAM2dNR: L nan') ;  end
         
         
-        if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic==0;
+        if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic==0
             
             CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
             if numel(ubvbL)==0
@@ -118,7 +126,7 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
         r1 = CalcCostFunctionNR(1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,ubvbL,ubvbLambda,dlambda,CtrlVar);
         [r,gamma,infovector,BacktrackingInfo] = FindBestGamma2Dbacktracking(F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,ubvbL,ubvbLambda,dlambda,CtrlVar);
         
-        if BacktrackingInfo.Converged==0;    
+        if BacktrackingInfo.Converged==0   
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
             fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
@@ -166,14 +174,19 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
         vb=vb+gamma*dvb; 
         ubvbLambda=ubvbLambda+gamma*dlambda;
         
-        
+        ResidualReduction=r/r0;
         
         if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
             PlotForceResidualVectors('uv',Ruv,ubvbL,ubvbLambda,MUA.coordinates,CtrlVar) ; axis equal tight
         end
         if CtrlVar.InfoLevelNonLinIt>=1
-            fprintf(CtrlVar.fidlog,'NRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g \n ',...
-                iteration,BacktrackingInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda);
+            if NRincomplete
+                stri='i';
+            else 
+                stri=[];
+            end; 
+            fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g \n ',...
+                stri,iteration,BacktrackingInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda);
         end
                 
     end

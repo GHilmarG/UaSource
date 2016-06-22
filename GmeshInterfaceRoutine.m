@@ -17,7 +17,7 @@ function [coordinates,connectivity]=GmeshInterfaceRoutine(CtrlVar,MeshBoundaryCo
 
 
 % get rid of eventual file extension
-[pathstr,name,ext]=fileparts(CtrlVar.GmeshFile);
+[pathstr,name]=fileparts(CtrlVar.GmeshFile);
 CtrlVar.GmeshFile=[pathstr,name];
 
 % set the path to gmsh
@@ -64,7 +64,7 @@ else  % remesh with a given scalar background field defining desired ele sizes
     
     FileName=[CtrlVar.GmeshFile,'.pos'];
     fprintf(CtrlVar.fidlog,'Creating a Gmesh scalar post file %s \n',FileName);
-    io = CreateGmshBackgroundScalarMesh(GmeshBackgroundScalarField.xy,GmeshBackgroundScalarField.TRI,GmeshBackgroundScalarField.EleSize,FileName);
+    CreateGmshBackgroundScalarMesh(GmeshBackgroundScalarField.xy,GmeshBackgroundScalarField.TRI,GmeshBackgroundScalarField.EleSize,FileName);
     
     RunString=[gmshRunString,CtrlVar.GmeshFile,'.geo -bgm ',FileName,' -2 -v 1'];
     
@@ -94,7 +94,7 @@ if ~isempty(strfind(lower(CtrlVar.GmeshMeshingMode),'load .msh'))
     connectivity=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
     coordinates=Gmesh.POS(1:Gmesh.nbNod,1:2);
     
-    if numel(coordinates)==0 ;
+    if numel(coordinates)==0 
         error('Ua:GmeshInterfaceRoutine:NoCoordinatesInMeshFile',' no coordinates in meshfile %s/%s \n',pwd,FileName) ;
     end
     

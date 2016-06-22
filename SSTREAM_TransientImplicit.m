@@ -93,26 +93,24 @@ r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlam
 while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) &&  iteration <= CtrlVar.NRitmax && ~Stagnated) ) || iteration < CtrlVar.NRitmin
     iteration=iteration+1;
     
-    %[R,K,~,FI]=KRTFuvhGeneralTG3(CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
+    % If I want to implement an in complete NR method, then presumably all that is
+    % needed is to call uvhAssembly once in while with just the first output
+    % argument, ie R, and only update K occationally
     [R,K,~,FI]=uvhAssembly(CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
     
-    if iteration==1 ; F0=FI ; end  % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration
-    %F0=F0*0+1;
+    if iteration==1 
+        F0=FI ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration
+    end  
+
     
     gamma=0;
-    
-    
     
     if ~isempty(L)
         [r0,ruv0,rh0]=ResidualCostFunction(R+L'*(lambda+gamma*dlambda),F0);
     else
         [r0,ruv0,rh0]=ResidualCostFunction(R,F0);
     end
-    
-    
-    %Kxu=K(1:Nnodes,1:Nnodes); Kxv=K(1:Nnodes,Nnodes+1:2*Nnodes); Kxh=K(1:Nnodes,2*Nnodes+1:3*Nnodes);
-    %Kyu=K(Nnodes+1:2*Nnodes,1:Nnodes); Kyv=K(Nnodes+1:2*Nnodes,Nnodes+1:2*Nnodes); Kyh=K(Nnodes+1:2*Nnodes,2*Nnodes+1:3*Nnodes);
-    %Khu=K(2*Nnodes+1:3*Nnodes,1:Nnodes); Khv=K(2*Nnodes+1:3*Nnodes,Nnodes+1:2*Nnodes); Khh=K(2*Nnodes+1:3*Nnodes,2*Nnodes+1:3*Nnodes);
+
     
     %% solve the (asymmetrical) linear system
     if ~isempty(L)
@@ -124,7 +122,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     end
     
     
-    %[duvh,dlambda]=solveKApe(K,L,-R-L'*lambda,Lrhs-L*[u;v;h],[du;dv;dh],dlambda,CtrlVar);
+
     [duvh,dlambda]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dlambda,CtrlVar);
     
     
@@ -144,7 +142,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
         (CtrlVar,MUA,F0,r0,r1,ruv1,rh1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
     
     
-    if BacktrackInfo.converged==0;
+    if BacktrackInfo.converged==0
         Stagnated=1;
     end
     

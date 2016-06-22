@@ -18,8 +18,8 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB) ; save TestSave ; error(' nu
 [ubFixedNodet,itemp]=unique(BCs.ubFixedNode) ; BCs.ubFixedValue=BCs.ubFixedValue(itemp);
 [vbFixedNodet,itemp]=unique(BCs.vbFixedNode) ; BCs.vbFixedValue=BCs.vbFixedValue(itemp);
 
-if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicated Dirichlet BCs for u') ; end
-if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicated Dirichlet BCs for v') ; end
+if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicate Dirichlet BCs for u') ; end
+if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicate Dirichlet BCs for v') ; end
 
 BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 

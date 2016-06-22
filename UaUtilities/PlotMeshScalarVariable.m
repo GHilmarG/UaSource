@@ -23,7 +23,9 @@ persistent NodTri EleTri Nele Nnodes nod
 
 if N==MUA.Nnodes && M==1   % nodal variable
     
-    if isempty(NodTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    if isempty(NodTri)
+        NodTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod 
         NodTri=MUA.connectivity;
     end
     
@@ -31,7 +33,9 @@ if N==MUA.Nnodes && M==1   % nodal variable
     
 elseif N==MUA.Nele && M==1 % element variable
     
-    if isempty(EleTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    if isempty(EleTri) 
+        EleTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         EleTri=MUA.connectivity;
     end
     

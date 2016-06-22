@@ -15,7 +15,7 @@ DriveLetter=DriveLetter(1:1);
 
 if result==0
     a=regexp(vol,'(?m)(?<drive>[A-Z]) is (?<label>\w+)$','names');
-    if ~isempty(a);
+    if ~isempty(a)
     name=a.label;
     else 
         name=[];

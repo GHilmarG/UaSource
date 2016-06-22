@@ -11,8 +11,8 @@ function [Luv,Luvrhs,lambdauv,Lh,Lhrhs,lambdah,CtrlVar]=...
     [ufixednodet,itemp]=unique(ufixednode) ; ufixedvalue=ufixedvalue(itemp);
     [vfixednodet,itemp]=unique(vfixednode) ; vfixedvalue=vfixedvalue(itemp);
     
-    if numel(ufixednode) ~= numel(ufixednodet)  ; disp(' Duplicated Dirichlet BCs for u') ; end
-    if numel(vfixednode) ~= numel(vfixednodet)  ; disp(' Duplicated Dirichlet BCs for v') ; end
+    if numel(ufixednode) ~= numel(ufixednodet)  ; disp(' Duplicate Dirichlet BCs for u') ; end
+    if numel(vfixednode) ~= numel(vfixednodet)  ; disp(' Duplicate Dirichlet BCs for v') ; end
     
     ufixednode=ufixednodet; vfixednode=vfixednodet;
     
