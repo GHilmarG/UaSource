@@ -465,7 +465,7 @@ while 1
             [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
             
             dhdtm1=dhdt ; dubdtm1=dubdt ; dvbdtm1=dvbdt;
-            if CtrlVar.dt==0 ;
+            if CtrlVar.dt==0 
                 dhdt=zeros(MUA.Nnodes,1) ;  dubdt=zeros(MUA.Nnodes,1); dvbdt=zeros(MUA.Nnodes,1); dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
             else
                 dhdt=(h-h0)/CtrlVar.dt; dubdt=(ub-ub0)/CtrlVar.dt ; dvbdt=(vb-vb0)/CtrlVar.dt; duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;
@@ -476,7 +476,7 @@ while 1
             
         elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
-            if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+dt);end
+            if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+CtrlVar.dt);end
             
             %% Diagnostic calculation (uv)
             if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Diagnostic step (uv). Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
@@ -488,7 +488,7 @@ while 1
             
             dubdtm1=dubdt ; dvbdtm1=dvbdt; duddtm1=duddt ; dvddtm1=dvddt;
             
-            if CtrlVar.dt==0 ;
+            if CtrlVar.dt==0 
                 dubdt=zeros(MUA.Nnodes,1) ;  dvbdt=zeros(MUA.Nnodes,1);
                 duddt=zeros(MUA.Nnodes,1) ;  dvddt=zeros(MUA.Nnodes,1);
             else
@@ -502,18 +502,19 @@ while 1
             [ub1,vb1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,ub,dubdt,dubdtm1,vb,dvbdt,dvbdtm1);
             
             dub1dt=dubdt; dvb1dt=dvbdt ;  dub0dt=dubdt; dvb0dt=dvbdt ; % could possibly be done a bit better
-            [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
             a1=as+ab; da0dt=(a1-a0)/CtrlVar.dt ; da1dt=da0dt;
-            if dt==0 ; da0dt=zeros(MUA.Nnodes,1); da1dt=zeros(MUA.Nnodes,1) ; end
-            [h,l.h]=SSS2dPrognostic(CtrlVar.dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.niph,Lh,Lhrhs,l.h,CtrlVar.CurrentRunStepNumber,CtrlVar);
+            if CtrlVar.dt==0 ; da0dt=zeros(MUA.Nnodes,1); da1dt=zeros(MUA.Nnodes,1) ; end
+            [h,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt);
+            %[h,l.h]=SSS2dPrognostic(CtrlVar.dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.niph,Lh,Lhrhs,l.h,CtrlVar.CurrentRunStepNumber,CtrlVar);
             
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt; %CtrlVar.time=time;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             CtrlVar.time=round(CtrlVar.time,14,'significant');
             
             [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
             
             dhdtm1=dhdt ;
-            if CtrlVar.dt==0 ;
+            if CtrlVar.dt==0 
                 dhdt=zeros(MUA.Nnodes,1) ; dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
             else
                 dhdt=(h-h0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;

@@ -27,7 +27,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     % 
     %%
 
-    persistent nCalls  
+    persistent nCalls  nipLast niphLast
    
     if isempty(nCalls) ; nCalls=0 ; end
     
@@ -78,9 +78,13 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     if isempty(CtrlVar.nip) ;  CtrlVar.nip=nip ; end
     if isempty(CtrlVar.niph) ;  CtrlVar.niph=niph ; end
    
-    if nCalls==1
+    if nCalls==1 || nipLast~=nip || niphLast~=niph
         fprintf('Number of integration points: nip=%-i niph=%-i \n',CtrlVar.nip,CtrlVar.niph)
     end
+    
+    
+    nipLast=nip ; niphLast=niph;
+    
     
     
     

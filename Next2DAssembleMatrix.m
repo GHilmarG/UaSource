@@ -13,7 +13,7 @@ function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connec
 	v1nod=reshape(v1(connectivity,1),Nele,nod);
 	a0nod=reshape(a0(connectivity,1),Nele,nod);
 	a1nod=reshape(a1(connectivity,1),Nele,nod);
-	% can I not just use h0 for h0nod, ie reuse variable?
+	
 	
 	[points,weights]=sample('triangle',nip,ndim);
 	
@@ -76,10 +76,7 @@ function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connec
 				hdyv1=dt*theta*dv1dy.*fun(Jnod).*fun(Inod).*detJw;
 				vdyh1=dt*theta*v1int.*Deriv(:,2,Jnod).*fun(Inod).*detJw;
 				
-				
 				d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+h1term+hdxu1+udxh1+hdyv1+vdyh1;
-				
-				
 				
 			end
 			
@@ -100,15 +97,15 @@ function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connec
 	
 	% assemble right-hand side
 	
-	rh=sparse(neq,1);
+	rh=sparseUA(neq,1);
 	for Inod=1:nod
-		rh=rh+sparse(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
+		rh=rh+sparseUA(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
 	end
 	
 	
 	for Inod=1:nod
 		for Jnod=1:nod
-			kv=kv+sparse(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+			kv=kv+sparseUA(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
 		end
 	end
 	

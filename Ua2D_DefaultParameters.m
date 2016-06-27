@@ -254,6 +254,7 @@ CtrlVar.NR=1;             % 1 gives Newton-Raphson (use Newton-Raphson whenever 
 % forces re-assembly if the reduciton in last iteration was not greater than
 % a given fraction.
 %
+
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
 CtrlVar.ModifiedNRuvReductionCriterion=1; % fractional reduction forcing a 
 CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
@@ -327,7 +328,13 @@ CtrlVar.GroupRepresentation=0;
 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
-
+                   % Possible Nr of integration points: 1,3,4,6,7,12,16
+                   % The default values are: 
+                   % nip=3 and niph=3 for linear elemetns (three node elements)
+                   % nip=7 and niph=7 for quadric elements (six node elements)
+                   % nip=12 and niph=12 for cubic elements (ten node elements)
+                   % The defaul values are usually fine, but sometimes increasing the number of
+                   % intergration points improves convergence.
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
 % Generally the higher the number the more information is given.

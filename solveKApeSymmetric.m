@@ -47,21 +47,15 @@ elseif isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in e
     CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
 end
 
+
+
 tSolve=tic; 
 
 switch CtrlVar.SymmSolver
     case 'Bempty'
         x=A\f;
         y=[];
-    case 'Uzawa'
-        
-        
-        if nargin<5  || isempty(y0)
-            y0=zeros(nB,1) ;
-        end
-        
-        [x,y] = UzawaSymmSolver(A,B,f,g,y0,CtrlVar);
-        
+            
     case 'AugmentedLagrangian'
         
         if nargin<5  ; y0=zeros(nB,1) ;  end
@@ -76,10 +70,13 @@ switch CtrlVar.SymmSolver
         x=sol(1:nA) ; y=sol(nA+1:nA+nB);
         
     case 'EliminateBCsSolveSystemDirectly'
-        if CtrlVar.SymmSolverInfoLevel>20 ; fprintf(' Eliminating BCs and solving system directly \n') ; end
         
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
-        iFreeDOF=setdiff(1:nA,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
+        if CtrlVar.SymmSolverInfoLevel>=10 ; fprintf(' Eliminating BCs and solving system directly \n') ; end
+        
+        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); 
+        iConstrainedDOF=iConstrainedDOF(:);
+        iFreeDOF=setdiff(1:nA,iConstrainedDOF); 
+        iFreeDOF=iFreeDOF(:);
         
         
         AA=A; ff=f;
@@ -107,7 +104,7 @@ end
 
 tSolve=toc(tSolve); 
 
-if CtrlVar.InfoLevelLinSolve>=10;
+if CtrlVar.InfoLevelLinSolve>=10
     fprintf('solveKApeSymmetric: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
         nA+nB,nA,nB,tSolve,CtrlVar.SymmSolver)
 end

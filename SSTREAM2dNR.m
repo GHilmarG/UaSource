@@ -13,7 +13,7 @@ function  [ub,vb,ubvbLambda,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s
     
     if isempty(ubvbRhs)
         ubvbLambda=[];
-    elseif numel(ubvbLambda)~=numel(ubvbRhs) ;
+    elseif numel(ubvbLambda)~=numel(ubvbRhs) 
         ubvbLambda=zeros(numel(ubvbRhs),1) ;
     end
     

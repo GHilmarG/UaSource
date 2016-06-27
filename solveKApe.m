@@ -2,21 +2,13 @@ function  [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar)
 
 narginchk(7,7)
 
-
-%save TestSave
-%error('fsad')
-
-%     m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
-%     save TestSave A B f g x0 y0 CtrlVar AA bb
-%     error('asdf')
-
 % Solves:
 %
 %  [A   B'] [x]= [f]
 %  [B  -C ] [y]  [g]
 %
-% where A is nxn, C is mxm , B is mxn
-
+% where A is n times n, C is m times m , B is m times n.
+% A does not have to be symmetrical
 
 [nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 

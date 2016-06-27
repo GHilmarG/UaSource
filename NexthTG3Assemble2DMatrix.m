@@ -28,7 +28,7 @@ function [kv,rh]=NexthTG3Assemble2DMatrix(dt,h0,u0,v0,du0dt,dv0dt,a0,da0dt,u1,v1
     
     [points,weights]=sample('triangle',nip,ndim);
     
-    kv=sparse(neq,neq);
+    kv=sparseUA(neq,neq);
     d1d1=zeros(Nele,nod,nod);
     b1=zeros(Nele,nod);
     
@@ -164,15 +164,15 @@ function [kv,rh]=NexthTG3Assemble2DMatrix(dt,h0,u0,v0,du0dt,dv0dt,a0,da0dt,u1,v1
     
     % assemble right-hand side
     
-    rh=sparse(neq,1);
+    rh=sparseUA(neq,1);
     for Inod=1:nod
-        rh=rh+sparse(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
+        rh=rh+sparseUA(connectivity(:,Inod),ones(Nele,1),b1(:,Inod),neq,1);
     end
     
     
     for Inod=1:nod
         for Jnod=1:nod
-            kv=kv+sparse(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
+            kv=kv+sparseUA(connectivity(:,Inod),connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
         end
     end
        
