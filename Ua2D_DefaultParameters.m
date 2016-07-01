@@ -334,7 +334,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % nip=7 and niph=7 for quadric elements (six node elements)
                    % nip=12 and niph=12 for cubic elements (ten node elements)
                    % The defaul values are usually fine, but sometimes increasing the number of
-                   % intergration points improves convergence.
+                   % intergration points improves convergence of the Newton-Raphson iteration.
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
 % Generally the higher the number the more information is given.
@@ -352,9 +352,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
 %  CtrlVar.InfoLevelNonLinIt:
-%  <0   : no information printed.
-% >=0  : prints basic convergence information at end of non-linear step.
-% >=1  : detailed info on residuals given at the end of non-linear step.
+%   0   : no information printed.
+%   1  : prints basic convergence information at end of non-linear step.
+%  >1  : detailed info on residuals given at the end of non-linear step.
 % >=2  : info on backtracking step as well.
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors

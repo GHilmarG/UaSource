@@ -1,16 +1,16 @@
 function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
 
-% Calculates strains and devitoric stresses. 
+% Calculates strains and devitoric stresses.
 %
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
 %
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
-% On output all variables are nodal variables. 
+% On output all variables are nodal variables.
 %
 % txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
-% txx,tyy,txy   : horizontal deviatoric stresses 
+% txx,tyy,txy   : horizontal deviatoric stresses
 % exx,eyy,exy   : horizontal strain rates
-% e             : effective strain rate  
+% e             : effective strain rate
 % eta           : effective viscosity
 %
 % the basal stress caculation is done using the basal boundary condition as:
@@ -19,8 +19,8 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 %
 % Stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz}
 % wheere \sigma_{zz}= - \rho g (s-z)
-% Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} 
-% Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h 
+% Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy}
+% Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h
 %
 %
 
@@ -64,10 +64,10 @@ for Iint=1:MUA.nip
     else
         [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
     end
-        
+    
     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
     dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
-
+    
     % derivatives for all elements at this integration point
     for Inod=1:MUA.nod
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
@@ -78,15 +78,15 @@ for Iint=1:MUA.nip
     
     dbdx=kk_proj(dbdx,-CtrlVar.dbdxZero,CtrlVar.dbdxZero);
     dbdy=kk_proj(dbdy,-CtrlVar.dbdyZero,CtrlVar.dbdyZero);
-
+    
     
     tbxint=tbxnod*fun;  % values at this integration point
     tbyint=tbynod*fun;
     
     txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;
     tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;
-     
-   detJw=detJ*weights(Iint);
+    
+    detJw=detJ*weights(Iint);
     
     for Inod=1:MUA.nod
         
@@ -108,7 +108,7 @@ end
 
 M=MassMatrix2D1dof(MUA);
 
-sol=M\[rhx rhy] ; 
+sol=M\[rhx rhy] ;
 txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 
 if nargout>2
@@ -125,7 +125,7 @@ if ~isreal(exx) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:exxbNot
 if ~isreal(eyy) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:eyybNotReal','eyy not real!') ; end
 if ~isreal(exy) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:eyybNotReal','exy not real!') ; end
 if ~isreal(e) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:ebNotReal','e not real!') ; end
-    
+
 
 
 end

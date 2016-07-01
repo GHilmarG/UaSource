@@ -239,7 +239,7 @@ end
 %% UaOutputs
 CtrlVar.UaOutputsCounter=0;
 if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-    CtrlVar.UaOutputsInfostring='First call ';
+    CtrlVar.UaOutputsInfostring='First call';
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)

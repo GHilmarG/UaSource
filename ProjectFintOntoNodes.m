@@ -1,7 +1,7 @@
 function varargout=ProjectFintOntoNodes(MUA,varargin)
 
-%
-% varargout=ProjectFintOntoNodes(MUA,varargin)
+%%
+%   varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 % Projects element variables defined at integration points onto nodes.
 % Does this by solving:
@@ -15,7 +15,8 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 % Example:
 %
-% [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
+%  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
+%
 % where exx, eyy, exy, e, are defined at intergration points gives
 % corresponding fields defined at nodes.
 %

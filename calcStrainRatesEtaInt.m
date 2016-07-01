@@ -17,6 +17,16 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
         etaInt=[] ; Eint=[] ;  txx=[] ; tyy=[] ; txy=[] ; 
     end
     
+    if nargin>5
+        if ~isempty(n)
+            if CtrlVar.AGlenisElementBased
+                n=n+zeros(MUA.nele,1);
+            else
+                n=n+zeros(MUA.Nnodes,1);
+            end
+        end
+    end
+    
     
     ndim=2;
     
@@ -27,19 +37,22 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
     cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
     
     if nargin>4 && ~isempty(AGlen)
-        if CtrlVar.AGlenisElementBased ;
+        if CtrlVar.AGlenisElementBased 
             AGlennod=[];
+            nGlennod=[];
         else
             AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+            nGlennod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
         end
     end
         
-        exx=zeros(MUA.Nele,MUA.nip); eyy=zeros(MUA.Nele,MUA.nip); exy=zeros(MUA.Nele,MUA.nip);
+    exx=zeros(MUA.Nele,MUA.nip); eyy=zeros(MUA.Nele,MUA.nip); exy=zeros(MUA.Nele,MUA.nip);
     xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);  
    
     if nargin>4
         if ~isempty(AGlen)
             AGlenint=zeros(MUA.Nele,MUA.nip);
+            nGlenint=zeros(MUA.Nele,MUA.nip);
         end
     end
     
@@ -54,12 +67,14 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
         
         if nargin>4
             if ~isempty(AGlen)
-                if CtrlVar.AGlenisElementBased ;
+                if CtrlVar.AGlenisElementBased 
                     AGlenint(:,Iint)=AGlen;
+                    nGlenint(:,Iint)=nGlen;
                 else
                     temp=AGlennod*fun;
                     temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
                     AGlenint(:,Iint)=temp;
+                    nGlenint(:,Iint)=nGlennod*fun;
                 end
             end
         end
@@ -79,25 +94,21 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
             exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*ubnod(:,I);
             eyy(:,Iint)=eyy(:,Iint)+Deriv(:,2,I).*vbnod(:,I);
             exy(:,Iint)=exy(:,Iint)+0.5*(Deriv(:,1,I).*vbnod(:,I) + Deriv(:,2,I).*ubnod(:,I));
-          
         end
-    
-        
     end
    
      e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
      
      if nargin>4
          if ~isempty(AGlen)
-             etaInt=real(0.5*AGlenint.^(-1/n).*e.^((1-n)/n));
-             Eint=real((1-n)/(4*n) *AGlenint.^(-1/n).*e.^((1-3*n)/n));
+             n=nGlenint;
+             etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
+             Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
          end
-
      end
     
     if nargin>4 && nargout>8
         if ~isempty(AGlen)
-            
             txx=2*etaInt.*exx ;
             tyy=2*etaInt.*eyy ;
             txy=2*etaInt.*exy ;
