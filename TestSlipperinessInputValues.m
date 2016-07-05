@@ -2,13 +2,15 @@
 function [C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m)
 
 
-if numel(C)==1
+if numel(C)==1 || numel(m)==1
     
-    fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
     if  CtrlVar.CisElementBased
         C=C+zeros(MUA.Nele,1);
+        m=m+zeros(MUA.Nele,1);
     else
         C=C+zeros(MUA.Nnodes,1);
+        m=m+zeros(MUA.Nnodes,1);
     end
 end
 

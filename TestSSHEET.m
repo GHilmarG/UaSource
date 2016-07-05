@@ -6,7 +6,7 @@
 % CtrlVar.MeshSizeMax=1e3;
 % CtrlVar.MeshSizeMin=1e3;
 % MeshBoundaryCoordinates=[-50e3 -50e3 ; 50e3 -50e3 ; 50e3 50e3 ; -50e3 50e3];
-% CtrlVar.GmeshMeshingAlgorithm=8;  % see gmsh manual 
+% CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual 
 % [coordinates,connectivity]=genmesh2d(' ',MeshBoundaryCoordinates,CtrlVar);
 % 
 % figure ; PlotFEmesh(coordinates,connectivity,CtrlVar)

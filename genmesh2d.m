@@ -1,8 +1,8 @@
-function MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmeshBackgroundScalarField)
+function MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundScalarField)
 
 %% Generate FE mesh
 %
-% [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmeshBackgroundScalarField)
+% [MUA,FEmeshTriRep]=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundScalarField)
 %
 % FEmeshTriRep is an instance of matlab TriRep class. Only based on the corner nodes of
 %    triangles! Interior and edge nodes of higher order elements missing
@@ -21,16 +21,16 @@ switch lower(CtrlVar.MeshGenerator)
             [coordinates,connectivity]=meshfaces(MeshBoundaryCoordinates,edge,face,hdata,options);
         end
         
-    case 'gmesh'
+    case 'gmsh'
         
         if nargin<5;
-            GmeshBackgroundScalarField=[];
+            GmshBackgroundScalarField=[];
         end
 
-        [coordinates,connectivity]=GmeshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmeshBackgroundScalarField);
+        [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmshBackgroundScalarField);
         
     otherwise
-        error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmesh} ')
+        error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
 end
 
 
@@ -68,7 +68,7 @@ connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 if  CtrlVar.doplots==1 && CtrlVar.PlotMesh==1
-     figure(1500+CtrlVar.GmeshMeshingAlgorithm) ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
+     figure(1500+CtrlVar.GmshMeshingAlgorithm) ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
 end
 
 

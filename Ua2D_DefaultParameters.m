@@ -512,24 +512,24 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % Both when done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
-% *             a) create an input file for gmesh (.geo)
-% *             b) call gmesh for that input file (.geo). gmsh in turn generates an output file (.msh)
-% *             c) read into Úa the resulting gmesh output file (.msh) with the mesh
+% *             a) create an input file for gmsh (.geo)
+% *             b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)
+% *             c) read into Úa the resulting gmsh output file (.msh) with the mesh
 % All, or some of these three steps can be done withing Úa.
 %
 % More specifically the options are:
 %
-% *    i)  Directly read existing gmesh output file (.msh)
-% *   ii)  First run gmesh with an existing gmesh input file (.geo) and then read the resulting gmesh output file (.msh)
-% *   iii) First generate gmesh input file (geo), then run gmesh for that input file, and finally read the resulting gmesh output file (.msh)
+% *    i)  Directly read existing gmsh output file (.msh)
+% *   ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)
+% *   iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)
 %
 % Option iii is the default option, in which case Úa generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
-% To select between i, ii and iii set CtrlVar.GmeshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmesh .geo input file and mesh domain and load .msh file'}
+% To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}
 %
-% CtrlVar.GmeshMeshingMode='load .msh'                                                               % option i
-% CtrlVar.GmeshMeshingMode='mesh domain and load .msh file'                                          % option ii
- CtrlVar.GmeshMeshingMode='create new gmesh .geo input file and mesh domain and load .msh file';    % option iii, which is the default option
+% CtrlVar.GmshMeshingMode='load .msh'                                                               % option i
+% CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii
+ CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and load .msh file';    % option iii, which is the default option
 % 
 % After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.
 % 
@@ -542,10 +542,10 @@ CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
-CtrlVar.MeshGenerator='gmesh';  % possible values: {mesh2d|gmesh}
-CtrlVar.GmeshFile='GmeshFile';  % name of gmesh input/output files (no file extensions)
+CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
+CtrlVar.GmshFile='GmshFile';  % name of gmsh input/output files (no file extensions)
 
-CtrlVar.GmeshMeshingAlgorithm=1;    % see gmsh manual
+CtrlVar.GmshMeshingAlgorithm=1;     % see gmsh manual
                                     % 1=MeshAdapt
                                     % 2=Automatic
                                     % 5=Delaunay
@@ -553,20 +553,30 @@ CtrlVar.GmeshMeshingAlgorithm=1;    % see gmsh manual
                                     % 7=bamg
                                     % 8=DelQuad (experimental)
                                     
+CtrlVar.GmshVerbosityLevel=1;    % see gmsh manual, higher values give more information
+CtrlVar.GmshPause=0;      % very occasionally gmsh returns an error when run from within matlab
+                          % but runs OK if run outside of matlab for exactly the same problem (!).
+                          % The reasons for this are not clear, possibly related to delayed writing of
+                          % files and some syncronisation issues. Possibly remedy is to introduced a short
+                          % pause before calling gmsh. GmshPause>0 creates such a pause.
+                          % The duration of the pause is measured in seconds.
+                          
+                          
 CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
                            % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
                            % Format 1 is simpler
                            % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
                            % flexible. See ExamplesOfMeshGeneration.m for further description and examples.
-CtrlVar.GmeshBoundaryType='lines';   % (spline|lines)
-CtrlVar.GmeshCharacteristicLengthExtendFromBoundary=0;
-CtrlVar.GmeshCharacteristicLengthFromCurvature = 0 ;
+CtrlVar.GmshBoundaryType='lines';   % (spline|lines)
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=0;
+CtrlVar.GmshCharacteristicLengthFromCurvature = 0 ;
 CtrlVar.GmshGeoFileAdditionalInputLines{1}='   ';  % these lines are added to the gmsh .geo input file each time such a file is created
 
 CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
 CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
 
 %% Controlling element sizes
+% 
 % if no adaptive meshing is used then the element size is given by
 CtrlVar.MeshSize=10e3;                       % over-all desired element size (however if gmsh is used without adaptive meshing
                                              % only CtrlVar.MeshSizeMin and CtrlVar.MeshSizeMax are used)
@@ -578,6 +588,12 @@ CtrlVar.MaxNumberOfElements=100e3;           % max number of elements. If #eleme
 CtrlVar.MaxNumberOfElementsUpperLimitFactor=1.3;  % if actual number of elements is larger than CtrlVar.MaxNumberOfElements by this factor
                                                   % the domain is remeshed by modifying MeshSizeMin 
 CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
+% Note that the `MeshSize' part of the names of these variables is possibly somewhat
+% misleading. These variables relate to the size of the elements not the overall
+% size of the computational mesh (which is determined by
+% MeshBoundaryCoordinatates).
+
+
 
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:

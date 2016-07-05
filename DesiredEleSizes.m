@@ -8,14 +8,19 @@ function  [x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndic
 % Scales element sizes to fit within the range of CtrlVar.MeshSizeMin to CtrlVar.MeshSizeMax
 %
 
+
+
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
-[M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
+M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
 EleSizeCurrent=sqrt(M*EleArea);
 % figure ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize0);
 % title('Nodal areas')
 
-x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2); EleSizeDesired=zeros(numel(x),1)+CtrlVar.MeshSizeMax ;
+x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2); 
+
+EleSizeDesired=zeros(numel(x),1)+CtrlVar.MeshSizeMax ;
+NodalErrorIndicators=[];
 
 for I=1:numel(CtrlVar.RefineCriteria)
     fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.RefineCriteria{I});
@@ -24,7 +29,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
     %% calculations specific to error criterion start
     switch CtrlVar.RefineCriteria{I}
         
-        case 'effective strain rates';
+        case 'effective strain rates'
             
             [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
             NodalErrorIndicator=ProjectFintOntoNodes(MUA,e);
@@ -127,7 +132,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
             end
             
-        case '||grad(dhdt)||';
+        case '||grad(dhdt)||'
             
             if all(abs(dhdt)<1e-5)
                 ErrorIndicatorUsefull=0;
@@ -158,7 +163,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
             end
             
-        case 'dhdt curvature';
+        case 'dhdt curvature'
             
             if all(abs(dhdt)<1e-5)
                 ErrorIndicatorUsefull=0;
@@ -206,7 +211,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
             end
-        case 'thickness gradient';
+        case 'thickness gradient'
             
             if (max(h)-min(h))< 10
                 ErrorIndicatorUsefull=0;
@@ -237,7 +242,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
             end
             
-        case 'thickness curvature';
+        case 'thickness curvature'
             
             if (max(h)-min(h))< 10
                 ErrorIndicatorUsefull=0;
@@ -284,7 +289,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
             end
             
-        case 'flotation';
+        case 'flotation'
             
             dgf = DiracDelta(1/CtrlVar.RefineDiracDeltaWidth,h-hf,CtrlVar.RefineDiracDeltaOffset);
             dgfmin=max(dgf)/1e5; dgf(dgf<dgfmin)=dgfmin;
@@ -382,6 +387,14 @@ for I=1:numel(CtrlVar.RefineCriteria)
     EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
     
 end
+
+%%
+% Set elesizes around GL to a specific value
+
+%%
+
+
+
 
 if all(EleSizeDesired==CtrlVar.MeshSizeMax)
     % if none of the explicit error indicators was usefull then set ele size to user-defined ele size

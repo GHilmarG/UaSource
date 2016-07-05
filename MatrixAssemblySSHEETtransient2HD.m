@@ -24,8 +24,9 @@ a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.AGlenisElementBased ;
+if ~CtrlVar.AGlenisElementBased
     AGlen=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    n=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 
@@ -85,13 +86,15 @@ else
         a1int=a1nod*fun;
         rhoint=rhonod*fun;
         
-        if ~CtrlVar.AGlenisElementBased ;
+        if ~CtrlVar.AGlenisElementBased
             AGlenint=AGlen*fun;
+            nint=n*fun;
         else
             AGlenint=AGlen;
+            nint=n;
         end
         
-        D=2*AGlenint.*(rhoint.*g).^n/(n+2);
+        D=2*AGlenint.*(rhoint.*g).^nint./(nint+2);
         
         ds0dx=zeros(MUA.Nele,1); ds0dy=zeros(MUA.Nele,1);
         ds1dx=zeros(MUA.Nele,1); ds1dy=zeros(MUA.Nele,1);
@@ -125,8 +128,8 @@ else
                     temp=dt*theta*D.*h1int.^(n+2).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     
                     lf2=(gradSurf1.^(n-1)).* temp;
-                    lf3=(n-1)*(gradSurf1.^(n-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ; 
-
+                    lf3=(n-1)*(gradSurf1.^(n-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ;
+                    
                     %             lf2=dt*theta*D.*(gradSurf1.^(n-1)).*(h1int.^(n+2))...
                     %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     %
@@ -159,14 +162,14 @@ else
 end
 % assemble right-hand side
 
-T=sparse(neq,1);
+T=sparseUA(neq,1);
 for I=1:MUA.nod
-    T=T+sparse(MUA.connectivity(:,I),ones(MUA.Nele,1),t1(:,I),neq,1);
+    T=T+sparseUA(MUA.connectivity(:,I),ones(MUA.Nele,1),t1(:,I),neq,1);
 end
 
-F=sparse(neq,1);
+F=sparseUA(neq,1);
 for I=1:MUA.nod
-    F=F+sparse(MUA.connectivity(:,I),ones(MUA.Nele,1),f1(:,I),neq,1);
+    F=F+sparseUA(MUA.connectivity(:,I),ones(MUA.Nele,1),f1(:,I),neq,1);
 end
 
 R=T-F  ;
@@ -174,7 +177,7 @@ R=T-F  ;
 if ~OnlyR
     for I=1:MUA.nod
         for J=1:MUA.nod
-            K=K+sparse(MUA.connectivity(:,I),MUA.connectivity(:,J),d1d1(:,I,J),neq,neq);
+            K=K+sparseUA(MUA.connectivity(:,I),MUA.connectivity(:,J),d1d1(:,I,J),neq,neq);
         end
     end
 else

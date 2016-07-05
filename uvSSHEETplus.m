@@ -27,8 +27,9 @@ txzbnod=reshape(txzb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 tyzbnod=reshape(tyzb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-if ~CtrlVar.AGlenisElementBased ;
+if ~CtrlVar.AGlenisElementBased 
     AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -62,10 +63,11 @@ for Iint=1:MUA.nip
     
     if ~CtrlVar.AGlenisElementBased 
         AGlen=AGlennod*fun;
+        n=nnod*fun;
     end
  
     detJw=detJ*weights(Iint);
-    D=(2/(n+1))*AGlen.*(txzbint.^2+tyzbint.^2).^((n-1)/2).*hint.*detJw;  % all variables defined at this integration point
+    D=(2./(n+1)).*AGlen.*(txzbint.^2+tyzbint.^2).^((n-1)/2).*hint.*detJw;  % all variables defined at this integration point
     
     for Inod=1:MUA.nod
 

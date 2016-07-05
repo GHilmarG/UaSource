@@ -1,4 +1,4 @@
-function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
+function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,nTol,aTol)
     
     %%
     %
@@ -12,7 +12,8 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
     %   [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
-    % where A and B define the end points of a line segment, and
+    % where A and B define the end points of a line segment, and (the easier to use)
+    % format:
     %
     %   [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, coo , [],tolerance)
     %
@@ -20,8 +21,9 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
     % A point is considered to be on a line segment if:
     %
-    % # the distance normal to the line segment B-A (vector notation) to the point p is less than tolerance, and
-    % # if the distance along the line segment is less than the length of the line segment using same tolerance
+    % # the distance normal to the line segment B-A (vector notation) to the point p is less than nTol, and
+    % # if the distance along the line segment is less than the length of the line
+    % segment using the tolerance aTol
     %
     % Usefull to determine if point p is on or close to the line segment B-A
     % and to find all nodal points along the boundary defined by the pairwise joining
@@ -29,11 +31,13 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
     % Inputs:
     % 
-    % p  : Nx2 matrix of points
+    % p  : Nx2 matrix of with the (x,y) cooridnates of points
     %
     % A , B : Mx2 matrix defining start and end points of M line segments.
     %
     % coo   : Mx2 matrix defining the (x,y) coordinates of connected line segments.
+    %
+    % nTol and aTol are distances. Points 
     %
     % Outputs:
     %
@@ -48,8 +52,8 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
     %
     % Example:
     %
-    %   p=[3 0 ; 0 0 ] ; a=[1 0] ; b=[5 0]; tolerance=0.1;
-    %   [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, a, b,tolerance)
+    %   p=[3 0 ; 0 0 ] ; a=[1 0] ; b=[5 0]; nTol=0.1;
+    %   [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, a, b,nTol)
     %
     % Example: 
     % if xx and yy are vectors defining (x,y) locations, I can find all boundary nodes 
@@ -74,13 +78,26 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
         A=[A(1:end-1,1) A(1:end-1,2)] ;
     end
     
-    if nargin<4 ; tolerance=eps ; end;
+    if nargin<4 ; nTol=eps ; end;
+    
+    
+    if nargin<5
+      aTol=nTol;
+    end
+    
+    
+    
     
     M=size(A,1);
     N=size(p,1);
-    AlongDist=zeros(N,1)+Inf;
-    NormDist=zeros(N,1)+Inf;
     
+    if nargout>1
+        AlongDist=zeros(N,1)+Inf;
+        NormDist=zeros(N,1)+Inf;
+    else
+        AlongDist=[];
+        NormDist=[];
+    end
     
     Ind=[];
     for J=1:M
@@ -94,17 +111,19 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
         e(:,1)=p(:,1)-a(1);
         e(:,2)=p(:,2)-a(2);
         
-        dalong=e*d'/l^2      ;  % normalized distance, if point p within the `transverse' strip to b-a, then 0<AlongDist<1
+        dalong=e*d'/l      ;    % distance, if point p within the `transverse' strip to b-a, then 0<AlongDist<1
         dnorm=abs(e*f'/l)   ;   % absolute distance normal to b-a
         
-        Ind=[Ind;find(dalong>=-tolerance & dalong<=1+tolerance &  dnorm<=tolerance)];
         
-        AlongDist=min(AlongDist,dalong);
-        NormDist=min(NormDist,dnorm);
+        Ind=[Ind;find(dalong>=-aTol & dalong<=l+aTol &  dnorm<=nTol)];
         
+        if nargout>1
+            AlongDist=min(AlongDist,dalong);
+            NormDist=min(NormDist,dnorm);
+        end
         
     end
-   
+    
     Ind=unique(Ind);
     
 end

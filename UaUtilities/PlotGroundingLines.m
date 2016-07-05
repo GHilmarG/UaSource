@@ -7,17 +7,17 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 % Examples:
 %
 %   
-%   PlotGroundingLines(CtrlVar,MUA,GF);
+%    PlotGroundingLines(CtrlVar,MUA,GF);
 %
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in 
+%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in 
 %                                                                   % red
 %   
 %
-%   GLgeo=[] ; xGL=[], yGL=[]; % repeated use
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%    GLgeo=[] ; xGL=[], yGL=[]; % repeated use
+%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
 %
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
 %
 % To plot grounding lines for higher-order elements with sub-element resolution
 % set CtrlVar.GLsubdivide=1. Doing so causes higher-order elements to be split
@@ -26,6 +26,8 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % To plot individual grounding lines in different colours set
 % CtrlVar.PlotIndividualGLs=1
+%
+% To not create any plots set CtrlVar.PlotGLs=0;
 %
 % If xGL and yGL are empty on input, they are calculated from MUA and GLgeo.
 %

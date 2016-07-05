@@ -24,7 +24,7 @@ hf=(S-B)*rhow./rho ;
 % x, y are x,y coordinates of nodes
 [x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,ub0,vb0,ud0,vd0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
 
-if strcmp(CtrlVar.MeshGenerator,'gmesh')
+if strcmp(CtrlVar.MeshGenerator,'gmsh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
         error('RemeshingBasedOnExplicitErrorEstimate:gmsh','When using gmsh desired ele sizes must be defined at nodes')
     end
@@ -63,19 +63,19 @@ switch lower(CtrlVar.MeshRefinementMethod)
             case 'mesh2d'
                 CtrlVar.MeshSize=zeros(length(x0),3);
                 CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
-            case 'gmesh'
+            case 'gmsh'
                 
-                GmeshBackgroundScalarField.xy=[x0(:) y0];
-                GmeshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-                GmeshBackgroundScalarField.TRI=TRIxy0;
+                GmshBackgroundScalarField.xy=[x0(:) y0];
+                GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
+                GmshBackgroundScalarField.TRI=TRIxy0;
                 
                 
                 %                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1
-                %                     figure ; PlotFEmesh(GmeshBackgroundScalarField.xy,GmeshBackgroundScalarField.TRI,CtrlVar);
+                %                     figure ; PlotFEmesh(GmshBackgroundScalarField.xy,GmshBackgroundScalarField.TRI,CtrlVar);
                 %                 end
                 
             otherwise
-                error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmesh} ')
+                error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
         end
         
         if CtrlVar.GLmeshing==1
@@ -83,7 +83,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
             [MeshBoundaryCooWithGLcoo,edge,face,xGLmesh,yGLmesh]=glLineEdgesFaces(GF,MUA.coordinates,MUA.connectivity,MeshBoundaryCoordinates,CtrlVar);
             MUA=genmesh2d(CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
         else
-            MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmeshBackgroundScalarField);
+            MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
         end
         
         %figure ; PlotFEmesh(coordinates,connectivity,CtrlVar);
@@ -136,14 +136,14 @@ switch lower(CtrlVar.MeshRefinementMethod)
                 case 'mesh2d'
                     CtrlVar.MeshSize=zeros(length(x0),3);
                     CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
-                case 'gmesh'
-                    GmeshBackgroundScalarField.xy=[x0(:) y0(:)] ;
-                    GmeshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-                    GmeshBackgroundScalarField.TRI=TRIxy0 ;
+                case 'gmsh'
+                    GmshBackgroundScalarField.xy=[x0(:) y0(:)] ;
+                    GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
+                    GmshBackgroundScalarField.TRI=TRIxy0 ;
                     
                     if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
                 otherwise
-                    error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmesh} ')
+                    error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
             end
             
             if CtrlVar.InfoLevelAdaptiveMeshing>=1;
@@ -157,7 +157,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
             if CtrlVar.GLmeshing==1
                 MUA=genmesh2d(CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
             else
-                MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmeshBackgroundScalarField);
+                MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
             end
             
             if CtrlVar.InfoLevelAdaptiveMeshing>=1;

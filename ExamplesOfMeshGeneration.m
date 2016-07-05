@@ -66,8 +66,8 @@ CtrlVar.MeshSize=0.5e3;
 CtrlVar.MeshSizeMin=CtrlVar.MeshSize/5;
 CtrlVar.MeshSizeMax=5*CtrlVar.MeshSize;
 % 
-CtrlVar.GmeshCharacteristicLengthExtendFromBoundary=1;
-CtrlVar.GmeshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
 
 xbed=xL:CtrlVar.MeshSize:xR;
 ybed=Ampl*sin(2*pi*xbed/lambda)+  yB;
@@ -166,7 +166,7 @@ MeshBoundaryCoordinates=...
     50 NaN ; -2.6 -0.6 ; -2.6 0.3 ; -2.0 0.3 ; -2.0 -0.6  ; ...   % outer boundary of mesh 50
     50 NaN ; -2.5 -0.5 ; -2.1 -0.5 ; -2.1 0.1 ; -2.5 0.1 ];       % inner boundary of mesh 50
 
-CtrlVar.GmeshMeshingAlgorithm=8;    % see gmsh manual
+CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 
 
 MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
@@ -460,10 +460,10 @@ drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example of running gmsh directly for a given input file
 
-status=system([getenv('GmeshHomeDirectory'),'\gmsh.exe GmeshFile.geo -2 -v 5']);
-Gmesh=load_gmshGHG('GmeshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
-TRI=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
-xy=Gmesh.POS(1:Gmesh.nbNod,1:2);
+status=system([getenv('GmshHomeDirectory'),'\gmsh.exe GmshFile.geo -2 -v 5']);
+Gmsh=load_gmshGHG('GmshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
+TRI=Gmsh.TRIANGLES(1:Gmsh.nbTriangles,1:3);
+xy=Gmsh.POS(1:Gmsh.nbNod,1:2);
 figure
 triplot(TRI,xy(:,1),xy(:,2)) ; axis equal
 drawnow

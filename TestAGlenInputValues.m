@@ -4,15 +4,17 @@ function [AGlen,n]=TestAGlenInputValues(CtrlVar,MUA,AGlen,n)
 % [AGlen,n]=TestAGlenInputValues(CtrlVar,AGlen,n)
 %
 % Performs simple test to see if user input for A and n are OK
-% 
+%
 
-if numel(AGlen)==1
+if numel(AGlen)==1 || numel(n)==1
     
-    fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
+    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
     if  CtrlVar.AGlenisElementBased
         AGlen=AGlen+zeros(MUA.Nele,1);
+        n=n+zeros(MUA.Nele,1);
     else
         AGlen=AGlen+zeros(MUA.Nnodes,1);
+        n=n+zeros(MUA.Nnodes,1);
     end
     
 end

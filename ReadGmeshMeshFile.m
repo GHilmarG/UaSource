@@ -1,5 +1,5 @@
 %%
-fid = fopen('GmeshInitialGeoInputFile.msh');
+fid = fopen('GmshInitialGeoInputFile.msh');
 
 for I=1:4
 tline = fgetl(fid); 

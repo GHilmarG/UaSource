@@ -21,6 +21,24 @@ function [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
+% 
+% Example:
+% Mesh refinement around a given distance from the grounding line:
+% 
+%   CtrlVar.GroundingLineMeshRefinementNormalDistance=5000; 
+%   CtrlVar.GroundingLineMeshRefinementAlongDistance=5000;
+%   CtrlVar.GroundingLineMeshRefinementDesiredEleSize=1000;
+%
+% Now all parameters have been defined (this could be done in
+% Ua2D_InitialUserInput)
+%
+%   aTol=CtrlVar.GroundingLineMeshRefinementAlongDistance;
+%   nTol=CtrlVar.GroundingLineMeshRefinementNormalDistance;
+%   CtrlVar.PlotGLs=0;
+%   [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
+%   Ind = DistanceToLineSegment([x y], [xGL yGL], [],nTol,aTol);
+%   EleSizeDesired(Ind)=CtrlVar.GroundingLineMeshRefinementDesiredEleSize;
+%
 %%
     
   fprintf('Using default DefineDesiredEleSize \n')    

@@ -43,7 +43,10 @@ unod=reshape(ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-if ~CtrlVar.CisElementBased ;  Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod); end
+if ~CtrlVar.CisElementBased 
+    Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+    mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+end
 
 
 Snod=reshape(S(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -88,9 +91,11 @@ for Iint=1:MUA.nip
     vint=vnod*fun;
     if CtrlVar.CisElementBased
         Cint=C;
+        mint=m;
     else
         Cint=Cnod*fun;
         Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+        mint=mnod*fun;
     end
     
     
@@ -105,7 +110,7 @@ for Iint=1:MUA.nip
     
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
-    [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,m,Heint,CtrlVar);
+    [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
     if ~isreal(beta2int)     ; save KRTFgeneralBCsErrorFile  ; error('KRTF: beta2int not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
     if ~isreal(Dbeta2Duuint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duuint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
     if ~isreal(Dbeta2Dvvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Dvvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end

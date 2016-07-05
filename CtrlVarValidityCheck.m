@@ -136,6 +136,16 @@ if isfield(CtrlVar,'nTimeSteps')
     CtrlVar.TotalNumberOfForwardRunSteps=CtrlVar.nTimeSteps;
 end
 
+if isfield(CtrlVar,'GmeshFile')
+    error('Ua:CtrlVarValidyCheck','The field CtrlVar.GmeshFile no longer used. Replace with CtrlVar.GmshFile.')
+end
+
+
+if isfield(CtrlVar,'GmeshMeshingAlgorithm')
+    error('Ua:CtrlVarValidyCheck','The field CtrlVar.GmeshMeshingAlgorithm no longer used. Replace with CtrlVar.GmshMeshingAlgorithm.')
+end
+
+
 
 end
 

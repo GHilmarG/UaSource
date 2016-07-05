@@ -9,7 +9,7 @@ function connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,con
 
 % first check if all elements are inside out as this quite a frequent situation and
 % happens, for example, each time the
-% orientation of the MeshBoundaryCoordinates is not consistent with gmesh/mesh2d
+% orientation of the MeshBoundaryCoordinates is not consistent with gmsh/mesh2d
 
 if all(detJ<0) ;
     fprintf(' All elements are inside out. All elements therefore flipped. \n  ') ;

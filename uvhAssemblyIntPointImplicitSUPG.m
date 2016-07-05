@@ -1,10 +1,14 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-    bnod,hnod,unod,vnod,C,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dudt0nod,dvdt0nod,dadhnod,Bnod,Snod,rhonod,...
-    CtrlVar,rhow,g,m,etaInt,exx,eyy,exy,Eint,Ronly,ca,sa,dt,...
+    bnod,hnod,unod,vnod,Cnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dudt0nod,dvdt0nod,dadhnod,Bnod,Snod,rhonod,...
+    CtrlVar,rhow,g,mnod,etaInt,exx,eyy,exy,Eint,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
 % I've added here the rho terms in the mass-conservation equation
+%
+%
+%  despite their names,  unod and Cnod can be either nodal or element variables
+%
 %
 
 theta=CtrlVar.theta;
@@ -36,9 +40,11 @@ uint=unod*fun;
 vint=vnod*fun;
 
 if CtrlVar.CisElementBased
-    Cint=C;
+    Cint=Cnod;
+    mint=cnod;
 else
-    Cint=C*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    mint=mnod*fun;
 end
 
 h0int=h0nod*fun;
@@ -113,7 +119,7 @@ dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint;
 
 
-[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,m,Heint,CtrlVar);
+[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
 etaint=etaInt(:,Iint) ;  % I could consider calculating this here
 
 

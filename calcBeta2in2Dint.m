@@ -11,7 +11,7 @@ function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = ...
 
     
     %beta2int=Cint.^(-1/m).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;
-    beta2int=(Cint+CtrlVar.Czero).^(-1/m).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;
+    beta2int=(Cint+CtrlVar.Czero).^(-1./m).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./m-1) ;
     beta2int=Heint.*beta2int;
     
     
@@ -23,7 +23,7 @@ function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = ...
         %
         
         %Dbeta2int=(1/m-1).*Cint.^(-1/m).*(uint.^2+vint.^2+CtrlVar.SpeedZero^2).^((1-3*m)/(2*m));
-        Dbeta2int=(1/m-1).*(Cint+CtrlVar.Czero).^(-1/m).*(uint.^2+vint.^2+CtrlVar.SpeedZero^2).^((1-3*m)/(2*m));
+        Dbeta2int=(1./m-1).*(Cint+CtrlVar.Czero).^(-1./m).*(uint.^2+vint.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
         
         %Dbeta2int=Dbeta2int.*GF.int(:,Iint);
         Dbeta2int=Dbeta2int.*Heint;

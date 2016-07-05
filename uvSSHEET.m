@@ -20,6 +20,7 @@ rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 if ~CtrlVar.AGlenisElementBased
     AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -53,6 +54,7 @@ for Iint=1:MUA.nip
     
     if ~CtrlVar.AGlenisElementBased 
         AGlen=AGlennod*fun;
+        n=nnod*fun;
     end
     
     
@@ -70,7 +72,7 @@ for Iint=1:MUA.nip
     
     %T=gradSurf.^(n-1).*(rhoint.*g.*hint).^n;
     
-    D=2*AGlen.*gradSurf.^(n-1).*hint.^(n+1).*(rhoint.*g).^n/(n+1);
+    D=2*AGlen.*gradSurf.^(n-1).*hint.^(n+1).*(rhoint.*g).^n./(n+1);
     
     for Inod=1:MUA.nod
  

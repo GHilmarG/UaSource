@@ -68,7 +68,7 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
 [status,message]=copyfile(CtrlVar.Logfile,[CtrlVar.Logfile,'~']);  %  copy potential previous logfile
 
-[pathstr,name]=fileparts(CtrlVar.GmeshFile); CtrlVar.GmeshFile=[pathstr,name]; % get rid of eventual file extension
+[pathstr,name]=fileparts(CtrlVar.GmshFile); CtrlVar.GmshFile=[pathstr,name]; % get rid of eventual file extension
 
 %%  A RunInfo file is created and some basic information about the run is added to that file
 %   Inspecting the contents of this run info file is sometimes a convenient way of

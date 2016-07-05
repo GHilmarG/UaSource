@@ -6,9 +6,10 @@ function PlotBoundaryConditions(CtrlVar,MUA,BCs)
 %
 %%
 
+
+
 CtrlVar.PlotMesh=1;
 
-%PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar); hold on
 PlotMuaMesh(CtrlVar,MUA)  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
@@ -19,26 +20,37 @@ headscale=0.3; sharp=0.3; head=1; lw=1; io=-1; col='r';
 
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
     
+    [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
+    
     if ~isempty(BCs.ubFixedNode)
+        
         xfixed=x(BCs.ubFixedNode); yfixed=y(BCs.ubFixedNode);
-        ghg_arrow(xfixed,yfixed,xfixed*0+1,yfixed*0,velscale,headscale,sharp,head,col,lw,io);
+        xNorm=Nx(BCs.ubFixedNode)./abs(Nx(BCs.ubFixedNode)); 
+        yNorm=xfixed*0;
+        ghg_arrow(xfixed,yfixed,xNorm,yNorm,velscale,headscale,sharp,head,col,lw,io);
+
     end
    
     if ~isempty(BCs.vbFixedNode)
+
         xfixed=x(BCs.vbFixedNode); yfixed=y(BCs.vbFixedNode);
-        ghg_arrow(xfixed,yfixed,xfixed*0,yfixed*0+1,velscale,headscale,sharp,head,col,lw,io);
+        xNorm=xfixed*0;
+        yNorm=Ny(BCs.vbFixedNode)./abs(Ny(BCs.vbFixedNode)); 
+        ghg_arrow(xfixed,yfixed,xNorm,yNorm,velscale,headscale,sharp,head,col,lw,io);
+        %ghg_arrow(xfixed,yfixed,xfixed*0,yfixed*0+1,velscale,headscale,sharp,head,col,lw,io);
+
     end
     
     if ~isempty(BCs.ubvbFixedNormalNode)
         xfixed=x(BCs.ubvbFixedNormalNode); yfixed=y(BCs.ubvbFixedNormalNode);
-        [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
+        
         col='c';
         ghg_arrow(xfixed,yfixed,Nx(BCs.ubvbFixedNormalNode),Ny(BCs.ubvbFixedNormalNode),velscale,headscale,sharp,head,col,lw,io);
     end
     % plot ties
     
     if ~isempty(BCs.ubTiedNodeA)
-        for I=1:numel(BCs.vbTiedNodeA)
+        for I=1:numel(BCs.ubTiedNodeA)
             plot(x(BCs.ubTiedNodeA(I)),y(BCs.ubTiedNodeA(I)),'ob')
             plot(x(BCs.ubTiedNodeB(I)),y(BCs.ubTiedNodeB(I)),'xb')
             plot([x(BCs.ubTiedNodeA(I))  x(BCs.ubTiedNodeB(I))],[y(BCs.ubTiedNodeA(I))  y(BCs.ubTiedNodeB(I))],'b--')

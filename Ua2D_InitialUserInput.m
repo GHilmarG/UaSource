@@ -31,7 +31,7 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
     MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
     CtrlVar.GmshGeoFileAdditionalInputLines{1}='Periodic Line {1,2} = {3,4};';  % these lines are added to the gmsh .geo input file each time such a file is created
     CtrlVar.OnlyMeshDomainAndThenStop=0;
-    %CtrlVar.GmeshMeshingAlgorithm=8;  % see gmsh manual 
+    %CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual 
     CtrlVar.TriNodes=6;   % [3,6,10]
     CtrlVar.MeshSize=200e3;
     CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;

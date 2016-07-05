@@ -106,7 +106,7 @@ GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
 if CtrlVar.doplots==1
-    if CtrlVar.PlotBCs;
+    if CtrlVar.PlotBCs
         figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs);
     elseif CtrlVar.PlotMesh
         figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)

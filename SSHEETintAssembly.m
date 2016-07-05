@@ -35,11 +35,13 @@ function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,rhonod,g,s0nod,
         
         if ~CtrlVar.AGlenisElementBased
             AGlenint=AGlen*fun;
+            nint=n*fun;
         else
             AGlenint=AGlen;
+            nint=n;
         end
         
-        D=2*AGlenint.*(rhoint.*g).^n/(n+2);
+        D=2*AGlenint.*(rhoint.*g).^nint./(nint+2);
         
         ds0dx=zeros(MUA.Nele,1); ds0dy=zeros(MUA.Nele,1);
         ds1dx=zeros(MUA.Nele,1); ds1dy=zeros(MUA.Nele,1);
@@ -67,18 +69,18 @@ function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,rhonod,g,s0nod,
                     
                     deltahterm=fun(I).*fun(J);
                     
-                    lf1=dt*theta*(n+2)*D.*(gradSurf1.^(n-1)).*(h1int.^(n+1))...
+                    lf1=dt*theta*(nint+2).*D.*(gradSurf1.^(nint-1)).*(h1int.^(nint+1))...
                         .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);
                     
-                    temp=dt*theta*D.*h1int.^(n+2).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
+                    temp=dt*theta*D.*h1int.^(nint+2).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     
-                    lf2=(gradSurf1.^(n-1)).* temp;
-                    lf3=(n-1)*(gradSurf1.^(n-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ; 
+                    lf2=(gradSurf1.^(nint-1)).* temp;
+                    lf3=(nint-1).*(gradSurf1.^(nint-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ; 
 
-                    %             lf2=dt*theta*D.*(gradSurf1.^(n-1)).*(h1int.^(n+2))...
+                    %             lf2=dt*theta*D.*(gradSurf1.^(nint-1)).*(h1int.^(nint+2))...
                     %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     %
-                    %             lf3=dt*theta*(n-1)*D.*(gradSurf1.^(n-3)).*(h1int.^(n+2))...
+                    %             lf3=dt*theta*(nint-1)*D.*(gradSurf1.^(nint-3)).*(h1int.^(nint+2))...
                     %                 .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I))...
                     %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     
@@ -88,8 +90,8 @@ function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,rhonod,g,s0nod,
             end
             dhterm=(h1int-h0int).*fun(I);
             
-            q0term=dt*(1-theta)*D.*gradSurf0.^(n-1).*h0int.^(n+2).*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
-            q1term=dt*theta*    D.*gradSurf1.^(n-1).*h1int.^(n+2).*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
+            q0term=dt*(1-theta)*D.*gradSurf0.^(nint-1).*h0int.^(nint+2).*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
+            q1term=dt*theta*    D.*gradSurf1.^(nint-1).*h1int.^(nint+2).*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
             
             a0term=-dt*(1-theta)*a0int.*fun(I);
             a1term=-dt*theta*a1int.*fun(I);

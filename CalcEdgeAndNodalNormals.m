@@ -16,7 +16,7 @@ function [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(connectivity,coordinates,
 %               Edges=[node1 node2 node3 ; node1 node2 node3 ; etc ] for a 6-node element
 %               Edges=[node1 node2 node3 node4 ; node1 node2 node3  node4 ; etc ] for a 10-node element
 %
-% For 6 and 10 node elemetns, each edge therefore consists of 2 and 3, respectivily, sub-edges.
+% For 6 and 10 node elements, each edge therefore consists of 2 and 3, respectivily, sub-edges.
 %
 % MUA.Boundary.Edges is in this format
 %

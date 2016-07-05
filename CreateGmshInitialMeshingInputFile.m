@@ -2,7 +2,7 @@ function io = CreateGmshInitialMeshingInputFile(CtrlVar,MeshBoundaryCoordinates,
 
 %
 % io = CreateGmshInitialMeshingInputFile(CtrlVar,MeshBoundaryCoordinates,FileName)
-% writes a .geo file which can be used as an input file for gmesh
+% writes a .geo file which can be used as an input file for gmsh
 %
 % takes MeshBoundaryCoordinates which is a Npoints x 2 matrix with xy coordinates of the
 % boundary of the domain.
@@ -29,7 +29,7 @@ function io = CreateGmshInitialMeshingInputFile(CtrlVar,MeshBoundaryCoordinates,
 io=0;  %  io=0 indicates no errors
 
 FileName=[FileName,'.geo'] ;
-fprintf(CtrlVar.fidlog,' Creating an input file for gmesh : %s \n',FileName) ;
+fprintf(CtrlVar.fidlog,' Creating an input file for gmsh : %s \n',FileName) ;
 
 fileID = fopen(FileName,'w');
 
@@ -76,7 +76,7 @@ if CtrlVar.GmshInputFormat==1
         
         fprintf(fileID,'Point(%i) = {%f,%f,%f,%f};\n',PrintField);
         
-        switch lower(CtrlVar.GmeshBoundaryType)
+        switch lower(CtrlVar.GmshBoundaryType)
             
             case 'lines'
                 % lines
@@ -91,7 +91,7 @@ if CtrlVar.GmshInputFormat==1
                 fprintf(fileID,'Spline(%i) = {%i:%i,%i};\n',labels(end)+1,labels(1),labels(end),1);
                 fprintf(fileID,'Line Loop(%i) = {%i};\n',I,labels(end)+1);
             otherwise
-                fprintf(CtrlVar.fidlog,'CtrlVar.GmeshBoundaryType must be: [lines,spline] but is %s \n',CtrlVar.GmeshBoundaryType);
+                fprintf(CtrlVar.fidlog,'CtrlVar.GmshBoundaryType must be: [lines,spline] but is %s \n',CtrlVar.GmshBoundaryType);
                 error('case fell through')
         end
         
@@ -191,17 +191,17 @@ end
 
 
 
-fprintf(fileID,'Mesh.Algorithm = %i ; \n', CtrlVar.GmeshMeshingAlgorithm);
+fprintf(fileID,'Mesh.Algorithm = %i ; \n', CtrlVar.GmshMeshingAlgorithm);
 fprintf(fileID,'Mesh.CharacteristicLengthMin = %f ; \n',CtrlVar.MeshSizeMin);
 fprintf(fileID,'Mesh.CharacteristicLengthMax = %f ; \n',CtrlVar.MeshSizeMax);
 
-if CtrlVar.GmeshCharacteristicLengthExtendFromBoundary
+if CtrlVar.GmshCharacteristicLengthExtendFromBoundary
     fprintf(fileID,'Mesh.CharacteristicLengthExtendFromBoundary = %i ; \n',1);
 else
     fprintf(fileID,'Mesh.CharacteristicLengthExtendFromBoundary = %i ; \n',0);
 end
 
-if CtrlVar.GmeshCharacteristicLengthFromCurvature
+if CtrlVar.GmshCharacteristicLengthFromCurvature
     fprintf(fileID,'Mesh.CharacteristicLengthFromCurvature = 1 ; \n');
 else
     fprintf(fileID,'Mesh.CharacteristicLengthFromCurvature = 0 ; \n');

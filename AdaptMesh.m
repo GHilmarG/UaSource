@@ -48,8 +48,8 @@ if CtrlVar.TimeGeometries.Flag
             end
             
             load(CtrlVar.TimeGeometries.MeshBoundaryInputFile{M+1},'MeshBoundaryCoordinates')
-            CtrlVar.GmeshFile=CtrlVar.TimeGeometries.GmeshFile{M+1};
-            CtrlVar.GmeshMeshingMode=CtrlVar.TimeGeometries.GmeshMeshingMode{M+1};
+            CtrlVar.GmshFile=CtrlVar.TimeGeometries.GmshFile{M+1};
+            CtrlVar.GmshMeshingMode=CtrlVar.TimeGeometries.GmshMeshingMode{M+1};
             CtrlVar.TimeGeometries.Done=M+1;
             if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
                 figure ; PlotFEmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar);
