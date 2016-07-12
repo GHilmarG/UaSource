@@ -20,7 +20,7 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 
 [Nele,nod]=size(connectivity);
 
-if Nele==0;
+if Nele==0
     Boundary.Nodes=[];
     Boundary.EdgeCornerNodes=[];
     Boundary.FreeElements=[];

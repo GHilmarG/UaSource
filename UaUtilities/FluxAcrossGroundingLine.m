@@ -1,4 +1,4 @@
-function [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
+function [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo,ubGL,vbGL]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
 
 %  [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
 %
@@ -35,17 +35,23 @@ end
 
 
 % get rid of grounding lines around lakes
-if isempty(LakeNodes)
-    [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,MUA.Boundary,MUA.connectivity,MUA.coordinates);
-    GF.node(LakeNodes)=1;
+if nargin>13
+    fprintf('Getting read of lake nodes (note: this is not a robust general approach, do check results.\n')
+    if isempty(LakeNodes)
+        [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,MUA.Boundary,MUA.connectivity,MUA.coordinates);
+        GF.node(LakeNodes)=1;
+    end
+else
+    LakeNodes=[] ; OceanNodes=[];
 end
 
 %GF.node(MUA.Boundary.Nodes)=0;
 
-GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
 
+GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
 xGL=GLgeo(:,7) ; yGL=GLgeo(:,8);
 nxGL=GLgeo(:,9); nyGL=GLgeo(:,10);
+
 rhoGL=Fr(xGL,yGL);
 ubGL=Fub(xGL,yGL);
 vbGL=Fvb(xGL,yGL);

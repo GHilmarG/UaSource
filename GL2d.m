@@ -14,7 +14,7 @@ function GF = GL2d(B,S,h,rhow,rho,connectivity,CtrlVar)
 	GF.node= HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 	
     GF.ele=Nodes2EleMean(connectivity,GF.node);
-	%GF.ele=mean(double(GF.node(connectivity)),2);  % elements are assigned mean values of nodal values
+	
 	
     
 end

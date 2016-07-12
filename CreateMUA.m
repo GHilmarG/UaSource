@@ -14,7 +14,7 @@ if nargin<4
     CalcMUA_Derivatives=1;
 end
 
-if nargin<5;
+if nargin<5
     FindMUA_Boundary=1;
 end
 

@@ -230,7 +230,7 @@ temp=sort(find(isnan(xPolygon))) ; temp=[0;temp;numel(xPolygon)];
 
 NGL=min([numel(I),LineMax]);
 
-if CtrlVar.InfoLevel>=10;
+if CtrlVar.InfoLevel>=10
     fprintf('LineUpEdges2: Found %-i seperate lines. Returning %-i.  \n',numel(I),NGL)
 end
 

@@ -46,7 +46,7 @@ X=[x' ; tip_x'];
 Y=[y' ; tip_y'];
 
 
-if io==-1;
+if io==-1
 	tip_x=x;
 	tip_y=y;
 	

@@ -31,7 +31,7 @@
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
-                <tocitem target="DistanceToLineSegment.html">Determine if a point is close to a line.</tocitem>
+                <tocitem target="DistanceToLineSegment2.html">Determine if a point is close to a line.</tocitem>
                 <tocitem target="ProjectFintOntoNodes.html">Project element-integration-point values onto nodes.</tocitem>
             </tocitem>
         </tocitem>

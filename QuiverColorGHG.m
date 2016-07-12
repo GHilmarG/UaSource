@@ -156,7 +156,7 @@ if nargin>4 && ~isempty(Par)
         switch Par.VelPlotIntervalSpacing
             case 'log10'
                 
-                ticks=logticks(speed,12,Par.QuiverColorPowRange);
+                ticks=logticks(speed,Par.QuiverColorPowRange,12);
                 Par.QuiverColorSpeedLimits=min(ticks);
                 Par.QuiverColorSpeedLimits(2)=max(ticks);
             case 'lin'
@@ -395,7 +395,7 @@ else
             
             % this is for (hopefully) a more pleasing interval between labels
             D=(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
-            if D==0 ;  % special case if all values same or all values zero
+            if D==0  % special case if all values same or all values zero
                 D=mean(Par.SpeedPlotIntervals);
                 if D==0
                     ticklabel=[-1 0 1];

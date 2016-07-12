@@ -10,13 +10,20 @@ function [daMin,ia,dbMin,ib,D2]=DistanceCloudAtoCloudB(xa,ya,xb,yb)
 % Example: daMin(1) will give the minimum distance from [xa(1) ya(1)] to the points in cloud B
 %          and ia(1) will be the number of that node in cloud B
 %
-
+% SEE ALSO:
+% RangeSearch
+%
+%
+%
 xa=xa(:) ;  ya=ya(:) ;  xb=xb(:) ;  yb=yb(:) ;
 
 [Xa,Xb]=ndgrid(xa,xb) ;
 [Ya,Yb]=ndgrid(ya,yb);
 
+
 D2=(Xa-Xb).^2+(Ya-Yb).^2;  % this is symmetricc so I am calculating a bit too much here
+
+%D2= bsxfun(@minus,Xa,Xb).^2 + bsxfun(@minus,Ya,Yb).^2; % slower! (2016b)
 
 
 [daMin,ia]=min(D2,[],2);

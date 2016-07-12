@@ -10,7 +10,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %    PlotGroundingLines(CtrlVar,MUA,GF);
 %
 %    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in 
-%                                                                   % red
+%                                                                    % red
 %   
 %
 %    GLgeo=[] ; xGL=[], yGL=[]; % repeated use
@@ -42,7 +42,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Note: If MUA and GF have not changed from a previous call to
 % PlotGroundingLines, always give xGL and yGL from the previous call as inputs
-% to all following calls as doing so saves time when plotting complicated
+% to all following calls as doing so saves (lots of) time when plotting complicated
 % grounding lines. In an initial call, where MUA and GF are available, do for
 % example:
 %  
