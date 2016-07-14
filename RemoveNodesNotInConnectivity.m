@@ -8,7 +8,20 @@ function [coordinates,connectivity]=RemoveNodesNotInConnectivity(coordinates,con
 % relabels all nodes so that numbers start with 1 with no gaps
 
 
-if numel(coordinates)==0 ; return ; end
+if numel(coordinates)==0 
+    
+    warning('Ua:RemoveNodesNotInConnectivity:NoCoordinates','Number of coordinates is zero!')
+    return 
+
+end
+
+if numel(connectivity)==0 
+    
+    warning('Ua:RemoveNodesNotInConnectivity:NoElements','Number of elements is zero!')
+    return 
+
+end
+
 
 MeshNodes=unique(connectivity);  % MeshNodes are all the nodes in connectivity list
 
