@@ -20,7 +20,7 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
     if nargin>5
         if ~isempty(n)
             if CtrlVar.AGlenisElementBased
-                n=n+zeros(MUA.nele,1);
+                n=n+zeros(MUA.Nele,1);
             else
                 n=n+zeros(MUA.Nnodes,1);
             end
@@ -69,7 +69,7 @@ function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
             if ~isempty(AGlen)
                 if CtrlVar.AGlenisElementBased 
                     AGlenint(:,Iint)=AGlen;
-                    nGlenint(:,Iint)=nGlen;
+                    nGlenint(:,Iint)=n;
                 else
                     temp=AGlennod*fun;
                     temp(temp<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;

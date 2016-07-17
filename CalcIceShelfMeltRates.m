@@ -21,7 +21,7 @@ function [ab,qx,qy,dqxdx,dqxdy,dqydx,dqydy]=CalcIceShelfMeltRates(CtrlVar,MUA,u,
 %        Positive values freezing (mass added on)
 %        Negative values melting (mass lost)
 
-if nargin==13;
+if nargin==13
     fprintf('dhdt given as input. Will ignore dsdt input field\n')
 else
     fprintf('calculating dhdt based on measured dsdt\n')
