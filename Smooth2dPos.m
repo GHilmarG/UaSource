@@ -13,7 +13,7 @@ function [x,y,nx,ny,tvector] = Smooth2dPos(x,y,CtrlVar)
     % CtrlVar.GLtension=1
     % no smoothing, i.e: [x,y,nx,ny,tvector] = Smooth2dPos(x,y,CtrlVar)
     
-    if isempty(x) || isempty(y) ;
+    if isempty(x) || isempty(y) 
         
         x=[] ; y=[] ; nx=[] ; ny=[];
         return ; 

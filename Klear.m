@@ -1,1 +1,1 @@
-clc ; clear all ; close all
+clc ; clear ; clear all force ; close all
