@@ -1,0 +1,5 @@
+Version mutils-0.1
+
+Currently OpenMP parallelization does not work on Windows because the
+OMP_NUM_THREADS variable can not be set from within MATLAB and read
+from within the MEX function later.

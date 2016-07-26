@@ -1,0 +1,18 @@
+Installation of mutils requires MATLAB and a working C compiler that
+works with the MEX environment. To install mutils, uncompress the ZIP
+package, in the MATLAB command window change the directory to the top
+mutils directory and type 'install'.
+
+The tools have been verified to compile with gcc and Visual Studio
+compilers. Support for other compilers will come if requested. The
+compiler options can be changed in mutils/utils_config.m
+
+Compilers
+ - On Unix-like system gcc can be used
+ - On Windows, please install the Windows SDK
+ 
+    http://www.microsoft.com/en-us/download/details.aspx?id=8279
+    
+    and confugire MATLAB running on the MATLAB commandline
+    
+    mex -setup

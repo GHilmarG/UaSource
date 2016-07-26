@@ -1,0 +1,38 @@
+MATLAB 2011b
+gcc version 4.4.6 (Ubuntu/Linaro 4.4.6-11ubuntu2)
+Intel(R) Core(TM) i7-2620M CPU @ 2.70GHz
+
+
+ex_einterp
+
+tsearch2: 0.42008
+einterp MEX (sequential): 0.15866
+einterp MEX (parallel): 0.090031
+einterp MATLAB: 2.0384
+Maximum difference between MATLAB and MEX implementations: 1.6984e-10
+
+
+ex_sparse
+
+sparse_create
+general symbolic sparse matrix (1 dof per node): 0.070339
+symmetric symbolic sparse matrix (1 dof per node): 0.038727
+assemble general sparse matrix (3 dof per node): 0.6381
+assemble symmetric sparse matrix (3 dof per node): 0.36191
+
+MATLAB version
+triplet indices: 0.30553
+assemble general sparse matrix (sparse): 2.9937
+assemble general sparse matrix (sparse2): 0.93768
+
+
+ex_tsearch2
+
+tsearch2 (sequential): 0.78026
+tsearch2 (parallel): 0.43201
+Warning: TSEARCH will be removed in a future release. Use
+DelaunayTri/pointLocation instead. 
+> In tsearch at 20
+  In ex_tsearch2 at 64 
+tsearch: 1.6992
+pointLocation: 18.7504

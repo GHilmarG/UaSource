@@ -1,0 +1,34 @@
+MATLAB 2012a
+Visual Studio compiler, Microsoft Windows SDK v7.1
+Intel(R) Core(TM) i7-2620M CPU @ 2.70GHz
+
+
+ex_einterp
+
+tsearch2: 0.42288
+einterp MEX (sequential): 0.14329
+einterp MEX (parallel): 0.14124
+einterp MATLAB: 1.7595
+Maximum difference between MATLAB and MEX implementations: 1.5492e-10
+
+
+ex_sparse
+
+sparse_create
+general symbolic sparse matrix (1 dof per node): 0.059673
+symmetric symbolic sparse matrix (1 dof per node): 0.034087
+assemble general sparse matrix (3 dof per node): 0.59078
+assemble symmetric sparse matrix (3 dof per node): 0.3057
+
+MATLAB version
+triplet indices: 0.24287
+assemble general sparse matrix (sparse): 3.559
+assemble general sparse matrix (sparse2): 0.81381
+
+
+ex_tsearch2
+
+tsearch2 (sequential): 0.77432
+tsearch2 (parallel): 0.77305
+WARNING: tsearch does not work or has been removed
+pointLocation: 12.092

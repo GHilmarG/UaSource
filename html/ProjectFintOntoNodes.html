@@ -1,0 +1,165 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ProjectFintOntoNodes</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-06-27"><meta name="DC.source" content="ProjectFintOntoNodes.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> varargout=ProjectFintOntoNodes(MUA,varargin)
+</pre><pre class="language-matlab">varargout=ProjectFintOntoNodes(MUA,varargin)
+</pre><p>Projects element variables defined at integration points onto nodes. Does this by solving:          min_{Fnod_p}  Fnod_p N_P - Fint||_{L2}</p><pre>-&gt;  &lt;Fnod_p N_p - Fint , N_q &gt;_{L2}=0
+-&gt;  &lt;N_p,N_q&gt; Fnod_p = &lt;Fint,N_q&gt;
+      M Fnod = &lt;Fint,n_q&gt;</pre><p>No limit on number of input/output fields.</p><p>Example:</p><pre>[exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)</pre><p>where exx, eyy, exy, e, are defined at intergration points gives corresponding fields defined at nodes.</p><p>Note: This projection will not always preserve positivity!       Even if element quantity is positive everywere, it is nevertheless       possible that the projection on the nodes can be (slightly) negative.</p><pre class="codeinput">nVarargs = length(varargin);
+varargout = cell(nVarargs);
+
+
+<span class="comment">% check input dimentions</span>
+<span class="keyword">for</span> I=1:nVarargs
+    [N,M]=size(varargin{I});
+    <span class="keyword">if</span> N~=MUA.Nele || M~=MUA.nip
+        fprintf(<span class="string">'Incorrect dimensions: Must be an element variable defined at all elements and all integration points\n'</span>)
+        <span class="keyword">return</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% create mass matrix</span>
+A=MassMatrix2D1dof(MUA);
+b=zeros(MUA.Nnodes,nVarargs);
+
+<span class="comment">% factorize</span>
+<span class="comment">% [L,~,P]=chol(A,'lower');</span>
+<span class="keyword">for</span> I=1:nVarargs
+      b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,varargin{I});
+<span class="comment">%      varargout{I}= P*(L' \(L \(P'*b(:,I))));</span>
+<span class="keyword">end</span>
+
+sol=A\b;
+<span class="keyword">for</span> I=1:nVarargs
+    varargout{I}=sol(:,I);
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function varargout=ProjectFintOntoNodes(MUA,varargin)
+
+%%
+%   varargout=ProjectFintOntoNodes(MUA,varargin)
+%
+% Projects element variables defined at integration points onto nodes.
+% Does this by solving:
+%          min_{Fnod_p} || Fnod_p N_P - Fint||_{L2}
+%
+%  ->  <Fnod_p N_p - Fint , N_q >_{L2}=0
+%  ->  <N_p,N_q> Fnod_p = <Fint,N_q>
+%        M Fnod = <Fint,n_q>
+%
+% No limit on number of input/output fields.
+%
+% Example:
+%
+%  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
+%
+% where exx, eyy, exy, e, are defined at intergration points gives
+% corresponding fields defined at nodes.
+%
+% Note: This projection will not always preserve positivity! 
+%       Even if element quantity is positive everywere, it is nevertheless 
+%       possible that the projection on the nodes can be (slightly) negative.
+%       
+
+
+nVarargs = length(varargin);
+varargout = cell(nVarargs);
+
+
+% check input dimentions
+for I=1:nVarargs
+    [N,M]=size(varargin{I});
+    if N~=MUA.Nele || M~=MUA.nip
+        fprintf('Incorrect dimensions: Must be an element variable defined at all elements and all integration points\n')
+        return
+    end
+end
+
+% create mass matrix
+A=MassMatrix2D1dof(MUA);
+b=zeros(MUA.Nnodes,nVarargs);
+
+% factorize
+% [L,~,P]=chol(A,'lower');
+for I=1:nVarargs
+      b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,varargin{I});
+%      varargout{I}= P*(L' \(L \(P'*b(:,I))));
+end
+
+sol=A\b;
+for I=1:nVarargs
+    varargout{I}=sol(:,I);
+end
+
+end
+
+
+##### SOURCE END #####
+--></body></html>

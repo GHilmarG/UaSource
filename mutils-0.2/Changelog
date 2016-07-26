@@ -1,0 +1,5 @@
+0.2
+ - fixed a bug in quadtree('locate'...). Segmentation fault when locating markers that do not belong to any triangle
+ - fixed a bug in quadtree('locate'...) - wrong static list size in ENQUEUE_NEIGHBOR
+
+0.1 - initial release
