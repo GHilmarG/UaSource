@@ -32,9 +32,11 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                                  However, if using log10 the minimum plotted speed is never smaller than 10^QuiverColorPowRange times MaxPlottedSpeed
 % Par.SpeedTickLabels                        : numerical array of values
 % Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the greates possible range of magnitudes shown in colobar.
-%                                              Default is  Par.QuiverColorPowRange=3, i.e. the smallest color is that of spee
+%                                              Default is
+%                                              Par.QuiverColorPowRange=3, i.e.
+%                                              the smallest colored speed is 
 %                                              10^3 smaller than the largest speed
-%                                              Setting, for example, Par.QuiverColorPowRange=2 narrows the plotted range
+%                                              Setting, for example,
 %
 % Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scalings as in previous call. In this case
 %                                               Par from previous call must be given as an input.
@@ -90,7 +92,12 @@ end
 % But u, v, x ,and y can also be given on a grid.
 % If u and v is given on a grid, create vectors
 
-if size(u,1)> 1 && size(u,2)>1
+
+
+if size(u,1)> 1 && size(u,2)>1 && ((size(x,2)==1 && size(y,2)==1)  || (size(x,1)==1 && size(y,1)==1 ))
+    
+    % u and v are matrices , x and y are vectors
+    x=x(:) ; y=y(:) ;
     
     if size(u)==size(v)
         
@@ -102,17 +109,14 @@ if size(u,1)> 1 && size(u,2)>1
             
         elseif (size(x,1)==size(u,2)) && (size(y,1)==size(u,1))
             
-            error('QuiverColorGHG:wrongdimentions','x and y are not grid vectors')
-%               
-%             [X,Y]=meshgrid(x,y) ;
-%             %[X,Y]=ndgrid(x,y) ;
-%             x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
-%             clear X Y
+            warning('QuiverColorGHG:wrongdimentions','x and y are not grid vectors')
+            
+            [X,Y]=meshgrid(x,y) ;
+            x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);
+            clear X Y
             
         end
-        
     end
-    
 end
 
 x=x(:) ; y=y(:) ; u=u(:) ; v=v(:);
@@ -157,7 +161,7 @@ if nargin>4 && ~isempty(Par)
             case 'log10'
                 
                 ticks=logticks(speed,Par.QuiverColorPowRange,12);
-                Par.QuiverColorSpeedLimits=min(ticks);
+                Par.QuiverColorSpeedLimits(1)=min(ticks);
                 Par.QuiverColorSpeedLimits(2)=max(ticks);
             case 'lin'
                 

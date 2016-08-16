@@ -2,6 +2,8 @@ function    [MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsd
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GLdescriptors]=...
     GetInputsForForwardRestartRun(CtrlVar)
 
+fprintf('\n\n ---------  Reading restart file and defining start values for restart run.\n')
+
 
 try
     
@@ -14,10 +16,17 @@ catch exception
     error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
 end
 
-CurrentRunStepNumber=Itime;  % I used to refer to this as Itime, change later
+if isfield(CtrlVarInRestartFile,'CurrentRunStepNumber')
+    CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
+else
+    CurrentRunStepNumber=Itime;
+    % I used to refer to this as Itime, change later
+end
+
+
 
 % Thickness should only depend on s and b in restart file
-% (The only exeption being that if h is less than CtrlVar.ThickMin, 
+% (The only exeption being that if h is less than CtrlVar.ThickMin,
 % and CtrlVar.ResetThicknessToMinThickness true, then h is first modified accordingly.)
 h=s-b;
 [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
@@ -47,13 +56,13 @@ end
 
 
 
-if CtrlVar.ResetTime==1 
+if CtrlVar.ResetTime==1
     time=CtrlVar.time;
-    CurrentRunStepNumber=0; 
+    CurrentRunStepNumber=0;
     fprintf(CtrlVar.fidlog,' Time reset to %-g \n',time);
 end
 
-if CtrlVar.ResetTimeStep==1 
+if CtrlVar.ResetTimeStep==1
     dt=CtrlVar.dt;
     fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',dt);
 end
@@ -97,7 +106,7 @@ if CtrlVar.ReadInitialMesh==1
     end
     
 end
-    
+
 for I=1:CtrlVar.RefineMeshOnRestart
     fprintf(CtrlVar.fidlog,' All triangle elements are subdivided into four triangles \n');
     MUAold=MUA;
@@ -140,20 +149,29 @@ if MeshChanged
     
     
     l=UaLagrangeVariables;
-    %MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
+    
     
 end
 
 
 
-%[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
+%%
 
-%% In principle these calls to Define.. routines should not be needed
-[~,~,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
-if any(isnan(S)) ; error(' S returned by DefineGeometry contains NaN') ; end
-if any(isnan(B)) ; error(' B returned by DefineGeometry contains NaN') ; end
+if CtrlVar.TimeDependentRun
+    fprintf(' Note: As this is a time-dependent restart run, S and B (but not s and b) \n')
+    fprintf('       are defined through a call to  DefineGeometry. These values will overwrite those in restart file. \n')
+    [~,~,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
+else
+    fprintf(' Note: As this is a time-independent restart run, all geometrical variables (s,b,S,B) \n')
+    fprintf('       are defined through a call to  DefineGeometry. These values will overwrite those in restart file. \n')
+    [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
+end
 
-
+fprintf(' Note: Even though this is a restart run the following variables are also defined  through calls\n')
+fprintf('       to corresponding user-input files: rho, rhow, g, C, m ,AGlen, n, as, and ab.\n')
+fprintf('       These will owerwrite those in restart file.\n')
+    
+    
 [rho,rhow,g]=GetDensities(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
 rho=rho+zeros(length(MUA.coordinates),1);  % make sure that rho is a nodal vector
 GF=GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
@@ -171,12 +189,15 @@ end
 
 BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
-if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1 ;
+if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     
     figure
     PlotBoundaryConditions(CtrlVar,MUA,BCs);
     
 end
+
+fprintf(' ---------   Reading restart file and defining start values for restart run is now done.\n\n')
+
 
 
 

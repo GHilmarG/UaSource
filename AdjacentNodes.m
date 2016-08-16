@@ -1,17 +1,20 @@
-function [M] = AdjacentNodes(connectivity,EleList)
+function M = AdjacentNodes(connectivity,EleList)
 
 %%
-% [M] = AdjacentNodes(connectivity,EleList)
-%  creates the (nodal) neighbour matrix
+%  M = AdjacentNodes(connectivity,EleList)
+%  creates the (nodal) neighbour matrix.
 % (i,j)>=1 if node j is a neighbouring node to node i.
-% (i,j)=N implies that node j is a neighbouring node to node i in a total of N elements
+% (i,j)=N implies that node j is a neighbouring node to node i in a total of N
+% elements.
 %
-% EleList is an optional argument that can be used to restict the list to selected elements
-% If EleList is not given, then all elements are used
+% EleList is an optional argument that can be used to resrict the list to
+% selected elements.
+% If EleList is not given, then all elements are used.
 %
 % Example: To find the neighbouring nodes to node nr. 10: 
-%  [M] = AdjacentNodes(connectivity)
-%  find(M(10,:))
+%
+%    M = AdjacentNodes(connectivity)
+%    find(M(10,:))
 %
 %%
 

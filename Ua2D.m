@@ -169,7 +169,7 @@ GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
 
 %%
-if CtrlVar.doInverseStep==1;   % -inverse
+if CtrlVar.doInverseStep   % -inverse
     
     %         [db,dc] = Deblurr2D(NaN,...
     %             s,u,v,b,B,...
@@ -232,7 +232,7 @@ if CtrlVar.doInverseStep==1;   % -inverse
     
     
     SayGoodbye(CtrlVar);
-    return  % This is the end of the run
+    return  % This is the end of the (inverse) run
     
 end
 
@@ -245,7 +245,7 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
     UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
     
-    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
+    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
             CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
         return
@@ -279,7 +279,7 @@ while 1
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
     
-    if CtrlVar.PlotWaitBar ;
+    if CtrlVar.PlotWaitBar 
         multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
         multiWaitbar('Time','Value',CtrlVar.time/CtrlVar.TotalTime);
     end
@@ -294,11 +294,11 @@ while 1
     end
     
     
-    if CtrlVar.doDiagnostic  && CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep
-        % in a diagnostic run I always always use the user-defined geometry
-        % for each and every step of the calculation
-        [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
-        h=s-b;
+    if CtrlVar.doDiagnostic
+        if CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep
+            [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
+            h=s-b;
+        end
     elseif CtrlVar.DefineOceanSurfaceAtEachTimeStep
         [~,~,S,~,~]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'S');
     end
@@ -324,7 +324,7 @@ while 1
             s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1);
         
         
-        if MUA.Nele==0 ;
+        if MUA.Nele==0 
             fprintf('FE mesh is empty \n ')
             break ;
         end
@@ -363,7 +363,7 @@ while 1
         
         dubdtm1=dubdt ; dvbdtm1=dvbdt; duddtm1=duddt ; dvddtm1=dvddt;
         
-        if CtrlVar.dt==0 ;
+        if CtrlVar.dt==0 
             dubdt=zeros(MUA.Nnodes,1) ;  dvbdt=zeros(MUA.Nnodes,1);
             duddt=zeros(MUA.Nnodes,1) ;  dvddt=zeros(MUA.Nnodes,1);
         else
@@ -558,7 +558,7 @@ while 1
         fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
         UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
         
-        if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
+        if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
             fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
                 CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
             return
@@ -615,7 +615,7 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
     UaOutputs(CtrlVar,MUA,CtrlVar.time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
     
-    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls;
+    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
             CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
         return
