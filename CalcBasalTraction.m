@@ -27,13 +27,13 @@ end
 C=C+CtrlVar.Czero;
 speed=sqrt(real(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2));
 
-tb=real((speed./C).^(1/m));
-tbx=real(C.^(-1/m)).*real(speed.^(1/m-1)).*ub;
-tby=real(C.^(-1/m)).*real(speed.^(1/m-1)).*vb;
+tb=real((speed./C).^(1./m));
+tbx=real(C.^(-1./m)).*real(speed.^(1./m-1)).*ub;
+tby=real(C.^(-1./m)).*real(speed.^(1./m-1)).*vb;
 
 tb=tb.*GF.node ; tbx=tbx.*GF.node ; tby=tby.*GF.node ;
 
-beta2=C.^(-1/m).*speed.^(1/m-1);
+beta2=C.^(-1./m).*speed.^(1./m-1);
 
 end
 

@@ -544,11 +544,10 @@ while 1
     end
     %% plotting results
     
-    
     % UaOutputs
     
     if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-        CtrlVar.UaOutputsInfostring='inside transient loop';
+        CtrlVar.UaOutputsInfostring='inside transient loop and inside run-step loop';
         CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0

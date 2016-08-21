@@ -23,11 +23,14 @@ CtrlVar.GmshFile=[pathstr,name];
 % set the path to gmsh
 
 str=computer;
-GmshHomeDirectory=getenv('GmshHomeDirectory');   
+GmshHomeDirectory=getenv('GmshHomeDirectory');  
     
 if  strcmp(str,'GLNXA64')     
     gmshRunString=fullfile(GmshHomeDirectory,'gmsh ');     % Unix
 else
+    if isempty(GmshHomeDirectory)
+        warning('Ua:GmshInterfaceRoutine','The environmental variable GmshHomeDirectory is empty')
+    end
     gmshRunString=fullfile(GmshHomeDirectory,'gmsh.exe ');  
 end
 
