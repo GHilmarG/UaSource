@@ -1,4 +1,4 @@
-function [coordinates,xGLmorphing,yGLmorphing]=GLmorphing(CtrlVar,Experiment,coordinates,connectivity,GF,MeshBoundaryCoordinates,GLdescriptors,dtGL)
+function [coordinates,xGLmorphing,yGLmorphing]=GLmorphing(UserVar,CtrlVar,coordinates,connectivity,GF,MeshBoundaryCoordinates,GLdescriptors,dtGL)
     
     
     

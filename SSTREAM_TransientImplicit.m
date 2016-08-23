@@ -1,7 +1,13 @@
-function [ub1,vb1,h1,lambdauv1,lambdah1,RunInfo]=...
-    SSTREAM_TransientImplicit(CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
+function [UserVar,ub1,vb1,h1,lambdauv1,lambdah1,RunInfo]=...
+    SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
     AGlen,C,n,m,alpha,rho,rhow,g)
 
+
+
+nOut=nargout;
+if nOut~=7
+    error('Ua:SSTREAM_TransientImplicit','Need 7 output arguments')
+end
 
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
@@ -96,7 +102,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     % If I want to implement an in complete NR method, then presumably all that is
     % needed is to call uvhAssembly once in while with just the first output
     % argument, ie R, and only update K occationally
-    [R,K,~,FI]=uvhAssembly(CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
+    [UserVar,R,K,~,FI]=uvhAssembly(UserVar,CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
     
     if iteration==1 
         F0=FI ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration
@@ -133,13 +139,13 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     
     %% calculate  residuals at full Newton step
     gamma=1;
-    [r1,ruv1,rh1]=CalcCostFunctionNRuvh(CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+    [UserVar,r1,ruv1,rh1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
     
     
     %% either accept full Newton step or do a line search
     
-    [r,ruv,rh,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-        (CtrlVar,MUA,F0,r0,r1,ruv1,rh1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
+    [UserVar,r,ruv,rh,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
+        (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
     
     
     if BacktrackInfo.converged==0

@@ -1,5 +1,5 @@
-function [MUA,xGLmesh,yGLmesh,CtrlVar]=...
-    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,S0,B0,h0,s0,b0,ub0,vb0,ud0,vd0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,CtrlVar,GF0,Ruv,Lubvb,ubvbLambda)
+function [UserVar,CtrlVar,MUA,xGLmesh,yGLmesh]=...
+    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MeshBoundaryCoordinates,S0,B0,h0,s0,b0,ub0,vb0,ud0,vd0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,GF0,Ruv,Lubvb,ubvbLambda)
 
 
 %save TestSave ; error('dfsa')
@@ -22,7 +22,7 @@ hf=(S-B)*rhow./rho ;
 
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
-[x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,ub0,vb0,ud0,vd0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
+[UserVar,x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(UserVar,CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,ub0,vb0,ud0,vd0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
 
 if strcmp(CtrlVar.MeshGenerator,'gmsh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
@@ -81,9 +81,9 @@ switch lower(CtrlVar.MeshRefinementMethod)
         if CtrlVar.GLmeshing==1
             GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
             [MeshBoundaryCooWithGLcoo,edge,face,xGLmesh,yGLmesh]=glLineEdgesFaces(GF,MUA.coordinates,MUA.connectivity,MeshBoundaryCoordinates,CtrlVar);
-            MUA=genmesh2d(CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
+            [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
         else
-            MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+            [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
         end
         
         %figure ; PlotFEmesh(coordinates,connectivity,CtrlVar);
@@ -146,7 +146,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
                     error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
             end
             
-            if CtrlVar.InfoLevelAdaptiveMeshing>=1;
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
                 if MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements
                     fprintf(CtrlVar.fidlog,'Nele=%-i > %-i , hence desired meshsize is scaled up. New MeshSizeMin is %-g \n',MUA.Nele,CtrlVar.MaxNumberOfElements,CtrlVar.MeshSizeMin);
                 else
@@ -155,12 +155,12 @@ switch lower(CtrlVar.MeshRefinementMethod)
             end
             
             if CtrlVar.GLmeshing==1
-                MUA=genmesh2d(CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
+                [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
             else
-                MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+                [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
             end
             
-            if CtrlVar.InfoLevelAdaptiveMeshing>=1;
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
                 fprintf(CtrlVar.fidlog,'new Nele after rescaling is %-i and CtrlVar.MaxNumberOfElements is %-i  \n',MUA.Nele,CtrlVar.MaxNumberOfElements);
             end
         end

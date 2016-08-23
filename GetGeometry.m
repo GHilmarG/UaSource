@@ -1,7 +1,23 @@
-function [s,b,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+function [UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 
 
-[s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined);
+nOut=nargout;
+if nOut~=6
+    error('Ua:GetGeometry','Need 6 output arguments')
+end
+
+N=nargout('DefineGeometry');
+
+
+switch N
+    
+    case 5
+        [s,b,S,B,alpha]=DefineGeometry(CtrlVar.Experiment,CtrlVar,MUA,time,FieldsToBeDefined);
+    case 6
+        [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
+    otherwise
+        error('Ua:GetGeometry','Define Geometry must return either 5 or 6 output arguments')
+end
 
 
 % some error checks

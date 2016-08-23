@@ -1,6 +1,6 @@
-function    [MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+function    [UserVar,MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GLdescriptors]=...
-    GetInputsForForwardRestartRun(CtrlVar)
+    GetInputsForForwardRestartRun(UserVar,CtrlVar)
 
 fprintf('\n\n ---------  Reading restart file and defining start values for restart run.\n')
 
@@ -23,7 +23,7 @@ else
     % I used to refer to this as Itime, change later
 end
 
-
+CtrlVar.CurrentRunStepNumber=CurrentRunStepNumber;
 
 % Thickness should only depend on s and b in restart file
 % (The only exeption being that if h is less than CtrlVar.ThickMin,
@@ -128,8 +128,8 @@ if MeshChanged
     
     
     OutsideValues=0;
-    [s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd]=...
-        MapQuantitiesToNewFEmesh(CtrlVar,MUA,MUAold,h,CtrlVar.time,OutsideValues,...
+    [UserVar,s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd]=...
+        MapQuantitiesToNewFEmesh(UserVar,CtrlVar,MUA,MUAold,h,CtrlVar.time,OutsideValues,...
         ub,vb,ud,vd);
     
     %     OutsideValues=0;
@@ -160,25 +160,25 @@ end
 if CtrlVar.TimeDependentRun
     fprintf(' Note: As this is a time-dependent restart run, S and B (but not s and b) \n')
     fprintf('       are defined through a call to  DefineGeometry. These values will overwrite those in restart file. \n')
-    [~,~,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'SB');
+    [UserVar,~,~,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'SB');
 else
     fprintf(' Note: As this is a time-independent restart run, all geometrical variables (s,b,S,B) \n')
     fprintf('       are defined through a call to  DefineGeometry. These values will overwrite those in restart file. \n')
-    [s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
+    [UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
 end
 
-fprintf(' Note: Even though this is a restart run the following variables are also defined  through calls\n')
-fprintf('       to corresponding user-input files: rho, rhow, g, C, m ,AGlen, n, as, and ab.\n')
+fprintf(' Note: Even though this is a restart run the following variables are defined at the beginning of the run\n')
+fprintf('       through calls to corresponding user-input files: rho, rhow, g, C, m, AGlen, n, as, and ab.\n')
 fprintf('       These will owerwrite those in restart file.\n')
     
     
-[rho,rhow,g]=GetDensities(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
+[UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
 rho=rho+zeros(length(MUA.coordinates),1);  % make sure that rho is a nodal vector
 GF=GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
-[C,m]=GetSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-[AGlen,n]=GetAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-[as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 
 if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(C))
     error(' C is element-based but does not have same number of elements as there are elements in mesh ')
@@ -187,7 +187,7 @@ elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(C))
 end
 
 
-BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
+[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     

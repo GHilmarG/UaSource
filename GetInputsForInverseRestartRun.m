@@ -1,5 +1,5 @@
-function  [MUA,BCs,s,b,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
-    GetInputsForInverseRestartRun(CtrlVar)
+function  [UserVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+    GetInputsForInverseRestartRun(UserVar,CtrlVar)
 
 fprintf(CtrlVar.fidlog,' loading adjoint restart file: %s \t ',CtrlVar.NameOfAdjointRestartFiletoRead);
 

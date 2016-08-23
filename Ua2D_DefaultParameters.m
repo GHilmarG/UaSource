@@ -487,6 +487,14 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 % Start by copying the example UaOutput.m routine from the Ua source installation folder
 % to you local run directory.
 %
+%
+%
+%
+
+CtrlVar.UaOutputFormat='variables';  % argument list in UaOutputs will be a list of variables
+%CtrlVar.UaOutputFormat='structures'; % UaOutputs has only one output argument, this output argument is a structure and all 
+                                     % outputs are fields of that structure. 
+
 
 CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
                        % if set to zero UaOutputs is called at every time/run step

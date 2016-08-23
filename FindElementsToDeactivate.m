@@ -1,4 +1,4 @@
-function Iele=FindElementsToDeactivate(CtrlVar,MUA_Background,hBackground)
+function [UserVar,Iele]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground)
 
 % First check if there are nodes where the thickness is zero, but where the surface mass balance is positive
 % this could for example happen if the ELA is going down, then I must allow new glaciers to form that are
@@ -7,7 +7,7 @@ function Iele=FindElementsToDeactivate(CtrlVar,MUA_Background,hBackground)
 %
 % I need to know the surface mass balance at ice free reagions where s=b=B
 [~,~,S,B]=DefineGeometry(CtrlVar.Experiment,CtrlVar,MUA_Background,CtrlVar.time,'SB');
-[as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA_Background,CtrlVar.time,B,B,hBackground,S,B,[],[],[]);
+[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA_Background,CtrlVar.time,B,B,hBackground,S,B,[],[],[]);
 I=find(as >= CtrlVar.MinSurfAccRequiredToReactivateNodes & hBackground<=CtrlVar.ThickMinDeactivateElements);
 hBackground(I)=CtrlVar.ThickMinDeactivateElements+0.001; % the simplest way of ensuring that the elements with these nodes are not eliminated is to reset the thickness
 

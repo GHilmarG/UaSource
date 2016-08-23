@@ -1,5 +1,12 @@
 
-function BCs=GetBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+
+
+nOut=nargout;
+if nOut~=2
+    error('Ua:GetBoundaryConditions','Need 2 output arguments')
+end
+
 
 narginchk(15,15)
 
@@ -8,9 +15,22 @@ narginchk(15,15)
 
 
 if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
-
+    
     fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
-    BCs=DefineBoundaryConditions(Experiment,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+    
+    N=nargout('DefineBoundaryConditions');
+    
+    switch N
+        
+        case 1
+            
+            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+            
+        case 2
+            
+            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+            
+    end
     
     
 else
@@ -19,7 +39,7 @@ else
     [ubFixedNode,ubFixedValue,vbFixedNode,vbFixedValue,...
         ubTiedNodeA,ubTiedNodeB,vbTiedNodeA,vbTiedNodeB,...
         hFixedNode,hFixedValue,hTiedNodeA,hTiedNodeB]=...
-        DefineBCs(Experiment,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF);
     
     BCs.ubFixedNode=ubFixedNode;
     BCs.ubFixedValue=ubFixedValue;

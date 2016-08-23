@@ -1,5 +1,5 @@
-function  [x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
-    DesiredEleSizes(CtrlVar,MUA,s,b,S,B,rho,rhow,ub,vb,ud,vd,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
+function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
+    DesiredEleSizes(UserVar,CtrlVar,MUA,s,b,S,B,rho,rhow,ub,vb,ud,vd,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
 
 %
 % Estimates optimal element sizes based on number of explicit error estimators
@@ -456,7 +456,9 @@ end
 
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
-[EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators);
+[UserVar,EleSizeDesired,ElementsToBeRefined]=GetDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators);
+
+
 
 assert(numel(x)==numel(y) && numel(x)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 

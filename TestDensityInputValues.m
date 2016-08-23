@@ -10,4 +10,20 @@ if numel(rho)==1
 end
 
 
+errorStruct.identifier = 'Ua:NaNinInput';
+
+if any(isnan(rho))
+    errorStruct.message = 'nan in rho';
+    error(errorStruct)
+end
+
+
+if any(isnan(rhow))
+    errorStruct.message = 'nan in rhow';
+    error(errorStruct)
+end
+
+
+
+
 end

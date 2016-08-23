@@ -1,4 +1,4 @@
-function MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundScalarField)
+function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundScalarField)
 
 %% Generate FE mesh
 %
@@ -6,6 +6,9 @@ function MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundS
 %
 % FEmeshTriRep is an instance of matlab TriRep class. Only based on the corner nodes of
 %    triangles! Interior and edge nodes of higher order elements missing
+
+nargoutchk(2,2)
+
 
 options.output=false;
 
@@ -23,7 +26,7 @@ switch lower(CtrlVar.MeshGenerator)
         
     case 'gmsh'
         
-        if nargin<5;
+        if nargin<5
             GmshBackgroundScalarField=[];
         end
 
@@ -57,7 +60,7 @@ end
 connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity);
 
 %% Possible user modifications to coordinates and connectivity
-[coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,connectivity);
+[UserVar,coordinates,connectivity]=GetMeshModifications(UserVar,CtrlVar,coordinates,connectivity);
 
 % [K,~,J]=unique(connectivity(:));
 % connectivity=reshape(J,size(connectivity));

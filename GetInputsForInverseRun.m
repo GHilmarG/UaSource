@@ -1,4 +1,4 @@
-function [InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
 
 BCsAdjoint=BoundaryConditions;
 Meas=Measurements;
@@ -7,7 +7,20 @@ InvStartValues=InversionStartValues;
 
 if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
     
-    [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+    
+    N=nargout('DefineInputsForInverseRun');
+    
+    switch N
+        
+        case 3
+            
+            [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(CtrlVar.Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+            
+        case 4
+            
+            [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+    
+    end
     
 else
     
@@ -23,7 +36,7 @@ else
         lxFixedNode,lyFixedNode,lxFixedValue,lyFixedValue,lxtiedA,lxtiedB,lytiedA,lytiedB,...
         s_meas,Meas.us,Meas.vs,Meas.ws,b_meas,B_meas,...
         usError,vsError,wsError]=...
-        DefineInverseModellingVariables(Experiment,CtrlVar,MUA,time,...
+        DefineInverseModellingVariables(UserVar,CtrlVar,MUA,time,...
         BCs.ubFixedNode,BCs.ubFixedValue,BCs.vbFixedNode,BCs.vbFixedValue,BCs.ubTiedNodeA,BCs.ubTiedNodeB,BCs.vbTiedNodeA,BCs.vbTiedNodeB,...
         AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     

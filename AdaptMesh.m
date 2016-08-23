@@ -1,7 +1,7 @@
 
-function [CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
+function [UserVar,CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
     s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-    AdaptMesh(CtrlVar,Experiment,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
+    AdaptMesh(UserVar,CtrlVar,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
     GF,GLdescriptors,alpha,...
     s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
 
@@ -11,9 +11,6 @@ persistent MUA_Background
 %%
 %save TestSave
 %error('fsda')
-
-
-
 
 MUAnew=MUAold;
 hOld=h;
@@ -101,7 +98,7 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
                 if CtrlVar.InfoLevelAdaptiveMeshing>=1
                     fprintf('done \n ')
                 end
-               
+                
             catch
                 fprintf('File %s not containing ''MUA_Background'' \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
                 error(' exiting ' )
@@ -118,7 +115,7 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
             
             error('Ua:AdaptMesh:NoBackgroundMeshfile',' exiting ' )
         end
-
+        
     end
     
     % map thickness onto backgroundmeshfile
@@ -129,7 +126,7 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
     %%
     %hBackground=Grid1toGrid2(DTxy,h,coordinatesBackground(:,1),coordinatesBackground(:,2),CtrlVar,CtrlVar.ThickMin);
     hBackground=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,MUA_Background.coordinates(:,1),MUA_Background.coordinates(:,2),CtrlVar.ThickMin,h);
-    iDeactivatedElements=FindElementsToDeactivate(CtrlVar,MUA_Background,hBackground);
+    [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
     
     fprintf(CtrlVar.fidlog,'%i elements of background mesh deactivated. ',numel(find(iDeactivatedElements)));
     
@@ -222,7 +219,7 @@ for JJ=1:Iterations
             case 'implicit'
                 
                 error(' implicit error estimate not fully implemented \n')
-                [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(Experiment,MeshBoundaryCoordinates,Boundary,...
+                [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
                     s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,Itime,CtrlVar);
                 
             case {'explicit:global','explicit:local'}
@@ -241,15 +238,15 @@ for JJ=1:Iterations
                     
                     if CalcVel
                         MUAold=UpdateMUA(CtrlVar,MUAold);
-                         [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                        [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                     end
- 
+                    
                 end
                 
                 %save TestSave ; error('afds')
-                [MUAnew,xGLmesh,yGLmesh,CtrlVar]=...
-                    RemeshingBasedOnExplicitErrorEstimate(MeshBoundaryCoordinates,...
-                    S,B,h,s,b,ub,vb,ud,vd,dhdt,MUAold,AGlen,C,n,rho,rhow,CtrlVar,GF,Ruv,Lubvb,l.ubvb);
+                [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
+                    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MeshBoundaryCoordinates,...
+                    S,B,h,s,b,ub,vb,ud,vd,dhdt,MUAold,AGlen,C,n,rho,rhow,GF,Ruv,Lubvb,l.ubvb);
                 
                 CtrlVar.MeshChanged=1;
                 
@@ -266,7 +263,7 @@ for JJ=1:Iterations
             [dtGL,GLdescriptors,xGLbackground,yGLbackground]=...
                 CreateBackgroundGLmesh(MUAnew.coordinates,MeshBoundaryCoordinates,xGLmesh,yGLmesh,CtrlVar);
             
-             if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
+            if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
                 figure ; PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar);
                 hold on ; plot(xGLbackground,yGLbackground,'-go','LineWidth',2);
                 hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
@@ -280,7 +277,7 @@ for JJ=1:Iterations
             fprintf(CtrlVar.fidlog,'GLmorphing \n');
         end
         
-        [coordinates,xGLmorphing,yGLmorphing]=GLmorphing(CtrlVar,Experiment,MUAold.coordinates,MUAold.connectivity,GF,MeshBoundaryCoordinates,GLdescriptors,dtGL);
+        [coordinates,xGLmorphing,yGLmorphing]=GLmorphing(UserVar,CtrlVar,MUAold.coordinates,MUAold.connectivity,GF,MeshBoundaryCoordinates,GLdescriptors,dtGL);
         connectivity=MUAold.connectivity;
         MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
         
@@ -327,17 +324,17 @@ for JJ=1:Iterations
         CtrlVar.PlotMesh=PlotMeshOnInput;
         return
     end
-     
+    
     OutsideValues=[0 ; 0 ; 0; 0 ; 0; 0 ; 0 ; 0 ; 0 ; 0; 0 ; 0 ; 0 ; 0 ];
-    [s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1]=...
-        MapQuantitiesToNewFEmesh(CtrlVar,MUAnew,MUAold,hOld,time,OutsideValues,...
+    [UserVar,s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1]=...
+        MapQuantitiesToNewFEmesh(UserVar,CtrlVar,MUAnew,MUAold,hOld,time,OutsideValues,...
         ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1);
     
     %[~,~,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUAnew,time,'SB')
     BCsNew=BoundaryConditions;
-    BCsNew=GetBoundaryConditions(Experiment,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
-        
-    [as,ab]=GetMassBalance(Experiment,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
+    [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+    
+    [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
     
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
         if CtrlVar.PlotBCs
@@ -353,7 +350,7 @@ for JJ=1:Iterations
         end
         
     end
-      
+    
     if any(isnan(C)) ; error( ' C nan ') ; end
     if any(isnan(AGlen)) ; error( ' AGlen nan ') ; end
     if any(isnan(S)) ; error( ' S nan ') ; end
@@ -363,7 +360,7 @@ for JJ=1:Iterations
     if any(isnan(rho)) ; error( ' rho nan ') ; end
     %%
     
-  
+    
     
     if JJ<Iterations
         
@@ -377,7 +374,7 @@ for JJ=1:Iterations
                 break
             end
         end
-                
+        
         if CalcVel
             
             ub=ub*0 ; vb=vb*0 ; l.ubvb=l.ubvb*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
@@ -396,7 +393,7 @@ end
 %MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 
-if CtrlVar.InitialDiagnosticStepAfterRemeshing;  
+if CtrlVar.InitialDiagnosticStepAfterRemeshing
     CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
 end
 

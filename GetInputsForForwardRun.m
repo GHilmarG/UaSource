@@ -1,6 +1,7 @@
-function  [MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+function  [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=...
-    GetInputsForForwardRun(CtrlVar)
+    GetInputsForForwardRun(UserVar,CtrlVar)
+
 
 
 %for I=1:CtrlVar.nInitialRemeshSteps+1
@@ -31,11 +32,11 @@ if CtrlVar.ReadInitialMesh==1
     
 else
    
-    MUA=genmesh2d(CtrlVar,CtrlVar.MeshBoundaryCoordinates);
+    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates);
     
     
     iIt=0;
-    while MUA.Nele>1.2*CtrlVar.MaxNumberOfElements && iIt<=2;
+    while MUA.Nele>1.2*CtrlVar.MaxNumberOfElements && iIt<=2
         iIt=iIt+1;
         % Note: these changes in MeshSize are not returned
         if numel(CtrlVar.MeshSize)==1
@@ -44,7 +45,7 @@ else
             CtrlVar.MeshSize(:,3)=1.2*CtrlVar.MeshSize(:,3)*sqrt(MUA.Nele/CtrlVar.MaxNumberOfElements);
         end
         fprintf(CtrlVar.fidlog,'Nele=%-i > 1.2*NEleMax=%-i , hence desired meshsize is scaled up \n',MUA.Nele,1.2*CtrlVar.MaxNumberOfElements);
-        MUA=genmesh2d(CtrlVar,CtrlVar.MeshBoundaryCoordinates);
+        [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates);
         fprintf(CtrlVar.fidlog,'new Nele after scale down is %-i  \n',MUA.Nele);
     end
     
@@ -87,23 +88,21 @@ end
 
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
-[s,b,S,B,alpha]=GetGeometry(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,'sbSB');
+
+[UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,s,b,S,B);
 
 
 h=s-b;
-[rho,rhow,g]=GetDensities(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
+[UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
 GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
-[C,m]=GetSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-[AGlen,n]=GetAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA);
-[ub,vb,ud,vd]=GetStartVelValues(CtrlVar.Experiment,CtrlVar,MUA,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-[as,ab]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-
-
-
-BCs=GetBoundaryConditions(CtrlVar.Experiment,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
+[UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
+[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
 
 if CtrlVar.doplots==1
     if CtrlVar.PlotBCs

@@ -1,5 +1,5 @@
-function [ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo,CtrlVar,BCs,dt]=...
-    FIuvh2D(CtrlVar,MUA,BCs,dt,S,B,ub0,vb0,ud0,vd0,h0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,...
+function [UserVar,ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo,CtrlVar,BCs,dt]=...
+    FIuvh2D(UserVar,CtrlVar,MUA,BCs,dt,S,B,ub0,vb0,ud0,vd0,h0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,...
     dubdt,dvbdt,duddt,dvddt,uvLambda,hLambda,AGlen,C,n,m,alpha,rho,rhow,g)
 
 %        0  : values at t
@@ -7,11 +7,13 @@ function [ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo,CtrlVar,BCs,dt]=...
 %
 %
 
+nargoutchk(12,12)
+
 RunInfo.ActiveSetConverged=1;
 
 if ~CtrlVar.ThicknessConstraints
     
-    [ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo]=uvh2D(CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ud0,vd0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,dubdt,dvbdt,uvLambda,hLambda,...
+    [UserVar,ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo]=uvh2D(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ud0,vd0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,dubdt,dvbdt,uvLambda,hLambda,...
         AGlen,C,n,m,alpha,rho,rhow,g);
     
     
@@ -105,7 +107,7 @@ else
             %    keyboard
             %end
             
-            [ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo]=uvh2D(CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ud0,vd0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,dubdt,dvbdt,uvLambda,hLambda,...
+            [UserVar,ub1,vb1,ud1,vd1,h1,uvLambda,hLambda,RunInfo]=uvh2D(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ud0,vd0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,dubdt,dvbdt,uvLambda,hLambda,...
                 AGlen,C,n,m,alpha,rho,rhow,g);
             
             

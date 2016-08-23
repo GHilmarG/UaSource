@@ -1,7 +1,13 @@
-function [R,K,T,F]=uvhAssembly(CtrlVar,MUA,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
+function [UserVar,R,K,T,F]=uvhAssembly(UserVar,CtrlVar,MUA,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
+
+nOut=nargout;
+
+if nOut==1
+    error('Ua:uvhAssembly','Need at least 2 output arguments')
+end
 
 % uvhAssembly
-if nargin~=25
+if nargin~=26
     error('wrong number of input arguments ')
 end
 
@@ -43,10 +49,10 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
     
     switch CtrlVar.MassBalanceGeometryFeedback
         case 2
-            [as1,ab1]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [UserVar,as1,ab1,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
             dadh=zeros(MUA.Nnodes,1);
         case 3
-            [as1,ab1,dasdh,dabdh]=GetMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+            [UserVar,as1,ab1,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
             dadh=dasdh+dabdh;
     end
     
