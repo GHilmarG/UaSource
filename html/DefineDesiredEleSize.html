@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineDesiredEleSize</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-04"><meta name="DC.source" content="DefineDesiredEleSize.m"><style type="text/css">
+      --><title>DefineDesiredEleSize</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-08-24"><meta name="DC.source" content="DefineDesiredEleSize.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,71 +66,46 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
-</pre><p>Define desired sizes of elements or specify which elements to refine.</p><p>[EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)</p><p>Only used in combination with adaptive meshing.</p><p>Allows user to set desired ele sizes (EleSize) at given locations (x,y).</p><p>On input x, y, EleSize are desired ele sizes at (x,y) as calculated by &Uacute;a based on some user-defined criteria.</p><p>On output x,y,EleSize are user-modified values.</p><p>Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element) vector 'ElementsToBeRefine', only the values.</p><p>x,y are the locations where new element sizes are specifed.</p><p>ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements to be refined, or a list of numbers of elements to be refined.</p><p>Example: Mesh refinement around a given distance from the grounding line:</p><pre class="language-matlab">CtrlVar.GroundingLineMeshRefinementNormalDistance=5000;
-CtrlVar.GroundingLineMeshRefinementAlongDistance=5000;
-CtrlVar.GroundingLineMeshRefinementDesiredEleSize=1000;
-</pre><p>Now all parameters have been defined (this could be done in Ua2D_InitialUserInput)</p><pre class="language-matlab">aTol=CtrlVar.GroundingLineMeshRefinementAlongDistance;
-nTol=CtrlVar.GroundingLineMeshRefinementNormalDistance;
-CtrlVar.PlotGLs=0;
-[xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
-Ind = DistanceToLineSegment([x y], [xGL yGL], [],nTol,aTol);
-EleSizeDesired(Ind)=CtrlVar.GroundingLineMeshRefinementDesiredEleSize;
-</pre><pre class="codeinput">  fprintf(<span class="string">'Using default DefineDesiredEleSize \n'</span>)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,EleSizeDesired,ElementsToBeRefined]=<span class="keyword">...</span>
+    DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+</pre><p>Define desired sizes of elements or specify which elements to refine.</p><p>Only used in combination with adaptive meshing.</p><p>Allows user to set desired ele sizes (EleSize) at given locations (x,y).</p><p>On input EleSizeDesired are desired ele sizes at (x,y) as calculated by &Uacute;a based on some user-defined criteria.</p><p>On output EleSizeDesired are desired ele sizes at (x,y).</p><p>Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element) vector 'ElementsToBeRefine', only the values.</p><p>x,y are the locations where new element sizes are specifed.</p><p>ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements to be refined, or a list of numbers of elements to be refined.</p><pre class="codeinput"> fprintf(<span class="string">'Using default DefineDesiredEleSize \n'</span>)
 
 
-    <span class="keyword">return</span>
+<span class="keyword">return</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+function [UserVar,EleSizeDesired,ElementsToBeRefined]=...
+    DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
 
 %%
 % Define desired sizes of elements or specify which elements to refine.
 %
-% [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
-%
+% 
 % Only used in combination with adaptive meshing.
 %
 % Allows user to set desired ele sizes (EleSize) at given locations (x,y).
 %
-% On input x, y, EleSize are desired ele sizes at (x,y) as
+% On input EleSizeDesired are desired ele sizes at (x,y) as
 % calculated by Úa based on some user-defined criteria.
 %
-% On output x,y,EleSize are user-modified values.
+% On output EleSizeDesired are desired ele sizes at (x,y).
 %
 % Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element)
 % vector 'ElementsToBeRefine', only the values.
 %
-% x,y are the locations where new element sizes are specifed. 
+% x,y are the locations where new element sizes are specifed.
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
-% 
-% Example:
-% Mesh refinement around a given distance from the grounding line:
-% 
-%   CtrlVar.GroundingLineMeshRefinementNormalDistance=5000; 
-%   CtrlVar.GroundingLineMeshRefinementAlongDistance=5000;
-%   CtrlVar.GroundingLineMeshRefinementDesiredEleSize=1000;
-%
-% Now all parameters have been defined (this could be done in
-% Ua2D_InitialUserInput)
-%
-%   aTol=CtrlVar.GroundingLineMeshRefinementAlongDistance;
-%   nTol=CtrlVar.GroundingLineMeshRefinementNormalDistance;
-%   CtrlVar.PlotGLs=0;
-%   [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
-%   Ind = DistanceToLineSegment([x y], [xGL yGL], [],nTol,aTol);
-%   EleSizeDesired(Ind)=CtrlVar.GroundingLineMeshRefinementDesiredEleSize;
 %
 %%
-    
-  fprintf('Using default DefineDesiredEleSize \n')    
 
-    
-    return
-    
+ fprintf('Using default DefineDesiredEleSize \n')    
+
+
+return
+
 end
 
 ##### SOURCE END #####

@@ -14,7 +14,7 @@ CtrlVar=SSS2dDefaultParameters();
 %%
 [a,as,ab]=DefineMassBalance(' ',time,s,b,S,B,coordinates,connectivity,TRIxy,rhow,rho,CtrlVar);
 
-%[Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=SSS2dInitialUserInput(CtrlVar);
+%[UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=SSS2dInitialUserInput(CtrlVar);
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(coordinates,connectivity,MeshBoundaryCoordinates);
 
 %Smoothness=0.01 ; dx=5e3 ; dy=dx; h=SmoothFE2dMeshVariables(coordinates,h,Smoothness,dx,dy);

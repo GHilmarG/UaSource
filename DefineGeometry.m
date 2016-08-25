@@ -1,9 +1,9 @@
 
-function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 
 %%
 %  Defines geometrical variables
-% [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+% [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 %
 % Outputs:
 %
@@ -39,7 +39,7 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
 % to the new mesh using some interpolation methods (Usually a natural neighbour
 % scattered interpolant). But in a diagnostic/static run, geometric variables
 % (s,b,S,B) are always defined over the new mesh through a call to
-% [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined).
+% [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined).
 %       
 %%
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);

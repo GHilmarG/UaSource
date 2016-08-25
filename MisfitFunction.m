@@ -1,4 +1,4 @@
-function [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(Experiment,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
+function [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
 
 narginchk(11,11)
 

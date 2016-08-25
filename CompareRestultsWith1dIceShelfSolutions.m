@@ -6,7 +6,7 @@ function CompareRestultsWith1dIceShelfSolutions(Experiment,coordinates,connectiv
     x0=min(x) ; l=max(x); N=100; q=zeros(N,1);
     xplot=linspace(x0,l,N);
     for I=1:N
-        %[AGlen,n]=DefineAGlenDistribution(Experiment,coordinates,connectivity,s,b,h,S,B,rho,rhow,Itime,time,CtrlVar);
+        %[UserVar,AGlen,n]=DefineAGlenDistribution(Experiment,coordinates,connectivity,s,b,h,S,B,rho,rhow,Itime,time,CtrlVar);
         q(I)=quadgk(@fun,x0,xplot(I));
     end
     h=s-b;

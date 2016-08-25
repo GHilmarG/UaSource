@@ -12,11 +12,11 @@ if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
     
     switch N
         
-        case 3
-            
-            [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(CtrlVar.Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
-            
         case 4
+            
+            [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(CtrlVar.UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+            
+        case 5
             
             [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     

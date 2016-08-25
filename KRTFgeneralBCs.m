@@ -89,6 +89,7 @@ for Iint=1:MUA.nip
     sint=snod*fun;
     uint=unod*fun;
     vint=vnod*fun;
+    
     if CtrlVar.CisElementBased
         Cint=C;
         mint=m;

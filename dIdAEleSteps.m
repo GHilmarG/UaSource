@@ -62,7 +62,7 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
         EleArea=EleArea+detJw;
 
      
-        dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1/n-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-n)/n))/(2*n);
+        dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1./n-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-n)./n))./(2*n);
         %dEtadA=-real(hint.* (AGlenInt.*e(:,Iint)+CtrlVar.AGlenAdjointZero).^(-(1+n)/n)  .*e(:,Iint).^(2/n)) /(2*n);
         
         dIdAGlendata=dIdAGlendata-dEtadA.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*detJw;

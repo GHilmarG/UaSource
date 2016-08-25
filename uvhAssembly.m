@@ -95,6 +95,9 @@ vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
 if ~CtrlVar.CisElementBased
     Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);  
     mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+else
+    Cnod=C;
+    mnod=m;
 end
 
 

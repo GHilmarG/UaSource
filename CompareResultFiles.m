@@ -26,7 +26,7 @@ load(FileName2,'u','v','coordinates','connectivity','nip','AGlen','n','CtrlVar',
 u2=u ; v2=v; h2=h ; s2=s ; S2=S ; B2=B ; b2=b; dhdt2=dhdt;
 
 CtrlVar=SSS2dDefaultParameters();
-%[Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=SSS2dInitialUserInput(CtrlVar);
+%[UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=SSS2dInitialUserInput(CtrlVar);
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(coordinates,connectivity,MeshBoundaryCoordinates);
 
 %Smoothness=0.01 ; dx=5e3 ; dy=dx; h=SmoothFE2dMeshVariables(coordinates,h,Smoothness,dx,dy);

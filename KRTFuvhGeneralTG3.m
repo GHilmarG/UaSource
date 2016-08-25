@@ -44,10 +44,10 @@ function [R,K,T,F]=KRTFuvhGeneralTG3...
         
         switch CtrlVar.MassBalanceGeometryFeedback
             case 2
-                [as1,ab1]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+                [as1,ab1]=DefineMassBalance(CtrlVar.UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
                 dadh=zeros(MUA.Nnodes,1);
             case 3
-                [as1,ab1,dasdh,dabdh]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+                [as1,ab1,dasdh,dabdh]=DefineMassBalance(CtrlVar.UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
                 dadh=dasdh+dabdh;
         end
         

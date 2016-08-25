@@ -33,8 +33,10 @@ vint=vnod*fun;
 
 if CtrlVar.CisElementBased
     Cint=C;
+    mint=m;
 else
     Cint=C*fun;
+    mint=m*fun;
 end
 
 h0int=h0nod*fun;
@@ -123,7 +125,7 @@ dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint;
 
 
-[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,m,Heint,CtrlVar);
+[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
 etaint=etaInt(:,Iint) ;  % I could consider calculating this here
 
 

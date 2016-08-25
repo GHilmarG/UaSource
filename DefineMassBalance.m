@@ -1,12 +1,12 @@
 
-function [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 
 
 %%
 %  Define mass-balance distributions along upper and lower ice surfaces:
 %
-%    [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-%    [as,ab,dasdh,dabdh]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+%    [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+%    [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
 %  
 %   as     :  upper surface mass balance ab     :  lower surface mass balance
 %   dasdh  :  gradient of upper surface mass balance with respect to ice
@@ -19,7 +19,7 @@ function [as,ab]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rho
 %
 % If mass-balance geometry feedback is included in the solver, define mass
 % balance as:
-%    [as,ab,dasdh,dabdh]=DefineMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+%    [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
 % 
 % If this feedback is not included in the solver there is no need to return
 % either dasdh nor dabdh:

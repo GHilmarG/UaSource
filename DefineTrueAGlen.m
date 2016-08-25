@@ -1,4 +1,4 @@
-function [AGlen,n]=DefineTrueAGlen(Experiment,coordinates,CtrlVar)
+function [UserVar,AGlen,n]=DefineTrueAGlen(Experiment,coordinates,CtrlVar)
 
     fprintf(' Default DefineTrueAGlen \n ')
     

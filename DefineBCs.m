@@ -1,5 +1,5 @@
 function [ufixednode,ufixedvalue,vfixednode,vfixedvalue,utiedA,utiedB,vtiedA,vtiedB,hfixednode,hfixedvalue,htiedA,htiedB]=...
-        DefineBCs(Experiment,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+        DefineBCs(UserVar,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF)
     
     warning('Ua:DefaultDefine','Default DefineBCs')
 

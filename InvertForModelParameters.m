@@ -1,7 +1,7 @@
          
-function  [InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
+function  [UserVar,InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
             InvertForModelParameters(...
-            Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
+            UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
         
     InvFinalValues=InvStartValues;
      
@@ -10,12 +10,12 @@ function  [InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
            case {'QuasiNewtonInversion','QuasiNewtonInversion:HessianGuesstimate','FixPointEstimationOfSlipperiness'}
                
                [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
-                   Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+                   UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
                
         case 'AdjointProjectedGradient'
 
             [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
-                Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+                UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
             
         case 'MatlabConstrainedMinimisation'
             

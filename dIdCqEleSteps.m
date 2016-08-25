@@ -63,7 +63,7 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
         hfint=(Sint-Bint)*rhow./rhoint;
         Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); 
         
-        Ctemp= -(1/m)*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ; % this is correct
+        Ctemp= -(1./m).*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1./m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./m-1) ; % this is correct
         %Ctemp= -(1/m)*(Cint+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;  % used for testing purposes
         
         

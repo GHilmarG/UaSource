@@ -6,41 +6,29 @@ if nOut~=5
     error('Ua:GetMassBalance','Need 5 output arguments')
 end
 
+N=nargout('DefineMassBalance');
 
-if CtrlVar.MassBalanceGeometryFeedback>0
+switch N
     
-    N=nargout('DefineMassBalance');
-    
-    switch N
+    case 2
         
-        case 4
-            
-            [as,ab,dasdh,dabdh]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-            
-        case 5
-            
-            [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-            
-    end
-    
-else
-    
-    N=nargout('DefineMassBalance');
-    
-    switch N
+        [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        dasdh=as*0 ;  dabdh=ab*0 ;
         
-        case 2
-            [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-            
-        case 3
-            
-            [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-            
-    end
-    
-    dasdh=as*0 ;  dabdh=ab*0 ;
-    
-    
+    case 3
+        
+        [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        dasdh=as*0 ;  dabdh=ab*0 ;
+        
+    case 4
+        
+        [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        dasdh=as*0 ;  dabdh=ab*0 ;
+        
+    case 5
+        
+        [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        
 end
 
 

@@ -1,6 +1,6 @@
 
 function [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
-    Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
+    UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
 
 
 xAdjoint=[] ;yAdjoint=[];
@@ -41,7 +41,7 @@ if gammaAdjoint==0 ; gammaAdjoint=1 ; end
 
 dJdC=Cest*0;
 
-F=@(q,ub,vb,ud,vd) CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,Cest-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,Cest-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
 [J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(0,ub,vb,ud,vd);
 
 if iJ==0
@@ -72,7 +72,7 @@ for iteration=1:nIt
             
             [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
                 AdjointGradientNR2d(...
-                Experiment,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+                UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
             
         otherwise
             error('what case')
@@ -124,7 +124,7 @@ for iteration=1:nIt
     
     %C1=C0-gamma*dJdC; C1=kk_proj(C1,CtrlVar.Cmax,CtrlVar.Cmin);
     
-    F=@(q,ub,vb,ud,vd) CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+    F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
     [J1,Idata1,IRegC1,IRegAGlen1,IBarrierC1,IBarrierAGlen1,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(gammaAdjoint,ub,vb,ud,vd);
     
     if J1/J0<0.5
@@ -137,7 +137,7 @@ for iteration=1:nIt
         % dI/dgamma =d I(J0+gamma gradf)= gradf'*gradf
         bb=gammaAdjoint; fa=J0 ; fb=J1 ; slope0=[]; %slope0=-dJdC'*dJdC;
         
-        F=@(q,ub,vb,ud,vd) CalcMisfitFunction(Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+        F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
         nOut=10; listInF=[1:4] ;  listOutF=[7:10];
         
         temp=CtrlVar.InfoLevelBackTrack;

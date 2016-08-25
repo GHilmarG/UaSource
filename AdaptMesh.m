@@ -330,7 +330,7 @@ for JJ=1:Iterations
         MapQuantitiesToNewFEmesh(UserVar,CtrlVar,MUAnew,MUAold,hOld,time,OutsideValues,...
         ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1);
     
-    %[~,~,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUAnew,time,'SB')
+    %[~,~,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUAnew,time,'SB')
     BCsNew=BoundaryConditions;
     [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
     

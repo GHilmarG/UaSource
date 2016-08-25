@@ -40,15 +40,15 @@ function ab=DriverCalcIceShelfMeltRates(MUA,VelDataSet,nSmooth,minab,maxab)
     
     Experiment=[];
     CtrlVar.fidlog=1;
-    [s,b,S,B,alpha]=GetGeometry(Experiment,CtrlVar,MUA,time);
+    [UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,time);
 
     
     h=s-b; time =0 ;
     
-    [rho,rhow,g]=GetDensities(Experiment,CtrlVar,MUA,time,s,b,h,S,B);
+    [UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B);
     GF=GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
-    [as,ab]=GetMassBalance(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+    [UserVar,as,ab]=GetMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
     dsdt=s*0;
    
     

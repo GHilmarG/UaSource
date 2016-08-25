@@ -26,7 +26,6 @@ switch N
         
 end
 
-
 [rho,rhow,g]=TestDensityInputValues(CtrlVar,MUA,rho,rhow,g);
 
 end

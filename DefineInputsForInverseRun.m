@@ -1,4 +1,4 @@
-function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(Experiment,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
 
 %%
 % An example of how to define inputs for an inverse run
@@ -102,8 +102,8 @@ Priors.rhow=rhow;
 
 %% Define start values
 % I'm here setting starting values equal to priors
-[InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
-[InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+[InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
+[InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
 
 
 end

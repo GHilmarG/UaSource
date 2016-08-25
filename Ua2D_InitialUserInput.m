@@ -1,7 +1,7 @@
 
-function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+function [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
 %%
-% [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+% [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
 % 
 % Set the values of various fields of the run control variable CtrlVar as well
 % as the time, time step, and the MeshBoundaryCoordinates
@@ -14,9 +14,9 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
 %%
     warning('Ua:DefaultDefine','Using default Ua2D_InitialUserInput')
     warning('off','Ua:DefaultDefine')
-    Experiment='DefaultRun';
+    UserVar.Experiment='DefaultRun';
    
-     CtrlVar.doPrognostic=0 ;
+    CtrlVar.doPrognostic=0 ;
     CtrlVar.doDiagnostic=1  ;
     CtrlVar.doInverseStep=0;
     CtrlVar.Restart=0;  

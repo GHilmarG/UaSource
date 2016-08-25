@@ -11,7 +11,10 @@ narginchk(7,7)
 
 if CtrlVar.CisElementBased
     % project onto nodes
-    [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); C=M*C;
+    [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); 
+    
+    C=M*C;
+    m=M*m;
     
 end
 

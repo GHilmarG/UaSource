@@ -190,7 +190,7 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
     
-    [InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=InvertForModelParameters(CtrlVar.Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+    [UserVar,InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
     
     
     C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
@@ -203,15 +203,15 @@ if CtrlVar.doInverseStep   % -inverse
     
     
     if CtrlVar.doplots
-        AdjointResultsPlots(CtrlVar.Experiment,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
+        AdjointResultsPlots(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
             InvStartValues,Priors,Meas,BCsAdjoint,Info,InvFinalValues,xAdjoint,yAdjoint);
     end
     
     if CtrlVar.AdjointWriteRestartFile
         
-        fprintf(CtrlVar.fidlog,' %s saving adjoint restart file: %s \n ',CtrlVar.Experiment,CtrlVar.NameOfAdjointRestartFiletoWrite);
+        fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.NameOfAdjointRestartFiletoWrite);
         save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
-            'CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
+            'UserVar','CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
             'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint','-v7.3');
         
         
@@ -585,9 +585,9 @@ while 1
         
         
         if ReminderFraction(CtrlVar.time,CtrlVar.WriteDumpFileTimeInterval)<1e-5
-            dumpfile=sprintf('%s-DumpFile%-gT-',CtrlVar.Experiment,CtrlVar.time);  dumpfile=regexprep(dumpfile,'\.','k');
+            dumpfile=sprintf('%s-DumpFile%-gT-',CtrlVar.UserVar,CtrlVar.time);  dumpfile=regexprep(dumpfile,'\.','k');
         else
-            dumpfile=sprintf('%sDumpFile%i',CtrlVar.Experiment,CtrlVar.CurrentRunStepNumber);
+            dumpfile=sprintf('%sDumpFile%i',CtrlVar.UserVar,CtrlVar.CurrentRunStepNumber);
         end
         
         fprintf(CtrlVar.fidlog,' Saving everything in file %s  at t=%-g \n',dumpfile,CtrlVar.time);
@@ -664,7 +664,7 @@ SayGoodbye(CtrlVar)
         time=CtrlVar.time;
         dt=CtrlVar.dt;
         try
-            save(RestartFile,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
+            save(RestartFile,'CtrlVarInRestartFile','UserVar','MUA','BCs','time','dt','s','b','S','B','h','ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
                 'nStep','Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
                 'GLdescriptors','l','alpha','g','-v7.3');
             
