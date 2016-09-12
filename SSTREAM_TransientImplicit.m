@@ -160,7 +160,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/50;
-            rTest=CalcCostFunctionNRuvh(CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+            [~,rTest,ruv1Test,rh1Test]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         gammaTestVector=[gammaTestVector(:);infovector(:,1)];

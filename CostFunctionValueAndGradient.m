@@ -1,18 +1,24 @@
-function [J,CostFunctionGradient,Idata,IReg,IBarrier,ub,vb,ud,vd,lx,ly] = ...
-    CostFunctionValueAndGradient(CtrlVar,MUA,JoptVector,...
-    s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,...
-    sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-    AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-    Luv,Luvrhs,lambdauv,LAdjoint,LAdjointrhs,lambdaAdjoint,...
-    GF)
+function [J,Gradient,Hessian,Idata,IReg,IBarrier,ub,vb,ud,vd,l]=CostFunctionValueAndGradient(...
+    UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,BCsAdjoint,Priors,Meas)
+    
+
+persistent ubP vbP PHessian
+
+if ~isempty(ubP)
+    ub=ubP;
+    vb=vbP;
+end
 
 
-[J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,dIdu,K]=...
-    CalcMisfitFunction(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,...
-    sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-    AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-    Luv,Luvrhs,lambdauv,GF);
+if CtrlVar.OnlyGetPersistenValues
+    J=[] ; Gradient=[] ;Hessian=[] ; Idata=[] ; IReg=[] ; IBarrier=[] ; l=[];
+    return
+    
+end
 
+
+[J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
+    CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
 
 
 iA=strfind(CtrlVar.AdjointGrad,'A'); iC=strfind(CtrlVar.AdjointGrad,'C'); isAgrad=~isempty(iA); isCgrad=~isempty(iC);
@@ -28,26 +34,36 @@ end
 
 if nargout>1
     
-    [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
-        AdjointGradientNR2d(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,...
-        sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-        AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-        Luv,Luvrhs,lambdauv,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,K);
-    
+    [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+    AdjointGradientNR2d(UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+
     
     if isAgrad
-        CostFunctionGradient=dJdAGlen;
+        Gradient=dJdAGlen;
         RegularisationGradient=dIdAGlenreg;
         MisfitGradient=dIdAGlendata;
     elseif isCgrad
-        CostFunctionGradient=dJdC;
+        Gradient=dJdC;
         RegularisationGradient=dIdCreg;
         MisfitGradient=dIdCdata;
     end
     
 else
-    CostFunctionGradient=[];
+    Gradient=[];
 end
+
+
+if nargout>2
+    if isempty(PHessian)
+        PHessian=MassMatrix2D1dof(MUA);
+    end
+    Hessian=PHessian;
+else
+    Hessian=[];
+end
+
+ubP=ub ; vbP=vb;
+
 
 %     figure('name','FunctionGradients')
 %     subplot(1,3,1) ; [pPatch,pCol]=PlotElementBasedQuantities(coordinates,connectivity,CostFunctionGradient); title('CostFunctonGradient matlab') ;

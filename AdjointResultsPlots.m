@@ -125,17 +125,20 @@ xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 %%
-figure   
-[It,~]=size(Info.JoptVector);
-semilogy(0:It-1,Info.JoptVector(:,1),'-ro') ; hold on
-semilogy(0:It-1,Info.JoptVector(:,2),'-b+') ;
-semilogy(0:It-1,Info.JoptVector(:,3),'-g*') ;
-semilogy(0:It-1,Info.JoptVector(:,5),'-mx') ;
-semilogy(0:It-1,Info.JoptVector(:,4),'-cs') ;
-semilogy(0:It-1,Info.JoptVector(:,6),'-yd') ;
 
-legend('Cost function','Data misfit','C Reg','C barrier','A Reg','A barrier')
-xlabel('Iteration') ;
-hold off
+if ~isempty(Info.JoptVector)
+    figure
+    [It,~]=size(Info.JoptVector);
+    semilogy(0:It-1,Info.JoptVector(:,1),'-ro') ; hold on
+    semilogy(0:It-1,Info.JoptVector(:,2),'-b+') ;
+    semilogy(0:It-1,Info.JoptVector(:,3),'-g*') ;
+    semilogy(0:It-1,Info.JoptVector(:,5),'-mx') ;
+    semilogy(0:It-1,Info.JoptVector(:,4),'-cs') ;
+    semilogy(0:It-1,Info.JoptVector(:,6),'-yd') ;
+    
+    legend('Cost function','Data misfit','C Reg','C barrier','A Reg','A barrier')
+    xlabel('Iteration') ;
+    hold off
+end
 %%
 end

@@ -21,7 +21,7 @@ CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
 % Now generate mesh (When using Úa this is done internally, no such call
 % then needed).
-UserVar=[];
+
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
@@ -85,7 +85,7 @@ CtrlVar.GmshGeoFileAdditionalInputLines{3}='Physical Line(1) = {2};';
 CtrlVar.GmshGeoFileAdditionalInputLines{4}='Physical Line(2) = {3};';  
 CtrlVar.GmshGeoFileAdditionalInputLines{5}=['Physical Line(3) = {4:',num2str(N),'};'];  
 CtrlVar.GmshGeoFileAdditionalInputLines{6}='Physical Surface(1) = {1};';  
-
+UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
@@ -119,7 +119,7 @@ figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
-%% Example:  house withouth a window
+%% Example:  house without a window
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ] ;
 UserVar=[];
@@ -134,6 +134,7 @@ CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
                NaN NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
                NaN NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ];         % another innner boundary (anticlockwise orientation)
+UserVar=[];           
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
@@ -175,7 +176,7 @@ MeshBoundaryCoordinates=...
 
 CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 
-
+UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 % also calculate and plot normals
@@ -186,6 +187,40 @@ drawnow
 
  %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
+ 
+%% Example: an elliptical hole/crack
+%
+% when creating holes within a mesh, separate boundaries by NaN NaN
+%
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.MeshSizeMax=1e3; 
+CtrlVar.MeshSizeMin=0.1e3;
+
+a=0.1e3; % horizontal radius
+b=5e3; % vertical radius
+x0=0; % x0,y0 ellipse centre coordinates
+y0=0;
+t=linspace(-pi,pi,100);  t(end)=[];
+xe=x0+a*cos(t);
+ye=y0+b*sin(t);
+
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+
+
+MeshBoundaryCoordinates=...
+    [-10e3 -10e3 ; ...
+    -10e3 10e3 ; ...
+    10e3 10e3 ; ...
+    10e3 -10e3 ; ...
+    NaN  NaN ; ...
+     xe(:) ye(:)] ;
+
+UserVar=[];           
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
+figure ;  
+PlotFEmesh(MUA.coordinates,MUA.connectivity)
+drawnow
 %% Example: Constrainted meshing with two joined meshes sharing the same boundary
 %
 % Since here the same line belongs to more then one mesh we need to specify

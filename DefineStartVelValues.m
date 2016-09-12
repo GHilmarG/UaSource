@@ -1,5 +1,6 @@
-function  [ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
+function  [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
           
+
 %%
 % Define start values for velocities
 %
@@ -13,11 +14,11 @@ function  [ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,tim
 % default approach. So generally this m-file is not required to obtain a solution,
 % but it may speed things up.
 %
-%%
+%
 
 
-  fprintf('Using default DefineStartVelValues \n')
-  
+ub(BCs.ubFixedNode)=BCs.ubFixedValue;
+vb(BCs.ubFixedNode)=BCs.vbFixedValue;
     
         
 end

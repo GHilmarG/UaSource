@@ -1,6 +1,10 @@
 
 function [C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m)
 
+[nC,mC]=size(C);
+[nm,mm]=size(m);
+
+
 
 if numel(C)==1 || numel(m)==1
     
@@ -13,6 +17,48 @@ if numel(C)==1 || numel(m)==1
         m=m+zeros(MUA.Nnodes,1);
     end
 end
+
+if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
+    
+    if CtrlVar.CisElementBased
+        
+        if nC==MUA.Nnodes
+            fprintf('\n Note:  C is element based, but entered on input as a nodal variable.\n')
+            fprintf('        C will be mapped from nodes to elements by averaging over neighbouring nodes. \n')
+            C=Nodes2EleMean(MUA.connectivity,C);
+        end
+        
+        if nm==MUA.Nnodes
+            fprintf('\n Note:  m is element based, but entered on input as a nodal variable.\n')
+            fprintf('        m will be mapped from nodes to elements by averaging over neighbouring nodes. \n')
+            m=Nodes2EleMean(MUA.connectivity,m);
+        end
+        
+    else
+        
+        if nC==MUA.Nele || nm==MUA.Nele
+            
+            M=Ele2Nodes(MUA.connectivity,MUA.Nnodes);
+            
+            if nC==MUA.Nele
+                
+                fprintf('\n Note:  C is nodal based, but entered on input as an element variable.\n')
+                fprintf('        C will be mapped from elements to nodes by averaging over neighbouring elements. \n')
+                
+                C=M*C;
+            end
+            
+            if nm==MUA.Nele
+                
+                fprintf('\n Note:  m is nodal based, but entered on input as an element variable.\n')
+                fprintf('        m will be mapped from elements to nodes by averaging over neighbouring elements. \n')
+                
+                m=M*m;
+            end
+        end
+    end
+end
+
 
 
 if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(C))

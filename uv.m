@@ -79,6 +79,7 @@ switch lower(CtrlVar.FlowApproximation)
         RunInfo.converged=1; RunInfo.Iterations=NaN;  RunInfo.residual=NaN;
         
     case 'hybrid'
+        
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
         [ub,vb,l.ubvb,Kuv,Ruv,RunInfo]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         

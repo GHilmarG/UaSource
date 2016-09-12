@@ -85,8 +85,16 @@ switch CtrlVar.SymmSolver
         
         x=zeros(nA,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
         y=B*(f-A*x);
-        
-        
+
+%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-B x)
+%  [B   0 ] [y]  [g]      
+%
+% -> A x + B' y = f -> y = B'\(f-B x)
+%   B'*B=1 then
+%   y = B'\(f-B x) = inv(B') B' B (f-B x)=  B (f-B x)
+%
+
+
     otherwise
         error('case not reckognised ')
         

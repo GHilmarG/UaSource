@@ -1,27 +1,42 @@
-function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,L,lambda,dlambda,CtrlVar)
+function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,L,lambda,dlambda,CtrlVar,cuv)
       
 
-    BacktrackInfo.Converged=1;    
-    BacktrackInfo.gammaNaN=0;
+   
+    
     Slope0=-2*r0 ;  % using the inner product def
     gamma=1; r=r1;
     gammab=1; rb=r1 ; 
     gammac=1 ; rc=r1;
     
+  
     
     beta=CtrlVar.NewtonBacktrackingBeta;  % Only accept step if reduction is larger than beta*StepSize
     target=CtrlVar.NewtonAcceptRatio*r0;  % the initial criteria is a given fractional reduction, in the backtracking step I then use the Amarijo criteria
     GammaMin=CtrlVar.BacktrackingGammaMin;
     
-  
- 
+    
+    
     iarm=0;
     iarmmax=CtrlVar.iarmmax;
     
     
+    BacktrackInfo.Converged=1;
+    BacktrackInfo.gammaNaN=0;
+    BacktrackInfo.iarm=iarm;
+    
     infovector=zeros(iarmmax+2,2)+NaN;
     infovector(1,1)=0 ; infovector(1,2)=r0;
     infovector(2,1)=1 ; infovector(2,2)=r1;
+    
+    
+    
+    if r1<CtrlVar.NLtol
+        return
+%    elseif r0<CtrlVar.NLtol
+%        gamma=0;
+%        r=r0;
+    end
+    
     
     cStatus=NaN ; pStatus=NaN;
     
@@ -58,7 +73,7 @@ function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,
             gamma=gammaTest;
             if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
                 
-            r = CalcCostFunctionNR(gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar);
+            r = CalcCostFunctionNR(gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar,cuv);
             infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
             
             if isnan(r) ;
@@ -91,7 +106,7 @@ function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,
     iarm=0;
     
     %% backtracking
-    while r >  target && iarm<=iarmmax && gamma > GammaMin
+    while r >  target && iarm<=iarmmax && gamma > GammaMin && r > CtrlVar.NLtol
     
         
         iarm=iarm+1;
@@ -111,7 +126,7 @@ function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,
             break
         end
         
-        r = CalcCostFunctionNR(gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar);
+        r = CalcCostFunctionNR(gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar,cuv);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
    
         if isnan(r) ; 
@@ -145,7 +160,7 @@ function [r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(F0,r0,
     % another case that is sometimes worthwile investigating is if first backtracking step was not agressive enough
     if iarm==1 && r> 0.1*r0 && r> CtrlVar.NLtol
         gammaTest=gamma/2;
-        rTest = CalcCostFunctionNR(gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar);
+        rTest = CalcCostFunctionNR(gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,L,lambda,dlambda,CtrlVar,cuv);
         infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
         if rTest<r ; r=rTest ; gamma=gammaTest ; end
     end

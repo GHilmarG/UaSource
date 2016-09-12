@@ -1,10 +1,6 @@
 function dIdC=dIdCq(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 
-%function [dIdC]=dIdCq(u,v,lx,ly,S,B,h,MUA.connectivity,coordinates,nip,C,m,rho,rhow,CtrlVar)
-
-% Here I evaluate all fields at integration points within the
-% integration loop
-%
+% nodal based gradient
 
 ndim=2;
 
@@ -12,6 +8,7 @@ hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -39,6 +36,7 @@ for Iint=1:MUA.nip
     uint=unod*fun;
     vint=vnod*fun;
     Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    mint=mnod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
     rhoint=rhonod*fun;
@@ -47,7 +45,7 @@ for Iint=1:MUA.nip
     hfint=(Sint-Bint)*rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
-    Ctemp= (1/m)*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1/m-1) ;
+    Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
     detJw=detJ*weights(Iint);
     for Inod=1:MUA.nod
@@ -77,18 +75,22 @@ if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
     
     if  CtrlVar.doplots && CtrlVar.InfoLevelAdjoint>100
         figure ;
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; 
-        title('dIdC nonscaled, i.e. \deltaJ(C,N) ')
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ;
+        title('Euclidian dIdC i.e. \deltaJ(C,N) ')
         figure
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ; 
-        title(['Mesh-independent representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ;
+        title(['Ritz representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
     end
+    
+    dd=dIdCm'*dIdC/(norm(dIdCm)*norm(dIdC));
+    ddAngle=acosd(dd);
+    fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
     
     dIdC=dIdCm;
     
 end
 
-
+%dIdC=median(C)*dIdC;  % reasonable scaling I think
 
 end
 

@@ -35,7 +35,7 @@ da0dt=[];
 dsdt=NaN; dbdt=NaN; dhdt=NaN; Ruv=[];
 dGFdt=[];  % get rid of this at a later stage
 tTime=tic;
-
+as=[];ab=[];BCs=[];
 Experiment='';
 
 %% Define default values
@@ -209,36 +209,15 @@ if CtrlVar.doInverseStep   % -inverse
     
     if CtrlVar.AdjointWriteRestartFile
         
-        fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.NameOfAdjointRestartFiletoWrite);
-        save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
-            'UserVar','CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
-            'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint','-v7.3');
-        
-        
-        if CtrlVar.AGlenisElementBased
-            xA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-            yA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
-        else
-            xA=MUA.coordinates(:,1);
-            yA=MUA.coordinates(:,2);
-        end
-        
-        if CtrlVar.CisElementBased
-            xC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
-            yC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
-        else
-            xC=MUA.coordinates(:,1);
-            yC=MUA.coordinates(:,2);
-        end
-        
-        fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
-        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xC','yC','MUA')
-        
-        fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
-        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA')
+        WriteAdjointRestartFile();
         
     end
     
+    CtrlVar.UaOutputsInfostring='End of Inverse Run';
+    CtrlVar.UaOutputsCounter=1;
+    
+    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l);
     
     SayGoodbye(CtrlVar);
     return  % This is the end of the (inverse) run
@@ -297,9 +276,7 @@ while 1
     
     % -adapt time step
     if CtrlVar.TimeDependentRun
-        
         [CtrlVar.dt,dtRatio]=AdaptiveTimeStepping(CtrlVar,CtrlVar.time,CtrlVar.dt,RunInfo,dubdt,dvbdt,dhdt);
-        
     end
     
     
@@ -364,12 +341,9 @@ while 1
         
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
-        tdiagnostic=tic;                  % -uv
+
         [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
-        
-        
-        tdiagnostic=toc(tdiagnostic);
-        
+
         dubdtm1=dubdt ; dvbdtm1=dvbdt; duddtm1=duddt ; dvddtm1=dvddt;
         
         if CtrlVar.dt==0 
@@ -397,12 +371,8 @@ while 1
                     
                     fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
                     
-                    tdiagnostic=tic;
-                    
                     [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
-                    
-                    
-                    tdiagnostic=toc(tdiagnostic);
+                   
                     if  RunInfo.converged==1 || dIt==2
                         break
                     end
@@ -677,6 +647,71 @@ SayGoodbye(CtrlVar)
         end
         
     end
+
+
+
+    function WriteAdjointRestartFile
+        
+        
+        fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.NameOfAdjointRestartFiletoWrite);
+        save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
+            'UserVar','CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','alpha','rho','rhow','g',...
+            'as','ab','GF','BCs','l',...
+            'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint','-v7.3');
+        
+        
+        if CtrlVar.AGlenisElementBased
+            xA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
+            yA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+        else
+            xA=MUA.coordinates(:,1);
+            yA=MUA.coordinates(:,2);
+        end
+        
+        if CtrlVar.CisElementBased
+            xC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
+            yC=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+        else
+            xC=MUA.coordinates(:,1);
+            yC=MUA.coordinates(:,2);
+        end
+        
+        fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
+        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xC','yC','MUA')
+        
+        fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA')
+        
+    end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

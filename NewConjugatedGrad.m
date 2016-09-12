@@ -10,7 +10,7 @@ function [gradJ1,ConjGradAngle,teta]=NewConjugatedGrad(dJdescent,dJdescentlast,g
     
     iCount=iCount+1;
     
-    dd=dJdescent'*dJdescentlast/(dJdescentlast'*dJdescentlast);
+    dd=dJdescent'*dJdescentlast/(norm(dJdescentlast)*norm(dJdescentlast));
     ddAngle=acosd(dd); % subsequent steepest descent directions should be close to 90 degrees angle to each other
     
     d0=-dJdescentlast;

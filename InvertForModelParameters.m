@@ -20,22 +20,13 @@ function  [UserVar,InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
         case 'MatlabConstrainedMinimisation'
             
             error('InvertForModelParameters:OptionBroken','MatlabConstrainedMinimisation broken')
-            gammaAdjoint=NaN;
+           
             
-            [Cest,AGlenEst,ub,vb,ud,vd,JoptVector]=MatlabConstrainedMinimisation(CtrlVar,MUA,ub,vb,ud,vd,sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-                s,S,B,h,Xint,Yint,xint,yint,DTxy,TRIxy,DTint,TRIint,...
-                Luv,Luvrhs,lambdauv,LAdjoint,LAdjointrhs,lambdaAdjoint,...
-                alpha,rho,rhow,g,GF,Itime,JoptVector);
+        case {'MatlabOptimizationToolbox:fmincon','MatlabOptimizationToolbox:fminunc','MatlabOptimizationToolbox'}
             
-            save('MatlabConstrainedMinimisation','JoptVector')
-            
-            if CtrlVar.doplots==1
-                figure
-                [It,~]=size(JoptVector);
-                semilogy(0:It-1,JoptVector(:,1),'-ro') ; hold on
-            end
-            
-            
+            [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=InversionUsingMatlabOptimizationToolbox(...
+                UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+             
             
         case 'ProjectedBFGS'
             

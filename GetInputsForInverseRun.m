@@ -22,6 +22,9 @@ if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
     
     end
     
+    BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
+    
+    
 else
     
     fprintf('\n-----------------------------------------------------------------------')

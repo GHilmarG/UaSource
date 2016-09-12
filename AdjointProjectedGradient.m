@@ -52,7 +52,7 @@ for iteration=1:nIt
     % In the line search I modify C0 and AGlen0 and these modified values are Ctest and AGlentest
     % Once the line search is finised, AGlenEst and Cest are updated
     
-    if CtrlVar.doplots==1 && mod(iteration,6)==0 ; close all ; end
+    %if CtrlVar.doplots==1 && mod(iteration,6)==0 ; close all ; end
     
     iA=strfind(CtrlVar.AdjointGrad,'A'); iC=strfind(CtrlVar.AdjointGrad,'C'); isAgrad=~isempty(iA); isCgrad=~isempty(iC);
     
@@ -284,8 +284,17 @@ for iteration=1:nIt
     
     %% simple line search
     
+    if strcmpi(CtrlVar.AdjointGrad,'A')
+        CtrlVar.AdjointGrad='A';
+        Slope0=-dJdAGlen'*dJdAGlensearch;
+    elseif strcmpi(CtrlVar.AdjointGrad,'C')
+        Slope0=-dJdC'*dJdCsearch;
+    else
+        fprintf('CtrlVar.AdjointGrad=%s\',CtrlVar.AdjointGrad)
+        error('Ua:AdjointProjectedGradient',' CtrlVar.AdjointGrad must be either equal to A or C')
+    end
     
-    Slope0=-(dJdC+dJdAGlen)'*(dJdCsearch+dJdAGlensearch);
+    
     fprintf('Slope0=%-g \n',Slope0)
     
     
@@ -295,7 +304,9 @@ for iteration=1:nIt
         elseif ~isempty(InvStartValues.InitialSearchStepSize) && ~isnan(InvStartValues.InitialSearchStepSize) && isfinite(InvStartValues.InitialSearchStepSize)
             gamma_MinEstimate=InvStartValues.InitialSearchStepSize ;
         else
-            kappa=0.1 ; gamma_MinEstimate=kappa*J0/Slope0;
+            kappa=0.1 ; 
+            %gamma_MinEstimate=kappa*J0/Slope0;
+            gamma_MinEstimate=1;
         end
     else
         gamma_MinEstimate=gammaAdjoint; % last gammaAdjoint used as initial guess for step sized
@@ -328,8 +339,16 @@ for iteration=1:nIt
         Ctest=kk_proj(C0+gamma*dJdCsearch,upC,lowC);
         AGlentest=kk_proj(AGlen0+gamma*dJdAGlensearch,upA,lowA);
         
+        if CtrlVar.InfoLevelAdjoint>10 
+            fprintf('Solving forward problem using a line-search stepsize g=%g \n',gamma)
+        end
+        
+            
         [ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF);
         
+        if CtrlVar.InfoLevelAdjoint>10  && ~nlInfo.converged
+           fprintf('Forward step did not converge. Will reduce line-search step size.\n') 
+        end
         
     end
     

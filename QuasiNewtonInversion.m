@@ -135,13 +135,16 @@ for iteration=1:nIt
     else
         %% backtracking/line search
         % dI/dgamma =d I(J0+gamma gradf)= gradf'*gradf
-        bb=gammaAdjoint; fa=J0 ; fb=J1 ; slope0=[]; %slope0=-dJdC'*dJdC;
+        bb=gammaAdjoint; fa=J0 ; fb=J1 ; 
+        slope0=[]; 
+        %slope0=-dJdC'*dJdC;
         
         F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
         nOut=10; listInF=[1:4] ;  listOutF=[7:10];
         
         temp=CtrlVar.InfoLevelBackTrack;
         CtrlVar.InfoLevelBackTrack=CtrlVar.InfoLevelAdjoint;
+        CtrlVar.BacktrackingGammaMin=CtrlVar.BacktrackingGammaMinAdjoint;
         [gammaAdjoint,fgamma,BackTrackingInfoVector,ArgOut{1:nOut-1}]=BackTracking(slope0,bb,fa,fb,F,CtrlVar,nOut,listInF,listOutF,ub,vb,ud,vd);
         CtrlVar.InfoLevelBackTrack=temp;
         

@@ -12,6 +12,7 @@ vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 lxnod=reshape(lx(MUA.connectivity,1),MUA.Nele,MUA.nod);
 lynod=reshape(ly(MUA.connectivity,1),MUA.Nele,MUA.nod);
 AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
@@ -30,6 +31,7 @@ for Iint=1:MUA.nip
     end
     
     hint=hnod*fun;
+    nint=nnod*fun;
     AGlenInt=AGlennod*fun;
     AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
     
@@ -53,7 +55,7 @@ for Iint=1:MUA.nip
     
     detJw=detJ*weights(Iint);
     %dEtadA=-real(hint.*AGlenInt.^(-1/n-1).*e(:,Iint).^((1-n)/n))/(2*n);
-    dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1/n-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-n)/n))/(2*n);
+    dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1./nint-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-nint)./nint))./(2.*nint);
     
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
@@ -85,13 +87,22 @@ if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
         PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; 
         title('dIdA nonscaled, i.e. \deltaJ(A,N) ')
         figure
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdAm) ; 
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdAm) ;
         title(['Mesh-independent representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
     end
     
+    dd=dIdAm'*dIdA/(norm(dIdAm)*norm(dIdA));
+    ddAngle=acosd(dd);
+    fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
+    
+    
     dIdA=dIdAm;
     
+  
+    
 end
+
+ %dIdA=median(AGlen)*dIdA;  % reasonable scaling I think
 
 
 end

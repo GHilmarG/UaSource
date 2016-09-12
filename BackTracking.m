@@ -67,16 +67,30 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
     ExtrapolationRatio=2.5;
     MinXfrac=1e-10*b; % exit if change in x as a fraction of initial interval smaller than this
     MaxFuncSame=3; % exit if minimum of func did not change during MaxFuncSame iterations
-        
-    if isfield(CtrlVar,'BackTrackBeta') ; beta=CtrlVar.BackTrackBeta ; end
-    if isfield(CtrlVar,'BackTrackMaxIterations') ; MaxIterations=CtrlVar.BackTrackMaxIterations ; end
-    if isfield(CtrlVar,'BackTrackMaxExtrapolations') ; MaxExtrapolations=CtrlVar.BackTrackMaxExtrapolations ; end
-    if isfield(CtrlVar,'BackTrackMinXfrac') ; MinXfrac=CtrlVar.BackTrackMinXfrac*b ; end
-    if isfield(CtrlVar,'BackTrackMaxFuncSame') ; MaxFuncSame=CtrlVar.BackTrackMaxFuncSame ; end
-    if isfield(CtrlVar,'BackTrackExtrapolationRatio') ; ExtrapolationRatio=CtrlVar.BackTrackExtrapolationRatio ; end
+    BacktrackingGammaMin=1e-20;
     
-
-   
+    if isfield(CtrlVar,'BackTrackBeta') ; 
+        beta=CtrlVar.BackTrackBeta ; 
+    end
+    if isfield(CtrlVar,'BackTrackMaxIterations') ; 
+        MaxIterations=CtrlVar.BackTrackMaxIterations ; 
+    end
+    if isfield(CtrlVar,'BackTrackMaxExtrapolations') ; 
+        MaxExtrapolations=CtrlVar.BackTrackMaxExtrapolations ; 
+    end
+    if isfield(CtrlVar,'BackTrackMinXfrac') ; 
+        MinXfrac=CtrlVar.BackTrackMinXfrac*b ; 
+    end
+    if isfield(CtrlVar,'BackTrackMaxFuncSame') ; 
+        MaxFuncSame=CtrlVar.BackTrackMaxFuncSame ; 
+    end
+    if isfield(CtrlVar,'BackTrackExtrapolationRatio') ; 
+        ExtrapolationRatio=CtrlVar.BackTrackExtrapolationRatio ; 
+    end
+    
+    if isfield(CtrlVar,'BacktrackingGammaMin') ;
+        BacktrackingGammaMin=CtrlVar.BacktrackingGammaMin;
+    end
     
     
     %%
@@ -184,6 +198,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
     while  fb<fa && fc < fb && fmin > target
         Extrapolation=Extrapolation+1;
         
+        
         if CtrlVar.InfoLevelBackTrack>=2
             %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
             fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
@@ -192,7 +207,9 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
             
         end
         
-        gamma=ExtrapolationRatio*c ; gammaOld=gamma ;
+        gamma=ExtrapolationRatio*c ; 
+        gammaOld=gamma ;
+
         if Fargcollect
             [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{1:end}) ;
             if ~isempty(listOutF) && ~isempty(listInF)
@@ -203,7 +220,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
         end
         iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
         
-        
+        fbOld=fb; bOld=b;
         fb=fc ; b=c ;
         fc=fgamma ; c=gamma ;
         
@@ -216,6 +233,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
             fprintf(' exiting extrapolation step because number of extrapolation steps greater than maximum %-i allowed \n',MaxExtrapolations)
             break
         end
+
     end
     
     
@@ -234,7 +252,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
     % so I shift the 'origin' of the backtrack to b but setting a=b, and then I
     % calculate a new value in the middle.
     if  Extrapolation>0
-        a=b ; fa=fb; b=(a+c)/2 ;
+        a=bOld ; fa=fbOld; b=(a+c)/2 ;
         NoSlopeInformation=1;
         if Fargcollect
             [fb,varargout{1:nOut-1}]=F(b,varargin{1:end}) ;
@@ -353,13 +371,18 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
             break
         end
            
-        if  iMinSameWhileBacktracking>= 2 && fmin < f0
+        if  iMinSameWhileBacktracking> 4 && fmin < f0
             fprintf(' exiting backtracking because two subsequent backtracking steps did not result in any further reduction \n')
             break
         end
         
         if xfrac<MinXfrac
             fprintf(' exiting backtracking because change in position of minimum %-g less than %-g of interval \n',xfrac,MinXfrac)
+            break
+        end
+        
+        if b<BacktrackingGammaMin
+            fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size (%g).\n',b,BacktrackingGammaMin)
             break
         end
         

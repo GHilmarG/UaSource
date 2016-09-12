@@ -77,7 +77,12 @@ switch CtrlVar.AsymmSolver
         
         x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
         y=B*(f-A*x);
-        
+%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-B x)
+%  [B   0 ] [y]  [g]      
+%
+% -> A x + B' y = f -> y = B'\(f-B x)
+%
+%       
     case 'AugmentedLagrangian'
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=0;

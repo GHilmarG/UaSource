@@ -100,11 +100,12 @@ GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 [UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 [UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA);
-[UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
 [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
+[UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
 
-if CtrlVar.doplots==1
+
+if CtrlVar.doplots
     if CtrlVar.PlotBCs
         figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs);
     elseif CtrlVar.PlotMesh

@@ -7,6 +7,9 @@ if isempty(UaHomeDirectory)
     fprintf('Use the setenv command to do this. \n')
     error('Ua:SetUaPath','The environmental variable UaHomeDirectory is not set')
 end
+
+return
+
 addpath([UaHomeDirectory,'/SuiteSparse/CHOLMOD/MATLAB'],'-begin')
 %addpath([UaHomeDirectory,'/Mesh2d/Mesh2d v24'],'-begin')
 addpath(genpath([UaHomeDirectory,'/mutils-0.2']),'-begin')

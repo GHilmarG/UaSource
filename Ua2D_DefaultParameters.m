@@ -256,7 +256,7 @@ CtrlVar.NR=1;             % 1 gives Newton-Raphson (use Newton-Raphson whenever 
 %
 
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
-CtrlVar.ModifiedNRuvReductionCriterion=1; % fractional reduction forcing a 
+CtrlVar.ModifiedNRuvReductionCriterion=1; % fractional reduction forcing an update
 CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
 CtrlVar.ModifiedNRuvhReductionCriterion=1;
 % Settingn for example:
@@ -266,9 +266,10 @@ CtrlVar.ModifiedNRuvhReductionCriterion=1;
 % the fractional reduction r/r0 over previous iteration was less than 0.95.
 %
 
-CtrlVar.Piccard=0;        % 1 gives Piccard iteration
+CtrlVar.Piccard=0;        % 1 gives Piccard iteration, otherwise NR iteration (always use NR whenever possible).
 CtrlVar.NRviscosity=1;    % if 1 derivatives with respect to viscosity are included in the NR method
 CtrlVar.NRbeta2=1;        % if 1 derivatives with respect to slipperiness are included in the NR method
+                          % Note: if Piccard=0 then the NRviscosity and NRbeta2 values are overwritten and set to 0. 
 CtrlVar.NRitmax=50;       % maximum number of NR iteration
 CtrlVar.Piccarditmax=30;  % maximum number of Piccard iterations
 CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Piccard iteration
@@ -277,7 +278,7 @@ CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into ba
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Piccard backtracking as a fraction of the full Newton/Picard step.
-
+CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
 
 
@@ -449,11 +450,6 @@ CtrlVar.AdjointEpsZero=100*eps;
 CtrlVar.AdjointMaxLineSearchIterations=20;
 CtrlVar.CalcBruteForceGradient=0;
 CtrlVar.RescaleAdjointGradient=0;
-
-
-CtrlVar.ReadInitialSlipEstimateForInversionFromFile=[];   % If starting inversion with values from a file, give file name for input file with Cest and m, leave empty otherwise
-CtrlVar.ReadInitialAGlenEstimateForInversionFromFile=[];  % If starting inversion with values from a file, give file name for input file with AGlenest and n, leave empty otherwise
-
 
 % BFGS parameters
 CtrlVar.Maximum_Number_of_BFGS_updates=250;
@@ -853,7 +849,7 @@ CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on
 %
 CtrlVar.AGlenisElementBased=0; 
 CtrlVar.CisElementBased=0;
-
+CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=0;
 
 
 %% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)
@@ -917,7 +913,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         % mass balance at each and every time step (i.e. option 0).
                                         %  
                                         %  0 : no mass-balance geometry feedback considered within non-lin iteration loop 
-                                        %      (however, as always, mass balanced is updated at each time step)
+                                        %      (however, as always, mass balance is updated at each time step)
                                         %  1 : mass-balance feedback included at the start of each non-lin iteration, 
                                         %      but not within the backtracking step.
                                         %  2 : Feedback included in non-lin loop, both at the beginning of each NR iteration, 

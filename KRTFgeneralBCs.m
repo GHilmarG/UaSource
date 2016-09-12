@@ -22,9 +22,15 @@ if ~isreal(C) ; save TestSave ; error('KRTF: C not real ') ; end
 if any(isnan(ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
 if any(isnan(vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
 
+if CtrlVar.Piccard
+    Dvisk=0;
+    Dbeta=0;
+else
+    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, othewise 1
+    Dbeta=CtrlVar.NRbeta2;
+end
 
-Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, othewise 1
-Dbeta=CtrlVar.NRbeta2;
+
 
 [etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
 if ~isreal(etaInt) ; save TestSave ; error('KRTF: etaInt not real ') ; end
@@ -273,11 +279,6 @@ end
 Ruv=Tuv-Fuv;
 
 if ~Ronly
-    
-    %K=spalloc(neq,neq,neq*25); % not sure how much space is needed but this seems reasonable
-    %K=sparse(neq,neq);
-    %whos('K')
-    % assemble matrix
     iSparse=1;  %	faster
     if iSparse==1
         % uses the sparse function less often
@@ -325,16 +326,14 @@ if ~Ronly
     
     
     Kuv=(Kuv+Kuv.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
-    % Note: for numerical verificatin of distributed parameter gradient it is important to
+    % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
-    %whos('K')
+    % whos('K')
     
     % Boundary contribution
     
     if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
         [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
-        
-        %save TestSave K KBoundary R rhsBoundary
         Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
     end
 end
