@@ -7,7 +7,7 @@ if ~isempty(lambdah)
     R=R+Lh'*(lambdah+gamma*dlambdah);
 end
 
-r=ResidualCostFunction(R,F0);
+r=ResidualCostFunction(R,[],F0,MUA.Nnodes);
 
 
 

@@ -2,6 +2,8 @@ function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,
                  
 % KRTFgeneralBCs(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
 
+nargoutchk(1,4)
+
 if nargout==1
     Ronly=1;
 else

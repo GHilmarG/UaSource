@@ -17,8 +17,5 @@ function  [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,
 %
 
 
-ub(BCs.ubFixedNode)=BCs.ubFixedValue;
-vb(BCs.ubFixedNode)=BCs.vbFixedValue;
-    
         
 end

@@ -1,5 +1,5 @@
-function [UserVar,ub1,vb1,h1,lambdauv1,lambdah1,RunInfo]=...
-    SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
+function [UserVar,ub1,vb1,h1,luv1,lh1,RunInfo]=...
+    SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,luv,lh,...
     AGlen,C,n,m,alpha,rho,rhow,g)
 
 
@@ -28,19 +28,19 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 
 % I need to solve
 %
-% [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' lambdauv
-% [Kyu Kyv Kyh          ] [dv]        =  [ -Rv ]
-% [Khu Khv Khh  0   Lh' ] [dh]           [ -Rh- Lh' lambdah ]
-% [  Luv        0    0  ] [dlambdauv]    [ Lrhsuv-Luv [u ;v ]
-% [ 0    Lh  0  0    0  ] [dlambdah]     [ Lrhsh-Lh h]
+% [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' luv
+% [Kyu Kyv Kyh          ] [dv]           [ -Rv ]
+% [Khu Khv Khh  0   Lh' ] [dh]           [ -Rh- Lh' lh ]
+% [  Luv        0    0  ] [duv]          [ cuv-Luv [u ;v ]
+% [ 0    Lh  0  0    0  ] [dlh]          [ ch-Lh h]
 %
 % All matrices are Nnodes x Nnodes, apart from:
-% Luv is #uv constraints x 2 Nnodes
-% Lh  is # h contraints x Nnodes
+% Luv is #uv constraints x 2 Nnodes, i.e. Luv [u;v]= cuv
+% Lh  is # h contraints x Nnodes, i.e.    Lh h= ch
 %  or
 %
-% [K L'] [ duh ]      =  [ -R- L' lambdauh ]
-% [L 0 ] [dlambdauh]      [ Lbuh-L uh]
+% [K L'] [ duvh ]      =  [ -R- L' l ]
+% [L 0 ] [  dl  ]         [ cuvh-L [u;v;h]  ]
 %
 % where
 %
@@ -51,9 +51,11 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % and
 % L=[Luv 0]
 %   [0  Lh]
-% and uvh=[u;v;h], duvh=[du;dv; dh]  and lambdauvh=[lambdauv ; lambdah]
-%
-
+% and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
+% where L [u;v;h]=cuvh
+% 
+ 
+            
 if any(h0<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
 
 
@@ -69,17 +71,17 @@ dub=ub-ub0; dvb=vb-vb0 ; dh=h-h0;
 %% assemble global Lagrange constraint matrix
 MLC=BCs2MLC(MUA,BCs);
 Luv=MLC.ubvbL;  
-Luvrhs=MLC.ubvbRhs;
+cuv=MLC.ubvbRhs;
 Lh=MLC.hL;
-Lhrhs=MLC.hRhs;
+ch=MLC.hRhs;
 
-if numel(lambdauv)~=numel(Luvrhs) ; lambdauv=zeros(numel(Luvrhs),1) ; end
-if numel(lambdah)~=numel(Lhrhs) ; lambdah=zeros(numel(Lhrhs),1) ; end
+if numel(luv)~=numel(cuv) ; luv=zeros(numel(cuv),1) ; end
+if numel(lh)~=numel(ch) ; lh=zeros(numel(ch),1) ; end
+nluv=numel(luv) ; nlh=numel(lh); 
 
-[L,Lrhs,lambda]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,lambdauv,lambdah,MUA.Nnodes);
-nluv=length(lambdauv) ;  dlambdauv=zeros(nluv,1);
-nlh=length(lambdah) ;  dlambdah=zeros(nlh,1);
-dlambda=[dlambdauv;dlambdah];
+[L,cuvh,l]=AssembleLuvh(Luv,Lh,cuv,ch,luv,lh,MUA.Nnodes);
+dl=l*0;
+
 
 %% calculate basis function derivatives
 % this is a very memory expensive way of doing this, but it saves
@@ -107,29 +109,20 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     if iteration==1 
         F0=FI ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration
     end  
-
     
-    gamma=0;
-    
-    if ~isempty(L)
-        [r0,ruv0,rh0]=ResidualCostFunction(R+L'*(lambda+gamma*dlambda),F0);
-    else
-        [r0,ruv0,rh0]=ResidualCostFunction(R,F0);
-    end
-
     
     %% solve the (asymmetrical) linear system
     if ~isempty(L)
-        frhs=-R-L'*lambda;
-        grhs=Lrhs-L*[ub;vb;h];
+        frhs=-R-L'*l;
+        grhs=cuvh-L*[ub;vb;h];
     else
         frhs=-R;
         grhs=[];
     end
     
-    
+   [r0,rl0,ruv0,rh0]=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes); 
 
-    [duvh,dlambda]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dlambda,CtrlVar);
+    [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
     
     
     if any(isnan(duvh)) ; save TestSave  ; fprintf(CtrlVar.fidlog,'error: NaN in solution of implicit system \n') ; error(' NaN in solution of implicit uvh system ' ) ; end
@@ -139,13 +132,13 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     
     %% calculate  residuals at full Newton step
     gamma=1;
-    [UserVar,r1,ruv1,rh1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
-    
+    [UserVar,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuvh);
+                          
     
     %% either accept full Newton step or do a line search
     
-    [UserVar,r,ruv,rh,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-        (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
+    [UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
+        (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,l,dl,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh);
     
     
     if BacktrackInfo.converged==0
@@ -160,7 +153,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/50;
-            [~,rTest,ruv1Test,rh1Test]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+            [~,rTest,ruv1Test,rh1Test,rl1Test]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuvh);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         gammaTestVector=[gammaTestVector(:);infovector(:,1)];
@@ -189,7 +182,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     D=mean(sqrt(ub.*ub+vb.*vb))+CtrlVar.SpeedZero;
     diffDu=gamma*full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
     diffDh=gamma*full(max(abs(dh))/(mean(abs(h)))+0.01);            % max change in thickness divided by mean thickness
-    diffDlambda=gamma*max(abs(dlambda))/mean(abs(lambda));
+    diffDlambda=gamma*max(abs(dl))/mean(abs(l));
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
     
@@ -199,18 +192,18 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     end
     
     %% update variables
-    ub=ub+gamma*dub ; vb=vb+gamma*dvb; h=h+gamma*dh;  lambda=lambda+gamma*dlambda;
+    ub=ub+gamma*dub ; vb=vb+gamma*dvb; h=h+gamma*dh;  l=l+gamma*dl;
     
-    lambdauv=lambda(1:nluv) ; lambdah=lambda(nluv+1:end);
+    luv=l(1:nluv) ; lh=l(nluv+1:end);
     
     if~isempty(Lh)
-        BCsNormh=norm(Lhrhs-Lh*h);
+        BCsNormh=norm(ch-Lh*h);
     else
         BCsNormh=0;
     end
     
     if~isempty(Luv)
-        BCsNormuv=norm(Luvrhs-Luv*[ub;vb]);
+        BCsNormuv=norm(cuv-Luv*[ub;vb]);
     else
         BCsNormuv=0;
     end
@@ -241,7 +234,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
 
     
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
-        PlotForceResidualVectors('uvh',R,L,lambda,MUA.coordinates,CtrlVar) ; axis equal tight
+        PlotForceResidualVectors('uvh',R,L,l,MUA.coordinates,CtrlVar) ; axis equal tight
     end
     
     if CtrlVar.InfoLevelNonLinIt>=1
@@ -252,7 +245,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
 end
 
 %% return calculated values at the end of the time step
-ub1=ub ; vb1=vb ; h1=h; lambdauv1=lambdauv ; lambdah1=lambdah;
+ub1=ub ; vb1=vb ; h1=h; luv1=luv ; lh1=lh;
 
 tEnd=toc(tStart);
 
@@ -268,9 +261,9 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
 end
 
 if ~isempty(L)
-    BCerror=norm(L*[ub;vb;h]-Lrhs);
+    BCerror=norm(L*[ub;vb;h]-cuvh);
     if BCerror>0
-        fprintf(CtrlVar.fidlog,'Error in satisfying Dirichlet BC %14.7g  \n ',norm(L*[ub;vb;h]-Lrhs));
+        fprintf(CtrlVar.fidlog,'Error in satisfying Dirichlet BC %14.7g  \n ',norm(L*[ub;vb;h]-cuvh));
     end
 end
 

@@ -1,6 +1,7 @@
-function [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
+function [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
 
-narginchk(22,22)
+nargoutchk(10,10);
+narginchk(23,23)
 
 tdiagnostic=tic;
 
@@ -66,7 +67,7 @@ switch lower(CtrlVar.FlowApproximation)
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         
-        [ub,vb,l.ubvb,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
+        [UserVar,ub,vb,l.ubvb,Kuv,Ruv,RunInfo,ubvbL]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
 
         
     case 'ssheet'
@@ -81,7 +82,7 @@ switch lower(CtrlVar.FlowApproximation)
     case 'hybrid'
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
-        [ub,vb,l.ubvb,Kuv,Ruv,RunInfo]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
+        [UserVar,ub,vb,l.ubvb,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
         [txzb,tyzb]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb);

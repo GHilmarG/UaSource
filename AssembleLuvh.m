@@ -1,5 +1,5 @@
 
-function [L,Lrhs,lambda]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,lambdauv,lambdah,Nnodes)
+function [L,Lrhs,l]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,luv,lh,Nnodes)
 	
 	% Luv  : #uv constrains x 2Nnodes
 	% Lh  : #h constrains x Nnodes
@@ -14,18 +14,18 @@ function [L,Lrhs,lambda]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,lambdauv,lambdah,Nnode
 	if isempty(Lh) && ~isempty(Luv)
 		L=[Luv sparse(nu,Nnodes)] ; 
 		Lrhs=Luvrhs ;
-		lambda=lambdauv;
+		l=luv;
 	elseif ~isempty(Lh) && isempty(Luv)
 		L=[sparse(nh,2*Nnodes) Lh] ; 
 		Lrhs=Lhrhs ;
-		lambda=lambdah;
+		l=lh;
 	elseif ~isempty(Lh) && ~isempty(Luv)
        
 		L=[ Luv sparse(nu,Nnodes) ; sparse(nh,2*Nnodes) Lh];
 		Lrhs=[Luvrhs;Lhrhs];
-		lambda=[lambdauv;lambdah];
+		l=[luv;lh];
 	else
-		L=[] ; Lrhs=[] ; lambda=[];
+		L=[] ; Lrhs=[] ; l=[];
 	end
 		
 	

@@ -1,6 +1,7 @@
-function  [ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(CtrlVar,MUA,BCs,s,S,B,h,ub,vb,luv,AGlen,C,n,m,alpha,rho,rhow,g)
+function  [UserVar,ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,luv,AGlen,C,n,m,alpha,rho,rhow,g)
 
-narginchk(18,18)
+nargoutchk(8,8)
+narginchk(19,19)
 
 tStart=tic;
 RunInfo.converged=1; RunInfo.Iterations=NaN;  RunInfo.residual=NaN;
@@ -97,22 +98,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     end
     
     
-    
-    if numel(Luv)==0
-        r0=ResidualCostFunction(Ruv,F0);
-    else
-        r0=ResidualCostFunction(Ruv+Luv'*luv,F0);
-        R1=Ruv+Luv'*luv;
-        R2=cuv-Luv*[ub;vb];
-        r0=real(full((R1'*R1+R2'*R2)/(F0'*F0)));
-        
-    end
-    
-    
-    
-    
-    
-    
+  
     
     
     if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
@@ -122,41 +108,40 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
     
-    if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
-        
-        if numel(Luv)==0
-            [sol,dlambda]=solveKApeSymmetric(Kuv,Luv,-Ruv,cuv,[dub;dvb],dlambda,CtrlVar);
-        else
-            
-            % [Kuv  Luv^T ]  [duv]  =  [ -R(uv) - Luv^T l]
-            % [Luv   0    ]  [dl]      [cuv-Luv uv]
-            %
-            
-            [sol,dlambda]=solveKApeSymmetric(Kuv,Luv,-Ruv-Luv'*luv,cuv-Luv*[ub;vb],[dub;dvb],dlambda,CtrlVar);
-        end
-        
+    
+    
+    % [Kuv  Luv' ]  [duv]  =  [ -R(uv) - Luv' l]
+    % [Luv   0    ]  [dl]      [ cuv-Luv uv      ]
+    
+    if ~isempty(Luv)
+        frhs=-Ruv-Luv'*luv;
+        grhs=cuv-Luv*[ub;vb];
     else
-        
-        
-        if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
-            
-            [sol,dlambda]=solveKApeSymmetric(Kuv,Luv,-Ruv-Luv'*luv,cuv-Luv*[ub;vb],[dub;dvb],dlambda,CtrlVar);
-            
-        else
-            
-            [sol,dlambda]=solveKApe(Kuv,Luv,-Ruv-Luv'*luv,cuv-Luv*[ub;vb],[dub;dvb],dlambda,CtrlVar);
-            
-        end
-        
+        frhs=-Ruv;
+        grhs=[]; 
     end
+    
+    r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes); 
+   
+    
+    
+    
+    if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
+        [sol,dlambda]=solveKApeSymmetric(Kuv,Luv,frhs,grhs,[dub;dvb],dlambda,CtrlVar);
+    else
+        [sol,dlambda]=solveKApe(Kuv,Luv,frhs,grhs,[dub;dvb],dlambda,CtrlVar);
+    end
+    
+    
     
     
     
     dub=real(sol(1:MUA.Nnodes)) ; dvb=real(sol(MUA.Nnodes+1:2*MUA.Nnodes));
     
     % Evaluate force residual at full Newton step
-    r1 = CalcCostFunctionNR(1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,Luv,luv,dlambda,CtrlVar,cuv);
-    [r,gamma,infovector,BacktrackingInfo] = FindBestGamma2Dbacktracking(F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,Luv,luv,dlambda,CtrlVar,cuv);
+    
+    [UserVar,r1] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,Luv,luv,dlambda,cuv);
+    [UserVar,r,gamma,infovector,BacktrackingInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,Luv,luv,dlambda,cuv);
     
     if BacktrackingInfo.Converged==0
         fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
@@ -175,7 +160,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/250;
-            rTest=CalcCostFunctionNR(gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,MUA,alpha,rho,rhow,g,F0,Luv,luv,dlambda,CtrlVar,cuv);
+            [~,rTest]=CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,Luv,luv,dlambda,cuv);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         

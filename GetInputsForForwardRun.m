@@ -1,4 +1,4 @@
-function  [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
+function  [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=...
     GetInputsForForwardRun(UserVar,CtrlVar)
 
@@ -92,16 +92,23 @@ end
 [UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,s,b,S,B);
 
-
 h=s-b;
+
 [UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
+
 GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
 [UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 [UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-[ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA);
+
 [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+
+ub=zeros(MUA.Nnodes,1) ; vb=zeros(MUA.Nnodes,1) ; ud=zeros(MUA.Nnodes,1) ; vd=zeros(MUA.Nnodes,1) ;
+
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
+
+[ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA,BCs,ub,vb,ud,vd,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
+
 [UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
 
 

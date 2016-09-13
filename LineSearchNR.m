@@ -125,8 +125,7 @@ function [gamma,fgamma,LineSearchStagnated]=LineSearchNR(fdata,a,b,c,fa,fb,fc,f0
         LineSearchStagnated=1;
     end
     
-    %R=RTF(s,h,u+gamma*du,v+gamma*dv,AGlen,n,C,m,coordinates,connectivity,nip,GF,alpha,rho,rhow,g);
-    %fgamma=ResidualCostFunction(R,F0,InteriorNodes);
+  
     fgamma=fdata.func(gamma,fdata.arguments{:});
     
     figure(999) ; hold off ; plot(distancevector,fvector,'o') ; hold on ; plot(gamma,fgamma,'+r') ; plot(solbracket,[0;0],'xr') ;

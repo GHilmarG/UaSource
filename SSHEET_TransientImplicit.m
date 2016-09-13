@@ -61,9 +61,9 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     gamma=0;
     
     if ~isempty(Lh)
-        r0=ResidualCostFunction(R+Lh'*(lambdah+gamma*dlambdah),F0);
+        r0=ResidualCostFunction(R+Lh'*(lambdah+gamma*dlambdah),[],F0,MUA.Nnodes);
     else
-        r0=ResidualCostFunction(R,F0);
+        r0=ResidualCostFunction(R,[],F0,MUA.Nnodes);
     end
     
     %% solve the linear system

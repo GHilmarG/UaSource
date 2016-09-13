@@ -1,12 +1,8 @@
-function [UserVar,r,ruv,rh,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-    (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,u,v,h,du,dv,dh,S,B,u0,v0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
+function [UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
+    (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,u,v,h,du,dv,dh,S,B,u0,v0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh)
 
-nargoutchk(8,8)
-
-if nargin~=37
-    error(' wrong number of input arguments ')
-end
-
+nargoutchk(9,9)
+narginchk(39,39)
 
 if CtrlVar.InfoLevelNonLinIt>2
     fprintf(CtrlVar.fidlog,'FindBestGamma2DuvhBacktrack: on input r0=%-g  and r1=%-g \n ',r0,r1) ;
@@ -15,7 +11,7 @@ end
 BacktrackInfo.converged=1;  % true if it converged
 BacktrackInfo.gammaNaN=0;
 Slope0=-2*r0 ;  % using the inner product def
-gamma=1; r=r1; ruv=ruv1 ; rh=rh1;
+gamma=1; r=r1; ruv=ruv1 ; rh=rh1; rl=rl1;
 gammab=1; rb=r1 ;
 gammac=1 ; rc=r1;
 
@@ -69,7 +65,7 @@ while ExtrapolationStep && iarm<=10
         if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
         
         
-        [UserVar,r,ruv,rh]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+        [UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
         
         if isnan(r) ;
@@ -125,8 +121,8 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin
         break
     end
     
-    %[r,ruv,rh]=CalcCostFunctionNRuvh(gamma,du,dv,dh,u,v,h,S,B,b,u0,v0,h0,as0,ab0,as1,ab1,dt,AGlen,n,C,m,coordinates,connectivity,nip,alpha,rho,rhow,g,MeshProp,Boundary,CtrlVar,F0,L,lambda,dlambda);
-    [UserVar,r,ruv,rh]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+   
+    [UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
     
@@ -162,8 +158,8 @@ if iarm==0 && r> 0.1*r0 && r> CtrlVar.NLtol
     
     gammaTest=-Slope0/2/(rb-r0-Slope0);
     if gammaTest > 1.2*gammab ; gammaTest=1.2*gammab ; elseif gammaTest < 0.1*gammab ; gammaTest=0.1*gammab;end
-    %[rTest,ruvTest,rhTest]=CalcCostFunctionNRuvh(gammaTest,du,dv,dh,u,v,h,S,B,b,u0,v0,h0,as0,ab0,as1,ab1,dt,AGlen,n,C,m,coordinates,connectivity,nip,alpha,rho,rhow,g,MeshProp,Boundary,CtrlVar,F0,L,lambda,dlambda);
-    [UserVar,rTest,ruvTest,rhTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+    
+    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ; iarm=iarm+1; end
     
@@ -171,8 +167,8 @@ elseif iarm==1 && r> 0.1*r0 && BacktrackInfo.gammaNaN==0;
     % another case that is sometimes worthwile investigating is if first backtracking step can be improved
     
     gammaTest=gamma/2;
-    %[rTest,ruvTest,rhTest]=CalcCostFunctionNRuvh(gammaTest,du,dv,dh,u,v,h,S,B,b,u0,v0,h0,as0,ab0,as1,ab1,dt,AGlen,n,C,m,coordinates,connectivity,nip,alpha,rho,rhow,g,MeshProp,Boundary,CtrlVar,F0,L,lambda,dlambda);
-    [UserVar,rTest,ruvTest,rhTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+    
+    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ;  iarm=iarm+1; end
@@ -182,8 +178,8 @@ elseif iarm==1 && r> 0.1*r0 && BacktrackInfo.gammaNaN==0;
     % cubic fit trough the values at 0, 1, and gamma
     gammaTest=CubicFit(Slope0,r0,infovector(2,2),1,infovector(2,1),r1);
     if gammaTest > 0.9 ; gammaTest=0.9 ; elseif gammaTest < 0.01 ; gammaTest=0.01 ;end
-    %rTest=CalcCostFunctionNRuvh(gammaTest,du,dv,dh,u,v,h,S,B,b,u0,v0,h0,as0,ab0,as1,ab1,dt,AGlen,n,C,m,coordinates,connectivity,nip,alpha,rho,rhow,g,MeshProp,Boundary,CtrlVar,F0,L,lambda,dlambda);
-    [UserVar,rTest,ruvTest,rhTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda);
+    
+    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; gamma=gammaTest ;

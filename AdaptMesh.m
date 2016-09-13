@@ -1,12 +1,18 @@
 
-function [UserVar,CtrlVar,MUAnew,BCsNew,MeshBoundaryCoordinates,GF,GLdescriptors,...
+function [UserVar,CtrlVar,MUAnew,BCsNew,GF,GLdescriptors,...
     s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-    AdaptMesh(UserVar,CtrlVar,MeshBoundaryCoordinates,MUAold,BCsOld,time,Itime,...
+    AdaptMesh(UserVar,CtrlVar,MUAold,BCsOld,...
     GF,GLdescriptors,alpha,...
     s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
 
-narginchk(41,41)
+narginchk(38,38)
 persistent MUA_Background
+
+
+MeshBoundaryCoordinates=CtrlVar.MeshBoundaryCoordinates;
+time=CtrlVar.time;
+CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber;
+
 
 %%
 %save TestSave
@@ -45,6 +51,7 @@ if CtrlVar.TimeGeometries.Flag
             end
             
             load(CtrlVar.TimeGeometries.MeshBoundaryInputFile{M+1},'MeshBoundaryCoordinates')
+            CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
             CtrlVar.GmshFile=CtrlVar.TimeGeometries.GmshFile{M+1};
             CtrlVar.GmshMeshingMode=CtrlVar.TimeGeometries.GmshMeshingMode{M+1};
             CtrlVar.TimeGeometries.Done=M+1;
@@ -184,7 +191,7 @@ end
 %%
 
 iAdapt=CtrlVar.AdaptMesh  ...
-    && (CtrlVar.AdaptMeshInitial || (mod(Itime,CtrlVar.AdaptMeshInterval)==0 && CtrlVar.AdaptMeshInterval>0 && Itime>1)) ...
+    && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshInterval)==0 && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
     && ~MeshAdvanceRetreat;
 
 
@@ -211,7 +218,7 @@ for JJ=1:Iterations
         
         CtrlVar.AdaptMeshInitial=0;
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of time step %-i. Iteration #%-i out of %-i \n ',Itime,JJ,Iterations);
+            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,Iterations);
         end
         
         switch lower(CtrlVar.MeshRefinementMethod)
@@ -220,11 +227,11 @@ for JJ=1:Iterations
                 
                 error(' implicit error estimate not fully implemented \n')
                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
-                    s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,Itime,CtrlVar);
+                    s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
                 
             case {'explicit:global','explicit:local'}
                 
-                if Itime==1
+                if CtrlVar.CurrentRunStepNumber==1
                     
                     % do I need to calculate velocities for error estimates?
                     CalcVel=0;
@@ -238,7 +245,7 @@ for JJ=1:Iterations
                     
                     if CalcVel
                         MUAold=UpdateMUA(CtrlVar,MUAold);
-                        [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+                        [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(UserVar,CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
                     end
                     
                 end
@@ -333,7 +340,7 @@ for JJ=1:Iterations
     %[~,~,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUAnew,time,'SB')
     BCsNew=BoundaryConditions;
     [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
-    
+    [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUAnew,BCsNew,ub,vb,ud,vd,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
     [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
     
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
@@ -380,7 +387,7 @@ for JJ=1:Iterations
             ub=ub*0 ; vb=vb*0 ; l.ubvb=l.ubvb*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
             ud=ud*0 ; vd=vd*0;
             MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            [ub,vb,ud,vd,l,Kuv,Ruv,RunInfo]= uv(CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+            [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]= uv(UserVar,CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
         end
         
         

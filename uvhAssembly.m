@@ -1,5 +1,7 @@
 function [UserVar,R,K,T,F]=uvhAssembly(UserVar,CtrlVar,MUA,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
 
+nargoutchk(2,5)
+
 nOut=nargout;
 
 if nOut==1
@@ -20,7 +22,7 @@ end
 persistent nSave
 
 
-if nargout==1
+if nargout==2
     Ronly=1;
 else
     Ronly=0;
