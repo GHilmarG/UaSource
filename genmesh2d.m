@@ -71,7 +71,7 @@ connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 if  CtrlVar.doplots==1 && CtrlVar.PlotMesh==1
-     figure(1500+CtrlVar.GmshMeshingAlgorithm) ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
+     figure ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
 end
 
 

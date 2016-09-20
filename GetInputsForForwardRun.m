@@ -113,9 +113,13 @@ ub=zeros(MUA.Nnodes,1) ; vb=zeros(MUA.Nnodes,1) ; ud=zeros(MUA.Nnodes,1) ; vd=ze
 
 
 if CtrlVar.doplots
+    
     if CtrlVar.PlotBCs
         figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs);
-    elseif CtrlVar.PlotMesh
+        
+    end
+    
+    if CtrlVar.PlotMesh && CtrlVar.ReadInitialMesh
         figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
     end
 end

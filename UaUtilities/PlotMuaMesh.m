@@ -24,5 +24,9 @@ end
 
 PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList)
 
+if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
+    hold on
+    PlotGmshGeometryDefinition(CtrlVar);
+end
 
 end

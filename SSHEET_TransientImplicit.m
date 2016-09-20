@@ -37,9 +37,9 @@ if any(h0<0) ; warning('MATLAB:uvh2DSSHEET',' thickness negative ') ; end
 tStart=tic;
 
 MLC=BCs2MLC(MUA,BCs);
-Lh=MLC.hL ; Lhrhs=MLC.hRhs ;
+Lh=MLC.hL ; ch=MLC.hRhs ;
 
-if numel(lambdah)~=numel(Lhrhs) ; lambdah=zeros(numel(Lhrhs),1) ; end
+if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
 
 dlambdah=lambdah*0;
 dh=h*0;
@@ -69,7 +69,7 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     %% solve the linear system
     if ~isempty(Lh)
         frhs=-R-Lh'*lambdah;
-        grhs=Lhrhs-Lh*h;
+        grhs=ch-Lh*h;
     else
         frhs=-R;
         grhs=[];
@@ -87,7 +87,7 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     
     %% calculate  residuals at full Newton step
     
-    func=@(gamma) CalcCostFunctionSSHEET(CtrlVar,gamma,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0);
+    func=@(gamma) CalcCostFunctionSSHEET(CtrlVar,gamma,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0,ch);
     
     gamma=1;
     r1=func(gamma);
@@ -121,7 +121,7 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/50;
-            rTest=CalcCostFunctionSSHEET(CtrlVar,gammaTest,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0);
+            rTest=CalcCostFunctionSSHEET(CtrlVar,gammaTest,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0,ch);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         gammaTestVector=[gammaTestVector(:);infovector(:,1)];
@@ -147,7 +147,7 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     diffDh=gamma*full(max(abs(dh))/max(abs(h0)));            % max change in thickness divided by mean thickness
     diffDlambda=gamma*full(max(abs(dlambdah))/max(abs(lambdah)));
     if~isempty(Lh)
-        BCsNorm=norm(Lhrhs-Lh*h);
+        BCsNorm=norm(ch-Lh*h);
     else
         BCsNorm=0;
     end

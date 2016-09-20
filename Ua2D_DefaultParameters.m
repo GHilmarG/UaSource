@@ -139,6 +139,7 @@ CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
 % either PlotFEmesh or PlotMuaMesh (see help PlotFEmesh)
 CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1; 
 CtrlVar.FEmeshPlotTitle=[]; % Title for FE mesh plot, if left empty then something sensible is used instead
 CtrlVar.PlotFEmeshAndSaveMesh=0 ; % when plotting mesh also save mesh to a file
 CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
@@ -338,7 +339,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % intergration points improves convergence of the Newton-Raphson iteration.
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
-% Generally the higher the number the more information is given.
+% Generally the higher the number, the more information is given.
 % 
 % Depending on info levels, figures might be plotted as well. However, this is only done
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
@@ -348,7 +349,7 @@ CtrlVar.Report_if_b_less_than_B=0;
 CtrlVar.InfoLevelLinSolve=0;
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelAdaptiveMeshing=1;
-CtrlVar.InfoLevelAdjoint=100;
+CtrlVar.InfoLevelAdjoint=100; % note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
@@ -366,9 +367,44 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 
-%% Adjoint variables
-CtrlVar.AdjointGrad='C';  % {'C'|'A'}
-CtrlVar.MaxAdjointIterations=1;
+%% Inversion (Adjoint variables)
+%
+% Inversion can currently be done for C and A. At each inverse iteration one
+% only inverts for either A and C. At the moment, inverting for A and C simply
+% means inverting for the one or the other in sequence. 
+%
+% There are number of different minimisation methods implemented. Sometimes when one
+% fails/stagnates, one can continue using another method and drive the misfit
+% further down in doing so. 
+%
+% The inversion for C and A can be done with C and A defined on nodes or
+% elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased.
+%
+% General guidlines:  Consider inversion an iterative process where the user
+% (you!) will have to look at the results of a few inversion steps and then make
+% an educated guess on how to continue.
+%
+% Often starting inverting for C using the fix-point method (see
+% "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite
+% significantly down. Once that method stagnates (which it almost always will
+% because the gradient used in that method is just a rough estimate and
+% generally not exact), switch to another minimisation approach, for example the
+% "QuasiNewtonInversion". Also switch between A and C inversion and, possibly,
+% between element and nodal based approach.
+%
+% Although the methodology behind the inversion is rigorous, in practice when working
+% with real data the inversions sometimes get stuck in some local minima. The
+% different optimisations methods implemented use slighlty different search
+% directions, and switching methods may help getting out of a local minima as seen by one
+% particular method. (When using synthetic data this is hardly ever an issue).
+%
+%
+%
+
+
+CtrlVar.AdjointGrad='C';  % {'C'|'A'}  Set to C for C-inversion, to A for AGlen inversion.
+
+CtrlVar.MaxAdjointIterations=1;   % Maximum number of inverse iterations.
 CtrlVar.AdjointWriteRestartFile=1;
 CtrlVar.NameOfAdjointRestartFiletoWrite='AdjointRestart.mat';
 CtrlVar.NameOfAdjointRestartFiletoRead=CtrlVar.NameOfAdjointRestartFiletoWrite;
@@ -384,7 +420,11 @@ CtrlVar.AdjointInitialSearchStepSize=[]; % initial guess for step size in line-s
 % currently the QuasiNewtonInversion seems to work best but this may depend on
 % the particular case in question.
 % 
-CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works
+% The minimisation method is set by defining CtrlVar.AdjointMinimisationMethod
+% appropriately.  Some of those methods only work for C and not of A!
+% 
+%
+CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works for C nodal and element based.
 %CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion:HessianGuesstimate';  % here an educated guess for 
                                                                               % the Hessian is used
                                                                               % This is not guaranteed to work
@@ -394,48 +434,40 @@ CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works
                                                                               % this works well and in fact often 
                                                                               % increases the rate of convergence 
 
-%CtrlVar.AdjointMinimisationMethod='FixPointEstimationOfSlipperiness';  % works
-%CtrlVar.AdjointMinimisationMethod='AdjointProjectedGradient' ;  % works
-%CtrlVar.AdjointMinimisationMethod='MatlabConstrainedMinimisation'; % works
-%CtrlVar.AdjointMinimisationMethod='ProjectedBFGS';  % broken
+%CtrlVar.AdjointMinimisationMethod='FixPointEstimationOfSlipperiness';  % works for C for C nodal and element based
+%CtrlVar.AdjointMinimisationMethod='AdjointProjectedGradient' ;  % works for C and A nodal and element based 
+%CtrlVar.AdjointMinimisationMethod='MatlabOptimizationToolbox'; % works for C and A nodal based
 
 
-CtrlVar.RescaleAdjointGradient=0;  % rescales analytical gradient to agree with a numerically calculated one (only use for testing purposes)
-CtrlVar.CalcBrutForceGradient=0;
 
-% If the problem is badly scaled then one can scale the cost function and the gradients
-% Usually this is not needed, and such issues seem to be better addressed by
-% specifying the initial step size through CtrlVar.AdjointInitialSearchStepSize
-CtrlVar.AdjointfScale=1;
-CtrlVar.AdjointxScale=1;
 
-% the costfunctions and the (adjoint) gradients can be expressed 
-% either as integrals or discrete sums.  The integral representation is 
-% generally the preferred one and the default option.
-%
-CtrlVar.MisfitFunction='uvintegral'; % {'uvintegra','uvdiscrete'}
-CtrlVar.AdjointGradientEvaluation='integral';
-
-CtrlVar.NormalizeWithAreas=1 ;  % Cost function normalized with element areas. 
-                                % (generally a good idea as it makes gradient independent of element size)
-                                % This is only relevant if A and C are element based.
-
-CtrlVar.MeshIndependentAdjointGradients='M'; % {'I','M','P'} being tested
+CtrlVar.MeshIndependentAdjointGradients='M'; % {'I','M','P'} being tested, only relevant if A or C are nodal based in an inversion.
                                 
 CtrlVar.isBarrierC=1     ; CtrlVar.muBarrierCmin=1e-10     ; CtrlVar.muBarrierCmax=1e-10 ;  % note: in most cases with constraints the muBarrier parameters should initially be set to fairly large values
 CtrlVar.isBarrierAGlen=1 ; CtrlVar.muBarrierAGlenmin=1e-10 ; CtrlVar.muBarrierAGlenmax=1e-10 ;
-CtrlVar.isRegC=1; CtrlVar.isRegAGlen=1;
 
-CtrlVar.RegAGlenMultiplier=1; CtrlVar.RegCMultiplier=1   ;% the regularisation terms are multiplied by these numbers,
-% good for increasing/decreasing
-% the relative size of the regularisation term
+% Regularisation: 
+% Regularisation is switched on/off using the isRegC and isRegAGlen parameters.
+% In practice, regularisation is often not needed and can these parameters can
+% be set to 0/false)
+%
+CtrlVar.isRegC=1; % True if using a regularisation term for C. 
+CtrlVar.isRegAGlen=1; % True if using a regularisation term for AGlen.
+
+CtrlVar.CovarianceBasedRegularisation=1;  % Only relevant if regularisation is on.
+CtrlVar.RegAGlenMultiplier=1; CtrlVar.RegCMultiplier=1   ; % the regularisation terms are multiplied by these numbers,
+% good for increasing/decreasing the relative size of the regularisation term
+% (only relevant if regularisation is on.)
+
+
 
 CtrlVar.MisfitMultiplier=1;   % the misfit term is multiplied with this number
                               % (increasing this number makes other terms in the cost function (regularisation,barrier)
                               % less important in comparison to the data misfit term.)
 
 
-
+% The following parameters relate to some of the optimisation methods. Generally
+% no need to change these values except for testing purposes.
 % Conjugated gradient parameters: 
 CtrlVar.AdjointConjugatedGradients=1; 
 CtrlVar.ConjugatedGradientsRestartThreshold=0.2;
@@ -448,20 +480,23 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 CtrlVar.AGlenAdjointZero=100*eps; 
 CtrlVar.AdjointEpsZero=100*eps;
 CtrlVar.AdjointMaxLineSearchIterations=20;
-CtrlVar.CalcBruteForceGradient=0;
-CtrlVar.RescaleAdjointGradient=0;
+CtrlVar.CalcBruteForceGradient=0;   % only used for testing purposes
+CtrlVar.RescaleAdjointGradient=0;   % only used for testing purposes
 
 % BFGS parameters
-CtrlVar.Maximum_Number_of_BFGS_updates=250;
+CtrlVar.Maximum_Number_of_BFGS_updates=250; % 
+% If the problem is badly scaled then one can scale the cost function and the gradients
+% Usually this is not needed, and such issues seem to be better addressed by
+% specifying the initial step size through CtrlVar.AdjointInitialSearchStepSize
+CtrlVar.AdjointfScale=1;
+CtrlVar.AdjointxScale=1;
 
-CtrlVar.SaveSurfaceData=0;
-CtrlVar.UseSyntheticData=0;
-CtrlVar.SurfaceDataFile='ForwardC-SlipperyPert.mat'; CtrlVar.SurfaceDataFileLoaded=0;
-
-%CtrlVar.SaveSurfaceData=0; % overridng
-
-CtrlVar.CompareWithAnalyticalSolutions=0;
-CtrlVar.CompareResultsWithPreviouslyObtainedResults=0;
+% the costfunctions and the (adjoint) gradients can be expressed 
+% either as integrals or discrete sums.  The integral representation is 
+% generally the preferred one and the default option.
+%
+CtrlVar.MisfitFunction='uvintegral'; % {'uvintegra','uvdiscrete'}
+CtrlVar.AdjointGradientEvaluation='integral';
 
 
 %% Numbering of nodes and elements
@@ -849,7 +884,7 @@ CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on
 %
 CtrlVar.AGlenisElementBased=0; 
 CtrlVar.CisElementBased=0;
-CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=0;
+CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 
 
 %% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)

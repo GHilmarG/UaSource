@@ -41,17 +41,25 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     % and that the actual slipperiness is C/He
     % Hence: Delta C= He (umeas-u) C/speed
     %
-    uEle=Nodes2EleMean(MUA.connectivity,ub); vEle=Nodes2EleMean(MUA.connectivity,vb); speedEle=sqrt(uEle.*uEle+vEle.*vEle);
-    uEleMeas=Nodes2EleMean(MUA.connectivity,usMeas); vEleMeas=Nodes2EleMean(MUA.connectivity,vsMeas);
-    speedEleMeas=sqrt(uEleMeas.*uEleMeas+vEleMeas.*vEleMeas);
     
+    
+    if CtrlVar.CisElementBased
+        uEle=Nodes2EleMean(MUA.connectivity,ub); 
+        vEle=Nodes2EleMean(MUA.connectivity,vb); 
+        speed=sqrt(uEle.*uEle+vEle.*vEle);
+        uEleMeas=Nodes2EleMean(MUA.connectivity,usMeas); vEleMeas=Nodes2EleMean(MUA.connectivity,vsMeas);
+        speedMeas=sqrt(uEleMeas.*uEleMeas+vEleMeas.*vEleMeas);
+    else 
+        speed=sqrt(ub.*ub+vb.*vb);
+        speedMeas=sqrt(usMeas.*usMeas+vsMeas.*vsMeas);
+    end
     
     
     %dIdC=-(speedEleMeas-speedEle)./(tb./GF.ele).^m; % this is not based on dIdC= dI/du  du/dC, this is an estimate of the (negative) Newton step -H\grad I
     
     minSpeed=10;
-    speedEleMeas(speedEleMeas<minSpeed)=minSpeed; % see Remark
-    dIdC=-C.*(speedEleMeas-speedEle)./(speedEle+minSpeed) ; % this is not based on dIdC= dI/du  du/dC,
+    speedMeas(speedMeas<minSpeed)=minSpeed; % see Remark
+    dIdC=-C.*(speedMeas-speed)./(speed+minSpeed) ; % this is not based on dIdC= dI/du  du/dC,
     % but an estimate of the (negative) Newton step -H\grad I
     % the problem with this expression is that u is not equal to c (tb/He)^m when He->0
     
@@ -61,8 +69,11 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     % The problme is that this creates infinitly large beta^2
     % and to avoid this I introduce a minimum speed of 1 m/a
     
-    dIdC=dIdC.*GF.ele;
-    
+    if CtrlVar.CisElementBased
+        dIdC=dIdC.*GF.ele;
+    else
+        dIdC=dIdC.*GF.node;
+    end
     dIdC=CtrlVar.MisfitMultiplier*dIdC;
     
     

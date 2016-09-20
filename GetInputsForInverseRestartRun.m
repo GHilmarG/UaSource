@@ -23,9 +23,19 @@ InvStartValues=InvFinalValues;
 
 [Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
 
+isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
 
-
-
+if ~isCorrectDimentions
+    
+    [UserVar,~,Priors,~,~]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
 end
 
+isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
+if ~ isCorrectDimentions
+    fprintf(' Priors do not have right dimentions at restart. \n')
+    fprintf(' Modify DefineInputsForInverseRun to ensure that dimentions are correct.\n')
+    error('Ua:GetInputForInverseRestartRun:incorrectdimentisons','incorrect dimentions')
+    
+end
 
+end

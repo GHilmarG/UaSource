@@ -1,4 +1,6 @@
-function dIregdC=Calc_dIregdC(CtrlVar,CC,C,C_prior)
+function dIregdC=Calc_dIregdC(CtrlVar,MUA,CC,C,C_prior)
+
+narginchk(5,5)
 
 if CtrlVar.isRegC
     dIregdC=CtrlVar.RegCMultiplier*(CC\(C-C_prior));

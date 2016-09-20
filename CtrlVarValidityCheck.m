@@ -117,13 +117,26 @@ if CtrlVar.TimeDependentRun &&  ~CtrlVar.Restart
                                       % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicut uvh transient restart run.
 end                 
 
-%% AdaptMesh not allowed in combination with an inverse run
+% AdaptMesh not allowed in combination with an inverse run
 
 if CtrlVar.AdaptMesh && CtrlVar.InverseRun
     fprintf('UaError: Both CtrlVar.AdaptMesh and CtrlVar.InverseRun are set to true!\n')
     fprintf('As adaptive meshing can only be done in a combination with a forward run this combination is not allowed.\')
     error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
     
+end
+
+if CtrlVar.InverseRun
+    
+    if strcmpi(CtrlVar.AdjointMinimisationMethod,'MatlabOptimizationToolbox') && ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
+
+        CtrlVar.MeshIndependentAdjointGradients='I';
+        
+        fprintf('CtrlVar.AdjointMinimisationMethod is set to "MatlabOptimizationToolbox" but CtrlVar.MeshIndependentAdjointGradients not to "I" \n')
+        fprintf('This combination is not reckomended. CtrlVar.MeshIndependentAdjointGradients is now set to "I" \n')
+        CtrlVar.MeshIndependentAdjointGradients='I';
+    end
+
 end
 
 if isfield(CtrlVar,'AdjointRestart')

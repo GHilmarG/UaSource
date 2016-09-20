@@ -19,11 +19,15 @@ CtrlVar=Ua2D_DefaultParameters(); %
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 % Now generate mesh (When using Úa this is done internally, no such call
 % then needed).
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+hold on 
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
@@ -55,6 +59,9 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}='Periodic Line {1,2} = {3,4};';
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
@@ -88,6 +95,11 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}='Physical Surface(1) = {1};';
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
@@ -183,6 +195,10 @@ UserVar=[];
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
      Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),[]);
+ 
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
+ 
 drawnow
 
  %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
@@ -200,7 +216,7 @@ a=0.1e3; % horizontal radius
 b=5e3; % vertical radius
 x0=0; % x0,y0 ellipse centre coordinates
 y0=0;
-t=linspace(-pi,pi,100);  t(end)=[];
+t=linspace(-pi,pi,200);  t(end)=[];
 xe=x0+a*cos(t);
 ye=y0+b*sin(t);
 
@@ -220,6 +236,8 @@ UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 figure ;  
 PlotFEmesh(MUA.coordinates,MUA.connectivity)
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 %% Example: Constrainted meshing with two joined meshes sharing the same boundary
 %

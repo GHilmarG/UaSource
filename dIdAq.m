@@ -84,21 +84,22 @@ if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
     
     if  CtrlVar.doplots && CtrlVar.InfoLevelAdjoint>100
         figure ;
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; 
+        PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ;
         title('dIdA nonscaled, i.e. \deltaJ(A,N) ')
         figure
         PlotMeshScalarVariable(CtrlVar,MUA,dIdAm) ;
         title(['Mesh-independent representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
+        
+        
+        dd=dIdAm'*dIdA/(norm(dIdAm)*norm(dIdA));
+        ddAngle=acosd(dd);
+        fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
+        
     end
-    
-    dd=dIdAm'*dIdA/(norm(dIdAm)*norm(dIdA));
-    ddAngle=acosd(dd);
-    fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
-    
     
     dIdA=dIdAm;
     
-  
+    
     
 end
 

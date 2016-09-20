@@ -1,6 +1,7 @@
-function [J,Gradient,Hessian,Idata,IReg,IBarrier,ub,vb,ud,vd,l]=CostFunctionValueAndGradient(...
+function [J,Gradient,Hessian,Idata,IReg,IBarrier,ub,vb,ud,vd,l,UserVar]=CostFunctionValueAndGradient(...
     UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,BCsAdjoint,Priors,Meas)
     
+
 
 persistent ubP vbP PHessian
 
@@ -34,7 +35,7 @@ end
 
 if nargout>1
     
-    [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+    [UserVar,dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
     AdjointGradientNR2d(UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
 
     
@@ -63,6 +64,8 @@ else
 end
 
 ubP=ub ; vbP=vb;
+
+
 
 
 %     figure('name','FunctionGradients')

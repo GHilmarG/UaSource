@@ -1,4 +1,4 @@
-function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
     % [dIdCdata]=dIdCqEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
     %   
     %
@@ -20,8 +20,8 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
     Bnod=reshape(B(MUA.connectivity,1),MUA.Nele,MUA.nod);
     Snod=reshape(S(MUA.connectivity,1),MUA.Nele,MUA.nod);
     rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    lxnod=reshape(lx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    lynod=reshape(ly(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
     
     if ~CtrlVar.CisElementBased
@@ -58,8 +58,8 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
         Bint=Bnod*fun;
         Sint=Snod*fun;
         rhoint=rhonod*fun;
-        lxint=lxnod*fun;
-        lyint=lynod*fun;
+        uAdjointint=uAdjointnod*fun;
+        vAdjointint=vAdjointnod*fun;
         hfint=(Sint-Bint)*rhow./rhoint;
         Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); 
         
@@ -70,7 +70,7 @@ function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
         detJw=detJ*weights(Iint);
         EleArea=EleArea+detJw;
         
-        dIdCdata=dIdCdata-Ctemp.*(uint.*lxint+vint.*lyint).*detJw;
+        dIdCdata=dIdCdata-Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*detJw;
         
     end
     

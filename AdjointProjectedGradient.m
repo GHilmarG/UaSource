@@ -1,4 +1,4 @@
-function   [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
+function   [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
     UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
 
 %
@@ -75,7 +75,7 @@ for iteration=1:nIt
     C0=Cest;
     AGlen0=AGlenEst;
     
-    [J0,Idata0,IRegC0,IRegAGlen0,IBarrierC0,IBarrierAGlen0,ub,vb,ud,vd,l,dIdu0,kv,rh,nlInfo]=...
+    [J0,Idata0,IRegC0,IRegAGlen0,IBarrierC0,IBarrierAGlen0,ub,vb,ud,vd,l,dIdu0,Kuv,Ruv,RunInfo]=...
         CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
     
     
@@ -85,9 +85,13 @@ for iteration=1:nIt
     IBarrierCmin=IBarrierC0 ; IBarrierAGlenmin=IBarrierAGlen0;
     
     if iJ==0
-        iJ=iJ+1;  Info.JoptVector(iJ,1)=J0; Info.JoptVector(iJ,2)=Idata0;
-        Info.JoptVector(iJ,3)=IRegC0; Info.JoptVector(iJ,4)=IRegAGlen0;
-        Info.JoptVector(iJ,5)=IBarrierC0; Info.JoptVector(iJ,6)=IBarrierAGlen0;
+        iJ=iJ+1;  
+        Info.JoptVector(iJ,1)=J0; 
+        Info.JoptVector(iJ,2)=Idata0;
+        Info.JoptVector(iJ,3)=IRegC0; 
+        Info.JoptVector(iJ,4)=IRegAGlen0;
+        Info.JoptVector(iJ,5)=IBarrierC0; 
+        Info.JoptVector(iJ,6)=IBarrierAGlen0;
         Info.JoptVector(iJ,7)=NaN;
         Info.AdjointGrad{iJ}=CtrlVar.AdjointGrad;
     end
@@ -119,7 +123,7 @@ for iteration=1:nIt
     
     %% Adjoint method
     
-    [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+    [UserVar,dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
         AdjointGradientNR2d(...
         UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
     %
@@ -191,7 +195,7 @@ for iteration=1:nIt
             gamma=gamma_eps;
             Ctest=kk_proj(C0-gamma*dJdC,upC,lowC);  % changing C in steepest decent direction
             
-            [Jeps,Idataeps,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
+            [Jeps,Idataeps,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
                 CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
             
             %[ub,vb,ubvbLambda]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen0,Ctest,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
@@ -243,7 +247,7 @@ for iteration=1:nIt
             gamma=gamma_eps;
             AGlentest=kk_proj(AGlen0-gamma*dJdAGlen,upA,lowA);  % changing AGlen in the steepest decent direction
             
-            [Jeps,Idataeps,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
+            [Jeps,Idataeps,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
                 CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
             
             % [ub,vb,ubvbLambda]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,C0,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
@@ -328,8 +332,8 @@ for iteration=1:nIt
     
     gamma_a=0 ; Ja=J0 ; gamma_c=gamma_MinEstimate ; gamma_Eps=gamma_MinEstimate/1000;
     
-    nlInfo.converged=0; iNR=0;
-    while nlInfo.converged==0  && iNR<=5;
+    RunInfo.converged=0; iNR=0;
+    while RunInfo.converged==0  && iNR<=5;
         % possibly the change in C/AGlen is too large for the non-linear solver to converge
         % so I allow for a drastic reduciton in step size if needed
         iNR=iNR+1;
@@ -344,20 +348,21 @@ for iteration=1:nIt
         end
         
             
-        [ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF);
+        [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=...
+            uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF);
         
-        if CtrlVar.InfoLevelAdjoint>10  && ~nlInfo.converged
+        if CtrlVar.InfoLevelAdjoint>10  && ~RunInfo.converged
            fprintf('Forward step did not converge. Will reduce line-search step size.\n') 
         end
         
     end
     
-    if nlInfo.converged==0;
+    if RunInfo.converged==0;
         error('SSTREAM2d did not converge')
     end
     
     
-    [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
+    [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
         CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
     
     Jvalue=Jc;
@@ -404,7 +409,7 @@ for iteration=1:nIt
             % [ub,vb]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,Ctest,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
             % [Jb,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas);
             
-            [Jb,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
+            [Jb,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
                 CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
             
             
@@ -480,7 +485,7 @@ for iteration=1:nIt
                 %[ub,vb]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,Ctest,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
                 %[Jc,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlentest,Ctest,Priors,Meas);
                 
-                [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=...
+                [Jc,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,Kuv,Ruv,RunInfo]=...
                     CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlentest,Ctest,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
                 
                 Jvaluelast=Jvalue ; Jvalue=Jc; if Jvalue < Jvaluelast  ; iFminTry=0 ; end

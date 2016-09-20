@@ -79,6 +79,14 @@ Meas=TestMeas(CtrlVar,MUA,Meas);
 
 [Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
 
+isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
+if ~ isCorrectDimentions
+    fprintf(' Priors do not have right dimentions at restart. \n')
+    fprintf(' Modify DefineInputsForInverseRun to ensure that dimentions are correct.\n')
+    error('Ua:GetInputForInverseRun:incorrectdimentisons','incorrect dimentions')
+    
+end
+
 if isempty(InvStartValues.AGlen) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.AGlen is empty') ; end
 if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.C is empty') ; end
 if isempty(InvStartValues.n) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.n is empty') ; end

@@ -9,22 +9,18 @@ function  [UserVar,InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
  
            case {'QuasiNewtonInversion','QuasiNewtonInversion:HessianGuesstimate','FixPointEstimationOfSlipperiness'}
                
-               [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
+               [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
                    UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
                
         case 'AdjointProjectedGradient'
 
-            [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
+            [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
                 UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
             
-        case 'MatlabConstrainedMinimisation'
-            
-            error('InvertForModelParameters:OptionBroken','MatlabConstrainedMinimisation broken')
-           
-            
+                    
         case {'MatlabOptimizationToolbox:fmincon','MatlabOptimizationToolbox:fminunc','MatlabOptimizationToolbox'}
             
-            [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=InversionUsingMatlabOptimizationToolbox(...
+            [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=InversionUsingMatlabOptimizationToolbox(...
                 UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
              
             

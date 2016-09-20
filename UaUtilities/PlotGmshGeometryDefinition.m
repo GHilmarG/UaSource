@@ -8,19 +8,31 @@ function GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar)
 %
 %
 
-if CtrlVar.GmshInputFormat==2
-    
-    GmshPointsInLoop=FindGmshPointsInLoop(CtrlVar);
+switch CtrlVar.GmshInputFormat
     
     
-    for I=1:numel(GmshPointsInLoop)
-        plot(GmshPointsInLoop{I}(:,1)/CtrlVar.PlotXYscale,GmshPointsInLoop{I}(:,2)/CtrlVar.PlotXYscale,'LineWidth',2)
-    end
-    
-else
-    
-    fprintf('PlotGmshGeometryDefinition: Not using input format 2 to gmsh')
-    
+    case 1
+        fprintf('PlotGmshGeometryDefinition: gmsh input format 1 \n')
+        
+        I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
+        CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
+        
+        plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'rx-','LineWidth',2)
+        GmshPointsInLoop=[];
+        
+        
+    case 2
+        
+        
+        fprintf('PlotGmshGeometryDefinition: gmsh input format 2 \n')
+        GmshPointsInLoop=FindGmshPointsInLoop(CtrlVar);
+
+        
+        for I=1:numel(GmshPointsInLoop)
+            plot(GmshPointsInLoop{I}(:,1)/CtrlVar.PlotXYscale,GmshPointsInLoop{I}(:,2)/CtrlVar.PlotXYscale,'LineWidth',2)
+        end
+            
+            
 end
 
 

@@ -35,7 +35,7 @@ da0dt=[];
 dsdt=NaN; dbdt=NaN; dhdt=NaN; Ruv=[];
 dGFdt=[];  % get rid of this at a later stage
 tTime=tic;
-as=[];ab=[];BCs=[];
+as=[];ab=[]; dasdh=[] ; dabdh=[];   BCs=[];
 Experiment='';
 
 %% Define default values

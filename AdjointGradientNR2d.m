@@ -1,7 +1,8 @@
-function [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+function [UserVar,dJdC,dJdAGlen,ub,vb,ud,vd,uAdjoint,vAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
     AdjointGradientNR2d(...
-    UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas)
+    UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,uvAdjoint,AGlen,C,n,m,alpha,rho,rhow,g,GF,Priors,Meas)
 
+nargoutchk(16,16)
 narginchk(26,26)
 
 if CtrlVar.AGlenisElementBased
@@ -20,7 +21,9 @@ end
 
 
 %% Step 1: solve linearized forward problem
-[ub,vb,ud,vd,l,kv,rh,nlInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+%[ub,vb,ud,vd,l,Kuv,Ruv,RunInfo]= uv(CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+
+[UserVar,ub,vb,ud,vd,uvAdjoint,Kuv,Ruv,RunInfo,ubvbL]=uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uvAdjoint,AGlen,C,n,m,alpha,rho,rhow,g,GF);
 
 %% Step 2:  Solve adjoint equation, i.e.   K l=-r
 % fprintf(' Solve ajoint problem \n ')
@@ -48,14 +51,14 @@ LAdjoint=MLC_Adjoint.ubvbL;
 LAdjointrhs=MLC_Adjoint.ubvbRhs;
 lambdaAdjoint=zeros(numel(LAdjointrhs),1) ;
 
-[l,lambdaAdjoint]=solveKApeSymmetric(kv,LAdjoint,rhs,LAdjointrhs,[],lambdaAdjoint,CtrlVar);
+[uvAdjoint,lambdaAdjoint]=solveKApeSymmetric(Kuv,LAdjoint,rhs,LAdjointrhs,[],lambdaAdjoint,CtrlVar);
 
 
-if ~isreal(l) 
+if ~isreal(uvAdjoint) 
     save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
 end
 
-xAdjoint=real(l(1:MUA.Nnodes)) ; yAdjoint=real(l(MUA.Nnodes+1:2*MUA.Nnodes));
+uAdjoint=real(uvAdjoint(1:MUA.Nnodes)) ; vAdjoint=real(uvAdjoint(MUA.Nnodes+1:2*MUA.Nnodes));
 
 if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
     
@@ -73,11 +76,11 @@ if CtrlVar.InfoLevelAdjoint>=1000 && CtrlVar.doplots
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
     
     subplot(2,2,3)
-    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,xAdjoint,CtrlVar);  title('lx')
+    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,uAdjoint,CtrlVar);  title('lx')
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
     
     subplot(2,2,4)
-    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,yAdjoint,CtrlVar);  title('ly')
+    [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,vAdjoint,CtrlVar);  title('ly')
     hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
 end
 
@@ -97,7 +100,7 @@ switch upper(CtrlVar.AdjointGrad)
                     Cnode=C;
                 end
                 
-                dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*xAdjoint+v.*yAdjoint);
+                dIdCdata = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*uAdjoint+v.*vAdjoint);
                 
                 if CtrlVar.CisElementBased
                     dIdCdata=Nodes2EleMean(MUA.connectivity,dIdCdata);
@@ -107,10 +110,10 @@ switch upper(CtrlVar.AdjointGrad)
                 
                 if CtrlVar.CisElementBased
                     
-                    dIdCdata=dIdCqEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    dIdCdata=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
                     
                 else
-                    dIdCdata=dIdCq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    dIdCdata=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
                 end
 
                 
@@ -129,11 +132,11 @@ switch upper(CtrlVar.AdjointGrad)
             case 'integral'
                 if CtrlVar.AGlenisElementBased
                     
-                    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
                                         
                 else
                     
-                    dIdAGlendata=dIdAq(CtrlVar,MUA,xAdjoint,yAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
+                    dIdAGlendata=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
                     
                 end
             otherwise
@@ -144,13 +147,13 @@ end
 
 
 
-dIdCreg=Calc_dIregdC(CtrlVar,Priors.CovC,C,Priors.C);
+dIdCreg=Calc_dIregdC(CtrlVar,MUA,Priors.CovC,C,Priors.C);
 
 %save TestSave ; error('fdsa')
 
-dIdAGlenreg=Calc_dIregdAGlen(CtrlVar,Priors.CovAGlen,AGlen,Priors.AGlen);
-dIdCbarrier=Calc_dIdCbarrier(CtrlVar,C);
-dIdAGlenbarrier=Calc_dIdAGlenbarrier(CtrlVar,AGlen);
+dIdAGlenreg=Calc_dIregdAGlen(CtrlVar,MUA,Priors.CovAGlen,AGlen,Priors.AGlen);
+dIdCbarrier=Calc_dIdCbarrier(CtrlVar,MUA,C);
+dIdAGlenbarrier=Calc_dIdAGlenbarrier(CtrlVar,MUA,AGlen);
 
 
 dIdCdata=CtrlVar.MisfitMultiplier*dIdCdata/CtrlVar.AdjointfScale;

@@ -1,5 +1,5 @@
 
-function [Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
+function [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
     UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
 
 
@@ -64,13 +64,13 @@ for iteration=1:nIt
         case{'FixPointEstimationOfSlipperiness','FixPointEstimationOfSlipperiness:HessianGuestimate'};
             
             dIdCdata=CtrlVar.MisfitMultiplier*Calc_FixPoint_deltaC(CtrlVar,MUA,C0,m,GF,ub,vb,Meas.us,Meas.vs);
-            dIdCreg=Calc_dIregdC(CtrlVar,Priors.CovC,C0,Priors.C);
-            dIdCbarrier=Calc_dIdCbarrier(CtrlVar,C0);
+            dIdCreg=Calc_dIregdC(CtrlVar,MUA,Priors.CovC,C0,Priors.C);
+            dIdCbarrier=Calc_dIdCbarrier(CtrlVar,MUA,C0);
             dJdC=dIdCdata+dIdCreg+dIdCbarrier;
             
         case {'QuasiNewtonInversion','QuasiNewtonInversion:HessianGuesstimate'}
             
-            [dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
+            [UserVar,dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
                 AdjointGradientNR2d(...
                 UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
             
@@ -106,8 +106,8 @@ for iteration=1:nIt
             fprintf('QuasiNewtonInversion with guesstimated Hessians\n')
         end
         ddIddCfp=Calc_FixPoint_ddIddC(CtrlVar,MUA,ub,vb,ud,vd,C0,GF);
-        ddIregddC=Calc_ddIregddC(CtrlVar,Priors.CovC);
-        ddIddCbarrier=Calc_ddIddCbarrier(CtrlVar,C0);
+        ddIregddC=Calc_ddIregddC(CtrlVar,MUA,Priors.CovC);
+        ddIddCbarrier=Calc_ddIddCbarrier(CtrlVar,MUA,C0);
         %dJdC=(ddIddCfp+ddIregddC+ddIddCbarrier)\dJdC;
         dJdC=(dIdCdata+dIdCreg+dIdCbarrier)./diag(ddIddCfp+ddIregddC+ddIddCbarrier) ; % since I'm approximating all Hessians using diagonal matrices this is OK
     end
