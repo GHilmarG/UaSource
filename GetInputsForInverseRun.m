@@ -1,4 +1,6 @@
-function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l)
+
+
 
 BCsAdjoint=BoundaryConditions;
 Meas=Measurements;
@@ -18,7 +20,7 @@ if exist(fullfile(cd,'DefineInputsForInverseRun.m'),'file')
             
         case 5
             
-            [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+            [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l);
     
     end
     

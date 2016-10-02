@@ -31,8 +31,14 @@ io=0;  %  io=0 indicates no errors
 FileName=[FileName,'.geo'] ;
 fprintf(CtrlVar.fidlog,' Creating an input file for gmsh : %s \n',FileName) ;
 
-fileID = fopen(FileName,'w');
+[fileID,errmsh] = fopen(FileName,'w');
 
+if fileID<0
+   fprintf('opening the file %s resulted in an error:\n',FileName)
+   disp(errmsh)
+   error('Error opening a file. Possibly problems with permissions.')
+end
+    
 
 
 if CtrlVar.GmshInputFormat==1

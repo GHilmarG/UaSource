@@ -1,10 +1,12 @@
-function  [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
-    dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=...
-    GetInputsForForwardRun(UserVar,CtrlVar)
+function  [UserVar,MeshChanged,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar)
 
-
+% [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
+%     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=...
+%     GetInputsForForwardRun(UserVar,CtrlVar)
 
 %for I=1:CtrlVar.nInitialRemeshSteps+1
+
+F=UaFields;
 
 if CtrlVar.ReadInitialMesh==1
     
@@ -60,12 +62,12 @@ if ~isempty(CtrlVar.SaveInitialMeshFileName)
     fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
 end
 
-dubdt=zeros(MUA.Nnodes,1) ; dubdtm1=zeros(MUA.Nnodes,1);
-dvbdt=zeros(MUA.Nnodes,1) ; dvbdtm1=zeros(MUA.Nnodes,1);
-duddt=zeros(MUA.Nnodes,1) ; duddtm1=zeros(MUA.Nnodes,1);
-dvddt=zeros(MUA.Nnodes,1) ; dvddtm1=zeros(MUA.Nnodes,1);
-dhdt=zeros(MUA.Nnodes,1) ; dhdtm1=zeros(MUA.Nnodes,1);
-dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
+F.dubdt=zeros(MUA.Nnodes,1) ; F.dubdtm1=zeros(MUA.Nnodes,1);
+F.dvbdt=zeros(MUA.Nnodes,1) ; F.dvbdtm1=zeros(MUA.Nnodes,1);
+F.duddt=zeros(MUA.Nnodes,1) ; F.duddtm1=zeros(MUA.Nnodes,1);
+F.dvddt=zeros(MUA.Nnodes,1) ; F.dvddtm1=zeros(MUA.Nnodes,1);
+F.dhdt=zeros(MUA.Nnodes,1) ; F.dhdtm1=zeros(MUA.Nnodes,1);
+F.dsdt=zeros(MUA.Nnodes,1) ; F.dbdt=zeros(MUA.Nnodes,1);
 
 
 BCs=BoundaryConditions;
@@ -89,27 +91,29 @@ end
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
 
-[UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
-TestVariablesReturnedByDefineGeometryForErrors(MUA,s,b,S,B);
+[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
+TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
 
-h=s-b;
+F.h=F.s-F.b;
 
-[UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B);
+[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
 
-GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
 
-[UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
-[UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
 
-[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
+[UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
+[UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
+[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
 
-ub=zeros(MUA.Nnodes,1) ; vb=zeros(MUA.Nnodes,1) ; ud=zeros(MUA.Nnodes,1) ; vd=zeros(MUA.Nnodes,1) ;
+F=StartVelocity(CtrlVar,MUA,BCs,F);  % initialize 
 
-[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,s,b,h,S,B,ub,vb,ud,vd,GF);
+[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
 
-[ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA,BCs,ub,vb,ud,vd,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
+F=StartVelocity(CtrlVar,MUA,BCs,F);  % modify based on BCs
 
-[UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,CtrlVar.time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
+[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+
+[UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F,GF);
 
 
 if CtrlVar.doplots
@@ -124,8 +128,17 @@ if CtrlVar.doplots
     end
 end
 
+l=UaLagrangeVariables; 
 
 MeshChanged=0;
+
+F.dsdt=[]; F.dbdt=[]; F.dhdt=[];
+F.dubdt=[];  F.dvbdt=[];  F.duddt=[] ; F.dvddt=[];
+F.dubdtm1=F.dubdt ; F.dvbdtm1=F.dvbdt; F.duddtm1=F.duddt ; F.dvddtm1=F.dvddt;
+
+
+%F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,g,alpha);
+
 
 end
 

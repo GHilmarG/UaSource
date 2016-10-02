@@ -145,17 +145,15 @@ switch upper(CtrlVar.AdjointGrad)
         
 end
 
-
+%% calc gradients of regularisation and penalty terms
 
 dIdCreg=Calc_dIregdC(CtrlVar,MUA,Priors.CovC,C,Priors.C);
-
-%save TestSave ; error('fdsa')
-
 dIdAGlenreg=Calc_dIregdAGlen(CtrlVar,MUA,Priors.CovAGlen,AGlen,Priors.AGlen);
+
 dIdCbarrier=Calc_dIdCbarrier(CtrlVar,MUA,C);
 dIdAGlenbarrier=Calc_dIdAGlenbarrier(CtrlVar,MUA,AGlen);
 
-
+%% scalings
 dIdCdata=CtrlVar.MisfitMultiplier*dIdCdata/CtrlVar.AdjointfScale;
 dIdCreg=dIdCreg/CtrlVar.AdjointfScale;
 dIdCbarrier=dIdCbarrier/CtrlVar.AdjointfScale;
@@ -164,6 +162,7 @@ dIdAGlendata=CtrlVar.MisfitMultiplier*dIdAGlendata/CtrlVar.AdjointfScale;
 dIdAGlenreg=dIdAGlenreg/CtrlVar.AdjointfScale;
 dIdAGlenbarrier=dIdAGlenbarrier/CtrlVar.AdjointfScale;
 
+%% adding it all up
 dJdC=dIdCdata+dIdCreg+dIdCbarrier;
 dJdAGlen=dIdAGlendata+dIdAGlenreg+dIdAGlenbarrier;
 

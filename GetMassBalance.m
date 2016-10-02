@@ -1,10 +1,8 @@
-function [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF)
 
+narginchk(5,5)
+nargoutchk(2,2)
 
-nOut=nargout;
-if nOut~=5
-    error('Ua:GetMassBalance','Need 5 output arguments')
-end
 
 N=nargout('DefineMassBalance');
 
@@ -12,22 +10,22 @@ switch N
     
     case 2
         
-        [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-        dasdh=as*0 ;  dabdh=ab*0 ;
+        [F.as,F.ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
         
     case 3
         
-        [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-        dasdh=as*0 ;  dabdh=ab*0 ;
+        [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
         
     case 4
         
-        [as,ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-        dasdh=as*0 ;  dabdh=ab*0 ;
+        [F.as,F.ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
         
     case 5
         
-        [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
         
 end
 
@@ -35,43 +33,43 @@ end
 % some input checks
 
 errorStruct.identifier = 'GetMassBalance:NaNinInput';
-if any(isnan(as))
+if any(isnan(F.as))
     errorStruct.message = 'nan in as';
     error(errorStruct)
 end
 
-if any(isnan(ab))
+if any(isnan(F.ab))
     errorStruct.message = 'nan in ab';
     error(errorStruct)
 end
 
-if any(isnan(dasdh))
+if any(isnan(F.dasdh))
     errorStruct.message = 'nan in dasdh';
     error(errorStruct)
 end
 
-if any(isnan(dabdh))
+if any(isnan(F.dabdh))
     errorStruct.message = 'nan in dabdh';
     error(errorStruct)
 end
 
 
-if numel(as)==1
-    as=as+zeros(MUA.Nnodes,1);
+if numel(F.as)==1
+    F.as=F.as+zeros(MUA.Nnodes,1);
 end
 
-if numel(ab)==1
-    ab=ab+zeros(MUA.Nnodes,1);
+if numel(F.ab)==1
+    F.ab=F.ab+zeros(MUA.Nnodes,1);
 end
 
 
-if  MUA.Nnodes ~= numel(as)
+if  MUA.Nnodes ~= numel(F.as)
     fprintf('as must have same number of values as there are nodes in the mesh \n')
     error('DefineMassBalance returns incorrect dimentions ')
 end
 
 
-if  MUA.Nnodes ~= numel(ab)
+if  MUA.Nnodes ~= numel(F.ab)
     fprintf('ab must have same number of values as there are nodes in the mesh \n')
     error('DefineMassBalance returns incorrect dimentions ')
 end

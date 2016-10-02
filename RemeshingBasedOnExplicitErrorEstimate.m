@@ -1,5 +1,5 @@
 function [UserVar,CtrlVar,MUA,xGLmesh,yGLmesh]=...
-    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MeshBoundaryCoordinates,S0,B0,h0,s0,b0,ub0,vb0,ud0,vd0,dhdt0,MUA,AGlen0,C0,n,rho0,rhow,GF0,Ruv,Lubvb,ubvbLambda)
+    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUA,F,l,GF,MeshBoundaryCoordinates,Ruv,Lubvb)
 
 
 %save TestSave ; error('dfsa')
@@ -11,18 +11,19 @@ function [UserVar,CtrlVar,MUA,xGLmesh,yGLmesh]=...
 % xGLmesh and yGLmesh is only relevant for GL morphing
 %
 
+
 xGLmesh=[] ; yGLmesh=[];
 
 
-S=S0 ; B=B0;h=h0; rho=rho0;
+%S=S ; B=B;h=h; rho=rho0;
 %u=u0;v=v0 ; dhdt=dhdt0; AGlen=AGlen0;
 
 
-hf=(S-B)*rhow./rho ;
+
 
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
-[UserVar,x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(UserVar,CtrlVar,MUA,s0,b0,S0,B0,rho0,rhow,ub0,vb0,ud0,vd0,dhdt0,h0,hf,AGlen0,n,GF0,Ruv,Lubvb,ubvbLambda);
+[UserVar,x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=DesiredEleSizes(UserVar,CtrlVar,MUA,F,l,GF,Ruv,Lubvb);
 
 if strcmp(CtrlVar.MeshGenerator,'gmsh')
     if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
@@ -79,7 +80,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
         end
         
         if CtrlVar.GLmeshing==1
-            GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
+            GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,F.MUA.connectivity,CtrlVar);  % Do I need this?, broken anyhow...
             [MeshBoundaryCooWithGLcoo,edge,face,xGLmesh,yGLmesh]=glLineEdgesFaces(GF,MUA.coordinates,MUA.connectivity,MeshBoundaryCoordinates,CtrlVar);
             [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
         else

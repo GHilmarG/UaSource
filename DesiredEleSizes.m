@@ -1,5 +1,5 @@
 function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
-    DesiredEleSizes(UserVar,CtrlVar,MUA,s,b,S,B,rho,rhow,ub,vb,ud,vd,dhdt,h,hf,AGlen,n,GF,Ruv,Lubvb,ubvbLambda)
+    DesiredEleSizes(UserVar,CtrlVar,MUA,F,l,GF,Ruv,Lubvb)
 
 %
 % Estimates optimal element sizes based on number of explicit error estimators
@@ -8,7 +8,9 @@ function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalEr
 % Scales element sizes to fit within the range of CtrlVar.MeshSizeMin to CtrlVar.MeshSizeMax
 %
 
+ubvbLambda=l.ubvb;
 
+hf=(F.S-F.B)*F.rhow./F.rho ;
 
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
@@ -31,7 +33,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
         
         case 'effective strain rates'
             
-            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
+            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n);
             NodalErrorIndicator=ProjectFintOntoNodes(MUA,e);
             NodalErrorIndicator(NodalErrorIndicator<0)=0;
             
@@ -40,7 +42,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
             end
             
             if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                 NodalErrorIndicator(ind)=0;
             end
             
@@ -71,7 +73,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
  
         case '|dhdt|'
             
-            NodalErrorIndicator=abs(dhdt);
+            NodalErrorIndicator=abs(F.dhdt);
             if all(NodalErrorIndicator<1e-5)  % this could for example happen at a start of a run where dhdt has not been calculated
                 NodalErrorIndicator=NodalErrorIndicator*0 ;
                 ErrorIndicatorUsefull=0;
@@ -84,7 +86,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -117,7 +119,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -138,7 +140,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 ErrorIndicatorUsefull=0;
                 fprintf(CtrlVar.fidlog,' WARNING: dh/dt too small to be usefull as an explicit error indicator \n ');
             else
-                [dfdx,dfdy]=calcFEderivativesMUA(dhdt,MUA,CtrlVar);
+                [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
                 %dfdx=sum(dfdx,2) ; dfdy=sum(dfdy,2) ;
                 EleErrorIndicator=sqrt(dfdx.*dfdx+dfdy.*dfdy);
                 NodalErrorIndicator=ProjectFintOntoNodes(MUA,EleErrorIndicator);
@@ -149,7 +151,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -170,7 +172,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 fprintf(CtrlVar.fidlog,' WARNING: dh/dt too small to be usefull as an explicit error indicator \n ');
             else
                 
-                [dfdx,dfdy]=calcFEderivativesMUA(dhdt,MUA,CtrlVar);
+                [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
                 %dfdx=sum(dfdx,2) ; dfdy=sum(dfdy,2) ;
                 D=sqrt(1+dfdx.^2+dfdy.^2);
                 fx=dfdx./D ; fy=dfdy./D;
@@ -197,7 +199,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -213,11 +215,11 @@ for I=1:numel(CtrlVar.RefineCriteria)
             end
         case 'thickness gradient'
             
-            if (max(h)-min(h))< 10
+            if (max(F.h)-min(F.h))< 10
                 ErrorIndicatorUsefull=0;
                 fprintf(CtrlVar.fidlog,' WARNING: Thickness variation too small to be usefull as an explicit error indicator \n ');
             else
-                [dfdx,dfdy]=calcFEderivativesMUA(h,MUA,CtrlVar);
+                [dfdx,dfdy]=calcFEderivativesMUA(F.h,MUA,CtrlVar);
                 %dfdx=sum(dfdx,2) ; dfdy=sum(dfdy,2) ;
                 EleErrorIndicator=sqrt(dfdx.*dfdx+dfdy.*dfdy);
                 NodalErrorIndicator=ProjectFintOntoNodes(MUA,EleErrorIndicator);
@@ -229,7 +231,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -244,12 +246,12 @@ for I=1:numel(CtrlVar.RefineCriteria)
             
         case 'thickness curvature'
             
-            if (max(h)-min(h))< 10
+            if (max(F.h)-min(F.h))< 10
                 ErrorIndicatorUsefull=0;
                 fprintf(CtrlVar.fidlog,' WARNING: Thickness variation too small to be usefull as an explicit error indicator \n ');
             else
                 
-                [dfdx,dfdy,]=calcFEderivativesMUA(h,MUA,CtrlVar);
+                [dfdx,dfdy,]=calcFEderivativesMUA(F.h,MUA,CtrlVar);
                % dfdx=sum(dfdx,2) ; dfdy=sum(dfdy,2) ;
                 D=sqrt(1+dfdx.^2+dfdy.^2);
                 dfdx=dfdx./D ; dfdy=dfdy./D;
@@ -276,7 +278,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
                 if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
-                    ind=abs(h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
+                    ind=abs(F.h-hf)>CtrlVar.RefineCriteriaFlotationLimit(I);
                     NodalErrorIndicator(ind)=0;
                 end
                 
@@ -291,7 +293,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
             
         case 'flotation'
             
-            dgf = DiracDelta(1/CtrlVar.RefineDiracDeltaWidth,h-hf,CtrlVar.RefineDiracDeltaOffset);
+            dgf = DiracDelta(1/CtrlVar.RefineDiracDeltaWidth,F.h-hf,CtrlVar.RefineDiracDeltaOffset);
             dgfmin=max(dgf)/1e5; dgf(dgf<dgfmin)=dgfmin;
             NodalErrorIndicator=dgf;
             
@@ -301,8 +303,8 @@ for I=1:numel(CtrlVar.RefineCriteria)
             
             if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
                 figure(1770) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);  title(' error estimate based on flotation criterion')
-                figure(1780) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,h-hf,CtrlVar);                 title(' h-hf ') ;
-                figure(1790) ; plot(h-hf,dgf,'.'); title('Delta-function error indicator as a function of h-hf')
+                figure(1780) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.h-hf,CtrlVar);                 title(' h-hf ') ;
+                figure(1790) ; plot(F.h-hf,dgf,'.'); title('Delta-function error indicator as a function of h-hf')
             end
             
             
@@ -310,7 +312,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
         case 'f factor'
             
             k=1/CtrlVar.RefineDiracDeltaWidth;
-            NodalErrorIndicator=(1.-exp(-k*(h-hf)))./(1+exp(-k*(h-hf)));
+            NodalErrorIndicator=(1.-exp(-k*(F.h-hf)))./(1+exp(-k*(F.h-hf)));
             
             NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
             
@@ -456,9 +458,9 @@ end
 
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
-[UserVar,EleSizeDesired,ElementsToBeRefined]=GetDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators);
 
 
+[UserVar,EleSizeDesired,ElementsToBeRefined]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,x,y,EleSizeDesired,ElementsToBeRefined,NodalErrorIndicators);
 
 assert(numel(x)==numel(y) && numel(x)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 

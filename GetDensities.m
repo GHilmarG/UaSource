@@ -1,12 +1,10 @@
 
 
-function [UserVar,rho,rhow,g]=GetDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B)
+function [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F)
 
+narginchk(4,4)
+nargoutchk(2,2)
 
-nOut=nargout;
-if nOut~=4
-    error('Ua:GetDensities','Need 4 output arguments')
-end
 
 N=nargout('DefineDensities');
 
@@ -14,11 +12,11 @@ switch N
     
     case 3
         
-        [rho,rhow,g]=DefineDensities(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B);
+        [F.rho,F.rhow,F.g]=DefineDensities(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B);
         
     case 4
         
-        [UserVar,rho,rhow,g]=DefineDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B);
+        [UserVar,F.rho,F.rhow,F.g]=DefineDensities(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B);
         
     otherwise
         
@@ -26,6 +24,6 @@ switch N
         
 end
 
-[rho,rhow,g]=TestDensityInputValues(CtrlVar,MUA,rho,rhow,g);
+[F.rho,F.rhow,F.g]=TestDensityInputValues(CtrlVar,MUA,F.rho,F.rhow,F.g);
 
 end

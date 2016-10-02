@@ -88,7 +88,7 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     %% calculate  residuals at full Newton step
     
     func=@(gamma) CalcCostFunctionSSHEET(CtrlVar,gamma,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0,ch);
-    
+               
     gamma=1;
     r1=func(gamma);
     
@@ -101,12 +101,15 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     %F=@(q,u,v) func(C0-q*dJdC,AGlen,u,v); nOut=9; listInF=[1 2] ; listOutF=[7 8];
     Slope0=-2*r0 ;  % using the inner product def
     [gamma,r,BackTrackInfo]=BackTracking(Slope0,1,r0,r1,func,CtrlVar);
+    
+   
+    
     infovector=BackTrackInfo.InfoVector;
     iarm=BackTrackInfo.nBackTrackSteps;
     
     %fprintf(' r=%-g \t gamma=%-g \n ',r,gamma)
     
-    if BackTrackInfo.converged==0;
+    if BackTrackInfo.converged==0
         Stagnated=1;
     end
     

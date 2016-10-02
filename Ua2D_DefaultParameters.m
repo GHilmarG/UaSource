@@ -344,22 +344,30 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
 % Depending on info levels, figures might be plotted as well. However, this is only done
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
-CtrlVar.InfoLevel=1;                     % Overall level of information  
-CtrlVar.Report_if_b_less_than_B=0;
-CtrlVar.InfoLevelLinSolve=0;
-CtrlVar.SymmSolverInfoLevel=0 ;
-CtrlVar.InfoLevelAdaptiveMeshing=1;
-CtrlVar.InfoLevelAdjoint=100; % note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
-CtrlVar.InfoLevelNonLinIt=1;
-CtrlVar.InfoLevelBackTrack=1;
-CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-%  CtrlVar.InfoLevelNonLinIt:
-%   0   : no information printed.
+CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
+
+CtrlVar.InfoLevelAdjoint=1; % Overall level of information (inverse runs). Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
+
+CtrlVar.InfoLevelNonLinIt=1; % Info level for non-line solve. Generally:
+%   0   : no information on non-linear step printed.
 %   1  : prints basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
 % >=2  : info on backtracking step as well.
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
+
+CtrlVar.InfoLevelAdaptiveMeshing=1;  
+
+CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it sometimes uses a inner and outer loop to deal with indefinite systems)
+                              % then increasing this number will give further information. G
+
+CtrlVar.ThicknessConstraintsInfoLevel=1 ;
+                              
+CtrlVar.Report_if_b_less_than_B=0; % 
+
+CtrlVar.SymmSolverInfoLevel=0 ;
+CtrlVar.InfoLevelBackTrack=1;
+
 CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
 
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile

@@ -27,12 +27,17 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
     
     %%
     BackTrackInfo.converged=1;
- %% First check if the input value can already be accepted
+    %% First check if the input value can already be accepted
     
     target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
-    xfrac=1e10;    
+    xfrac=1e10;
     
-
+    if nargin<7
+        Fargcollect=0;
+    else
+        Fargcollect=1;
+    end
+    
     
     if fb<target
         
@@ -41,6 +46,22 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
         BackTrackInfo.InfoVector=InfoVector;
         BackTrackInfo.nExtrapolatinSteps=0;
         BackTrackInfo.nBackTrackSteps=Iteration;
+        
+        
+        if Fargcollect
+            
+            [fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
+            
+            if ~isempty(listOutF) && ~isempty(listInF)
+                [varargin{listInF}]=varargout{listOutF-1} ;
+            end
+        else
+            fb=F(b);
+        end
+        
+        %[fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
+        
+        
         if CtrlVar.InfoLevelBackTrack>=2
             fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
         end
@@ -50,12 +71,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlV
     %%
 
  
-    if nargin<7
-       Fargcollect=0;
-    else
-        Fargcollect=1;
-    end
-    
+ 
     
     %%
     

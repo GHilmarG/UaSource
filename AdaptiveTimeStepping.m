@@ -42,9 +42,9 @@ function [dtOut,dtRatio]=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvd
     % if so then dtNotUserAdjusted is the previous unmodified time step
     % and I do want to revert to that time step. I do so only
     % however if dt has not been changed outside of function
-    if ~isempty(dtOutLast) ;
+    if ~isempty(dtOutLast) 
         if dtIn==dtOutLast  % dt not modified outside of function
-            if ~isempty(dtNotUserAdjusted) ;  
+            if ~isempty(dtNotUserAdjusted)   
                 dtIn=dtNotUserAdjusted ; 
             end
         end
@@ -54,7 +54,7 @@ function [dtOut,dtRatio]=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvd
     
     
     %%
-    if CtrlVar.AdaptiveTimeStepping && ~isempty(RunInfo) ;
+    if CtrlVar.AdaptiveTimeStepping && ~isempty(RunInfo) 
         
         if isempty(ItVector) ; ItVector=zeros(max(CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp),1)+1e10; end
         if isempty(icount) ; icount=0 ; end
@@ -169,7 +169,7 @@ function [dtOut,dtRatio]=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvd
     
     %%
     
-    if dtOutCopy~=dtOut;
+    if dtOutCopy~=dtOut
         dtNotUserAdjusted=dtOutCopy;
     else
         dtNotUserAdjusted=[];

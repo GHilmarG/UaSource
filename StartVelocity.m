@@ -1,17 +1,19 @@
-function [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUA,BCs,ub,vb,ud,vd,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
+function F=StartVelocity(CtrlVar,MUA,BCs,F)
 
-ub=zeros(MUA.Nnodes,1) ;
-vb=zeros(MUA.Nnodes,1) ;
-ud=zeros(MUA.Nnodes,1) ;
-vd=zeros(MUA.Nnodes,1) ;
+% [F.ub,F.vb,F.ud,F.vd]=StartVelocity(CtrlVar,MUA,BCs,F)
+
+F.ub=zeros(MUA.Nnodes,1) ;
+F.vb=zeros(MUA.Nnodes,1) ;
+F.ud=zeros(MUA.Nnodes,1) ;
+F.vd=zeros(MUA.Nnodes,1) ;
 
 
 
 
-ub(BCs.ubFixedNode)=BCs.ubFixedValue;
-vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
+F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     
-ud(BCs.udFixedNode)=BCs.udFixedValue;
-vd(BCs.vdFixedNode)=BCs.vdFixedValue;
+F.ud(BCs.udFixedNode)=BCs.udFixedValue;
+F.vd(BCs.vdFixedNode)=BCs.vdFixedValue;
 
 end

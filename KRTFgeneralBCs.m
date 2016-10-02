@@ -1,7 +1,8 @@
-function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g)
-                 
-% KRTFgeneralBCs(s,S,B,h,u,v,AGlen,n,C,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar)
+function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,F)
+        %[Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g)
 
+
+narginchk(3,3)
 nargoutchk(1,4)
 
 if nargout==1
@@ -17,24 +18,25 @@ end
 %   Tuv are the `internal forces'. The equation is considered solved once internal and external forces are
 %   equal to within a given tolerance
 
-if any(h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
-if any(C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
-if ~isreal(C) ; save TestSave ; error('KRTF: C not real ') ; end
+if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
+if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
+if ~isreal(F.C) ; save TestSave ; error('KRTF: C not real ') ; end
 
-if any(isnan(ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
-if any(isnan(vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
+if any(isnan(F.ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
+if any(isnan(F.vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
 
 if CtrlVar.Piccard
     Dvisk=0;
     Dbeta=0;
 else
-    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, othewise 1
+    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, otherwise 1
     Dbeta=CtrlVar.NRbeta2;
 end
 
+g=F.g;
 
 
-[etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
+[etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n);
 if ~isreal(etaInt) ; save TestSave ; error('KRTF: etaInt not real ') ; end
 if ~isreal(Eint) ; save TestSave ; error('KRTF: Eint not real ') ; end
 
@@ -45,24 +47,26 @@ neqx=MUA.Nnodes ;
 
 %[b,s]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar);
 
-hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
-snod=reshape(s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-unod=reshape(ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
+snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+%uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+%vonod=reshape(F.vo(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 if ~CtrlVar.CisElementBased 
-    Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod); 
-    mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+    Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+    mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod); 
 end
 
 
-Snod=reshape(S(MUA.connectivity,1),MUA.Nele,MUA.nod);
-Bnod=reshape(B(MUA.connectivity,1),MUA.Nele,MUA.nod);
-rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-ca=cos(alpha); sa=sin(alpha);
+ca=cos(F.alpha); sa=sin(F.alpha);
 
 
 %[points,weights]=sample('triangle',MUA.nip,ndim);
@@ -98,9 +102,12 @@ for Iint=1:MUA.nip
     uint=unod*fun;
     vint=vnod*fun;
     
+    %uoint=uonod*fun;
+    %voint=vonod*fun;
+    
     if CtrlVar.CisElementBased
-        Cint=C;
-        mint=m;
+        Cint=F.C;
+        mint=F.m;
     else
         Cint=Cnod*fun;
         Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
@@ -115,11 +122,13 @@ for Iint=1:MUA.nip
     rhoint=rhonod*fun;
     dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
     
-    hfint=rhow*Hint./rhoint;
+    hfint=F.rhow*Hint./rhoint;
     
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
     [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
+    
+    
     if ~isreal(beta2int)     ; save KRTFgeneralBCsErrorFile  ; error('KRTF: beta2int not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
     if ~isreal(Dbeta2Duuint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duuint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
     if ~isreal(Dbeta2Dvvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Dvvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
@@ -170,9 +179,6 @@ for Iint=1:MUA.nip
                     +Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... % basal friction, Weertman, directional derivative, vv
                     .*detJw ;
                
-                
-                
-                %+Dbeta*vint.*Dbeta2Dvint.*fun(Jnod).*fun(Inod)).*detJw ;
                 
                 
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
@@ -235,9 +241,9 @@ for Iint=1:MUA.nip
             end
         end
         
-        t1=-g*(rhoint.*hint-rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*g.*hint.*sa.*fun(Inod);
+        t1=-g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
         
-        t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
+        t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
         t3=hint.*etaint.*(4*exx(:,Iint)+2*eyy(:,Iint)).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,2,Inod);
         t5=beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
@@ -245,8 +251,8 @@ for Iint=1:MUA.nip
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
         
-        t1=-g*(rhoint.*hint-rhow*dint).*dbdy.*fun(Inod)*ca;
-        t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,2,Inod);
+        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
         t3=hint.*etaint.*(4*eyy(:,Iint)+2*exx(:,Iint)).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,1,Inod);
         t5=beta2int.*vint.*fun(Inod); % basal friction, Weertman, v

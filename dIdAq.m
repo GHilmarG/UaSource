@@ -1,7 +1,7 @@
-function dIdA=dIdAq(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 
 %
-% nodal-based gradients 
+% nodal-based gradients
 %
 
 ndim=2;
@@ -9,8 +9,8 @@ ndim=2;
 hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
-lxnod=reshape(lx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-lynod=reshape(ly(MUA.connectivity,1),MUA.Nele,MUA.nod);
+uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -21,7 +21,7 @@ T=zeros(MUA.Nele,MUA.nod);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; 
+    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
     
     if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
         detJ=MUA.DetJ(:,Iint);
@@ -46,10 +46,10 @@ for Iint=1:MUA.nip
         dudy=dudy+Deriv(:,2,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
         
-        dlxdx=dlxdx+Deriv(:,1,Inod).*lxnod(:,Inod);
-        dlydx=dlydx+Deriv(:,1,Inod).*lynod(:,Inod);
-        dlxdy=dlxdy+Deriv(:,2,Inod).*lxnod(:,Inod);
-        dlydy=dlydy+Deriv(:,2,Inod).*lynod(:,Inod);
+        dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
+        dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
+        dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
+        dlydy=dlydy+Deriv(:,2,Inod).*vAdjointnod(:,Inod);
         
     end
     
@@ -103,7 +103,7 @@ if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
     
 end
 
- %dIdA=median(AGlen)*dIdA;  % reasonable scaling I think
+%dIdA=median(AGlen)*dIdA;  % reasonable scaling I think
 
 
 end

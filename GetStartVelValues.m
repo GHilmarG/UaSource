@@ -1,10 +1,7 @@
-function [UserVar,ub,vb,ud,vd]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
+function [UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F,GF)
 
-
-nOut=nargout;
-if nOut~=5
-    error('Ua:GetStartVelValues','Need 5 output arguments')
-end
+narginchk(6,6)
+nargoutchk(2,2)
 
 N=nargout('DefineStartVelValues');
 
@@ -12,13 +9,11 @@ switch N
     
     case 4
         
-        
-        [ub,vb,ud,vd]=DefineStartVelValues(CtrlVar.Experiment,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-        
+        [F.ub,F.vb,F.ud,F.vd]=DefineStartVelValues(CtrlVar.Experiment,CtrlVar,MUA,F.ub,F.vb,F.ud,F.vd,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF,F.AGlen,F.n,F.C,F.m);
         
     case 5
         
-        [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
+        [UserVar,F.ub,F.vb,F.ud,F.vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,F.ub,F.vb,F.ud,F.vd,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF,F.AGlen,F.n,F.C,F.m);
         
 end
 

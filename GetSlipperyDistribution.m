@@ -1,12 +1,8 @@
-function [UserVar,C,m]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF)
 
+narginchk(5,5)
+nargoutchk(2,2)
 
-
-nOut=nargout;
-
-if nOut~=3
-    error('Ua:GetSlipperyDistribution','Need 3 output arguments')
-end
 
 N=nargout('DefineSlipperyDistribution');
 
@@ -15,11 +11,11 @@ switch N
     
     case 2
         
-        [C,m]=DefineSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [F.C,F.m]=DefineSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
         
     case 3
         
-        [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [UserVar,F.C,F.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
         
     otherwise
         
@@ -29,7 +25,8 @@ end
 
 
 
-[C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m);
+[F.C,F.m]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m);
+[F.C,iU,iL]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
 
 
 end

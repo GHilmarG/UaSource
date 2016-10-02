@@ -1,28 +1,31 @@
 
-function [UserVar,CtrlVar,MUAnew,BCsNew,GF,GLdescriptors,...
-    s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-    AdaptMesh(UserVar,CtrlVar,MUAold,BCsOld,...
-    GF,GLdescriptors,alpha,...
-    s,b,h,S,B,ub,vb,ud,vd,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
+function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,Ruv,Lubvb)
 
-narginchk(38,38)
+
+% [UserVar,CtrlVar,MUAnew,BCsNew,GF,GLdescriptors,...
+%     s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
+%     AdaptMesh(UserVar,CtrlVar,MUAold,BCsOld,...
+%     GF,GLdescriptors,alpha,...
+%     s,b,h,S,B,ub,vb,ud,vd,uo,vo,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
+
+
+
+narginchk(10,10)
+nargoutchk(7,7)
+
 persistent MUA_Background
 
-
-MeshBoundaryCoordinates=CtrlVar.MeshBoundaryCoordinates;
-time=CtrlVar.time;
-CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber;
-
-
-%%
-%save TestSave
-%error('fsda')
-
 MUAnew=MUAold;
-hOld=h;
+Fnew=Fold;
 BCsNew=BCsOld;
-MeshAdvanceRetreat=0;
-CtrlVar.MeshChanged=0;
+lnew=lold;
+GFnew=GFold;
+
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    fprintf(CtrlVar.fidlog,'Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
+end
+
 
 % I want to control directly when FE-mesh is plotted, and avoid the potential FE-mesh plotting in genmesh2d
 PlotMeshOnInput=CtrlVar.PlotMesh; CtrlVar.PlotMesh=0;
@@ -35,52 +38,24 @@ if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshi
 end
 
 
+% Either there is mesh advance nad/or retreat, or mesh adaptation
+% If MeshAdvanceRetreat, do not do MeshAdapt
 
-if CtrlVar.TimeGeometries.Flag
+isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
+
+isMeshAdapt=CtrlVar.AdaptMesh  ...
+    && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshInterval)==0 ...
+    && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
+    && ~isMeshAdvanceRetreat;
+
+
+
+if isMeshAdvanceRetreat
     
-    %%  global remeshing due to imposed changes in geometry, e.g. calving event
-    CtrlVar.MeshChanged=0;
-    N=numel(CtrlVar.TimeGeometries.StartTime)  ;  % Total number of possible geometry changes with time
-    M=CtrlVar.TimeGeometries.Done              ;  % The number of `processed'geometry changes
-    if M < N    % still some more changes in geometry to be processed
-        
-        if time >= CtrlVar.TimeGeometries.StartTime(M+1)
-            
-            if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                fprintf(CtrlVar.fidlog,' Geometry changed by user, global remeshing at time %-g \n ',time);
-            end
-            
-            load(CtrlVar.TimeGeometries.MeshBoundaryInputFile{M+1},'MeshBoundaryCoordinates')
-            CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
-            CtrlVar.GmshFile=CtrlVar.TimeGeometries.GmshFile{M+1};
-            CtrlVar.GmshMeshingMode=CtrlVar.TimeGeometries.GmshMeshingMode{M+1};
-            CtrlVar.TimeGeometries.Done=M+1;
-            if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-                figure ; PlotFEmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar);
-                title(sprintf('Before time-geometry %-i. # Ele=%-i, #Nodes=%-i, #nod=%-i',...
-                    CtrlVar.TimeGeometries.Done,MUAold.Nele,MUAold.Nnodes,MUAold.nod))
-            end
-            
-            
-            MUAnew=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
-            
-            if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-                figure ; PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar);
-                title(sprintf('After time-geometry %-i. # Ele=%-i, #Nodes=%-i, #nod=%-i',...
-                    CtrlVar.TimeGeometries.Done,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-            end
-            
-            CtrlVar.MeshChanged=1;
-        end
-        
-    end
     
-elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0)
-    
-    MeshAdvanceRetreat=1;
     %%  FE mesh advance or retreat
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
-        fprintf(CtrlVar.fidlog,' FE mesh advance or retreat, element activated/deactivated at time %-g \n ',time);
+        fprintf(CtrlVar.fidlog,' FE mesh advance or retreat, element activated/deactivated at time %-g \n ',CtrlVar.time);
     end
     
     if isempty(MUA_Background)
@@ -125,14 +100,8 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
         
     end
     
-    % map thickness onto backgroundmeshfile
     
-    % I should replace this with a `mapping' from the existing mesh onto the background mesh,
-    % rather than use this general interpolation routine.
-    
-    %%
-    %hBackground=Grid1toGrid2(DTxy,h,coordinatesBackground(:,1),coordinatesBackground(:,2),CtrlVar,CtrlVar.ThickMin);
-    hBackground=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,MUA_Background.coordinates(:,1),MUA_Background.coordinates(:,2),CtrlVar.ThickMin,h);
+    hBackground=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,MUA_Background.coordinates(:,1),MUA_Background.coordinates(:,2),CtrlVar.ThickMin,Fold.h);
     [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
     
     fprintf(CtrlVar.fidlog,'%i elements of background mesh deactivated. ',numel(find(iDeactivatedElements)));
@@ -148,7 +117,7 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
         colorbar ; title(colorbar,'(m)') ; % caxis([0 100])
         hold on
         
-        title(sprintf('hBackground at t=%#5.1f ',time))
+        title(sprintf('hBackground at t=%#5.1f ',CtrlVar.time))
         %tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)]);
         axis equal tight
         
@@ -181,44 +150,26 @@ elseif CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(time,CtrlVar.FEmeshAdv
         clear connectivity coordinates
         MUAnew=UpdateMUA(CtrlVar,MUAnew);
         
-        CtrlVar.MeshChanged=1;
+        
         fprintf(CtrlVar.fidlog,'Change in the number of elements : %+i \n ',MUAnew.Nele-MUAold.Nele);
     end
     
-end
-
-
-%%
-
-iAdapt=CtrlVar.AdaptMesh  ...
-    && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshInterval)==0 && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
-    && ~MeshAdvanceRetreat;
-
-
-
-% if mesh has changed, for example in the MeshAdvanceRetreat step, then I continue
-if ~iAdapt && ~CtrlVar.MeshMorphing && ~CtrlVar.MeshChanged
-    CtrlVar.PlotMesh=PlotMeshOnInput;
-    return
-end
-
-
-if CtrlVar.MeshMorphing || CtrlVar.TimeGeometries.Flag  || MeshAdvanceRetreat % no iterations needed for mesh morphing and TimeGeometries
-    Iterations=1;
-else
-    Iterations=CtrlVar.AdaptMeshIterations;
-end
-
-if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf(CtrlVar.fidlog,'Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
-end
-
-for JJ=1:Iterations
-    if iAdapt
+    
+    isMeshChanged=HasMeshChanged(MUAnew,MUAold);
+    if ~isMeshChanged
+        CtrlVar.PlotMesh=PlotMeshOnInput;
+        return
+    end
+    
+    
+elseif isMeshAdapt
+    
+    for JJ=1:CtrlVar.AdaptMeshIterations
         
-        CtrlVar.AdaptMeshInitial=0;
+        
+        
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,Iterations);
+            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
         end
         
         switch lower(CtrlVar.MeshRefinementMethod)
@@ -226,193 +177,84 @@ for JJ=1:Iterations
             case 'implicit'
                 
                 error(' implicit error estimate not fully implemented \n')
-                [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
-                    s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
+                %                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
+                %                     s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
                 
             case {'explicit:global','explicit:local'}
                 
-                if CtrlVar.CurrentRunStepNumber==1
-                    
-                    % do I need to calculate velocities for error estimates?
-                    CalcVel=0;
-                    for J=1:length(CtrlVar.RefineCriteria)
-                        if strcmp(CtrlVar.RefineCriteria{J},'effective strain rates') ; CalcVel=1 ; end
-                        if strcmp(CtrlVar.RefineCriteria{J},'residuals') ; CalcVel=1 ; end
-                        if CalcVel
-                            break
-                        end
-                    end
-                    
-                    if CalcVel
-                        MUAold=UpdateMUA(CtrlVar,MUAold);
-                        [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(UserVar,CtrlVar,MUAold,BCsOld,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
-                    end
-                    
+                % do I need to calculate velocities for error estimates?
+                CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
+                
+                if CalcVel
+                    [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold);
                 end
                 
-                %save TestSave ; error('afds')
                 [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
-                    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MeshBoundaryCoordinates,...
-                    S,B,h,s,b,ub,vb,ud,vd,dhdt,MUAold,AGlen,C,n,rho,rhow,GF,Ruv,Lubvb,l.ubvb);
-                
-                CtrlVar.MeshChanged=1;
-                
+                    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUAold,Fold,lold,GFold,CtrlVar.MeshBoundaryCoordinates,Ruv,Lubvb);
+
             otherwise
                 error(' unknown case  ')
         end
+
         
-        % I might be doing some GL Mesh Morphing at a later stage
-        % if so, then I need to recalculate the GLdescriptors
-        % This allows for global remeshing to be done once in a while
-        % with frequent GL Mesh Morphing in between.
-        if CtrlVar.GLmeshing && CtrlVar.MeshMorphing
-            
-            [dtGL,GLdescriptors,xGLbackground,yGLbackground]=...
-                CreateBackgroundGLmesh(MUAnew.coordinates,MeshBoundaryCoordinates,xGLmesh,yGLmesh,CtrlVar);
-            
-            if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-                figure ; PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar);
-                hold on ; plot(xGLbackground,yGLbackground,'-go','LineWidth',2);
-                hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
-                title('New GL background mesh')
-            end
+        if MUAnew.Nele==0
+            fprintf('No elements left in mesh! \n ')
+            CtrlVar.PlotMesh=PlotMeshOnInput;
+            return
         end
         
-    elseif CtrlVar.MeshMorphing && ~isempty(dtGL)
+        % At the end of an iteration, the new becomes old
+        MUAnew=UpdateMUA(CtrlVar,MUAnew);
+        lnew=UaLagrangeVariables;
+        [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
         
-        if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,'GLmorphing \n');
-        end
         
-        [coordinates,xGLmorphing,yGLmorphing]=GLmorphing(UserVar,CtrlVar,MUAold.coordinates,MUAold.connectivity,GF,MeshBoundaryCoordinates,GLdescriptors,dtGL);
-        connectivity=MUAold.connectivity;
-        MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
+        MUAold=MUAnew;
+        Fold=Fnew;
+        BCsOld=BCsNew;
         
-        CtrlVar.MeshChanged=1;
-        notOK=1; maxit=30; tol=0.5;
-        if CtrlVar.InfoLevelAdaptiveMeshing>=1 ; fprintf(CtrlVar.fidlog,'After GL morphing '); end
-        while notOK
-            q = MeshQuality(coordinates,connectivity);
-            Q=0.1;
-            iq=q<Q; notOK=any(iq) ;
-            if notOK
-                fprintf(CtrlVar.fidlog,'%i elements with quality factor < %f \n',sum(iq),Q);
-                fprintf(CtrlVar.fidlog,' Laplace smoothing of mesh \n');
-                [MUAnew.coordinates,MUAnew.connectivity]=FEmeshSmoothing(MUAnew.coordinates,MUAnew.connectivity,maxit,tol);
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
+            if CtrlVar.PlotBCs
+                figure ; PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
             else
-                fprintf(CtrlVar.fidlog,'all elements with quality factor > %f \n',Q);
+                figure
+                PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar); hold on
+                title(sprintf('AdaptMesh Iteration %i: #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
             end
-            tol=tol/2;
             
-        end
-        
-        if CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-            %%
-            figure ; PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar);
-            hold on ; plot(xGLmorphing,yGLmorphing,'-gx','LineWidth',2);
-            title('Mesh after GLmorphing')
-            %%
-        end
-    end
-    
-    
-    %%
-    % no further modification of coordinates or connectivity
-    %
-    CtrlVar.MeshChanged=1;
-    
-    
-    if CtrlVar.InfoLevelAdaptiveMeshing>=1;
-        fprintf(CtrlVar.fidlog,'After remeshing: ') ; PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
-    end
-    
-    if MUAnew.Nele==0
-        fprintf('No elements left in mesh! \n ')
-        CtrlVar.PlotMesh=PlotMeshOnInput;
-        return
-    end
-    
-    OutsideValues=[0 ; 0 ; 0; 0 ; 0; 0 ; 0 ; 0 ; 0 ; 0; 0 ; 0 ; 0 ; 0 ];
-    [UserVar,s,b,h,S,B,rho,AGlen,n,C,m,GF,ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1]=...
-        MapQuantitiesToNewFEmesh(UserVar,CtrlVar,MUAnew,MUAold,hOld,time,OutsideValues,...
-        ub,vb,ud,vd,dhdt,dubdt,dvbdt,duddt,dvddt,dhdtm1,dubdtm1,dvbdtm1,duddtm1,dvddtm1);
-    
-    %[~,~,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUAnew,time,'SB')
-    BCsNew=BoundaryConditions;
-    [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,time,s,b,h,S,B,ub,vb,ud,vd,GF);
-    [ub,vb,ud,vd]=StartVelocity(CtrlVar,MUAnew,BCsNew,ub,vb,ud,vd,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-    [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUAnew,time,s,b,h,S,B,rho,rhow,GF);
-    
-    if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
-        if CtrlVar.PlotBCs
-            figure ; PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
-        else
-            figure
-            PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar); hold on
-            title(sprintf('AdaptMesh Iteration %i: #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-        end
-        
-        if CtrlVar.GLmeshing
-            hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
-        end
-        
-    end
-    
-    if any(isnan(C)) ; error( ' C nan ') ; end
-    if any(isnan(AGlen)) ; error( ' AGlen nan ') ; end
-    if any(isnan(S)) ; error( ' S nan ') ; end
-    if any(isnan(h)) ; error( ' h nan ') ; end
-    if any(isnan(ub)) ; error( ' u nan ') ; end
-    if any(isnan(vb)) ; error( ' v nan ') ; end
-    if any(isnan(rho)) ; error( ' rho nan ') ; end
-    %%
-    
-    
-    
-    if JJ<Iterations
-        
-        % do I need to calculate velocities for error estimates?
-        
-        CalcVel=0;
-        for J=1:length(CtrlVar.RefineCriteria)
-            if strcmp(CtrlVar.RefineCriteria{J},'effective strain rates') ; CalcVel=1 ; end
-            if strcmp(CtrlVar.RefineCriteria{J},'residuals') ; CalcVel=1 ; end
-            if CalcVel
-                break
+            if CtrlVar.GLmeshing
+                hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
             end
         end
-        
-        if CalcVel
-            
-            ub=ub*0 ; vb=vb*0 ; l.ubvb=l.ubvb*0; % experience has shown that it is almost always best here to reset estimates of (u,v) to zero
-            ud=ud*0 ; vd=vd*0;
-            MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]= uv(UserVar,CtrlVar,MUAnew,BCsNew,s,b,h,S,B,ub,vb,ud,vd,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
-        end
-        
-        
-        
     end
-    MUAnew=UpdateMUA(CtrlVar,MUAnew);
-    MUAold=MUAnew;  hOld=h; BCsOld=BCsNew;
+    
 end
 
-%MUA=CreateMUA(CtrlVar,MUA.connectivity,MUA.coordinates);
+if MUAnew.Nele==0
+    fprintf('No elements left in mesh! \n ')
+    CtrlVar.PlotMesh=PlotMeshOnInput;
+    return
+end
+
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
+lnew=UaLagrangeVariables;
+
+[UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
+[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,GFnew);  % should really not be needed
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    fprintf(CtrlVar.fidlog,'After remeshing: ') ; PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
+end
 
 if CtrlVar.InitialDiagnosticStepAfterRemeshing
     CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
 end
-
-
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
     save(CtrlVar.SaveAdaptMeshFileName,'MUA')
     fprintf(CtrlVar.fidlog,' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
-
-CtrlVar.PlotMesh=PlotMeshOnInput;
 
 end
 

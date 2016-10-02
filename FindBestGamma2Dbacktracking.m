@@ -1,6 +1,6 @@
-function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,L,lambda,dlambda,cuv)
+function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,F0,r0,r1,L,l,cuv,dub,dvb,dl)
       
-
+%FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,L,l,dl,cuv)
    
     
     Slope0=-2*r0 ;  % using the inner product def
@@ -62,21 +62,23 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
         if iarm==0 
             gammaTest=1.5;  % I need a reasonable initial guess
         elseif iarm==1 
-            [gammaTest,cstatus] = parabolamin(0,1,gammac,r0,r1,rc);
+            gammaTest = parabolamin(0,1,gammac,r0,r1,rc);
         elseif iarm==2
-            [gammaTest,cstatus] = parabolamin(1,gammab,gammac,r1,rb,rc);
+            gammaTest = parabolamin(1,gammab,gammac,r1,rb,rc);
         else
-             [gammaTest,cstatus] = parabolamin(gammaa,gammab,gammac,ra,rb,rc);
+             gammaTest = parabolamin(gammaa,gammab,gammac,ra,rb,rc);
         end
         
         if gammaTest > 1.1*gammac  %  suggests extrapolation and new gamma not too close to previous one
             gamma=gammaTest;
             if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
                 
-            [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuv);
+            
+            [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+            %[UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
             infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
             
-            if isnan(r) ;
+            if isnan(r) 
                 fprintf(CtrlVar.fidlog,' In line search (extrapolation phase), cost function is nan \n ');
                 error(' nan ')
             end
@@ -118,7 +120,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
             if gamma > 0.5*gammab ; gamma=0.5*gammab ; elseif gamma < 0.2*gammab ; gamma=0.2*gammab;end
         end
              
-        if isnan(gamma) ;
+        if isnan(gamma) 
             warning('FindBestGamma2DuvhBacktrack:gammaNaN',' gamma is NaN ') ;
             fprintf(CtrlVar.fidlog,' gamma in backtracking is NaN \n ');
             save TestSave Slope0 r0 r1 rb rc gammab gammac cStatus pStatus
@@ -126,16 +128,16 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
             break
         end
         
-        
-        [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuv);
+        [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+        %[UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
    
-        if isnan(r) ; 
+        if isnan(r) 
             fprintf(CtrlVar.fidlog,' In line search (backtracking phase), cost function is nan \n ');
             error(' nan ')
         end
         
-        if iarm==1  &&  rb< r ;
+        if iarm==1  &&  rb< r 
             rc=rb; gammac=gammab;
             rTemp=r; gammaTemp=gamma;
             r=rb ; gamma=gammab ;        % Because I start with a different exit criterion, I must
@@ -161,8 +163,9 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
     % another case that is sometimes worthwile investigating is if first backtracking step was not agressive enough
     if iarm==1 && r> 0.1*r0 && r> CtrlVar.NLtol
         gammaTest=gamma/2;
-                                     
-        [UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuv);
+        
+        [UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl);                     
+        %[UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
         infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
         if rTest<r ; r=rTest ; gamma=gammaTest ; end
     end
@@ -176,7 +179,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
         
     end
     
-    if r>r0 && r>CtrlVar.NLtol; % if everyting else fails, allow some increase, possibly it must get out of a local minimum
+    if r>r0 && r>CtrlVar.NLtol % if everyting else fails, allow some increase, possibly it must get out of a local minimum
         fprintf(CtrlVar.fidlog,'FindBestGamma: residual increased from %g to %g, but still returning the new value \n !',r0,r);
         BacktrackInfo.Converged=0;    
     end

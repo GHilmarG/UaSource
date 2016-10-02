@@ -71,7 +71,7 @@ elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(C))
 end
 
 
-[C,iU,iL]=kk_proj(C,CtrlVar.Cmax,CtrlVar.Cmin);
+
 
 
 end

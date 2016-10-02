@@ -17,7 +17,7 @@ switch CtrlVar.GmshInputFormat
         I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
         CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
         
-        plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'rx-','LineWidth',2)
+        plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'bx-','LineWidth',2)
         GmshPointsInLoop=[];
         
         

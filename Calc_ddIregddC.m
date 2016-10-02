@@ -7,15 +7,15 @@ narginchk(3,3)
 %
 % The regularisation term is
 %      Cres=(C-C_prior);
-%      IRegC=CtrlVar.RegCMultiplier*Cres'*(CC\Cres)/2    ;
-%    dIregdC=CtrlVar.RegCMultiplier*(CC\(C-C_prior));
-%  ddIregddC=CtrlVar.RegCMultiplier*inv(CC)
+%      IRegC=CtrlVar.RegCMultiplier*Cres'*(CC\Cres)/(2N)    ;
+%    dIregdC=CtrlVar.RegCMultiplier*(CC\(C-C_prior)) / N;
+%  ddIregddC=CtrlVar.RegCMultiplier*inv(CC) /N
 
 [N,M]=size(CC);
 
 if CtrlVar.isRegC
     ddIregddC=CtrlVar.RegCMultiplier./spdiags(CC,0);
-    ddIregddC=sparse(1:N,1:N,ddIregddC);
+    ddIregddC=sparse(1:N,1:N,ddIregddC)/N;
 
     
 else

@@ -1,11 +1,8 @@
-function [UserVar,AGlen,n]=GetAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF)
 
 
-
-nOut=nargout;
-if nOut~=3
-    error('Ua:AGlen','Need 3 output arguments')
-end
+narginchk(5,5)
+nargoutchk(2,2)
 
 N=nargout('DefineAGlenDistribution');
 
@@ -14,11 +11,11 @@ switch N
     
     case 2
         
-        [AGlen,n]=DefineAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [F.AGlen,F.n]=DefineAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
         
     case 3
         
-        [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+        [UserVar,F.AGlen,F.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
         
     otherwise
         
@@ -26,6 +23,6 @@ switch N
         
 end
 
-[AGlen,n]=TestAGlenInputValues(CtrlVar,MUA,AGlen,n);
+[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
 
 end

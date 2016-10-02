@@ -1,4 +1,4 @@
-function dIdC=dIdCq(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+function dIdC=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 
 % nodal based gradient
 
@@ -12,8 +12,8 @@ mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-lxnod=reshape(lx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-lynod=reshape(ly(MUA.connectivity,1),MUA.Nele,MUA.nod);
+uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -29,9 +29,6 @@ for Iint=1:MUA.nip
         [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
     end
     
-    
-    
-    
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
@@ -40,8 +37,8 @@ for Iint=1:MUA.nip
     Bint=Bnod*fun;
     Sint=Snod*fun;
     rhoint=rhonod*fun;
-    lxint=lxnod*fun;
-    lyint=lynod*fun;
+    uAdjointint=uAdjointnod*fun;
+    vAdjointint=vAdjointnod*fun;
     hfint=(Sint-Bint)*rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
@@ -50,7 +47,7 @@ for Iint=1:MUA.nip
     detJw=detJ*weights(Iint);
     for Inod=1:MUA.nod
         
-        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*lxint+vint.*lyint).*fun(Inod).*detJw;
+        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
         
     end
 end

@@ -40,7 +40,7 @@ MeshHasChanged = ...
 %    all(MUA.weights==weights) ;Ct
 
 if MeshHasChanged
-    if CtrlVar.InfoLevel>=10;
+    if CtrlVar.InfoLevel>=10
         fprintf('UpdateMUA: Mesh has changed \n ')
         fprintf('UpdateMUA: finding mesh boundary \n ')
         fprintf('UpdateMUA: Calculating mesh derivatives \n ')

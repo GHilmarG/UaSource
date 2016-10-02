@@ -1,31 +1,33 @@
-function  [UserVar,ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,luv,AGlen,C,n,m,alpha,rho,rhow,g)
+function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l)
+%[UserVar,ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,luv,AGlen,C,n,m,alpha,rho,rhow,g)
 
-nargoutchk(8,8)
-narginchk(19,19)
+nargoutchk(7,7)
+narginchk(6,6)
 
 tStart=tic;
 RunInfo.converged=1; RunInfo.Iterations=NaN;  RunInfo.residual=NaN;
 
 MLC=BCs2MLC(MUA,BCs);
-Luv=MLC.ubvbL; cuv=MLC.ubvbRhs;
+L=MLC.ubvbL; 
+cuv=MLC.ubvbRhs;
 
 
 
 if isempty(cuv)
-    luv=[];
-elseif numel(luv)~=numel(cuv)
-    luv=zeros(numel(cuv),1) ;
+    l.ubvb=[];
+elseif numel(l.ubvb)~=numel(cuv)
+    l.ubvb=zeros(numel(cuv),1) ;
 end
 
-if any(isnan(C)) ; save TestSave ; error( ' C nan ') ; end
-if any(isnan(AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
-if any(isnan(S)) ; save TestSave ; error( ' S nan ') ; end
-if any(isnan(h)) ; save TestSave error( ' h nan ') ; end
-if any(isnan(ub)) ; save TestSave ; error( ' ub nan ') ; end
-if any(isnan(vb)) ; save TestSave ; error( ' vb nan ') ; end
-if any(isnan(luv)) ; save TestSave ; error( ' ubvbLambda nan ') ; end
-if any(isnan(rho)) ; save TestSave  ; error( ' rho nan ') ; end
-if any(h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; end
+if any(isnan(F.C)) ; save TestSave ; error( ' C nan ') ; end
+if any(isnan(F.AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
+if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
+if any(isnan(F.h)) ; save TestSave error( ' h nan ') ; end
+if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
+if any(isnan(F.vb)) ; save TestSave ; error( ' vb nan ') ; end
+if any(isnan(l.ubvb)) ; save TestSave ; error( ' ubvbLambda nan ') ; end
+if any(isnan(F.rho)) ; save TestSave  ; error( ' rho nan ') ; end
+if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; end
 
 
 
@@ -54,7 +56,7 @@ if any(h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; e
 %
 
 % I write the system as
-% [Kuv  Luv^T ]  [duv]  =  [ -R(uv) - Luv^2 l]
+% [Kuv  Luv^T ]  [duv]  =  [ -R(uv) - Luv^T l]
 % [Luv   0    ]  [dl]      [cuv-Luv uv]
 %
 
@@ -63,7 +65,7 @@ if any(h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; e
 
 
 
-dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dlambda=zeros(numel(luv),1);
+dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 
 
 
@@ -77,34 +79,33 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     iteration=iteration+1;
     
-    if CtrlVar.CalvingFrontFullyFloating
-        warning('Ua:SSTREAM2dNR:CalvingFrontFullyFloating','CalvingFrontFullyFloating set to true. Only use this option for testing purposes!')
-        [Kuv,Ruv,~,F]=KRTF(s,S,B,h,ub,vb,AGlen,n,C,m,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,alpha,rho,rhow,g,CtrlVar);
+    
+    if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
+        
+        [Ruv,Kuv,~,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
+        %[Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
+        NRincomplete=0;
     else
-        if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
-            %0.95
-            [Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
-            NRincomplete=0;
-        else
-            Ruv=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen,n,C,m,alpha,rho,rhow,g);
-            NRincomplete=1;
-        end
+        Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+        %Ruv=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
+        NRincomplete=1;
     end
     
+    
     if iteration==1
-        F0=F ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
+        F0=Fuv ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
         % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
         % without affecting its value.
     end
     
     
-  
+    
     
     
     if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
-    if ~isreal(Luv) ; save TestSave Luv ; error('SSTREAM2dNR: L not real') ;  end
+    if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
     if any(isnan(Kuv)) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-    if any(isnan(Luv)) ; save TestSave Luv ; error('SSTREAM2dNR: L nan') ;  end
+    if any(isnan(L)) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
     
     CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
     
@@ -113,23 +114,23 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     % [Kuv  Luv' ]  [duv]  =  [ -R(uv) - Luv' l]
     % [Luv   0    ]  [dl]      [ cuv-Luv uv      ]
     
-    if ~isempty(Luv)
-        frhs=-Ruv-Luv'*luv;
-        grhs=cuv-Luv*[ub;vb];
+    if ~isempty(L)
+        frhs=-Ruv-L'*l.ubvb;
+        grhs=cuv-L*[F.ub;F.vb];
     else
         frhs=-Ruv;
-        grhs=[]; 
+        grhs=[];
     end
     
-    r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes); 
-   
+    r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+    
     
     
     
     if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
-        [sol,dlambda]=solveKApeSymmetric(Kuv,Luv,frhs,grhs,[dub;dvb],dlambda,CtrlVar);
+        [sol,dl]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     else
-        [sol,dlambda]=solveKApe(Kuv,Luv,frhs,grhs,[dub;dvb],dlambda,CtrlVar);
+        [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     end
     
     
@@ -140,10 +141,15 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     % Evaluate force residual at full Newton step
     
-    [UserVar,r1] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,Luv,luv,dlambda,cuv);
-    [UserVar,r,gamma,infovector,BacktrackingInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,Luv,luv,dlambda,cuv);
+    gamma=1;
+    [UserVar,r1] =  CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
     
-    if BacktrackingInfo.Converged==0
+    %[UserVar,r1] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,1,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l.ubvb,dl,cuv);
+    
+    [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,F0,r0,r1,L,l,cuv,dub,dvb,dl);
+    %[UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F0,r0,r1,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,L,l.ubvb,dl,cuv);
+    
+    if BacktrackInfo.Converged==0
         fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
         warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
         fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
@@ -160,7 +166,8 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/250;
-            [~,rTest]=CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,AGlen,n,C,m,alpha,rho,rhow,g,F0,Luv,luv,dlambda,cuv);
+            [~,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl)
+            %[~,rTest]=CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l.ubvb,dl,cuv);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         
@@ -181,20 +188,20 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         %input('press return to continue')
     end
     
-    D=mean(sqrt(ub.*ub+vb.*vb));
+    D=mean(sqrt(F.ub.*F.ub+F.vb.*F.vb));
     diffDu=full(max(abs(gamma*dub))+max(abs(gamma*dvb)))/D; % sum of max change in du and dv normalized by mean speed
-    diffDlambda=full(max(abs(gamma*dlambda))/mean(abs(luv)));
+    diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
     diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
     diffVector(iteration+1)=r;
     
-    ub=ub+gamma*dub ;
-    vb=vb+gamma*dvb;
-    luv=luv+gamma*dlambda;
+    F.ub=F.ub+gamma*dub ;
+    F.vb=F.vb+gamma*dvb;
+    l.ubvb=l.ubvb+gamma*dl;
     
     ResidualReduction=r/r0;
     
     if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
-        PlotForceResidualVectors('uv',Ruv,Luv,luv,MUA.coordinates,CtrlVar) ; axis equal tight
+        PlotForceResidualVectors('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
     end
     if CtrlVar.InfoLevelNonLinIt>=1
         if NRincomplete
@@ -203,7 +210,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
             stri=[];
         end;
         fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g \n ',...
-            stri,iteration,BacktrackingInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda);
+            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda);
     end
     
 end
@@ -246,7 +253,7 @@ end
 
 RunInfo.Iterations=iteration;  RunInfo.residual=r;
 
-if any(isnan(ub)) || any(isnan(vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
+if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
 
 
 

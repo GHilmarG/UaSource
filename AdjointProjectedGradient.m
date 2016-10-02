@@ -7,7 +7,7 @@ function   [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoin
 
 % Minimisation using the projected (conjugated) gradient method.
 
-if CtrlVar.InfoLevelAdjoint>=10;
+if CtrlVar.InfoLevelAdjoint>=10
     fprintf(' minimisation method AdjointProjectedGradient \n ')
 end
 
@@ -108,13 +108,13 @@ for iteration=1:nIt
             CalcBruteForceGradient(CtrlVar,MUA,s,S,B,h,ub,vb,AGlen0,C0,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g,...
             uMeas,vMeas,wMeas,C_prior,AGlen_prior,Cd,CAGlen,CC,GF);
         
-        if  isCgrad &&  CtrlVar.InfoLevelAdjoint>=10 && CtrlVar.doplots==1;
+        if  isCgrad &&  CtrlVar.InfoLevelAdjoint>=10 && CtrlVar.doplots==1
             figure
             PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dJdCBruteForce); colorbar ; axis equal tight
             title('Brute force dJdC') ; xlabel('x') ; ylabel('y')
         end
         
-        if  isAgrad &&  CtrlVar.InfoLevelAdjoint>=10 && CtrlVar.doplots==1;
+        if  isAgrad &&  CtrlVar.InfoLevelAdjoint>=10 && CtrlVar.doplots==1
             PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,dJdAGlenBruteForce);
             title('Brute force dJdAGlen') ; xlabel('x') ; ylabel('y')
         end
@@ -126,14 +126,7 @@ for iteration=1:nIt
     [UserVar,dJdC,dJdAGlen,ub,vb,ud,vd,xAdjoint,yAdjoint,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier,lambdaAdjoint]=...
         AdjointGradientNR2d(...
         UserVar,CtrlVar,MUA,BCs,BCsAdjoint,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-    %
-    %
-    %     [dJdC,dJdAGlen,ub,vb,ud,vd,lx,ly,dIdCreg,dIdAGlenreg,dIdCdata,dIdAGlendata,dIdCbarrier,dIdAGlenbarrier]=...
-    %         AdjointGradientNR2d(CtrlVar,MUA,s,b,h,S,B,ub,vb,ud,vd,AGlenEst,n,Cest,m,rho,rhow,alpha,g,...
-    %         sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,...
-    %         AGlen_prior,CAGlen,C_prior,CC,b_prior,Cd,...
-    %         Luv,Luvrhs,ubvbLambda,LAdjoint,LAdjointrhs,lambdaAdjoint,GF,kv);
-    
+        
     indA=AGlen0 == upA | AGlen0 ==lowA ;
     indC=C0 == upC | C0 ==lowC ;
     fprintf(' fraction of active AGlen constrains %-g \n ',sum(indA)/length(AGlen0))
@@ -333,7 +326,7 @@ for iteration=1:nIt
     gamma_a=0 ; Ja=J0 ; gamma_c=gamma_MinEstimate ; gamma_Eps=gamma_MinEstimate/1000;
     
     RunInfo.converged=0; iNR=0;
-    while RunInfo.converged==0  && iNR<=5;
+    while RunInfo.converged==0  && iNR<=5
         % possibly the change in C/AGlen is too large for the non-linear solver to converge
         % so I allow for a drastic reduciton in step size if needed
         iNR=iNR+1;
@@ -357,7 +350,7 @@ for iteration=1:nIt
         
     end
     
-    if RunInfo.converged==0;
+    if RunInfo.converged==0
         error('SSTREAM2d did not converge')
     end
     
@@ -418,11 +411,11 @@ for iteration=1:nIt
             fVector(ig,5)=IBarrierC ; fVector(ig,6)=IBarrierAGlen ;
             gamma_Vector(ig)= gamma; Jvalue=Jb;
             
-            if Jvalue < Jvaluelast || JMin >= J0 ;
+            if Jvalue < Jvaluelast || JMin >= J0 
                 iFminTry=0;
             end   % reset iFminTry if function value is decreasing or if fMin is still larger than f0
             
-            if Jb < JMin ;
+            if Jb < JMin 
                 JMin=Jb ;  IdataMin=Idata ; IRegCmin=IRegC; IRegAGlenmin=IRegAGlen;
                 IBarrierCmin=IBarrierC ; IBarrierAGlenmin=IBarrierAGlen;
                 gammaAdjoint=gamma_b ;

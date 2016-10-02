@@ -1,14 +1,9 @@
 
-function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF)
 
+narginchk(6,6)
+nargoutchk(2,2)
 
-nOut=nargout;
-if nOut~=2
-    error('Ua:GetBoundaryConditions','Need 2 output arguments')
-end
-
-
-narginchk(15,15)
 
 % does DefineBoundaryConditions.m exist in the run directory?
 % if so then use that instead of DefineBCs.m
@@ -24,11 +19,11 @@ if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
         
         case 1
             
-            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
             
         case 2
             
-            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
             
     end
     
@@ -39,7 +34,7 @@ else
     [ubFixedNode,ubFixedValue,vbFixedNode,vbFixedValue,...
         ubTiedNodeA,ubTiedNodeB,vbTiedNodeA,vbTiedNodeB,...
         hFixedNode,hFixedValue,hTiedNodeA,hTiedNodeB]=...
-        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,time,s,b,h,S,B,ub,vb,ud,vd,GF);
+        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
     
     BCs.ubFixedNode=ubFixedNode;
     BCs.ubFixedValue=ubFixedValue;
