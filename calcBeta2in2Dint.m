@@ -1,4 +1,4 @@
-function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,m,Heint,CtrlVar,uoint,voint)
+function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar,uoint,voint)
     
     % calculates beta^2 and D beta^2/Du at integration points
     % must be called within an integration point loop over all elements
@@ -22,7 +22,7 @@ function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(ui
     % beta2= Heint 
     
     
-    beta2int=(Cint+CtrlVar.Czero).^(-1./m).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+    beta2int=(Cint+CtrlVar.Czero).^(-1./mint).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
     beta2int=Heint.*beta2int;
     
@@ -35,7 +35,7 @@ function [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(ui
         %
         
         %Dbeta2int=(1/m-1).*Cint.^(-1/m).*(U.^2+V.^2+CtrlVar.SpeedZero^2).^((1-3*m)/(2*m));
-        Dbeta2int=(1./m-1).*(Cint+CtrlVar.Czero).^(-1./m).*(U.^2+V.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
+        Dbeta2int=(1./mint-1).*(Cint+CtrlVar.Czero).^(-1./mint).*(U.^2+V.^2+CtrlVar.SpeedZero^2).^((1-3*mint)./(2*mint));
         
         
         Dbeta2int=Dbeta2int.*Heint;

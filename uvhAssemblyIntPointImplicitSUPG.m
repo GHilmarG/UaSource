@@ -1,8 +1,11 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-    bnod,hnod,unod,vnod,Cnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dudt0nod,dvdt0nod,dadhnod,Bnod,Snod,rhonod,...
-    CtrlVar,rhow,g,mnod,etaInt,exx,eyy,exy,Eint,Ronly,ca,sa,dt,...
+    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
+
+narginchk(44,44)
+
 
 % I've added here the rho terms in the mass-conservation equation
 %
@@ -46,6 +49,17 @@ else
     Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
     mint=mnod*fun;
 end
+
+
+if CtrlVar.AGlenisElementBased
+    AGlenint=AGlennod;
+    nint=nnod;
+else
+    AGlenint=AGlennod*fun; 
+    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    nint=nnod*fun;
+end
+
 
 h0int=h0nod*fun;
 u0int=u0nod*fun;
@@ -119,16 +133,23 @@ dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;
 Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint;
 
 
-[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
-etaint=etaInt(:,Iint) ;  % I could consider calculating this here
-
 
 dhdx=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
 dHdx=zeros(MUA.Nele,1); dHdy=zeros(MUA.Nele,1);
 dBdx=zeros(MUA.Nele,1); dBdy=zeros(MUA.Nele,1);
 dh0dx=zeros(MUA.Nele,1); dh0dy=zeros(MUA.Nele,1);
-du0dx=zeros(MUA.Nele,1); du0dy=zeros(MUA.Nele,1);
-dv0dx=zeros(MUA.Nele,1); dv0dy=zeros(MUA.Nele,1);
+
+
+
+exx0=zeros(MUA.Nele,1); 
+%du0dy=zeros(MUA.Nele,1);
+%dv0dx=zeros(MUA.Nele,1); 
+eyy0=zeros(MUA.Nele,1);
+
+exx=zeros(MUA.Nele,1); 
+eyy=zeros(MUA.Nele,1); 
+exy=zeros(MUA.Nele,1); 
+
 dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
 drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
 
@@ -149,11 +170,11 @@ for Inod=1:MUA.nod
     dh0dx=dh0dx+Deriv(:,1,Inod).*h0nod(:,Inod);
     dh0dy=dh0dy+Deriv(:,2,Inod).*h0nod(:,Inod);
     
-    du0dx=du0dx+Deriv(:,1,Inod).*u0nod(:,Inod);
-    du0dy=du0dy+Deriv(:,2,Inod).*u0nod(:,Inod);
+    exx0=exx0+Deriv(:,1,Inod).*u0nod(:,Inod);  % exx0
+    %du0dy=du0dy+Deriv(:,2,Inod).*u0nod(:,Inod);  
     
-    dv0dx=dv0dx+Deriv(:,1,Inod).*v0nod(:,Inod);
-    dv0dy=dv0dy+Deriv(:,2,Inod).*v0nod(:,Inod);
+    %dv0dx=dv0dx+Deriv(:,1,Inod).*v0nod(:,Inod);
+    eyy0=eyy0+Deriv(:,2,Inod).*v0nod(:,Inod);
     
     dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
     dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
@@ -161,15 +182,27 @@ for Inod=1:MUA.nod
     drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
     drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
     
+    exx=exx+Deriv(:,1,Inod).*unod(:,Inod);
+    eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
+    exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
+    
+    
 end
+
+
+[etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
+%etaint=etaInt(:,Iint) ;  % I could consider calculating this here
+
+[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
+
 
 CtrlVar.GroupRepresentation=0;
 
 
-qx1dx=rhoint.*exx(:,Iint).*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
-qy1dy=rhoint.*eyy(:,Iint).*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
-qx0dx=rhoint.*du0dx.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
-qy0dy=rhoint.*dv0dy.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
+qx1dx=rhoint.*exx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
+qy1dy=rhoint.*eyy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
+qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
+qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 
 
 
@@ -257,13 +290,13 @@ for Inod=1:MUA.nod
     if ~Ronly
         for Jnod=1:MUA.nod
             
-            Deu=Eint(:,Iint).*((2*exx(:,Iint)+eyy(:,Iint)).*Deriv(:,1,Jnod)+exy(:,Iint).*Deriv(:,2,Jnod));
-            Dev=Eint(:,Iint).*((2*eyy(:,Iint)+exx(:,Iint)).*Deriv(:,2,Jnod)+exy(:,Iint).*Deriv(:,1,Jnod));
+            Deu=Eint.*((2*exx+eyy).*Deriv(:,1,Jnod)+exy.*Deriv(:,2,Jnod));
+            Dev=Eint.*((2*eyy+exx).*Deriv(:,2,Jnod)+exy.*Deriv(:,1,Jnod));
             % E11=h Deu (4 p_x u + 2 p_y v)   + h Deu  ( p_x v + p_y u) p_y N_p
-            E11=  hint.*(4.*exx(:,Iint)+2.*eyy(:,Iint)).*Deu.*Deriv(:,1,Inod)+2*hint.*exy(:,Iint).*Deu.*Deriv(:,2,Inod);
-            E12=  hint.*(4.*exx(:,Iint)+2.*eyy(:,Iint)).*Dev.*Deriv(:,1,Inod)+2*hint.*exy(:,Iint).*Dev.*Deriv(:,2,Inod);
-            E22=  hint.*(4.*eyy(:,Iint)+2.*exx(:,Iint)).*Dev.*Deriv(:,2,Inod)+2*hint.*exy(:,Iint).*Dev.*Deriv(:,1,Inod);
-            E21=  hint.*(4.*eyy(:,Iint)+2.*exx(:,Iint)).*Deu.*Deriv(:,2,Inod)+2*hint.*exy(:,Iint).*Deu.*Deriv(:,1,Inod);
+            E11=  hint.*(4.*exx+2.*eyy).*Deu.*Deriv(:,1,Inod)+2*hint.*exy.*Deu.*Deriv(:,2,Inod);
+            E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)+2*hint.*exy.*Dev.*Deriv(:,2,Inod);
+            E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)+2*hint.*exy.*Dev.*Deriv(:,1,Inod);
+            E21=  hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)+2*hint.*exy.*Deu.*Deriv(:,1,Inod);
             
             
             Kxu(:,Inod,Jnod)=Kxu(:,Inod,Jnod)...
@@ -300,8 +333,8 @@ for Inod=1:MUA.nod
             %  Dddhint=HEint.*rhoint/rhow+deltaint.*Hposint-Deltaint.*hint.*rhoint/rhow;
             
             Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
-                +(etaint.*(4*exx(:,Iint)+2*eyy(:,Iint)).*Deriv(:,1,Inod).*fun(Jnod)...
-                +etaint.*2.*exy(:,Iint).*Deriv(:,2,Inod).*fun(Jnod)...
+                +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
+                +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
                 +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)...
                 +ca*g*rhoint.*Heint.*dBdx.*fun(Inod).*fun(Jnod)...                           % t1
                 +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*fun(Inod).*fun(Jnod)... ; % t1
@@ -312,8 +345,8 @@ for Inod=1:MUA.nod
             %-ca*g*rhoint.*(hint-dint.*rhoint.*HEint/rhow).*Deriv(:,1,Inod).*fun(Jnod)).*detJw;
             
             Kyh(:,Inod,Jnod)=Kyh(:,Inod,Jnod)...
-                +(etaint.*(4*eyy(:,Iint)+2*exx(:,Iint)).*Deriv(:,2,Inod).*fun(Jnod)...
-                +etaint.*2.*exy(:,Iint).*Deriv(:,1,Inod).*fun(Jnod)...
+                +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
+                +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
                 +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
                 +ca*g*rhoint.*Heint.*dBdy.*fun(Inod).*fun(Jnod)...                           % t1
                 +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*fun(Inod).*fun(Jnod)... ; % t1
@@ -342,8 +375,8 @@ for Inod=1:MUA.nod
                 +(rhoint.*fun(Jnod)...
                 -dt*theta*rhoint.*dadhint.*fun(Jnod)...
                 +dt*theta*rhoint.*fun(Jnod).*h1barr/lambda_h...
-                +dt*theta.*(rhoint.*exx(:,Iint).*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
-                         rhoint.*eyy(:,Iint).*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
+                +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
+                         rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
                 .*SUPG.*detJw;
             
         end
@@ -355,8 +388,8 @@ for Inod=1:MUA.nod
     
     t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*fun(Inod)+ rhoint.*g.*hint.*sa.*fun(Inod);
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
-    t3=hint.*etaint.*(4*exx(:,Iint)+2*eyy(:,Iint)).*Deriv(:,1,Inod);
-    t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,2,Inod);
+    t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
+    t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
     t5=beta2int.*uint.*fun(Inod);
     
     Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
@@ -364,8 +397,8 @@ for Inod=1:MUA.nod
     
     t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdy.*fun(Inod);
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,2,Inod);
-    t3=hint.*etaint.*(4*eyy(:,Iint)+2*exx(:,Iint)).*Deriv(:,2,Inod);
-    t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,1,Inod);
+    t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+    t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
     t5=beta2int.*vint.*fun(Inod);
     
     Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;

@@ -1017,6 +1017,10 @@ CtrlVar.ParallelAssembly=1;
 %%
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 
+%%
+
+ CtrlVar.DevelopmentVersion=1;  % Internal variable, always set to 0 (unless you want to use some untried, untested and unfinished features....) 
+
 end
 
 

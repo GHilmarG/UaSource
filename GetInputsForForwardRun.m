@@ -62,12 +62,6 @@ if ~isempty(CtrlVar.SaveInitialMeshFileName)
     fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
 end
 
-F.dubdt=zeros(MUA.Nnodes,1) ; F.dubdtm1=zeros(MUA.Nnodes,1);
-F.dvbdt=zeros(MUA.Nnodes,1) ; F.dvbdtm1=zeros(MUA.Nnodes,1);
-F.duddt=zeros(MUA.Nnodes,1) ; F.duddtm1=zeros(MUA.Nnodes,1);
-F.dvddt=zeros(MUA.Nnodes,1) ; F.dvddtm1=zeros(MUA.Nnodes,1);
-F.dhdt=zeros(MUA.Nnodes,1) ; F.dhdtm1=zeros(MUA.Nnodes,1);
-F.dsdt=zeros(MUA.Nnodes,1) ; F.dbdt=zeros(MUA.Nnodes,1);
 
 
 BCs=BoundaryConditions;
@@ -132,12 +126,13 @@ l=UaLagrangeVariables;
 
 MeshChanged=0;
 
-F.dsdt=[]; F.dbdt=[]; F.dhdt=[];
-F.dubdt=[];  F.dvbdt=[];  F.duddt=[] ; F.dvddt=[];
-F.dubdtm1=F.dubdt ; F.dvbdtm1=F.dvbdt; F.duddtm1=F.duddt ; F.dvddtm1=F.dvddt;
 
+F.dubdt=zeros(MUA.Nnodes,1) ;
+F.dvbdt=zeros(MUA.Nnodes,1) ;
+F.duddt=zeros(MUA.Nnodes,1) ;
+F.dvddt=zeros(MUA.Nnodes,1) ;
+F.dhdt=zeros(MUA.Nnodes,1) ; 
 
-%F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,g,alpha);
 
 
 end

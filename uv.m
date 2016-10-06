@@ -1,13 +1,15 @@
-function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF)
+function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
 
 %[UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uo,vo,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
 
 
 
 nargoutchk(4,7);
-narginchk(8,8)
+narginchk(7,7)
 
 tdiagnostic=tic;
+
+
 
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
 [F.C,F.m]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m);
@@ -97,9 +99,10 @@ switch lower(CtrlVar.FlowApproximation)
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l);
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
-        [txzb,tyzb]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb);
+        GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+        [txzb,tyzb]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb);
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 3:SSHEET.') ;  end
-        [F.ud,F.vd]=uvSSHEETplus(CtrlVar,MUA,BCs,AGlen,F.n,F.h,txzb,tyzb);
+        [F.ud,F.vd]=uvSSHEETplus(CtrlVar,MUA,BCs,F.AGlen,F.n,F.h,txzb,tyzb);
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Hybrid done \n') ;  end
         
     otherwise

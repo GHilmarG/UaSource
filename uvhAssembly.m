@@ -1,4 +1,4 @@
-function [UserVar,R,K,T,F]=uvhAssembly(UserVar,CtrlVar,MUA,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
+function [UserVar,R,K,T,Fext]=uvhAssembly(UserVar,CtrlVar,MUA,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g)
 
 nargoutchk(2,5)
 
@@ -51,6 +51,7 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
     
     switch CtrlVar.MassBalanceGeometryFeedback
         case 2
+            %[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
             [UserVar,as1,ab1,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
             dadh=zeros(MUA.Nnodes,1);
         case 3
@@ -239,7 +240,7 @@ end
 
 %% assemble right-hand side
 
-T=sparseUA(neq,1); F=sparseUA(neq,1);
+T=sparseUA(neq,1); Fext=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
     
@@ -248,13 +249,13 @@ for Inod=1:MUA.nod
     T=T+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
     T=T+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
     
-    F=F+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    F=F+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-    F=F+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
+    Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
 end
 %%
 
-R=T-F;
+R=T-Fext;
 
 if ~Ronly
     

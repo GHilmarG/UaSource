@@ -42,10 +42,7 @@ else
     d1d1=[];
 end
 
-%d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
-
 t1=zeros(MUA.Nele,MUA.nod); f1=zeros(MUA.Nele,MUA.nod);
-
 
 
 % vector over all elements for each integartion point
@@ -67,13 +64,8 @@ else
         
         %% [--
         fun=shape_fun(Iint,ndim,MUA.nod,points) ; % MUA.nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
         
-        if isfield(MUA,'Deriv') && isfield(MUA,'DetJ')
-            Deriv=MUA.Deriv(:,:,:,Iint);
-            detJ=MUA.DetJ(:,Iint);
-        else
-            [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-        end
         %     % Deriv : MUA.Nele x dof x MUA.nod
         %  detJ : MUA.Nele
         
@@ -129,13 +121,6 @@ else
                     
                     lf2=(gradSurf1.^(n-1)).* temp;
                     lf3=(n-1)*(gradSurf1.^(n-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ;
-                    
-                    %             lf2=dt*theta*D.*(gradSurf1.^(n-1)).*(h1int.^(n+2))...
-                    %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
-                    %
-                    %             lf3=dt*theta*(n-1)*D.*(gradSurf1.^(n-3)).*(h1int.^(n+2))...
-                    %                 .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I))...
-                    %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
                     
                     d1d1(:,I,J)=d1d1(:,I,J)+(deltahterm+lf1+lf2+lf3).*detJw;
                     

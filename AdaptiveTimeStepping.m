@@ -1,4 +1,4 @@
-function [dtOut,dtRatio]=AdaptiveTimeStepping(CtrlVar,time,dtIn,RunInfo,dudt,dvdt,dhdt)
+function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             
     %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
     %  modifies time step size

@@ -1,11 +1,11 @@
-function [UserVar,u1,v1,h1,s1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g)
+function [UserVar,u1,v1,h1,s1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g)
 
 %  s and h are the initial estimates for s1 and h1
 %  these are then updated, once convergent, I set s1=s and h1=h
 
 
 nargoutchk(7,7)
-narginchk(19,19)
+narginchk(20,20)
 
 
 [b0,s0,h0]=Calc_bs_From_hBS(h0,S,B,rho,rhow,CtrlVar,MUA.coordinates);

@@ -1,23 +1,14 @@
 
 function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,Ruv,Lubvb)
 
-
-% [UserVar,CtrlVar,MUAnew,BCsNew,GF,GLdescriptors,...
-%     s,b,h,S,B,ub,vb,ud,vd,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-%     AdaptMesh(UserVar,CtrlVar,MUAold,BCsOld,...
-%     GF,GLdescriptors,alpha,...
-%     s,b,h,S,B,ub,vb,ud,vd,uo,vo,Ruv,Lubvb,l,rho,rhow,g,AGlen,n,C,m,ab,as,dhdt,dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1)
-
-
-
 narginchk(10,10)
 nargoutchk(7,7)
 
 persistent MUA_Background
 
+
 MUAnew=MUAold;
-Fnew=Fold;
-BCsNew=BCsOld;
+Fnew=Fold;BCsNew=BCsOld;
 lnew=lold;
 GFnew=GFold;
 
@@ -104,6 +95,9 @@ if isMeshAdvanceRetreat
     hBackground=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,MUA_Background.coordinates(:,1),MUA_Background.coordinates(:,2),CtrlVar.ThickMin,Fold.h);
     [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
     
+    
+    [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
+    
     fprintf(CtrlVar.fidlog,'%i elements of background mesh deactivated. ',numel(find(iDeactivatedElements)));
     
     
@@ -166,7 +160,10 @@ elseif isMeshAdapt
     
     for JJ=1:CtrlVar.AdaptMeshIterations
         
-        
+        MUAold=MUAnew;
+        Fold=Fnew;
+        BCsOld=BCsNew;
+        GFold=GFnew;
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
             fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
@@ -186,12 +183,12 @@ elseif isMeshAdapt
                 CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
                 
                 if CalcVel
-                    [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold);
+                    [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold);
                 end
                 
                 [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
                     RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUAold,Fold,lold,GFold,CtrlVar.MeshBoundaryCoordinates,Ruv,Lubvb);
-
+                %GFnew here still based on old mesh
             otherwise
                 error(' unknown case  ')
         end
@@ -208,11 +205,8 @@ elseif isMeshAdapt
         lnew=UaLagrangeVariables;
         [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
         
-        
-        MUAold=MUAnew;
-        Fold=Fnew;
-        BCsOld=BCsNew;
-        
+        % if there is another iteration
+                
         if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
             if CtrlVar.PlotBCs
                 figure ; PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
@@ -240,7 +234,7 @@ MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
 [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,GFnew);  % should really not be needed
+[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf(CtrlVar.fidlog,'After remeshing: ') ; PrintInfoAboutElementsSizes(CtrlVar,MUAnew)

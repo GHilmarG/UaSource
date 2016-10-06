@@ -25,6 +25,7 @@ warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 %% initialize some variables
 Info=UaRunInfo;
 l=UaLagrangeVariables; 
+Fm1=UaFields;
 % these are the Lagrange variables assosiated with boundary conditions.
 % not to be confused with the Lagrange variables assosiated with solving the
 % adjoint problem
@@ -178,7 +179,7 @@ end
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
-GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
 
 
 
@@ -213,7 +214,7 @@ if CtrlVar.doInverseStep   % -inverse
     
     
     % this calculation not really needed as AdjointNR2D should return converged ub,vb,ud,vd values for Cest and AGlenEst
-    [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,L]= uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uo,vo,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+    
     
     
     if CtrlVar.doplots
@@ -290,7 +291,7 @@ while 1
     
     % -adapt time step
     if CtrlVar.TimeDependentRun
-        [CtrlVar.dt,dtRatio]=AdaptiveTimeStepping(CtrlVar,CtrlVar.time,CtrlVar.dt,RunInfo,dubdt,dvbdt,dhdt);
+        [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,CtrlVar.time,CtrlVar.dt);
     end
     
     
@@ -354,7 +355,7 @@ while 1
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
 
         
-        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF);
+        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         
 % Since this is a time independent run, not sure why this should be needed
 %         F.dubdtm1=F.dubdt ; F.dvbdtm1=F.dvbdt; F.duddtm1=F.duddt ; F.dvddtm1=F.dvddt;
@@ -389,7 +390,7 @@ while 1
                 
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
                 
-                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF);
+                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 
                 
                 %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;
@@ -409,7 +410,7 @@ while 1
                 end
             end
             
-            F0=F;
+            F0=F;  % 
             
             
             %% get an explicit estimate for u, v and h at the end of the time step
@@ -420,7 +421,7 @@ while 1
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-            F=ExplicitEstimationForUaFields(CtrlVar,dtRatio,F0,Fm1);
+            F=ExplicitEstimationForUaFields(CtrlVar,F,F0,Fm1);
             %[ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,F.ub,F.dubdt,F.dubdtm1,F.vb,F.dvbdt,F.dvbdtm1,F.ud,F.duddt,F.duddtm1,F.vd,F.dvddt,F.dvddtm1,F.h,F.dhdt,F.dhdtm1);
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
@@ -429,33 +430,25 @@ while 1
                 CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
                 [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
                 CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
-                as1=F.as ; ab1=F.ab;
- 
+
+               
                 
+                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs); 
                 
-                % FIuvh2D to be replaced by:
-                %[UserVar,RunInfo,CtrlVar,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs0); 
-                
-                [UserVar,ub,vb,ud,vd,h,l.ubvb,l.h,RunInfo,CtrlVar,BCs,CtrlVar.dt]=...
-                    FIuvh2D(UserVar,CtrlVar,MUA,BCs,CtrlVar.dt,S,B,ub0,vb0,ud0,vd0,h0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,...
-                    dubdt,dvbdt,duddt,dvddt,...
-                    l.ubvb,l.h,...
-                    AGlen,C,n,m,alpha,rho,rhow,g);
-                uvhStep=0;  % assuming it converged
+                CtrlVar.dt=dt;
                 
                 if RunInfo.converged==0
                     
-                    fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
-                    CtrlVar.dt=CtrlVar.dt/10;
                     uvhStep=1;  % continue within while loop
                     
-%                     fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
-%                     [F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F0.h,F0.S,F0.B,F0.rho,F0.rhow,CtrlVar,MUA.coordinates);
-%                     ub1=ub0*0 ; vb1=vb0*0 ;  ud1=ud0*0 ; vd1=vd0*0 ; h1=h0;
-%                     l.ubvb=l.ubvb*0; l.h=l.h*0;
-
-                      F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   F.ub=F.ub*0; F.vb=F.vb*0; F.ud=F.ud*0;F.vd=F.vd*0;
-                      l1.ubvb=l1.ubvb*0; l1.h=l1.h*0;
+                    fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
+                    CtrlVar.dt=CtrlVar.dt/10;
+                    l.ubvb=l.ubvb*0; l.h=l.h*0;
+                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   
+                    F.ub=F.ub*0; F.vb=F.vb*0; F.ud=F.ud*0;F.vd=F.vd*0;
+                    l.ubvb=l.ubvb*0; l.h=l.h*0;
+                else
+                    uvhStep=0;
                 end
             end
             
@@ -464,20 +457,20 @@ while 1
             
             [F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
             
-%             dhdtm1=dhdt ; Fdubdtm1=dubdt ; Fdvbdtm1=dvbdt;
-%             if CtrlVar.dt==0 
-%                 dhdt=zeros(MUA.Nnodes,1) ;  dubdt=zeros(MUA.Nnodes,1); dvbdt=zeros(MUA.Nnodes,1); dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
-%             else
-%                 dhdt=(h-h0)/CtrlVar.dt; dubdt=(ub-ub0)/CtrlVar.dt ; dvbdt=(vb-vb0)/CtrlVar.dt; duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;
-%             end
+            Fm1.dhdt=F0.dhdt ;
+            Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
+            Fm1.duddt=F0.duddt ; Fm1.dvddt=F0.dvddt;
             
-           
-            Fm1.dhdt=F0.dhdt ; Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
-            
-            if CtrlVar.dt==0 
-                F.dhdt=zeros(MUA.Nnodes,1) ;  F.dubdt=zeros(MUA.Nnodes,1); F.dvbdt=zeros(MUA.Nnodes,1); F.dsdt=zeros(MUA.Nnodes,1) ; F.dbdt=zeros(MUA.Nnodes,1);
+            if CtrlVar.dt==0
+                F.dhdt=[];
+                F.dubdt=[]; F.dvbdt=[];
+                F.dsdt=[] ; F.dbdt=[];
             else
-                F.dhdt=(F.h-F0.h)/CtrlVar.dt; F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ; F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt; F.duddt=(F.ud-F0.ud)/CtrlVar.dt ; F.dvddt=(F.vd-F0.vd)/CtrlVar.dt; 
+                F.dhdt=(F.h-F0.h)/CtrlVar.dt;
+                F.dsdt=(F.s-F0.s)/CtrlVar.dt;
+                F.dbdt=(F.b-F0.b)/CtrlVar.dt;
+                F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ; F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
+                F.duddt=(F.ud-F0.ud)/CtrlVar.dt ; F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
             end
             
 
@@ -491,50 +484,24 @@ while 1
             
             %% Diagnostic calculation (uv)
             if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Diagnostic step (uv). Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
-            tdiagnostic=tic;                  % -uv
-            [UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,Lubvb]= uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uo,vo,l,AGlen,C,n,m,alpha,rho,rhow,g,GF);
+            tSemiImplicit=tic;                  % -uv
             
+            % Solving the momentum equations for uv at the beginning of the time interval
+             
+            F0=F;
             
-            tdiagnostic=toc(tdiagnostic);
-            
-            Fdubdtm1=dubdt ; Fdvbdtm1=dvbdt; Fduddtm1=duddt ; Fdvddtm1=dvddt;
-            
-            if CtrlVar.dt==0 
-                dubdt=zeros(MUA.Nnodes,1) ;  dvbdt=zeros(MUA.Nnodes,1);
-                duddt=zeros(MUA.Nnodes,1) ;  dvddt=zeros(MUA.Nnodes,1);
-            else
-                dubdt=(ub-ub0)/CtrlVar.dt ; dvbdt=(vb-vb0)/CtrlVar.dt;
-                duddt=(ud-ud0)/CtrlVar.dt ; dvddt=(vd-vd0)/CtrlVar.dt;
-            end
-            
-            tprognostic=tic;
-            
-            
-            [ub1,vb1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,ub,dubdt,Fdubdtm1,vb,dvbdt,Fdvbdtm1);
-            
-            dub1dt=dubdt; dvb1dt=dvbdt ;  dub0dt=dubdt; dvb0dt=dvbdt ; % could possibly be done a bit better
-            [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
-            a1=as+ab; da0dt=(a1-a0)/CtrlVar.dt ; da1dt=da0dt;
-            if CtrlVar.dt==0 ; da0dt=zeros(MUA.Nnodes,1); da1dt=zeros(MUA.Nnodes,1) ; end
-            [h,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt);
-            
-            
+            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+
+            Fm1.dhdt=F0.dhdt ;
+            Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
+            Fm1.duddt=F0.duddt ; Fm1.dvddt=F0.dvddt;
+                      
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             CtrlVar.time=round(CtrlVar.time,14,'significant');
             
-            [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
-            
-            dhdtm1=dhdt ;
-            if CtrlVar.dt==0 
-                dhdt=zeros(MUA.Nnodes,1) ; dsdt=zeros(MUA.Nnodes,1) ; dbdt=zeros(MUA.Nnodes,1);
-            else
-                dhdt=(h-h0)/CtrlVar.dt; dsdt=(s-s0)/CtrlVar.dt; dbdt=(b-b0)/CtrlVar.dt;
-            end
-            
-            
             %CtrlVar.hChange=1; CtrlVar.s=1; % h and s just changed
-            tprognostic=toc(tprognostic);
-            if CtrlVar.InfoLevel >= 1 && fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec, \t prognostic in %-g and diagnostic in %-g sec \n ',tprognostic+tdiagnostic,tprognostic,tdiagnostic) ; end
+            tSemiImplicit=toc(tSemiImplicit);
+            if CtrlVar.InfoLevel >= 1 && fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec \n ',tSemiImplicit) ; end
         end
     end
     
@@ -544,15 +511,7 @@ while 1
     
     GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
     
-    
-    if CtrlVar.doPrognostic==1 && CtrlVar.InfoLevel>=10
-        dhdtMean=(F.dhdt+F.dhdtm1)/2;
-        [maxdhdt,imaxdhdt]=max(dhdtMean);
-        [mindhdt,imindhdt]=min(dhdtMean);
-        fprintf(CtrlVar.fidlog,'max(h) %-g \t min(h) %-g \t max(dhdt) %-g \t min(dhdt) %-g \t mean(dhdt) %-g \t median(dhdt) %-g \t rms(h) %-g \t h(max(dhdt)) %-g h(min(dhdt)) %-g\n ',...
-            max(F.h),min(F.h),max(dhdtMean),min(dhdtMean),mean(F.dhdt),median(F.dhdt),sqrt(norm(F.dhdt)/numel(F.h)),h(imaxdhdt),h(imindhdt));
-        
-    end
+  
     %% plotting results
     
     % UaOutputs
@@ -605,7 +564,10 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     CtrlVar.UaOutputsInfostring='Last call';
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
-        [UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt;
+        %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
