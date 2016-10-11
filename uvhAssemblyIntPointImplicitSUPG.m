@@ -1,10 +1,11 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(44,44)
+narginchk(52,52)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -21,6 +22,16 @@ theta=CtrlVar.theta;
 % tau=l/ (2 |v|)
 
 
+if ~CtrlVar.IncludeMelangeModelPhysics
+    uoint=[];
+    voint=[];
+    Coint=[];
+    moint=[];
+    uaint=[];
+    vaint=[];
+    Caint=[];
+    maint=[];
+end
 
 fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
 
@@ -42,12 +53,42 @@ hint=hnod*fun;
 uint=unod*fun;
 vint=vnod*fun;
 
+
+if CtrlVar.IncludeMelangeModelPhysics
+    
+    uoint=uonod*fun;
+    voint=vonod*fun;
+    
+    uaint=uanod*fun;
+    vaint=vanod*fun;
+    
+end
+
 if CtrlVar.CisElementBased
     Cint=Cnod;
     mint=mnod;
+    
+    if CtrlVar.IncludeMelangeModelPhysics
+        Coint=Conod;
+        moint=monod;
+        
+        Caint=Canod;
+        maint=manod;
+    end
+    
+    
+    
 else
     Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
     mint=mnod*fun;
+    
+    if CtrlVar.IncludeMelangeModelPhysics
+        Coint=Conod*fun;
+        moint=monod*fun;
+        
+        Caint=Canod*fun;
+        maint=manod*fun;
+    end
 end
 
 
@@ -55,7 +96,7 @@ if CtrlVar.AGlenisElementBased
     AGlenint=AGlennod;
     nint=nnod;
 else
-    AGlenint=AGlennod*fun; 
+    AGlenint=AGlennod*fun;
     AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
     nint=nnod*fun;
 end
@@ -141,14 +182,12 @@ dh0dx=zeros(MUA.Nele,1); dh0dy=zeros(MUA.Nele,1);
 
 
 
-exx0=zeros(MUA.Nele,1); 
-%du0dy=zeros(MUA.Nele,1);
-%dv0dx=zeros(MUA.Nele,1); 
+exx0=zeros(MUA.Nele,1);
 eyy0=zeros(MUA.Nele,1);
 
-exx=zeros(MUA.Nele,1); 
-eyy=zeros(MUA.Nele,1); 
-exy=zeros(MUA.Nele,1); 
+exx=zeros(MUA.Nele,1);
+eyy=zeros(MUA.Nele,1);
+exy=zeros(MUA.Nele,1);
 
 dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
 drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
@@ -171,7 +210,7 @@ for Inod=1:MUA.nod
     dh0dy=dh0dy+Deriv(:,2,Inod).*h0nod(:,Inod);
     
     exx0=exx0+Deriv(:,1,Inod).*u0nod(:,Inod);  % exx0
-    %du0dy=du0dy+Deriv(:,2,Inod).*u0nod(:,Inod);  
+    %du0dy=du0dy+Deriv(:,2,Inod).*u0nod(:,Inod);
     
     %dv0dx=dv0dx+Deriv(:,1,Inod).*v0nod(:,Inod);
     eyy0=eyy0+Deriv(:,2,Inod).*v0nod(:,Inod);
@@ -191,9 +230,10 @@ end
 
 
 [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
-%etaint=etaInt(:,Iint) ;  % I could consider calculating this here
 
-[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
+%uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
+[taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
+
 
 
 CtrlVar.GroupRepresentation=0;
@@ -203,6 +243,7 @@ qx1dx=rhoint.*exx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
 qy1dy=rhoint.*eyy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
 qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
 qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
+
 
 
 
@@ -221,37 +262,37 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %
 %  where
 %
-%   N'=tau \bm{u} \cdot \grad N 
+%   N'=tau \bm{u} \cdot \grad N
 %     = tau (u dNdx + v dNdy)
 %
 % where tau is a parameter having the dimension time. In a transient run a
 % possible choice for tau is simply dt However we would like the aditional SUPG
 % term to go to zero as u->0 and as h->0, in fact we expect the `element Courant
-% number' ECN defined as 
+% number' ECN defined as
 %
-%               ECN = dt |\bm{u}|/L, 
+%               ECN = dt |\bm{u}|/L,
 %
-% where u is some typical velocity and L a scale for element size to be of relevance. 
+% where u is some typical velocity and L a scale for element size to be of relevance.
 %
 %  Typical suggestions in the litterature are on the form
 %
 %  N'= kappa (L/2) u/|u| dNdx
-% 
+%
 % for a 1D situation on a regular grid, with]%
 %
 % kappa=cosh(Pe) -1/Pe
-% 
-% and Pe=U L / (2 k)  , where k is the diffusivity constant. 
+%
+% and Pe=U L / (2 k)  , where k is the diffusivity constant.
 %
 % Huges et al suggest
 %
-%          tau= \frac{L}{2 |\bm{u}|}    (coth ( Pe) - 1/Pe ) 
+%          tau= \frac{L}{2 |\bm{u}|}    (coth ( Pe) - 1/Pe )
 %
 % with Pe=|bm{u}| L / 2 k,  where k is the diffusion coefficient.
-% It is unclear what the diffusion coefficient will be. In the hyperbolic 
+% It is unclear what the diffusion coefficient will be. In the hyperbolic
 % limit of a k->0, kappa=cosh(Pe)-1/Pe -> 1 and the SUPG becomes
 %
-%  N'=   (L/2|u|)  \bm{u} \cdot \grad N 
+%  N'=   (L/2|u|)  \bm{u} \cdot \grad N
 %
 % This terms goes to zero with decreasing element size.
 %
@@ -270,7 +311,7 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %
 % this term is zero for L->0, or speed->0, or dt-> 0
 %
-%       dN/dX for u-> infty ,  dt-> infty 
+%       dN/dX for u-> infty ,  dt-> infty
 %  1/3  dN/dX for L -> infty
 %
 ECN=100*speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
@@ -303,30 +344,28 @@ for Inod=1:MUA.nod
                 +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +E11...
-                +beta2int.*fun(Jnod).*fun(Inod)...
-                +Dbeta2Duuint.*fun(Jnod).*fun(Inod)...
+                +dtauxdu.*fun(Jnod).*fun(Inod)...   % +beta2int.*fun(Jnod).*fun(Inod)+Dbeta2Duuint.*fun(Jnod).*fun(Inod)...
                 ).*detJw;
             
             Kyv(:,Inod,Jnod)=Kyv(:,Inod,Jnod)...
                 +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +E22...
-                +beta2int.*fun(Jnod).*fun(Inod)...    % beta derivative
-                +Dbeta2Dvvint.*fun(Jnod).*fun(Inod)...
+                +dtauydv.*fun(Jnod).*fun(Inod)...   % +beta2int.*fun(Jnod).*fun(Inod)+Dbeta2Dvvint.*fun(Jnod).*fun(Inod)...
                 ).*detJw ;
             
             Kxv(:,Inod,Jnod)=Kxv(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
                 +E12...
-                +Dbeta2Duvint.*fun(Jnod).*fun(Inod)...    % beta derivative
-                ).*detJw;    
+                +dtauxdv.*fun(Jnod).*fun(Inod)...   % +Dbeta2Duvint.*fun(Jnod).*fun(Inod)...    % beta derivative
+                ).*detJw;
             
             
             Kyu(:,Inod,Jnod)=Kyu(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
                 +E21...
-                +Dbeta2Duvint*fun(Jnod).*fun(Inod)...    % beta derivative
-                ).*detJw; 
+                +dtauydu.*fun(Jnod).*fun(Inod)...    % +Dbeta2Duvint*fun(Jnod).*fun(Inod)...
+                ).*detJw;
             
             %   t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*fun(Inod)+ rhoint.*g.*hint.*sa.*fun(Inod);
             %  t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
@@ -335,7 +374,7 @@ for Inod=1:MUA.nod
             Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
                 +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
-                +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)...
+                +dtauxdh.*fun(Inod).*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
                 +ca*g*rhoint.*Heint.*dBdx.*fun(Inod).*fun(Jnod)...                           % t1
                 +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*fun(Inod).*fun(Jnod)... ; % t1
                 -sa*g*rhoint.*fun(Inod).*fun(Jnod)...                                        % t1
@@ -347,7 +386,7 @@ for Inod=1:MUA.nod
             Kyh(:,Inod,Jnod)=Kyh(:,Inod,Jnod)...
                 +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
-                +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
+                +dtauydh.*fun(Inod).*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
                 +ca*g*rhoint.*Heint.*dBdy.*fun(Inod).*fun(Jnod)...                           % t1
                 +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*fun(Inod).*fun(Jnod)... ; % t1
                 -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
@@ -369,14 +408,14 @@ for Inod=1:MUA.nod
                 +theta*(rhoint.*dhdy.*fun(Jnod)+drhody.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,2,Jnod))...
                 .*SUPG.*detJw*dt+dSUPGv.*detJw*dt;
             
-       
-           
+            
+            
             Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
                 +(rhoint.*fun(Jnod)...
                 -dt*theta*rhoint.*dadhint.*fun(Jnod)...
                 +dt*theta*rhoint.*fun(Jnod).*h1barr/lambda_h...
                 +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
-                         rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
+                rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
                 .*SUPG.*detJw;
             
         end
@@ -390,7 +429,7 @@ for Inod=1:MUA.nod
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
     t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
     t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
-    t5=beta2int.*uint.*fun(Inod);
+    t5=taux.*fun(Inod); % beta2int.*uint.*fun(Inod);
     
     Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
     Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
@@ -399,13 +438,13 @@ for Inod=1:MUA.nod
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,2,Inod);
     t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
     t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-    t5=beta2int.*vint.*fun(Inod);
+    t5=tauy.*fun(Inod); % beta2int.*vint.*fun(Inod);
     
     Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
     Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
     
     %qxx= d( uh)/dx
-
+    
     % R=T-F
     
     % first-order Taylor terms
@@ -426,9 +465,9 @@ for Inod=1:MUA.nod
     %
     
     SUPG=fun(Inod)+    theta .*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
-                  +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-  
-  
+        +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    
+    
     qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;
     dhdt=  rhoint.*(h0int-hint+dt*(1-theta)*h0barr+dt*theta*h1barr).*SUPG;
     accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;

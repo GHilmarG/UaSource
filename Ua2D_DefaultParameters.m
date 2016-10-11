@@ -985,6 +985,17 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
                                                % If not equal to 0, the algorithm converges to a wrong solution (!),
                                                % although the error might be very small if mass-balance geometry feedback is not that strong.
       
+
+%% Sea ice/melange                                               
+%
+% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and athmospheric
+% drag acting over the floating sections.
+%
+% If used, then the drag parameters are defined in 'DefineSeaIceParameters'
+%
+CtrlVar.IncludeMelangeModelPhysics=0;
+
+
 %%
 CtrlVar.MeltNodesDefinition='Edge-Wise';
 

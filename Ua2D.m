@@ -432,7 +432,8 @@ while 1
                 CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
 
                
-                
+                %Fguessed=F;  could use norm of difference between explicit and implicit to
+                %control dt
                 [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs); 
                 
                 CtrlVar.dt=dt;

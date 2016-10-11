@@ -69,7 +69,7 @@ dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 
 
 
-
+F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
 
 diffDu=1e10; r=1e10 ;
 
@@ -82,7 +82,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
         
-        [Ruv,Kuv,~,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
+        [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
         %[Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
         NRincomplete=0;
     else
@@ -91,14 +91,14 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         NRincomplete=1;
     end
     
-    
-    if iteration==1
-        F0=Fuv ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
-        % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
-        % without affecting its value.
-    end
-    
-    
+%     
+%     if iteration==1
+%         F0=R0 ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
+%         % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
+%         % without affecting its value.
+%     end
+%     
+%     
     
     
     

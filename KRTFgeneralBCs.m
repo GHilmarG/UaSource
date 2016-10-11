@@ -1,15 +1,40 @@
-function [Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,F)
+function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F,ZeroFields)
         %[Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g)
+%
+% Ruv=Tint-Fext;
+% Tint   : internal nodal forces
+% Fint   : external nodal forces
 
-
-narginchk(3,3)
+narginchk(3,4)
 nargoutchk(1,4)
+
+
+if nargin<4
+ ZeroFields=0;
+end
 
 if nargout==1
     Ronly=1;
 else
     Ronly=0;
 end
+
+if ZeroFields
+    F.ub=F.ub*0;
+    F.vb=F.vb*0;
+end
+
+if ~CtrlVar.IncludeMelangeModelPhysics
+    uoint=[];
+    voint=[];
+    Coint=[];
+    moint=[];
+    uaint=[];
+    vaint=[];
+    Caint=[];
+    maint=[];
+end
+
 
 % calculates the tangent matrix (K) and right-hand side (-R) in a vectorized form
 
@@ -36,9 +61,7 @@ end
 g=F.g;
 
 
-[etaInt,~,~,exx,eyy,exy,Eint]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n);
-if ~isreal(etaInt) ; save TestSave ; error('KRTF: etaInt not real ') ; end
-if ~isreal(Eint) ; save TestSave ; error('KRTF: Eint not real ') ; end
+
 
 
 %Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
@@ -49,16 +72,41 @@ neqx=MUA.Nnodes ;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-%uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-%vonod=reshape(F.vo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.CisElementBased 
-    Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod); 
-    mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod); 
+if CtrlVar.IncludeMelangeModelPhysics
+    
+    uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    vonod=reshape(F.vo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    
+    uanod=reshape(F.ua(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    vanod=reshape(F.va(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    
 end
+
+if ~CtrlVar.CisElementBased
+    
+    Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    
+    if CtrlVar.IncludeMelangeModelPhysics
+        Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
+        monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+        
+        
+        Canod=reshape(F.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
+        manod=reshape(F.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    end
+end
+
+
+if ~CtrlVar.AGlenisElementBased
+    AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
 
 
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -82,14 +130,10 @@ for Iint=1:MUA.nip
     
     
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    %[Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
     
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
+    
+    [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+    
     %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     %       [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
     
@@ -99,20 +143,56 @@ for Iint=1:MUA.nip
     % values at integration this point
     hint=hnod*fun;
     sint=snod*fun;
-    uint=unod*fun;
-    vint=vnod*fun;
     
-    %uoint=uonod*fun;
-    %voint=vonod*fun;
+    uint=ubnod*fun;
+    vint=vbnod*fun;
+    
+    if CtrlVar.IncludeMelangeModelPhysics
+        
+        uoint=uonod*fun;
+        voint=vonod*fun;
+        
+        uaint=uanod*fun;
+        vaint=vanod*fun;
+        
+    end
     
     if CtrlVar.CisElementBased
+        
         Cint=F.C;
         mint=F.m;
+        if CtrlVar.IncludeMelangeModelPhysics
+            Coint=F.Co;
+            moint=F.mo;
+            
+            Caint=F.Ca;
+            maint=F.ma;
+        end
     else
         Cint=Cnod*fun;
         Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
         mint=mnod*fun;
+        
+        if CtrlVar.IncludeMelangeModelPhysics
+            Coint=Conod*fun;
+            moint=monod*fun;
+            
+            Caint=Canod*fun;
+            maint=manod*fun;
+        end
     end
+    
+    
+    if CtrlVar.AGlenisElementBased
+        AGlenint=AGlennod;
+        nint=nnod;
+    else
+        AGlenint=AGlennod*fun;
+        AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+        nint=nnod*fun;
+    end
+    
+    
     
     
     Bint=Bnod*fun;
@@ -121,28 +201,22 @@ for Iint=1:MUA.nip
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
     dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-    
+
     hfint=F.rhow*Hint./rhoint;
     
+
+    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
-    [beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
-    
-    
-    if ~isreal(beta2int)     ; save KRTFgeneralBCsErrorFile  ; error('KRTF: beta2int not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
-    if ~isreal(Dbeta2Duuint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duuint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
-    if ~isreal(Dbeta2Dvvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Dvvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
-    if ~isreal(Dbeta2Duvint) ; save KRTFgeneralBCsErrorFile  ; error('KRTF: Dbeta2Duvint not real. All variables saved to ''KRTFgeneralBCsErrorFile'' ') ; end
-    
-    
-    etaint=etaInt(:,Iint) ;  % I could consider calculating this here
     
     
     % derivatives at this integration point for all elements
     dsdx=zeros(MUA.Nele,1); dhdx=zeros(MUA.Nele,1);
     dsdy=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
     
-    
+    exx=zeros(MUA.Nele,1);
+    eyy=zeros(MUA.Nele,1);
+    exy=zeros(MUA.Nele,1);
     
     
     for Inod=1:MUA.nod
@@ -152,7 +226,24 @@ for Iint=1:MUA.nip
         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
         
+        exx=exx+Deriv(:,1,Inod).*ubnod(:,Inod);
+        eyy=eyy+Deriv(:,2,Inod).*vbnod(:,Inod);
+        exy=exy+0.5*(Deriv(:,1,Inod).*vbnod(:,Inod) + Deriv(:,2,Inod).*ubnod(:,Inod));
+        
+        
     end
+    
+    
+
+    [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
+    [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
+    
+    
+    %[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
+    %etaint=etaInt(:,Iint) ;  % I could consider calculating this here
+    
+    
+    
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
@@ -167,30 +258,28 @@ for Iint=1:MUA.nip
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                     +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
-                    +beta2int           .*fun(Jnod).*fun(Inod)...    % basal friction, Weertman
-                    +Dbeta.*Dbeta2Duuint.*fun(Jnod).*fun(Inod))...   % basal friction, Weertman, directional derivative, uu
-                    .*detJw;  
+                    +dtauxdu.*fun(Jnod).*fun(Inod)... %+beta2int.*fun(Jnod).*fun(Inod)+Dbeta.*Dbeta2Duuint.*fun(Jnod).*fun(Inod))...   
+                    ).*detJw;  
                 
                 
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                     +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
-                    +beta2int           .*fun(Jnod).*fun(Inod)...  % basal friction, Weertman
-                    +Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... % basal friction, Weertman, directional derivative, vv
-                    .*detJw ;
+                    +dtauydv.*fun(Jnod).*fun(Inod)...   %+beta2int.*fun(Jnod).*fun(Inod)+Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... 
+                    ).*detJw ;
                
                 
                 
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
-                    +Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod))...    % beta derivative, uv
-                    .*detJw; 
+                    + +dtauxdv.*fun(Jnod).*fun(Inod)...   % Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod))...    % beta derivative, uv
+                    ).*detJw;
                 
                 
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
-                    +Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative, uv
-                
+                    +dtauydu.*fun(Jnod).*fun(Inod)...    %+Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative, uv
+                    ).*detJw;
                 
                 %                dxu=E (2 exx+eyy)
                 %                dyu=E exy
@@ -210,26 +299,26 @@ for Iint=1:MUA.nip
                 % 				E21=2*Eint(:,Iint).*hint.*xy12J.*yx21I;
                 % 				E22=2*Eint(:,Iint).*hint.*yx21I.*yx21J;
                 
-                Deu=Eint(:,Iint).*((2*exx(:,Iint)+eyy(:,Iint)).*Deriv(:,1,Jnod)+exy(:,Iint).*Deriv(:,2,Jnod));
-                Dev=Eint(:,Iint).*((2*eyy(:,Iint)+exx(:,Iint)).*Deriv(:,2,Jnod)+exy(:,Iint).*Deriv(:,1,Jnod));
+                Deu=Eint.*((2*exx+eyy).*Deriv(:,1,Jnod)+exy.*Deriv(:,2,Jnod));
+                Dev=Eint.*((2*eyy+exx).*Deriv(:,2,Jnod)+exy.*Deriv(:,1,Jnod));
                 
                 % E11=h Deu (4 p_x u + 2 p_y v)   + h Deu  ( p_x v + p_y u) p_y N_p
                 
-                E11=  hint.*(4.*exx(:,Iint)+2.*eyy(:,Iint)).*Deu.*Deriv(:,1,Inod)...
-                    +2*hint.*exy(:,Iint).*Deu.*Deriv(:,2,Inod);
+                E11=  hint.*(4.*exx+2.*eyy).*Deu.*Deriv(:,1,Inod)...
+                    +2*hint.*exy.*Deu.*Deriv(:,2,Inod);
                 
                 
-                E12=  hint.*(4.*exx(:,Iint)+2.*eyy(:,Iint)).*Dev.*Deriv(:,1,Inod)...
-                    +2*hint.*exy(:,Iint).*Dev.*Deriv(:,2,Inod);
+                E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
+                    +2*hint.*exy.*Dev.*Deriv(:,2,Inod);
                 
                 
                 
-                E22=  hint.*(4.*eyy(:,Iint)+2.*exx(:,Iint)).*Dev.*Deriv(:,2,Inod)...
-                    +2*hint.*exy(:,Iint).*Dev.*Deriv(:,1,Inod);
+                E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)...
+                    +2*hint.*exy.*Dev.*Deriv(:,1,Inod);
                 
                 
-                E21= hint.*(4.*eyy(:,Iint)+2.*exx(:,Iint)).*Deu.*Deriv(:,2,Inod)...
-                    +2*hint.*exy(:,Iint).*Deu.*Deriv(:,1,Inod);
+                E21= hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)...
+                    +2*hint.*exy.*Deu.*Deriv(:,1,Inod);
                 
                 
                 
@@ -244,18 +333,18 @@ for Iint=1:MUA.nip
         t1=-g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
         
         t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
-        t3=hint.*etaint.*(4*exx(:,Iint)+2*eyy(:,Iint)).*Deriv(:,1,Inod);
-        t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,2,Inod);
-        t5=beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
+        t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
+        t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
+        t5=taux.*fun(Inod); % beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
         
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
         
         t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
-        t3=hint.*etaint.*(4*eyy(:,Iint)+2*exx(:,Iint)).*Deriv(:,2,Inod);
-        t4=hint.*etaint.*2.*exy(:,Iint).*Deriv(:,1,Inod);
-        t5=beta2int.*vint.*fun(Inod); % basal friction, Weertman, v
+        t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+        t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+        t5=tauy.*fun(Inod); % beta2int.*vint.*fun(Inod); % basal friction, Weertman, v
         
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
@@ -272,19 +361,19 @@ end
 
 % assemble right-hand side
 
-Tuv=sparseUA(neq,1); Fuv=sparseUA(neq,1);
+Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
     
     
-    Tuv=Tuv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    Tuv=Tuv+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+    Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+    Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
     
-    Fuv=Fuv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    Fuv=Fuv+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+    Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
 end
 
-Ruv=Tuv-Fuv;
+Ruv=Tint-Fext;
 
 if ~Ronly
     iSparse=1;  %	faster
