@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DistanceToLineSegment2</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-11"><meta name="DC.source" content="DistanceToLineSegment2.m"><style type="text/css">
+      --><title>DistanceToLineSegment2</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-07-12"><meta name="DC.source" content="DistanceToLineSegment2.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -77,7 +77,7 @@ Ind = DistanceToLineSegment2(p, coo, [],tolerance)
 </pre><p>gives Ind=[1 ; 2 ; 3]</p><pre>Example:</pre><pre>  N=1000 ; M=2 ; p=100*rand(N,2) ; x=0:100 ; y=10*sin(2*pi*x/50)+50 ; coo=[x(:) y(:)]  ; tolerance=10 ;
   Ind = DistanceToLineSegment2(p, coo, [],tolerance) ;
   figure ; plot(p(:,1),p(:,2),'.k')  ; hold on ; plot(coo(:,1), coo(:,2),'r')
-  plot(p(Ind,1),p(Ind,2),'or')</pre><pre class="codeinput"><span class="keyword">if</span> nargin&lt;3 || isempty(B)
+  plot(p(Ind,1),p(Ind,2),'or')</pre><p>See also: RANGESEARCH</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;3 || isempty(B)
     B=[A(2:end,1) A(2:end,2)];
     A=[A(1:end-1,1) A(1:end-1,2)] ;
 <span class="keyword">end</span>
@@ -191,6 +191,9 @@ function Ind = DistanceToLineSegment2(p, A, B,nTol,aTol)
 %    Ind = DistanceToLineSegment2(p, coo, [],tolerance) ; 
 %    figure ; plot(p(:,1),p(:,2),'.k')  ; hold on ; plot(coo(:,1), coo(:,2),'r')
 %    plot(p(Ind,1),p(Ind,2),'or')
+%
+%
+% See also: RANGESEARCH
 
 if nargin<3 || isempty(B)
     B=[A(2:end,1) A(2:end,2)];

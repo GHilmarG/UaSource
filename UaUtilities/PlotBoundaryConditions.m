@@ -8,7 +8,7 @@ function PlotBoundaryConditions(CtrlVar,MUA,BCs)
 
 
 
-CtrlVar.PlotMesh=1;
+CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
 PlotMuaMesh(CtrlVar,MUA)  ; hold on
 

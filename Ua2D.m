@@ -1,4 +1,4 @@
-function Ua2D(UserRunParameters)
+function Ua2D(UserVar)
 
 %% Driver for the 2HD Úa model
 % Ua2D(UserRunParameters)
@@ -6,7 +6,7 @@ function Ua2D(UserRunParameters)
 %
 
 if nargin==0
-    UserRunParameters=[];
+    UserVar=[];
 end
 
 
@@ -32,37 +32,22 @@ Fm1=UaFields;
 
 RunInfo=[];
 Lubvb=[];
+Ruv=[];
 
-da0dt=[];
-dsdt=NaN; dbdt=NaN; dhdt=NaN; Ruv=[];
-dGFdt=[];  % get rid of this at a later stage
 tTime=tic;
-as=[];ab=[]; dasdh=[] ; dabdh=[];   BCs=[];
-Experiment='';
+
 
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
-CtrlVar.UserParameters=UserRunParameters;
 
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
-[UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar);
-
-if ischar(UserVar)
-    Experiment=UserVar ;
-    CtrlVar.Experiment=Experiment;
-end
+[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar,UserVar);
 
 
-
-%% copy Experiment, time, dt and MeshBoundaryCoordinates into CtrlVar
-% and once that is done get rid of those.
-
-CtrlVar.time=time;
-CtrlVar.dt=dt;
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
-clearvars Experiment time dt MeshBoundaryCoordinates;
+clearvars MeshBoundaryCoordinates;
 
 %%
 
@@ -70,7 +55,7 @@ if ~isfield(CtrlVar,'fidlog')
     CtrlVar.fidlog=1;
 end
 
-CtrlVar.MeshChanged=0;  % true if mesh changed in last adapt-meshing stage
+
 
 % do some basic test on the vality of the CtrlVar fields
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
@@ -110,8 +95,8 @@ if ~CtrlVar.InverseRun %  forward run
     
     if CtrlVar.Restart  % Forward restart run
         
-        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l]=GetInputsForForwardRestartRun(UserVar,CtrlVar);
-
+        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar);
+        
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
         % however:
@@ -126,13 +111,7 @@ if ~CtrlVar.InverseRun %  forward run
         
     else % New forward run (ie not a restart)
         
-        [UserVar,MeshChanged,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
-        
-%              [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
-%             dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1]=...
-%             GetInputsForForwardRun(UserVar,CtrlVar);
-        
-        CtrlVar.MeshChanged=MeshChanged;
+        [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
             return
@@ -147,16 +126,12 @@ else % inverse run
             GetInputsForInverseRestartRun(UserVar,CtrlVar);
         
     else % New inverse run
-        
-        [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,...
-            dhdtm1,dubdt,dvbdt,Fdubdtm1,Fdvbdtm1,duddt,dvddt,Fduddtm1,Fdvddtm1,...
-            GF]=GetInputsForForwardRun(UserVar,CtrlVar);
-        CtrlVar.MeshChanged=MeshChanged;
-        
+
+        [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         
         % now get the additional variables specific to an inverse run
-        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l);
+        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l); %CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l);
         
          
         
@@ -204,13 +179,13 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
     
-    [UserVar,InvFinalValues,ub,vb,ud,vd,l,xAdjoint,yAdjoint,Info]=...
-        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
+    [UserVar,F,l,InvFinalValues,xAdjoint,yAdjoint,RunInfo]=InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
-    C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
-    AGlen=InvFinalValues.AGlen  ; fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
-    m=InvFinalValues.m ; n=InvFinalValues.n ;
+    F.C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
+    F.AGlen=InvFinalValues.AGlen  ; fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
+    F.m=InvFinalValues.m ; 
+    F.n=InvFinalValues.n ;
     
     
     % this calculation not really needed as AdjointNR2D should return converged ub,vb,ud,vd values for Cest and AGlenEst
@@ -347,7 +322,6 @@ while 1
     
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
     
-    a0=F.as+F.ab; ub0=F.ub ; vb0=F.vb; ud0=F.ud ; vd0=F.vd ; h0=F.h; s0=F.s ; b0=F.b;
     
     if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic steo).
         
@@ -356,18 +330,7 @@ while 1
 
         
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        
-% Since this is a time independent run, not sure why this should be needed
-%         F.dubdtm1=F.dubdt ; F.dvbdtm1=F.dvbdt; F.duddtm1=F.duddt ; F.dvddtm1=F.dvddt;
-%         
-%         %if CtrlVar.dt==0 
-%             F.dubdt=zeros(MUA.Nnodes,1) ;  F.dvbdt=zeros(MUA.Nnodes,1);
-%             F.duddt=zeros(MUA.Nnodes,1) ;  F.dvddt=zeros(MUA.Nnodes,1);
-%         %else
-%         %    F.dubdt=(F.ub-ub0)/CtrlVar.dt ; F.dvbdt=(F.vb-vb0)/CtrlVar.dt;
-%         %    F.duddt=(F.ud-ud0)/CtrlVar.dt ; F.dvddt=(F.vd-vd0)/CtrlVar.dt;
-%         %end
-%
+ 
 
     else   % Time-dependent run
         
@@ -613,7 +576,7 @@ SayGoodbye(CtrlVar)
         time=CtrlVar.time;
         dt=CtrlVar.dt;
         try
-            save(RestartFile,'CtrlVarInRestartFile','UserVar','MUA','BCs','time','dt','F','GF','l','-v7.3');
+            save(RestartFile,'CtrlVarInRestartFile','UserVar','MUA','BCs','time','dt','F','GF','l','RunInfo','-v7.3');
 
             fprintf(CtrlVar.fidlog,' Writing restart file was successful. \n');
             

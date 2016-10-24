@@ -76,16 +76,23 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 
 
 % implementing periodic boundary conditions
-% find nodes along boundary 
+% find nodes along boundary
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
-nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
-nodesu=find(abs(x-xu)<1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);
-nodesl=find(abs(y-yl)<1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);
-nodesr=find(abs(y-yr)<1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);
 
-BCs.ubTiedNodeA=[nodesu;nodesl]; BCs.ubTiedNodeB=[nodesd;nodesr]; 
-BCs.vbTiedNodeA=[nodesu;nodesl]; BCs.vbTiedNodeB=[nodesd;nodesr]; 
+nodesd=MUA.Boundary.Nodes(abs(x(MUA.Boundary.Nodes)-xd)<1e-5);
+nodesu=MUA.Boundary.Nodes(abs(x(MUA.Boundary.Nodes)-xu)<1e-5);
+nodesl=MUA.Boundary.Nodes(abs(y(MUA.Boundary.Nodes)-yl)<1e-5);
+nodesr=MUA.Boundary.Nodes(abs(y(MUA.Boundary.Nodes)-yr)<1e-5);
+
+% this would also work
+%nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
+%nodesu=find(abs(x-xu)<1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);
+%nodesl=find(abs(y-yl)<1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);
+%nodesr=find(abs(y-yr)<1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);
+
+BCs.ubTiedNodeA=[nodesu;nodesl]; BCs.ubTiedNodeB=[nodesd;nodesr];
+BCs.vbTiedNodeA=[nodesu;nodesl]; BCs.vbTiedNodeB=[nodesd;nodesr];
 
 
 end

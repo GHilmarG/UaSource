@@ -6,8 +6,8 @@ function [L,Lrhs,l]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,luv,lh,Nnodes)
 	% L=[Luv 0]
 	%   [0  Lh]
 	
-	[nu,mu]=size(Luv) ;
-    [nh,mh]=size(Lh) ;
+	[nu,~]=size(Luv) ;
+    [nh,~]=size(Lh) ;
     
 	
 	

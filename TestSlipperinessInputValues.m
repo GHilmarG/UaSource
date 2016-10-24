@@ -6,6 +6,8 @@ function [C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m)
 
 
 
+
+
 if numel(C)==1 || numel(m)==1
     
     %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')

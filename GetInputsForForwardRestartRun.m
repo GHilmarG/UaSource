@@ -1,11 +1,9 @@
-function    [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l]=GetInputsForForwardRestartRun(UserVar,CtrlVar)
+function    [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar)
 
-%[UserVar,MUA,BCs,time,dt,CurrentRunStepNumber,s,b,S,B,ub,vb,ud,vd,uo,vo,l,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
-%    dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GLdescriptors]=...
-%    GetInputsForForwardRestartRun(UserVar,CtrlVar)
 
 fprintf('\n\n ---------  Reading restart file and defining start values for restart run.\n')
 
+RunInfo=[];
 
 Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
 
@@ -13,7 +11,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
-        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','UserVar','MUA','BCs','time','dt','F','GF','l');
+        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','UserVar','MUA','BCs','RunInfo','time','dt','F','GF','l');
     
     catch exception
         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
@@ -165,9 +163,11 @@ GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
 BCs=BoundaryConditions;
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
 
-[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+if CtrlVar.IncludeMelangeModelPhysics
+    fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')
+    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+end
 
- 
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     

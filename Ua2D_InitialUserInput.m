@@ -1,5 +1,5 @@
 
-function [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar,UserVar)
 %%
 % [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
 % 
@@ -22,7 +22,9 @@ function [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput
     CtrlVar.Restart=0;  
     
     CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    time=0 ; dt=1; CtrlVar.TotalNumberOfForwardRunSteps=1;
+    CtrlVar.time=0 ; 
+    CtrlVar.dt=1; 
+    CtrlVar.TotalNumberOfForwardRunSteps=1;
     
     CtrlVar.FlowApproximation='hybrid';
     
@@ -59,9 +61,6 @@ function [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput
     CtrlVar.LineSeachAllowedToUseExtrapolation=1;
     
     %%
-
-    CtrlVar.CompareWithAnalyticalSolutions=0;
-    CtrlVar.CompareResultsWithPreviouslyObtainedResults=0;
     
     CtrlVar.WriteRestartFile=1;
     

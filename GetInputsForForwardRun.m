@@ -1,10 +1,6 @@
-function  [UserVar,MeshChanged,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar)
+function  [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar)
 
-% [UserVar,MeshChanged,MUA,BCs,s,b,S,B,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,alpha,as,ab,dasdh,dabdh,...
-%     dhdtm1,dubdt,dvbdt,dubdtm1,dvbdtm1,duddt,dvddt,duddtm1,dvddtm1,GF]=...
-%     GetInputsForForwardRun(UserVar,CtrlVar)
 
-%for I=1:CtrlVar.nInitialRemeshSteps+1
 
 F=UaFields;
 
@@ -76,7 +72,7 @@ if CtrlVar.OnlyMeshDomainAndThenStop
     
     s=[]; b=[] ; S=[] ; B=[] ; rho=[] ; rhow=[]; alpha=[] ; g=[] ;
     C=[] ; m=[] ; AGlen=[] ; n=[] ; ud=[] ; vd=[] ; ub=[] ;vb=[] ;as=[] ; ab=[] ; GF=[];
-    MeshChanged=[];
+    
     
     fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return
@@ -123,8 +119,6 @@ if CtrlVar.doplots
 end
 
 l=UaLagrangeVariables; 
-
-MeshChanged=0;
 
 
 F.dubdt=zeros(MUA.Nnodes,1) ;

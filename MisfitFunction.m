@@ -1,8 +1,11 @@
-function [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
+function [J,dJduv,ObjFuncTerms,RunInfo]=MisfitFunction(UserVar,RunInfo,CtrlVar,MUA,F,l,Priors,Meas)
+
+
+%[J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
 
 narginchk(11,11)
 
-us=ub+ud ; vs=vb+vd; % Surface velocities
+us=F.ub+F.ud ; vs=F.vb+F.vd; % Surface velocities
 
 %     J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;
 %
@@ -59,15 +62,12 @@ Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 switch lower(CtrlVar.MisfitFunction)
     
     case 'uvdiscrete'
-        %
-        %             residuals=[us ; vs]-[Meas.u;Meas.v];
-        %             Idata=residuals'*(Cd\residuals)/2;
-        %             dIduv=Cd\residuals;
+        
         N=numel(us);
         Idata=(us-Meas.us)'*(Meas.usCov\(us-Meas.us))/(2*N)+(vs-Meas.vs)'*(Meas.vsCov\(vs-Meas.vs))/(2*N);
-        dIdu=(1/N)*Meas.usCov\(us-Meas.us) ;
-        dIdv=(1/N)*Meas.vsCov\(vs-Meas.vs);
-        dIduv=[dIdu(:) ; dIdv(:)];
+        dJdu=(1/N)*Meas.usCov\(us-Meas.us) ;
+        dJdv=(1/N)*Meas.vsCov\(vs-Meas.vs);
+        dJduv=[dJdu(:) ; dJdv(:)];
         
     case 'uvintegral'
 
@@ -87,12 +87,12 @@ switch lower(CtrlVar.MisfitFunction)
         
         M=MassMatrix2D1dof(MUA);
         Idata=full(usres'*M*usres/2+vsres'*M*vsres/2)/Area;
-        dIdu=(M*usres)./uErr/Area;
-        dIdv=(M*vsres)./vErr/Area;
-        dIduv=[dIdu(:);dIdv(:)];
+        dJdu=(M*usres)./uErr/Area;
+        dJdv=(M*vsres)./vErr/Area;
+        dJduv=[dJdu(:);dJdv(:)];
         
-        if ~isreal(dIduv)
-            save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
+        if ~isreal(dJduv)
+            save TestSave ; error('MisfitFunction:dJduvNoReal','dJduv is not real! Possibly a problem with covariance of data.')
         end
         
                 
@@ -100,24 +100,17 @@ switch lower(CtrlVar.MisfitFunction)
         error(' what case? ' )
 end
 
-Idata=CtrlVar.MisfitMultiplier*Idata;
+ObjFuncTerms.I=CtrlVar.MisfitMultiplier*Idata;
 
 
-IRegC=Calc_IRegC(CtrlVar,MUA,Priors.CovC,C,Priors.C);
-IRegAGlen=Calc_IRegdAGlen(CtrlVar,MUA,Priors.CovAGlen,AGlen,Priors.AGlen);
-IBarrierC=Calc_IBarrierC(CtrlVar,C);
-IBarrierAGlen=Calc_IBarrierAGlen(CtrlVar,AGlen);
+ObjFuncTerms.RegC=Calc_IRegC(CtrlVar,MUA,Priors.CovC,F.C,Priors.C);
+ObjFuncTerms.RegAGlen=Calc_IRegdAGlen(CtrlVar,MUA,Priors.CovAGlen,F.AGlen,Priors.AGlen);
+ObjFuncTerms.BarrierC=Calc_IBarrierC(CtrlVar,F.C);
+ObjFuncTerms.BarrierAGlen=Calc_IBarrierAGlen(CtrlVar,F.AGlen);
 
+ObjFuncTerms.R=ObjFuncTerms.RegC+ObjFuncTerms.RegAGlen+ObjFuncTerms.BarrierC+ObjFuncTerms.BarrierAGlen;
 
-% scalings
-Idata=Idata*CtrlVar.AdjointfScale;
-IRegC=IRegC*CtrlVar.AdjointfScale;
-IRegAGlen=IRegAGlen*CtrlVar.AdjointfScale;
-IBarrierC=IBarrierC*CtrlVar.AdjointfScale;
-IBarrierAGlen=IBarrierAGlen*CtrlVar.AdjointfScale;
-
-
-J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;
+J=ObjFuncTerms.I+ObjFuncTerms.R;  
 
 
 %fprintf('MisfitFunction: J=%-g \t Idata=%-g \t IRegC=%-g \t IRegAGlen=%-g \t IBarrierC=%-g \t IBarrierAGlen=%-g \n',...

@@ -1,6 +1,15 @@
 
-function [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=QuasiNewtonInversion(...
-    UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
+function [UserVar,F,l,InvFinalValues,xAdjoint,yAdjoint,RunInfo,gammaAdjoint]=...
+    QuasiNewtonInversion...
+    (UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+
+
+
+%[UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=...
+%    QuasiNewtonInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+    
+%[UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=...
+    %UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
 
 
 xAdjoint=[] ;yAdjoint=[];
@@ -10,10 +19,10 @@ iC=strfind(CtrlVar.AdjointGrad,'C');
 isAgrad=~isempty(iA);
 isCgrad=~isempty(iC);
 
-AGlenEst=InvStartValues.AGlen;
-Cest=InvStartValues.C;
-n=InvStartValues.n;
-m=InvStartValues.m;
+F.AGlen=InvStartValues.AGlen;
+F.C=InvStartValues.C;
+F.n=InvStartValues.n;
+F.m=InvStartValues.m;
 
 if ~isCgrad
     fprintf('QuasiNewtonInversion currently only implemented for a C inversion\n')
@@ -39,10 +48,20 @@ end
 
 if gammaAdjoint==0 ; gammaAdjoint=1 ; end
 
-dJdC=Cest*0;
+dJdC=F.C*0;
 
-F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,Cest-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-[J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(0,ub,vb,ud,vd);
+F.C=-q*dJdC;
+ObjFunc=@(q,F) CalcMisfitFunction(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Priors,Meas);
+
+
+[J,ObjFuncTerms,F,l,dJdu,RunInfo]=ObjFunc(0,F);
+
+% var her
+
+%F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,Cest-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
+%[J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(0,ub,vb,ud,vd);
+
+
 
 if iJ==0
     iJ=iJ+1;  Info.JoptVector(iJ,1)=J; Info.JoptVector(iJ,2)=Idata;
@@ -61,7 +80,7 @@ for iteration=1:nIt
     
     switch CtrlVar.AdjointMinimisationMethod
         
-        case{'FixPointEstimationOfSlipperiness','FixPointEstimationOfSlipperiness:HessianGuestimate'};
+        case{'FixPointEstimationOfSlipperiness','FixPointEstimationOfSlipperiness:HessianGuestimate'}
             
             dIdCdata=CtrlVar.MisfitMultiplier*Calc_FixPoint_deltaC(CtrlVar,MUA,C0,m,GF,ub,vb,Meas.us,Meas.vs);
             dIdCreg=Calc_dIregdC(CtrlVar,MUA,Priors.CovC,C0,Priors.C);
@@ -125,7 +144,7 @@ for iteration=1:nIt
     %C1=C0-gamma*dJdC; C1=kk_proj(C1,CtrlVar.Cmax,CtrlVar.Cmin);
     
     F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlen0,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
-    [J1,Idata1,IRegC1,IRegAGlen1,IBarrierC1,IBarrierAGlen1,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(gammaAdjoint,ub,vb,ud,vd);
+    [J1,Idata1,IRegC1,IRegAGlen1,IBarrierC1,IBarrierAGlen1,ub,vb,ud,vd,l,dJdu,kv,rh,nlInfo]=F(gammaAdjoint,ub,vb,ud,vd);
     
     if J1/J0<0.5
         fprintf(' Initial step accected with J0=%-g \t J1=%-g \t and J1/J0=%-g \n ',J0,J1,J1/J0)
@@ -149,7 +168,7 @@ for iteration=1:nIt
         CtrlVar.InfoLevelBackTrack=temp;
         
         ub=ArgOut{6} ; vb=ArgOut{7}; ud=ArgOut{8} ; vd=ArgOut{9};
-        [J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dIdu,kv,rh,nlInfo]=F(gammaAdjoint,ub,vb,ud,vd);
+        [J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen,ub,vb,ud,vd,l,dJdu,kv,rh,nlInfo]=F(gammaAdjoint,ub,vb,ud,vd);
         
         fprintf(' Backtracking returns gamma=%-g and fgamma=%-g, and fgamma/J=%-g \n',gammaAdjoint,fgamma,fgamma/J)
         
@@ -187,7 +206,7 @@ for iteration=1:nIt
     end
     
     
-    if gammaAdjoint==0 ;
+    if gammaAdjoint==0 
         fprintf(' gamma returned equal to zero. line search has stagnated. breaking out \n')
         break
     end

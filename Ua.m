@@ -1,4 +1,4 @@
-function Ua
+function Ua(UserVar)
 
 
 %% Úa
@@ -208,10 +208,10 @@ function Ua
 
 
 if nargin==0
-    UserRunParameters=[];
+    UserVar=[];
 end
 
-Ua2D(UserRunParameters)
+Ua2D(UserVar)
 
 
 end
