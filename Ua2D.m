@@ -43,7 +43,7 @@ CtrlVar=Ua2D_DefaultParameters();
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
-[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar,UserVar);
+[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
 
 
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
@@ -127,8 +127,8 @@ else % inverse run
         
     else % New inverse run
 
+        % First get the usual input for a forward run
         [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
-        
         
         % now get the additional variables specific to an inverse run
         [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l); %CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l);
@@ -153,8 +153,8 @@ end
 %  are consistent with the floating condition for a given ice tickness h, rho and rhow.
 
 F.h=F.s-F.b;
-[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
-GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+%GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
 
 
 
@@ -256,6 +256,7 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
+    if CtrlVar.InfoLevel >= 1 ; fprintf('\n ======> Current run step: %i <======\n',CtrlVar.CurrentRunStepNumber) ;  end
     
     if CtrlVar.PlotWaitBar 
         multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
@@ -279,9 +280,8 @@ while 1
         [UserVar,~,~,F.S,~,~]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'S');
     end
     
-    [F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
-    GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
-    
+    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
 
@@ -397,7 +397,7 @@ while 1
                
                 %Fguessed=F;  could use norm of difference between explicit and implicit to
                 %control dt
-                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs); 
+                [UserVar,RunInfo,F,l,BCs,GF,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs); 
                 
                 CtrlVar.dt=dt;
                 
@@ -419,7 +419,8 @@ while 1
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             %CtrlVar.time=round(CtrlVar.time,14,'significant');
             
-            [F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
+            [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);  % This should not be needed as uvh already takes care of this.
+            %[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
             
             Fm1.dhdt=F0.dhdt ;
             Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -571,12 +572,13 @@ SayGoodbye(CtrlVar)
         fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writing restart file %s  at t=%-g \n %s \n ',CtrlVar.Experiment,datestr(now),RestartFile,CtrlVar.time);
         %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
         CtrlVarInRestartFile=CtrlVar;
+        UserVarInRestartFile=UserVar;
         nStep=CtrlVar.CurrentRunStepNumber;  % later get rid of nStep from all restart files
         Itime=CtrlVar.CurrentRunStepNumber;  % later get rid of Itime from all restart files
         time=CtrlVar.time;
         dt=CtrlVar.dt;
         try
-            save(RestartFile,'CtrlVarInRestartFile','UserVar','MUA','BCs','time','dt','F','GF','l','RunInfo','-v7.3');
+            save(RestartFile,'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','time','dt','F','GF','l','RunInfo','-v7.3');
 
             fprintf(CtrlVar.fidlog,' Writing restart file was successful. \n');
             

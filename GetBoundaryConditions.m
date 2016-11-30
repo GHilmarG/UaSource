@@ -1,6 +1,8 @@
 
 function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF)
 
+persistent BCsFig
+
 narginchk(6,6)
 nargoutchk(2,2)
 
@@ -94,6 +96,19 @@ end
 if numel(BCs.vbFixedNode) ~=  numel(BCs.vbFixedValue)
     error('GetBoundaryConditions:vb','Number of fixed vb nodes not equal to number of vb fixed values! \n')
 end
+
+
+
+if CtrlVar.doplots && CtrlVar.PlotBCs
+    if isempty(BCsFig) || ~ishandle(BCsFig)
+        BCsFig=figure('Name','Boundary Conditions','NumberTitle','off');
+    else
+        figure(BCsFig)
+    end
+    hold off
+    PlotBoundaryConditions(CtrlVar,MUA,BCs);
+end
+
 
 
 

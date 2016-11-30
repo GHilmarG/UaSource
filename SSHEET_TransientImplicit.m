@@ -1,15 +1,15 @@
-function [UserVar,u1,v1,h1,s1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g)
+function [UserVar,u1,v1,h1,s1,GF1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g)
 
 %  s and h are the initial estimates for s1 and h1
 %  these are then updated, once convergent, I set s1=s and h1=h
 
 
-nargoutchk(7,7)
+nargoutchk(8,8)
 narginchk(20,20)
 
 
-[b0,s0,h0]=Calc_bs_From_hBS(h0,S,B,rho,rhow,CtrlVar,MUA.coordinates);
-[b1,s,h]=Calc_bs_From_hBS(h1,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+[b0,s0,h0,~]=Calc_bs_From_hBS(CtrlVar,MUA,h0,S,B,rho,rhow);
+[b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h1,S,B,rho,rhow);
 
 
 
@@ -42,7 +42,7 @@ Lh=MLC.hL ; ch=MLC.hRhs ;
 if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
 
 dlambdah=lambdah*0;
-dh=h*0;
+dh=h0*0;
 iteration=0 ; Stagnated=0;
 r=1e10; diffVector=zeros(CtrlVar.NRitmax,1) ; diffDh=1e10; diffDlambda=1e10;
 
@@ -165,7 +165,8 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     %% update variables
     h=h+gamma*dh ; lambdah=lambdah+gamma*dlambdah;
     
-    [b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+    [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
+    %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
     
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
         PlotForceResidualVectors('h-only',R,Lh,lambdah,MUA.coordinates,CtrlVar) ; axis equal tight
@@ -182,13 +183,14 @@ end
 
 %% return calculated values at the end of the time step
 h1=h ; lambdah1=lambdah;
-[b1,s1,h1]=Calc_bs_From_hBS(h1,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+[~,s1,h1,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,h1,S,B,rho,rhow);
+%[b1,s1,h1]=Calc_bs_From_hBS(h1,S,B,rho,rhow,CtrlVar,MUA.coordinates);
 [u1,v1]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,rho,g,s1,h1);
 
 tEnd=toc(tStart);
 
 %% print/plot some info
-if CtrlVar.InfoLevelNonLinIt>=1 && r < CtrlVar.NLtol ;
+if CtrlVar.InfoLevelNonLinIt>=1 && r < CtrlVar.NLtol 
     fprintf(CtrlVar.fidlog,' SSHEET(h) converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd) ;
 end
 

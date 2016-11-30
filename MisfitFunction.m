@@ -1,4 +1,17 @@
-function [J,dJduv,ObjFuncTerms,RunInfo]=MisfitFunction(UserVar,RunInfo,CtrlVar,MUA,F,l,Priors,Meas)
+function [J,dJduv,ObjFunc,RunInfo]=MisfitFunction(UserVar,RunInfo,CtrlVar,MUA,F,l,Priors,Meas)
+
+%%
+% J is the object function
+% ObjFunc is a structure with fields giving all terms of the object function,
+% i.e misfit term, regularistation terms, penalty terms etc. 
+% 
+% J=ObjFunc.I+ObjFunc.R
+%
+% In the optimisation J and dJduv are used, but not ObjFunc directly. 
+%
+%
+%%
+
 
 
 %[J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
@@ -100,17 +113,17 @@ switch lower(CtrlVar.MisfitFunction)
         error(' what case? ' )
 end
 
-ObjFuncTerms.I=CtrlVar.MisfitMultiplier*Idata;
+ObjFunc.I=CtrlVar.MisfitMultiplier*Idata;
 
 
-ObjFuncTerms.RegC=Calc_IRegC(CtrlVar,MUA,Priors.CovC,F.C,Priors.C);
-ObjFuncTerms.RegAGlen=Calc_IRegdAGlen(CtrlVar,MUA,Priors.CovAGlen,F.AGlen,Priors.AGlen);
-ObjFuncTerms.BarrierC=Calc_IBarrierC(CtrlVar,F.C);
-ObjFuncTerms.BarrierAGlen=Calc_IBarrierAGlen(CtrlVar,F.AGlen);
+ObjFunc.RegC=Calc_IRegC(CtrlVar,MUA,Priors.CovC,F.C,Priors.C);
+ObjFunc.RegAGlen=Calc_IRegdAGlen(CtrlVar,MUA,Priors.CovAGlen,F.AGlen,Priors.AGlen);
+ObjFunc.BarrierC=Calc_IBarrierC(CtrlVar,F.C);
+ObjFunc.BarrierAGlen=Calc_IBarrierAGlen(CtrlVar,F.AGlen);
 
-ObjFuncTerms.R=ObjFuncTerms.RegC+ObjFuncTerms.RegAGlen+ObjFuncTerms.BarrierC+ObjFuncTerms.BarrierAGlen;
+ObjFunc.R=ObjFunc.RegC+ObjFunc.RegAGlen+ObjFunc.BarrierC+ObjFunc.BarrierAGlen;
 
-J=ObjFuncTerms.I+ObjFuncTerms.R;  
+J=ObjFunc.I+ObjFunc.R;  
 
 
 %fprintf('MisfitFunction: J=%-g \t Idata=%-g \t IRegC=%-g \t IRegAGlen=%-g \t IBarrierC=%-g \t IBarrierAGlen=%-g \n',...

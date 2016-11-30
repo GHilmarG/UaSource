@@ -17,7 +17,7 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 % txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
 %   < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
 %
-% Stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz}
+% Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz}
 % wheere \sigma_{zz}= - \rho g (s-z)
 % Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy}
 % Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h

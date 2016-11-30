@@ -1,8 +1,10 @@
-function [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,coordinates)
+function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
 
+nargoutchk(4,4)
+narginchk(7,7)
 
 %% Calculates b, s, and h, consistent with the floating condition.
-% [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
+% [b,s,h,GF]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
 % sets b and b given h, S and B and the densities rho and rhow
 %
 % Note: h is only modified where on input h is smaller than CtrlVar.ThickMin,
@@ -28,11 +30,13 @@ end
 
 % Step 1:  
 hf=rhow*(S-B)./rho ;
-gf = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+
+GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
 bfloat=S-rho.*h/rhow;
 
-b=gf.*B + (1-gf) .* bfloat ;
+b=GF.node.*B + (1-GF.node) .* bfloat ;
 
 
 % because the grounding line is `smeared out' a bit for a finite CtrlVar.kH
@@ -45,8 +49,8 @@ if any(I)
         fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
         
         if CtrlVar.doplots==1
-            figure ; plot(coordinates(I,1)/CtrlVar.PlotXYscale,coordinates(I,2)/CtrlVar.PlotXYscale,'.') ; axis equal ; title('locations where b<B')
-            figure ; plot3(coordinates(I,1)/CtrlVar.PlotXYscale,coordinates(I,2)/CtrlVar.PlotXYscale,b(I)-B(I),'.')  ; title('b-B (where negative)')
+            figure ; plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.') ; axis equal ; title('locations where b<B')
+            figure ; plot3(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,b(I)-B(I),'.')  ; title('b-B (where negative)')
             
         end
     end

@@ -1,17 +1,19 @@
 function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 
+narginchk(3,inf)
+
 %% Plots grounding lines
 %
 % [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 %
 % Examples:
 %
-%   
+%
 %    PlotGroundingLines(CtrlVar,MUA,GF);
 %
-%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in 
+%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') % plot GL in
 %                                                                    % red
-%   
+%
 %
 %    GLgeo=[] ; xGL=[], yGL=[]; % repeated use
 %    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
@@ -45,7 +47,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 % to all following calls as doing so saves (lots of) time when plotting complicated
 % grounding lines. In an initial call, where MUA and GF are available, do for
 % example:
-%  
+%
 %   GLgeo=[] ; xGL=[] ; yGL=[];
 %   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are all empty
 %   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); % here GLgeo, xGL and yGL are known from
@@ -70,47 +72,41 @@ if ~isfield(CtrlVar,'PlotGLs') ; CtrlVar.PlotGLs=1 ; end
 if ~isfield(CtrlVar,'PlotIndividualGLs') ; CtrlVar.PlotIndividualGLs=0 ; end
 
 
-if nargin<4
+if nargin<4 || isempty(GLgeo)
+    
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+    
+end
+
+if nargin<6 || ( isempty(xGL) || isempty(yGL))
     xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
     [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
+end
+
+
+
+if CtrlVar.PlotGLs
     
-elseif isempty(xGL) || isempty(yGL)
-    
-    if isempty(GLgeo)
+    if ~CtrlVar.PlotIndividualGLs
         
-        if isempty(GF)
-            error('On input GF can not be empty if xGL, yGL and GLgeo are as well. \n')
-        else
-            GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        ax=gca; ax.DataAspectRatio=[1 1 1];
+        
+    else
+        
+        i=0;
+        I=find(isnan(xGL)) ;
+        I=[1;I(:)];
+        col=['b','r','c','g','k','m'];
+        %col=['b','r'];
+        for ii=1:numel(I)-1
+            i=i+1;
+            plot(xGL(I(ii):I(ii+1)),yGL(I(ii):I(ii+1)),col(i)) ; axis equal ; hold on ;
+            if i==numel(col) ; i=0 ; end
         end
+        ax=gca; ax.DataAspectRatio=[1 1 1];
     end
-    
-    xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
-    [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
-    
 end
-
-if CtrlVar.PlotGLs && ~CtrlVar.PlotIndividualGLs
-    
-    plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
-    ax=gca; ax.DataAspectRatio=[1 1 1];
-    
-elseif CtrlVar.PlotIndividualGLs
-    
-    i=0;
-    I=find(isnan(xGL)) ;
-    I=[1;I(:)];
-    col=['b','r','c','g','k','m'];
-    %col=['b','r'];
-    for ii=1:numel(I)-1
-        i=i+1;
-        plot(xGL(I(ii):I(ii+1)),yGL(I(ii):I(ii+1)),col(i)) ; axis equal ; hold on ;
-        if i==numel(col) ; i=0 ; end
-    end
-    ax=gca; ax.DataAspectRatio=[1 1 1];
-end
-
 
 
 

@@ -19,6 +19,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rh
 %
 % If mass-balance geometry feedback is included in the solver, define mass
 % balance as:
+%
 %    [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
 % 
 % If this feedback is not included in the solver there is no need to return

@@ -110,7 +110,6 @@ if CtrlVar.doplots
     
     if CtrlVar.PlotBCs
         figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs);
-        
     end
     
     if CtrlVar.PlotMesh && CtrlVar.ReadInitialMesh

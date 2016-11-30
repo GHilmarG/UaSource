@@ -58,7 +58,17 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 %                 [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
 % can be useful to call within DefineBC.  See comments in DistanceToLineSegment.m for explanation on how to use.
 %
-%%
+%% Manually updating geometry in the course of a run.
+% By default DefineGeometry is only called at the beginning of a run, and after
+% a any mesh modifications.
+%
+% However, it is possible to force additional `manual' updates to geometry
+% during a diagnostic run. This is often usefull, for example, for doing
+% sensitivity tests with respect to geometry.
+%
+% Also, one can redefine the ocean surface elevation at each run step in both
+% transient and non-transiten (diagnostic) runs.
+%
 CtrlVar.DefineOceanSurfaceAtEachTimeStep=0;   % if true,  `DefineGeometry.m' is called at each time step, returning S, and only S.
                                               % if false, `DefineGeometry.m' is only called at the beginning of a run
                                               %            and when the FE-mesh changes
@@ -114,15 +124,6 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 CtrlVar.doplots=1;          % if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots
 CtrlVar.PlotWaitBar=1;      % a waitbar is plotted
 CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
-CtrlVar.TransientPlotDt=NaN;% model time interval between calls to `FE2dTransientPlots.m'
-                            % special values:  
-                            %              0 : always call `FE2dTransientPlots.m', i.e. at each and every time step
-                            %            NaN : never call `FE2dTransientPlots.m'
-                            %  Note: when using automated time stepping, the time step is adjusted to fit this criteria
-CtrlVar.OnlyDoFirstTransientPlotAndThenStop=0; % stops run after first transient plot has been made, useful for initial testing purposes, this will
-                                               % allow inspection of s,b,B,S,mesh, etc, before any model calculations are started
-
-CtrlVar.PlotStrains=0;
 CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean
 CtrlVar.PlotMeltNodes=0;
 CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
@@ -194,14 +195,14 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 
 
 %% Regularisation parameters
-CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest
-CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest
-CtrlVar.etaIntMax=1e10 ;    % max value of effective viscosity
-CtrlVar.etaIntMin=1e-6;     % min value of effective viscosity
+CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
+CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
+CtrlVar.etaIntMax=1e10 ;    % max value of effective viscosity.
+CtrlVar.etaIntMin=1e-6;     % min value of effective viscosity.
 CtrlVar.Czero=1e-10;        % 
-CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq
+CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
-CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees 
+CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
 
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when inverting for A and/or C.
@@ -543,9 +544,18 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
                                     % can sometimes be useful for testing/control purposes)
                                     % NaN implies no limit to the number of calls 
                                     
-                                    
-CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each time step.
-                                  % Here the start value is defined as zero. 
+          
+%% Optaining information about the run, during the run.
+%
+% A simply way of getting information about the run from within the user m-files
+% is by inspecting the fields of the CtrlVar.  The CtrlVar is given an in input
+% to all such m-files.
+%
+% For example, the counter CtrlVar.CurrentRunStepNumber gives the current
+% run-step number. 
+%
+CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
+                                   
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %

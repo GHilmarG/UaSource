@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-08-24"><meta name="DC.source" content="Ua.m"><style type="text/css">
+      --><title>Ua</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-11-01"><meta name="DC.source" content="Ua.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,11 +66,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">&Uacute;a</a></li><li><a href="#3">Running &Uacute;a:</a></li><li><a href="#4">Getting help</a></li><li><a href="#5">Defining model run</a></li><li><a href="#6">User m-files :</a></li><li><a href="#7">Name of variables</a></li><li><a href="#8">Calls to user m-files:</a></li><li><a href="#9">Getting information about the FE mesh from within user m-files:</a></li><li><a href="#10">Meshing</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> Ua
-</pre><h2>&Uacute;a<a name="2"></a></h2><p>A finite-element ice-flow model.</p><p>Flow approximations: Shallow Ice Sheet Flow Approximation (SSHEET or SIA)                      Shallow Ice Stream Flow Approximation (SSTREAM or SSA)                      Hybrid combinations of SIA and SSA (already implemented,                      but still being developed further...)</p><p>The code is developed by Hilmar Gudmundsson (<a href="mailto:ghg@bas.ac.uk">ghg@bas.ac.uk</a>).</p><h2>Running &Uacute;a:<a name="3"></a></h2><p>1) Add the folder with the &Uacute;a m-files, and its subfolders, to your matlab path.    This can be done using the 'Home/Set' Path menu item, or from the command    prompt doing something like: addpath('MyUaSourceFileFolder')</p><p>2) Define the Matlab environmental variable 'UaHomeDirectory'.    This can for example be done as follows:                 setenv('UaHomeDirectory','MyUaSourceFileFolder')</p><p>3) If using the mesh generator `gmsh' (almost always the case) then also    define the Matlab environmental variable 'GmshHomeDirectory'.    The gmsh program for windows is in a subfolder of Ua/Source    So if you are running windows                 setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')   will do. Alternativily you might want to install your own copy of gmsh. If   running on a Unix system, then most likely gmsh can be called without the   need to set the Matlab environmental variable 'GmshHomeDirectory'.</p><p>Now you can run &Uacute;a from within Matlab by writing Ua [Ret]</p><pre>Summary: Before running Ua do
- setenv('UaHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source')
- setenv('GmshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows')
- UaHomeDirectory=getenv('UaHomeDirectory'); addpath(genpath(UaHomeDirectory))</pre><pre>Then run Ua from the Source directory to see if everyting is OK.</pre><h2>Getting help<a name="4"></a></h2><p>You can get help on the use of &Uacute;a in the same way as you would get help on various in-build matlab commands by writing `help Ua'  in the matlab command line,  or `doc Ua'. Most m-files that are part of the Ua program have some inbuild help text, for example try `doc Ua2D_DefaultParameters'.</p><p>To get a HTML formatted documentation try:</p><pre>  publish('Ua.m','evalCode',false) ; web('html\Ua.html')</pre><h2>Defining model run<a name="5"></a></h2><p>Whenever setting up your own model, create your own working directory for your model runs. Most of the parameters of a given model run are defined by the user through ` <b>user m-files'</b> that are called by &Uacute;a during the run.</p><h2>User m-files :<a name="6"></a></h2><div><ul><li>Ua2D_InitialUserInput</li><li>DefineAGlenDistribution.m</li><li>DefineSlipperyDistribution.m</li><li>DefineBoundaryConditions.m  (also possible to use the more limited but easier to use `DefineBCs.m' instead)</li><li>DefineGeometry.m</li><li>DefineDensities.m</li><li>DefineMassBalance.m</li><li>DefineDesiredEleSize.m</li><li>DefineStartVelValues.m</li><li>DefineInputsForInverseRun.m</li><li>DefineInverseModellingVariables.m (older approach, use DefineInputsForInversion.m instead)</li><li>UaOutputs.m</li></ul></div><p>To get further information on how to use individual user m-files use help. For example: help DefineGeometry Make sure to do this from the &Uacute;a home directory, or at least not from another directory that has a m-file with the same name.</p><p>When defining a new model-run, just copy these user m-files from the &Uacute;a home directory into your own model-run directory and modify as needed.</p><p>Not all of these user m-files are always needed. For example `DefineInverseModellingVariables.m' is only needed for inverse runs. Also 'DefineStartVelValues.m' is not often required as setting start velocities to zero (the default opton) is usually a good approach. And DefineDesiredEleSizes is only needed if one finds that the standard remeshing options within &Uacute;a are too limited.</p><p>UaOutputs is only needed for producing output files or for some plotting, etc.</p><p>If any of the above listed m-Files are not found in the run directory, the corresponding m-Files in the &Uacute;a home directory are used instead.</p><h2>Name of variables<a name="7"></a></h2><p>Throughout the following variables stand for:</p><pre>s          : upper glacier surface elevation
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">&Uacute;a</a></li><li><a href="#3">Running &Uacute;a:</a></li><li><a href="#4">Getting help</a></li><li><a href="#5">Defining model run</a></li><li><a href="#6">User m-files :</a></li><li><a href="#7">Name of variables</a></li><li><a href="#8">The variable CtrlVar</a></li><li><a href="#9">The variable UserVar</a></li><li><a href="#10">Getting information about the FE mesh from within user m-files:</a></li><li><a href="#11">Meshing</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> Ua(UserVar)
+</pre><h2 id="2">&Uacute;a</h2><p>A finite-element ice-flow model.</p><p>Flow approximations: Shallow Ice Sheet Flow Approximation (SSHEET or SIA)                      Shallow Ice Stream Flow Approximation (SSTREAM or SSA)                      Hybrid combinations of SIA and SSA (already implemented,                      but still being developed further...)</p><p>The code is developed by Hilmar Gudmundsson (<a href="mailto:ghg@bas.ac.uk">ghg@bas.ac.uk</a>).</p><h2 id="3">Running &Uacute;a:</h2><p>1) Add the folder with the &Uacute;a m-files, and its subfolders, to your matlab path. This can be done using the 'Home/Set' Path menu item, or from the command prompt doing something like:</p><pre class="language-matlab">addpath(genpath(<span class="string">'MyUaSourceFileFolder'</span>))
+</pre><p>2) Define the Matlab environmental variable 'UaHomeDirectory'.    This can for example be done as follows:</p><pre class="language-matlab">setenv(<span class="string">'UaHomeDirectory'</span>,<span class="string">'MyUaSourceFileFolder'</span>)
+</pre><p>3) If using the mesh generator `gmsh' (almost always the case) then also    define the Matlab environmental variable 'GmshHomeDirectory'. The gmsh    program for windows is in a subfolder of Ua/Source So if you are running    windows</p><pre class="language-matlab">setenv(<span class="string">'GmshHomeDirectory'</span>,<span class="string">'MyDrive/Ua/Source/gmsh-2.12.0-Windows'</span>)
+</pre><p>will do. Alternativily you might want to install your own copy of gmsh. If running on a Unix system, then most likely gmsh can be called without the need to set the Matlab environmental variable 'GmshHomeDirectory'.</p><p>Now you can run &Uacute;a from within Matlab by writing:</p><p>&gt;&gt;Ua [Ret]</p><p>Summary: Before running Ua do for example:</p><pre class="language-matlab">setenv(<span class="string">'UaHomeDirectory'</span>,<span class="string">'C:\cygwin64\home\Hilmar\ghg\Ua\Source'</span>)
+setenv(<span class="string">'GmshHomeDirectory'</span>,<span class="string">'C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows'</span>)
+UaHomeDirectory=getenv(<span class="string">'UaHomeDirectory'</span>); addpath(genpath(UaHomeDirectory))
+</pre><p>Then run Ua from the Source directory to see if everyting is OK.</p><h2 id="4">Getting help</h2><p>You can get help on the use of &Uacute;a in the same way as you would get help on various in-build matlab commands by writing `help Ua'  in the matlab command line,  or `doc Ua'. Most m-files that are part of the Ua program have some inbuild help text, for example try `doc Ua2D_DefaultParameters'.</p><h2 id="5">Defining model run</h2><p>Whenever setting up your own model, create your own working directory for your model runs. Most of the parameters of a given model run are defined by the user through ` <b>user m-files'</b> that are called by &Uacute;a during the run.</p><h2 id="6">User m-files :</h2><div><ul><li>Ua2D_InitialUserInput</li><li>DefineAGlenDistribution.m</li><li>DefineSlipperyDistribution.m</li><li>DefineBoundaryConditions.m</li><li>DefineGeometry.m</li><li>DefineDensities.m</li><li>DefineMassBalance.m</li><li>DefineDesiredEleSize.m</li><li>DefineStartVelValues.m</li><li>DefineInputsForInverseRun.m</li><li>DefineInverseModellingVariables.m</li><li>UaOutputs.m</li></ul></div><p>To get further information on how to use individual user m-files use help. For example: help DefineGeometry Make sure to do this from the &Uacute;a home directory, or at least not from another directory that has a m-file with the same name.</p><p>When defining a new model-run, just copy these user m-files from the &Uacute;a home directory into your own model-run directory and modify as needed.</p><p>Not all of these user m-files are always needed. For example `DefineInverseModellingVariables.m' is only needed for inverse runs. Also 'DefineStartVelValues.m' is not often required as setting start velocities to zero (the default opton) is usually a good approach. And DefineDesiredEleSizes is only needed if one finds that the standard remeshing options within &Uacute;a are too limited.</p><p>UaOutputs is only needed for producing output files or for some plotting, etc.</p><p>If any of the above listed m-Files are not found in the run directory, the corresponding m-Files in the &Uacute;a home directory are used instead.</p><h2 id="7">Name of variables</h2><p>Throughout the following variables stand for:</p><pre>s          : upper glacier surface elevation
 b          : lower glacier surface elevation
 S          : ocean surface elevation
 B          : bedrock elevation
@@ -89,17 +92,35 @@ alpha       : Slope of the coordinate system with respect to gravity.
 g           : The gravitational acceleration.
 GF          : a floating/grounded mask. This is a structure with the two
               fields: node and ele. This are 1 if a node/element is grounded, 0 if
-              node/element is afloat.</pre><h2>Calls to user m-files:<a name="8"></a></h2><p>The calls to these functions are:</p><pre>  [UserVar,rho,rhow,g]=DefineDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B);</pre><pre>  [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);</pre><pre>  [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);</pre><pre>  [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);</pre><p>If mass-balance geometry feedback is included, define mass balance as:</p><pre>  [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);</pre><pre>  [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)</pre><p>BCs is an instant of the class `BoundaryConditions'. To see the fields of BCs have a look at BoundaryConditions.m in the editor or do help BoundaryConditions.m . The fancy way of doing this is to do: publish('BoundaryConditions.m') ; web('html\BoundaryConditions.html') from the &Uacute;a home directory.</p><pre class="language-matlab">[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
-</pre><pre class="language-matlab">[UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-</pre><h2>Getting information about the FE mesh from within user m-files:<a name="9"></a></h2><p>In all user m-files the variable MUA is given as an input.  MUA is a structured variable with the following fields      coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal                    points     connectivity:  mesh connectivity           Nnodes:  number of nodes in mesh             Nele:  number of elements in mesh              nod:  number of nodes per element nip:  number of integration                    points           points:  local element coordinates of integration points          weights:  weights of integration points         Boundary:  a structure containing info about mesh boundary                    This structure is calculated as:                    MUA.Boundary=FindBoundary(connectivity,coordinates); and                    info about the fields can be found in `FindBoundary.m'            Deriv:  element derivatives             DetJ:  element determinants</p><pre>             The values of MUA should never be changed directly by the user.</pre><h2>Meshing<a name="10"></a></h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput. In that case &Uacute;a will call an external mesh generator. The external mesh generator used by &Uacute;a is "gmsh" which is a well known and well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>) The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p>For examples of how to generate different type of meshes run <b>ExamplesOfMeshGeneration</b></p><p>The ExamplesOfMeshGeneration.m containes information and examples on how to define inputs for various types of meshes.</p><p>There are also various ways of refining the mesh. Boht global and local (explicit) adaptive meshing is supported. See further explanations in 'Ua2D_DefaultParamters.m'</p><p>Control parameters The type of runs (static, transient, forward, inverse) and various paramters affecting the run are specified using the variable `CtlrVar'.  This variable is defined by the user in `Ua2D_InitialUserInput.m'. This variable has a large number of fields. List of all fields with descriptions can be found in  `Ua2D_DefaultParameters.m'</p><pre class="codeinput"><span class="keyword">if</span> nargin==0
-    UserRunParameters=[];
+              node/element is afloat.</pre><h2 id="8">The variable CtrlVar</h2><p>&Uacute;a uses a the variable `CtrlVar' to define various run parameters.</p><p>This variable is defined by the user in `Ua2D_InitialUserInput.m'. The variable has a large number of fields. List of all fields with descriptions can be found in  `Ua2D_DefaultParameters.m'</p><pre class="language-matlab">help <span class="string">Ua2D_Defaultparameters</span>
+doc <span class="string">Ua2D_DefaultParameters</span>
+</pre><p>CtlrVar is only defined at the start of the run in Ua2D_InitialUserInput. It can not be modified in any of the other user m-input files.</p><p>In a restart run, CtrlVar is again always defined at the beginning of the run in Ua2D_InitialUserInput. It is not read from the restart file.</p><h2 id="9">The variable UserVar</h2><p>The variable UserVar is given as an input and output to all user m-files.</p><p>It is never used by &Uacute;a.</p><p>The user can use this variable to exhange information between his own user m-files, or for whaterver other purpose required.</p><p>UserVar can be modifed at the start of the run in Ua2D_InitialUserInput. as well as in all user m-input files.</p><p>In a restart run, UserVar is again always defined at the beginning of the run in Ua2D_InitialUserInput. It is not read from the restart file.</p><h2 id="10">Getting information about the FE mesh from within user m-files:</h2><p>In all user m-files the variable MUA is given as an input. MUA contains all information about the FE mesh.</p><p>MUA is a structured variable with the following fields:</p><pre>    coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal
+                  points
+   connectivity:  mesh connectivity
+         Nnodes:  number of nodes in mesh
+           Nele:  number of elements in mesh
+            nod:  number of nodes per element nip:  number of integration
+                  points
+         points:  local element coordinates of integration points
+        weights:  weights of integration points
+       Boundary:  a structure containing info about mesh boundary
+                  This structure is calculated as:
+                  MUA.Boundary=FindBoundary(connectivity,coordinates); and
+                  info about the fields can be found in `FindBoundary.m'
+          Deriv:  element derivatives
+           DetJ:  element determinants</pre><p>The values of MUA should never be changed directly by the user.</p><h2 id="11">Meshing</h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput. In that case &Uacute;a will call an external mesh generator. The external mesh generator used by &Uacute;a is "gmsh" which is a well known and well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>) The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p>For examples of how to generate different type of meshes run <b>ExamplesOfMeshGeneration</b></p><p>The ExamplesOfMeshGeneration.m containes information and examples on how to define inputs for various types of meshes.</p><p>There are also various ways of refining the mesh. Boht global and local (explicit) adaptive meshing is supported. See further explanations in 'Ua2D_DefaultParamters.m'</p><pre class="codeinput"><span class="comment">%</span>
+<span class="comment">%</span>
+
+
+<span class="keyword">if</span> nargin==0
+    UserVar=[];
 <span class="keyword">end</span>
 
-Ua2D(UserRunParameters)
+Ua2D(UserVar)
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function Ua
+function Ua(UserVar)
 
 
 %% Úa
@@ -115,41 +136,45 @@ function Ua
 %% Running Úa:
 %
 % 1) Add the folder with the Úa m-files, and its subfolders, to your matlab
-% path.
-%    This can be done using the 'Home/Set' Path menu item, or from the command
-%    prompt doing something like: addpath('MyUaSourceFileFolder')
+% path. This can be done using the 'Home/Set' Path menu item, or from the
+% command prompt doing something like:
+%
+%   addpath(genpath('MyUaSourceFileFolder'))
 %
 % 2) Define the Matlab environmental variable 'UaHomeDirectory'.
 %    This can for example be done as follows:
-%                 setenv('UaHomeDirectory','MyUaSourceFileFolder')
+%
+%   setenv('UaHomeDirectory','MyUaSourceFileFolder')
 %
 % 3) If using the mesh generator `gmsh' (almost always the case) then also
-%    define the Matlab environmental variable 'GmshHomeDirectory'. 
-%    The gmsh program for windows is in a subfolder of Ua/Source
-%    So if you are running windows
-%                 setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
-%   will do. Alternativily you might want to install your own copy of gmsh. If
-%   running on a Unix system, then most likely gmsh can be called without the
-%   need to set the Matlab environmental variable 'GmshHomeDirectory'.
+%    define the Matlab environmental variable 'GmshHomeDirectory'. The gmsh
+%    program for windows is in a subfolder of Ua/Source So if you are running
+%    windows
 %
-% Now you can run Úa from within Matlab by writing Ua [Ret]
+%   setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
 %
-%  Summary: Before running Ua do
+% will do. Alternativily you might want to install your own copy of gmsh. If
+% running on a Unix system, then most likely gmsh can be called without the need
+% to set the Matlab environmental variable 'GmshHomeDirectory'.
+%
+% Now you can run Úa from within Matlab by writing:
+%
+% >>Ua [Ret]
+%
+% Summary: Before running Ua do for example:
+%
 %   setenv('UaHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source')
 %   setenv('GmshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows')
 %   UaHomeDirectory=getenv('UaHomeDirectory'); addpath(genpath(UaHomeDirectory))
 %
-%  Then run Ua from the Source directory to see if everyting is OK.
+% Then run Ua from the Source directory to see if everyting is OK.
 %% Getting help
 % You can get help on the use of Úa in the same way as you would get help on
 % various in-build matlab commands by writing `help Ua'  in the matlab command
 % line,  or `doc Ua'. Most m-files that are part of the Ua program have some
 % inbuild help text, for example try `doc Ua2D_DefaultParameters'.
 %
-% To get a HTML formatted documentation try:
-%
-%    publish('Ua.m','evalCode',false) ; web('html\Ua.html')
-%
+
 %% Defining model run
 %
 % Whenever setting up your own model, create your own working directory for your
@@ -161,16 +186,14 @@ function Ua
 % * Ua2D_InitialUserInput
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
-% * DefineBoundaryConditions.m  (also possible to use the more limited but
-% easier to use `DefineBCs.m' instead)
+% * DefineBoundaryConditions.m 
 % * DefineGeometry.m
 % * DefineDensities.m
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
-% * DefineInverseModellingVariables.m (older approach, use
-% DefineInputsForInversion.m instead)
+% * DefineInverseModellingVariables.m
 % * UaOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
@@ -223,40 +246,44 @@ function Ua
 %
 %
 %
-%% Calls to user m-files:
-% The calls to these functions are:
+%% The variable CtrlVar
+% Úa uses a the variable `CtrlVar' to define various run parameters.
 %
-%    [UserVar,rho,rhow,g]=DefineDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B);
-% 
-%    [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+% This variable is defined by the user in `Ua2D_InitialUserInput.m'.
+% The variable has a large number of fields. List of all fields with
+% descriptions can be found in  `Ua2D_DefaultParameters.m' 
 %
-% If mass-balance geometry feedback is included, define mass balance as:
-% 
-%    [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+%   help Ua2D_Defaultparameters
+%   doc Ua2D_DefaultParameters
 %
-% BCs is an instant of the class `BoundaryConditions'. To see the fields of BCs
-% have a look at BoundaryConditions.m in the editor or do help
-% BoundaryConditions.m .
-% The fancy way of doing this is to do:
-% publish('BoundaryConditions.m') ; web('html\BoundaryConditions.html') from the
-% Úa home directory.
+% CtlrVar is only defined at the start of the run in Ua2D_InitialUserInput.
+% It can not be modified in any of the other user m-input files.
 %
+% In a restart run, CtrlVar is again always defined at the beginning of the run
+% in Ua2D_InitialUserInput. It is not read from the restart file.
 % 
-%   [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
-% 
-%   [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-%  
+%% The variable UserVar
+%
+% The variable UserVar is given as an input and output to all user m-files.
+%
+% It is never used by Úa. 
+%
+% The user can use this variable to exhange information between his own user
+% m-files, or for whaterver other purpose required. 
+%
+% UserVar can be modifed at the start of the run in Ua2D_InitialUserInput.
+% as well as in all user m-input files.
+%
+% In a restart run, UserVar is again always defined at the beginning of the run
+% in Ua2D_InitialUserInput. It is not read from the restart file.
 %
 %% Getting information about the FE mesh from within user m-files:
 %
-% In all user m-files the variable MUA is given as an input.
-%  MUA is a structured variable with the following fields
+% In all user m-files the variable MUA is given as an input. MUA contains all
+% information about the FE mesh.
+%
+% MUA is a structured variable with the following fields:
+%
 %      coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal
 %                    points
 %     connectivity:  mesh connectivity
@@ -273,7 +300,7 @@ function Ua
 %            Deriv:  element derivatives
 %             DetJ:  element determinants
 %
-%               The values of MUA should never be changed directly by the user.
+% The values of MUA should never be changed directly by the user.
 %
 %
 %% Meshing
@@ -298,21 +325,16 @@ function Ua
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParamters.m'
 %%
-% Control parameters The type of runs (static, transient, forward, inverse) and
-% various paramters affecting the run are specified using the variable
-% `CtlrVar'.  This variable is defined by the user in `Ua2D_InitialUserInput.m'.
-% This variable has a large number of fields. List of all fields with
-% descriptions can be found in  `Ua2D_DefaultParameters.m'
-%
+
 %
 %
 
 
 if nargin==0
-    UserRunParameters=[];
+    UserVar=[];
 end
 
-Ua2D(UserRunParameters)
+Ua2D(UserVar)
 
 
 end

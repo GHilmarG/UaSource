@@ -1,32 +1,54 @@
-function  UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
+function UserVar=UaOutputs(UserVar,CtrlVar,MUA,BCs,UaVars,l,GF)
+
 
 %%
-% UaOutputs(CtrlVar,MUA,time,s,b,S,B,h,ub,vb,ud,vd,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,GF,BCs,l)
 %
-%  This routine is called during the run and can be used for saving and/or
-%  plotting data.
+% This routine is called during the run and can be used for saving and/or
+% plotting data.
+%
+%   UserVar=UaOutputs(UserVar,CtrlVar,MUA,BCs,UaVars,l,GF)
 %  
-%  Write your own version of this routine and put it in you local run directory.
-%  
+% Write your own version of this routine and put it in you local run directory.
+%
+% Inputs:
+% 
+%
+%   BCs          Structure with all boundary conditions 
+%
+%
+%   UaVars      A structure with fields such as
+%               s, b, S, B, rho, rhow, ub, vb, ud, vd, AGlen, n , C, m , as, ab, g
+%
+%   l            Lagrange parameters related to the enforcement of boundary
+%                 conditions.
+%    
+%   GF           Grounding floating mask for nodes and elements.
+%
+%
+% If preferred to work direclty with the variables rather than the respective
+% fields of the structure `UaVars', then`UaVars' can easily be converted into
+% variables using v2struc.
+%
+% For example :
+%
+% Create variables from all the fields of UaVars with corresponding names:
+%
+%   v2struct(UaVars)
+%
+% Create selected variables only:
+%
+%   [s,b,S,B,ub,vb,ud,vd,C,m,AGlen,n,rho,rhow]=v2struct(UaVars,{'fieldNames','s','b','S','B','ub','vb','ud','vd','C','m','AGlen','n','rho','rhow'});
+%
+% See help v2struc for more information.
+%
 %%
 
 
-if nargin==1
-    load(CtrlVar) ; CtrlVar=CtrlVarInRestartFile;
-end
-
-CtrlVar.UaOutputs='-sbB-ubvb-BCs-';
+[s,b,S,B,ub,vb,ud,vd,C,m,AGlen,n,rho,rhow]=v2struct(UaVars,{'fieldNames','s','b','S','B','ub','vb','ud','vd','C','m','AGlen','n','rho','rhow'});
 
 
-%%
-if ~isfield(CtrlVar,'UaOutputs')
-    CtrlVar.uvPlotScale=[];
-    %plots='-ubvb-udvd-log10(C)-log10(Surfspeed)-log10(DeformationalSpeed)-log10(BasalSpeed)-log10(AGlen)-';
-    plots='-ubvb-log10(BasalSpeed)-sbB-ab-log10(C)-log10(AGlen)-';
-    plots='-save-';
-else
-    plots=CtrlVar.UaOutputs;
-end
+
+plots='-sbB-ubvb-BCs-';
 
 
 
@@ -51,9 +73,9 @@ if ~isempty(strfind(plots,'-save-'))
     if strcmp(CtrlVar.UaOutputsInfostring,'Last call')==0
                 
         FileName=sprintf('ResultsFiles/%07i-Nodes%i-Ele%i-Tri%i-kH%i-%s.mat',...
-            round(100*time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*CtrlVar.kH,CtrlVar.Experiment);
+            round(100*CtrlVar.time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*CtrlVar.kH,CtrlVar.Experiment);
         fprintf(' Saving data in %s \n',FileName)
-        save(FileName,'CtrlVar','MUA','time','s','b','S','B','h','ub','vb','C','dhdt','AGlen','m','n','rho','rhow','as','ab','GF')
+        save(FileName,'CtrlVar','MUA','s','b','S','B','h','ub','vb','C','dhdt','AGlen','m','n','rho','rhow','as','ab','GF')
         
     end
 end
@@ -107,7 +129,7 @@ if ~isempty(strfind(plots,'-ubvb-'))
     hold on ; 
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('(ub,vb) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('(ub,vb) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     %%
     
 end
@@ -125,7 +147,7 @@ if ~isempty(strfind(plots,'-udvd-'))
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('(ud,vd) t=%-g ',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+    title(sprintf('(ud,vd) t=%-g ',CtrlVar.time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
     axis equal tight
     
 end
@@ -144,7 +166,7 @@ if ~isempty(strfind(plots,'-e-'))
     hold on ; 
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('e t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('e t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     
 end
 
@@ -155,7 +177,7 @@ if ~isempty(strfind(plots,'-ub-'))
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('ub t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('ub t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     
 end
 
@@ -167,7 +189,7 @@ if ~isempty(strfind(plots,'-log10(AGlen)-'))
     hold on ; 
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('log_{10}(AGlen) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('log_{10}(AGlen) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(yr^{-1} kPa^{-3})')
 %%
 end
@@ -180,7 +202,7 @@ if ~isempty(strfind(plots,'-log10(C)-'))
     hold on 
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
-    title(sprintf('log_{10}(C) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('log_{10}(C) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(m yr^{-1} kPa^{-3})')
 %%
 end
@@ -190,7 +212,7 @@ if ~isempty(strfind(plots,'-C-'))
     
     figure
     PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,C,CtrlVar);
-    title(sprintf('C t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('C t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     
 end
 
@@ -206,7 +228,7 @@ if ~isempty(strfind(plots,'-log10(SurfSpeed)-'))
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
     PlotMuaBoundary(CtrlVar,MUA,'b')
     
-    title(sprintf('log_{10}(Surface speed) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)')
+    title(sprintf('log_{10}(Surface speed) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)')
     title(colorbar,'log_{10}(m/yr)')
 end
 
@@ -218,7 +240,7 @@ if ~isempty(strfind(plots,'-log10(BasalSpeed)-'))
     PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(BasalSpeed),CtrlVar);
     hold on
     plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
-    title(sprintf('log_{10}(Basal speed) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'log_{10}(m/yr)')
+    title(sprintf('log_{10}(Basal speed) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'log_{10}(m/yr)')
 end
 
 
@@ -229,7 +251,7 @@ if ~isempty(strfind(plots,'-log10(DeformationalSpeed)-'))
     PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(DeformationalSpeed),CtrlVar);
     hold on
     plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
-    title(sprintf('log_{10}(Deformational speed) t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'log_{10}(m/yr)')
+    title(sprintf('log_{10}(Deformational speed) t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'log_{10}(m/yr)')
 end
 
 
@@ -240,7 +262,7 @@ if ~isempty(strfind(plots,'-ab-'))
     PlotMeshScalarVariable(CtrlVar,MUA,ab)
     hold on
     plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
-    title(sprintf('ab t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
+    title(sprintf('ab t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
     axis equal
 %%
 end
@@ -252,7 +274,7 @@ if ~isempty(strfind(plots,'-as-'))
     PlotMeshScalarVariable(CtrlVar,MUA,as)
     hold on
     plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'k','LineWidth',1);
-    title(sprintf('as t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
+    title(sprintf('as t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
     axis equal
 %%
 end
@@ -266,7 +288,7 @@ if ~isempty(strfind(plots,'-h-'))
     
     I=h<=CtrlVar.ThickMin;
     plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.r')
-    title(sprintf('h t=%-g ',time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
+    title(sprintf('h t=%-g ',CtrlVar.time)) ; xlabel('x (km)') ; ylabel('y (km)') ; title(colorbar,'(m/yr)')
     axis equal
 %%
 end

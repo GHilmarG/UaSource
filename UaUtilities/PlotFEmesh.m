@@ -1,4 +1,4 @@
-function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList)
+function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
 
 %
 % PlotFEmesh(coordinates,connectivity)
@@ -71,7 +71,7 @@ end
 if isempty(iCounter) ; iCounter=0 ; end
 
 if CtrlVar.PlotFEmeshAndSaveMesh
-     if iCounter==0 && exist('ResultsFiles','dir')~=7 ;
+     if iCounter==0 && exist('ResultsFiles','dir')~=7 
         mkdir('ResultsFiles') ;
     end
     iCounter=iCounter+1;
@@ -87,7 +87,7 @@ FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 %FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates);
 
 
-triplot(FEmeshCPT,'color',CtrlVar.MeshColor) ;
+triplot(FEmeshCPT,'color',CtrlVar.MeshColor,varargin{:}) ;
 hold on
 
 if nargin>3

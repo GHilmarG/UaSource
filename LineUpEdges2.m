@@ -122,7 +122,7 @@ while ~all(isnan(xa))
     % some edges is within a given tolerance, add those to Polygon and delete the edge.
     % If no such point is found, consider the possibility that there are some such edges close to the
     % other end of current Polygon and therefore flip the polygon once.
-    % If no such edges are found, after having flipped once, start a new polygon, and define the new starting point.
+    % If no such edges are found, after having flipped once, start a new polygon, and define a new starting point.
     %
     if dista< Tolerance || distb<Tolerance
         

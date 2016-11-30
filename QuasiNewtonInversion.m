@@ -31,11 +31,11 @@ end
 
 nIt=CtrlVar.MaxAdjointIterations;
 
-if  isempty(Info.JoptVector)
-    Info.JoptVector=zeros(nIt,7)+NaN; iJ=0;
+if  isempty(RunInfo.JoptVector)
+    RunInfo.JoptVector=zeros(nIt,7)+NaN; iJ=0;
 else
-    iJ=size(Info.JoptVector,1);
-    Info.JoptVector=[Info.JoptVector;zeros(nIt,7)+NaN];
+    iJ=size(RunInfo.JoptVector,1);
+    RunInfo.JoptVector=[RunInfo.JoptVector;zeros(nIt,7)+NaN];
 end
 
 if ~isempty(CtrlVar.AdjointInitialSearchStepSize) && ~isnan(CtrlVar.AdjointInitialSearchStepSize) && isfinite(CtrlVar.AdjointInitialSearchStepSize)
@@ -52,6 +52,9 @@ dJdC=F.C*0;
 
 F.C=-q*dJdC;
 ObjFunc=@(q,F) CalcMisfitFunction(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Priors,Meas);
+
+
+F=@(q,ub,vb,ud,vd) CalcMisfitFunction(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,AGlenEst,C0-q*dJdC,n,m,alpha,rho,rhow,g,GF,Priors,Meas);
 
 
 [J,ObjFuncTerms,F,l,dJdu,RunInfo]=ObjFunc(0,F);

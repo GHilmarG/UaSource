@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineGeometry</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-30"><meta name="DC.source" content="DefineGeometry.m"><style type="text/css">
+      --><title>DefineGeometry</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-29"><meta name="DC.source" content="DefineGeometry.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,9 +66,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 </pre><pre>Defines geometrical variables
-[s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)</pre><p>Outputs:</p><div><ul><li>s : upper glacier surface</li><li>b : lower glacier surface</li><li>S : ocean surface</li><li>B : bedrock</li><li>alpha : tilt of the coordinate system with respect to gravity.</li></ul></div><p>s, b, S and B are nodal variables.</p><p>FieldsToBeDefined    : a string indicating which output variables are required                        at the current stage of the run.</p><p>If for example this string is 'sbSB' , then s, b, S and B are required. If the string is 'B'  then only B is required. The other variables must be : defined as well but their values will not be used.</p><p>Note: Floating conditions are taken care of internally and s and b will be modified accordingly while conserving thickness.</p><p>Note: If for some reason s and b are defined so that s-b&lt;CtrlVar.ThickMin then s and b will be modified internally to ensure that min ice thickness is no less than CtrlVar.ThickMin</p><p>Note: In a transient run s and b are updated internally and do not need to be defined by the user (in this case FieldsToBeDefined='SB') except at the start of the run.</p><p>Note: After remeshing, variables are generally mapped internally from the old to the new mesh using some interpolation methods (Usually a natural neighbour scatterd interpolant). But in a diagnostic/static run, geometric variables (s,b,S,B) are always defined over the new mesh through a call to [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined).</p><pre class="codeinput">    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre><p>Outputs:</p><div><ul><li>s : upper glacier surface</li><li>b : lower glacier surface</li><li>S : ocean surface</li><li>B : bedrock</li><li>alpha : tilt of the coordinate system with respect to gravity.</li></ul></div><p>s, b, S and B are nodal variables.</p><p>FieldsToBeDefined    : a string indicating which output variables are required                        at the current stage of the run.</p><p>If for example this string is 'sbSB' , then s, b, S and B are required. If the string is 'B'  then only B is required. The other variables must be : defined as well but their values will not be used.</p><p>Note: Floating conditions are taken care of internally and s and b will be modified accordingly while conserving thickness.</p><p>Note: If for some reason s and b are defined so that s-b&lt;CtrlVar.ThickMin then s and b will be modified internally to ensure that min ice thickness is no less than CtrlVar.ThickMin</p><p>Note: In a transient run s and b are updated internally and do not need to be defined by the user (in this case FieldsToBeDefined='SB') except at the start of the run.</p><p>Note: After remeshing, variables are generally mapped internally from the old to the new mesh using some interpolation methods (Usually a natural neighbour scattered interpolant). But in a diagnostic/static run, geometric variables (s,b,S,B) are always defined over the new mesh through a call to [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined).</p><pre class="codeinput">    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
     alpha=0.01; <span class="comment">% tilt of the coordinate system with respect to gravity</span>
 
@@ -78,19 +78,19 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     Deltab=ampl_b*exp(-((x/sigma_bx).^2+(y/sigma_by).^2));
     Deltab=Deltab-mean(Deltab);
 
-    B=zeros(MUA.Nnodes,1) + Deltab;  <span class="comment">% Guassian bedrock</span>
+    B=zeros(MUA.Nnodes,1) + Deltab;  <span class="comment">% Gaussian bedrock</span>
     S=B*0-1e10;                      <span class="comment">% Put ocean surface so low that no sections of the glacier will be afloat</span>
     b=B;                             <span class="comment">% Set lower glacier surface elevation to that of bedrock</span>
     s=B*0+hmean;                     <span class="comment">% Upper glacier surface.</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 
-function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 
 %%
 %  Defines geometrical variables
-% [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined)
+% [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 %
 % Outputs:
 %
@@ -124,9 +124,9 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
 %
 % Note: After remeshing, variables are generally mapped internally from the old
 % to the new mesh using some interpolation methods (Usually a natural neighbour
-% scatterd interpolant). But in a diagnostic/static run, geometric variables
+% scattered interpolant). But in a diagnostic/static run, geometric variables
 % (s,b,S,B) are always defined over the new mesh through a call to
-% [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDefined).
+% [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined).
 %       
 %%
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
@@ -139,7 +139,7 @@ function [s,b,S,B,alpha]=DefineGeometry(Experiment,CtrlVar,MUA,time,FieldsToBeDe
     Deltab=ampl_b*exp(-((x/sigma_bx).^2+(y/sigma_by).^2));
     Deltab=Deltab-mean(Deltab);
     
-    B=zeros(MUA.Nnodes,1) + Deltab;  % Guassian bedrock
+    B=zeros(MUA.Nnodes,1) + Deltab;  % Gaussian bedrock
     S=B*0-1e10;                      % Put ocean surface so low that no sections of the glacier will be afloat
     b=B;                             % Set lower glacier surface elevation to that of bedrock
     s=B*0+hmean;                     % Upper glacier surface.

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineAGlenDistribution</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="DefineAGlenDistribution.m"><style type="text/css">
+      --><title>DefineAGlenDistribution</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-29"><meta name="DC.source" content="DefineAGlenDistribution.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,9 +66,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 </pre><pre>User input m-file to define A and n in the Glenn-Steinemann flow law
-[AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</pre><p>Usually A is defined on the nodes, but sometimes in an inverse run A might be defined as an element variable. The user makes this decision by setting CtrlVar.AGlenisElementBased to true or false in Ua2D_InitialUserInput</p><pre class="codeinput">warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default DefineAGlenDistribution'</span>)
+[UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</pre><p>Usually A is defined on the nodes, but sometimes in an inverse run A might be defined as an element variable. The user makes this decision by setting CtrlVar.AGlenisElementBased to true or false in Ua2D_InitialUserInput</p><pre class="codeinput">warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default DefineAGlenDistribution'</span>)
 
 
 n=3 ;
@@ -79,15 +79,15 @@ n=3 ;
     AGlen=3.0e-9+zeros(MUA.Nnodes,1) ; <span class="comment">% kPa year about -20 degrees Celcius</span>
 <span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 
 
-function [AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 
 %%
 %  User input m-file to define A and n in the Glenn-Steinemann flow law
-% [AGlen,n]=DefineAGlenDistribution(Experiment,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+% [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 %
 % Usually A is defined on the nodes, but sometimes in an inverse run A might be
 % defined as an element variable. The user makes this decision by setting

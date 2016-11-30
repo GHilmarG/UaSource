@@ -44,9 +44,6 @@ if ~isempty(I)
     OceanNodes=I(Ind);
     LakeNodes=I(~Ind);
     
-    % don't think this is needed
-    %I=GF.node(OceanNodes)>CtrlVar.GLthreshold; OceanNodes(I)=[];
-    %I=GF.node(LakeNodes)>CtrlVar.GLthreshold; LakeNodes(I)=[];
     
     if CtrlVar.doplots && CtrlVar.PlotOceanLakeNodes
         

@@ -62,11 +62,11 @@ xn=(Ax+Bx)/2; yn=(Ay+By)/2;
 
 
 if nargout> 4  % calculate normals for nodes
-    Nx=zeros(length(coordinates),1); Ny=zeros(length(coordinates),1);
+    Nx=zeros(length(coordinates),1); Ny=zeros(length(coordinates),1); % all nodes!
     Nx(Edges(:,1))=nx(:,1) ; Ny(Edges(:,1))=ny(:,1) ;
     
     
-    Nx(Edges(:,nod))=Nx(Edges(:,nod))+ nx(:,nSubEdges) ;
+    Nx(Edges(:,nod))=Nx(Edges(:,nod))+ nx(:,nSubEdges) ; % adding up normals
     Ny(Edges(:,nod))=Ny(Edges(:,nod))+ ny(:,nSubEdges) ;
     
     for I=2:nSubEdges

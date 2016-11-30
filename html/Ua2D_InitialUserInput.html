@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_InitialUserInput</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="Ua2D_InitialUserInput.m"><style type="text/css">
+      --><title>Ua2D_InitialUserInput</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-11-01"><meta name="DC.source" content="Ua2D_InitialUserInput.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,25 +66,27 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
-</pre><p>[Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)</p><p>Set the values of various fields of the run control variable CtrlVar as well as the time, time step, and the MeshBoundaryCoordinates</p><p>See also Ua2D_DefaultParameters.m</p><pre class="codeinput">    warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default Ua2D_InitialUserInput'</span>)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
+</pre><p>[UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)</p><p>Set the values of various fields of the run control variable CtrlVar as well as the time, time step, and the MeshBoundaryCoordinates</p><p>See also Ua2D_DefaultParameters.m</p><pre class="codeinput">    warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default Ua2D_InitialUserInput'</span>)
     warning(<span class="string">'off'</span>,<span class="string">'Ua:DefaultDefine'</span>)
-    Experiment=<span class="string">'DefaultRun'</span>;
+    UserVar.Experiment=<span class="string">'DefaultRun'</span>;
 
-     CtrlVar.doPrognostic=0 ;
+    CtrlVar.doPrognostic=0 ;
     CtrlVar.doDiagnostic=1  ;
     CtrlVar.doInverseStep=0;
     CtrlVar.Restart=0;
 
     CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    time=0 ; dt=1; CtrlVar.TotalNumberOfForwardRunSteps=1;
+    CtrlVar.time=0 ;
+    CtrlVar.dt=1;
+    CtrlVar.TotalNumberOfForwardRunSteps=1;
 
     CtrlVar.FlowApproximation=<span class="string">'hybrid'</span>;
 </pre><pre class="codeinput">    xd=200e3; xu=-200e3 ; yl=200e3 ; yr=-200e3;
     MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
     CtrlVar.GmshGeoFileAdditionalInputLines{1}=<span class="string">'Periodic Line {1,2} = {3,4};'</span>;  <span class="comment">% these lines are added to the gmsh .geo input file each time such a file is created</span>
     CtrlVar.OnlyMeshDomainAndThenStop=0;
-    <span class="comment">%CtrlVar.GmeshMeshingAlgorithm=8;  % see gmsh manual</span>
+    <span class="comment">%CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual</span>
     CtrlVar.TriNodes=6;   <span class="comment">% [3,6,10]</span>
     CtrlVar.MeshSize=200e3;
     CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;
@@ -106,10 +108,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     <span class="comment">%CtrlVar.RefineCriteria='thickness gradient';</span>
     CtrlVar.MaxNumberOfElements=2500;
 </pre><pre class="codeinput">    CtrlVar.LineSeachAllowedToUseExtrapolation=1;
-</pre><pre class="codeinput">    CtrlVar.CompareWithAnalyticalSolutions=0;
-    CtrlVar.CompareResultsWithPreviouslyObtainedResults=0;
-
-    CtrlVar.WriteRestartFile=1;
+</pre><pre class="codeinput">    CtrlVar.WriteRestartFile=1;
 
     CtrlVar.doplots=1;
     CtrlVar.doRemeshPlots=1;
@@ -120,12 +119,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     CtrlVar.TransientPlotDt=NaN;   <span class="comment">% model time interval between calls to `FE2dTransientPlots.m'</span>
     CtrlVar.InfoLevelNonLinIt=1;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 
-function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
 %%
-% [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+% [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
 % 
 % Set the values of various fields of the run control variable CtrlVar as well
 % as the time, time step, and the MeshBoundaryCoordinates
@@ -138,15 +137,17 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
 %%
     warning('Ua:DefaultDefine','Using default Ua2D_InitialUserInput')
     warning('off','Ua:DefaultDefine')
-    Experiment='DefaultRun';
+    UserVar.Experiment='DefaultRun';
    
-     CtrlVar.doPrognostic=0 ;
+    CtrlVar.doPrognostic=0 ;
     CtrlVar.doDiagnostic=1  ;
     CtrlVar.doInverseStep=0;
     CtrlVar.Restart=0;  
     
     CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    time=0 ; dt=1; CtrlVar.TotalNumberOfForwardRunSteps=1;
+    CtrlVar.time=0 ; 
+    CtrlVar.dt=1; 
+    CtrlVar.TotalNumberOfForwardRunSteps=1;
     
     CtrlVar.FlowApproximation='hybrid';
     
@@ -155,7 +156,7 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
     MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
     CtrlVar.GmshGeoFileAdditionalInputLines{1}='Periodic Line {1,2} = {3,4};';  % these lines are added to the gmsh .geo input file each time such a file is created
     CtrlVar.OnlyMeshDomainAndThenStop=0;
-    %CtrlVar.GmeshMeshingAlgorithm=8;  % see gmsh manual 
+    %CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual 
     CtrlVar.TriNodes=6;   % [3,6,10]
     CtrlVar.MeshSize=200e3;
     CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;
@@ -183,9 +184,6 @@ function [Experiment,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserIn
     CtrlVar.LineSeachAllowedToUseExtrapolation=1;
     
     %%
-
-    CtrlVar.CompareWithAnalyticalSolutions=0;
-    CtrlVar.CompareResultsWithPreviouslyObtainedResults=0;
     
     CtrlVar.WriteRestartFile=1;
     

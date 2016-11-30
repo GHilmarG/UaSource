@@ -323,8 +323,13 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 title('Relative error based on f factor ')
             end
             
+        case ''
+                
+           ErrorIndicatorUsefull=0;
+            
         otherwise
-            fprintf(CtrlVar.fidlog,CtrlVar.RefineCriteria{I},'s\n');
+            
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.RefineCriteria{I});
             error(' what case? ')
             
     end

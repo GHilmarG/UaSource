@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Generating FE meshes from with &Uacute;a</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-30"><meta name="DC.source" content="ExamplesOfMeshGeneration.m"><style type="text/css">
+      --><title>Generating FE meshes from with &Uacute;a</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-29"><meta name="DC.source" content="ExamplesOfMeshGeneration.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,28 +66,37 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1>Generating FE meshes from with &Uacute;a</h1><!--introduction--><p>Several examples of how to define meshes</p><p>Note that when using &Uacute;a, the call to genmesh2d is not needed as this call is done from within &Uacute;a Also the call CtrlVar=Ua2D_DefaultParameters() is not needed either.</p><p>To run individual examples you can use the matlab option of running code sections from within editor. See: 'doc run code sections' Just click on some part of the code using the mouse, the text will be highligted in yellow, then press ctrl ret</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example: A simple polygon</a></li><li><a href="#2">Example: periodic boundary conditions</a></li><li><a href="#3">Example: sinusoidal bed</a></li><li><a href="#4">Example: ice dome</a></li><li><a href="#5">Example:  house withouth a window</a></li><li><a href="#6">Example: A house with a window! :-)</a></li><li><a href="#7">Example: A house with a tree</a></li><li><a href="#8">Example: A house with windows and a tree :-)</a></li><li><a href="#9">Example: Mesh with several holes and islands</a></li><li><a href="#10">Example: Constrainted meshing with two joined meshes sharing the same boundary</a></li><li><a href="#11">Example: two separate meshes in contact</a></li><li><a href="#12">Example: Internal boundaries</a></li><li><a href="#13">Example: Two subdomains sharing a common boundary.</a></li><li><a href="#14">Example: Several different subdomains</a></li><li><a href="#15">Example: Meshing the Brunt Ice Shelf</a></li><li><a href="#17">Example: Meshing the Brunt Ice Shelf with an internal boundary and a `fill-in'</a></li><li><a href="#18">Example of running gmsh directly for a given input file</a></li></ul></div><h2>Example: A simple polygon<a name="1"></a></h2><p>mesh boundary coordinates should go clockwise around the domain (although if this is done incorrectly, &Uacute;a will automatically correct for this anyhow.)</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); <span class="comment">%</span>
+  </style></head><body><div class="content"><h1>Generating FE meshes from with &Uacute;a</h1><!--introduction--><p>Several examples of how to define meshes</p><p>Note that when using &Uacute;a, the call to genmesh2d is not needed as this call is done from within &Uacute;a Also the call CtrlVar=Ua2D_DefaultParameters() is not needed either.</p><p>To run individual examples you can use the matlab option of running code sections from within editor. See: 'doc run code sections' Just click on some part of the code using the mouse, the text will be highligted in yellow, then press ctrl ret</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Example: A simple polygon</a></li><li><a href="#2">Example: periodic boundary conditions</a></li><li><a href="#3">Example: sinusoidal bed</a></li><li><a href="#4">Example: ice dome</a></li><li><a href="#5">Example:  house without a window</a></li><li><a href="#6">Example: A house with a window! :-)</a></li><li><a href="#7">Example: A house with a tree</a></li><li><a href="#8">Example: A house with windows and a tree :-)</a></li><li><a href="#9">Example: Mesh with several holes and islands</a></li><li><a href="#10">Example: an elliptical hole/crack</a></li><li><a href="#11">Example: Constrainted meshing with two joined meshes sharing the same boundary</a></li><li><a href="#12">Example: two separate meshes in contact</a></li><li><a href="#13">Example: Internal boundaries</a></li><li><a href="#14">Example: Two subdomains sharing a common boundary.</a></li><li><a href="#15">Example: Several different subdomains</a></li><li><a href="#16">Example: Meshing the Brunt Ice Shelf</a></li><li><a href="#18">Example: Meshing the Brunt Ice Shelf with an internal boundary and a `fill-in'</a></li><li><a href="#19">Example of running gmsh directly for a given input file</a></li></ul></div><h2 id="1">Example: A simple polygon</h2><p>mesh boundary coordinates should go clockwise around the domain (although if this is done incorrectly, &Uacute;a will automatically correct for this anyhow.)</p><pre class="codeinput">UserVar=[];
+CtrlVar=Ua2D_DefaultParameters(); <span class="comment">%</span>
 <span class="comment">% Note; When creating this mesh using &Uacute;a, only the following</span>
 <span class="comment">% three lines are required in the Ua2D_InitialUserInput.m</span>
 CtrlVar.MeshSizeMax=0.1;
 CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 <span class="comment">% Now generate mesh (When using &Uacute;a this is done internally, no such call</span>
 <span class="comment">% then needed).</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+hold <span class="string">on</span>
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
   Number of integration points: nip=7 niph=7 
 Starting parallel pool (parpool) using the 'local' profile ... connected to 4 workers.
-</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_01.png" style="width:560px;height:420px;" alt=""> <h2>Example: periodic boundary conditions<a name="2"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+PlotGmshGeometryDefinition: gmsh input format 1 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_01.png" style="width:560px;height:420px;" alt=""> <h2 id="2">Example: periodic boundary conditions</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 <span class="comment">% When using &Uacute;a only the following lines are needed in the input file</span>
 <span class="comment">% Ua2D_InitialUserInput.m</span>
 L=5e3 ; H=1e3;
@@ -112,27 +121,34 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}=<span class="string">'Periodic Line {
 <span class="comment">% &Uacute;a this is all we need to do. But to see the resulting mesh we now</span>
 <span class="comment">% generate the mesh in the exact same way as &Uacute;a would do, i.e. through a call to</span>
 <span class="comment">% 'genmesh2d'.</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_02.png" style="width:560px;height:420px;" alt=""> <h2>Example: sinusoidal bed<a name="3"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+  PlotGmshGeometryDefinition: gmsh input format 1 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_02.png" style="width:560px;height:420px;" alt=""> <h2 id="3">Example: sinusoidal bed</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 xL=-20e3 ; xR=20e3 ; yB=0 ; yT=2e3;
 lambda=(xR-xL)/2; Ampl=1e3 ;
 CtrlVar.MeshSize=0.5e3;
 CtrlVar.MeshSizeMin=CtrlVar.MeshSize/5;
 CtrlVar.MeshSizeMax=5*CtrlVar.MeshSize;
 <span class="comment">%</span>
-CtrlVar.GmeshCharacteristicLengthExtendFromBoundary=1;
-CtrlVar.GmeshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
 
 xbed=xL:CtrlVar.MeshSize:xR;
 ybed=Ampl*sin(2*pi*xbed/lambda)+  yB;
@@ -147,24 +163,31 @@ CtrlVar.GmshGeoFileAdditionalInputLines{3}=<span class="string">'Physical Line(1
 CtrlVar.GmshGeoFileAdditionalInputLines{4}=<span class="string">'Physical Line(2) = {3};'</span>;
 CtrlVar.GmshGeoFileAdditionalInputLines{5}=[<span class="string">'Physical Line(3) = {4:'</span>,num2str(N),<span class="string">'};'</span>];
 CtrlVar.GmshGeoFileAdditionalInputLines{6}=<span class="string">'Physical Surface(1) = {1};'</span>;
-
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
 Warning: Negative determinant in all elements
    
  All elements are inside out. All elements therefore flipped. 
    No longer all elements inside out. 
    No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_03.png" style="width:560px;height:420px;" alt=""> <h2>Example: ice dome<a name="4"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+  PlotGmshGeometryDefinition: gmsh input format 1 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_03.png" style="width:560px;height:420px;" alt=""> <h2 id="4">Example: ice dome</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
 L=20e3; h0=250;
 xL=-L ; xR=L ; yB=0 ;  s0=3e3;
 
@@ -182,74 +205,84 @@ MeshBoundaryCoordinates=[xSurf(:) ySurf(:)];
 <span class="comment">% these lines are added to the gmsh .geo input file each time such a file is created</span>
 CtrlVar.GmshGeoFileAdditionalInputLines{1}=[<span class="string">'Physical Line(1) = {'</span>,num2str(N),<span class="string">'};'</span>];
 CtrlVar.GmshGeoFileAdditionalInputLines{2}=<span class="string">'Physical Surface(1) = {1};'</span>;
+UserVar=[];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_04.png" style="width:560px;height:420px;" alt=""> <h2>Example:  house withouth a window<a name="5"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_04.png" style="width:560px;height:420px;" alt=""> <h2 id="5">Example:  house without a window</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ] ;
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_05.png" style="width:560px;height:420px;" alt=""> <h2>Example: A house with a window! :-)<a name="6"></a></h2><p>when creating holes within a mesh, separate boundaries by NaN NaN</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_05.png" style="width:560px;height:420px;" alt=""> <h2 id="6">Example: A house with a window! :-)</h2><p>when creating holes within a mesh, separate boundaries by NaN NaN</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span class="keyword">...</span><span class="comment">       % Outer boundary (clockwise orientation)</span>
                NaN NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; <span class="keyword">...</span><span class="comment">         % inner boundary (anticlockwise orientation)</span>
                NaN NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ];         <span class="comment">% another innner boundary (anticlockwise orientation)</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_06.png" style="width:560px;height:420px;" alt=""> <h2>Example: A house with a tree<a name="7"></a></h2><p>When generating separate meshed domains, label each domain with a number. The label is the specified by putting `Label NaN' ahead of the corresponding boundary</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_06.png" style="width:560px;height:420px;" alt=""> <h2 id="7">Example: A house with a tree</h2><p>When generating separate meshed domains, label each domain with a number. The label is the specified by putting `Label NaN' ahead of the corresponding boundary</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span class="keyword">...</span><span class="comment">                                                     % boundary of mesh 1</span>
                          2 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];       <span class="comment">% boundary of mesh 2</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_07.png" style="width:560px;height:420px;" alt=""> <h2>Example: A house with windows and a tree :-)<a name="8"></a></h2><p>When generating several separate meshed domains with holes, make sure to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_07.png" style="width:560px;height:420px;" alt=""> <h2 id="8">Example: A house with windows and a tree :-)</h2><p>When generating several separate meshed domains with holes, make sure to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span class="keyword">...</span><span class="comment">      % outer boundary of mesh 1 (clockwise)</span>
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; <span class="keyword">...</span><span class="comment">                              % a hole within mesh 1     (anticlockwise)</span>
     1 NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ; <span class="keyword">...</span><span class="comment">                          % a further hole within mesh 1 (anticlockwise)</span>
     3 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];   <span class="comment">% another mesh (clockwise). mesh labels do not need to be in sequential order</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_08.png" style="width:560px;height:420px;" alt=""> <h2>Example: Mesh with several holes and islands<a name="9"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_08.png" style="width:560px;height:420px;" alt=""> <h2 id="9">Example: Mesh with several holes and islands</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
 MeshBoundaryCoordinates=<span class="keyword">...</span>
     [1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span class="keyword">...</span><span class="comment">     % outer boundary of mesh 1</span>
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; <span class="keyword">...</span><span class="comment">         % inner boundary of mesh 1</span>
@@ -260,27 +293,76 @@ MeshBoundaryCoordinates=<span class="keyword">...</span>
     50 NaN ; -2.6 -0.6 ; -2.6 0.3 ; -2.0 0.3 ; -2.0 -0.6  ; <span class="keyword">...</span><span class="comment">   % outer boundary of mesh 50</span>
     50 NaN ; -2.5 -0.5 ; -2.1 -0.5 ; -2.1 0.1 ; -2.5 0.1 ];       <span class="comment">% inner boundary of mesh 50</span>
 
-CtrlVar.GmeshMeshingAlgorithm=8;    <span class="comment">% see gmsh manual</span>
+CtrlVar.GmshMeshingAlgorithm=8;    <span class="comment">% see gmsh manual</span>
 
-
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 <span class="comment">% also calculate and plot normals</span>
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),<span class="keyword">...</span>
      Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),[]);
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
+
 drawnow
 
  <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 10-node.
  No inside-out elements. 
-  QuiverColorGHG: uvPlotScale=15.000000 
-</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_09.png" style="width:560px;height:420px;" alt=""> <h2>Example: Constrainted meshing with two joined meshes sharing the same boundary<a name="10"></a></h2><p>Since here the same line belongs to more then one mesh we need to specify the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  Number of integration points: nip=12 niph=12 
+QuiverColorGHG: uvPlotScale=15.000000 
+PlotGmshGeometryDefinition: gmsh input format 1 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_09.png" style="width:560px;height:420px;" alt=""> <h2 id="10">Example: an elliptical hole/crack</h2><p>when creating holes within a mesh, separate boundaries by NaN NaN</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshSizeMax=1e3;
+CtrlVar.MeshSizeMin=0.1e3;
+
+a=0.1e3; <span class="comment">% horizontal radius</span>
+b=5e3; <span class="comment">% vertical radius</span>
+x0=0; <span class="comment">% x0,y0 ellipse centre coordinates</span>
+y0=0;
+t=linspace(-pi,pi,200);  t(end)=[];
+xe=x0+a*cos(t);
+ye=y0+b*sin(t);
+
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+
+
+MeshBoundaryCoordinates=<span class="keyword">...</span>
+    [-10e3 -10e3 ; <span class="keyword">...</span>
+    -10e3 10e3 ; <span class="keyword">...</span>
+    10e3 10e3 ; <span class="keyword">...</span>
+    10e3 -10e3 ; <span class="keyword">...</span>
+    NaN  NaN ; <span class="keyword">...</span>
+     xe(:) ye(:)] ;
+
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
+figure ;
+PlotFEmesh(MUA.coordinates,MUA.connectivity)
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
+drawnow
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
+Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
+ No inside-out elements. 
+  Number of integration points: nip=7 niph=7 
+PlotGmshGeometryDefinition: gmsh input format 1 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_10.png" style="width:560px;height:420px;" alt=""> <h2 id="11">Example: Constrainted meshing with two joined meshes sharing the same boundary</h2><p>Since here the same line belongs to more then one mesh we need to specify the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span class="keyword">...</span><span class="comment">       % Outer boundary (clockwise orientation)</span>
                          1 NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; <span class="keyword">...</span><span class="comment">         % inner boundary (anticlockwise orientation)</span>
                          1 NaN ; -0.1 -0.5 ; 0 0.3 ; -0.95 0 ; -0.8 -0.9 ];         <span class="comment">% another innner boundary (anticlockwise orientation)</span>
@@ -288,54 +370,59 @@ MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; <span c
 CtrlVar.GmshPlaneSurface{1}=[1 2 3]; <span class="comment">% mesh 1 is defined by boundaries 1, 2 and 3</span>
 CtrlVar.GmshPlaneSurface{2}=[-2];  <span class="comment">% mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering</span>
 CtrlVar.GmshPlaneSurface{3}=[-3];  <span class="comment">% mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),<span class="string">'-or'</span>,<span class="string">'LineWidth'</span>,2)
 
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_10.png" style="width:560px;height:420px;" alt=""> <h2>Example: two separate meshes in contact<a name="11"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_11.png" style="width:560px;height:420px;" alt=""> <h2 id="12">Example: two separate meshes in contact</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; <span class="keyword">...</span>
                          2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),<span class="string">'-or'</span>,<span class="string">'LineWidth'</span>,2)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_11.png" style="width:560px;height:420px;" alt=""> <h2>Example: Internal boundaries<a name="12"></a></h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_12.png" style="width:560px;height:420px;" alt=""> <h2 id="13">Example: Internal boundaries</h2><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   <span class="keyword">...</span>
                          2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),<span class="string">'-or'</span>,<span class="string">'LineWidth'</span>,2)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_12.png" style="width:560px;height:420px;" alt=""> <h2>Example: Two subdomains sharing a common boundary.<a name="13"></a></h2><p>This example uses GmshInputFormat 2.</p><p>Gmsh input format 2 is quite close to the gmsh input format itself and more flexible than the default input format 1, but also more difficult to use.</p><p>The gmsh input format 2 does not use `MeshBoundaryCoordinates' at all.</p><p>Using gmsh input format 2 allows constraint meshing. The computational domain can be split up into several subdomains. each with their own boundaries. One can create internal boundaries within a domain, and subdomains sharing some common boundaries.</p><p>All inputs are defined as fields to the CtrlVar.</p><p>The basic idea is to define points, then to specify lines in terms of those points, loops in terms of those lines, and finally plane surfaces in terms of the loops.</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
-
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_13.png" style="width:560px;height:420px;" alt=""> <h2 id="14">Example: Two subdomains sharing a common boundary.</h2><p>This example uses GmshInputFormat 2.</p><p>Gmsh input format 2 is quite close to the gmsh input format itself and more flexible than the default input format 1, but also more difficult to use.</p><p>The gmsh input format 2 does not use `MeshBoundaryCoordinates' at all.</p><p>Using gmsh input format 2 allows constraint meshing. The computational domain can be split up into several subdomains. each with their own boundaries. One can create internal boundaries within a domain, and subdomains sharing some common boundaries.</p><p>All inputs are defined as fields to the CtrlVar.</p><p>The basic idea is to define points, then to specify lines in terms of those points, loops in terms of those lines, and finally plane surfaces in terms of the loops.</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 CtrlVar.GmshInputFormat=2; <span class="comment">% using input format 2</span>
 CtrlVar.MeshSizeMax=0.1;
 CtrlVar.MeshSizeMin=0.1;
@@ -346,7 +433,7 @@ CtrlVar.Gmsh.Points=[0 0 ;<span class="keyword">...</span><span class="comment">
                      0 1 ;   <span class="keyword">...</span><span class="comment"> % the first point in point 1, etc.</span>
                      1 1 ;  <span class="keyword">...</span>
                      1 0 ; <span class="keyword">...</span>
-                     -1 0 ; <span class="keyword">...</span><span class="comment">   % this is point nr 5</span>
+                     -1 0 ; <span class="keyword">...</span><span class="comment">   % this is point nr 6</span>
                      -1 0.5];     <span class="comment">% and this point nr 7</span>
 
 CtrlVar.Gmsh.Lines{1}=[1 , 2];  <span class="comment">% define gmsh lines using the point labels</span>
@@ -356,24 +443,28 @@ CtrlVar.Gmsh.Lines{4}=[ 1 ;  6 ; 7 ; 2 ];
 
 CtrlVar.Gmsh.Loops{1}=[1 ; 2 ; 3 ]; <span class="comment">% now define loops</span>
 CtrlVar.Gmsh.Loops{2}=[4 ; -1];     <span class="comment">% all loops must be closed!</span>
+                                    <span class="comment">% (negative sign reverses the line direction.)</span>
 
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1]; <span class="comment">% finally define the surfaces</span>
 CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 
 MeshBoundaryCoordinates=[]; <span class="comment">% When CtrlVar.GmshInputFormat=2, 'MeshBoundaryCoordinates' are not used</span>
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 hold <span class="string">on</span> ; PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
+Changing element type from 3-node to 6-node.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_13.png" style="width:560px;height:420px;" alt=""> <h2>Example: Several different subdomains<a name="14"></a></h2><p>This example uses gmsh input format 2</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+  PlotGmshGeometryDefinition: gmsh input format 2 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_14.png" style="width:560px;height:420px;" alt=""> <h2 id="15">Example: Several different subdomains</h2><p>This example uses gmsh input format 2</p><pre class="codeinput">CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 MeshBoundaryCoordinates=[];
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3;
@@ -413,7 +504,7 @@ CtrlVar.Gmsh.PlaneSurfaces{3} = [4];
 CtrlVar.Gmsh.PlaneSurfaces{4} = [5];
 
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 
 <span class="comment">% plotting mesh</span>
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
@@ -422,15 +513,17 @@ PlotGmshGeometryDefinition(CtrlVar);
 
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_14.png" style="width:560px;height:420px;" alt=""> <h2>Example: Meshing the Brunt Ice Shelf<a name="15"></a></h2><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
-
+  Number of integration points: nip=3 niph=3 
+PlotGmshGeometryDefinition: gmsh input format 2 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_15.png" style="width:560px;height:420px;" alt=""> <h2 id="16">Example: Meshing the Brunt Ice Shelf</h2><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
+UserVar=[];
 I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2)));
 
 i1a=I(1)+1 ; i1b=I(2)-1;
@@ -449,21 +542,21 @@ CtrlVar.Gmsh.Points=MeshBoundaryCoordinates(i1a:i1b,:);
 CtrlVar.Gmsh.Loops{1}=[1];
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1];
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 
 
 <span class="comment">% plotting mesh</span>
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_15.png" style="width:560px;height:420px;" alt=""> <p>Example: Meshing the Brunt Ice Shelf with an internal boundary</p><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
+  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_16.png" style="width:560px;height:420px;" alt=""> <p>Example: Meshing the Brunt Ice Shelf with an internal boundary</p><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
 CtrlVar.Gmsh.Points=[MeshBoundaryCoordinates(i1a:i1b,:); MeshBoundaryCoordinates(i2a:i2b,:) ];
 l1a=1 ; l1b=l1a+i1b-i1a;
 l2a=l1b+1 ; l2b=l2a+i2b-i2a;
@@ -474,8 +567,9 @@ CtrlVar.Gmsh.Loops{2}=[2];
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1,-2];
 CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 
+UserVar=[];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 
 <span class="comment">% plotting mesh</span>
@@ -484,21 +578,22 @@ figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 hold <span class="string">on</span> ; PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_16.png" style="width:560px;height:420px;" alt=""> <h2>Example: Meshing the Brunt Ice Shelf with an internal boundary and a `fill-in'<a name="17"></a></h2><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
+  PlotGmshGeometryDefinition: gmsh input format 2 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_17.png" style="width:560px;height:420px;" alt=""> <h2 id="18">Example: Meshing the Brunt Ice Shelf with an internal boundary and a `fill-in'</h2><pre class="codeinput">load <span class="string">BruntMeshBoundaryCoordinates.mat</span>
 
 I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2)));
 
 i1a=I(1)+1 ; i1b=I(2)-1;
 i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
 
-
+UserVar=[];
 CtrlVar=Ua2D_DefaultParameters();
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=5e3;
@@ -553,7 +648,7 @@ CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 CtrlVar.Gmsh.PlaneSurfaces{3} = [3];
 
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 
 <span class="comment">% plotting mesh</span>
@@ -562,26 +657,28 @@ figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 hold <span class="string">on</span> ; PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 <span class="comment">%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end</span>
-</pre><pre class="codeoutput"> Creating an input file for gmesh : GmeshFile.geo 
-Calling gmesh with GmeshFile.geo as a geo input file, and creating GmeshFile.msh output file 
-The gmesh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 1  
-Loading GmeshFile.msh 
- Reading GmeshFile.msh.  
+</pre><pre class="codeoutput"> Creating an input file for gmsh : GmshFile.geo 
+Calling gmsh with GmshFile.geo as a geo input file, and creating GmshFile.msh output file 
+The gmsh call is:  C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 1  
+Loading GmshFile.msh 
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
  No inside-out elements. 
-  </pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_17.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_18.png" style="width:560px;height:420px;" alt=""> <h2>Example of running gmsh directly for a given input file<a name="18"></a></h2><pre class="codeinput">status=system([getenv(<span class="string">'GmeshHomeDirectory'</span>),<span class="string">'\gmsh.exe GmeshFile.geo -2 -v 5'</span>]);
-Gmesh=load_gmshGHG(<span class="string">'GmeshFile.msh'</span>); <span class="comment">% the .msh is a gmsh output file. This file must have be generated previously</span>
-TRI=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
-xy=Gmesh.POS(1:Gmesh.nbNod,1:2);
+  PlotGmshGeometryDefinition: gmsh input format 2 
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_18.png" style="width:560px;height:420px;" alt=""> <img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_19.png" style="width:560px;height:420px;" alt=""> <h2 id="19">Example of running gmsh directly for a given input file</h2><pre class="codeinput">status=system([getenv(<span class="string">'GmshHomeDirectory'</span>),<span class="string">'\gmsh.exe GmshFile.geo -2 -v 5'</span>]);
+Gmsh=load_gmshGHG(<span class="string">'GmshFile.msh'</span>); <span class="comment">% the .msh is a gmsh output file. This file must have be generated previously</span>
+TRI=Gmsh.TRIANGLES(1:Gmsh.nbTriangles,1:3);
+xy=Gmsh.POS(1:Gmsh.nbNod,1:2);
 figure
 triplot(TRI,xy(:,1),xy(:,2)) ; axis <span class="string">equal</span>
 drawnow
 <span class="comment">%hold on</span>
 <span class="comment">%plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)</span>
-</pre><pre class="codeoutput">Info    : Running 'C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows\gmsh.exe GmeshFile.geo -2 -v 5' [Gmsh 2.12.0, 1 node, max. 1 thread]
-Info    : Started on Mon May 30 18:45:09 2016
-Info    : Reading 'GmeshFile.geo'...
-Info    : Done reading 'GmeshFile.geo'
+</pre><pre class="codeoutput">Info    : Running 'C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.13.1-Windows\gmsh.exe GmshFile.geo -2 -v 5' [Gmsh 2.13.1, 1 node, max. 1 thread]
+Info    : Started on Sat Oct 29 16:06:10 2016
+Info    : Reading 'GmshFile.geo'...
+Info    : Done reading 'GmshFile.geo'
+Info    : Finalized high order topology of periodic connections
 Info    : Meshing 1D...
 Info    : Meshing curve 1 (Line)
 Info    : Meshing curve 2 (Line)
@@ -1575,19 +1672,19 @@ Info    : Meshing curve 989 (Line)
 Info    : Meshing curve 990 (Line)
 Info    : Meshing curve 991 (Line)
 Info    : Meshing curve 992 (Line)
-Info    : Done meshing 1D (0.359375 s)
+Info    : Done meshing 1D (0.015625 s)
 Info    : Meshing 2D...
 Info    : Meshing surface 1 (Plane, MeshAdapt)
 Info    : Meshing surface 2 (Plane, MeshAdapt)
 Info    : Meshing surface 3 (Plane, MeshAdapt)
-Info    : Done meshing 2D (6.08216 s)
+Info    : Done meshing 2D (1.56318 s)
 Info    : 6642 vertices 14261 elements
-Info    : Writing 'GmeshFile.msh'...
-Info    : Done writing 'GmeshFile.msh'
-Info    : Stopped on Mon May 30 18:45:19 2016
- Reading GmeshFile.msh.  
+Info    : Writing 'GmshFile.msh'...
+Info    : Done writing 'GmshFile.msh'
+Info    : Stopped on Sat Oct 29 16:06:15 2016
+ Reading GmshFile.msh.  
 Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
-</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_19.png" style="width:560px;height:420px;" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><img vspace="5" hspace="5" src="ExamplesOfMeshGeneration_20.png" style="width:560px;height:420px;" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Generating FE meshes from with Úa
 %
@@ -1604,20 +1701,27 @@ Mesh Type : 2.2 0 8 Reading nodes done.  Reading elements done.
 % mesh boundary coordinates should go clockwise around the domain
 % (although if this is done incorrectly, Úa will automatically correct for this anyhow.)
 %
+UserVar=[];
 CtrlVar=Ua2D_DefaultParameters(); %
 % Note; When creating this mesh using Úa, only the following 
 % three lines are required in the Ua2D_InitialUserInput.m
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 % Now generate mesh (When using Úa this is done internally, no such call
 % then needed).
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+hold on 
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 % When using Úa only the following lines are needed in the input file
 % Ua2D_InitialUserInput.m
 L=5e3 ; H=1e3;
@@ -1642,8 +1746,12 @@ CtrlVar.GmshGeoFileAdditionalInputLines{6}='Periodic Line {1,2} = {3,4};';
 % Úa this is all we need to do. But to see the resulting mesh we now
 % generate the mesh in the exact same way as Úa would do, i.e. through a call to
 % 'genmesh2d'.
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
@@ -1651,14 +1759,15 @@ drawnow
 %% Example: sinusoidal bed
 
 CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 xL=-20e3 ; xR=20e3 ; yB=0 ; yT=2e3;
 lambda=(xR-xL)/2; Ampl=1e3 ;
 CtrlVar.MeshSize=0.5e3;
 CtrlVar.MeshSizeMin=CtrlVar.MeshSize/5;
 CtrlVar.MeshSizeMax=5*CtrlVar.MeshSize;
 % 
-CtrlVar.GmeshCharacteristicLengthExtendFromBoundary=1;
-CtrlVar.GmeshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
 
 xbed=xL:CtrlVar.MeshSize:xR;
 ybed=Ampl*sin(2*pi*xbed/lambda)+  yB;
@@ -1673,9 +1782,14 @@ CtrlVar.GmshGeoFileAdditionalInputLines{3}='Physical Line(1) = {2};';
 CtrlVar.GmshGeoFileAdditionalInputLines{4}='Physical Line(2) = {3};';  
 CtrlVar.GmshGeoFileAdditionalInputLines{5}=['Physical Line(3) = {4:',num2str(N),'};'];  
 CtrlVar.GmshGeoFileAdditionalInputLines{6}='Physical Surface(1) = {1};';  
-
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+
+
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
@@ -1700,16 +1814,18 @@ MeshBoundaryCoordinates=[xSurf(:) ySurf(:)];
 % these lines are added to the gmsh .geo input file each time such a file is created
 CtrlVar.GmshGeoFileAdditionalInputLines{1}=['Physical Line(1) = {',num2str(N),'};'];  
 CtrlVar.GmshGeoFileAdditionalInputLines{2}='Physical Surface(1) = {1};';  
+UserVar=[];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
-%% Example:  house withouth a window
+%% Example:  house without a window
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ] ;
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: A house with a window! :-)
@@ -1720,17 +1836,19 @@ CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
                NaN NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
                NaN NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ];         % another innner boundary (anticlockwise orientation)
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];           
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: A house with a tree
 %
 % When generating separate meshed domains, label each domain with a number.
 % The label is the specified by putting `Label NaN' ahead of the corresponding boundary
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; 
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...                                                     % boundary of mesh 1
                          2 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];       % boundary of mesh 2
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
@@ -1738,11 +1856,12 @@ drawnow
 % When generating several separate meshed domains with holes, make sure
 % to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...      % outer boundary of mesh 1 (clockwise)
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...                              % a hole within mesh 1     (anticlockwise)
     1 NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ; ...                          % a further hole within mesh 1 (anticlockwise)
     3 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];   % another mesh (clockwise). mesh labels do not need to be in sequential order
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: Mesh with several holes and islands
@@ -1757,25 +1876,66 @@ MeshBoundaryCoordinates=...
     50 NaN ; -2.6 -0.6 ; -2.6 0.3 ; -2.0 0.3 ; -2.0 -0.6  ; ...   % outer boundary of mesh 50
     50 NaN ; -2.5 -0.5 ; -2.1 -0.5 ; -2.1 0.1 ; -2.5 0.1 ];       % inner boundary of mesh 50
 
-CtrlVar.GmeshMeshingAlgorithm=8;    % see gmsh manual
+CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 
-
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+UserVar=[];
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 % also calculate and plot normals
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
      Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),[]);
+ 
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
+ 
 drawnow
 
  %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
+ 
+%% Example: an elliptical hole/crack
+%
+% when creating holes within a mesh, separate boundaries by NaN NaN
+%
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.MeshSizeMax=1e3; 
+CtrlVar.MeshSizeMin=0.1e3;
+
+a=0.1e3; % horizontal radius
+b=5e3; % vertical radius
+x0=0; % x0,y0 ellipse centre coordinates
+y0=0;
+t=linspace(-pi,pi,200);  t(end)=[];
+xe=x0+a*cos(t);
+ye=y0+b*sin(t);
+
+CtrlVar.GmshCharacteristicLengthFromCurvature = 1 ;
+CtrlVar.GmshCharacteristicLengthExtendFromBoundary=1;
+
+
+MeshBoundaryCoordinates=...
+    [-10e3 -10e3 ; ...
+    -10e3 10e3 ; ...
+    10e3 10e3 ; ...
+    10e3 -10e3 ; ...
+    NaN  NaN ; ...
+     xe(:) ye(:)] ;
+
+UserVar=[];           
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
+figure ;  
+PlotFEmesh(MUA.coordinates,MUA.connectivity)
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+GmshPointsInLoop=PlotGmshGeometryDefinition(CtrlVar);
+drawnow
 %% Example: Constrainted meshing with two joined meshes sharing the same boundary
 %
 % Since here the same line belongs to more then one mesh we need to specify
 % the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface
 
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
                          1 NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
                          1 NaN ; -0.1 -0.5 ; 0 0.3 ; -0.95 0 ; -0.8 -0.9 ];         % another innner boundary (anticlockwise orientation)
@@ -1783,7 +1943,7 @@ MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...    
 CtrlVar.GmshPlaneSurface{1}=[1 2 3]; % mesh 1 is defined by boundaries 1, 2 and 3
 CtrlVar.GmshPlaneSurface{2}=[-2];  % mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering
 CtrlVar.GmshPlaneSurface{3}=[-3];  % mesh 2 is defined by boundary 2, make sure to use a negative sign to indicate a reverse ordering
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
 
@@ -1794,10 +1954,11 @@ drawnow
 
 
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; ...      
                          2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
 drawnow
@@ -1807,10 +1968,11 @@ drawnow
 
 
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
+UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
                          2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 
 plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
@@ -1838,7 +2000,7 @@ drawnow
 %
 %
 CtrlVar=Ua2D_DefaultParameters(); 
-
+UserVar=[];
 CtrlVar.GmshInputFormat=2; % using input format 2
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
@@ -1849,7 +2011,7 @@ CtrlVar.Gmsh.Points=[0 0 ;...    % now define a few gmsh points
                      0 1 ;   ... % the first point in point 1, etc. 
                      1 1 ;  ...
                      1 0 ; ... 
-                     -1 0 ; ...   % this is point nr 5
+                     -1 0 ; ...   % this is point nr 6
                      -1 0.5];     % and this point nr 7
 
 CtrlVar.Gmsh.Lines{1}=[1 , 2];  % define gmsh lines using the point labels
@@ -1859,12 +2021,13 @@ CtrlVar.Gmsh.Lines{4}=[ 1 ;  6 ; 7 ; 2 ];
 
 CtrlVar.Gmsh.Loops{1}=[1 ; 2 ; 3 ]; % now define loops
 CtrlVar.Gmsh.Loops{2}=[4 ; -1];     % all loops must be closed!
+                                    % (negative sign reverses the line direction.)
 
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1]; % finally define the surfaces 
 CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 
 MeshBoundaryCoordinates=[]; % When CtrlVar.GmshInputFormat=2, 'MeshBoundaryCoordinates' are not used
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 hold on ; PlotGmshGeometryDefinition(CtrlVar);
 drawnow
@@ -1874,6 +2037,7 @@ drawnow
 % This example uses gmsh input format 2
 %
 CtrlVar=Ua2D_DefaultParameters(); 
+UserVar=[];
 MeshBoundaryCoordinates=[];
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3;
@@ -1913,7 +2077,7 @@ CtrlVar.Gmsh.PlaneSurfaces{3} = [4];
 CtrlVar.Gmsh.PlaneSurfaces{4} = [5];
 
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 
 % plotting mesh
 figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
@@ -1927,7 +2091,7 @@ drawnow
 %
 
 load BruntMeshBoundaryCoordinates.mat
-
+UserVar=[];
 I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2)));
 
 i1a=I(1)+1 ; i1b=I(2)-1;  
@@ -1946,7 +2110,7 @@ CtrlVar.Gmsh.Points=MeshBoundaryCoordinates(i1a:i1b,:);
 CtrlVar.Gmsh.Loops{1}=[1];
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1];
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 
 
 % plotting mesh
@@ -1966,8 +2130,9 @@ CtrlVar.Gmsh.Loops{2}=[2];
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1,-2];
 CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 
+UserVar=[];
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 
 % plotting mesh
@@ -1985,7 +2150,7 @@ I=find(isnan(MeshBoundaryCoordinates(:,1)) | isnan(MeshBoundaryCoordinates(:,2))
 i1a=I(1)+1 ; i1b=I(2)-1;  
 i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
 
-
+UserVar=[];
 CtrlVar=Ua2D_DefaultParameters(); 
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=5e3; 
@@ -2040,7 +2205,7 @@ CtrlVar.Gmsh.PlaneSurfaces{2} = [2];
 CtrlVar.Gmsh.PlaneSurfaces{3} = [3];
 
 
-MUA=genmesh2d(CtrlVar,MeshBoundaryCoordinates); 
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); 
 CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 
 % plotting mesh
@@ -2051,10 +2216,10 @@ drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example of running gmsh directly for a given input file
 
-status=system([getenv('GmeshHomeDirectory'),'\gmsh.exe GmeshFile.geo -2 -v 5']);
-Gmesh=load_gmshGHG('GmeshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
-TRI=Gmesh.TRIANGLES(1:Gmesh.nbTriangles,1:3);
-xy=Gmesh.POS(1:Gmesh.nbNod,1:2);
+status=system([getenv('GmshHomeDirectory'),'\gmsh.exe GmshFile.geo -2 -v 5']);
+Gmsh=load_gmshGHG('GmshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
+TRI=Gmsh.TRIANGLES(1:Gmsh.nbTriangles,1:3);
+xy=Gmsh.POS(1:Gmsh.nbNod,1:2);
 figure
 triplot(TRI,xy(:,1),xy(:,2)) ; axis equal
 drawnow

@@ -184,8 +184,8 @@ for Iint=1:MUA.nip
     
     
     if CtrlVar.AGlenisElementBased
-        AGlenint=AGlennod;
-        nint=nnod;
+        AGlenint=F.AGlen;
+        nint=F.n;
     else
         AGlenint=AGlennod*fun;
         AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;

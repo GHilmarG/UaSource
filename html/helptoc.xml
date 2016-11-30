@@ -11,6 +11,7 @@
             <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
             <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
             <tocitem target="DefineGeometry.html">Define geometry </tocitem>
+            <tocitem target="DefineDensities.html">Define densities </tocitem>
             <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>
             <tocitem target="DefineStartVelValues.html">Define start velocity values </tocitem>
             <tocitem target="DefineDesiredEleSize.html">Define desired element sizes </tocitem>
@@ -35,6 +36,7 @@
                 <tocitem target="ProjectFintOntoNodes.html">Project integration-point values onto nodes.</tocitem>
                 <tocitem target="GLgeometry.html">GLgeometry</tocitem>
                 <tocitem target="EleBasedGL.html">EleBasedGL</tocitem>
+                <tocitem target="IceSheetIceShelves.html">IceSheetIceShelves</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

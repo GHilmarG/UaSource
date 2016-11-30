@@ -13,6 +13,7 @@
 % mesh boundary coordinates should go clockwise around the domain
 % (although if this is done incorrectly, Úa will automatically correct for this anyhow.)
 %
+UserVar=[];
 CtrlVar=Ua2D_DefaultParameters(); %
 % Note; When creating this mesh using Úa, only the following 
 % three lines are required in the Ua2D_InitialUserInput.m
@@ -32,6 +33,7 @@ drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();
+UserVar=[];
 % When using Úa only the following lines are needed in the input file
 % Ua2D_InitialUserInput.m
 L=5e3 ; H=1e3;
@@ -321,7 +323,7 @@ CtrlVar.Gmsh.Points=[0 0 ;...    % now define a few gmsh points
                      0 1 ;   ... % the first point in point 1, etc. 
                      1 1 ;  ...
                      1 0 ; ... 
-                     -1 0 ; ...   % this is point nr 5
+                     -1 0 ; ...   % this is point nr 6
                      -1 0.5];     % and this point nr 7
 
 CtrlVar.Gmsh.Lines{1}=[1 , 2];  % define gmsh lines using the point labels
@@ -331,6 +333,7 @@ CtrlVar.Gmsh.Lines{4}=[ 1 ;  6 ; 7 ; 2 ];
 
 CtrlVar.Gmsh.Loops{1}=[1 ; 2 ; 3 ]; % now define loops
 CtrlVar.Gmsh.Loops{2}=[4 ; -1];     % all loops must be closed!
+                                    % (negative sign reverses the line direction.)
 
 CtrlVar.Gmsh.PlaneSurfaces{1} = [1]; % finally define the surfaces 
 CtrlVar.Gmsh.PlaneSurfaces{2} = [2];

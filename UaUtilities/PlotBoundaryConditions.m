@@ -24,8 +24,11 @@ if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproxima
     
     if ~isempty(BCs.ubFixedNode)
         
+        % I want the arrows to point towards the nodes and be outside of the model
+        % domain. Hence I check what the nodal normal is.
         xfixed=x(BCs.ubFixedNode); yfixed=y(BCs.ubFixedNode);
         xNorm=Nx(BCs.ubFixedNode)./abs(Nx(BCs.ubFixedNode)); 
+        xNorm(isnan(xNorm))=1; % if the normal is exactly at 90 degrees to the x-direction then Nx will be zero and I get NaN. In this case just set it to either +1 or -1.
         yNorm=xfixed*0;
         ghg_arrow(xfixed,yfixed,xNorm,yNorm,velscale,headscale,sharp,head,col,lw,io);
 
@@ -36,6 +39,7 @@ if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproxima
         xfixed=x(BCs.vbFixedNode); yfixed=y(BCs.vbFixedNode);
         xNorm=xfixed*0;
         yNorm=Ny(BCs.vbFixedNode)./abs(Ny(BCs.vbFixedNode)); 
+        yNorm(isnan(yNorm))=1;
         ghg_arrow(xfixed,yfixed,xNorm,yNorm,velscale,headscale,sharp,head,col,lw,io);
         %ghg_arrow(xfixed,yfixed,xfixed*0,yfixed*0+1,velscale,headscale,sharp,head,col,lw,io);
 

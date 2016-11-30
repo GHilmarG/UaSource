@@ -8,7 +8,7 @@ MeshDeriv=zeros(Nele,dof,nod,nip);
 MeshDetJ=zeros(Nele,nip);
 
 if CtrlVar.InfoLevelCPU>=10 ;   tDeriv=tic; end
-if CtrlVar.InfoLevel>=10;
+if CtrlVar.InfoLevel>=10
     fprintf('CalcMeshDerivatives: calculating mesh derivatives \n ')
 end
 

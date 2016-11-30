@@ -1,4 +1,4 @@
-function PlotMuaMesh(CtrlVar,MUA,ElementList)
+function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
 % PlotMuaMesh(CtrlVar,MUA,ElementList)
@@ -14,7 +14,9 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList)
 %
 % CtrlVar.PlotLabels=0;
 % CtrlVar.PlotXYscale=1000;
-% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elemetns 1 to 100
+% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
+%
+% 
 %%
 
 if isempty(CtrlVar)
@@ -44,7 +46,7 @@ if nargin<3
     ElementList=1:MUA.Nele;
 end
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList)
+PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
 
 
 

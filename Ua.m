@@ -11,44 +11,48 @@ function Ua(UserVar)
 %
 % The code is developed by Hilmar Gudmundsson (ghg@bas.ac.uk).
 %
-%% Running Úa:
+%% Running Úa
 %
 % 1) Add the folder with the Úa m-files, and its subfolders, to your matlab
-% path.
-%    This can be done using the 'Home/Set' Path menu item, or from the command
-%    prompt doing something like: addpath('MyUaSourceFileFolder')
+% path. This can be done using the 'Home/Set' Path menu item, or from the
+% command prompt doing something like:
+%
+%   addpath(genpath('MyUaSourceFileFolder'))
 %
 % 2) Define the Matlab environmental variable 'UaHomeDirectory'.
 %    This can for example be done as follows:
-%                 setenv('UaHomeDirectory','MyUaSourceFileFolder')
+%
+%   setenv('UaHomeDirectory','MyUaSourceFileFolder')
 %
 % 3) If using the mesh generator `gmsh' (almost always the case) then also
-%    define the Matlab environmental variable 'GmshHomeDirectory'. 
-%    The gmsh program for windows is in a subfolder of Ua/Source
-%    So if you are running windows
-%                 setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
-%   will do. Alternativily you might want to install your own copy of gmsh. If
-%   running on a Unix system, then most likely gmsh can be called without the
-%   need to set the Matlab environmental variable 'GmshHomeDirectory'.
+%    define the Matlab environmental variable 'GmshHomeDirectory'. The gmsh
+%    program for windows is in a subfolder of Ua/Source So if you are running
+%    windows
 %
-% Now you can run Úa from within Matlab by writing Ua [Ret]
+%   setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
 %
-%  Summary: Before running Ua do
+% will do. Alternativily you might want to install your own copy of gmsh. If
+% running on a Unix system, then most likely gmsh can be called without the need
+% to set the Matlab environmental variable 'GmshHomeDirectory'.
+%
+% Now you can run Úa from within Matlab by writing:
+%
+% >>Ua [Ret]
+%
+% Summary: Before running Ua do for example:
+%
 %   setenv('UaHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source')
 %   setenv('GmshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows')
 %   UaHomeDirectory=getenv('UaHomeDirectory'); addpath(genpath(UaHomeDirectory))
 %
-%  Then run Ua from the Source directory to see if everyting is OK.
+% Then run Ua from the Source directory to see if everyting is OK.
 %% Getting help
 % You can get help on the use of Úa in the same way as you would get help on
 % various in-build matlab commands by writing `help Ua'  in the matlab command
 % line,  or `doc Ua'. Most m-files that are part of the Ua program have some
 % inbuild help text, for example try `doc Ua2D_DefaultParameters'.
 %
-% To get a HTML formatted documentation try:
-%
-%    publish('Ua.m','evalCode',false) ; web('html\Ua.html')
-%
+
 %% Defining model run
 %
 % Whenever setting up your own model, create your own working directory for your
@@ -60,16 +64,14 @@ function Ua(UserVar)
 % * Ua2D_InitialUserInput
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
-% * DefineBoundaryConditions.m  (also possible to use the more limited but
-% easier to use `DefineBCs.m' instead)
+% * DefineBoundaryConditions.m 
 % * DefineGeometry.m
 % * DefineDensities.m
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
-% * DefineInverseModellingVariables.m (older approach, use
-% DefineInputsForInversion.m instead)
+% * DefineInverseModellingVariables.m
 % * UaOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
@@ -122,40 +124,44 @@ function Ua(UserVar)
 %
 %
 %
-%% Calls to user m-files:
-% The calls to these functions are:
+%% The variable CtrlVar
+% Úa uses a the variable `CtrlVar' to define various run parameters.
 %
-%    [UserVar,rho,rhow,g]=DefineDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B);
-% 
-%    [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
+% This variable is defined by the user in `Ua2D_InitialUserInput.m'.
+% The variable has a large number of fields. List of all fields with
+% descriptions can be found in  `Ua2D_DefaultParameters.m' 
 %
-% If mass-balance geometry feedback is included, define mass balance as:
-% 
-%    [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF);
-% 
-%    [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+%   help Ua2D_Defaultparameters
+%   doc Ua2D_DefaultParameters
 %
-% BCs is an instant of the class `BoundaryConditions'. To see the fields of BCs
-% have a look at BoundaryConditions.m in the editor or do help
-% BoundaryConditions.m .
-% The fancy way of doing this is to do:
-% publish('BoundaryConditions.m') ; web('html\BoundaryConditions.html') from the
-% Úa home directory.
+% CtlrVar is only defined at the start of the run in Ua2D_InitialUserInput.
+% It can not be modified in any of the other user m-input files.
 %
+% In a restart run, CtrlVar is again always defined at the beginning of the run
+% in Ua2D_InitialUserInput. It is not read from the restart file.
 % 
-%   [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
-% 
-%   [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m);
-%  
+%% The variable UserVar
+%
+% The variable UserVar is given as an input and output to all user m-files.
+%
+% It is never used by Úa. 
+%
+% The user can use this variable to exhange information between his own user
+% m-files, or for whaterver other purpose required. 
+%
+% UserVar can be modifed at the start of the run in Ua2D_InitialUserInput.
+% as well as in all user m-input files.
+%
+% In a restart run, UserVar is again always defined at the beginning of the run
+% in Ua2D_InitialUserInput. It is not read from the restart file.
 %
 %% Getting information about the FE mesh from within user m-files:
 %
-% In all user m-files the variable MUA is given as an input.
-%  MUA is a structured variable with the following fields
+% In all user m-files the variable MUA is given as an input. MUA contains all
+% information about the FE mesh.
+%
+% MUA is a structured variable with the following fields:
+%
 %      coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal
 %                    points
 %     connectivity:  mesh connectivity
@@ -172,7 +178,7 @@ function Ua(UserVar)
 %            Deriv:  element derivatives
 %             DetJ:  element determinants
 %
-%               The values of MUA should never be changed directly by the user.
+% The values of MUA should never be changed directly by the user.
 %
 %
 %% Meshing
@@ -197,12 +203,7 @@ function Ua(UserVar)
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParamters.m'
 %%
-% Control parameters The type of runs (static, transient, forward, inverse) and
-% various paramters affecting the run are specified using the variable
-% `CtlrVar'.  This variable is defined by the user in `Ua2D_InitialUserInput.m'.
-% This variable has a large number of fields. List of all fields with
-% descriptions can be found in  `Ua2D_DefaultParameters.m'
-%
+
 %
 %
 

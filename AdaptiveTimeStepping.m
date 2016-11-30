@@ -124,15 +124,6 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time step
     % after this adjustment
     
-    if CtrlVar.TransientPlotDt>0
-        temp=dtOut;
-        dtOut=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.TransientPlotDt);
-        if abs(temp-dtOut)>100*eps
-            fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate transient plotting requirements and set to %-g \n ',dtOut);
-        end
-    end
-    
-    %
     
     if CtrlVar.WriteDumpFile && CtrlVar.WriteDumpFileTimeInterval>0
         temp=dtOut;
