@@ -23,14 +23,14 @@ end
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
 %% initialize some variables
-Info=UaRunInfo;
+RunInfo=UaRunInfo;
 l=UaLagrangeVariables; 
 Fm1=UaFields;
 % these are the Lagrange variables assosiated with boundary conditions.
 % not to be confused with the Lagrange variables assosiated with solving the
 % adjoint problem
 
-RunInfo=[];
+
 Lubvb=[];
 Ruv=[];
 
@@ -111,7 +111,7 @@ if ~CtrlVar.InverseRun %  forward run
         
     else % New forward run (ie not a restart)
         
-        [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
+        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
             return
@@ -122,16 +122,17 @@ else % inverse run
     
     if CtrlVar.Restart %  inverse restart run
         
-        [UserVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+        [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
             GetInputsForInverseRestartRun(UserVar,CtrlVar);
+        
         
     else % New inverse run
 
         % First get the usual input for a forward run
-        [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar);
+        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         % now get the additional variables specific to an inverse run
-        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l); %CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l);
+        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF);
         
          
         
@@ -178,8 +179,9 @@ if CtrlVar.doInverseStep   % -inverse
     %
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
-    
-    [UserVar,F,l,InvFinalValues,xAdjoint,yAdjoint,RunInfo]=InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+        
+    [UserVar,F,l,InvFinalValues,RunInfo]=...
+        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     F.C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
@@ -187,14 +189,10 @@ if CtrlVar.doInverseStep   % -inverse
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
     
-    
-    % this calculation not really needed as AdjointNR2D should return converged ub,vb,ud,vd values for Cest and AGlenEst
-    
-    
+    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     if CtrlVar.doplots
-        AdjointResultsPlots(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,...
-            InvStartValues,Priors,Meas,BCsAdjoint,Info,InvFinalValues,xAdjoint,yAdjoint);
+        AdjointResultsPlots(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
     if CtrlVar.AdjointWriteRestartFile
@@ -595,10 +593,12 @@ SayGoodbye(CtrlVar)
         
         
         fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.NameOfAdjointRestartFiletoWrite);
+        
+        CtrlVarInRestartFile=CtrlVar;
+        UserVarInRestartFile=UserVar;
         save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
-            'UserVar','CtrlVar','MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','alpha','rho','rhow','g',...
-            'as','ab','GF','BCs','l',...
-            'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues','xAdjoint','yAdjoint','-v7.3');
+            'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
+            'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','-v7.3');
         
         
         if CtrlVar.AGlenisElementBased
@@ -617,10 +617,14 @@ SayGoodbye(CtrlVar)
             yC=MUA.coordinates(:,2);
         end
         
-        fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate)        ;
+        fprintf(CtrlVar.fidlog,' saving C and m  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
+        C=F.C;
+        m=F.m;
         save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','xC','yC','MUA')
         
         fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+        AGlen=F.AGlen;
+        n=F.n;
         save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA')
         
     end

@@ -21,13 +21,9 @@ T=zeros(MUA.Nele,MUA.nod);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,points) ; 
+    detJ=MUA.DetJ(:,Iint);
     
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
     
     hint=hnod*fun;
     uint=unod*fun;
@@ -44,6 +40,14 @@ for Iint=1:MUA.nip
     
     Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
+    switch upper(CtrlVar.Inverse.InvertFor)
+        
+        case 'LOGC'
+
+            Ctemp=log(10)*Cint.*Ctemp;
+            
+    end
+    
     detJw=detJ*weights(Iint);
     for Inod=1:MUA.nod
         
@@ -58,36 +62,6 @@ for Inod=1:MUA.nod
     dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
-    
-    switch upper(CtrlVar.MeshIndependentAdjointGradients)
-        
-        case 'P'
-            P=NodalFormFunctionInfluence(MUA);
-            dIdCm=dIdC./P;
-        case 'M'
-            M=MassMatrix2D1dof(MUA);
-            dIdCm=M\dIdC;
-    end
-    
-    if  CtrlVar.doplots && CtrlVar.InfoLevelAdjoint>100
-        figure ;
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ;
-        title('Euclidian dIdC i.e. \deltaJ(C,N) ')
-        figure
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdCm) ;
-        title(['Ritz representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
-    end
-    
-    dd=dIdCm'*dIdC/(norm(dIdCm)*norm(dIdC));
-    ddAngle=acosd(dd);
-    fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
-    
-    dIdC=dIdCm;
-    
-end
-
-%dIdC=median(C)*dIdC;  % reasonable scaling I think
 
 end
 

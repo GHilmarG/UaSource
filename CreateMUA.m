@@ -18,6 +18,16 @@ if nargin<5
     FindMUA_Boundary=1;
 end
 
+if ~isfield(CtrlVar.MUA,'MassMatrix')
+   CtrlVar.MUA.MassMatrix=0;
+end
+
+
+if ~isfield(CtrlVar.MUA,'StiffnessMatrix')
+   CtrlVar.MUA.StiffnessMatrix=0;
+end
+
+
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
 connectivity=reshape(J,size(connectivity));
@@ -45,5 +55,15 @@ end
 if CalcMUA_Derivatives
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
 end
+
+if CtrlVar.MUA.MassMatrix
+    MUA.M=MassMatrix2D1dof(MUA);
+end
+
+
+if CtrlVar.MUA.StiffnessMatrix
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+end
+
 
 end

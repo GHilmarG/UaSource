@@ -27,6 +27,19 @@ end
 if ~isfield(MUA,'nip')
     MUA.nip=CtrlVar.nip;
 end
+
+
+if ~isfield(CtrlVar.MUA,'MassMatrix')
+   CtrlVar.MUA.MassMatrix=0;
+end
+
+
+if ~isfield(CtrlVar.MUA,'StiffnessMatrix')
+   CtrlVar.MUA.StiffnessMatrix=0;
+end
+
+
+
 %% Now consider the possibility the FE coordinates and connectivity has changed
 % and that the other fields are not up to date
 
@@ -57,6 +70,15 @@ if MeshHasChanged
     
     [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    
+    
+    if CtrlVar.MUA.MassMatrix
+        MUA.M=MassMatrix2D1dof(MUA);
+    end
+    
+    if CtrlVar.MUA.StiffnessMatrix
+        [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+    end
     
 end
 
@@ -96,7 +118,13 @@ end
 
 
 
+if  CtrlVar.MUA.MassMatrix && ~isfield(MUA,'M')
+    MUA.M=MassMatrix2D1dof(MUA);
+end
 
+if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+end
 
 
 

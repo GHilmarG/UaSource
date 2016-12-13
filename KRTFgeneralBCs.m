@@ -45,7 +45,9 @@ end
 
 if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
 if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
-if ~isreal(F.C) ; save TestSave ; error('KRTF: C not real ') ; end
+if CtrlVar.TestForRealValues
+    if ~isreal(F.C) ; save TestSave ; error('KRTF: C not real ') ; end
+end
 
 if any(isnan(F.ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
 if any(isnan(F.vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
@@ -421,8 +423,14 @@ if ~Ronly
         end
     end
     
+    if CtrlVar.TestForRealValues
+        Kuv=(Kuv+Kuv.')/2 ;
+    else
+        Kuv=(Kuv+Kuv.')/2 ;
+    end
     
-    Kuv=(Kuv+Kuv.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
+    
+    % I know that the matrix must be symmetric, but numerically this may not be strickly so
     % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
     % whos('K')

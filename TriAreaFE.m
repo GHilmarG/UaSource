@@ -1,4 +1,4 @@
-function [A,xEleCentre,yEleCentre]=TriAreaFE(coordinates,connectivity)
+function [Areas,xEleCentre,yEleCentre,Area]=TriAreaFE(coordinates,connectivity)
     
     % [A,xEleCentre,yEleCentre]=TriAreaFE(coordinates,connectivity)
     % calculates the area of triangles in a FE mesh given coordinates and connectivity
@@ -13,15 +13,17 @@ function [A,xEleCentre,yEleCentre]=TriAreaFE(coordinates,connectivity)
     
     switch nod
         case 3
-            A=TriArea(xnod,ynod);
+            Areas=TriArea(xnod,ynod);
         case 6
-            A=TriArea(xnod(:,[1 3 5]),ynod(:,[1 3 5]));
+            Areas=TriArea(xnod(:,[1 3 5]),ynod(:,[1 3 5]));
         case 10
-            A=TriArea(xnod(:,[1 4 7]),ynod(:,[1 4 7]));
+            Areas=TriArea(xnod(:,[1 4 7]),ynod(:,[1 4 7]));
         otherwise
             fprintf(' case not implemented ')
             error('error in TriAreaFE')
     end
+    
+    Area=sum(Areas);
     
     
 end

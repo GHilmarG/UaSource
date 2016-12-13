@@ -14,6 +14,9 @@ classdef PriorProbabilityDistribution
         AGlen=[];
         CovAGlen=[]
         CovC=[];
+        
+        TrueC=[];
+        TrueAGlen=[];
     end
 
 end

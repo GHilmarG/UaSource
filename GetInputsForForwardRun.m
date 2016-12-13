@@ -1,4 +1,4 @@
-function  [UserVar,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar)
+function  [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar)
 
 
 
@@ -88,8 +88,9 @@ F.h=F.s-F.b;
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
 
+[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
-GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);

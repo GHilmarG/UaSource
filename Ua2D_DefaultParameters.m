@@ -79,6 +79,7 @@ CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep=1;  % If true, the user-
 CtrlVar.TestUserInputs=1;  % By default user inputs will be tested at the start of the run
                            % to suppress set TestUserInputs=0
                            % if user inputs are always to be tested throughout the run, set TestUserInputs=2 
+CtrlVar.TestForRealValues=1;
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
@@ -452,8 +453,8 @@ CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works for C nodal a
 
 CtrlVar.MeshIndependentAdjointGradients='M'; % {'I','M','P'} being tested, only relevant if A or C are nodal based in an inversion.
                                 
-CtrlVar.isBarrierC=1     ; CtrlVar.muBarrierCmin=1e-10     ; CtrlVar.muBarrierCmax=1e-10 ;  % note: in most cases with constraints the muBarrier parameters should initially be set to fairly large values
-CtrlVar.isBarrierAGlen=1 ; CtrlVar.muBarrierAGlenmin=1e-10 ; CtrlVar.muBarrierAGlenmax=1e-10 ;
+CtrlVar.isBarrierC=0     ; CtrlVar.muBarrierCmin=1e-10     ; CtrlVar.muBarrierCmax=1e-10 ;  % note: in most cases with constraints the muBarrier parameters should initially be set to fairly large values
+CtrlVar.isBarrierAGlen=0 ; CtrlVar.muBarrierAGlenmin=1e-10 ; CtrlVar.muBarrierAGlenmax=1e-10 ;
 
 % Regularisation: 
 % Regularisation is switched on/off using the isRegC and isRegAGlen parameters.
@@ -479,7 +480,7 @@ CtrlVar.MisfitMultiplier=1;   % the misfit term is multiplied with this number
 % no need to change these values except for testing purposes.
 % Conjugated gradient parameters: 
 CtrlVar.AdjointConjugatedGradients=1; 
-CtrlVar.ConjugatedGradientsRestartThreshold=0.2;
+CtrlVar.ConjugatedGradientsRestartThreshold=0.5;
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % FR ;Fletcher-Reeves
                                         % PR :Polak-Ribi\`ere
@@ -490,7 +491,7 @@ CtrlVar.AGlenAdjointZero=100*eps;
 CtrlVar.AdjointEpsZero=100*eps;
 CtrlVar.AdjointMaxLineSearchIterations=20;
 CtrlVar.CalcBruteForceGradient=0;   % only used for testing purposes
-CtrlVar.RescaleAdjointGradient=0;   % only used for testing purposes
+CtrlVar.RescaleAdjointGradient=1;   % only used for testing purposes
 
 % BFGS parameters
 CtrlVar.Maximum_Number_of_BFGS_updates=250; % 

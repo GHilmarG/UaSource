@@ -14,14 +14,14 @@ tdiagnostic=tic;
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
 [F.C,F.m]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m);
 
-
-if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
-if ~isreal(F.vb) ; save TestSave ; error('uv:vbNotReal','vb not real!') ; end
-if ~isreal(F.ud) ; save TestSave ; error('uv:udNotReal','db not real!') ; end
-if ~isreal(F.vb) ; save TestSave ; error('uv:vdNotReal','vb not real!') ; end
-if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
-if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
-
+if CtrlVar.TestForRealValues
+    if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
+    if ~isreal(F.vb) ; save TestSave ; error('uv:vbNotReal','vb not real!') ; end
+    if ~isreal(F.ud) ; save TestSave ; error('uv:udNotReal','db not real!') ; end
+    if ~isreal(F.vb) ; save TestSave ; error('uv:vdNotReal','vb not real!') ; end
+    if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
+    if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
+end
 
 
 
@@ -80,7 +80,7 @@ switch lower(CtrlVar.FlowApproximation)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         
         %[UserVar,F.ub,F.vb,l.ubvb,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
-        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l);
+        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
         
     case 'ssheet'
@@ -119,13 +119,15 @@ if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Ended diagnostic in %-f sec
     
 end
 
-if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
-if ~isreal(F.vb) ; save TestSave ; error('uv:vbNotReal','vb not real!') ; end
-if ~isreal(F.ud) ; save TestSave ; error('uv:udNotReal','ud not real!') ; end
-if ~isreal(F.vd) ; save TestSave ; error('uv:vdNotReal','vd not real!') ; end
-if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
-if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
-if ~isreal(Kuv) ; save TestSave ; error('uv:kvNotReal','kv not real!') ; end
-if ~isreal(Ruv) ; save TestSave ; error('uv:rhNotReal','rh not real!') ; end
+if  CtrlVar.TestForRealValues
+    if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
+    if ~isreal(F.vb) ; save TestSave ; error('uv:vbNotReal','vb not real!') ; end
+    if ~isreal(F.ud) ; save TestSave ; error('uv:udNotReal','ud not real!') ; end
+    if ~isreal(F.vd) ; save TestSave ; error('uv:vdNotReal','vd not real!') ; end
+    if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
+    if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
+    if ~isreal(Kuv) ; save TestSave ; error('uv:kvNotReal','kv not real!') ; end
+    if ~isreal(Ruv) ; save TestSave ; error('uv:rhNotReal','rh not real!') ; end
+end
 
 end

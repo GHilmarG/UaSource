@@ -1,14 +1,14 @@
-function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l)
+function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
 %[UserVar,ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,luv,AGlen,C,n,m,alpha,rho,rhow,g)
 
 nargoutchk(7,7)
-narginchk(6,6)
+narginchk(7,7)
 
 tStart=tic;
-RunInfo.converged=1; RunInfo.Iterations=NaN;  RunInfo.residual=NaN;
+RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
 
 MLC=BCs2MLC(MUA,BCs);
-L=MLC.ubvbL; 
+L=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 
 
@@ -91,19 +91,21 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         NRincomplete=1;
     end
     
-%     
-%     if iteration==1
-%         F0=R0 ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
-%         % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
-%         % without affecting its value.
-%     end
-%     
-%     
+    %
+    %     if iteration==1
+    %         F0=R0 ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
+    %         % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
+    %         % without affecting its value.
+    %     end
+    %
+    %
     
     
+    if CtrlVar.TestForRealValues
+        if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
+        if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
+    end
     
-    if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
-    if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
     if any(isnan(Kuv)) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
     if any(isnan(L)) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
     
@@ -136,8 +138,11 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     
     
-    
-    dub=real(sol(1:MUA.Nnodes)) ; dvb=real(sol(MUA.Nnodes+1:2*MUA.Nnodes));
+    if CtrlVar.TestForRealValues
+        dub=real(sol(1:MUA.Nnodes)) ; dvb=real(sol(MUA.Nnodes+1:2*MUA.Nnodes));
+    else
+        dub=sol(1:MUA.Nnodes) ; dvb=sol(MUA.Nnodes+1:2*MUA.Nnodes);
+    end
     
     % Evaluate force residual at full Newton step
     
@@ -236,7 +241,7 @@ if isnan(r)
     save TestSaveNR
 elseif r>CtrlVar.NLtol
     fprintf(CtrlVar.fidlog,' SSTREAM2dNR did NOT converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
-    RunInfo.converged=0;
+    RunInfo.Forward.Converged=0;
     warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
     save TestSaveNR
 else
@@ -251,7 +256,7 @@ if iteration > CtrlVar.NRitmax
     warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached with r=%-g \n',CtrlVar.NRitmax,r)
 end
 
-RunInfo.Iterations=iteration;  RunInfo.residual=r;
+RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;
 
 if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
 

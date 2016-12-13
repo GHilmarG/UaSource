@@ -1,4 +1,4 @@
-function [J,dJduv,ObjFunc,RunInfo]=MisfitFunction(UserVar,RunInfo,CtrlVar,MUA,F,l,Priors,Meas)
+function [J,dJduv,ObjFunc,RunInfo,UserVar]=MisfitFunction(UserVar,RunInfo,CtrlVar,MUA,F,l,Priors,Meas)
 
 %%
 % J is the object function

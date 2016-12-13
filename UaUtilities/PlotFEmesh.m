@@ -1,5 +1,5 @@
 function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
-
+ 
 %
 % PlotFEmesh(coordinates,connectivity)
 % PlotFEmesh(coordinates,connectivity,CtrlVar)
@@ -22,7 +22,7 @@ function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
 
 persistent iCounter
 
-if nargin>3
+if nargin>3 && ~isempty(ElementList)
     connectivity=connectivity(ElementList,:);
     ElementNumbers=ElementList;
 else
@@ -87,7 +87,7 @@ FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 %FEmeshTriRep=CreateFEmeshTriRep(connectivity,coordinates);
 
 
-triplot(FEmeshCPT,'color',CtrlVar.MeshColor,varargin{:}) ;
+triplot(FEmeshCPT,varargin{:}) ;
 hold on
 
 if nargin>3

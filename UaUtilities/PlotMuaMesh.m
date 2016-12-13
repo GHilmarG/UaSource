@@ -16,7 +16,8 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 % CtrlVar.PlotXYscale=1000;
 % figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
 %
-% 
+% figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r');  
+% Show only elements 1 to 100 in red
 %%
 
 if isempty(CtrlVar)

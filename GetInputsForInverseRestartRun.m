@@ -1,12 +1,12 @@
-function  [UserVar,MUA,BCs,s,b,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,InvStartValues,Priors,Meas,BCsAdjoint,Info]=...
+function      [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
     GetInputsForInverseRestartRun(UserVar,CtrlVar)
+
 
 fprintf(CtrlVar.fidlog,' loading adjoint restart file: %s \t ',CtrlVar.NameOfAdjointRestartFiletoRead);
 
-
-load(CtrlVar.NameOfAdjointRestartFiletoRead,...
-    'MUA','BCs','s','b','h','S','B','ub','vb','ud','vd','l','alpha','rho','rhow','g','GF',...
-    'InvStartValues','Priors','Meas','BCsAdjoint','Info','InvFinalValues');
+load(CtrlVar.NameOfAdjointRestartFiletoWrite,...
+    'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
+    'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues');
 
 fprintf(CtrlVar.fidlog,' done \n ');
 
@@ -28,13 +28,14 @@ isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
 if ~isCorrectDimentions
     
     [UserVar,~,Priors,~,~]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
+
 end
 
 isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
 if ~ isCorrectDimentions
-    fprintf(' Priors do not have right dimentions at restart. \n')
-    fprintf(' Modify DefineInputsForInverseRun to ensure that dimentions are correct.\n')
-    error('Ua:GetInputForInverseRestartRun:incorrectdimentisons','incorrect dimentions')
+    fprintf(' Priors do not have right dimensions at restart. \n')
+    fprintf(' Modify DefineInputsForInverseRun to ensure that dimensions are correct.\n')
+    error('Ua:GetInputForInverseRestartRun:incorrectdimensions','incorrect dimensions')
     
 end
 

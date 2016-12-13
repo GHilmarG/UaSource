@@ -207,58 +207,7 @@ end
 
 return
 
-%% Testing gradient using brute force method
 
-% calculates d kv/ d b using the complex number method
-% using the fact that df/dx=Im(f(x+i dx))/dx
-% dJ/dC=\p J/\p C + l^T [ \p f/\p C - \p(K u]/\p C]
-%
-% where K l =\p J /\p u
-%
-% Here K and u are `extended' states, i.e. including BCs, and K z = f
-%
-% So if J only depends on C implicity (i.e. \p J/\p C=0) then
-%
-% dJ/dC=\p ( l^t K z) /\p C,  where only the derivative of K is considerd
-%
-
-% 	rhs=Cd*[u-uMeas ; v-vMeas]; rhs=FErhs(rhs(1:Nnodes),rhs(Nnodes+1:end),coordinates,connectivity,nip);
-% 	Luvrhs=Luvrhs*0;  % derivatives with respect to C are zero
-%
-% 	[l,lambdaAdjoint]=solveKApeSymmetric(K,Luv,rhs,Luvrhs,l,lambdaAdjoint,iteration,InfoLevelUzawa,SolMethod);
-% 	%l=[l;lambdaAdjoint]; z=[u;v;lambdauv];
-
-z=[u;v];
-deltaC=1e-15;  Cpert=C;
-%z=z*0+1 ; l=l*0+1;
-%Nnorm=BasisFunctionNorms(connectivity,coordinates,nip);
-
-dIdC=zeros(MUA.Nele,1);
-for I=1:MUA.Nele
-    %dIdC=zeros(Nnodes,1);
-    Cpert(connectivity(I,:))=C(connectivity(I,:))+sqrt(-1)*deltaC; %/Nnorm(I);
-    %Cpert(I)=C(I)+deltaC;
-    [K,~,~,~]=KRTF(s,S,B,h,VUA.u,VUA.v,AGlen,n,Cpert,m,coordinates,connectivity,Boundary,nip,alpha,rho,rhow,g,CtrlVar);
-    Cpert(connectivity(I,:))=C(connectivity(I,:));
-    dKdC=imag(K)/deltaC;
-    %dKdC=(K-K0)/deltaC;
-    dIdC(I)=l'*dKdC*z;
-    
-    %dIdC(I)=FE_inner_product(l,dKdC*z,coordinates,connectivity,nip);
-    %figure(I+10000) ; trisurf(TRIxy,x,y,dIdC) ;  title('dIdC test ') ; xlabel('x') ; ylabel('y')
-end
-
-[xEle,yEle,DTele]=ElementCoordinates(connectivity,coordinates);
-
-%figure(900) ; trisurf(DTele.Triangulation,xEle,yEle,dIdC) ;  title('dIdC ele ') ; xlabel('x') ; ylabel('y')
-
-[dIdC]=dIdCqEleSteps(VUA,lx,ly,S,B,h,connectivity,coordinates,nip,C,m,rho,rhow,GF,CtrlVar)
-
-
-%DkvDb=imag(kv)/db;
-%DrhDb=imag(rh)/db;
-
-end
 
 %%
 
