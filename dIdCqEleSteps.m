@@ -1,4 +1,4 @@
-function dIdCdata=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+function dIdC=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 % [dIdCdata]=dIdCqEleSteps(CtrlVar,MUA,ub,vb,ud,vd,lx,ly,S,B,h,C,m,rho,rhow,GF);
 %
 %
@@ -32,26 +32,26 @@ end
 
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
-dIdCdata=zeros(MUA.Nele,1); EleArea=zeros(MUA.Nele,1);
+dIdC=zeros(MUA.Nele,1); EleArea=zeros(MUA.Nele,1);
 
 for Iint=1:MUA.nip
     
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; 
+    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
     detJ=MUA.DetJ(:,Iint);
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-   
+    
     if CtrlVar.CisElementBased==1
         Cint=C;
         mint=m;
     else
-        Cint=Cnod*fun; 
+        Cint=Cnod*fun;
         Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
         mint=mnod*fun;
     end
-        
+    
     Bint=Bnod*fun;
     Sint=Snod*fun;
     rhoint=rhonod*fun;
@@ -62,12 +62,8 @@ for Iint=1:MUA.nip
     
     Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
-    switch upper(CtrlVar.Inverse.InvertFor)
-        
-        case 'LOGC'
-            
-            Ctemp=log(10)*Cint.*Ctemp;
-            
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+        Ctemp=log(10)*Cint.*Ctemp;
     end
     
     
@@ -75,14 +71,33 @@ for Iint=1:MUA.nip
     detJw=detJ*weights(Iint);
     EleArea=EleArea+detJw;
     
-    dIdCdata=dIdCdata+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*detJw;
+    dIdC=dIdC+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*detJw;
     
 end
 
-% make mesh independent by dividing with element areas
-% dIdCdata=dIdCdata./EleArea;
-
-
+switch  CtrlVar.Inverse.AdjointGradientPreMultiplier
+    
+    case 'M'
+            
+        if CtrlVar.Inverse.InfoLevel>=1000
+            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC Mesh Dependend')
+        end
+        
+        % make mesh independent by dividing with element areas
+        dIdCnorm=norm(dIdC);
+        dIdC=dIdC./EleArea;
+        dIdC=dIdCnorm*dIdC/norm(dIdC);
+        
+        if CtrlVar.Inverse.InfoLevel>=10
+            fprintf('Making dIdC mesh independent by dividing with element areas.\n')
+        end
+             
+        if CtrlVar.Inverse.InfoLevel>=1000
+            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC Mesh Independend')
+        end
+        
+        
+end
 
 
 end

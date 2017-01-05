@@ -204,7 +204,8 @@ CtrlVar.Czero=1e-10;        %
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
 CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
-
+CtrlVar.AGlenAdjointZero=100*eps; 
+CtrlVar.AdjointEpsZero=100*eps;
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when inverting for A and/or C.
 % (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less than Czero!)
@@ -377,7 +378,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 
-%% Inversion (Adjoint variables)
+%% Inversion (Adjoint variables)  Inverse
 %
 % Inversion can currently be done for C and A. At each inverse iteration one
 % only inverts for either A and C. At the moment, inverting for A and C simply
@@ -399,7 +400,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % significantly down. Once that method stagnates (which it almost always will
 % because the gradient used in that method is just a rough estimate and
 % generally not exact), switch to another minimisation approach, for example the
-% "QuasiNewtonInversion". Also switch between A and C inversion and, possibly,
+% UaOptimisation using the adjoint gradients. Also switch between A and C inversion and, possibly,
 % between element and nodal based approach.
 %
 % Although the methodology behind the inversion is rigorous, in practice when working
@@ -409,104 +410,117 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % particular method. (When using synthetic data this is hardly ever an issue).
 %
 %
-%
 
+CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
+CtrlVar.Inverse.Iterations=1;
+CtrlVar.Inverse.InvertFor='logC' ; % {'C','logC','AGlen','logAGlen'}
 
-CtrlVar.AdjointGrad='C';  % {'C'|'A'}  Set to C for C-inversion, to A for AGlen inversion.
+CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+CtrlVar.Inverse.AdjointGradientPreMultiplier='M'; % {'I','M'}
 
-CtrlVar.MaxAdjointIterations=1;   % Maximum number of inverse iterations.
-CtrlVar.AdjointWriteRestartFile=1;
-CtrlVar.NameOfAdjointRestartFiletoWrite='AdjointRestart.mat';
-CtrlVar.NameOfAdjointRestartFiletoRead=CtrlVar.NameOfAdjointRestartFiletoWrite;
-CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
-CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
+CtrlVar.Inverse.Regularize.Field='lin' ; % {'log','lin','cov'}
+CtrlVar.Inverse.Regularize.C.gs=0;
+CtrlVar.Inverse.Regularize.C.ga=0;
+CtrlVar.Inverse.Regularize.logC.ga=0;
+CtrlVar.Inverse.Regularize.logC.gs=0 ; % 1e6  works well with I
 
-CtrlVar.AdjointInitialSearchStepSize=[]; % initial guess for step size in line-search
-                                         % If left empty, step size is based on InvStartValues, unless in a restart run when the last converged value is used.
-                                         % Mostly useful for resetting step size in a restart run
-
-
-% There are a number of different minimisation methods implemented
-% currently the QuasiNewtonInversion seems to work best but this may depend on
-% the particular case in question.
-% 
-% The minimisation method is set by defining CtrlVar.AdjointMinimisationMethod
-% appropriately.  Some of those methods only work for C and not of A!
-% 
-%
-CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion';  % works for C nodal and element based.
-%CtrlVar.AdjointMinimisationMethod='QuasiNewtonInversion:HessianGuesstimate';  % here an educated guess for 
-                                                                              % the Hessian is used
-                                                                              % This is not guaranteed to work
-                                                                              % because the guesstimate might be
-                                                                              % badly wrong. However,
-                                                                              % experience has shown that in many cases
-                                                                              % this works well and in fact often 
-                                                                              % increases the rate of convergence 
-
-%CtrlVar.AdjointMinimisationMethod='FixPointEstimationOfSlipperiness';  % works for C for C nodal and element based
-%CtrlVar.AdjointMinimisationMethod='AdjointProjectedGradient' ;  % works for C and A nodal and element based 
-%CtrlVar.AdjointMinimisationMethod='MatlabOptimizationToolbox'; % works for C and A nodal based
+CtrlVar.Inverse.Regularize.AGlen.gs=1;
+CtrlVar.Inverse.Regularize.AGlen.ga=1;
+CtrlVar.Inverse.Regularize.logAGlen.ga=0;
+CtrlVar.Inverse.Regularize.logAGlen.gs=0 ;
 
 
 
-
-CtrlVar.MeshIndependentAdjointGradients='M'; % {'I','M','P'} being tested, only relevant if A or C are nodal based in an inversion.
-                                
-CtrlVar.isBarrierC=0     ; CtrlVar.muBarrierCmin=1e-10     ; CtrlVar.muBarrierCmax=1e-10 ;  % note: in most cases with constraints the muBarrier parameters should initially be set to fairly large values
-CtrlVar.isBarrierAGlen=0 ; CtrlVar.muBarrierAGlenmin=1e-10 ; CtrlVar.muBarrierAGlenmax=1e-10 ;
-
-% Regularisation: 
-% Regularisation is switched on/off using the isRegC and isRegAGlen parameters.
-% In practice, regularisation is often not needed and can these parameters can
-% be set to 0/false)
-%
-CtrlVar.isRegC=1; % True if using a regularisation term for C. 
-CtrlVar.isRegAGlen=1; % True if using a regularisation term for AGlen.
-
-CtrlVar.CovarianceBasedRegularisation=1;  % Only relevant if regularisation is on.
-CtrlVar.RegAGlenMultiplier=1; CtrlVar.RegCMultiplier=1   ; % the regularisation terms are multiplied by these numbers,
-% good for increasing/decreasing the relative size of the regularisation term
-% (only relevant if regularisation is on.)
+CtrlVar.Inverse.DataMisfit.Multiplier=1;
+CtrlVar.Inverse.Regularize.Multiplier=0;
 
 
-
-CtrlVar.MisfitMultiplier=1;   % the misfit term is multiplied with this number
-                              % (increasing this number makes other terms in the cost function (regularisation,barrier)
-                              % less important in comparison to the data misfit term.)
-
-
-% The following parameters relate to some of the optimisation methods. Generally
-% no need to change these values except for testing purposes.
-% Conjugated gradient parameters: 
-CtrlVar.AdjointConjugatedGradients=1; 
-CtrlVar.ConjugatedGradientsRestartThreshold=0.5;
+% [----------  The following parameters are only relevant if using the UaOptimization
+% i.e. only if CtrlVar.Inverse.MinimisationMethod='UaOptimization';
+CtrlVar.Inverse.GradientUpgradeMethod='SteepestDecent' ; %{'SteepestDecent','ConjGrad'}
+CtrlVar.Inverse.InitialLineSearchStepSize=[];
+CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
+CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
+CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=50;
+CtrlVar.ConjugatedGradientsRestartThreshold=20 ; % degrees!
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % FR ;Fletcher-Reeves
                                         % PR :Polak-Ribi\`ere
                                         % HR: Hestenes-Stiefel
                                         % DY :Dai-Yan
-                            
-CtrlVar.AGlenAdjointZero=100*eps; 
-CtrlVar.AdjointEpsZero=100*eps;
-CtrlVar.AdjointMaxLineSearchIterations=20;
-CtrlVar.CalcBruteForceGradient=0;   % only used for testing purposes
-CtrlVar.RescaleAdjointGradient=1;   % only used for testing purposes
+% end, UaOptimization parameters
+% ------------]
 
-% BFGS parameters
-CtrlVar.Maximum_Number_of_BFGS_updates=250; % 
-% If the problem is badly scaled then one can scale the cost function and the gradients
-% Usually this is not needed, and such issues seem to be better addressed by
-% specifying the initial step size through CtrlVar.AdjointInitialSearchStepSize
-CtrlVar.AdjointfScale=1;
-CtrlVar.AdjointxScale=1;
+% [------  The following parameters are only relevant if using the MatlabOptimisation option 
+% i.e. only if CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
+% Refer to the matlab documentation for further information. 
+% The optimisation used is the matlab routine fminunc.
+% You will need to have the matlab optimisation toolbox to be able to do this.
+%  
+CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
+    'Algorithm','trust-region',...
+    'MaxIterations',CtrlVar.Inverse.Iterations,...
+    'MaxFunctionEvaluations',1000,...
+    'Display','iter-detailed',...
+    'OutputFcn',@fminuncOutfun,...
+    'Diagnostics','on',...
+    'OptimalityTolerance',1e-20,...
+    'FunctionTolerance',1e-10,...
+    'StepTolerance',1e-20,...
+    'PlotFcn',{@optimplotfval,@optimplotstepsize},...
+    'SpecifyObjectiveGradient',true,...
+    'HessianFcn','objective');
 
-% the costfunctions and the (adjoint) gradients can be expressed 
-% either as integrals or discrete sums.  The integral representation is 
-% generally the preferred one and the default option.
-%
-CtrlVar.MisfitFunction='uvintegral'; % {'uvintegra','uvdiscrete'}
-CtrlVar.AdjointGradientEvaluation='integral';
+CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
+    'Algorithm','quasi-newton',...
+    'MaxIterations',CtrlVar.Inverse.Iterations,...
+    'MaxFunctionEvaluations',1000,...
+    'Display','iter-detailed',...
+    'OutputFcn',@fminuncOutfun,...
+    'Diagnostics','on',...
+    'OptimalityTolerance',1e-20,...
+    'StepTolerance',1e-20,...
+    'PlotFcn',{@optimplotfval,@optimplotstepsize},...
+    'SpecifyObjectiveGradient',true);
+% end, MatlabOptimisation parameters.   
+% ------------]
+
+% Some less often used parameters related to inversion 
+CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information, >=2 for additional info on backtrackgin,
+                              % >=100 for further info and plots
+% In an inversion it it generally better to set other infolevels to a low value. So
+% consider setting:
+% CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
+
+% [ ------------- Testing the adjoint gradients
+% The derivatives obtained with the adjoint method can be
+% compared with those obtained from brute force finite difference calculations.
+% Only do this for small problems!
+CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation 
+                                      % of the directinal derivative of the objective function.  
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='central' ; % {'central','forward'}
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
+CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
+                                         % if left empty, values are calulated for every node/element within the mesh. 
+                                         % If set to for example [1,10,45] values are calculated for these three
+                                         % nodes/elements.
+% end, testing adjoint parameters. 
+% -------------------]          
+
+CtrlVar.Inverse.DataMisfit.HessianEstimate='0'; % {'0','I','MassMatrix'} Do not use, just for testing. 
+CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
+CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
+CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
+
+CtrlVar.Inverse.WriteRestartFile=1;
+CtrlVar.Inverse.NameOfRestartOutputFile='AdjointRestart.mat';
+CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
+CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
+CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
+    
+
+CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
+
 
 
 %% Numbering of nodes and elements
@@ -651,7 +665,9 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % size of the computational mesh (which is determined by
 % MeshBoundaryCoordinatates).
 
-
+%% Options related to the Ua mesh structure variable MUA
+CtrlVar.MUA.MassMatrix=false;       % true if the mass matrix is to be computed and stored as a part of MUA
+CtrlVar.MUA.StiffnessMatrix=false;  % true if the stiffness matrices is to be computed and stored as a part of MUA
 
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:

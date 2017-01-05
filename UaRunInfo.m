@@ -18,6 +18,9 @@ classdef UaRunInfo
             obj.Inverse.I = NaN ;
             obj.Inverse.R = NaN ;
             obj.Inverse.StepSize = NaN ;
+            obj.Inverse.GradNorm = NaN ;
+            obj.Inverse.GradNorm = NaN ;
+            obj.Inverse.ConjGradUpdate = 0 ;
             
             
             obj.Forward.Converged=0;

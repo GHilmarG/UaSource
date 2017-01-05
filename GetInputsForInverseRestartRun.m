@@ -2,9 +2,9 @@ function      [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunI
     GetInputsForInverseRestartRun(UserVar,CtrlVar)
 
 
-fprintf(CtrlVar.fidlog,' loading adjoint restart file: %s \t ',CtrlVar.NameOfAdjointRestartFiletoRead);
+fprintf(CtrlVar.fidlog,' loading adjoint restart file: %s \t ',CtrlVar.NameOfRestartFiletoRead);
 
-load(CtrlVar.NameOfAdjointRestartFiletoWrite,...
+load(CtrlVar.Inverse.NameOfRestartInputFile,...
     'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues');
 

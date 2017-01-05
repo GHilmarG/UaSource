@@ -60,19 +60,40 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
         
         detJw=detJ*weights(Iint);
         EleArea=EleArea+detJw;
-
-     
+        
+        
         dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1./n-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-n)./n))./(2*n);
         %dEtadA=-real(hint.* (AGlenInt.*e(:,Iint)+CtrlVar.AGlenAdjointZero).^(-(1+n)/n)  .*e(:,Iint).^(2/n)) /(2*n);
         
+        if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+            
+            dEtadA=log(10)*AGlenInt.*dEtadA;
+            
+        end
         dIdAGlendata=dIdAGlendata-dEtadA.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*detJw;
     end
     
-    % make mesh independent by dividing with element areas
-    dIdAGlendataNorm=norm(dIdAGlendata);
-    dIdAGlendata=dIdAGlendata./EleArea;
-    dIdAGlendata=dIdAGlendata*dIdAGlendataNorm/norm(dIdAGlendata);
     
+    
+    switch CtrlVar.Inverse.AdjointGradientPreMultiplier
+        
+        case 'M'
+            
+            
+            if CtrlVar.Inverse.InfoLevel>=1000
+                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Dependend')
+            end
+            % make mesh independent by dividing with element areas
+            dIdAGlendataNorm=norm(dIdAGlendata);
+            dIdAGlendata=dIdAGlendata./EleArea;
+            dIdAGlendata=dIdAGlendata*dIdAGlendataNorm/norm(dIdAGlendata);
+            
+            
+            if CtrlVar.Inverse.InfoLevel>=1000
+                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Independend')
+            end
+            
+    end
     
     
 end

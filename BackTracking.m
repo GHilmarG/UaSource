@@ -85,6 +85,7 @@ ExtrapolationRatio=2.5;
 MinXfrac=1e-10*b; % exit if change in x as a fraction of initial interval smaller than this
 MaxFuncSame=3; % exit if minimum of func did not change during MaxFuncSame iterations
 BacktrackingGammaMin=1e-20;
+InfoLevelBackTrack=1;
 
 if isfield(CtrlVar,'BackTrackBeta')
     beta=CtrlVar.BackTrackBeta ;
@@ -109,7 +110,9 @@ if isfield(CtrlVar,'BacktrackingGammaMin')
     BacktrackingGammaMin=CtrlVar.BacktrackingGammaMin;
 end
 
-
+if isfield(CtrlVar,'InfoLevelBackTrack')
+ InfoLevelBackTrack=CtrlVar.InfoLevelBackTrack;
+end
 %%
 iMinSame=0; iMinSameWhileBacktracking=0;
 a=0;
@@ -203,7 +206,7 @@ target=min([fa,fb])/2;
 %    target=fa+beta*slope0*gmin  ; % Armijo criteria
 %end
 
-if CtrlVar.InfoLevelBackTrack>=2
+if InfoLevelBackTrack>=2
     fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
         Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
     fprintf('               a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g   \t    g=%-10.5g     \t    gmin=%-10.5g \n ',a,b,c,gamma,gmin)
@@ -215,7 +218,7 @@ while  fb<fa && fc < fb && fmin > target
     Extrapolation=Extrapolation+1;
     
     
-    if CtrlVar.InfoLevelBackTrack>=2
+    if InfoLevelBackTrack>=2
         %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
         fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
             Extrapolation-1,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
@@ -246,7 +249,7 @@ while  fb<fa && fc < fb && fmin > target
     %
     
     if Extrapolation > MaxExtrapolations
-        if CtrlVar.InfoLevelBackTrack>=2
+        if InfoLevelBackTrack>=2
             fprintf(' exiting extrapolation step because number of extrapolation steps greater than maximum %-i allowed \n',MaxExtrapolations)
         end
         break
@@ -258,7 +261,7 @@ end
 %%
 
 % if I just came out of extrapolation step, I need to give the final exit results
-if CtrlVar.InfoLevelBackTrack>=2 && Extrapolation>0
+if InfoLevelBackTrack>=2 && Extrapolation>0
     %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
     fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t f(g)/ft=%-10.5g \t f(g)/f0=%-g \n ',...
         Extrapolation,fa,fb,fc,fgamma,fmin,fgamma/target,fgamma/f0)
@@ -284,15 +287,16 @@ if  Extrapolation>0
     iq=iq+1 ; InfoVector(iq,1)=b ;  InfoVector(iq,2)=fb ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
 end
 
-while fgamma>target
+fLastReduction=1;
+while fgamma>target || fLastReduction < 0.5
     Iteration=Iteration+1;
     
     
     
     if  NoSlopeInformation
-        [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc,CtrlVar.InfoLevelBackTrack);
+        [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc,InfoLevelBackTrack);
     else
-        [gamma,cStatus]=CubicFit(slope0,fa,fb,fc,b,c,CtrlVar.InfoLevelBackTrack);
+        [gamma,cStatus]=CubicFit(slope0,fa,fb,fc,b,c,InfoLevelBackTrack);
         if cStatus==1
             fprintf(CtrlVar.fidlog,'Cubic Fit returns status 1 with gamma=%-g \n ',gamma);
             [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc);
@@ -361,7 +365,7 @@ while fgamma>target
     fminOld=fmin ; gminOld=gmin;
     iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
     
-    
+    fLastReduction=fmin/fminOld;
     if ~isequal(gmin,gminOld) ; xfrac=abs(gmin-gminOld); end
     
     
@@ -385,21 +389,21 @@ while fgamma>target
     end
     
     if  iMinSame> MaxFuncSame && fmin < f0
-        if CtrlVar.InfoLevelBackTrack>=2
+        if InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because no further reduction in function over last %-i iterations \n',MaxFuncSame)
         end
         break
     end
     
     if  iMinSameWhileBacktracking> 4 && fmin < f0
-        if CtrlVar.InfoLevelBackTrack>=2
+        if InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because two subsequent backtracking steps did not result in any further reduction \n')
         end
         break
     end
     
     if xfrac<MinXfrac
-        if CtrlVar.InfoLevelBackTrack>=2
+        if InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because change in position of minimum %-g less than %-g of interval \n',xfrac,MinXfrac)
         end
         break
@@ -414,13 +418,13 @@ while fgamma>target
     
     
     if Iteration>MaxIterations
-        if CtrlVar.InfoLevelBackTrack>=2
+        if InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because number of iteration greater than maximum %-i allowed \n',MaxIterations)
         end
         break
     end
     
-    if CtrlVar.InfoLevelBackTrack>=2
+    if InfoLevelBackTrack>=2
         fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
             Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
         fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
@@ -448,7 +452,7 @@ I=~isnan(InfoVector(:,1));  InfoVector=InfoVector(I,:);
 
 [fgamma,I]=min(InfoVector(:,2)) ; gamma=InfoVector(I,1) ;
 
-if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
+if InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     figure
     plot(InfoVector(:,1),InfoVector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;

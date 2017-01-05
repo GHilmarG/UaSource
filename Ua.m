@@ -188,7 +188,7 @@ function Ua(UserVar)
 % the computational domain in Ua2D_InitialUserInput. In that case Úa will call
 % an external mesh generator. The external mesh generator used by Úa is "gmsh"
 % which is a well known and well supported open source mesh generator
-% (http://geuz.org/gmsh/) The outlines of the mesh are defined by the variable
+% (http://geuz.org/gmsh/). The outlines of the mesh are defined by the variable
 % 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is
 % quite flexible and allows for complicated computational domains containing
 % holes and/or separated domains. 

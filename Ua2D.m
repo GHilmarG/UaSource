@@ -23,12 +23,13 @@ end
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
 %% initialize some variables
-RunInfo=UaRunInfo;
-l=UaLagrangeVariables; 
+RunInfo=UaRunInfo; 
 Fm1=UaFields;
-% these are the Lagrange variables assosiated with boundary conditions.
-% not to be confused with the Lagrange variables assosiated with solving the
-% adjoint problem
+BCsAdjoint=BoundaryConditions;
+Meas=Measurements;
+Priors=PriorProbabilityDistribution;
+InvStartValues=InversionValues;
+InvFinalValues=InversionValues; 
 
 
 Lubvb=[];
@@ -132,7 +133,7 @@ else % inverse run
         [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         % now get the additional variables specific to an inverse run
-        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo);
         
          
         
@@ -170,6 +171,13 @@ F.h=F.s-F.b;
 %%
 if CtrlVar.doInverseStep   % -inverse
     
+    CtrlVar.UaOutputsInfostring='Start of Inverse Run';
+    CtrlVar.UaOutputsCounter=1;
+    InvFinalValues=InversionValues;
+    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    
+    
     %         [db,dc] = Deblurr2D(NaN,...
     %             s,u,v,b,B,...
     %             sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,xMeas,yMeas,...
@@ -195,18 +203,17 @@ if CtrlVar.doInverseStep   % -inverse
         AdjointResultsPlots(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
-    if CtrlVar.AdjointWriteRestartFile
+    if CtrlVar.Inverse.WriteRestartFile
         
         WriteAdjointRestartFile();
         
     end
     
     CtrlVar.UaOutputsInfostring='End of Inverse Run';
-    CtrlVar.UaOutputsCounter=1;
-    
+    CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+
     SayGoodbye(CtrlVar);
     return  % This is the end of the (inverse) run
     
@@ -219,7 +226,7 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -362,7 +369,7 @@ while 1
                     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
                     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
                     
-                    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+                    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
                     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
                         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
                             CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
@@ -492,7 +499,7 @@ while 1
         
         fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
         
-        UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+        UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
         %UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,dasdh,dabdh,GF,BCs,l);
         
         if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
@@ -534,7 +541,7 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     end
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     %UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,dasdh,dabdh,GF,BCs,l);
     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -592,11 +599,11 @@ SayGoodbye(CtrlVar)
     function WriteAdjointRestartFile
         
         
-        fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.NameOfAdjointRestartFiletoWrite);
+        fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.Inverse.NameOfRestartOutputFile);
         
         CtrlVarInRestartFile=CtrlVar;
         UserVarInRestartFile=UserVar;
-        save(CtrlVar.NameOfAdjointRestartFiletoWrite,...
+        save(CtrlVar.Inverse.NameOfRestartOutputFile,...
             'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
             'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','-v7.3');
         

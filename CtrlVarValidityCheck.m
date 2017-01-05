@@ -126,23 +126,6 @@ if CtrlVar.AdaptMesh && CtrlVar.InverseRun
     
 end
 
-if CtrlVar.InverseRun
-    
-    if strcmpi(CtrlVar.AdjointMinimisationMethod,'MatlabOptimizationToolbox') && ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
-
-        CtrlVar.MeshIndependentAdjointGradients='I';
-        
-        fprintf('CtrlVar.AdjointMinimisationMethod is set to "MatlabOptimizationToolbox" but CtrlVar.MeshIndependentAdjointGradients not to "I" \n')
-        fprintf('This combination is not reckomended. CtrlVar.MeshIndependentAdjointGradients is now set to "I" \n')
-        CtrlVar.MeshIndependentAdjointGradients='I';
-    end
-
-end
-
-if isfield(CtrlVar,'AdjointRestart')
-    warning('Ua:CtrlVarValidityCheck:AdjointRestart','The field AdjointRestart in the strucure array CtlrVar no longer used. Use the Restart field instead')
-end
-
 
 if isfield(CtrlVar,'nTimeSteps')
     warning('Ua:CtrlVarValidityCheck:nTimeSteps','The field nTimeSteps in the strucure array CtlrVar no longer used. Use the TotalNumberOfForwardRunSteps field instead')

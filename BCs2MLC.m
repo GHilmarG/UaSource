@@ -17,9 +17,9 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB) ; save TestSave ; error(' nu
 % get rid of duplicate boundary conditions and just ignore extra BCs
 [ubFixedNodet,itemp]=unique(BCs.ubFixedNode) ; BCs.ubFixedValue=BCs.ubFixedValue(itemp);
 [vbFixedNodet,itemp]=unique(BCs.vbFixedNode) ; BCs.vbFixedValue=BCs.vbFixedValue(itemp);
-
-if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicate Dirichlet BCs for u') ; end
-if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicate Dirichlet BCs for v') ; end
+% 
+% if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicate Dirichlet BCs for u') ; end
+% if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicate Dirichlet BCs for v') ; end
 
 BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
@@ -33,31 +33,6 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 [hL,hRhs]=createLh(MUA.Nnodes,[BCs.hFixedNode;BCs.hPosNode],[BCs.hFixedValue;BCs.hPosValue],BCs.hTiedNodeA,BCs.hTiedNodeB);
 
-
-
-
-%% all done, only tests and setting flags left to do
-
-% % set ties flags (not using this anymore when solving the resulting systems, so presumably not needed)
-% MLC.ubvbTies=1 ; MLC.udvdTies=1 ; MLC.hTies=1 ;
-% if isempty(BCs.ubTiedNodeA) && isempty(BCs.vbTiedNodeB) && isempty(BCs.ubvbFixedNormalNode) ; MLC.ubvbTies=0  ;end
-% if isempty(BCs.udTiedNodeA) && isempty(BCs.vdTiedNodeB) && isempty(BCs.udvdFixedNormalNode) ; MLC.udvdTies=0  ;end
-% if isempty(BCs.hTiedNodeA) ; MLC.hTies=0 ; end
-% 
-% isempty(BCs.ubvbFixedNormalNode) 
-% 
-% 
-% if ~MLC.ubvbTies ;
-%     [m,n]=size(ubvbL); if ~isequal(ubvbL*ubvbL',sparse(1:m,1:m,1)) ; save TestSave ; error(' ubvbL transpose(ubvbL) expected to be equal to the identity matrix, but is not!') ; end
-% end
-% 
-% if ~MLC.ubvbTies ;
-%     [m,n]=size(udvdL); if ~isequal(udvdL*udvdL',sparse(1:m,1:m,1)) ; save TestSave ; error(' udvdL transpose(udvdL) expected to be equal to the identity matrix, but is not!') ; end
-% end
-% 
-% if ~MLC.hTies
-%     [m,n]=size(hL); if ~isequal(hL*hL',sparse(1:m,1:m,1)) ; save TestSave  ; error(' hL transpose(hL) expected to be equal to the identity matrix, but is not!') ; end
-% end
 
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;

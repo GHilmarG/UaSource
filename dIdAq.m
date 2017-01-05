@@ -57,6 +57,13 @@ for Iint=1:MUA.nip
     %dEtadA=-real(hint.*AGlenInt.^(-1/n-1).*e(:,Iint).^((1-n)/n))/(2*n);
     dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1./nint-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-nint)./nint))./(2.*nint);
     
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+            
+            dEtadA=log(10)*AGlenInt.*dEtadA;
+            
+    end
+    
+    
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
             -dEtadA.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw;
@@ -70,43 +77,39 @@ for Inod=1:MUA.nod
 end
 
 
-if ~strcmpi(CtrlVar.MeshIndependentAdjointGradients,'I')
+
+switch CtrlVar.Inverse.AdjointGradientPreMultiplier
     
-    switch upper(CtrlVar.MeshIndependentAdjointGradients)
+    case 'M'
         
-        case 'P'
-            P=NodalFormFunctionInfluence(MUA);
-            dIdAm=dIdA./P;
-        case 'M'
-            M=MassMatrix2D1dof(MUA);
-            dIdAm=M\dIdA;
-    end
-    
-    if  CtrlVar.doplots && CtrlVar.InfoLevelAdjoint>100
-        figure ;
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ;
-        title('dIdA nonscaled, i.e. \deltaJ(A,N) ')
-        figure
-        PlotMeshScalarVariable(CtrlVar,MUA,dIdAm) ;
-        title(['Mesh-independent representation (',CtrlVar.MeshIndependentAdjointGradients,')'])
+        if ~isfield(MUA,'M')
+            MUA.M=MassMatrix2D1dof(MUA);
+        end
+        
+        if CtrlVar.Inverse.InfoLevel>=1000
+            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Dependend')
+        end
+        
+        dIACnorm=norm(dIdA);
+        dIdA=MUA.M\dIdA;
+        dIdA=dIdA*dIACnorm/norm(dIdA);
         
         
-        dd=dIdAm'*dIdA/(norm(dIdAm)*norm(dIdA));
-        ddAngle=acosd(dd);
-        fprintf(' Angle between Euclidian and Ritz gradients is %g degrees.\n',ddAngle)
+        if CtrlVar.Inverse.InfoLevel>=10
+            fprintf('Making dIdA mesh independent by premultiplying with the inverse of the mass matrix.\n')
+        end
         
-    end
-    
-    dIdA=dIdAm;
-    
-    
-    
+        if CtrlVar.Inverse.InfoLevel>=1000
+            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Independend')
+        end
 end
 
-%dIdA=median(AGlen)*dIdA;  % reasonable scaling I think
 
 
 end
+
+
+
 
 
 

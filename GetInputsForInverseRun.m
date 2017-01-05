@@ -1,4 +1,4 @@
-function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF)
+function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo)
 
 %[UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l)
 
@@ -9,7 +9,8 @@ Meas=Measurements;
 Priors=PriorProbabilityDistribution;
 InvStartValues=InversionValues;
 
-[UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,F.AGlen,F.C,F.n,F.m,F.s,F.b,F.S,F.B,F.rho,F.rhow,GF,F.g,F.alpha,F.ub,F.vb,F.ud,F.vd,l);
+[UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
@@ -27,9 +28,9 @@ Meas=TestMeas(CtrlVar,MUA,Meas);
 
 isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
 if ~ isCorrectDimentions
-    fprintf(' Priors do not have right dimentions at restart. \n')
-    fprintf(' Modify DefineInputsForInverseRun to ensure that dimentions are correct.\n')
-    error('Ua:GetInputForInverseRun:incorrectdimentisons','incorrect dimentions')
+    fprintf(' Priors do not have right dimensions at restart. \n')
+    fprintf(' Modify DefineInputsForInverseRun to ensure that dimensions are correct.\n')
+    error('Ua:GetInputForInverseRun:incorrectdimentisons','incorrect dimensions')
     
 end
 

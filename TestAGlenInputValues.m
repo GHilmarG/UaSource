@@ -10,18 +10,6 @@ function [AGlen,n]=TestAGlenInputValues(CtrlVar,MUA,AGlen,n)
 [nn,mn]=size(n);
 
 
-if numel(AGlen)==1 || numel(n)==1
-    
-    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
-    if  CtrlVar.AGlenisElementBased
-        AGlen=AGlen+zeros(MUA.Nele,1);
-        n=n+zeros(MUA.Nele,1);
-    else
-        AGlen=AGlen+zeros(MUA.Nnodes,1);
-        n=n+zeros(MUA.Nnodes,1);
-    end
-    
-end
 
 if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
     
@@ -65,6 +53,27 @@ if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
 end
 
 
+if numel(AGlen)==1 
+    
+    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
+    if  CtrlVar.AGlenisElementBased
+        AGlen=AGlen+zeros(MUA.Nele,1);
+    else
+        AGlen=AGlen+zeros(MUA.Nnodes,1);
+    end
+    
+end
+
+
+if  numel(n)==1
+    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
+    if  CtrlVar.AGlenisElementBased
+        n=n+zeros(MUA.Nele,1);
+    else
+        n=n+zeros(MUA.Nnodes,1);
+    end
+end
+
 if CtrlVar.AGlenisElementBased  && ~(length(MUA.connectivity)==length(AGlen))
     save TestSave ;
     error(' AGlen is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
@@ -75,27 +84,19 @@ end
 
 [AGlen,iU,iL]=kk_proj(AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
 
-
 niU=numel(find(iU));
 niL=numel(find(iL));
 
 if niU>0
-    fprintf(' On input %i AGlen values are larger than largest allowed value (%g%). These values are reset.\n',niU,CtrlVar.AGlenmax);
+    fprintf('TestAGlenInputValues: On input %i AGlen values are larger than largest allowed value (%g).  \n',niU);
+    fprintf(' These values have been reset to the maximum allowed value of %g .\n',niU,CtrlVar.AGlenmax);
+    
 end
 
 
 if niL>0
-    fprintf(' On input %i AGlen values are smaller than smallest allowed value (%g%). These values are reset.\n',niL,CtrlVar.AGlenmin);
+    fprintf('TestAGlenInputValues: On input %i AGlen values are smaller than smallest allowed value (%g). \n',niL,CtrlVar.AGlenmin);
+    fprintf(' These values are have been reset to the minimum allowed value of %g.\n',CtrlVar.AGlenmin);
 end
-
-
-
-
-
-
-
-
-
-
 
 end

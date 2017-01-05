@@ -1,29 +1,55 @@
-function dJ = CalcBruteForceGradient(func,p0,iRange)
+function dJ = CalcBruteForceGradient(func,p0,CtrlVar)
 
 
 
-if nargin<3 || isempty(iRange)
+if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
     iRange=1:numel(p0);
+else
+    iRange=CtrlVar.Inverse.TestAdjoint.iRange;
 end
 
 
-fprintf(' Calculating gradients using brute force method \n')
+fprintf(' Calculating gradients using brute force method. \n')
 
 
 J0=func(p0);
 
 % Testing gradient using brute force method
 
-delta=1e-10*norm(p0);
-dJ=p0*0;
+delta=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*norm(p0);
 
-parfor I=iRange
+dJ=p0*0+NaN;
+
+
+switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
     
-    p1=p0;
-    p1(I)=p1(I)+delta;
-    J1=func(p1);
-    dJ(I)=(J1-J0)/delta;
-    
+    case 'forward'
+        
+        parfor I=iRange
+            
+            p1=p0;
+            p1(I)=p1(I)+delta;
+            J1=func(p1);
+            dJ(I)=(J1-J0)/delta;
+            
+        end
+        
+    case 'central'
+        
+        parfor I=iRange
+            p1=p0;
+            pm1=p0;
+            p1(I)=p1(I)+delta;
+            J1=func(p1);
+            pm1(I)=pm1(I)-delta;
+            Jm1=func(pm1);
+            
+            dJ(I)=(J1-Jm1)/delta/2;
+        end
+    otherwise
+        
+        fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value. \n')
+        error('which case')
 end
 
 % %%

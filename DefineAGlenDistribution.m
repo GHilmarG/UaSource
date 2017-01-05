@@ -23,5 +23,32 @@ else
 end
 
 
+
+if CtrlVar.doDiagnostic
+    
+    switch lower(UserVar.RunType)
+        
+        case 'icestream'
+            
+        case 'iceshelf'
+            x=MUA.coordinates(:,1) ;
+            y=MUA.coordinates(:,2);
+            
+            if CtrlVar.CisElementBased
+                x=mean(reshape(x(MUA.connectivity,1),MUA.Nele,MUA.nod),2);
+                y=mean(reshape(y(MUA.connectivity,1),MUA.Nele,MUA.nod),2);
+            end
+            
+            sx=10e3 ; sy=10e3;
+            AGlen=AGlen.*(1+100*exp(-(x.*x/sx^2+y.*y./sy^2)));
+
+            
+    end
+end
+
+
+
+
+
 end
 
