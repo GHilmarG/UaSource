@@ -2,7 +2,7 @@ function      [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunI
     GetInputsForInverseRestartRun(UserVar,CtrlVar)
 
 
-fprintf(CtrlVar.fidlog,' loading adjoint restart file: %s \t ',CtrlVar.NameOfRestartFiletoRead);
+fprintf(CtrlVar.fidlog,' Inverse run: loading restart file: %s \t ',CtrlVar.Inverse.NameOfRestartInputFile);
 
 load(CtrlVar.Inverse.NameOfRestartInputFile,...
     'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
@@ -28,7 +28,7 @@ isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
 if ~isCorrectDimentions
     
     [UserVar,~,Priors,~,~]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
-
+    
 end
 
 isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);

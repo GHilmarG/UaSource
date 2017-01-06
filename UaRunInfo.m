@@ -3,7 +3,8 @@ classdef UaRunInfo
     properties
         
         Inverse
-        Forward 
+        Forward
+        BackTrack
     end
     
     
@@ -26,6 +27,12 @@ classdef UaRunInfo
             obj.Forward.Converged=0;
             obj.Forward.Iterations=NaN;
             obj.Forward.Residual=NaN;
+            
+            obj.Forward.ActiveSetConverged=NaN;
+            
+            obj.BackTrack.Converged=NaN;
+            obj.BackTrack.iarm=NaN;
+            obj.BackTrack.Infovector=NaN;
             
             
         end

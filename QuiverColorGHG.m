@@ -330,7 +330,7 @@ vplot(Ind)=vplot(Ind)*Par.MinPlottedSpeed./speed(Ind);
 
 
 
-fprintf('QuiverColorGHG: uvPlotScale=%f \n',Par.uvPlotScale)
+%fprintf('QuiverColorGHG: uvPlotScale=%f \n',Par.uvPlotScale)
 
 uplot=uplot/Par.uvPlotScale; vplot=vplot/Par.uvPlotScale;
 

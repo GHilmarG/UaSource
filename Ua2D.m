@@ -92,9 +92,26 @@ PrintRunInfo(CtrlVar);
 
 
 %% Get input data
-if ~CtrlVar.InverseRun %  forward run
+if CtrlVar.InverseRun %  inverse run
     
-    if CtrlVar.Restart  % Forward restart run
+    if CtrlVar.Restart %  inverse restart run
+        
+        [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
+            GetInputsForInverseRestartRun(UserVar,CtrlVar);
+        
+    else % New inverse run
+        
+        % First get the usual input for a forward run
+        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
+        
+        % now get the additional variables specific to an inverse run
+        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo);
+        
+    end
+    
+else
+    
+    if CtrlVar.Restart %  forward restart run
         
         [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar);
         
@@ -106,9 +123,7 @@ if ~CtrlVar.InverseRun %  forward run
         CtrlVar.dt=CtrlVarInRestartFile.dt;
         CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
         
-        
         clearvars time dt CurrentRunStepNumber
-        
         
     else % New forward run (ie not a restart)
         
@@ -119,25 +134,6 @@ if ~CtrlVar.InverseRun %  forward run
         end
     end
     
-else % inverse run
-    
-    if CtrlVar.Restart %  inverse restart run
-        
-        [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
-            GetInputsForInverseRestartRun(UserVar,CtrlVar);
-        
-        
-    else % New inverse run
-
-        % First get the usual input for a forward run
-        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
-        
-        % now get the additional variables specific to an inverse run
-        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo);
-        
-         
-        
-    end
 end
 
 if CtrlVar.TestUserInputs==1
@@ -192,8 +188,8 @@ if CtrlVar.doInverseStep   % -inverse
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
-    F.C=InvFinalValues.C          ; fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C \n ');
-    F.AGlen=InvFinalValues.AGlen  ; fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
+    F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
+    F.AGlen=InvFinalValues.AGlen  ; %fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
     
@@ -406,7 +402,7 @@ while 1
                 
                 CtrlVar.dt=dt;
                 
-                if RunInfo.converged==0
+                if RunInfo.Forward.Converged==0
                     
                     uvhStep=1;  % continue within while loop
                     

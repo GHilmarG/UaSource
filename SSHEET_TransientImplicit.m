@@ -207,10 +207,10 @@ end
 %         fprintf(CtrlVar.fidlog,' final error in satisfying Dirichlet BC %14.7g  \n ',norm(Lh*h-Lhrhs));
 %     end
 
-RunInfo.converged=1;
+RunInfo.Forward.Converged=1;
 if r>CtrlVar.NLtol
     fprintf(CtrlVar.fidlog,' SSHEET  did not converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
-    RunInfo.converged=0;
+    RunInfo.Forward.Converged=0;
 end
 
 if iteration > CtrlVar.NRitmax
@@ -218,7 +218,8 @@ if iteration > CtrlVar.NRitmax
     warning('uvh2DSSHEET:MaxIterationReached','uvh2DSSHEET exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
 end
 
-RunInfo.Iterations=iteration;   RunInfo.residual=r;
+RunInfo.Forward.Iterations=iteration;   
+RunInfo.Forward.Residual=r;
 
 
 end

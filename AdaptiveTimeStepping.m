@@ -54,7 +54,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     
     
     %%
-    if CtrlVar.AdaptiveTimeStepping && ~isempty(RunInfo) 
+    if CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations) 
         
         if isempty(ItVector) ; ItVector=zeros(max(CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp),1)+1e10; end
         if isempty(icount) ; icount=0 ; end
@@ -62,14 +62,15 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
         
         
         icount=icount+1;
-        ItVector(2:end)=ItVector(1:end-1) ; ItVector(1)=RunInfo.Iterations;
+        ItVector(2:end)=ItVector(1:end-1) ; 
+        ItVector(1)=RunInfo.Forward.Iterations;
         nItVector=numel(find(ItVector<1e10)); 
         TimeStepUpRatio=max(ItVector(1:CtrlVar.ATSintervalUp))/CtrlVar.ATSTargetIterations ;
         
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping:  #Non-Lin Iterations over last %-i time steps: (max|mean|min)=(%-g|%-g|%-g). Target is %-i. \t TimeStepUpRatio=%-g \n ',...
             nItVector,max(ItVector),mean(ItVector),min(ItVector),CtrlVar.ATSTargetIterations,TimeStepUpRatio);
         
-        if icount>2 && RunInfo.Iterations>25
+        if icount>2 && RunInfo.Forward.Iterations>25
             icount=0;
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);

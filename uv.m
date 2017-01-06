@@ -91,13 +91,15 @@ switch lower(CtrlVar.FlowApproximation)
         
         [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
         l.ubvb=[] ; Kuv=[] ; Ruv=[];
-        RunInfo.converged=1; RunInfo.Iterations=NaN;  RunInfo.residual=NaN;
+        RunInfo.Forward.Converged=1; 
+        RunInfo.Forward.Iterations=NaN;  
+        RunInfo.Forward.Residual=NaN;
         
     case 'hybrid'
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
         %SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
-        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l);
+        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
         GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);

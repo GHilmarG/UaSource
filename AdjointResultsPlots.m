@@ -1,10 +1,8 @@
 function AdjointResultsPlots(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
 
-%save TestSaveAdjointResults
-%error('fasd')
+
 %%
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-%load TestSave
 us=F.ub+F.ud; vs=F.vb+F.vd;
 
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
