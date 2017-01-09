@@ -39,7 +39,8 @@ function [gradJ1,RunInfo]=NewConjugatedGrad(dJdescent,dJdescentlast,gradJ0,CtrlV
     elseif abs(ddAngle) < CtrlVar.ConjugatedGradientsRestartThreshold
         ConjGradAngle=0 ; teta=0; gradJ1=d1;
         if CtrlVar.Inverse.InfoLevel>=100
-            fprintf(' resetting conjugated gradients \n ')
+            fprintf(' resetting conjugated gradients because abs(ddAngle)=%g < CtrlVar.ConjugatedGradientsRestartThreshold=%g \n ',...
+                abs(ddAngle),CtrlVar.ConjugatedGradientsRestartThreshold)
         end
         iCount=0;
         RunInfo.Inverse.ConjGradUpdate=0;
@@ -58,6 +59,18 @@ function [gradJ1,RunInfo]=NewConjugatedGrad(dJdescent,dJdescentlast,gradJ0,CtrlV
             otherwise
                 error('case not reckognized')
         end
+        
+        if teta<0
+           
+            if CtrlVar.Inverse.InfoLevel>=100
+                fprintf(' resetting conjugated gradients because teta=%g<0. \n ',teta)
+            end
+            iCount=0;
+            RunInfo.Inverse.ConjGradUpdate=0;
+            teta=0;
+            
+        end
+        
         
         gradJ1=d1 + teta * gradJ0 ; % new search direction
         ConjGradAngle=acosd(d1'*gradJ1/(norm(d1)*norm(gradJ1)));  % angle between current steepest descent and cc search direction

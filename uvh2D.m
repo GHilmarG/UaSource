@@ -1,29 +1,31 @@
-function [UserVar,ub1,vb1,ud1,vd1,h1,lambdauv1,lambdah1,RunInfo]=...
-    uvh2D(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ud0,vd0,ub1,vb1,ud1,vd1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
-    AGlen,C,n,m,alpha,rho,rhow,g)
+function  [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 %  Fully-Implicit solution for uvh (SSTREAM) and h (SSHEET)
 
-
-nargoutchk(9,9)
+narginchk(8,8)
+nargoutchk(5,6)
 
 switch lower(CtrlVar.FlowApproximation)
     
     
     case 'sstream'
         
-        [UserVar,ub1,vb1,h1,lambdauv1,lambdah1,RunInfo]=...
-            SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
-            AGlen,C,n,m,alpha,rho,rhow,g);
-        ud1=ud1*0 ; vd1=vd1*0 ; 
+        [UserVar,RunInfo,F1,l1,BCs1,GF1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+        
+%         [UserVar,ub1,vb1,h1,lambdauv1,lambdah1,RunInfo]=...
+%             SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,lambdauv,lambdah,...
+%             AGlen,C,n,m,alpha,rho,rhow,g);
+        
+        F1.ud=zeros(MUA.Nnodes,1)  ; F1.vd=zeros(MUA.Nnodes,1); 
         
     case 'ssheet'
         
         
-        [UserVar,ud1,vd1,h1,s1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g);
-        lambdauv1=lambdauv;
+        [UserVar,F1.ud,F1.vd,F1.h,F1.s,GF1,l1.h,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs1,CtrlVar.dt,F1.h,F0.h,F1.S,F1.B,F0.as,F0.ab,F1.as,F1.ab,l1.h,F1.AGlen,F1.n,F1.rho,F1.rhow,F1.g);
+     
         
-        ub1=ub1*0 ; vb1=vb1*0;
+        F1.ub=zeros(MUA.Nnodes,1) ; 
+        F1.vb=zeros(MUA.Nnodes,1) ; 
         
     case 'hybrid'
         

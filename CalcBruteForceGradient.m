@@ -6,6 +6,8 @@ if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
     iRange=1:numel(p0);
 else
     iRange=CtrlVar.Inverse.TestAdjoint.iRange;
+    I=(iRange>=1) & (iRange <= numel(p0));
+    iRange=iRange(I);
 end
 
 

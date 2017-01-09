@@ -1,13 +1,15 @@
-function [UserVar,ub1,vb1,h1,luv1,lh1,RunInfo]=...
-    SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,luv,lh,...
-    AGlen,C,n,m,alpha,rho,rhow,g)
+function [UserVar,RunInfo,F1,l1,BCs1,GF1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
+
+narginchk(8,8)
+nargoutchk(5,6)
+
+%
+%
+% [UserVar,ub1,vb1,h1,luv1,lh1,RunInfo]=...
+%     SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,luv,lh,...
+%     AGlen,C,n,m,alpha,rho,rhow,g)
 
 
-
-nOut=nargout;
-if nOut~=7
-    error('Ua:SSTREAM_TransientImplicit','Need 7 output arguments')
-end
 
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
@@ -53,75 +55,69 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 %   [0  Lh]
 % and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
 % where L [u;v;h]=cuvh
-% 
- 
-            
-if any(h0<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
+%
+
+
+if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
 
 
 tStart=tic;
 
 
 
-ub=ub1 ; vb=vb1 ; h=h1 ; % starting values
-dub=ub-ub0; dvb=vb-vb0 ; dh=h-h0;
-%du=zeros(Nnodes,1) ; dv=zeros(Nnodes,1) ; dh=zeros(Nnodes,1) ;
+dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
+
 
 
 %% assemble global Lagrange constraint matrix
-MLC=BCs2MLC(MUA,BCs);
-Luv=MLC.ubvbL;  
+MLC=BCs2MLC(MUA,BCs1);
+Luv=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 Lh=MLC.hL;
 ch=MLC.hRhs;
 
-if numel(luv)~=numel(cuv) ; luv=zeros(numel(cuv),1) ; end
-if numel(lh)~=numel(ch) ; lh=zeros(numel(ch),1) ; end
-nluv=numel(luv) ; nlh=numel(lh); 
-
-[L,cuvh,l]=AssembleLuvh(Luv,Lh,cuv,ch,luv,lh,MUA.Nnodes);
-dl=l*0;
+if numel(l1.ubvb)~=numel(cuv) ; l1.ubvb=zeros(numel(cuv),1) ; end
+if numel(l1.h)~=numel(ch) ; l1.h=zeros(numel(ch),1) ; end
+nlubvb=numel(l1.ubvb) ; 
 
 
-%% calculate basis function derivatives
-% this is a very memory expensive way of doing this, but it saves
-% redoing this calculation within every non-lin iteration
-
-% Deriv : Nele x dof x nod
-%  detJ : Nele
-%dof=2; [Nele,nod]=size(connectivity);
-%MeshProp.Deriv=zeros(Nele,dof,nod,nip);
-%MeshProp.DetJ=zeros(Nele,nip);
+[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+dl=luvh*0;
 
 
+[UserVar,RunInfo,R0]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,true);
+Fext0=R0;
 
 iteration=0 ; Stagnated=0;
 r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlambda=1e10;
 
-while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) &&  iteration <= CtrlVar.NRitmax && ~Stagnated) ) || iteration < CtrlVar.NRitmin
+while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
+        &&  iteration <= CtrlVar.NRitmax ...
+        && ~Stagnated ) ...
+        || iteration < CtrlVar.NRitmin
     iteration=iteration+1;
     
     % If I want to implement an in complete NR method, then presumably all that is
-    % needed is to call uvhAssembly once in while with just the first output
+    % needed is to call uvhAssembly once in a while with just the first output
     % argument, ie R, and only update K occationally
-    [UserVar,R,K,~,FI]=uvhAssembly(UserVar,CtrlVar,MUA,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g);
     
-    if iteration==1 
-        F0=FI ; % F0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration
-    end  
+    
+    
+    [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
     
     
     %% solve the (asymmetrical) linear system
     if ~isempty(L)
-        frhs=-R-L'*l;
-        grhs=cuvh-L*[ub;vb;h];
+        frhs=-R-L'*luvh;
+        grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
     else
         frhs=-R;
         grhs=[];
     end
     
-   [r0,rl0,ruv0,rh0]=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes); 
-
+    
+    r0=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
+    
     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
     
     
@@ -132,16 +128,24 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     
     %% calculate  residuals at full Newton step
     gamma=1;
-    [UserVar,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuvh);
-                          
+    %[UserVar,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,luvh,dl,cuvh);
+    
+    
+    [UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     
     %% either accept full Newton step or do a line search
     
-    [UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-        (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,l,dl,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh);
+    %[UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
+    %    (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,luvh,dl,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh);
+    
+    % Var her
+    [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
+    
+    iarm=RunInfo.BackTrack.iarm;
+    infovector=RunInfo.BackTrack.Infovector;
     
     
-    if BacktrackInfo.converged==0
+    if RunInfo.BackTrack.Converged==0
         Stagnated=1;
     end
     
@@ -153,7 +157,12 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
         if gamma>0.7*Up ; Up=2*gamma; end
         parfor I=1:nnn
             gammaTest=Up*(I-1)/(nnn-1)+gamma/50;
-            [~,rTest,ruv1Test,rh1Test,rl1Test]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuvh);
+            
+            [~,~,rTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,gammaTest,dub,dvb,dh,dl,F1,F0,L,luvh,cuvh);
+            %[~,rTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,luvh,dl,cuvh);
+            
+            
+            
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
         gammaTestVector=[gammaTestVector(:);infovector(:,1)];
@@ -179,10 +188,10 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     
     
     %% calculate statistics on change in speed, thickness and Lagrange parameters
-    D=mean(sqrt(ub.*ub+vb.*vb))+CtrlVar.SpeedZero;
+    D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
     diffDu=gamma*full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-    diffDh=gamma*full(max(abs(dh))/(mean(abs(h)))+0.01);            % max change in thickness divided by mean thickness
-    diffDlambda=gamma*max(abs(dl))/mean(abs(l));
+    diffDh=gamma*full(max(abs(dh))/mean(abs(F1.h)));            % max change in thickness divided by mean thickness
+    diffDlambda=gamma*max(abs(dl))/mean(abs(luvh));
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
     
@@ -192,49 +201,69 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
     end
     
     %% update variables
-    ub=ub+gamma*dub ; vb=vb+gamma*dvb; h=h+gamma*dh;  l=l+gamma*dl;
+    %ub=ub+gamma*dub ; vb=vb+gamma*dvb; h=h+gamma*dh;
+    %luvh=luvh+gamma*dl;
+    %luv=luvh(1:nluv) ;
+    %lh=luvh(nluv+1:end);
     
-    luv=l(1:nluv) ; lh=l(nluv+1:end);
+    F1.ub=F1.ub+gamma*dub;
+    F1.vb=F1.vb+gamma*dvb;
+    F1.h=F1.h+gamma*dh;
+    luvh=luvh+gamma*dl;
     
-    if~isempty(Lh)
-        BCsNormh=norm(ch-Lh*h);
-    else
-        BCsNormh=0;
-    end
+    l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
     
-    if~isempty(Luv)
-        BCsNormuv=norm(cuv-Luv*[ub;vb]);
-    else
-        BCsNormuv=0;
-    end
     
     
     temp=CtrlVar.ResetThicknessToMinThickness;
     if ~CtrlVar.ResetThicknessInNonLinLoop
         CtrlVar.ResetThicknessToMinThickness=0;
     end
-    [b,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+    
+    % make sure to update s and b as well!
+    [F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+    %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
     CtrlVar.ResetThicknessToMinThickness=temp;
     
-    if CtrlVar.MassBalanceGeometryFeedback==1
-        GF = GL2d(B,S,h,rhow,rho,MUA.connectivity,CtrlVar);
+    if~isempty(Lh)
+        BCsNormh=norm(ch-Lh*F1.h);
+    else
+        BCsNormh=0;
+    end
+    
+    if~isempty(Luv)
+        BCsNormuv=norm(cuv-Luv*[F1.ub;F1.vb]);
+    else
+        BCsNormuv=0;
+    end
+    
+    
+    
+    % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
+    % update the surface mass balance within this non-linear loop. Actually I here
+    % only need to consider option 1 because if options 2 or 3 are used the
+    % mass-blance is updated anyhow witin the assmebly loop.
+    if CtrlVar.MassBalanceGeometryFeedback>0
+        %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
         rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
         if rdamp~=0
-            as1Old=as1 ; ab1Old=ab1;
+            as1Old=F1.as ; ab1Old=F1.ab;
         end
-        [as1,ab1]=GetMassBalance(CtrlVar.UserVar,CtrlVar,MUA,CtrlVar.time+dt,s,b,h,S,B,rho,rhow,GF);
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1,GF1);
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt;
         
         if rdamp~=0
-            % If Hessian inaccurate, or too non-linear, then
-            % dampen these changes might be a good idea.
-            as1=(1-rdamp)*as1+rdamp*as1Old;
-            ab1=(1-rdamp)*ab1+rdamp*ab1Old;
+            % If Hessian inaccurate, or too non-linear, then dampen these changes might be a
+            % good idea.
+            F1.as=(1-rdamp)*F1.as+rdamp*as1Old;
+            F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
         end
     end
-
+    
     
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
-        PlotForceResidualVectors('uvh',R,L,l,MUA.coordinates,CtrlVar) ; axis equal tight
+        PlotForceResidualVectors('uvh',R,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight
     end
     
     if CtrlVar.InfoLevelNonLinIt>=1
@@ -245,7 +274,7 @@ while (r>1e-15 && ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.d
 end
 
 %% return calculated values at the end of the time step
-ub1=ub ; vb1=vb ; h1=h; luv1=luv ; lh1=lh;
+%F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
 
 tEnd=toc(tStart);
 
@@ -261,9 +290,9 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
 end
 
 if ~isempty(L)
-    BCerror=norm(L*[ub;vb;h]-cuvh);
+    BCerror=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
     if BCerror>0
-        fprintf(CtrlVar.fidlog,'Error in satisfying Dirichlet BC %14.7g  \n ',norm(L*[ub;vb;h]-cuvh));
+        fprintf(CtrlVar.fidlog,'Norm of error satisfying Dirichlet BC=%14.7g  \n ',norm(L*[F1.ub;F1.vb;F1.h]-cuvh));
     end
 end
 
@@ -272,15 +301,16 @@ if r>CtrlVar.NLtol
     fprintf(CtrlVar.fidlog,' SSTREAM(uvh)  did not converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
     fprintf(CtrlVar.InfoFile,' SSTREAM(uvh)  did not converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
     
-    RunInfo.converged=0;
+    RunInfo.Forward.Converged=0;
 else
-    RunInfo.converged=1;
+    
+    RunInfo.Forward.Converged=1;
     if CtrlVar.InfoLevelNonLinIt>=1
         fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
-            CtrlVar.time,dt,CtrlVar.NLtol,r,iteration,tEnd) ;
+            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
         
         fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,dt,r,iteration,tEnd) ;
+            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
     end
 end
 
@@ -290,15 +320,9 @@ if iteration > CtrlVar.NRitmax
     warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
 end
 
-RunInfo.Iterations=iteration;   RunInfo.residual=r;
+RunInfo.Forward.Iterations=iteration;   
+RunInfo.Forward.Residual=r;
 
-
-
-%     if any(isnan(u1)) ; save TestSave  ;  error(' NaN in u1 ' ) ; end
-%     if any(isnan(v1)) ; save TestSave  ;  error(' NaN in v1 ' ) ; end
-%     if any(isnan(h1)) ; save TestSave  ;  error(' NaN in h1 ' ) ; end
-%     if any(isnan(lambdauv)) ; save TestSave  ;  error(' NaN in lambdauv ' ) ; end
-%     if any(isnan(lambdah)) ; save TestSave  ;  error(' NaN in lambdah ' ) ; end
 
 
 end

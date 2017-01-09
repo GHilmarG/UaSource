@@ -32,7 +32,7 @@ if any(F.h<0)
     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F.h));
     
     if CtrlVar.ResetThicknessToMinThickness==0
-        CtrlVar.ResetThicknessToMinThickness=1; 
+        CtrlVar.ResetThicknessToMinThickness=1;
     end
     
     
@@ -42,7 +42,7 @@ if any(F.h<0)
     
     fprintf('These thicknes values will be set to %f \n',CtrlVar.ThickMin)
     
-    [F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
+    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
     
 end
 
@@ -81,7 +81,7 @@ switch lower(CtrlVar.FlowApproximation)
         
         %[UserVar,F.ub,F.vb,l.ubvb,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
-
+        
         
     case 'ssheet'
         
@@ -91,8 +91,8 @@ switch lower(CtrlVar.FlowApproximation)
         
         [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
         l.ubvb=[] ; Kuv=[] ; Ruv=[];
-        RunInfo.Forward.Converged=1; 
-        RunInfo.Forward.Iterations=NaN;  
+        RunInfo.Forward.Converged=1;
+        RunInfo.Forward.Iterations=NaN;
         RunInfo.Forward.Residual=NaN;
         
     case 'hybrid'

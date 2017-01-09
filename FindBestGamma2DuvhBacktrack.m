@@ -1,15 +1,18 @@
-function [UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-    (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,u,v,h,du,dv,dh,S,B,u0,v0,h0,L,lambda,dlambda,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh)
+function [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0)
 
-nargoutchk(9,9)
-narginchk(39,39)
+
+
+nargoutchk(7,7)
+narginchk(19,19)
 
 if CtrlVar.InfoLevelNonLinIt>2
     fprintf(CtrlVar.fidlog,'FindBestGamma2DuvhBacktrack: on input r0=%-g  and r1=%-g \n ',r0,r1) ;
 end
 
-BacktrackInfo.converged=1;  % true if it converged
-BacktrackInfo.gammaNaN=0;
+converged=1;  % true if it converged
+gammaNaN=0;
+
+
 Slope0=-2*r0 ;  % using the inner product def
 gamma=1; r=r1; ruv=ruv1 ; rh=rh1; rl=rl1;
 gammab=1; rb=r1 ;
@@ -30,6 +33,7 @@ infovector(2,1)=1 ; infovector(2,2)=r1;
 cStatus=NaN ; pStatus=NaN;
 
 I=3;
+
 
 % when backtracking: gamma < gammab   and  gammac is the previous gammab with gammac> gammab
 % when extrapolating:  gammac=gamma ; gammab is the previous extrapolation value
@@ -65,10 +69,11 @@ while ExtrapolationStep && iarm<=10
         if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
         
         
-        [UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+        [UserVar,RunInfo,r1,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
         
-        if isnan(r) ;
+        if isnan(r) 
             fprintf(CtrlVar.fidlog,' In line search (extrapolation phase), cost function is nan \n ');
             error(' nan ')
         end
@@ -103,7 +108,7 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin
         if gamma > 0.8*gammab ; gamma=0.8*gammab ; elseif gamma < 0.4*gammab ; gamma=0.4*gammab;end
     else % cubic backtracking step
         [gamma,cStatus]=CubicFit(Slope0,r0,rb,rc,gammab,gammac);
-        if cStatus==1 ;
+        if cStatus==1 
             fprintf(CtrlVar.fidlog,'Cubic Fit returns status 1 with gamma=%-g \n ',gamma);
             [gamma,pStatus] = parabolamin(0,gammab,1,r0,rb,r1);
             if pStatus==1
@@ -113,26 +118,26 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin
         if gamma > 0.8*gammab ; gamma=0.8*gammab ; elseif gamma < 0.2*gammab ; gamma=0.2*gammab;end
     end
     
-    if isnan(gamma) ;
+    if isnan(gamma) 
         warning('FindBestGamma2DuvhBacktrack:gammaNaN',' gamma is NaN ') ;
         fprintf(CtrlVar.fidlog,' gamma in backtracking is NaN \n ');
         save TestSave Slope0 r0 r1 rb rc gammab gammac cStatus pStatus
-        BacktrackInfo.gammaNaN=1;
+        gammaNaN=1;
         break
     end
     
-   
-    [UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+    [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
     
-    if isnan(r) ;
+    if isnan(r) 
         fprintf(CtrlVar.fidlog,' In line search (backtracking phase), cost function is nan \n ');
         error(' nan ')
     end
     
     
-    if iarm==1  &&  rb< r ;
+    if iarm==1  &&  rb< r 
         rc=rb; gammac=gammab;
         rTemp=r; gammaTemp=gamma;
         r=rb ; gamma=gammab ;        % Because I start with a different exit criterion, I must
@@ -159,16 +164,18 @@ if iarm==0 && r> 0.1*r0 && r> CtrlVar.NLtol
     gammaTest=-Slope0/2/(rb-r0-Slope0);
     if gammaTest > 1.2*gammab ; gammaTest=1.2*gammab ; elseif gammaTest < 0.1*gammab ; gammaTest=0.1*gammab;end
     
-    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ; iarm=iarm+1; end
     
-elseif iarm==1 && r> 0.1*r0 && BacktrackInfo.gammaNaN==0;
+elseif iarm==1 && r> 0.1*r0 && gammaNaN==0
     % another case that is sometimes worthwile investigating is if first backtracking step can be improved
     
     gammaTest=gamma/2;
     
-    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ;  iarm=iarm+1; end
@@ -179,7 +186,8 @@ elseif iarm==1 && r> 0.1*r0 && BacktrackInfo.gammaNaN==0;
     gammaTest=CubicFit(Slope0,r0,infovector(2,2),1,infovector(2,1),r1);
     if gammaTest > 0.9 ; gammaTest=0.9 ; elseif gammaTest < 0.01 ; gammaTest=0.01 ;end
     
-    [UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
     if rTest<r ; r=rTest ; gamma=gammaTest ;
@@ -195,10 +203,17 @@ if iarm>iarmmax
     fprintf(CtrlVar.fidlog,' Maximum number of backtracking steps reached! ') ;
 end
 
-if r > r0 && r > CtrlVar.NLtol;
+if r > r0 && r > CtrlVar.NLtol
     fprintf(CtrlVar.fidlog,' Backtracking step did not reduce residual! r0=%-g and r=%-g \n ',r0,r) ;
-    BacktrackInfo.converged=0;
+    converged=0;
 end
+
+RunInfo.BackTrack.Converged=converged;
+RunInfo.BackTrack.iarm=iarm;
+RunInfo.BackTrack.Infovector=infovector;
+%RunInfo.Backtrack.gammaNaN=gammaNaN;
+
+
 
 end
 

@@ -421,7 +421,7 @@ while 1
             %CtrlVar.time=round(CtrlVar.time,14,'significant');
             
             [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);  % This should not be needed as uvh already takes care of this.
-            %[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
+           
             
             Fm1.dhdt=F0.dhdt ;
             Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -456,7 +456,7 @@ while 1
              
             F0=F;
             
-            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,GF]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             Fm1.dhdt=F0.dhdt ;
             Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -475,7 +475,7 @@ while 1
     
     % calculating derived quantities
     
-    GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+    %GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
     
   
     %% plotting results
@@ -631,36 +631,6 @@ SayGoodbye(CtrlVar)
         save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA')
         
     end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 end

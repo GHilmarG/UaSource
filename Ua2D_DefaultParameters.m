@@ -195,7 +195,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 
 
 
-%% Regularisation parameters
+%% Numerical Regularisation Parameters  (note: these are not related to inverse modellgin regularisation)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
 CtrlVar.etaIntMax=1e10 ;    % max value of effective viscosity.
@@ -378,66 +378,130 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 
-%% Inversion (Adjoint variables)  Inverse
+%% Inversion 
 %
-% Inversion can currently be done for C and A. At each inverse iteration one
-% only inverts for either A and C. At the moment, inverting for A and C simply
-% means inverting for the one or the other in sequence. 
+% Inversion can currently be done for C and A. 
+% 
+% One can invert for either A or C, or both.
 %
-% There are number of different minimisation methods implemented. Sometimes when one
-% fails/stagnates, one can continue using another method and drive the misfit
-% further down in doing so. 
+% The default option is to invert for log(A) and log(C) simultaneously.
+%
+% The objective function J (i.e. the function to be minimized) has the form
+%
+%  J=  I + R
+%
+% where I is a misift term, and R a regularisation term.
+%
+%
+% The misfit term is:
+%
+%  I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy
+%
+% and the regularisation term can be either (Bayesian)
+%
+%  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  
+%
+% where KC and KA are covariance matrices, or (Tikhonov)
+%
+%  R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy
+%
+% where p is A or log(A), C or log(C)
+%
+% There are number of different minimisation methods implemented. Although the
+% methodology behind the inversion is rigorous, in practice when working with
+% real data the inversions sometimes get stuck in some local minima. The
+% different optimisations methods implemented use slighlty different search
+% directions, and switching methods may help getting out of a local minima as
+% seen by one particular method. (When using synthetic data this is hardly ever
+% an issue).
+%
 %
 % The inversion for C and A can be done with C and A defined on nodes or
 % elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased.
+% In the past only inversion for element-based variables was possible, but now
+% one can invert for either nodal or element values. By default, the inversion
+% is done on nodal values. 
 %
-% General guidlines:  Consider inversion an iterative process where the user
-% (you!) will have to look at the results of a few inversion steps and then make
-% an educated guess on how to continue.
 %
-% Often starting inverting for C using the fix-point method (see
+% Hint: Often starting inverting for C using the fix-point method (see
 % "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite
 % significantly down. Once that method stagnates (which it almost always will
 % because the gradient used in that method is just a rough estimate and
 % generally not exact), switch to another minimisation approach, for example the
-% UaOptimisation using the adjoint gradients. Also switch between A and C inversion and, possibly,
-% between element and nodal based approach.
+% UaOptimisation using the adjoint gradients. 
 %
-% Although the methodology behind the inversion is rigorous, in practice when working
-% with real data the inversions sometimes get stuck in some local minima. The
-% different optimisations methods implemented use slighlty different search
-% directions, and switching methods may help getting out of a local minima as seen by one
-% particular method. (When using synthetic data this is hardly ever an issue).
+% Ua has some inbuilt optimisation methods and these are used by default.
+% However, if the matlab optimisation toolbox is installed, the matlab routines
+% can be used instead.  
 %
-%
-
 CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
-CtrlVar.Inverse.Iterations=1;
-CtrlVar.Inverse.InvertFor='logC' ; % {'C','logC','AGlen','logAGlen'}
 
+
+CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
+
+CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
+CtrlVar.Inverse.NameOfRestartOutputFile='AdjointRestart.mat';
+CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
+CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
+CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
+    
+% It is usually better to invert for log(A) and log(C) rather than A and C.
+% The default is to invert for log(A) and log(C) simultaneously.
+CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
+
+% The gradient of the objective function is calculated using the adjoint method.
+% When inverting for C only, one can also use a gradient based on a `FixPoint'
+% iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
-CtrlVar.Inverse.AdjointGradientPreMultiplier='M'; % {'I','M'}
 
-CtrlVar.Inverse.Regularize.Field='lin' ; % {'log','lin','cov'}
-CtrlVar.Inverse.Regularize.C.gs=0;
-CtrlVar.Inverse.Regularize.C.ga=0;
-CtrlVar.Inverse.Regularize.logC.ga=0;
-CtrlVar.Inverse.Regularize.logC.gs=0 ; % 1e6  works well with I
+% The gradient of the objective function can be premultiplied with the inverse
+% of the mass matrix. This creates a `mesh independent' gradient. This has both
+% advantages and disadvantages.  
+CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
+
+
+% Regularisation can be applied on A and C or log(A) and log(C). Also possible
+% to use a covariance matrix for A and C. 
+%
+% Select Bayesian motivated regularisation by setting 
+% CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularisation
+% by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen','logAGlenlogC'
+%
+% Default is Tikhonov regularisation on log(A) and log(C)
+CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','logAGlen','logAGlenlogC'}
+
+
+% [ -- Parameters specific to Tikhonov regularisation
+% See the above definition of R in the case of Tikhonov regularisation.
+% The values of these parameters can be expected to be highly problem dependent.
+% By default regularisation is switched on, but can the switched off by setting
+% the gs and the ga parameters to zero.
+CtrlVar.Inverse.Regularize.C.gs=1; 
+CtrlVar.Inverse.Regularize.C.ga=1;
+CtrlVar.Inverse.Regularize.logC.ga=1;
+CtrlVar.Inverse.Regularize.logC.gs=1 ; 
 
 CtrlVar.Inverse.Regularize.AGlen.gs=1;
 CtrlVar.Inverse.Regularize.AGlen.ga=1;
-CtrlVar.Inverse.Regularize.logAGlen.ga=0;
-CtrlVar.Inverse.Regularize.logAGlen.gs=0 ;
+CtrlVar.Inverse.Regularize.logAGlen.ga=1;
+CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
+%  -] 
 
-
-
+% I and R are multiplied by these DataMisit and Regularisation multipliers. This
+% is a convening shortcut of getting rid of either the misfit or the
+% regularisatoin terms.
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
-CtrlVar.Inverse.Regularize.Multiplier=0;
+CtrlVar.Inverse.Regularize.Multiplier=1;
 
 
 % [----------  The following parameters are only relevant if using the UaOptimization
 % i.e. only if CtrlVar.Inverse.MinimisationMethod='UaOptimization';
-CtrlVar.Inverse.GradientUpgradeMethod='SteepestDecent' ; %{'SteepestDecent','ConjGrad'}
+% The Ua optimisation is a simple non-linear conjugate-gradient method with automated
+% resets, combined with a (one-sided) line search. The reset is done if the angle between
+% subsequent steepest decent directions is to far from 90 degrees, or if the
+% update parameter becomes negative (only relevant for Polak-Ribiere and
+% Hestens-Stiefel).
+CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'}
 CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
@@ -511,14 +575,6 @@ CtrlVar.Inverse.DataMisfit.HessianEstimate='0'; % {'0','I','MassMatrix'} Do not 
 CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
 CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
 CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
-
-CtrlVar.Inverse.WriteRestartFile=1;
-CtrlVar.Inverse.NameOfRestartOutputFile='AdjointRestart.mat';
-CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
-CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
-CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
-    
-
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 
 
@@ -911,10 +967,8 @@ CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on
 
 %% A and C as element or nodal variables
 % AGlen and C can be either nodal or element variables.
-% 
-% Currently AGlen and C MUST be element variables in all inverse runs.
-% In forward runs AGlen and C can be either nodal or element variables.
 %
+% By default A and C are nodal variables.
 %
 %
 CtrlVar.AGlenisElementBased=0; 
