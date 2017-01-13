@@ -379,7 +379,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 %% Inversion 
-%
+% 
 % Inversion can currently be done for C and A. 
 % 
 % One can invert for either A or C, or both.
@@ -428,19 +428,48 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % significantly down. Once that method stagnates (which it almost always will
 % because the gradient used in that method is just a rough estimate and
 % generally not exact), switch to another minimisation approach, for example the
-% UaOptimisation using the adjoint gradients. 
+% UaOptimisation using the adjoint gradients.
 %
 % Ua has some inbuilt optimisation methods and these are used by default.
 % However, if the matlab optimisation toolbox is installed, the matlab routines
-% can be used instead.  
+% can be used instead.
 %
+% Note #1: Some parameter combinations can be inconsistent. For example inverting
+% for A only and applying regularisation on A and C, i.e.
+%
+%   CtrlVar.Inverse.InvertFor='logAGlen' ;
+%   CtrlVar.Inverse.Regularize.Field='logAGlenlogC'
+%
+% is considered inconsistent (although in principle possible.) Also using the
+% `FixPointC' gradient calculation, which only works for C inversion, and
+% inverting for both A and C, i.e. 
+%
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+%   CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
+%
+% is inconsistent. Ua tries to spot these input parameter mistakes and correct
+% for them, but it is better to try to keep all inputs consistent.
+%
+% Note #2: It is possible to invert for any combinatin of log(A) or A  and log(C)
+% or C. So for example one can invert for log(A) and C by setting 
+%
+%   CtrlVar.Inverse.InvertFor='logAGlenC' ;
+%
+% Also one can invert for log(C) and log(A) and regularise A and C by setting
+%
+%
+%   CtrlVar.Inverse.InvertFor='logAGlenlogC' ;
+%   CtrlVar.Inverse.Regularize.Field='AGlenC'
+%
+
+
 CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
 
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
-CtrlVar.Inverse.NameOfRestartOutputFile='AdjointRestart.mat';
+CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
@@ -456,7 +485,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 
 % The gradient of the objective function can be premultiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
-% advantages and disadvantages.  
+% advantages and disadvantages. 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 
 
@@ -487,9 +516,9 @@ CtrlVar.Inverse.Regularize.logAGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
 %  -] 
 
-% I and R are multiplied by these DataMisit and Regularisation multipliers. This
-% is a convening shortcut of getting rid of either the misfit or the
-% regularisatoin terms.
+% I and R are multiplied by these followign DataMisit and Regularisation
+% multipliers. This is a convening shortcut of getting rid of either the misfit
+% (I) or the regularization term (R) in the objective function (J).
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 

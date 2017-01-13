@@ -2,6 +2,8 @@ function S=sparseUA(varargin)
 
 persistent  isSparse2
 
+
+
 if isempty(isSparse2)
     if exist('sparse2','file')==3
         isSparse2=1 ;

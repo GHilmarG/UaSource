@@ -3,6 +3,10 @@ function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
 nargoutchk(4,4)
 narginchk(7,7)
 
+if ~ isstruct(CtrlVar)
+   error('Calc_bs_From_hBSL:InputError','Incorrect inputs.')
+end
+
 %% Calculates b, s, and h, consistent with the floating condition.
 % [b,s,h,GF]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
 % sets b and b given h, S and B and the densities rho and rhow
@@ -20,6 +24,7 @@ narginchk(7,7)
 
 
 % Does the thickness need to be modified?
+
 if CtrlVar.ResetThicknessToMinThickness
     
     h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin;

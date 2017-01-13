@@ -107,17 +107,6 @@ F=StartVelocity(CtrlVar,MUA,BCs,F);  % modify based on BCs
 [UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F,GF);
 
 
-if CtrlVar.doplots
-    
-    if CtrlVar.PlotBCs
-        figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs);
-    end
-    
-    if CtrlVar.PlotMesh && CtrlVar.ReadInitialMesh
-        figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
-    end
-end
-
 l=UaLagrangeVariables; 
 
 

@@ -207,9 +207,15 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     %%
 else
     
-    IFigGradients=figure('Name','Gradients','NumberTitle','off');
-    subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; title('dJdAGlen')
-    subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
+    if ~isempty(InvFinalValues.dJdAGlen)
+        IFigGradientsA=figure('Name','dJdAGlen Gradients','NumberTitle','off');
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; title('dJdAGlen')
+    end
+    
+    if ~isempty(InvFinalValues.dJdC)
+        IFigGradientsC=figure('Name','dJdC Gradients','NumberTitle','off');
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
+    end
     %subplot(3,1,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dRdp) ; title('dRdp')
     
     

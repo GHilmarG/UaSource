@@ -142,7 +142,7 @@ else
         fprintf('are therefore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         
         [UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
-        
+        TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
         F.h=F.s-F.b;
         
     end

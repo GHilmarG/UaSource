@@ -315,7 +315,14 @@ CtrlVar.InfoLevelCPU=0;  <span class="comment">% if 1 then some info on CPU time
 
 CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard output is directed to a logfile</span>
 <span class="comment">% name of logfile is  $Experiment.log</span>
-</pre><h2 id="25">Inversion</h2><p>Inversion can currently be done for C and A.</p><p>One can invert for either A or C, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function J (i.e. the function to be minimized) has the form</p><pre>J=  I + R</pre><p>where I is a misift term, and R a regularisation term.</p><p>The misfit term is:</p><pre>I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy</pre><p>and the regularisation term can be either (Bayesian)</p><pre>R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  +</pre><p>where KC and KA are covariance matrices, or (Tikhonov)</p><pre>R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy</pre><p>where p is A or log(A), and C or log(C)</p><p>There are number of different minimisation methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minima. The different optimisations methods implemented use slighlty different search directions, and switching methods may help getting out of a local minima as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>The inversion for C and A can be done with C and A defined on nodes or elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the past only inversion for element-based variables was possible, but now one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimisation approach, for example the UaOptimisation using the adjoint gradients. Also switch between A and C inversion and, possibly, between element and nodal based approach.</p><p>Ua has some inbuilt optimisation methods and these are used by default. However, if the matlab optimisation toolbox is installed, the matlab routines can be used instead.</p><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'UaOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
+</pre><h2 id="25">Inversion</h2><p>Inversion can currently be done for C and A.</p><p>One can invert for either A or C, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function J (i.e. the function to be minimized) has the form</p><pre>J=  I + R</pre><p>where I is a misift term, and R a regularisation term.</p><p>The misfit term is:</p><pre>I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy</pre><p>and the regularisation term can be either (Bayesian)</p><pre>R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)</pre><p>where KC and KA are covariance matrices, or (Tikhonov)</p><pre>R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy</pre><p>where p is A or log(A), C or log(C)</p><p>There are number of different minimisation methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minima. The different optimisations methods implemented use slighlty different search directions, and switching methods may help getting out of a local minima as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>The inversion for C and A can be done with C and A defined on nodes or elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the past only inversion for element-based variables was possible, but now one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimisation approach, for example the UaOptimisation using the adjoint gradients.</p><p>Ua has some inbuilt optimisation methods and these are used by default. However, if the matlab optimisation toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularisation on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlen'</span> ;
+CtrlVar.Inverse.Regularize.Field=<span class="string">'logAGlenlogC'</span>
+</pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPointC' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPointC'}</span>
+CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span class="comment">% {'C','logC','AGlen','logAGlen','logAGlenlogC'}</span>
+</pre><p>is inconsistent. Ua tries to spot these input parameter mistakes and correct for them, but it is better to try to keep all inputs consistent.</p><p>Note #2: It is possible to invert for any combinatin of log(A) or A  and log(C) or C. So for example one can invert for log(A) and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenC'</span> ;
+</pre><p>Also one can invert for log(C) and log(A) and regularise A and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ;
+CtrlVar.Inverse.Regularize.Field=<span class="string">'AGlenC'</span>
+</pre><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'UaOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
 
 
 CtrlVar.Inverse.Iterations=1; <span class="comment">% Number of inverse iterations</span>
@@ -377,7 +384,12 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 
 <span class="comment">% [----------  The following parameters are only relevant if using the UaOptimization</span>
 <span class="comment">% i.e. only if CtrlVar.Inverse.MinimisationMethod='UaOptimization';</span>
-CtrlVar.Inverse.GradientUpgradeMethod=<span class="string">'SteepestDecent'</span> ; <span class="comment">%{'SteepestDecent','ConjGrad'}</span>
+<span class="comment">% The Ua optimisation is a simple non-linear conjugate-gradient method with automated</span>
+<span class="comment">% resets, combined with a (one-sided) line search. The reset is done if the angle between</span>
+<span class="comment">% subsequent steepest decent directions is to far from 90 degrees, or if the</span>
+<span class="comment">% update parameter becomes negative (only relevant for Polak-Ribiere and</span>
+<span class="comment">% Hestens-Stiefel).</span>
+CtrlVar.Inverse.GradientUpgradeMethod=<span class="string">'ConjGrad'</span> ; <span class="comment">%{'SteepestDecent','ConjGrad'}</span>
 CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; <span class="comment">% minimum step size in backtracking</span>
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; <span class="comment">% minimum fractional step size relative to initial step size</span>
@@ -1121,13 +1133,13 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % and the regularisation term can be either (Bayesian)
 %
-%  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  +
+%  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  
 %
 % where KC and KA are covariance matrices, or (Tikhonov)
 %
 %  R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy
 %
-% where p is A or log(A), and C or log(C)
+% where p is A or log(A), C or log(C)
 %
 % There are number of different minimisation methods implemented. Although the
 % methodology behind the inversion is rigorous, in practice when working with
@@ -1150,13 +1162,41 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % significantly down. Once that method stagnates (which it almost always will
 % because the gradient used in that method is just a rough estimate and
 % generally not exact), switch to another minimisation approach, for example the
-% UaOptimisation using the adjoint gradients. Also switch between A and C
-% inversion and, possibly, between element and nodal based approach.
+% UaOptimisation using the adjoint gradients.
 %
 % Ua has some inbuilt optimisation methods and these are used by default.
 % However, if the matlab optimisation toolbox is installed, the matlab routines
-% can be used instead.  
+% can be used instead.
 %
+% Note #1: Some parameter combinations can be inconsistent. For example inverting
+% for A only and applying regularisation on A and C, i.e.
+%
+%   CtrlVar.Inverse.InvertFor='logAGlen' ;
+%   CtrlVar.Inverse.Regularize.Field='logAGlenlogC'
+%
+% is considered inconsistent (although in principle possible.) Also using the
+% `FixPointC' gradient calculation, which only works for C inversion, and
+% inverting for both A and C, i.e. 
+%
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+%   CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
+%
+% is inconsistent. Ua tries to spot these input parameter mistakes and correct
+% for them, but it is better to try to keep all inputs consistent.
+%
+% Note #2: It is possible to invert for any combinatin of log(A) or A  and log(C)
+% or C. So for example one can invert for log(A) and C by setting 
+%
+%   CtrlVar.Inverse.InvertFor='logAGlenC' ;
+%
+% Also one can invert for log(C) and log(A) and regularise A and C by setting
+%
+%
+%   CtrlVar.Inverse.InvertFor='logAGlenlogC' ;
+%   CtrlVar.Inverse.Regularize.Field='AGlenC'
+%
+
+
 CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
 
 
@@ -1219,7 +1259,12 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 
 % [REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH  The following parameters are only relevant if using the UaOptimization
 % i.e. only if CtrlVar.Inverse.MinimisationMethod='UaOptimization';
-CtrlVar.Inverse.GradientUpgradeMethod='SteepestDecent' ; %{'SteepestDecent','ConjGrad'}
+% The Ua optimisation is a simple non-linear conjugate-gradient method with automated
+% resets, combined with a (one-sided) line search. The reset is done if the angle between
+% subsequent steepest decent directions is to far from 90 degrees, or if the
+% update parameter becomes negative (only relevant for Polak-Ribiere and
+% Hestens-Stiefel).
+CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'}
 CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size

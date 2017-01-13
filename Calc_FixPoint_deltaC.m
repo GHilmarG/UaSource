@@ -74,7 +74,7 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     else
         dIdC=dIdC.*GF.node;
     end
-    dIdC=CtrlVar.MisfitMultiplier*dIdC;
+  
     
     
 end

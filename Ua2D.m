@@ -239,8 +239,11 @@ CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 %%  time loop
 while 1
     
-    if CtrlVar.CurrentRunStepNumber >=( CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
+    if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
+       
         fprintf('Exiting time loop because total number of steps reached. \n')
+ %       fprintf('CtrlVar.CurrentRunStepNumber=%i \n',CtrlVar.CurrentRunStepNumber)
+ %       fprintf('CtrlVar.CurrentRunStepNumber0=%i\n',CtrlVar.CurrentRunStepNumber0)
         break
     end
     

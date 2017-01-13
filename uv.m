@@ -40,9 +40,8 @@ if any(F.h<0)
         CtrlVar.ThickMin=0;
     end
     
-    fprintf('These thicknes values will be set to %f \n',CtrlVar.ThickMin)
-    
-    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
+    fprintf('These thickness values will be set to %f \n',CtrlVar.ThickMin)
+    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
     
 end
 

@@ -34,7 +34,7 @@ if CtrlVar.TimeDependentRun
     CtrlVar.doDiagnostic=0  ;
     CtrlVar.doPrognostic=1 ;
 else
-    CtrlVar.doDiagnostic=1  ; 
+    CtrlVar.doDiagnostic=1  ;
     CtrlVar.doPrognostic=0 ;
 end
 
@@ -65,7 +65,7 @@ end
 
 [~,m2]=size(CtrlVar.RefineCriteriaFlotationLimit);
 
-if n2~=m2 
+if n2~=m2
     fprintf(CtrlVar.fidlog,'Number of elements in CtrlVar.RefineCriteriaFloationLimit (%i) not equal to number of RefineCriteria (%i) \n',m2,n2);
     if n2==1
         fprintf(CtrlVar.fidlog,'Assuming no such limits for any of the mesh refinement criteria. \n');
@@ -76,7 +76,7 @@ if n2~=m2
 end
 
 [~,m2]=size(CtrlVar.RefineCriteriaWeights);
-if n2~=m2 
+if n2~=m2
     fprintf(CtrlVar.fidlog,'Number of elements in CtrlVar.RefineCriteriaWeights (%i) not equal to number of RefineCriteria (%i) \n',m2,n2);
     if n2==1
         CtrlVar.RefineCriteriaWeights=zeros(n2,1)+1;
@@ -111,11 +111,11 @@ end
 
 if CtrlVar.TimeDependentRun &&  ~CtrlVar.Restart
     CtrlVar.InitialDiagnosticStep=1;  % Always do an initial diagnostic step when starting a transient run. But if a restart run, then do not change this value from that set by the user.
-                                      % An inital diagnostic step is therefore done if:
-                                      % 1) so asked by the user, ie if the user sets CtrlVar.InitialDiagnosticStep=1, and
-                                      % 2) at the beginning of an implicut uvh transient run.
-                                      % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicut uvh transient restart run.
-end                 
+    % An inital diagnostic step is therefore done if:
+    % 1) so asked by the user, ie if the user sets CtrlVar.InitialDiagnosticStep=1, and
+    % 2) at the beginning of an implicut uvh transient run.
+    % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicut uvh transient restart run.
+end
 
 % AdaptMesh not allowed in combination with an inverse run
 
@@ -139,6 +139,50 @@ end
 
 if isfield(CtrlVar,'GmeshMeshingAlgorithm')
     error('Ua:CtrlVarValidyCheck','The field CtrlVar.GmeshMeshingAlgorithm no longer used. Replace with CtrlVar.GmshMeshingAlgorithm.')
+end
+
+
+%% inverse
+
+if CtrlVar.InverseRun
+    
+    if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,'fixpoint')
+        
+        % if fixpoint, then only c inversion is possible
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
+        CtrlVar.Inverse.InvertFor=replace(lower(CtrlVar.Inverse.InvertFor),'logaglen','');
+        CtrlVar.Inverse.InvertFor=replace(lower(CtrlVar.Inverse.InvertFor),'aglen','');
+        
+    end
+    
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+        
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
+        
+    end
+    
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
+        
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logc','');
+        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'c','');
+        
+    end
+    
+ 
+    
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),[string('aglen'),string('c')])
+        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``AGlen`` and/or ``C`` \n')
+        error('Invalid inputs.')
+    end
+    
+    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),[string('fixpoint'),string('adjoint')])
+        fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
+        error('Invalid inputs.')
+    end
+    
+    
 end
 
 
