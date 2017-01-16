@@ -87,5 +87,8 @@ function [uMeas,vMeas,Err,Mask]=EricVelocities(CtrlVar,coordinates,DataSet)
     uMeas(Mask)=0 ; vMeas(Mask)=0;
     Err(Mask)=1e10;
     
+   
+    
+    
 end
 

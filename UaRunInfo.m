@@ -5,6 +5,7 @@ classdef UaRunInfo
         Inverse
         Forward
         BackTrack
+        CPU
     end
     
     
@@ -33,6 +34,9 @@ classdef UaRunInfo
             obj.BackTrack.Converged=NaN;
             obj.BackTrack.iarm=NaN;
             obj.BackTrack.Infovector=NaN;
+            
+            obj.CPU.Assembly=0;
+            obj.CPU.Solution=0;
             
             
         end

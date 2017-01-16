@@ -20,7 +20,8 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=NaN;
+CtrlVar.time=NaN;             % In a transient run this variable is the (model) time. Then set this to some 
+                              % reasonable initial value, for example CtralVar.time=0;
 %% Types of run
 % 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -45,7 +46,7 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
                                           % not the total accumulated number of forward run steps.
                               
 %% Ice flow approximation
-CtrlVar.FlowApproximation='SSTREAM' ;  % any off ['SSTREAM'|'SSHEET'|'Hybrid']  
+CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
 
@@ -53,10 +54,7 @@ CtrlVar.FlowApproximation='SSTREAM' ;  % any off ['SSTREAM'|'SSHEET'|'Hybrid']
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBCs' is called at the beginning of each time step and boundary conditions are updated
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
 CtrlVar.BCsWeights=1;  % testing parameter, do not change
-% Boundary conditions are defined by the user using the m-File: DefineBCs
-% if one has to define Dirichlet BCs along a complex boundary then the m-File:
-%                 [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,tolerance)
-% can be useful to call within DefineBC.  See comments in DistanceToLineSegment.m for explanation on how to use.
+
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
@@ -130,12 +128,13 @@ CtrlVar.PlotMeltNodes=0;
 CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
 CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
-CtrlVar.GLresolutionWhenPlotting=2000;      % when plotting GL the GF mask is (sometimes) mapped on a regular grid
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
                                             % equal to this value  (setting this to a large value makes all arrows
                                             % equally long)
 
-CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;
+CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrows indicating boundary conditions when plotting boundary conditions. 
+                                                  % The arrows are automatically scales with respect to mesh size, but if they are
+                                                  % too small or too large this parameter can be used to affect their size. 
 
 %% Plotting mesh
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
@@ -371,7 +370,7 @@ CtrlVar.Report_if_b_less_than_B=0; %
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;
 
-CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
+CtrlVar.InfoLevelCPU=1;  % if 1 then some info on CPU time usage is given
 
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
@@ -380,9 +379,9 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 %% Inversion 
 % 
-% Inversion can currently be done for C and A. 
+% Inversion can currently be done for A and C. 
 % 
-% One can invert for either A or C, or both.
+% One can invert for either A or C individually, or both.
 %
 % The default option is to invert for log(A) and log(C) simultaneously.
 %
@@ -417,10 +416,10 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 %
 % The inversion for C and A can be done with C and A defined on nodes or
-% elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased.
-% In the past only inversion for element-based variables was possible, but now
-% one can invert for either nodal or element values. By default, the inversion
-% is done on nodal values. 
+% elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the
+% past only inversion for element-based variables was possible, but now (as of
+% Jan 2017) one can invert for either nodal or element values. By default, the
+% inversion is done on nodal values.
 %
 %
 % Hint: Often starting inverting for C using the fix-point method (see
@@ -494,17 +493,17 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 %
 % Select Bayesian motivated regularisation by setting 
 % CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularisation
-% by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen','logAGlenlogC'
+% by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
 %
 % Default is Tikhonov regularisation on log(A) and log(C)
 CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','logAGlen','logAGlenlogC'}
 
 
-% [ -- Parameters specific to Tikhonov regularisation
-% See the above definition of R in the case of Tikhonov regularisation.
-% The values of these parameters can be expected to be highly problem dependent.
-% By default regularisation is switched on, but can the switched off by setting
-% the gs and the ga parameters to zero.
+% [ -- Parameters specific to Tikhonov regularisation See the above definition
+% of the regularisation term R in the case of Tikhonov regularisation. The
+% values of these parameters can be expected to be highly problem dependent. By
+% default regularisation is switched on, but can the switched off by setting the
+% gs and the ga parameters to zero.
 CtrlVar.Inverse.Regularize.C.gs=1; 
 CtrlVar.Inverse.Regularize.C.ga=1;
 CtrlVar.Inverse.Regularize.logC.ga=1;
@@ -514,22 +513,24 @@ CtrlVar.Inverse.Regularize.AGlen.gs=1;
 CtrlVar.Inverse.Regularize.AGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
-%  -] 
+%  -]
 
 % I and R are multiplied by these followign DataMisit and Regularisation
 % multipliers. This is a convening shortcut of getting rid of either the misfit
-% (I) or the regularization term (R) in the objective function (J).
+% (I) or the regularization term (R) in the objective function (J) altogether.
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 
 
-% [----------  The following parameters are only relevant if using the UaOptimization
-% i.e. only if CtrlVar.Inverse.MinimisationMethod='UaOptimization';
-% The Ua optimisation is a simple non-linear conjugate-gradient method with automated
-% resets, combined with a (one-sided) line search. The reset is done if the angle between
-% subsequent steepest decent directions is to far from 90 degrees, or if the
-% update parameter becomes negative (only relevant for Polak-Ribiere and
-% Hestens-Stiefel).
+% [----------  The following parameters are only relevant if using the
+% UaOptimization i.e. only if
+% CtrlVar.Inverse.MinimisationMethod='UaOptimization'; 
+%
+% The Ua optimisation is a simple non-linear conjugate-gradient method with
+% automated resets, combined with a (one-sided) line search. The reset is done
+% if the angle between subsequent steepest decent directions is to far from 90
+% degrees, or if the update parameter becomes negative (only relevant for
+% Polak-Ribiere and Hestens-Stiefel).
 CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'}
 CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
@@ -546,7 +547,9 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 
 % [------  The following parameters are only relevant if using the MatlabOptimisation option 
 % i.e. only if CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
+%
 % Refer to the matlab documentation for further information. 
+%
 % The optimisation used is the matlab routine fminunc.
 % You will need to have the matlab optimisation toolbox to be able to do this.
 %  
@@ -578,8 +581,9 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
 % end, MatlabOptimisation parameters.   
 % ------------]
 
-% Some less often used parameters related to inversion 
-CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information, >=2 for additional info on backtrackgin,
+% Some less-often used parameters related to inversion: 
+CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration, 
+                              % >=2 for additional info on backtracking,
                               % >=100 for further info and plots
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
@@ -631,10 +635,6 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 %
 %
 
-CtrlVar.UaOutputFormat='variables';  % argument list in UaOutputs will be a list of variables
-%CtrlVar.UaOutputFormat='structures'; % UaOutputs has only one output argument, this output argument is a structure and all 
-                                     % outputs are fields of that structure. 
-
 
 CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
                        % if set to zero UaOutputs is called at every time/run step
@@ -659,11 +659,15 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %
-% In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput.
-% In that case Úa will call an external mesh generator.
-% The external mesh generator used by Ua is "gmsh" which is a well known and well supported open source mesh generator (http://geuz.org/gmsh/)
-% The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible
-% and allows for complicated computational domains containing holes and/or separated domains.
+% In almost all cases the simplest option tends to be to define the outlines of
+% the computational domain in Ua2D_InitialUserInput.
+%
+% In that case Úa will call an external mesh generator. The external mesh
+% generator used by Ua is "gmsh" which is a well known and a well supported open
+% source mesh generator (http://geuz.org/gmsh/) The outlines of the mesh are
+% defined by the variable 'MeshBoundaryCoordinates' set in
+% Ua2D_InitialUserInput.m. This approach is quite flexible and allows for
+% complicated computational domains containing holes and/or separated domains.
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
@@ -686,7 +690,7 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % CtrlVar.GmshMeshingMode='load .msh'                                                               % option i
 % CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii
- CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and load .msh file';    % option iii, which is the default option
+ CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and load .msh file';     % option iii, which is the default option
 % 
 % After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.
 % 

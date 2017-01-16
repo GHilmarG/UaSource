@@ -1,23 +1,27 @@
 function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F,ZeroFields)
-        %[Ruv,Kuv,Tuv,Fuv]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g)
+  
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-narginchk(3,4)
-nargoutchk(1,4)
+narginchk(3,5)
+nargoutchk(1,5)
 
 
 if nargin<4
- ZeroFields=0;
+ ZeroFields=false;
 end
+
 
 if nargout==1
     Ronly=1;
 else
     Ronly=0;
 end
+
+
+
 
 if ZeroFields
     F.ub=F.ub*0;
@@ -426,7 +430,7 @@ if ~Ronly
     if CtrlVar.TestForRealValues
         Kuv=(Kuv+Kuv.')/2 ;
     else
-        Kuv=(Kuv+Kuv.')/2 ;
+        Kuv=(Kuv+Kuv')/2 ;
     end
     
     
@@ -442,6 +446,10 @@ if ~Ronly
         Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
     end
 end
+
+
+
+
 end
 
 

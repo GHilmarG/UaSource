@@ -11,7 +11,8 @@ MLC=BCs2MLC(MUA,BCs);
 L=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 
-
+RunInfo.CPU.solution=0 ;
+RunInfo.CPU.Assembly=0;
 
 if isempty(cuv)
     l.ubvb=[];
@@ -82,12 +83,14 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
         
+        tAssembly=tic;
         [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
-        %[Ruv,Kuv,~,F]=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
+        RunInfo.CPU.Assembly=toc(tAssembly)+RunInfo.CPU.Assembly;
         NRincomplete=0;
     else
+        tAssembly=tic;
         Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-        %Ruv=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub,vb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
+        RunInfo.CPU.Assembly=toc(tAssembly)+RunInfo.CPU.Assembly;
         NRincomplete=1;
     end
     
@@ -126,7 +129,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
     
-    
+    tSolution=tic;
     
     
     if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
@@ -135,7 +138,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     end
     
-    
+    RunInfo.CPU.Solution=toc(tSolution)+RunInfo.CPU.Solution;
     
     
     if CtrlVar.TestForRealValues
@@ -237,23 +240,29 @@ end
 
 if isnan(r)
     fprintf(CtrlVar.fidlog,' SSTREAM2dNR returns NAN as residual!!! \n') ;
-    warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
+    warning('uvSSTREAM:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
     save TestSaveNR
 elseif r>CtrlVar.NLtol
     fprintf(CtrlVar.fidlog,' SSTREAM2dNR did NOT converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
     RunInfo.Forward.Converged=0;
-    warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
+    warning('uvSSTREAM:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
     save TestSaveNR
 else
-    if CtrlVar.InfoLevelNonLinIt>0
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd) ;
+    if CtrlVar.InfoLevel>0
+        if CtrlVar.InfoLevelNonLinIt>0
+            fprintf(CtrlVar.fidlog,' SSTREAM2dNR converged to given tolerance of %-g with r=%-g in %-i iterations.\n',CtrlVar.NLtol,r,iteration) ;
+        end
+        if CtrlVar.InfoLevelCPU>0  % if 1 then some info on CPU time usage is given
+            fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solving system=%g \n',tEnd,RunInfo.CPU.Solution,RunInfo.CPU.Assembly) ;
+        end
     end
+    
 end
 
 
 if iteration > CtrlVar.NRitmax
-    fprintf(CtrlVar.fidlog,'Maximum number of NR iterations %-i reached in uv loop with r=%-g \n',CtrlVar.NRitmax,r);
-    warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached with r=%-g \n',CtrlVar.NRitmax,r)
+    fprintf(CtrlVar.fidlog,'Maximum number of NR iterations %-i reached in uv-SSTREAM loop with r=%-g \n',CtrlVar.NRitmax,r);
+    warning('SSTREAM2dNR:MaxIterationReached','uv-SSTREAM exits because maximum number of iterations %-i reached with r=%-g \n',CtrlVar.NRitmax,r)
 end
 
 RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;
