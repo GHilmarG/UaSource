@@ -83,16 +83,16 @@ if numel(x) ==0
 end
 
 if size(u,2)== 1 && (numel(x) ~= numel(y))
-    error('Ua:QuiverColorGHG:xyDimentionsNotCompatible','x and y must have the same number of elements.')
+    error('Ua:QuiverColorGHG:xyDimensionsNotCompatible','x and y must have the same number of elements.')
 end
 
 
 if numel(u) ~= numel(v)
-    error('Ua:QuiverColorGHG:uvDimentionsNotCompatible','u and v must have the same number of elements.')
+    error('Ua:QuiverColorGHG:uvDimensionsNotCompatible','u and v must have the same number of elements.')
 end
 
 %
-% The expected typical useage is to plot one-dimentional arrays of velocites
+% The expected typical useage is to plot one-dimensional arrays of velocites
 % But u, v, x ,and y can also be given on a grid.
 % If u and v is given on a grid, create vectors
 
@@ -113,7 +113,7 @@ if size(u,1)> 1 && size(u,2)>1 && ((size(x,2)==1 && size(y,2)==1)  || (size(x,1)
             
         elseif (size(x,1)==size(u,2)) && (size(y,1)==size(u,1))
             
-            warning('QuiverColorGHG:wrongdimentions','x and y are not grid vectors')
+            warning('QuiverColorGHG:wrongdimensions','x and y are not grid vectors')
             
             [X,Y]=meshgrid(x,y) ;
             x=X(:) ; y=Y(:) ; u=u(:) ; v=v(:);

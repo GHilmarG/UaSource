@@ -43,7 +43,7 @@ elseif N==MUA.Nele && M==1 % element variable
     
 else
     
-    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimentions and can not be plotted.\n') 
+    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
     warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
     
     

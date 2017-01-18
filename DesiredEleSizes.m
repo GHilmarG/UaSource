@@ -395,21 +395,15 @@ for I=1:numel(CtrlVar.RefineCriteria)
     
 end
 
-%%
-% Set elesizes around GL to a specific value
-
-%%
-
-
-
 
 if all(EleSizeDesired==CtrlVar.MeshSizeMax)
-    % if none of the explicit error indicators was usefull then set ele size to user-defined ele size
-    fprintf(CtrlVar.fidlog,' All desired ele sizes equal to MeshSizeMax \n ');
-    %   save TestSave
-    %   error('asdf')
+    fprintf(' After using relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax) 
+    fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
+    fprintf(' Will now set all ele sizes equal to CtrlVar.MeshSize=%g \n ',CtrlVar.MeshSize);
+    
     EleSizeDesired=zeros(MUA.Nnodes,1)+CtrlVar.MeshSize;
 end
+
 
 % do not allow EleSize to change too much and take a weighted average of
 % the previous and the new EleSize:
@@ -430,6 +424,46 @@ if CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiv
     PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
     colorbar ;  title(sprintf(' combined desired ele sizes ')) ;
 end
+
+
+%%
+% Set elesizes around GL to a specific value
+
+
+if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
+    
+    fprintf('Remeshing based on distance of nodes from grounding line.\n')
+    
+    KdTree=[];
+    CtrlVar.PlotGLs=0;
+    CtrlVar.GLsubdivide=1;
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
+    
+    
+    
+    
+    for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
+        
+        ds=CtrlVar.MeshAdapt.GLrange(I,1);
+        dh=CtrlVar.MeshAdapt.GLrange(I,2);
+        if dh<CtrlVar.MeshSizeMin
+            fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+            fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+            dh=CtrlVar.MeshSizeMin;
+        end
+        fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+        
+        ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
+        
+        EleSizeIndicator(ID)=dh;
+        EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+    end
+    
+    
+end
+%%
+
+
 
 % No further user defined modifications to EleSizeDesired
 

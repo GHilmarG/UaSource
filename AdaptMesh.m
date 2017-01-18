@@ -1,6 +1,8 @@
 
 function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,Ruv,Lubvb)
 
+%save TestSave ; error('sdfa')
+
 narginchk(10,10)
 nargoutchk(7,7)
 
@@ -14,7 +16,7 @@ GFnew=GFold;
 
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf(CtrlVar.fidlog,'Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
+    fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
 end
 
 
@@ -96,7 +98,7 @@ if isMeshAdvanceRetreat
     [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
     
     
-    [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
+
     
     fprintf(CtrlVar.fidlog,'%i elements of background mesh deactivated. ',numel(find(iDeactivatedElements)));
     
@@ -230,14 +232,43 @@ if MUAnew.Nele==0
     return
 end
 
+
+
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
+
+
+if CtrlVar.AdaptMeshAndThenStop
+    
+    if CtrlVar.doplots  && CtrlVar.PlotMesh && CtrlVar.InfoLevelAdaptiveMeshing>=10
+        
+        %%
+        CtrlVar.PlotGLs=1;
+        figure ; PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+        title(sprintf('Mesh after remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,[],[],[],'r');
+        
+        figure ; PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,[],[],[],'r');
+        title(sprintf('Mesh before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+        %%
+    end
+    
+    MUA=MUAnew;
+    save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
+    fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+    fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
+    return
+end
+
+
 
 [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
 [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf(CtrlVar.fidlog,'After remeshing: ') ; PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
+    fprintf('After remeshing: ') ; 
+    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
 end
 
 if CtrlVar.InitialDiagnosticStepAfterRemeshing
@@ -247,7 +278,7 @@ end
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
     save(CtrlVar.SaveAdaptMeshFileName,'MUA')
-    fprintf(CtrlVar.fidlog,' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+    fprintf(' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
 
 end

@@ -1,7 +1,7 @@
 function P=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,Fint)
 
 % calculates T_q=<Fint,n_q> where Fint is defined at integration points and n_q are the form functions.
-% Fint must have the dimentions Nele x nip
+% Fint must have the dimensions Nele x nip
 % where Nele is the number of elements and nip the number of integration points
 %        
 % On output P has the dimentions MUA.Nnodes x 1
@@ -10,7 +10,7 @@ function P=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,Fint)
 [n1,n2]=size(Fint);
 
 if n1~=MUA.Nele || n2~=MUA.nip
-    fprintf('Fint must have the dimentions %i x %i but has on input the dimentions %i x %i \n',MUA.Nele,MUA.nip,n1,n2)
+    fprintf('Fint must have the dimensions %i x %i but has on input the dimensions %i x %i \n',MUA.Nele,MUA.nip,n1,n2)
     P=[];
     return
 end

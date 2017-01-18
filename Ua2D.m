@@ -184,6 +184,7 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
         
+    fprintf('\n ===========   Inverting for model parameters. ================  \n')
     [UserVar,F,l,InvFinalValues,RunInfo]=...
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
@@ -314,8 +315,8 @@ while 1
                 figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
             end
             
-            save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
-            fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
+            save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
+            fprintf(' MUA was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
             fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
             return
         end

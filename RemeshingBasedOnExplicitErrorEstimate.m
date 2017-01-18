@@ -5,7 +5,7 @@ function [UserVar,CtrlVar,MUA,xGLmesh,yGLmesh]=...
 %save TestSave ; error('dfsa')
 %
 
-% Global remeshing, mesh morhing, or local mesh refinement based on explicit error estimate.
+% Global remeshing, mesh morphing, or local mesh refinement based on explicit error estimate.
 %
 % On output MUA holds the new mesh. On input MUA is an existing mesh
 % xGLmesh and yGLmesh is only relevant for GL morphing
@@ -69,12 +69,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
                 GmshBackgroundScalarField.xy=[x0(:) y0];
                 GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
                 GmshBackgroundScalarField.TRI=TRIxy0;
-                
-                
-                %                 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1
-                %                     figure ; PlotFEmesh(GmshBackgroundScalarField.xy,GmshBackgroundScalarField.TRI,CtrlVar);
-                %                 end
-                
+                  
             otherwise
                 error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
         end
@@ -127,7 +122,7 @@ switch lower(CtrlVar.MeshRefinementMethod)
             It=It+1;
             
             if NewMinE ~=CtrlVar.MeshSizeMin
-                warning('RmeshingBasedOnExplicitErrorEstimate:NewMeshSizeMin','CtrlVar.MeshSizeMin set to %f',CtrlVar.MeshSizeMin)
+                warning('RmeshingBasedOnExplicitErrorEstimate:NewMeshSizeMin','CtrlVar.MeshSizeMin set to %f',NewMinE)
             end
             
             CtrlVar.MeshSizeMin=NewMinE;
