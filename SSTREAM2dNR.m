@@ -11,8 +11,7 @@ MLC=BCs2MLC(MUA,BCs);
 L=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 
-RunInfo.CPU.solution=0 ;
-RunInfo.CPU.Assembly=0;
+
 
 if isempty(cuv)
     l.ubvb=[];
@@ -67,7 +66,7 @@ if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ;
 
 
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
-
+RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
 
 
 F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
@@ -79,6 +78,9 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     
     iteration=iteration+1;
+    
+    %RunInfo.CPU.Assembly=0  ; RunInfo.CPU.Solution=0; % Do I want cumulative
+    %numbers?
     
     
     if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
@@ -217,8 +219,8 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         else
             stri=[];
         end;
-        fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g \n ',...
-            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda);
+        fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
     end
     
 end
