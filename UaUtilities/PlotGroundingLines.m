@@ -1,6 +1,6 @@
 function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 
-narginchk(3,inf)
+
 
 %% Plots grounding lines
 %
@@ -60,6 +60,8 @@ narginchk(3,inf)
 %
 % See also: PlotMuaBoundary
 %
+
+narginchk(3,inf)
 
 if isempty(CtrlVar)
     CtrlVar.XYscale=1;

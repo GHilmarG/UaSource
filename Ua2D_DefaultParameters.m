@@ -855,7 +855,7 @@ CtrlVar.RefineMeshOnStart=0;
 % The most general one is global remeshing using explicit error estimate
 %
 % Global remeshing can be based on one or more of the following
-% RefineCriteria:
+% relative RefineCriteria:
 %
 % * 'effective strain rates'
 % *          '|dhdt|'
@@ -866,7 +866,7 @@ CtrlVar.RefineMeshOnStart=0;
 % *         'flotation'
 % *         'f factor'
 %
-% The criteria can be combined. When two or more criteria are combined
+% These (relative) criteria can be combined. When two or more criteria are combined
 % RefineCriteria is given as a cell array
 %
 % The relative importance of different RefineCriteria can be specified by
@@ -905,10 +905,40 @@ CtrlVar.RefineMeshOnStart=0;
 % independent) forward runs and use those to optimize the mesh prior to start of
 % any inverse runs.
 %
+% In addition to the above listed realtive refinedment criteria, one can also
+% specify one type of an absolut mesh criterion based on distance from grounding
+% lines.
+%
+% The desired sizes of elements within a given distance from any grounding lines
+% can be specified through CtrlVar.MeshAdapt.GLrange
+%
+% CtrlVar.MeshAdapt.GLrange is an n x 2 array. Each value pair in every line
+% specifies a distance from the grounding line and the desired element size
+% within that distance. For example setting
+%
+%   CtrlVar.MeshAdapt.GLrange=[5000 1000];
+%
+% specifies that all elements witin 5000 meters should be 1000 m large (here
+% assuming the distance unit is meters) if all elements.
+%
+% Setting
+%
+%   CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500  ; 250 50];
+%
+% specifies that elements within 5000 meters from the grounding line should be
+% at the most 2000 meters large, those within 1000 m at most 500 m larger, and
+% those within 250 m, 50 meters in size. 
+%
+% If no such mesh criterion is to be specified, set to an empty value, i.e 
+%
+%   CtrlVar.MeshAdapt.GLrange=[];                                                    
+%
+% Note: This absolut mesh criterion requires the matlab function rangesearch
+% which is a part of the machine learning matlab toolbox.
+%
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
-                                                   % 'explicit:global'
-                                                   % 'explicit:local'
+                                                                                             % 'explicit:local'
                                                    % 'implicit:global'  (broken at the moment, do not use)
                                                    % 'implicit:local'   (broken at the moment, do not use)
 
@@ -957,6 +987,9 @@ CtrlVar.NumberOfSmoothingErrorIndicatorIterations=1;    % each of the error indi
                                                         % This kind of smoothing is never done for the 'flotation' and the `f factor' cases
                                                         % as the spread/smoothing can be determined directly by CtrlVar.RefineDiracDeltaWidth
 
+% absolut mesh adapt criterion                                                        
+CtrlVar.MeshAdapt.GLrange=[];                                                    
+                                                        
 CtrlVar.RefineDiracDeltaWidth=100;  % for `flotation' and 'f factor' the zone within this vertical distance from flotation is refined
 CtrlVar.RefineDiracDeltaOffset=0;   %
                               

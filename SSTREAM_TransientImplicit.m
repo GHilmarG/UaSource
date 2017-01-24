@@ -128,15 +128,11 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
     
     %% calculate  residuals at full Newton step
     gamma=1;
-    %[UserVar,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,dub,dvb,dh,ub,vb,h,S,B,ub0,vb0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,luvh,dl,cuvh);
-    
-    
+        
     [UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     
     %% either accept full Newton step or do a line search
-    
-    %[UserVar,r,ruv,rh,rl,gamma,infovector,iarm,BacktrackInfo]=FindBestGamma2DuvhBacktrack...
-    %    (UserVar,CtrlVar,MUA,F0,r0,r1,ruv1,rh1,rl1,ub,vb,h,dub,dvb,dh,S,B,ub0,vb0,h0,L,luvh,dl,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,cuvh);
+
     
     % Var her
     [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
@@ -222,7 +218,6 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
     
     % make sure to update s and b as well!
     [F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
-    %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
     CtrlVar.ResetThicknessToMinThickness=temp;
     
     if~isempty(Lh)

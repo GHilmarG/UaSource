@@ -60,7 +60,7 @@ switch CtrlVar.AsymmSolver
         
         m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
         sol=AA\bb; x=sol(1:n) ; y=sol(n+1:end);
-        if CtrlVar.InfoLevelLinSolve>=1;
+        if CtrlVar.InfoLevelLinSolve>=1
             fprintf(' Constraint matrix NOT empty. Solving system directly using the backslash operator \n ')
         end
         
@@ -124,13 +124,13 @@ switch CtrlVar.AsymmSolver
         
         tend=toc(tstart);
         
-        if CtrlVar.InfoLevelLinSolve>=1;
+        if CtrlVar.InfoLevelLinSolve>=1
             disp([' ilu in  ',num2str(tluinc),' sec '])
             disp([' gmres  ',num2str(t2),' sec '])
             disp([' total solution time  ',num2str(tend),' sec '])
         end
         
-        if CtrlVar.InfoLevelLinSolve>=10;
+        if CtrlVar.InfoLevelLinSolve>=10
             
             
             figure
@@ -147,13 +147,16 @@ switch CtrlVar.AsymmSolver
         
 end
 
-tSolve=tic; 
-if CtrlVar.InfoLevelLinSolve>=10;
+tSolve=toc(tSolve);
+if CtrlVar.InfoLevelLinSolve>=10
     fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
         n+m,n,m,tSolve,CtrlVar.AsymmSolver)
+    if CtrlVar.InfoLevelCPU 
+        fprintf(CtrlVar.fidlog,' in %-g sec. \n',tSolve) ;
+    end ;
 end
 
-if CtrlVar.InfoLevelCPU ;  fprintf(CtrlVar.fidlog,' in %-g sec. \n',toc(tSolve)) ; end ;
+
 
 
 end
