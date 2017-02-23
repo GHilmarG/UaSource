@@ -11,6 +11,10 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
 fprintf(CtrlVar.fidlog,' done \n ');
 
 
+if isempty(RunInfo.CPU)
+    RunInfo.CPU.Solution=0;
+    RunInfo.CPU.Assembly=0;
+end
 % Set start values to last estimates
 InvStartValues=InvFinalValues;
 

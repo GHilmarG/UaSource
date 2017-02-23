@@ -194,17 +194,15 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 
 
 
-%% Numerical Regularisation Parameters  (note: these are not related to inverse modellgin regularisation)
+%% Numerical Regularisation Parameters  (note: these are not related to inverse modelling regularisation)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.etaIntMax=1e10 ;    % max value of effective viscosity.
-CtrlVar.etaIntMin=1e-6;     % min value of effective viscosity.
 CtrlVar.Czero=1e-10;        % 
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
 CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
 CtrlVar.AGlenAdjointZero=100*eps; 
-CtrlVar.AdjointEpsZero=100*eps;
+CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %% Constraints on viscosity and slipperiness
 % These constraints are always enforced, but only really of any importance when inverting for A and/or C.
 % (Using SIA or the hybrid approximation Cmin MUST be set to 0, or at least to a value much less than Czero!)
@@ -595,7 +593,10 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 % Only do this for small problems!
 CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation 
                                       % of the directinal derivative of the objective function.  
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='central' ; % {'central','forward'}
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
+                                         % The brute-force gradient can be calculated using first-order foward
+                                         % differences, second-order central differences, or fourth-order central
+                                         % differences. 
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
                                          % if left empty, values are calulated for every node/element within the mesh. 

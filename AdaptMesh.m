@@ -31,7 +31,7 @@ if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshi
 end
 
 
-% Either there is mesh advance nad/or retreat, or mesh adaptation
+% Either there is mesh advance and/or retreat, or mesh adaptation
 % If MeshAdvanceRetreat, do not do MeshAdapt
 
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);

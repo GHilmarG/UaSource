@@ -17,7 +17,6 @@ nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
-[~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n);
 
 for Iint=1:MUA.nip
     
@@ -45,7 +44,7 @@ for Iint=1:MUA.nip
         dvdx=dvdx+Deriv(:,1,Inod).*vnod(:,Inod);
         dudy=dudy+Deriv(:,2,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-        
+         
         dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
         dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
         dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
@@ -53,9 +52,13 @@ for Iint=1:MUA.nip
         
     end
     
+
     detJw=detJ*weights(Iint);
-    %dEtadA=-real(hint.*AGlenInt.^(-1/n-1).*e(:,Iint).^((1-n)/n))/(2*n);
-    dEtadA=-real(hint.*(AGlenInt+CtrlVar.AGlenAdjointZero).^(-1./nint-1).*(e(:,Iint)+CtrlVar.AdjointEpsZero).^((1-nint)./nint))./(2.*nint);
+
+    exy=(dudy+dvdx)/2;    
+    [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,dudx,dvdy,exy);
+    dEtadA=dEtadA.*hint; 
+
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
             
@@ -73,7 +76,7 @@ end
 dIdA=zeros(MUA.Nnodes,1);
 
 for Inod=1:MUA.nod
-    dIdA=dIdA+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
 

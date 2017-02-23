@@ -127,6 +127,16 @@ x=x(:) ; y=y(:) ; u=u(:) ; v=v(:);
 
 speed=sqrt(u.*u+v.*v); % speed is never scaled, so I can use speed to color velocity field based on values
 
+if isinf(max(speed))
+   
+    fprintf(' Max of speed is infinite\n')
+    
+    I=isinf(speed);
+    u(I)=NaN ; v(I)=NaN ; speed(I)=NaN;
+    fprintf(' Seeting all such velocity values to NaN \n')
+    
+end
+
 
 % now check Par fields, use all user-defined values where available, use default values otherwise
 % and put in some reasonable for the remaining fields

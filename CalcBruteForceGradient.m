@@ -25,7 +25,7 @@ dJ=p0*0+NaN;
 
 switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
     
-    case 'forward'
+    case {'forward','first-order'}
         
         parfor I=iRange
             
@@ -36,7 +36,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             
         end
         
-    case 'central'
+    case {'central','second-order'}
         
         parfor I=iRange
             p1=p0;
@@ -48,6 +48,26 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             
             dJ(I)=(J1-Jm1)/delta/2;
         end
+        
+    case 'fourth-order'
+        parfor I=iRange
+            p1=p0;
+            pm1=p0;
+            p2=p0;
+            pm2=p0;
+            p1(I)=p1(I)+delta;
+            p2(I)=p2(I)+2*delta;
+            pm1(I)=pm1(I)-delta;
+            pm2(I)=pm2(I)-2*delta;
+            
+            J1=func(p1);
+            J2=func(p2);
+            Jm1=func(pm1);
+            Jm2=func(pm2);
+            
+            dJ(I)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/delta;
+        end
+        
     otherwise
         
         fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value. \n')

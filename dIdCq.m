@@ -21,7 +21,7 @@ T=zeros(MUA.Nele,MUA.nod);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; 
+    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
     detJ=MUA.DetJ(:,Iint);
     
     
@@ -37,8 +37,14 @@ for Iint=1:MUA.nip
     vAdjointint=vAdjointnod*fun;
     hfint=(Sint-Bint)*rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-    
-    Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.CAdjointZero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
+    %
+    % dF/dC=dtaux/dC uAdjoint + dtauy/dC vAdjoint
+    %
+    % dtaux/dC= He u * dbeta2/dC 
+    %
+    % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+    %
+    Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.Czero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         Ctemp=log(10)*Cint.*Ctemp;

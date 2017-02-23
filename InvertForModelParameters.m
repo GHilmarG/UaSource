@@ -177,8 +177,14 @@ InvFinalValues.I=JGHouts.MisfitOuts.I;
 InvFinalValues.R=JGHouts.RegOuts.R;
 InvFinalValues.RAGlen=JGHouts.RegOuts.RAGlen;
 InvFinalValues.RC=JGHouts.RegOuts.RC;
+if isprop(InvFinalValues,'uAdjoint')
+    InvFinalValues.uAdjoint=JGHouts.MisfitOuts.uAdjoint;
+    InvFinalValues.vAdjoint=JGHouts.MisfitOuts.vAdjoint;
+end
+
 
 %% Gradients
+
 InvFinalValues.dJdp=dJdp;
 
 InvFinalValues.dIdp=JGHouts.dIdp;

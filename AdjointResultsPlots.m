@@ -52,14 +52,20 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
     title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
     title('log10(Astart)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 end
 
@@ -68,14 +74,20 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
     title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
     title('log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 end
 
@@ -85,8 +97,26 @@ end
 figure
 PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
 title(' tb ') ; cbar=colorbar; title(cbar, '(kPa)');
+hold on
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 %%
+% uAdjoint vAdjoint
+if isprop(InvFinalValues,'uAdjoint')
+    if ~isempty(InvFinalValues.uAdjoint)
+        figure ;
+        subplot(1,2,1)
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.uAdjoint);
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title(' u Adjoint variable')
+        
+        subplot(1,2,2)
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.vAdjoint);
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title(' v Adjoint variable')
+    end
+end
+%% Plot velocities and velocity residuals
 CtrlVar.VelPlotIntervalSpacing='log10';
 figure
 subplot(2,2,1);
@@ -107,7 +137,7 @@ xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 subplot(2,2,3);
-QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
+[~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
 title('(Meas.us,Meas.vs)') ;
 hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -116,11 +146,25 @@ xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 subplot(2,2,4);
-QuiverColorGHG(x,y,us,vs,CtrlVar); axis equal ; title('(us,vs)') ;
-hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
+QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('(us,vs)') ;
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+%%  % Difference in speed
+
+SpeedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
+SpeedCalc=sqrt(us.^2+vs.^2);
+
+SpeedDiff=100*(SpeedCalc-SpeedMeas)./SpeedMeas;
+figure 
+
+PlotMeshScalarVariable(CtrlVar,MUA,SpeedDiff);
+hold on 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+title('100*(SpeedCalc-SpeedMeas)./SpeedMeas')
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 %%
@@ -210,11 +254,13 @@ else
     if ~isempty(InvFinalValues.dJdAGlen)
         IFigGradientsA=figure('Name','dJdAGlen Gradients','NumberTitle','off');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; title('dJdAGlen')
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdC)
         IFigGradientsC=figure('Name','dJdC Gradients','NumberTitle','off');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     %subplot(3,1,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dRdp) ; title('dRdp')
     
