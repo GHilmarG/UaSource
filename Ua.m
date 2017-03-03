@@ -149,7 +149,7 @@ function Ua(UserVar)
 % The user can use this variable to exhange information between his own user
 % m-files, or for whaterver other purpose required. 
 %
-% UserVar can be modifed at the start of the run in Ua2D_InitialUserInput.
+% UserVar can be modified at the start of the run in Ua2D_InitialUserInput.
 % as well as in all user m-input files.
 %
 % In a restart run, UserVar is again always defined at the beginning of the run

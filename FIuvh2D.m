@@ -289,7 +289,7 @@ else
             end
             
             if isActiveSetModified==1 && it <= ItMax
-                fprintf(CtrlVar.fidlog,' Active set modifed. System is solved again using the new active set. ActiveSet Iteration Nr. %-i \n',it);
+                fprintf(CtrlVar.fidlog,' Active set modified. System is solved again using the new active set. ActiveSet Iteration Nr. %-i \n',it);
             end
         end
     end

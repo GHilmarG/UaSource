@@ -33,7 +33,7 @@ end
 % % where iW is `small' but not too small
 % 
 % %
-% % I find that the following modifed version of the Uzawa methods converges very quickly:
+% % I find that the following modified version of the Uzawa methods converges very quickly:
 % % Define T= [A B']
 % %           [B iW]
 % %
