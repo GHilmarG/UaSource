@@ -26,8 +26,8 @@ Meas=TestMeas(CtrlVar,MUA,Meas);
 
 [Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
 
-isCorrectDimentions=DoPriorsHaveCorrectDimentions(CtrlVar,MUA,Priors);
-if ~ isCorrectDimentions
+isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors);
+if ~ isCorrectDimensions
     fprintf(' Priors do not have right dimensions at restart. \n')
     fprintf(' Modify DefineInputsForInverseRun to ensure that dimensions are correct.\n')
     error('Ua:GetInputForInverseRun:incorrectdimentisons','incorrect dimensions')

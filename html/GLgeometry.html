@@ -1,0 +1,373 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>GLgeometry</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-30"><meta name="DC.source" content="GLgeometry.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+</pre><p>Calculates grounding lines based on the floating/grounding condition at each node.</p><p>Examples:</p><pre class="language-matlab">[GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+</pre><p>The  grounding line edges can be plotted as:</p><pre>     plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')</pre><p>To plot the normals to the grounding line, pointing outwards toward the ocean:</p><pre>     scale=0.1; H0=1000; hold on ;
+     quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,GLgeo(:,9),GLgeo(:,10),scale,'color','r')</pre><p>CtrlVar is optional. If given then only CtrlVar.GLsubdivide and CtrlVar.GLthreshold are needed.</p><p>CtrlVar.GLsubdivide   :  If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,                          and the grounding line is calculated for each sub-triangle</p><pre>CtrlVar.GLthreshold  : A threshold value determining where the GL is located with respect to the values of
+                       flotation mask.  Usually CtrlVar.GLthreshold=0.5</pre><p>Within each element, or sub-triangle in case CtrlVar.GLsubdivide is true, the GL is a straight line going from one edge to another edge of the same element/sub-triangle</p><p>Output:</p><pre class="language-matlab">GLgeo(:,1)                        : list of <span class="string">elements</span> <span class="string">with</span> <span class="string">nodes</span> <span class="string">on</span> <span class="string">both</span> <span class="string">side</span> <span class="string">of</span> <span class="string">the</span> <span class="string">grounding</span> <span class="string">line</span>
+GLgeo(:,2)                        : edge number
+GLgeo(:,[3 4])                    : x  coordinates <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span> <span class="string">and</span> <span class="string">edge</span> <span class="string">GL(:,2)</span>
+GLgeo(:,[5 6])                    : y coordinates <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span> <span class="string">and</span> <span class="string">edge</span> <span class="string">GL(:,2)</span>
+GLgeo(:,7)                        : mean x <span class="string">coordinate</span> <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span>
+GLgeo(:,8)                        : mean y <span class="string">coordinate</span> <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span>
+GLgeo(:,9) and <span class="string">GLgeo(:,10)</span>        <span class="string">:</span> <span class="string">(x,y)</span> <span class="string">coordinates</span> <span class="string">of</span> <span class="string">the</span> <span class="string">(outwards)</span> <span class="string">normals</span> <span class="string">to</span> <span class="string">the</span> <span class="string">grounding</span> <span class="string">line</span>
+</pre><p>GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line</p><p>GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.   GLele :  a logical list of elements crossing grounding lines.</p><p>Does a reasonable job, but can only handle one grounding line going through each element.</p><p>Is fairly well vectorized with running time increasing linearly with problem size,</p><p>By default GL position is calculated from GF.node values, using only the corner points and assuming a linear variation within element.</p><p>Grounding line of element GLgeo(i,1) goes from edge GL(i,2) to edge rem(GL(i,2),3)+1</p><p>If a linked-up list of grounding line positions is required, use:       [xGL,yGL,GLindex] = ArrangeGroundingLinePos(CtrlVar,GLgeo,NGLmax)</p><p>Note on plotting: if the grounding line is plotted as:            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k') then matlab creates a new `Line Object' for each and every line segement. For grounding lines crossing a large number of elements this can be a very slow way of plotting. To speed things up plot the grounding line by first aligning up the line segements:</p><pre>     [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
+     plot(xGL,yGL,'k')</pre><p>alternativily, one can also use</p><pre class="language-matlab">PlotGroundingLines(CtrlVar,MUA,GF)
+</pre><p>to plot the grounding line, which takes care of this issue automatically.</p><p>see also: PlotGroundingLines, EleBasedGL</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;4 || isempty(CtrlVar)
+
+    CtrlVar.GLthreshold=0.5;
+    CtrlVar.GLsubdivide=0;
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'GLthreshold'</span>) ; CtrlVar.GLthreshold=0.5; <span class="keyword">end</span>
+<span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'GLsubdivide'</span>) ; CtrlVar.GLsubdivide=0; <span class="keyword">end</span>
+
+threshold=CtrlVar.GLthreshold;
+
+<span class="keyword">if</span> CtrlVar.GLsubdivide
+    connectivity=TriFE(connectivity);
+<span class="keyword">end</span>
+
+[Nele,nod]=size(connectivity);
+[Nnode,~]=size(coordinates);
+
+<span class="keyword">switch</span> nod
+    <span class="keyword">case</span> 3
+        I=[1 2 3];
+    <span class="keyword">case</span> 6
+        I=[1 3 5];
+    <span class="keyword">case</span> 10
+        I=[1 4 7];
+<span class="keyword">end</span>
+
+
+GLele=false(Nele,1);
+GLgeo=zeros(Nele,10)+NaN ;  <span class="comment">% I'm being a bit wastefull here with memory, but only for a short while as</span>
+<span class="comment">% this variable is later resized</span>
+
+
+<span class="comment">% going in anti-clockwise direction there can only be one edge for each element for which</span>
+<span class="comment">% first node has a value less than threshold and the second one a value greater than threshold</span>
+<span class="comment">%</span>
+<span class="comment">% I'm assuming all elements have the right orientation, if not the algorithim</span>
+<span class="comment">% can fail!</span>
+
+<span class="keyword">for</span> iEdge=1:3
+
+    n1=I(rem(iEdge-1,3)+1) ; n2=I(rem(iEdge,3)+1) ; n3=I(rem(iEdge+1,3)+1) ;
+
+    GLgeoEdge=(GF.node(connectivity(:,n1)) &lt; threshold) &amp; (GF.node(connectivity(:,n2)) &gt;= threshold ); <span class="comment">%</span>
+
+    xa=coordinates(connectivity(GLgeoEdge,n1),1) ;  ya=coordinates(connectivity(GLgeoEdge,n1),2) ;
+    xb=coordinates(connectivity(GLgeoEdge,n2),1) ;  yb=coordinates(connectivity(GLgeoEdge,n2),2) ;
+    xc=coordinates(connectivity(GLgeoEdge,n3),1) ;  yc=coordinates(connectivity(GLgeoEdge,n3),2) ;
+
+    gfa=GF.node(connectivity(GLgeoEdge,n1));
+    gfb=GF.node(connectivity(GLgeoEdge,n2));
+    gfc=GF.node(connectivity(GLgeoEdge,n3));
+
+
+
+    GL1x=(threshold-gfa).*(xb-xa)./(gfb-gfa)+xa;
+    GL1y=(threshold-gfa).*(yb-ya)./(gfb-gfa)+ya;
+
+
+    GL2x=zeros(numel(gfa),1) ;  GL2y=zeros(numel(gfa),1) ;
+
+
+    ind1=gfc&lt; threshold ;
+    ind2=gfc&gt;=threshold;
+
+    GL2x(ind1)=(threshold-gfb(ind1)).*(xc(ind1)-xb(ind1))./(gfc(ind1)-gfb(ind1))+xb(ind1);  <span class="comment">% if gfc&lt;threshold</span>
+    GL2x(ind2)=(threshold-gfa(ind2)).*(xc(ind2)-xa(ind2))./(gfc(ind2)-gfa(ind2))+xa(ind2);  <span class="comment">% if gfc&gt;threshold</span>
+    GL2y(ind1)=(threshold-gfb(ind1)).*(yc(ind1)-yb(ind1))./(gfc(ind1)-gfb(ind1))+yb(ind1);  <span class="comment">% if gfc&lt;threshold</span>
+    GL2y(ind2)=(threshold-gfa(ind2)).*(yc(ind2)-ya(ind2))./(gfc(ind2)-gfa(ind2))+ya(ind2);  <span class="comment">% if gfc&gt;threshold</span>
+
+    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
+
+
+    GLele(GLgeoEdge)=true;
+
+    <span class="comment">%GLgeo(GLgeoEdge,1)=find(GLgeoEdge) ;</span>
+    GLgeo(GLgeoEdge,2)=iEdge ;
+    GLgeo(GLgeoEdge,3)=GL1x ;
+    GLgeo(GLgeoEdge,4)=GL2x ;
+    GLgeo(GLgeoEdge,5)=GL1y ;
+    GLgeo(GLgeoEdge,6)=GL2y ;
+
+    GLgeo(GLgeoEdge,7)=(GL1x+GL2x)/2 ;
+    GLgeo(GLgeoEdge,8)=(GL1y+GL2y)/2 ;
+
+    GLgeo(GLgeoEdge,9)=nx ;
+    GLgeo(GLgeoEdge,10)=ny ;
+
+
+<span class="keyword">end</span>
+
+GLgeo(GLele,1)=find(GLele);
+
+<span class="comment">% getting rid of all lines in matrix corresponding to elements that do not cross the GL</span>
+ind=~isnan(GLgeo(:,1));
+GLgeo=GLgeo(ind,:);
+
+GLnodes=false(Nnode,1);
+GLnodes(connectivity(GLele,:))=true;
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+
+%%
+% Calculates grounding lines based on the floating/grounding condition at each node.
+%
+% Examples:
+%
+%   [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+%
+%
+% The  grounding line edges can be plotted as:
+%
+%       plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')
+%
+% To plot the normals to the grounding line, pointing outwards toward the ocean:
+%
+%       scale=0.1; H0=1000; hold on ;
+%       quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,GLgeo(:,9),GLgeo(:,10),scale,'color','r')
+%
+% CtrlVar is optional. If given then only CtrlVar.GLsubdivide and
+% CtrlVar.GLthreshold are needed.
+%
+%
+% CtrlVar.GLsubdivide   :  If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,
+%                          and the grounding line is calculated for each sub-triangle
+%
+%  CtrlVar.GLthreshold  : A threshold value determining where the GL is located with respect to the values of
+%                         flotation mask.  Usually CtrlVar.GLthreshold=0.5
+%
+%
+% Within each element, or sub-triangle in case CtrlVar.GLsubdivide is true, the GL is a straight line
+% going from one edge to another edge of the same element/sub-triangle
+%
+% Output:
+% 
+%   GLgeo(:,1)                        : list of elements with nodes on both side of the grounding line
+% GLgeo(:,2)                        : edge number
+% GLgeo(:,[3 4])                    : x  coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+% GLgeo(:,[5 6])                    : y coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+% GLgeo(:,7)                        : mean x coordinate of grounding line position of element GLgeo(:,1)
+% GLgeo(:,8)                        : mean y coordinate of grounding line position of element GLgeo(:,1)
+% GLgeo(:,9) and GLgeo(:,10)        : (x,y) coordinates of the (outwards) normals to the grounding line
+%
+%
+% GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
+%      
+%
+% GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.
+%   GLele :  a logical list of elements crossing grounding lines.
+%
+% Does a reasonable job, but can only handle one grounding line going through
+% each element.
+%
+% Is fairly well vectorized with running time increasing linearly with problem size,
+%
+% By default GL position is calculated from GF.node values, using only the corner points and assuming a linear
+% variation within element.
+%
+%
+%
+% Grounding line of element GLgeo(i,1) goes from edge GL(i,2) to edge rem(GL(i,2),3)+1
+%
+% If a linked-up list of grounding line positions is required, use:
+%       [xGL,yGL,GLindex] = ArrangeGroundingLinePos(CtrlVar,GLgeo,NGLmax)
+%
+%
+% Note on plotting: if the grounding line is plotted as:
+%            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k')
+% then matlab creates a new `Line Object' for each and every line segement.
+% For grounding lines crossing a large number of elements this can be a very slow way of plotting.
+% To speed things up plot the grounding line by first aligning up the line segements:
+%
+%       [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
+%       plot(xGL,yGL,'k')
+%
+% alternativily, one can also use 
+%
+%   PlotGroundingLines(CtrlVar,MUA,GF)
+%
+% to plot the grounding line, which takes care of this issue automatically.
+%
+% see also: PlotGroundingLines, EleBasedGL
+%%
+
+
+if nargin<4 || isempty(CtrlVar)
+    
+    CtrlVar.GLthreshold=0.5;
+    CtrlVar.GLsubdivide=0;
+end
+
+
+if ~isfield(CtrlVar,'GLthreshold') ; CtrlVar.GLthreshold=0.5; end
+if ~isfield(CtrlVar,'GLsubdivide') ; CtrlVar.GLsubdivide=0; end
+
+threshold=CtrlVar.GLthreshold;
+
+if CtrlVar.GLsubdivide
+    connectivity=TriFE(connectivity);
+end
+
+[Nele,nod]=size(connectivity);
+[Nnode,~]=size(coordinates);
+
+switch nod
+    case 3
+        I=[1 2 3];
+    case 6
+        I=[1 3 5];
+    case 10
+        I=[1 4 7];
+end
+
+
+GLele=false(Nele,1);
+GLgeo=zeros(Nele,10)+NaN ;  % I'm being a bit wastefull here with memory, but only for a short while as
+% this variable is later resized
+
+
+% going in anti-clockwise direction there can only be one edge for each element for which
+% first node has a value less than threshold and the second one a value greater than threshold
+%
+% I'm assuming all elements have the right orientation, if not the algorithim
+% can fail!
+
+for iEdge=1:3
+    
+    n1=I(rem(iEdge-1,3)+1) ; n2=I(rem(iEdge,3)+1) ; n3=I(rem(iEdge+1,3)+1) ;
+    
+    GLgeoEdge=(GF.node(connectivity(:,n1)) < threshold) & (GF.node(connectivity(:,n2)) >= threshold ); %
+    
+    xa=coordinates(connectivity(GLgeoEdge,n1),1) ;  ya=coordinates(connectivity(GLgeoEdge,n1),2) ;
+    xb=coordinates(connectivity(GLgeoEdge,n2),1) ;  yb=coordinates(connectivity(GLgeoEdge,n2),2) ;
+    xc=coordinates(connectivity(GLgeoEdge,n3),1) ;  yc=coordinates(connectivity(GLgeoEdge,n3),2) ;
+    
+    gfa=GF.node(connectivity(GLgeoEdge,n1));
+    gfb=GF.node(connectivity(GLgeoEdge,n2));
+    gfc=GF.node(connectivity(GLgeoEdge,n3));
+    
+    
+    
+    GL1x=(threshold-gfa).*(xb-xa)./(gfb-gfa)+xa;
+    GL1y=(threshold-gfa).*(yb-ya)./(gfb-gfa)+ya;
+    
+    
+    GL2x=zeros(numel(gfa),1) ;  GL2y=zeros(numel(gfa),1) ;
+    
+    
+    ind1=gfc< threshold ; 
+    ind2=gfc>=threshold;
+    
+    GL2x(ind1)=(threshold-gfb(ind1)).*(xc(ind1)-xb(ind1))./(gfc(ind1)-gfb(ind1))+xb(ind1);  % if gfc<threshold
+    GL2x(ind2)=(threshold-gfa(ind2)).*(xc(ind2)-xa(ind2))./(gfc(ind2)-gfa(ind2))+xa(ind2);  % if gfc>threshold
+    GL2y(ind1)=(threshold-gfb(ind1)).*(yc(ind1)-yb(ind1))./(gfc(ind1)-gfb(ind1))+yb(ind1);  % if gfc<threshold
+    GL2y(ind2)=(threshold-gfa(ind2)).*(yc(ind2)-ya(ind2))./(gfc(ind2)-gfa(ind2))+ya(ind2);  % if gfc>threshold
+    
+    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
+    
+    
+    GLele(GLgeoEdge)=true;
+    
+    %GLgeo(GLgeoEdge,1)=find(GLgeoEdge) ; 
+    GLgeo(GLgeoEdge,2)=iEdge ;
+    GLgeo(GLgeoEdge,3)=GL1x ;  
+    GLgeo(GLgeoEdge,4)=GL2x ;   
+    GLgeo(GLgeoEdge,5)=GL1y ;  
+    GLgeo(GLgeoEdge,6)=GL2y ;
+    
+    GLgeo(GLgeoEdge,7)=(GL1x+GL2x)/2 ;
+    GLgeo(GLgeoEdge,8)=(GL1y+GL2y)/2 ;
+    
+    GLgeo(GLgeoEdge,9)=nx ;
+    GLgeo(GLgeoEdge,10)=ny ;
+    
+    
+end
+
+GLgeo(GLele,1)=find(GLele);
+
+% getting rid of all lines in matrix corresponding to elements that do not cross the GL
+ind=~isnan(GLgeo(:,1)); 
+GLgeo=GLgeo(ind,:);
+
+GLnodes=false(Nnode,1);
+GLnodes(connectivity(GLele,:))=true;
+
+end
+##### SOURCE END #####
+--></body></html>

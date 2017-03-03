@@ -1,0 +1,345 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>MisfitFunction</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-09-21"><meta name="DC.source" content="MisfitFunction.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
+</pre><pre class="codeinput">narginchk(11,11)
+
+us=ub+ud ; vs=vb+vd; <span class="comment">% Surface velocities</span>
+
+<span class="comment">%     J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;</span>
+<span class="comment">%</span>
+</pre><p>The misfit function is</p><p><img src="MisfitFunction_eq14686474342034639139.png" alt="$$J=I + R + B$$" style="width:94px;height:12px;"></p><p>where <img src="MisfitFunction_eq17419315245227113761.png" alt="$I$" style="width:7px;height:10px;"> is a data misfit term, <img src="MisfitFunction_eq03442895190380135198.png" alt="$R$" style="width:11px;height:11px;"> a regularisation term, and <img src="MisfitFunction_eq10170753361147586657.png" alt="$B$" style="width:11px;height:10px;"> a barrier term.</p><p>The data mistfit term is on the form</p><p><img src="MisfitFunction_eq15791317898966792429.png" alt="$$ I=\frac{1}{2\cal{A}} \int \int (u(x,y)-\hat{u}(x,y)) \, \kappa(x-x',y-y') \, (u(x',y')-\hat{u}(x',y')) dx \, dy \, dx' \, dy' $$" style="width:509px;height:33px;"></p><p>where <img src="MisfitFunction_eq16107531617707909724.png" alt="$\kappa$" style="width:7px;height:7px;"> is a (inverse) covariance kernel, <img src="MisfitFunction_eq11776305044305525613.png" alt="$u$" style="width:8px;height:7px;"> are model output quantity, and <img src="MisfitFunction_eq12245515025261625754.png" alt="$\hat{u}$" style="width:8px;height:11px;"> measurements of that quantity.</p><p>It is assumed that data errors are spatially uncorrelated, i.e.</p><p><img src="MisfitFunction_eq11965089298334817213.png" alt="$$\kappa(x,y)=e^{-2} \; \delta(x,y)$$" style="width:126px;height:17px;"></p><p>where <img src="MisfitFunction_eq12226254761175012236.png" alt="$e$" style="width:6px;height:7px;"> are data errors. Therefore</p><p><img src="MisfitFunction_eq15342927226537804394.png" alt="$$ I=\frac{1}{2\cal{A}} \int (u(x,y)-\hat{u}(x,y))/e)^2 dx \, dy $$" style="width:240px;height:33px;"></p><p><img src="MisfitFunction_eq17419315245227113761.png" alt="$I$" style="width:7px;height:10px;"> is dimentionless.</p><p>In FE context:</p><p><img src="MisfitFunction_eq15056058110126600086.png" alt="$$ I= \frac{1}{2\cal{A}}  ((\mathbf{u}-\hat{\mathbf{u}})./\mathbf{e})' \, \mathbf{M} \,((\mathbf{u}-\hat{\mathbf{u}})./\mathbf{e}) $$" style="width:230px;height:30px;"></p><p>here <img src="MisfitFunction_eq09258825031370906642.png" alt="$\mathbf{u}$" style="width:9px;height:7px;"> etc, are vectors and we used the ./ matlab notation to indicate element wise division.</p><p>The derivative of the data mistfit term with respect ot <img src="MisfitFunction_eq11776305044305525613.png" alt="$u$" style="width:8px;height:7px;"> is</p><p><img src="MisfitFunction_eq10958989603093624158.png" alt="$$ dI/du =  \frac{1}{\cal{A}}  \mathbf{M} \,(\mathbf{u}-\hat{\mathbf{u}}) $$" style="width:138px;height:30px;"></p><p>The regularisation term <img src="MisfitFunction_eq03442895190380135198.png" alt="$R$" style="width:11px;height:11px;"> is written in descrete form as</p><p><img src="MisfitFunction_eq00558257134091123818.png" alt="$$R= \frac{1}{2 N} (\mathbf{c}-\hat{\mathbf{c}})' \mathbf{K}^{-1} (\mathbf{c}-\hat{\mathbf{c}})$$" style="width:173px;height:30px;"></p><p>where <img src="MisfitFunction_eq07535486952512127643.png" alt="$\mathbf{}$" style="width:1px;height:1px;"> is a covariance matrix and <img src="MisfitFunction_eq03672095713503266041.png" alt="$N$" style="width:13px;height:10px;"> the number of elements in <img src="MisfitFunction_eq09230928000114508775.png" alt="$\mathbf{c}$" style="width:7px;height:7px;">. <img src="MisfitFunction_eq03442895190380135198.png" alt="$R$" style="width:11px;height:11px;"> is dimentionless</p><p><img src="MisfitFunction_eq15576683963954171696.png" alt="$$dR/dc=\mathbf{K}^{-1} (\mathbf{c}-\hat{\mathbf{c}})$$" style="width:130px;height:17px;"></p><pre class="codeinput">Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+
+<span class="keyword">switch</span> lower(CtrlVar.MisfitFunction)
+
+    <span class="keyword">case</span> <span class="string">'uvdiscrete'</span>
+        <span class="comment">%</span>
+        <span class="comment">%             residuals=[us ; vs]-[Meas.u;Meas.v];</span>
+        <span class="comment">%             Idata=residuals'*(Cd\residuals)/2;</span>
+        <span class="comment">%             dIduv=Cd\residuals;</span>
+
+        Idata=(us-Meas.us)'*(Meas.usCov\(us-Meas.us))/2+(vs-Meas.vs)'*(Meas.vsCov\(vs-Meas.vs))/2;
+        dIdu=Meas.usCov\(us-Meas.us) ;
+        dIdv=Meas.vsCov\(vs-Meas.vs);
+        dIduv=[dIdu(:) ; dIdv(:)];
+
+    <span class="keyword">case</span> <span class="string">'uvintegral'</span>
+
+        <span class="comment">%             %fprintf(' misfit integral \n ')</span>
+        <span class="comment">%             [n1,n2]=size(Cd);</span>
+        <span class="comment">%             sqrtmCd=</span>
+        <span class="comment">%             res=sqrtmCd*[us-Meas.u ; vs-Meas.v];</span>
+        <span class="comment">%             ures=res(1:MUA.Nnodes) ;  vres=res(MUA.Nnodes+1:end) ;</span>
+
+        <span class="comment">%           this sqrt only works for diagonal sparse matrices</span>
+
+<span class="comment">%         isdiag was introduced in R2014a</span>
+         <span class="keyword">if</span> isdiag(Meas.usCov)
+             squs=1./sqrt(spdiags(Meas.usCov)); usres=squs.*(us-Meas.us);
+         <span class="keyword">else</span>
+             error(<span class="string">'MisfitFunction:Cov'</span>,<span class="string">'Data covariance matrices but be diagonal'</span>)
+         <span class="keyword">end</span>
+
+         <span class="keyword">if</span> isdiag(Meas.vsCov)
+             sqvs=1./sqrt(spdiags(Meas.vsCov)); vsres=squs.*(vs-Meas.vs);
+         <span class="keyword">else</span>
+             error(<span class="string">'MisfitFunction:Cov'</span>,<span class="string">'Data covariance matrices must be diagonal'</span>)
+         <span class="keyword">end</span>
+
+        M=MassMatrix2D1dof(MUA);
+        Idata=full(usres'*M*usres/2+vsres'*M*vsres/2);
+        dIdu=squs.*(M*usres);
+        dIdv=sqvs.*(M*vsres);
+        dIduv=[dIdu(:);dIdv(:)];
+
+        <span class="keyword">if</span> ~isreal(dIduv)
+            save <span class="string">TestSave</span> ; error(<span class="string">'MisfitFunction:dIduvNoReal'</span>,<span class="string">'dIduv is not real! Possibly a problem with covariance of data.'</span>)
+        <span class="keyword">end</span>
+
+        <span class="comment">% Two methods resulting in the same answer</span>
+        <span class="comment">% method 1:</span>
+
+
+        <span class="comment">% Method 2</span>
+        <span class="comment">%           uNorm=sum(fgIntElementwise(connectivity,coordinates,nip,ures,ures,CtrlVar))/2;</span>
+        <span class="comment">%           vNorm=sum(fgIntElementwise(connectivity,coordinates,nip,vres,vres,CtrlVar))/2;</span>
+        <span class="comment">%           Idata2=(uNorm+vNorm)/Area;</span>
+
+
+
+        <span class="comment">%                 Sx=StiffnessMatrixSx2D(coordinates,connectivity,nip,CtrlVar);</span>
+        <span class="comment">%                 Sy=StiffnessMatrixSy2D(coordinates,connectivity,nip,CtrlVar);</span>
+        <span class="comment">%</span>
+        <span class="comment">%                 Errors=1./sqrt(spdiags(Priors.Cov,0)); Cres=(C-Priors.C)./Errors ;</span>
+        <span class="comment">%                 Errors=1./sqrt(spdiags(Priors.CovAGlen,0)); Ares=(AGlen-Priors.AGlen)./Errors ;</span>
+        <span class="comment">%</span>
+        <span class="comment">%                 M=MassMatrix2D1dof(coordinates,connectivity,nip);</span>
+        <span class="comment">%</span>
+        <span class="comment">%                 IRegC=c0* Cres'*M*Cres/2+c1*Cres'*(Sx+Sy)*Cres/2;</span>
+        <span class="comment">%                 IRegAGlen=a0* Ares'*M*Ares/2+a1* Ares'*(Sx+Sy)*Ares/2;</span>
+        <span class="comment">%</span>
+        <span class="comment">%                 IRegC=IRegC/Area;</span>
+        <span class="comment">%                 IRegAGlen=IRegAGlen/Area;</span>
+
+        <span class="comment">%Idata=FEmisfituv(ures,vres,coordinates,connectivity,nip);</span>
+
+        Idata=Idata/Area;
+        dIduv=dIduv/Area;
+
+    <span class="keyword">otherwise</span>
+        error(<span class="string">' what case? '</span> )
+<span class="keyword">end</span>
+
+Idata=CtrlVar.MisfitMultiplier*Idata;
+
+
+IRegC=Calc_IRegC(CtrlVar,Priors.CovC,C,Priors.C);
+IRegAGlen=Calc_IRegdAGlen(CtrlVar,Priors.CovAGlen,AGlen,Priors.AGlen);
+IBarrierC=Calc_IBarrierC(CtrlVar,C);
+IBarrierAGlen=Calc_IBarrierAGlen(CtrlVar,AGlen);
+
+
+<span class="comment">% scalings</span>
+Idata=Idata*CtrlVar.AdjointfScale;
+IRegC=IRegC*CtrlVar.AdjointfScale;
+IRegAGlen=IRegAGlen*CtrlVar.AdjointfScale;
+IBarrierC=IBarrierC*CtrlVar.AdjointfScale;
+IBarrierAGlen=IBarrierAGlen*CtrlVar.AdjointfScale;
+
+
+J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;
+
+
+<span class="comment">%fprintf('MisfitFunction: J=%-g \t Idata=%-g \t IRegC=%-g \t IRegAGlen=%-g \t IBarrierC=%-g \t IBarrierAGlen=%-g \n',...</span>
+<span class="comment">%    J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen)</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [J,Idata,IRegC,IRegAGlen,dIduv,IBarrierC,IBarrierAGlen]=MisfitFunction(UserVar,CtrlVar,MUA,ub,vb,ud,vd,AGlen,C,Priors,Meas)
+
+narginchk(11,11)
+
+us=ub+ud ; vs=vb+vd; % Surface velocities
+
+%     J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;
+%
+%%
+%
+% The misfit function is 
+%
+% $$J=I + R + B$$ 
+%
+% where $I$ is a data misfit term, $R$ a regularisation term, and $B$ a barrier
+% term.
+%
+% The data mistfit term is on the form
+%
+% $$ I=\frac{1}{2\cal{A}} \int \int (u(x,y)-\hat{u}(x,y)) \, \kappa(x-x',y-y') \, (u(x',y')-\hat{u}(x',y')) dx \, dy \, dx' \, dy' $$
+%
+% where $\kappa$ is a (inverse) covariance kernel, $u$ are model output quantity, and $\hat{u}$ measurements of that quantity. 
+%
+% It is assumed that data errors are spatially uncorrelated, i.e.
+%
+% $$\kappa(x,y)=e^{-2} \; \delta(x,y)$$ 
+%
+% where $e$ are data errors. Therefore
+%
+% $$ I=\frac{1}{2\cal{A}} \int (u(x,y)-\hat{u}(x,y))/e)^2 dx \, dy $$
+%
+% $I$ is dimentionless.
+%
+% In FE context:
+%
+% $$ I= \frac{1}{2\cal{A}}  ((\mathbf{u}-\hat{\mathbf{u}})./\mathbf{e})' \, \mathbf{M} \,((\mathbf{u}-\hat{\mathbf{u}})./\mathbf{e}) $$
+%
+% here $\mathbf{u}$ etc, are vectors and we used the ./ matlab notation to
+% indicate element wise division.
+% 
+% The derivative of the data mistfit term with respect ot $u$ is
+%
+% $$ dI/du =  \frac{1}{\cal{A}}  \mathbf{M} \,(\mathbf{u}-\hat{\mathbf{u}}) $$
+%
+%
+% The regularisation term $R$ is written in descrete form as
+%
+% $$R= \frac{1}{2 N} (\mathbf{c}-\hat{\mathbf{c}})' \mathbf{K}^{-1} (\mathbf{c}-\hat{\mathbf{c}})$$
+%
+% where $\mathbf{}$ is a covariance matrix and $N$ the number of elements in $\mathbf{c}$. $R$ is dimentionless
+%
+% $$dR/dc=\mathbf{K}^{-1} (\mathbf{c}-\hat{\mathbf{c}})$$
+%
+%%
+Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+
+switch lower(CtrlVar.MisfitFunction)
+    
+    case 'uvdiscrete'
+        %
+        %             residuals=[us ; vs]-[Meas.u;Meas.v];
+        %             Idata=residuals'*(Cd\residuals)/2;
+        %             dIduv=Cd\residuals;
+        
+        Idata=(us-Meas.us)'*(Meas.usCov\(us-Meas.us))/2+(vs-Meas.vs)'*(Meas.vsCov\(vs-Meas.vs))/2;
+        dIdu=Meas.usCov\(us-Meas.us) ;
+        dIdv=Meas.vsCov\(vs-Meas.vs);
+        dIduv=[dIdu(:) ; dIdv(:)];
+        
+    case 'uvintegral'
+        
+        %             %fprintf(' misfit integral \n ')
+        %             [n1,n2]=size(Cd);
+        %             sqrtmCd=
+        %             res=sqrtmCd*[us-Meas.u ; vs-Meas.v];
+        %             ures=res(1:MUA.Nnodes) ;  vres=res(MUA.Nnodes+1:end) ;
+        
+        %           this sqrt only works for diagonal sparse matrices
+        
+%         isdiag was introduced in R2014a
+         if isdiag(Meas.usCov)
+             squs=1./sqrt(spdiags(Meas.usCov)); usres=squs.*(us-Meas.us);
+         else
+             error('MisfitFunction:Cov','Data covariance matrices but be diagonal')
+         end
+         
+         if isdiag(Meas.vsCov)
+             sqvs=1./sqrt(spdiags(Meas.vsCov)); vsres=squs.*(vs-Meas.vs);
+         else
+             error('MisfitFunction:Cov','Data covariance matrices must be diagonal')
+         end
+        
+        M=MassMatrix2D1dof(MUA);
+        Idata=full(usres'*M*usres/2+vsres'*M*vsres/2);
+        dIdu=squs.*(M*usres);
+        dIdv=sqvs.*(M*vsres);
+        dIduv=[dIdu(:);dIdv(:)];
+        
+        if ~isreal(dIduv)
+            save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
+        end
+        
+        % Two methods resulting in the same answer
+        % method 1:
+        
+        
+        % Method 2
+        %           uNorm=sum(fgIntElementwise(connectivity,coordinates,nip,ures,ures,CtrlVar))/2;
+        %           vNorm=sum(fgIntElementwise(connectivity,coordinates,nip,vres,vres,CtrlVar))/2;
+        %           Idata2=(uNorm+vNorm)/Area;
+        
+        
+        
+        %                 Sx=StiffnessMatrixSx2D(coordinates,connectivity,nip,CtrlVar);
+        %                 Sy=StiffnessMatrixSy2D(coordinates,connectivity,nip,CtrlVar);
+        %
+        %                 Errors=1./sqrt(spdiags(Priors.Cov,0)); Cres=(C-Priors.C)./Errors ;
+        %                 Errors=1./sqrt(spdiags(Priors.CovAGlen,0)); Ares=(AGlen-Priors.AGlen)./Errors ;
+        %
+        %                 M=MassMatrix2D1dof(coordinates,connectivity,nip);
+        %
+        %                 IRegC=c0* Cres'*M*Cres/2+c1*Cres'*(Sx+Sy)*Cres/2;
+        %                 IRegAGlen=a0* Ares'*M*Ares/2+a1* Ares'*(Sx+Sy)*Ares/2;
+        %
+        %                 IRegC=IRegC/Area;
+        %                 IRegAGlen=IRegAGlen/Area;
+        
+        %Idata=FEmisfituv(ures,vres,coordinates,connectivity,nip);
+        
+        Idata=Idata/Area;
+        dIduv=dIduv/Area;
+        
+    otherwise
+        error(' what case? ' )
+end
+
+Idata=CtrlVar.MisfitMultiplier*Idata;
+
+
+IRegC=Calc_IRegC(CtrlVar,Priors.CovC,C,Priors.C);
+IRegAGlen=Calc_IRegdAGlen(CtrlVar,Priors.CovAGlen,AGlen,Priors.AGlen);
+IBarrierC=Calc_IBarrierC(CtrlVar,C);
+IBarrierAGlen=Calc_IBarrierAGlen(CtrlVar,AGlen);
+
+
+% scalings
+Idata=Idata*CtrlVar.AdjointfScale;
+IRegC=IRegC*CtrlVar.AdjointfScale;
+IRegAGlen=IRegAGlen*CtrlVar.AdjointfScale;
+IBarrierC=IBarrierC*CtrlVar.AdjointfScale;
+IBarrierAGlen=IBarrierAGlen*CtrlVar.AdjointfScale;
+
+
+J=Idata+IRegC+IRegAGlen+IBarrierC+IBarrierAGlen;
+
+
+%fprintf('MisfitFunction: J=%-g \t Idata=%-g \t IRegC=%-g \t IRegAGlen=%-g \t IBarrierC=%-g \t IBarrierAGlen=%-g \n',...
+%    J,Idata,IRegC,IRegAGlen,IBarrierC,IBarrierAGlen)
+end
+
+
+##### SOURCE END #####
+--></body></html>
