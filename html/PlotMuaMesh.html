@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMuaMesh</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="PlotMuaMesh.m"><style type="text/css">
+      --><title>PlotMuaMesh</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-05"><meta name="DC.source" content="PlotMuaMesh.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,17 +66,46 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotMuaMesh(CtrlVar,MUA,ElementList)
-</pre><p>PlotMuaMesh(CtrlVar,MUA,ElementList)</p><p>Examples:</p><p>figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)</p><p>figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input</p><p>CtrlVar.NodeColor='r'; figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Plot nodes in red</p><p>CtrlVar.PlotLabels=0; CtrlVar.PlotXYscale=1000; figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elemetns 1 to 100</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;3
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+</pre><p>PlotMuaMesh(CtrlVar,MUA,ElementList)</p><p>Examples:</p><p>figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)</p><p>figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input</p><p>CtrlVar.NodeColor='r'; figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Plot nodes in red</p><p>CtrlVar.PlotLabels=0; CtrlVar.PlotXYscale=1000; figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100</p><p>figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r'); Show only elements 1 to 100 in red</p><pre class="codeinput"><span class="keyword">if</span> isempty(CtrlVar)
+    CtrlVar.PlotLabels=0;
+    CtrlVar.MeshColor=<span class="string">'k'</span>;
+    CtrlVar.NodeColor=<span class="string">'k'</span>;
+    CtrlVar.PlotXYscale=1;
+    CtrlVar.PlotNodesSymbolSize=3;
+    CtrlVar.PlotNodesSymbol=<span class="string">'o'</span>;
+    CtrlVar.PlotNodes=1;
+    CtrlVar.time=NaN;
+    CtrlVar.FEmeshPlotTitle=[];
+    CtrlVar.PlotFEmeshAndSaveMesh=0;
+    CtrlVar.PlotsXaxisLabel=<span class="string">'x'</span>;
+    CtrlVar.PlotsYaxisLabel=<span class="string">'y'</span>;
+<span class="keyword">end</span>
+
+
+
+
+<span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo'</span>)
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin&lt;3  || isempty(ElementList)
 
     ElementList=1:MUA.Nele;
 <span class="keyword">end</span>
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList)
+PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
+
+
+
+<span class="keyword">if</span> CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
+    hold <span class="string">on</span>
+    PlotGmshGeometryDefinition(CtrlVar);
+<span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function PlotMuaMesh(CtrlVar,MUA,ElementList)
+function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
 % PlotMuaMesh(CtrlVar,MUA,ElementList)
@@ -84,7 +113,7 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList)
 % Examples:
 %
 % figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)
-% 
+%
 % figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input
 %
 % CtrlVar.NodeColor='r';
@@ -92,16 +121,47 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList)
 %
 % CtrlVar.PlotLabels=0;
 % CtrlVar.PlotXYscale=1000;
-% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elemetns 1 to 100
+% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
+%
+% figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r');
+% Show only elements 1 to 100 in red
 %%
 
-if nargin<3
+if isempty(CtrlVar)
+    CtrlVar.PlotLabels=0;
+    CtrlVar.MeshColor='k';
+    CtrlVar.NodeColor='k';
+    CtrlVar.PlotXYscale=1;
+    CtrlVar.PlotNodesSymbolSize=3;
+    CtrlVar.PlotNodesSymbol='o';
+    CtrlVar.PlotNodes=1;
+    CtrlVar.time=NaN;
+    CtrlVar.FEmeshPlotTitle=[];
+    CtrlVar.PlotFEmeshAndSaveMesh=0;
+    CtrlVar.PlotsXaxisLabel='x';
+    CtrlVar.PlotsYaxisLabel='y';
+end
+
+
+
+
+if ~isfield(CtrlVar,'WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo')
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+end
+
+if nargin<3  || isempty(ElementList)
     
     ElementList=1:MUA.Nele;
 end
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList)
+PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
 
+
+
+if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo 
+    hold on
+    PlotGmshGeometryDefinition(CtrlVar);
+end
 
 end
 ##### SOURCE END #####

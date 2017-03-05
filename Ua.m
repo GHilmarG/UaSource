@@ -31,13 +31,13 @@ function Ua(UserVar)
 %
 %   setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-2.12.0-Windows')
 %
-% will do. Alternativily you might want to install your own copy of gmsh. If
+% will do. Alternatively you might want to install your own copy of gmsh. If
 % running on a Unix system, then most likely gmsh can be called without the need
 % to set the Matlab environmental variable 'GmshHomeDirectory'.
 %
 % Now you can run Úa from within Matlab by writing:
 %
-% >>Ua [Ret]
+%  Ua [Ret]
 %
 % Summary: Before running Ua do for example:
 %
@@ -45,14 +45,20 @@ function Ua(UserVar)
 %   setenv('GmshHomeDirectory','C:\cygwin64\home\Hilmar\ghg\Ua\Source\gmsh-2.12.0-Windows')
 %   UaHomeDirectory=getenv('UaHomeDirectory'); addpath(genpath(UaHomeDirectory))
 %
-% Then run Ua from the Source directory to see if everyting is OK.
+% Then run Ua from the Source directory to see if everything is OK.
 %% Getting help
 % You can get help on the use of Úa in the same way as you would get help on
 % various in-build matlab commands by writing `help Ua'  in the matlab command
-% line,  or `doc Ua'. Most m-files that are part of the Ua program have some
-% inbuild help text, for example try `doc Ua2D_DefaultParameters'.
+% line,  or 
 %
-
+%   doc Ua 
+%
+% Most m-files that are part of the Ua program have some
+% inbuilt help text, for example try 
+%
+%   doc Ua2D_DefaultParameters
+%
+%
 %% Defining model run
 %
 % Whenever setting up your own model, create your own working directory for your
@@ -146,8 +152,8 @@ function Ua(UserVar)
 %
 % It is never used by Úa. 
 %
-% The user can use this variable to exhange information between his own user
-% m-files, or for whaterver other purpose required. 
+% The user can use this variable to exchange information between his own user
+% m-files, or for whatever other purpose required. 
 %
 % UserVar can be modified at the start of the run in Ua2D_InitialUserInput.
 % as well as in all user m-input files.
@@ -196,10 +202,10 @@ function Ua(UserVar)
 % For examples of how to generate different
 % type of meshes run *ExamplesOfMeshGeneration*
 %
-% The ExamplesOfMeshGeneration.m containes information and examples on how
+% The ExamplesOfMeshGeneration.m contains information and examples on how
 % to define inputs for various types of meshes. 
 %
-% There are also various ways of refining the mesh. Boht global and local
+% There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParamters.m'
 %%

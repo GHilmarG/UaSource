@@ -16,20 +16,20 @@ function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnode
 %
 % Nodes are defined as crossing a grounding line if they are nodes of elements
 % that cross a grounding line.
-%% Example:
+% Example:
 %
+%   load('MUA-PIG-TWG-Example.mat','MUA','GF','CtrlVar')
 %   [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF);
-%   
-%
+%    
 %   figure
 %   PlotMuaMesh(CtrlVar,MUA,GF.ElementsUpstreamOfGroundingLines,'color','k')
 %   hold on
 %   PlotMuaMesh(CtrlVar,MUA,GF.ElementsDownstreamOfGroundingLines,'color','b')
 %   PlotMuaMesh(CtrlVar,MUA,GF.ElementsCrossingGroundingLines,'color','r')
-%
+% 
 %   x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
 %   figure
-%
+% 
 %   hold on
 %   plot(x(GF.NodesDownstreamOfGroundingLines)/CtrlVar.PlotXYscale,y(GF.NodesDownstreamOfGroundingLines)/CtrlVar.PlotXYscale,'.b')
 %   hold on
