@@ -534,7 +534,7 @@ CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
 CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=50;
-CtrlVar.ConjugatedGradientsRestartThreshold=20 ; % degrees!
+CtrlVar.ConjugatedGradientsRestartThreshold=40 ; % degrees!
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % FR ;Fletcher-Reeves
                                         % PR :Polak-Ribi\`ere

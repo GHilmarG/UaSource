@@ -1,4 +1,4 @@
-function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,F,CtrlVar,nOut,listInF,listOutF,varargin)
+function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,CtrlVar,nOut,listInF,listOutF,varargin)
 
 % backtracking to minimize F(x0+gamma DF)
 %
@@ -50,13 +50,13 @@ if fb<target
     
     if Fargcollect
         
-        [fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
+        [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
         
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
-        fb=F(b);
+        fb=Func(b);
     end
     
     %[fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
@@ -136,13 +136,13 @@ if isempty(fa)
     
     if Fargcollect
         
-        [fa,varargout{1:nOut-1}]=F(a,varargin{:}) ;
+        [fa,varargout{1:nOut-1}]=Func(a,varargin{:}) ;
         
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
-        fa=F(a);
+        fa=Func(a);
     end
     
 end
@@ -155,13 +155,13 @@ if isempty(fb)
     b=1 ;
     
     if Fargcollect
-        [fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
+        [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
         
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
-        fb=F(b);
+        fb=Func(b);
     end
     
     
@@ -184,12 +184,12 @@ if gamma > 0.9*b ; gamma=0.9*b ; elseif gamma < 0.25*b ; gamma=0.25*b; end
 
 Iteration=1 ;
 if Fargcollect
-    [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{:}) ;
+    [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
     if ~isempty(listOutF) && ~isempty(listInF)
         [varargin{listInF}]=varargout{listOutF-1} ;
     end
 else
-    fgamma=F(gamma);
+    fgamma=Func(gamma);
 end
 
 gammaOld=gamma ;
@@ -230,12 +230,12 @@ while  fb<fa && fc < fb && fmin > target
     gammaOld=gamma ;
     
     if Fargcollect
-        [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{1:end}) ;
+        [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
-        fgamma=F(gamma);
+        fgamma=Func(gamma);
     end
     iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
     
@@ -276,13 +276,13 @@ if  Extrapolation>0
     a=bOld ; fa=fbOld; b=(a+c)/2 ;
     NoSlopeInformation=1;
     if Fargcollect
-        [fb,varargout{1:nOut-1}]=F(b,varargin{1:end}) ;
+        [fb,varargout{1:nOut-1}]=Func(b,varargin{1:end}) ;
         
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
-        fb=F(b);
+        fb=Func(b);
     end
     iq=iq+1 ; InfoVector(iq,1)=b ;  InfoVector(iq,2)=fb ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
 end
@@ -315,13 +315,13 @@ while fgamma>target || fLastReduction < 0.5
         %fprintf(' a=%-g \t b=%-g \t c=%-g \t gamma=%-g \n',a,b,c,gamma)
         
         if Fargcollect
-            [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{1:end}) ;
+            [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
             
             if ~isempty(listOutF) && ~isempty(listInF)
                 [varargin{listInF}]=varargout{listOutF-1} ;
             end
         else
-            fgamma=F(gamma);
+            fgamma=Func(gamma);
         end
         
         
@@ -333,13 +333,13 @@ while fgamma>target || fLastReduction < 0.5
         % this is the case in the second backstep following extrapolation
         if gamma >=b+0.5*(c-b) && gamma <=b+0.95*(c-b)
             if Fargcollect
-                [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{1:end}) ;
+                [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
                 
                 if ~isempty(listOutF) && ~isempty(listInF)
                     [varargin{listInF}]=varargout{listOutF-1} ;
                 end
             else
-                fgamma=F(gamma);
+                fgamma=Func(gamma);
             end
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
@@ -347,13 +347,13 @@ while fgamma>target || fLastReduction < 0.5
             %  a+0.25 (b-a)  < gamma < a+ 0.95 (b-a)
             if gamma > (a+0.95*(b-a)) ; gamma=a+0.95*(b-a) ; elseif gamma < (a+0.25*(b-a)) ; gamma=a+0.25*(b-a); end
             if Fargcollect
-                [fgamma,varargout{1:nOut-1}]=F(gamma,varargin{1:end}) ;
+                [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
                 
                 if ~isempty(listOutF) && ~isempty(listInF)
                     [varargin{listInF}]=varargout{listOutF-1} ;
                 end
             else
-                fgamma=F(gamma);
+                fgamma=Func(gamma);
             end
             
             c=b; fc=fb ; b=gamma ; fb=fgamma ;  % b always shifted to the left

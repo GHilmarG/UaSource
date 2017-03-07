@@ -1,5 +1,12 @@
 function  [p,RunInfo]=UaOptimisation(CtrlVar,func,p,RunInfo)
 
+%
+% func is the function to me minimized
+%  p is the paramter set, i.e. func(p)
+%
+%  Func is func evaluated as a function of stepsize gamma in the direction of
+%  the gradient: Func=@(gamma) func(p-gamma*dJdp);
+%
 
 if isempty(CtrlVar)
     
@@ -91,8 +98,8 @@ dJdpModified=dJdp;
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \t \t gamma=%-g \n \n',J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma)
 
 
-F=@(gamma) func(p-gamma*dJdp);
-J1=F(gamma);
+Func=@(gamma) func(p-gamma*dJdp);
+J1=Func(gamma);
 
 
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
@@ -115,27 +122,46 @@ iBackTry=0;
 for It=1:CtrlVar.Inverse.Iterations
     
     
-    [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,F,CtrlVar);
+    [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     
     
-    if BackTrackingInfoVector.converged
-        iBackTry=0;   % After returning from a successful backtracking, update p
-        p=p-gamma*dJdpModified;
-        dJdpLast=dJdp;
-    else
-        fprintf(' Line search has stagnated,')
-        iBackTry=iBackTry+1;
-        if iBackTry==1
-            fprintf(' try resetting step size to 1.\n')
-            gamma=1;
-            continue
-        else
-            fprintf(' and resetting step size to 1 did not help, now breaking out.\n')
+    if ~BackTrackingInfoVector.converged
+        
+        fprintf(' Line search has stagnated. \n')
+        fprintf(' Try resetting step size to 1 and using direction of steepest decent. \n')
+        gamma=1;
+        dJdpModified=dJdp;
+        RunInfo.Inverse.ConjGradUpdate=0;
+        Func=@(gamma) func(p-gamma*dJdpModified);
+        J1=Func(gamma); 
+        [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+        
+        if ~BackTrackingInfoVector.converged
+            fprintf(' Resetting step size to 1 and using steepest decent did not help, now breaking out.\n')
             break
         end
+        
     end
-
+%         
+%     if BackTrackingInfoVector.converged
+%         iBackTry=0;   % After returning from a successful backtracking, update p
+%         p=p-gamma*dJdpModified;
+%         dJdpLast=dJdp;
+%     else
+%         fprintf(' Line search has stagnated,')
+%         iBackTry=iBackTry+1;
+%         if iBackTry==1
+%             fprintf(' try resetting step size to 1.\n')
+%             gamma=1;
+%             continue
+%         else
+%             fprintf(' and resetting step size to 1 did not help, now breaking out.\n')
+%             break
+%         end
+%     end
     
+    p=p-gamma*dJdpModified;
+    dJdpLast=dJdp;
     % Get new directional derivative
     [J0,dJdp,Hess,fOuts]=func(p);   % here J0 and JgammaNew must be (almost) equal
     
@@ -166,10 +192,12 @@ for It=1:CtrlVar.Inverse.Iterations
     
     [dJdpModified,RunInfo]=NextGradient(dJdp,dJdpLast,dJdpModified,CtrlVar,RunInfo);
         
-
-    F=@(gamma) func(p-gamma*dJdpModified);
+      
+    
+    
+    Func=@(gamma) func(p-gamma*dJdpModified);
     %J0=F(0);  This is not needed because I've calculated J0 as I determined the new gradient.
-    J1=F(gamma); % start with previous gamma
+    J1=Func(gamma); % start with previous gamma
     
     
     
