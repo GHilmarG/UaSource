@@ -101,8 +101,13 @@ if nargout>1
     Hessian=ddRddp+ddIddp;
 end
 
-ubP=F.ub;
-vbP=F.vb;
+if RunInfo.Forward.Converged
+    ubP=F.ub;
+    vbP=F.vb;
+else
+    ubP=[];
+    vbP=[];
+end
 
 if nargout>3
     JGHouts.dRdp=dRdp;

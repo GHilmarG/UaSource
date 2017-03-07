@@ -1,10 +1,34 @@
 function [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,RunInfo)
 
 
+CtrlVar.Inverse.MatlabOptimisationParameters= optimoptions(CtrlVar.Inverse.MatlabOptimisationParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
 
-[p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationParameters);
+
+Test=CtrlVar.Inverse.MatlabOptimisationParameters;
+
+if isa(Test,'optim.options.Fminunc')
+    
+    [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationParameters);
+    
+elseif isa(Test,'optim.options.Fmincon')
+    
+    A = [];
+    b = [];
+    Aeq = [];
+    beq = [];
+    lb = [];
+    ub = [];
+    nonlcon = [];
+    
+    
+    [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,lb,ub,nonlcon,CtrlVar.Inverse.MatlabOptimisationParameters);
+    
+end
 
 [stop,Outs] = fminuncOutfun();
+
+
+
 
 
 RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+Outs.iteration];

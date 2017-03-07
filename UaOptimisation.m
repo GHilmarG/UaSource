@@ -111,7 +111,7 @@ CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevel;
 
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It         J           I          R         |grad|      gamma   #ccUpdate\n')
+fprintf('\n   It         J           I          R         |grad|      gamma   #cgUpdate\n')
 %fprintf('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\n')
 
 fprintf('%5i  %10g  %10g  %10g  %10g  %10g  %5i\n',It0,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)

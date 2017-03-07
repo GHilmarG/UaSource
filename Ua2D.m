@@ -145,10 +145,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%    now all data specific to particular runs should have been defined %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%  For convenience I assume that the user defines S, B, s and b.  The
-%  program then calculates h=s-b and then s and b from h, B and S given the
-%  ice and ocean specific density.  The thickness is preserved, and s and b
-%  are consistent with the floating condition for a given ice tickness h, rho and rhow.
+%  For convenience I assume that the user defines S, B, s and b.  The program
+%  then calculates h=s-b and then s and b from h, B and S given the ice and
+%  ocean specific density.  The thickness is preserved, and s and b are
+%  consistent with the floating condition for a given ice tickness h, rho and
+%  rhow.
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
