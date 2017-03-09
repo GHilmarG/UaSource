@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-02-14"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-03-08"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -319,9 +319,7 @@ CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span cla
 </pre><p>is inconsistent. Ua tries to spot these input parameter mistakes and correct for them, but it is better to try to keep all inputs consistent.</p><p>Note #2: It is possible to invert for any combinatin of log(A) or A  and log(C) or C. So for example one can invert for log(A) and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenC'</span> ;
 </pre><p>Also one can invert for log(C) and log(A) and regularise A and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'AGlenC'</span>
-</pre><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'UaOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
-
-
+</pre><p>To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:</p><p>Note on Ua versus Matlab optimization: Generally using the Matlab optimization routines has been a bit of a dissapointment. For a number of well-known test cases (Rosenbrock function etc.) the Matlab routines are far better than the simple inbuilt UaOptimization methods. For some real-world applications that have been tried, for example an inversion over PIG-TWG, the Matlab routines also tend to perform much better. However, there are other cases where the UaOptimization methods perform better, which giving the simplicity of the approach is arguably a bit odd...</p><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'UaOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
 CtrlVar.Inverse.Iterations=1; <span class="comment">% Number of inverse iterations</span>
 
 CtrlVar.Inverse.WriteRestartFile=1;  <span class="comment">% always a good idea to write a restart file.</span>
@@ -341,9 +339,10 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</s
 
 <span class="comment">% The gradient of the objective function can be premultiplied with the inverse</span>
 <span class="comment">% of the mass matrix. This creates a `mesh independent' gradient. This has both</span>
-<span class="comment">% advantages and disadvantages.</span>
-CtrlVar.Inverse.AdjointGradientPreMultiplier=<span class="string">'I'</span>; <span class="comment">% {'I','M'}</span>
+<span class="comment">% advantages and disadvantages. The best initial approahc is presumably to use</span>
+<span class="comment">% 'I', and then to try out 'M' for comparision.</span>
 
+CtrlVar.Inverse.AdjointGradientPreMultiplier=<span class="string">'I'</span>; <span class="comment">% {'I','M'}</span>
 
 <span class="comment">% Regularisation can be applied on A and C or log(A) and log(C). Also possible</span>
 <span class="comment">% to use a covariance matrix for A and C.</span>
@@ -393,7 +392,7 @@ CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; <span class="comment">% minimum step size in backtracking</span>
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; <span class="comment">% minimum fractional step size relative to initial step size</span>
 CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=50;
-CtrlVar.ConjugatedGradientsRestartThreshold=20 ; <span class="comment">% degrees!</span>
+CtrlVar.ConjugatedGradientsRestartThreshold=40 ; <span class="comment">% degrees!</span>
 CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class="comment">% (FR|PR|HS|DY)</span>
                                         <span class="comment">% FR ;Fletcher-Reeves</span>
                                         <span class="comment">% PR :Polak-Ribi\`ere</span>
@@ -407,13 +406,26 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
 <span class="comment">%</span>
 <span class="comment">% Refer to the matlab documentation for further information.</span>
 <span class="comment">%</span>
-<span class="comment">% The optimisation used is the matlab routine fminunc.</span>
+<span class="comment">% The optimisation routines used are either the matlab routine fminunc or</span>
+<span class="comment">% fmincon.</span>
+<span class="comment">%</span>
 <span class="comment">% You will need to have the matlab optimisation toolbox to be able to do this.</span>
+<span class="comment">%</span>
+<span class="comment">% The Matlab optimisation toolbox has various algorithms to choose from, each of</span>
+<span class="comment">% which has large number of parameters.</span>
+<span class="comment">%</span>
+<span class="comment">% Define the algorithm and set the options defining:</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.Inverse.MatlabOptimisationParameters</span>
+<span class="comment">%</span>
+<span class="comment">% Below are three examples that you might want to start with.</span>
+<span class="comment">% The last one (which is the default one) uses fmincon with lbfgs update.</span>
+<span class="comment">%</span>
 <span class="comment">%</span>
 CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions(<span class="string">'fminunc'</span>,<span class="keyword">...</span>
     <span class="string">'Algorithm'</span>,<span class="string">'trust-region'</span>,<span class="keyword">...</span>
     <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span>
-    <span class="string">'MaxFunctionEvaluations'</span>,1000,<span class="keyword">...</span>
+    <span class="string">'MaxFunctionEvaluations'</span>,1e6,<span class="keyword">...</span>
     <span class="string">'Display'</span>,<span class="string">'iter-detailed'</span>,<span class="keyword">...</span>
     <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
     <span class="string">'Diagnostics'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
@@ -427,7 +439,7 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions(<span class="string"
 CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions(<span class="string">'fminunc'</span>,<span class="keyword">...</span>
     <span class="string">'Algorithm'</span>,<span class="string">'quasi-newton'</span>,<span class="keyword">...</span>
     <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span>
-    <span class="string">'MaxFunctionEvaluations'</span>,1000,<span class="keyword">...</span>
+    <span class="string">'MaxFunctionEvaluations'</span>,1e6,<span class="keyword">...</span>
     <span class="string">'Display'</span>,<span class="string">'iter-detailed'</span>,<span class="keyword">...</span>
     <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
     <span class="string">'Diagnostics'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
@@ -435,6 +447,36 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions(<span class="string"
     <span class="string">'StepTolerance'</span>,1e-20,<span class="keyword">...</span>
     <span class="string">'PlotFcn'</span>,{@optimplotfval,@optimplotstepsize},<span class="keyword">...</span>
     <span class="string">'SpecifyObjectiveGradient'</span>,true);
+
+
+CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions(<span class="string">'fmincon'</span>,<span class="keyword">...</span>
+    <span class="string">'Algorithm'</span>,<span class="string">'interior-point'</span>,<span class="keyword">...</span>
+    <span class="string">'CheckGradients'</span>,false,<span class="keyword">...</span>
+    <span class="string">'ConstraintTolerance'</span>,1,<span class="keyword">...</span>
+    <span class="string">'Diagnostics'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+    <span class="string">'DiffMaxChange'</span>,Inf,<span class="keyword">...</span>
+    <span class="string">'DiffMinChange'</span>,0,<span class="keyword">...</span>
+    <span class="string">'Display'</span>,<span class="string">'iter-detailed'</span>,<span class="keyword">...</span>
+    <span class="string">'FunValCheck'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+    <span class="string">'MaxFunctionEvaluations'</span>,1e6,<span class="keyword">...</span>
+    <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span><span class="comment">,...</span>
+    <span class="string">'OptimalityTolerance'</span>,1e-20,<span class="keyword">...</span>
+    <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
+    <span class="string">'PlotFcn'</span>,[],<span class="keyword">...</span><span class="comment"> % 'PlotFcn',{@optimplotfval,@optimplotstepsize},...</span>
+    <span class="string">'StepTolerance'</span>,1e-20,<span class="keyword">...</span>
+    <span class="string">'FunctionTolerance'</span>,1,<span class="keyword">...</span>
+    <span class="string">'UseParallel'</span>,true,<span class="keyword">...</span>
+    <span class="string">'HessianApproximation'</span>,{<span class="string">'lbfgs'</span>,30},<span class="keyword">...</span>
+    <span class="string">'HessianFcn'</span>,[],<span class="keyword">...</span>
+    <span class="string">'HessianMultiplyFcn'</span>,[],<span class="keyword">...</span>
+    <span class="string">'InitBarrierParam'</span>,1,<span class="keyword">...</span>
+    <span class="string">'ScaleProblem'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
+    <span class="string">'InitTrustRegionRadius'</span>,1,<span class="keyword">...</span>
+    <span class="string">'SpecifyConstraintGradient'</span>,false,<span class="keyword">...</span>
+    <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
+    <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);
+
+
 <span class="comment">% end, MatlabOptimisation parameters.</span>
 <span class="comment">% ------------]</span>
 
@@ -1197,11 +1239,20 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.InvertFor='logAGlenlogC' ;
 %   CtrlVar.Inverse.Regularize.Field='AGlenC'
 %
-
+%
+% To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:
+%
+% Note on Ua versus Matlab optimization: Generally using the Matlab optimization
+% routines has been a bit of a dissapointment. For a number of well-known test
+% cases (Rosenbrock function etc.) the Matlab routines are far better than the
+% simple inbuilt UaOptimization methods. For some real-world applications that
+% have been tried, for example an inversion over PIG-TWG, the Matlab routines
+% also tend to perform much better. However, there are other cases where the
+% UaOptimization methods perform better, which giving the simplicity of the
+% approach is arguably a bit odd...
+%
 
 CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
-
-
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
@@ -1221,9 +1272,10 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 
 % The gradient of the objective function can be premultiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
-% advantages and disadvantages. 
-CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
+% advantages and disadvantages. The best initial approahc is presumably to use
+% 'I', and then to try out 'M' for comparision.
 
+CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 
 % Regularisation can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
@@ -1273,7 +1325,7 @@ CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
 CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=50;
-CtrlVar.ConjugatedGradientsRestartThreshold=20 ; % degrees!
+CtrlVar.ConjugatedGradientsRestartThreshold=40 ; % degrees!
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % FR ;Fletcher-Reeves
                                         % PR :Polak-Ribi\`ere
@@ -1287,13 +1339,26 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 %
 % Refer to the matlab documentation for further information. 
 %
-% The optimisation used is the matlab routine fminunc.
+% The optimisation routines used are either the matlab routine fminunc or
+% fmincon.
+%
 % You will need to have the matlab optimisation toolbox to be able to do this.
 %  
+% The Matlab optimisation toolbox has various algorithms to choose from, each of
+% which has large number of parameters.
+%
+% Define the algorithm and set the options defining:  
+%
+%   CtrlVar.Inverse.MatlabOptimisationParameters
+%
+% Below are three examples that you might want to start with.
+% The last one (which is the default one) uses fmincon with lbfgs update.
+% 
+%
 CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
     'Algorithm','trust-region',...
     'MaxIterations',CtrlVar.Inverse.Iterations,...
-    'MaxFunctionEvaluations',1000,...
+    'MaxFunctionEvaluations',1e6,...
     'Display','iter-detailed',...
     'OutputFcn',@fminuncOutfun,...
     'Diagnostics','on',...
@@ -1307,7 +1372,7 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
 CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
     'Algorithm','quasi-newton',...
     'MaxIterations',CtrlVar.Inverse.Iterations,...
-    'MaxFunctionEvaluations',1000,...
+    'MaxFunctionEvaluations',1e6,...
     'Display','iter-detailed',...
     'OutputFcn',@fminuncOutfun,...
     'Diagnostics','on',...
@@ -1315,6 +1380,36 @@ CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
     'StepTolerance',1e-20,...
     'PlotFcn',{@optimplotfval,@optimplotstepsize},...
     'SpecifyObjectiveGradient',true);
+
+
+CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fmincon',...
+    'Algorithm','interior-point',...
+    'CheckGradients',false,...
+    'ConstraintTolerance',1,...
+    'Diagnostics','on',...
+    'DiffMaxChange',Inf,...
+    'DiffMinChange',0,...
+    'Display','iter-detailed',...
+    'FunValCheck','off',...
+    'MaxFunctionEvaluations',1e6,...
+    'MaxIterations',CtrlVar.Inverse.Iterations,...,...
+    'OptimalityTolerance',1e-20,...
+    'OutputFcn',@fminuncOutfun,...
+    'PlotFcn',[],... % 'PlotFcn',{@optimplotfval,@optimplotstepsize},...
+    'StepTolerance',1e-20,...
+    'FunctionTolerance',1,...
+    'UseParallel',true,...
+    'HessianApproximation',{'lbfgs',30},...
+    'HessianFcn',[],...
+    'HessianMultiplyFcn',[],...
+    'InitBarrierParam',1,...
+    'ScaleProblem','none',...
+    'InitTrustRegionRadius',1,...
+    'SpecifyConstraintGradient',false,...
+    'SpecifyObjectiveGradient',true,...
+    'SubproblemAlgorithm','cg');
+
+
 % end, MatlabOptimisation parameters.   
 % REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH]
 

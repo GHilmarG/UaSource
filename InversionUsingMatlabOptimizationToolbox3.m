@@ -23,6 +23,13 @@ elseif isa(Test,'optim.options.Fmincon')
     
     [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,lb,ub,nonlcon,CtrlVar.Inverse.MatlabOptimisationParameters);
     
+    
+else
+    
+    fprintf('Matlab Optimization selected, but Matlab optimization routine not recognized.\n')
+    fprintf(' Either select fminunc or fmincon. \n')
+    error(' invalid input parameters ')
+    
 end
 
 [stop,Outs] = fminuncOutfun();

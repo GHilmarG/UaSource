@@ -94,7 +94,6 @@ end
 [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo,drdu) ;
 
 
-J=R+I;
 
 if nargout>1
     dJdp=dRdp+dIdp;
@@ -107,7 +106,11 @@ if RunInfo.Forward.Converged
 else
     ubP=[];
     vbP=[];
+    I=NaN;
+    MisfitOuts.I=NaN;
 end
+
+J=R+I;
 
 if nargout>3
     JGHouts.dRdp=dRdp;

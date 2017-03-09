@@ -1,77 +1,114 @@
-
 function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
-%%
-% [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
+
+
+%%  This input file is used if Ua is run directly from the source code folder.
+%  
 % 
-% Set the values of various fields of the run control variable CtrlVar as well
-% as the time, time step, and the MeshBoundaryCoordinates
 %
 %
-%
-% See also Ua2D_DefaultParameters.m
-%
-%
+
+
 %%
-    warning('Ua:DefaultDefine','Using default Ua2D_InitialUserInput')
-    warning('off','Ua:DefaultDefine')
-    UserVar.Experiment='DefaultRun';
-   
-    CtrlVar.doPrognostic=0 ;
-    CtrlVar.doDiagnostic=1  ;
-    CtrlVar.doInverseStep=0;
-    CtrlVar.Restart=0;  
-    
-    CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    CtrlVar.time=0 ; 
-    CtrlVar.dt=1; 
-    CtrlVar.TotalNumberOfForwardRunSteps=1;
-    
-    CtrlVar.FlowApproximation='hybrid';
-    
-    %%
-    xd=200e3; xu=-200e3 ; yl=200e3 ; yr=-200e3;
-    MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
-    CtrlVar.GmshGeoFileAdditionalInputLines{1}='Periodic Line {1,2} = {3,4};';  % these lines are added to the gmsh .geo input file each time such a file is created
-    CtrlVar.OnlyMeshDomainAndThenStop=0;
-    %CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual 
-    CtrlVar.TriNodes=6;   % [3,6,10]
-    CtrlVar.MeshSize=200e3;
-    CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;
-    CtrlVar.MeshSizeMax=CtrlVar.MeshSize;
-    
-    
-    CtrlVar.AdaptMesh=1;
-    CtrlVar.AdaptMeshInitial=1  ; 
-    CtrlVar.AdaptMeshIterations=4;
-    CtrlVar.NumberOfSmoothingErrorIndicatorIterations=1;
-    CtrlVar.AdaptMeshAndThenStop=0;
-    %CtrlVar.MeshRefinementMethod='implicit'; 
-    CtrlVar.MeshRefinementMethod='explicit:local'; 
-    CtrlVar.RefineCriteria='effective strain rates';
-    %CtrlVar.RefineCriteria='||grad(dhdt)||';
-    %CtrlVar.RefineCriteria='dhdt curvature';
-    %CtrlVar.RefineCriteria='|dhdt|';
-    %CtrlVar.RefineCriteria='thickness curvature';
-    %CtrlVar.RefineCriteria='thickness gradient';
-    CtrlVar.MaxNumberOfElements=2500;
-    
-   
-    
-    %%
-    CtrlVar.LineSeachAllowedToUseExtrapolation=1;
-    
-    %%
-    
-    CtrlVar.WriteRestartFile=1;
-    
-    CtrlVar.doplots=1;
-    CtrlVar.doRemeshPlots=1;
-    CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
-    CtrlVar.PlotNodes=1;       % If true then nodes are plotted when FE mesh is shown
-    CtrlVar.PlotXYscale=1000;     % used to scale x and y axis of some of the figures, only used for plotting purposes
-    CtrlVar.PlotLabels=0 ; CtrlVar.PlotMesh=1; CtrlVar.PlotBCs=1;CtrlVar.PlotNodes=1;
-    CtrlVar.TransientPlotDt=NaN;   % model time interval between calls to `FE2dTransientPlots.m'
-    CtrlVar.InfoLevelNonLinIt=1;
-    
-    
+UserVar.MisExperiment='ice0';            % This I use in DefineMassBalance
+UserVar.Outputsdirectory='ResultsFiles'; % This I use in UaOutputs
+%%
+
+CtrlVar.Experiment=['MismipPlus-',UserVar.MisExperiment];   
+%% Types of run
+%
+CtrlVar.TimeDependentRun=1; 
+CtrlVar.TotalNumberOfForwardRunSteps=3;
+CtrlVar.TotalTime=100;
+CtrlVar.Restart=0;  
+
+
+CtrlVar.dt=0.01; 
+CtrlVar.time=0; 
+
+CtrlVar.UaOutputsDt=0; % interval between calling UaOutputs. 0 implies call it at each and every run step.
+                       % setting CtrlVar.UaOutputsDt=1; causes UaOutputs to be called every 1 years.
+                       % This is a more reasonable value once all looks OK.
+
+CtrlVar.ATStimeStepTarget=1;
+CtrlVar.WriteRestartFile=1;
+
+%% Reading in mesh
+CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable) directly from a .mat file
+                              % unless the adaptive meshing option is used, no further meshing is done.
+CtrlVar.ReadInitialMeshFileName='AdaptMesh.mat';
+CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
+%% Plotting options
+CtrlVar.doplots=1;
+CtrlVar.PlotMesh=1; 
+CtrlVar.PlotBCs=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+CtrlVar.doRemeshPlots=1;
+CtrlVar.PlotXYscale=1000; 
+%%
+
+CtrlVar.TriNodes=3;
+
+
+CtrlVar.NameOfRestartFiletoWrite=['Restart',CtrlVar.Experiment,'.mat'];
+CtrlVar.NameOfRestartFiletoRead=CtrlVar.NameOfRestartFiletoWrite;
+
+
+
+
+%% adapt mesh
+%CtrlVar.InfoLevelAdaptiveMeshing=100;
+
+
+% very coarse mesh resolution
+CtrlVar.MeshSize=20e3;       % over-all desired element size
+CtrlVar.MeshSizeMax=20e3;    % max element size
+CtrlVar.MeshSizeMin=0.05*CtrlVar.MeshSize;     % min element size
+
+% reasonably fine mesh resolution
+%CtrlVar.MeshSize=8e3;       % over-all desired element size
+%CtrlVar.MeshSizeMax=8e3;    % max element size
+%CtrlVar.MeshSizeMin=200;    % min element size
+
+CtrlVar.MaxNumberOfElements=250e3;           % max number of elements. If #elements larger then CtrlMeshSize/min/max are changed
+
+CtrlVar.AdaptMesh=1;           % 
+CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat'; 
+
+
+
+CtrlVar.AdaptMeshInitial=1 ;       % if true, then a remeshing will always be performed at the inital step
+CtrlVar.AdaptMeshAndThenStop=0;    % if true, then mesh will be adapted but no further calculations performed
+                                   % usefull, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)
+CtrlVar.doAdaptMeshPlots=0;       % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
+
+%CtrlVar.RefineCriteria={'flotation','thickness curvature','||grad(dhdt)||'};
+%CtrlVar.RefineCriteriaWeights=[1,1,1];                %  
+CtrlVar.RefineCriteriaFlotationLimit=[NaN,NaN];     
+
+CtrlVar.RefineCriteria={'flotation','thickness gradient'};
+CtrlVar.RefineCriteriaWeights=[1,0.75];                %  
+
+CtrlVar.RefineCriteria={'thickness gradient'};
+CtrlVar.RefineCriteriaWeights=[1];                %  
+  
+CtrlVar.AdaptMeshInterval=1;  % number of run-steps between mesh adaptation
+CtrlVar.AdaptMeshIterations=1;
+
+
+CtrlVar.MeshAdapt.GLrange=[10000 5000 ; 3000 2000];
+
+
+
+%% Pos. thickness constraints
+CtrlVar.ThickMin=1; % minimum allowed thickness without (potentially) doing something about it
+CtrlVar.ResetThicknessToMinThickness=0;  % if true, thickness values less than ThickMin will be set to ThickMin
+CtrlVar.ThicknessConstraints=1  ;        % if true, min thickness is enforced using active set method
+CtrlVar.ThicknessConstraintsItMax=5  ; 
+
+%%
+
+xd=640e3; xu=0e3 ; yr=0 ; yl=80e3 ;  
+MeshBoundaryCoordinates=[xu yr ; xu yl ; xd yl ; xd yr];
+
+ 
 end
