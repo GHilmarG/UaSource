@@ -11,56 +11,30 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
-
-if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-    
-    pA0=log10(InvStartValues.AGlen);
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
-    
-    pA0=InvStartValues.AGlen;
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
-    
-    pA0=[];
-    
-end
-
-
-if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    
-    pC0=log10(InvStartValues.C);
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    
-    pC0=InvStartValues.C;
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    
-    pC0=[];
-    
-end
-
-p0=[pA0;pC0];
-
-
+[p0,plb,pub]=InvValues2p(CtrlVar,InvStartValues); 
 
 %
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
-[J0,dJdp,Hessian,JGHouts]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-CtrlVar.Inverse.ResetPersistentVariables=0;
+[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
+
+
+
 func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
+
+CtrlVar.Inverse.ResetPersistentVariables=0;
 %%
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     
     
     % Get the gradient using the adjoint method
-    [J,dJdp,H]=func(p0);
+    [J,dJdp,Hessian]=func(p0);
     
     
     % calc brute force gradient
@@ -106,7 +80,7 @@ else
             
             clear fminconOutputFunction fminconHessianFcn fminuncOutfun
             
-            [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,RunInfo);
+            [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo);
             
             
             
@@ -119,55 +93,20 @@ else
     
     
     
+    %     [InvFinalValues.C,iU,iL]=kk_proj(InvFinalValues.C,CtrlVar.Cmax,CtrlVar.Cmin);
+    %     [InvFinalValues.AGlen,iU,iL]=kk_proj(InvFinalValues.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
+    %
     
-    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')  % AC
-        
-        NA=numel(InvStartValues.AGlen);
-        NC=numel(InvStartValues.C);
-        
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-            InvFinalValues.AGlen=10.^p(1:NA);
-        else
-            InvFinalValues.AGlen=p(1:NA);
-        end
-        
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-            InvFinalValues.C=10.^p(NA+1:end);
-        else
-            InvFinalValues.C=p(NA+1:end);
-        end
-        
-    elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen')   % A
-        
-        
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-            InvFinalValues.AGlen=10.^p;
-        else
-            InvFinalValues.AGlen=p;
-        end
-        
-        
-    elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')  % C
-        
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-            InvFinalValues.C=10.^p;
-        else
-            InvFinalValues.C=p;
-        end
-    else
-        fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
-        fprintf(' CtrlVar.Inverse.InvertFor does not have expected value.\n')
-        error('InverForModelParameters:incorrect inputs')
-    end
-    
-    
-    
-    [InvFinalValues.C,iU,iL]=kk_proj(InvFinalValues.C,CtrlVar.Cmax,CtrlVar.Cmin);
-    [InvFinalValues.AGlen,iU,iL]=kk_proj(InvFinalValues.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
-    
-    
+
     [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
     
+    
+    NA=numel(InvStartValues.AGlen);
+    NC=numel(InvStartValues.C);
+    InvFinalValues=p2InvValues(CtrlVar,p,InvFinalValues,NA,NC);
+
+  
     
 end
 

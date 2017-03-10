@@ -1,6 +1,6 @@
 function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
 
-%[UserVar,ub,vb,ud,vd,l,Kuv,Ruv,RunInfo,ubvbL]=uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uo,vo,l,AGlen,C,n,m,alpha,rho,rhow,g,GF)
+
 
 
 

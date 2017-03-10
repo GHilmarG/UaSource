@@ -1,5 +1,5 @@
 function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
-%[UserVar,ub,vb,luv,Kuv,Ruv,RunInfo,Luv]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,luv,AGlen,C,n,m,alpha,rho,rhow,g)
+
 
 nargoutchk(7,7)
 narginchk(7,7)
@@ -68,12 +68,37 @@ if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ;
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
 
-
+tAssembly=tic;
 F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
 
-diffDu=1e10; r=1e10 ;
 
-iteration=0;  ResidualReduction=1e10;
+Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+RunInfo.CPU.Assembly=toc(tAssembly);
+
+if ~isempty(L)
+    frhs=-Ruv-L'*l.ubvb;
+    grhs=cuv-L*[F.ub;F.vb];
+else
+    frhs=-Ruv;
+    grhs=[];
+end
+
+r=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+% 
+% if r< CtrlVar.NLtol
+%     
+%     RunInfo.Forward.Iterations=0;  RunInfo.Forward.Residual=r; RunInfo.CPU.Assembly=0; RunInfo.CPU.Solution=0; 
+%     Kuv=[];
+%     return
+%     
+% end
+
+
+
+
+diffDu=0; 
+
+iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
 while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitmax  )  || (iteration < CtrlVar.NRitmin)
     
     
@@ -140,7 +165,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     end
     
-    RunInfo.CPU.Solution=toc(tSolution)+RunInfo.CPU.Solution;
+    RunInfo.CPU.Solution=toc(tSolution)+tSolution;
     
     
     if CtrlVar.TestForRealValues
@@ -218,7 +243,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
             stri='i';
         else
             stri=[];
-        end;
+        end
         fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
             stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
     end
