@@ -1,5 +1,4 @@
-function  [p,RunInfo]=UaOptimisation(CtrlVar,func,p,RunInfo)
-
+function  [p,RunInfo]=UaOptimisation(CtrlVar,func,p,plb,pub,RunInfo)
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)
@@ -24,11 +23,10 @@ if isempty(CtrlVar)
     CtrlVar.Inverse.StoreSolutionAtEachIteration=0;
 end
 
+p=p(:); 
+p=kk_proj(p,pub,plb);
 
 
-
-
-p=p(:);
 [J0,dJdp,Hess,fOuts]=func(p);
 dJdp=dJdp(:);
 GradNorm=norm(dJdp);
@@ -161,6 +159,7 @@ for It=1:CtrlVar.Inverse.Iterations
 %     end
     
     p=p-gamma*dJdpModified;
+    p=kk_proj(p,pub,plb);
     dJdpLast=dJdp;
     % Get new directional derivative
     [J0,dJdp,Hess,fOuts]=func(p);   % here J0 and JgammaNew must be (almost) equal

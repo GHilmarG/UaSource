@@ -72,7 +72,7 @@ else
         
         case 'UaOptimization'
             
-            [p,RunInfo]=UaOptimisation(CtrlVar,func,p0,RunInfo);
+            [p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
             
             
             
