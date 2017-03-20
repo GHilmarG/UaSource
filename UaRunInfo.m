@@ -23,7 +23,8 @@ classdef UaRunInfo
             obj.Inverse.GradNorm = NaN ;
             obj.Inverse.GradNorm = NaN ;
             obj.Inverse.ConjGradUpdate = 0 ;
-            
+            obj.Inverse.fmincon=struct;
+            obj.Inverse.fminunc=struct;
             
             obj.Forward.Converged=0;
             obj.Forward.Iterations=NaN;

@@ -10,6 +10,10 @@ if isa(Test,'optim.options.Fminunc')
     
     [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationParameters);
     
+    if isfield(RunInfo.Inverse,'fminunc')
+        RunInfo.Inverse.fminunc=output;
+    end
+    
 elseif isa(Test,'optim.options.Fmincon')
     
     A = [];
@@ -21,6 +25,9 @@ elseif isa(Test,'optim.options.Fmincon')
     
     [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationParameters);
     
+    if isfield(RunInfo.Inverse,'fmincon')
+        RunInfo.Inverse.fmincon=output;
+    end
     
 else
     

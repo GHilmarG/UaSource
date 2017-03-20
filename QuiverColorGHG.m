@@ -305,7 +305,7 @@ else
         % create a `logarithmic' colormap
         NN=10*N ;
         cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,NN));
-        index=fix((NN-1)*(exp([0:N-1]/(N-1))-1)/(exp(1)-1)+1);
+        index=fix((NN-1)*(exp((0:N-1)/(N-1))-1)/(exp(1)-1)+1);
         cmap=colormap(cmap(index,:));
     else
         cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,N));
