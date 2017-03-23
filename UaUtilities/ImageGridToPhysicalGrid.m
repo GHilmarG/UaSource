@@ -6,10 +6,11 @@ function [x,y,Z]=ImageGridToPhysicalGrid(x,y,Z)
 % 
 % This function flips to 
 %
-% Z(i,j) at (x(i),y(j)) with x and y increasing
+% Z(i,j) at (x(i),y(j)) with x and y increasing.
 %
-% Contouring will require transposing Z 
-
+% Contouring will require transposing Z, i.e. contour(x,y,Z') 
+%
+%
 
 x=x(:); 
 y=y(:);

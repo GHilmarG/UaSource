@@ -3,7 +3,6 @@ function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardR
 
 fprintf('\n\n ---------  Reading restart file and defining start values for restart run.\n')
 
-RunInfo=[];
 
 Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
 
@@ -61,6 +60,12 @@ end
 if exist('l','var')==0
     fprintf(' The Lagrange variable l not found in restart file. Reset. \n')
     l=UaLagrangeVariables;
+end
+
+
+if exist('RunInfo','var')==0
+    fprintf(' The variable RunInfo not found in restart file. Created \n')
+    RunInfo=UaRunInfo;
 end
 
 

@@ -74,6 +74,7 @@ F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
 
 Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
 RunInfo.CPU.Assembly=toc(tAssembly);
+RunInfo.CPU.Solution=0;
 
 if ~isempty(L)
     frhs=-Ruv-L'*l.ubvb;
@@ -165,7 +166,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     end
     
-    RunInfo.CPU.Solution=toc(tSolution)+tSolution;
+    RunInfo.CPU.Solution=toc(tSolution)+RunInfo.CPU.Solution;
     
     
     if CtrlVar.TestForRealValues

@@ -37,13 +37,23 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 %       
 %
 % see also BoundaryConditions.m
+% 
+% Examples:
 %
+%  To set velocities at all grounded nodes along the boundary to zero:
 %
+%   GroundedBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)>0.5);
+%   BCs.vbFixedNode=GroundedBoundaryNodes; 
+%   BCs.ubFixedNode=GroundedBoundaryNodes; 
+%   BCs.ubFixedValue=BCs.ubFixedNode*0;
+%   BCs.vbFixedValue=BCs.vbFixedNode*0;
+%
+% 
 %%
 
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
-% implementing periodic boundary conditions
+
 % find nodes along boundary 
 xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
 nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
