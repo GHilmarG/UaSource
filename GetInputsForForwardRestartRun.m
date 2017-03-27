@@ -64,7 +64,7 @@ end
 
 
 if exist('RunInfo','var')==0
-    fprintf(' The variable RunInfo not found in restart file. Created \n')
+    fprintf(' The variable RunInfo not found in restart file. Created. \n')
     RunInfo=UaRunInfo;
 end
 

@@ -33,6 +33,7 @@ if isempty(CtrlVar)
     CtrlVar.PlotFEmeshAndSaveMesh=0;
     CtrlVar.PlotsXaxisLabel='x';
     CtrlVar.PlotsYaxisLabel='y';
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 end
 
 

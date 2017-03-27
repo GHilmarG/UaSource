@@ -1,8 +1,8 @@
 function [ud,vd]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,rho,g,s,h)
-          
+
 
 %  calculates deformational velocity based on the SSHEET (SIA) approximation
-%  
+%
 %  u and v are nodal velocities
 %
 %  u= -(2A/(n+1)) (rho g)^n | grad_{xy} s|^(n-1) h^(n+1) \p_x s
@@ -52,7 +52,7 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     rhoint=rhonod*fun;
     
-    if ~CtrlVar.AGlenisElementBased 
+    if ~CtrlVar.AGlenisElementBased
         AGlen=AGlennod*fun;
         n=nnod*fun;
     end
@@ -60,7 +60,7 @@ for Iint=1:MUA.nip
     
     
     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
-
+    
     % derivatives for all elements at this integration point
     for Inod=1:MUA.nod
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
@@ -75,7 +75,7 @@ for Iint=1:MUA.nip
     D=2*AGlen.*gradSurf.^(n-1).*hint.^(n+1).*(rhoint.*g).^n./(n+1);
     
     for Inod=1:MUA.nod
- 
+        
         
         rhs=D.*fun(Inod);
         rhsx=-rhs.*dsdx;
@@ -102,7 +102,7 @@ if isempty(Ludvd)
     sol=M\[rhx rhy] ;  % solve this for two right-hand sides
     ud=full(sol(:,1)) ; vd=full(sol(:,2));
 else
-
+    
     Z=sparse(MUA.Nnodes,MUA.Nnodes);
     M=[ M Z ; Z M ];
     udvdLambda=zeros(size(Ludvd,1),1) ;

@@ -1,7 +1,7 @@
 function [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0)
 
 
-nargoutchk(6,6)
+
 narginchk(15,15)
 
 F1.ub=F1.ub+gamma*dub;
