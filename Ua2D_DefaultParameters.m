@@ -61,7 +61,7 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 % a any mesh modifications.
 %
 % However, it is possible to force additional `manual' updates to geometry
-% during a diagnostic run. This is often usefull, for example, for doing
+% during a diagnostic run. This is often useful, for example, for doing
 % sensitivity tests with respect to geometry.
 %
 % Also, one can redefine the ocean surface elevation at each run step in both
@@ -956,7 +956,7 @@ CtrlVar.RefineMeshOnStart=0;
 %
 % Note: Adapt meshing can only be done in a combination with a forward run.
 % Adapt meshing can not be done in an inverse run. Usually before starting with
-% an inverse run you may find it usefull to do a number of forward (time
+% an inverse run you may find it useful to do a number of forward (time
 % independent) forward runs and use those to optimize the mesh prior to start of
 % any inverse runs.
 %

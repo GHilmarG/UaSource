@@ -138,7 +138,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
             
             if all(abs(dhdt)<1e-5)
                 ErrorIndicatorUsefull=0;
-                fprintf(CtrlVar.fidlog,' WARNING: dh/dt too small to be usefull as an explicit error indicator \n ');
+                fprintf(CtrlVar.fidlog,' WARNING: dh/dt too small to be useful as an explicit error indicator \n ');
             else
                 [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
                 %dfdx=sum(dfdx,2) ; dfdy=sum(dfdy,2) ;

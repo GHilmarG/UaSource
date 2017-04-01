@@ -46,7 +46,8 @@ CtrlVar=Ua2D_DefaultParameters();
 %  CtrlVar,UsrVar,Info,UaOuts
 [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
 
-
+RunInfo.Message(1)="Start of Run";
+CtrlVar.RunInfoMessage=RunInfo.Message(end);
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
 
@@ -96,11 +97,17 @@ if CtrlVar.InverseRun %  inverse run
     
     if CtrlVar.Restart %  inverse restart run
         
+        
+        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for an inverse restart run";
+        CtrlVar.RunInfoMessage=RunInfo.Message(end);
         [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
             GetInputsForInverseRestartRun(UserVar,CtrlVar);
         
     else % New inverse run
         
+        
+        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new inverse run";
+        CtrlVar.RunInfoMessage=RunInfo.Message(end);
         % First get the usual input for a forward run
         [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
         
@@ -113,6 +120,9 @@ else
     
     if CtrlVar.Restart %  forward restart run
         
+        
+        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a forward restart run";
+        CtrlVar.RunInfoMessage=RunInfo.Message(end);
         [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar);
         
         
@@ -127,6 +137,9 @@ else
         
     else % New forward run (ie not a restart)
         
+        
+        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new forward run";
+        CtrlVar.RunInfoMessage=RunInfo.Message(end);
         [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
@@ -150,6 +163,9 @@ end
 %  ocean specific density.  The thickness is preserved, and s and b are
 %  consistent with the floating condition for a given ice tickness h, rho and
 %  rhow.
+RunInfo.Message(numel(RunInfo.Message)+1)="All initial inputs now defined.";
+CtrlVar.RunInfoMessage=RunInfo.Message(end);
+
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -168,7 +184,11 @@ F.h=F.s-F.b;
 %%
 if CtrlVar.doInverseStep   % -inverse
     
-    CtrlVar.UaOutputsInfostring='Start of Inverse Run';
+    
+    RunInfo.Message(numel(RunInfo.Message)+1)="Start of inverse run.";
+    CtrlVar.RunInfoMessage=RunInfo.Message(end);
+    
+    CtrlVar.UaOutputsInfostring='Start of inverse run';
     CtrlVar.UaOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
@@ -238,7 +258,9 @@ end
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
 
-%%  time loop
+RunInfo.Message(numel(RunInfo.Message)+1)="Run Step Loop.";
+CtrlVar.RunInfoMessage=RunInfo.Message(end);
+%%  RunStep Loop
 while 1
     
     if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
@@ -271,11 +293,42 @@ while 1
     
     MUA=UpdateMUA(CtrlVar,MUA);
     
-    % -adapt time step
+    %% -adapt time step
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,CtrlVar.time,CtrlVar.dt);
     end
     
+       
+    %% [------------------   adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
+    if CtrlVar.AdaptMesh || CtrlVar.TimeGeometries.Flag ||  CtrlVar.FEmeshAdvanceRetreat
+        
+
+        [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
+        CtrlVar.AdaptMeshInitial=0;
+        
+        if MUA.Nele==0 
+            fprintf('FE mesh is empty \n ')
+            break ;
+        end
+        
+        if CtrlVar.AdaptMeshAndThenStop
+            
+            if CtrlVar.doplots  && CtrlVar.PlotMesh
+                figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+            end
+            
+            save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
+            fprintf(' MUA was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+            fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
+            return
+        end
+        
+    end
+    
+    %% -------------------------------------------------------------------------------------------]
+    
+    %% [----------------------- Changes to F required at each RunStep
+
     
     if CtrlVar.doDiagnostic
         if CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep
@@ -295,59 +348,36 @@ while 1
         [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
         F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
-    
-    
-    %% adaptive meshing, adapt mesh, adapt-mesh
-    if CtrlVar.AdaptMesh || CtrlVar.TimeGeometries.Flag ||  CtrlVar.FEmeshAdvanceRetreat
-        
-
-        [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
-        CtrlVar.AdaptMeshInitial=0;
-        
-        if MUA.Nele==0 
-            fprintf('FE mesh is empty \n ')
-            break ;
-        end
-        
-        if CtrlVar.AdaptMeshAndThenStop
-            
-            
-            if CtrlVar.doplots  && CtrlVar.PlotMesh
-                figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
-            end
-            
-            save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
-            fprintf(' MUA was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
-            fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
-            return
-        end
-        
-    end
-    
-    %%
+ 
     
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+    
+    %%  -------------------------------------------------------------------------------------]
     
     
     if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic steo).
         
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
-
+        
+        RunInfo.Message(numel(RunInfo.Message)+1)="Diagnostic step. Solving for velocities.";
+        CtrlVar.RunInfoMessage=RunInfo.Message(end);
         
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
- 
-
+        
+        
     else   % Time-dependent run
         
-        %        0  : values at t      This is F0 
-        %        1  : values at t+dt   This is F. 
+        %        0  : values at t      This is F0
+        %        1  : values at t+dt   This is F.
         %       at start, F is explicit guess for values at t+dt
         %       an end,   F are converged values at t+dt
         
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
-          
-           
+            
+            
+            RunInfo.Message(numel(RunInfo.Message)+1)="Time dependent step. Solving implicitly for velocities and thickness.";
+            CtrlVar.RunInfoMessage=RunInfo.Message(end);
             
             fprintf(CtrlVar.fidlog,...
                 '\n ===== Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. \n ',...
@@ -451,6 +481,10 @@ while 1
             
         elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
+            
+            RunInfo.Message(numel(RunInfo.Message)+1)="Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
+            CtrlVar.RunInfoMessage=RunInfo.Message(end);
+            
             if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+CtrlVar.dt);end
             
             %% Diagnostic calculation (uv)
@@ -516,9 +550,12 @@ while 1
     
     
     
-  
+    
     
 end
+
+RunInfo.Message(numel(RunInfo.Message)+1)="Calculations done. Creating outputs. ";
+CtrlVar.RunInfoMessage=RunInfo.Message(end);
 
 if CtrlVar.PlotWaitBar
     multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);

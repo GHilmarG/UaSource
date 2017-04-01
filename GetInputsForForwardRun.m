@@ -117,6 +117,8 @@ F.dvddt=zeros(MUA.Nnodes,1) ;
 F.dhdt=zeros(MUA.Nnodes,1) ; 
 
 
+%[UserVar,F]=DefineInputFieldsModifications(UserVar,CtrlVar,F); 
+
 
 end
 

@@ -6,6 +6,25 @@ function [C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m)
 
 
 
+if numel(C)==1
+    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+    if  CtrlVar.CisElementBased
+        C=C+zeros(MUA.Nele,1);
+    else
+        C=C+zeros(MUA.Nnodes,1);
+    end
+end
+
+
+if numel(m)==1
+    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+    if  CtrlVar.CisElementBased
+        m=m+zeros(MUA.Nele,1);
+    else
+        m=m+zeros(MUA.Nnodes,1);
+    end
+end
+
 
 
 if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
@@ -50,25 +69,6 @@ if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
 end
 
 
-
-if numel(C)==1
-    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
-    if  CtrlVar.CisElementBased
-        C=C+zeros(MUA.Nele,1);
-    else
-        C=C+zeros(MUA.Nnodes,1);
-    end
-end
-
-
-if numel(m)==1
-    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
-    if  CtrlVar.CisElementBased
-        m=m+zeros(MUA.Nele,1);
-    else
-        m=m+zeros(MUA.Nnodes,1);
-    end
-end
 
 
 if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(C))

@@ -37,6 +37,7 @@
                 <tocitem target="GLgeometry.html">GLgeometry</tocitem>
                 <tocitem target="EleBasedGL.html">EleBasedGL</tocitem>
                 <tocitem target="IceSheetIceShelves.html">IceSheetIceShelves</tocitem>
+                <tocitem target="FindAllNodesWithinGivenRangeFromGroundingLine.html">FindAllNodesWithinGivenRangeFromGroundingLine</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

@@ -10,6 +10,16 @@ function [AGlen,n]=TestAGlenInputValues(CtrlVar,MUA,AGlen,n)
 [nn,mn]=size(n);
 
 
+if numel(AGlen)==1 
+    
+    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
+    if  CtrlVar.AGlenisElementBased
+        AGlen=AGlen+zeros(MUA.Nele,1);
+    else
+        AGlen=AGlen+zeros(MUA.Nnodes,1);
+    end
+    
+end
 
 if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
     
@@ -53,16 +63,6 @@ if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
 end
 
 
-if numel(AGlen)==1 
-    
-    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
-    if  CtrlVar.AGlenisElementBased
-        AGlen=AGlen+zeros(MUA.Nele,1);
-    else
-        AGlen=AGlen+zeros(MUA.Nnodes,1);
-    end
-    
-end
 
 
 if  numel(n)==1

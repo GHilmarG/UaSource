@@ -78,7 +78,7 @@ CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat';
 
 CtrlVar.AdaptMeshInitial=1 ;       % if true, then a remeshing will always be performed at the inital step
 CtrlVar.AdaptMeshAndThenStop=0;    % if true, then mesh will be adapted but no further calculations performed
-                                   % usefull, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)
+                                   % useful, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)
 CtrlVar.doAdaptMeshPlots=0;       % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
 
 %CtrlVar.RefineCriteria={'flotation','thickness curvature','||grad(dhdt)||'};

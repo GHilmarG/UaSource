@@ -6,6 +6,7 @@ classdef UaRunInfo
         Forward
         BackTrack
         CPU
+        Message
     end
     
     
@@ -38,7 +39,7 @@ classdef UaRunInfo
             
             obj.CPU.Assembly=0;
             obj.CPU.Solution=0;
-            
+            obj.Message="" ;
             
         end
     end

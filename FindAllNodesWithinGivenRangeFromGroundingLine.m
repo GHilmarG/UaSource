@@ -1,13 +1,13 @@
 function [ID,idx,D,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree)
 
-%
+%%
 % Finds all nodes within a given range from the grounding line.
 %
 % A very simple wrapper around the use of the rangesearch routine from the
 % `Statistics and Machine Learnig Toolbox'
 %
 %
-%  [ID,idx,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree)
+%    [ID,idx,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree)
 %
 %  Inputs:
 %  ds     :   distance
@@ -31,6 +31,8 @@ function [ID,idx,D,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar
 %   hold on
 %   x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 %   plot(x(ID),y(ID),'.r')
+%%
+
 
 if isempty(xGL)
     ID=[] ;
