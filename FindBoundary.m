@@ -27,6 +27,7 @@ if Nele==0
     Boundary.Edges=[];
     Boundary.Edge=[];
     Boundary.x=[]; Boundary.y=[];
+    TR=[];
     return
 end
 
@@ -86,8 +87,7 @@ Boundary.Nodes=unique(Boundary.Edges);
 
 
 for II=1:3
-    %Boundary.ElementsBCu{II}=find(logical(prod(double(ismember(connectivity(:,Boundary.Edge{II}),ufixednode)'))));
-    %Boundary.ElementsBCv{II}=find(logical(prod(double(ismember(connectivity(:,Boundary.Edge{II}),vfixednode)'))));
+
     Boundary.Elements{II}=find(logical(prod(double(ismember(connectivity(:,Boundary.Edge{II}),Boundary.Nodes)')))); %
 end
 
