@@ -55,29 +55,37 @@ if isMeshAdvanceRetreat
         
         if    exist(fullfile(cd,CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName), 'file')  == 2 ...
                 || exist(fullfile(cd,[CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'.mat']), 'file')  == 2
-            try
+           
+                
+                ListOfVariables=who('-file',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName);
                 
                 if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                    fprintf('Reading ''MUA_Background'' from: %s ',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
+                    fprintf('Reading ''background'' MUA from: %s ',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
                 end
                 
-                %load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'coordinates','connectivity')
-                load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'MUA_Background')
-                
-                if exist('MUA_Background','var')==0
-                    fprintf(' The variable MUA_Background not found in %s.! \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
+                if ismember('MUA_Background',ListOfVariables)
+                    
+                    load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'MUA_Background')
+                    
+                elseif ismember('MUA',ListOfVariables)
+ 
+                    
+                    VAR='MUA';
+                    MUA_Background=load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,VAR);
+                    MUA_Background=MUA_Background.(VAR);
+                    
+                else
+                    
+                    fprintf(' Neither MUA or MUA_Background found in %s.! \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
                     error('AdaptMesh:MUA_BackgroundNotFound','Where is MUA_Background?')
+                    
                 end
-                
+   
                 MUA_Background=UpdateMUA(CtrlVar,MUA_Background);
                 if CtrlVar.InfoLevelAdaptiveMeshing>=1
                     fprintf('done \n ')
                 end
-                
-            catch
-                fprintf('File %s not containing ''MUA_Background'' \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
-                error(' exiting ' )
-            end
+         
         else
             fprintf('File with background meshfile %s could not be found \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
             fprintf('Note: When using the''FEmeshAdvanceRetreat'' option, a background mesh must be defined.\n')

@@ -14,6 +14,7 @@ if ~isfield(MUA,'connectivity')
     error('MUA must have a connectivity field')
 end
 
+
 % first make sure that the element is of the right type
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
 
@@ -85,11 +86,12 @@ end
 
 
 %% and now the possibility that the mesh has not changed but some of the fields were not defined previously
-if ~isfield(MUA,'Boundary')
+if ~isfield(MUA,'Boundary') || ~isfield(MUA.Boundary,'x') || ~isfield(MUA.Boundary,'y')
     fprintf('UpdateMUA: finding mesh bounday \n ')
-    
     MUA.Boundary=FindBoundary(MUA.connectivity,MUA.coordinates);
 end
+
+
 
 if ~isfield(MUA,'points')  || ~isfield(MUA,'weights')
     MUA.ndim=2;
@@ -106,14 +108,6 @@ end
 
 if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
-end
-
-if ~isfield(MUA,'Boundary.x') || ~isfield(MUA,'Boundary.y')
-    xa=MUA.coordinates(MUA.Boundary.Edges(:,1),1); xb=MUA.coordinates(MUA.Boundary.Edges(:,end),1);
-    ya=MUA.coordinates(MUA.Boundary.Edges(:,1),2); yb=MUA.coordinates(MUA.Boundary.Edges(:,end),2);
-    
-    [MUA.Boundary.x,MUA.Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
-    
 end
 
 

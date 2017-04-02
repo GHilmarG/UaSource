@@ -28,6 +28,7 @@ if ~isfield(CtrlVar.MUA,'StiffnessMatrix')
 end
 
 
+
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
 connectivity=reshape(J,size(connectivity));

@@ -34,6 +34,12 @@ function [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint)
 [points,weights]=sample('triangle',nip,ndim);
 
 
+if Nele==0
+    Deriv=[];
+    detJ=[];
+    return
+end
+
 %hnod=reshape(h(connectivity,1),Nele,nod);
 coox=reshape(coordinates(connectivity,1),Nele,nod);
 cooy=reshape(coordinates(connectivity,2),Nele,nod);
@@ -123,9 +129,10 @@ end
 
 clearvars J11 J12 J21 J22
 
-if all(detJ<0) ;
+if all(detJ<0) 
+    
     warning('derivVector:AllElementsInsideOut','Negative determinant in all elements \n  ') ;
-elseif any(detJ<0) ;
+elseif any(detJ<0) 
     warning('derivVector:SomeElementsInsideOut','Negative determinant in some elements \n  ') ;
 end
 

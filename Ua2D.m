@@ -36,7 +36,13 @@ Lubvb=[];
 Ruv=[];
 
 tTime=tic;
-
+%% Clear any persistent variabls
+clear AdaptiveTimeStepping
+clear AdaptMesh
+clear BCs2MLC
+clear CostFunctionValueAndGradient
+clear JGH
+clear NrOfIntegrationPoints
 
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
