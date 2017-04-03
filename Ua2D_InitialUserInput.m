@@ -11,6 +11,7 @@ function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar
 %%
 UserVar.MisExperiment='ice0';            % This I use in DefineMassBalance
 UserVar.Outputsdirectory='ResultsFiles'; % This I use in UaOutputs
+
 %%
 
 CtrlVar.Experiment=['MismipPlus-',UserVar.MisExperiment];   

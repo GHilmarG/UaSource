@@ -245,19 +245,26 @@ end
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    fprintf('After remeshing: ') ; 
+    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
+end
+
 
 if CtrlVar.AdaptMeshAndThenStop
     
-    if CtrlVar.doplots  && CtrlVar.PlotMesh && CtrlVar.InfoLevelAdaptiveMeshing>=10
+    if CtrlVar.doplots  && CtrlVar.InfoLevelAdaptiveMeshing>=10
         
-        %%
+        %%[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
+        xGL=[] ; yGL=[]; GLgeo=[];
         CtrlVar.PlotGLs=1;
         figure ; PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
         title(sprintf('Mesh after remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,[],[],[],'r');
+        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,GLgeo,xGL,yGL,'r');
         
+        xGL=[] ; yGL=[]; GLgeo=[];
         figure ; PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
-        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,[],[],[],'r');
+        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,GLgeo,xGL,yGL,'r');
         title(sprintf('Mesh before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
         %%
     end
@@ -273,11 +280,6 @@ end
 
 [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
 [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
-
-if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf('After remeshing: ') ; 
-    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
-end
 
 if CtrlVar.InitialDiagnosticStepAfterRemeshing
     CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
