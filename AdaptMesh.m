@@ -6,7 +6,7 @@ function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunIn
 narginchk(10,10)
 nargoutchk(7,7)
 
-persistent MUA_Background
+persistent MUA_Background FigMesh VideoMesh
 
 
 MUAnew=MUAold;
@@ -179,28 +179,29 @@ elseif isMeshAdapt
             fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
         end
         
-        switch lower(CtrlVar.MeshRefinementMethod)
+        
+        
+        if contains(CtrlVar.MeshRefinementMethod,'implicit','IgnoreCase',true)
             
-            case 'implicit'
-                
-                error(' implicit error estimate not fully implemented \n')
-                %                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
-                %                     s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
-                
-            case {'explicit:global','explicit:local'}
-                
-                % do I need to calculate velocities for error estimates?
-                CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
-                
-                if CalcVel
-                    [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold);
-                end
-                
-                [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
-                    RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUAold,Fold,lold,GFold,CtrlVar.MeshBoundaryCoordinates,Ruv,Lubvb);
-                %GFnew here still based on old mesh
-            otherwise
-                error(' unknown case  ')
+            error(' implicit error estimate not fully implemented \n')
+            %                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
+            %                     s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
+            
+        elseif contains(CtrlVar.MeshRefinementMethod,'explicit','IgnoreCase',true)
+            
+            
+            % do I need to calculate velocities for error estimates?
+            CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
+            
+            if CalcVel
+                [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold);
+            end
+            
+            [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
+                RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUAold,Fold,lold,GFold,CtrlVar.MeshBoundaryCoordinates,Ruv,Lubvb);
+            %GFnew here still based on old mesh
+        else
+            error(' unknown case  ')
         end
 
         
@@ -216,12 +217,32 @@ elseif isMeshAdapt
         [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
         
         % if there is another iteration
-                
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1
-            if CtrlVar.PlotBCs
-                figure ; PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
+        
+     
+        if (CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1) || CtrlVar.CreateMeshAdaptVideo
+         
+            
+            if isempty(FigMesh)
+                FigMesh=figure ;
+                %FigMesh.Position=[0 0 figsWidth 3*figHeights];
+                FigMesh.Position=[1 1 1000 1000];% full laptop window
+                axis tight
+                if CtrlVar.CreateMeshAdaptVideo
+                    VideoMesh=VideoWriter('MeshAdapt.avi');
+                    VideoMesh.FrameRate=1;
+                    open(VideoMesh);
+                end
             else
-                figure
+                FigMesh=figure ;
+                hold off
+            end
+
+            
+            
+            if CtrlVar.PlotBCs
+                PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
+            else
+                
                 PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar); hold on
                 title(sprintf('AdaptMesh Iteration %i: #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
             end
@@ -229,7 +250,14 @@ elseif isMeshAdapt
             if CtrlVar.GLmeshing
                 hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
             end
+            
+            axis tight
+            if CtrlVar.CreateMeshAdaptVideo
+                frame = getframe(gcf);
+                writeVideo(VideoMesh,frame);
+            end
         end
+        
     end
     
 end
@@ -276,13 +304,15 @@ if CtrlVar.AdaptMeshAndThenStop
     return
 end
 
+isChanged=HasMeshChanged(MUAnew,MUAold);
 
-
-[UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
-
-if CtrlVar.InitialDiagnosticStepAfterRemeshing
-    CtrlVar.InitialDiagnosticStep=1;  % make sure that in next uvh step I start with an initial uv step
+if isChanged
+    [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
+    
+    
+    
+    
+    %[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
 end
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
@@ -290,6 +320,11 @@ if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     save(CtrlVar.SaveAdaptMeshFileName,'MUA')
     fprintf(' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
+
+if ~isempty(VideoMesh)
+    close(VideoMesh)
+end
+
 
 end
 

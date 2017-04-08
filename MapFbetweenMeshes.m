@@ -5,11 +5,11 @@ function [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MU
 narginchk(7,7)
 nargoutchk(4,4)
 
-MeshChanged=HasMeshChanged(MUAold,MUAnew);
+isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
 Fnew=Fold;
 
-if ~MeshChanged
+if ~isMeshChanged
     GFnew=GFold;
     BCsNew=BCsOld;
     return

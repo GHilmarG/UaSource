@@ -29,6 +29,7 @@ end
 
 
 
+
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
 connectivity=reshape(J,size(connectivity));
@@ -49,12 +50,20 @@ ndim=2;
 [MUA.points,MUA.weights]=sample('triangle',MUA.nip,ndim);
 
 
-if FindMUA_Boundary
-    [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
-end
+MUA.DetJ=[];
 
 if CalcMUA_Derivatives
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+end
+
+[MUA.connectivity,isChanged]=TestAndCorrectForInsideOutElements(CtrlVar,MUA.coordinates,MUA.connectivity);
+
+if isChanged && CalcMUA_Derivatives
+    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+end
+
+if FindMUA_Boundary
+    [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
 end
 
 if CtrlVar.MUA.MassMatrix
@@ -65,6 +74,10 @@ end
 if CtrlVar.MUA.StiffnessMatrix
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
+
+
+ [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
+
 
 
 end

@@ -1,20 +1,18 @@
 function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
 
+%%
 % varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
-% OutsideValues must be either:
-%           empty in wich case NaN will be used in all cases
-%           single number, in which case that number will be used in all cases
-%           a vector with the same number of elements as there are cells in varargin
+%
+% OutsideValues not used.  (This was needed in older versions of Matlab before
+% scatteredinterpolant started to support nearest-neighbour extrapolation)
 %
 % example:
 % [h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,h1,s1,rho1)
 % interpolates h,s and rho, from FE Mesh MUA1 onto (x2,y2).
-% In this case OutsideValues must be a vector with 3 elements
 
 %%
 
 
-%% 
 
 nVarargsIn = length(varargin);
 
@@ -31,16 +29,17 @@ if isempty(x2)
     return
 end
 
-if isempty(OutsideValues)
-    OutsideValues=zeros(nVar,1)+NaN;
-elseif numel(OutsideValues)~=nVar
-    if numel(OutsideValues)==1
-        OutsideValues=zeros(nVar,1);
-    else
-        fprintf('in MapNodalVariablesFromMesh1ToMesh2 the number elements in OutsideValues (%-i) must be equal the number of varargin cells (%-i) \n',numel(OutsideValues),nVar)
-        error('MapNodalVariablesFromMesh1ToMesh2:WrongNumberOfOutsideValues','Wrong number of elements in the vector OutSideValues')
-    end
-end
+% 
+% if isempty(OutsideValues)
+%     OutsideValues=zeros(nVar,1)+NaN;
+% elseif numel(OutsideValues)~=nVar
+%     if numel(OutsideValues)==1
+%         OutsideValues=zeros(nVar,1);
+%     else
+%         fprintf('in MapNodalVariablesFromMesh1ToMesh2 the number elements in OutsideValues (%-i) must be equal the number of varargin cells (%-i) \n',numel(OutsideValues),nVar)
+%         error('MapNodalVariablesFromMesh1ToMesh2:WrongNumberOfOutsideValues','Wrong number of elements in the vector OutSideValues')
+%     end
+% end
 
 F = scatteredInterpolant();
 F.Points=MUA1.coordinates;

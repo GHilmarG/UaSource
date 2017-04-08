@@ -1,4 +1,4 @@
-function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle)
+function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol)
 
 %%  Creates a perspective plot of s,b and B
 %
@@ -23,7 +23,7 @@ function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,View
 %
 %
 % Note: TRI and DT are now calculated more efficiently and there is no longer
-% any noticable gain in speed by giving those as an input.
+% any noticable gain in speed by giving those as inputs.
 %%
 
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
@@ -37,7 +37,17 @@ if nargin<6 || isempty(TRI)
     TRI=TriFE(MUA.connectivity);
 end
 
+if nargin<11
+    sCol=[]; bCol=[] ; BCol=[];
+end
 
+if nargin<12
+bCol=[];
+end
+
+if nargin<13
+    BCol=[];
+end
 
 
 if nargin<8  || isempty(AspectRatio)
@@ -52,15 +62,6 @@ end
 hold off
 
 
-
-sCol=copper(numel(s));
-bCol=copper(numel(s));
-BCol=copper(numel(s));
-
-ColorIndex=Variable2ColorIndex(s); sCol(:,:)=sCol(ColorIndex,:);
-ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
-ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
-
 h=s-b;
 
 
@@ -70,13 +71,31 @@ else
     I=h>2*CtrlVar.ThickMin;
 end
 
+if isempty(sCol)
+    sCol=copper(numel(s));
+    ColorIndex=Variable2ColorIndex(s);
+    sCol(:,:)=sCol(ColorIndex,:);
+    sCol(I,:)=zeros(numel(find(I)),3)+1;
+end
 
-sCol(I,:)=zeros(numel(find(I)),3)+1;
-bCol(I,:)=zeros(numel(find(I)),3)+1;
-%BCol(I,:)=zeros(numel(find(I)),3)+1;
+if isempty(bCol)
+    bCol=copper(numel(s));
+    ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
+    bCol(I,:)=zeros(numel(find(I)),3)+1;
+end
+
+if isempty(BCol)
+    BCol=copper(numel(s));
+    ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
+    BCol(I,:)=zeros(numel(find(I)),3)+1;
+end
+
+
+
 
 if ~isempty(s)
     trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,s,'FaceVertexCData',sCol,'EdgeColor','none') ;
+
 end
 
 hold on

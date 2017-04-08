@@ -43,7 +43,7 @@ clear BCs2MLC
 clear CostFunctionValueAndGradient
 clear JGH
 clear NrOfIntegrationPoints
-
+clear LocalMeshRefinement
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
 
@@ -305,7 +305,7 @@ while 1
     end
     
        
-    %% [------------------   adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
+    %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.TimeGeometries.Flag ||  CtrlVar.FEmeshAdvanceRetreat
         
 

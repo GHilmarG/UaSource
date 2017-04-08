@@ -1,6 +1,10 @@
 function [coordinates,connectivity]=tri6to3(coordinates,connectivity)
     
-    % creates 3 node triangles from 6 node tringles
+%%
+%
+%   [coordinates,connectivity]=tri6to3(coordinates,connectivity)
+%
+% creates 3 node triangles from 6 node tringles
     
     
     

@@ -1,9 +1,12 @@
 
 function [coordinates,connectivity]=ChangeElementType(coordinates,connectivity,To)
 
+%%
 %
 % Changes element type from 3, 6, or 10 node triangles to 3, 6 or 10 node triangles
-% [coordinates,connectivity]=ChangeElementType(coordinates,connectivity,To)
+%
+%   [coordinates,connectivity]=ChangeElementType(coordinates,connectivity,To)
+%
 % To : number of nodes of desired element type [3,6,10]
 
 [Nele,nod]=size(connectivity);

@@ -1,4 +1,4 @@
-function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,NodalErrorIndicators]=...
+function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined, ElementsToBeCoarsened,NodalErrorIndicators]=...
     DesiredEleSizes(UserVar,CtrlVar,MUA,F,l,GF,Ruv,Lubvb)
 
 %
@@ -476,7 +476,7 @@ switch CtrlVar.RefineCriteria{1}
         EleResiduals=Nodes2EleMean(MUA.connectivity,NodalErrorIndicators.Residuals);
         EleResidualsSorted=sort(EleResiduals);
         ElementsToBeRefined=EleResiduals>EleResidualsSorted(end-CtrlVar.LocalAdaptMeshMaxNrOfElementsToBeRefined);
-        
+        ElementsToBeCoarsened=false(MUA.Nele,1);
     otherwise
         
         eRatio=EleSizeDesired./EleSizeCurrent;
@@ -487,19 +487,22 @@ switch CtrlVar.RefineCriteria{1}
         
         test=sort(eRatio);
         ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
+        
+        % have to make sure that if an element has just been refined that it will not
+        % then afterwards be a candidate for coarsening. If an element was refined, the
+        % size decreased by about a factor of 2 so if the ratio was 1+eps it is now
+        % 0.5+eps and I must set eRatio>2 at the very least, for coarsening
+        
+        ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>4;
 end
 
-
-if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-    figure ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,double(ElementsToBeRefined))  ;  title(' Refine Elements')
-end
 
 
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
 
 
-[UserVar,EleSizeDesired,ElementsToBeRefined]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,x,y,EleSizeDesired,ElementsToBeRefined,NodalErrorIndicators);
+[UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
 
 assert(numel(x)==numel(y) && numel(x)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 
@@ -515,6 +518,30 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdapt
     title(' current ele sizes  ');
     hold off
 end
+
+
+
+
+if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
+    
+    %figure ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,double(ElementsToBeRefined))  ;  title(' Refine Elements')
+    
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    figure ;
+    PlotMuaMesh(CtrlVar,MUA,[],'k');
+    hold on
+    PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
+    PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
+    
+    
+    title('Elements to be refined/coarsened in blue/red')
+    fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
+    fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
+    
+end
+
+
+
 
 end
 

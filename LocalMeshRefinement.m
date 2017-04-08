@@ -1,4 +1,7 @@
-function MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined)
+function MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined,ElementsToBeCoarsened)
+
+persistent wasRefine
+
 
 % Local mesh refinement by subdividing selected triangular elements into four elements
 % MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined)
@@ -21,6 +24,14 @@ function MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined)
 
 % refine and smoothmesh only works for 3-nod elements
 % so first change to 3-nod if needed
+%%
+
+% load TestSave
+% CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;  CtrlVar.PlotLabels=0;
+% CtrlVar.LocalMeshRefinementMethod='red-green';
+% CtrlVar.LocalMeshRefinementMethod='newest vertex bisection';
+
+narginchk(4,4)
 
 if ~islogical(ElementsToBeRefined)
     
@@ -33,14 +44,126 @@ else
     
 end
 
+nRefine=numel(find(ElementsToBeRefined));
+nCoarsen=numel(find(ElementsToBeCoarsened));
+
+
+if nRefine==0 && nCoarsen==0
+    MUAnew=MUAold;
+    return
+end
+
+if isempty(wasRefine)
+    wasRefine=0;
+end
+
+
+%figure ; subplot(1,2,1) ; PlotMuaMesh(CtrlVar,UpdateMUA(CtrlVar,MUAold));  title('original')
 
 [MUAold.coordinates,MUAold.connectivity]=ChangeElementType(MUAold.coordinates,MUAold.connectivity,3);
-[MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,T);
-[MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
-MUAold.connectivity=FlipElements(MUAold.connectivity);
 
-% create MUA (this takes care of any eventual change in element type as well)
-MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates);
+switch CtrlVar.MeshRefinementMethod
+    
+    case {'explicit:local:red-green','explicit:local'}
+        
+        
+        [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,T);
+        [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
+        MUAold.connectivity=FlipElements(MUAold.connectivity);
+        
+        % create MUA (this takes care of any eventual change in element type as well)
+        MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates);
+        
+        
+    case 'explicit:local:newest vertex bisection'
+        
+        %MUAold.connectivity=FlipElements(MUAold.connectivity);
+        if  ~isfield(MUAold,'RefineMesh')  ||  isempty(MUAold.RefineMesh)
+            mesh = genMesh(MUAold.connectivity, MUAold.coordinates);
+            mesh.bd=[];
+            mesh = genBisectionMesh(mesh);
+            mesh = SelectRefinementEdge(mesh);
+            MUAold.RefineMesh=mesh;
+        else
+            mesh=MUAold.RefineMesh;
+        end
+        
+                
+        if MUAold.nod~=3
+            mesh.TR=triangulation(mesh.elements,mesh.coordinates);
+        end
+        
+        
+        Na=size(mesh.coordinates,1);  Ea=size(mesh.elements,1);
+        
+        % do refinement/coarsening alternativily
+        if wasRefine
+            isRefine=0;
+        else
+            isRefine=1;
+        end
+        
+        % except if either nRefine or nCoarsen happens to be zero
+        
+        if nCoarsen==0
+            isRefine=1;
+        end
+        
+        if nRefine==0
+            isRefine=0;
+        end
+        
+        wasRefine=isRefine;
+        
+        if isRefine
+            fprintf(' Refining %i elements \n',nRefine)
+            if MUAold.nod~=3
+                meshElementsToBeRefined=pointLocation(mesh.TR,[MUAold.xEle(ElementsToBeRefined) MUAold.yEle(ElementsToBeRefined)]);
+            else
+                meshElementsToBeRefined=ElementsToBeRefined;
+            end
+            mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
+        else
+            fprintf(' Coarsening %i elements \n',nCoarsen)
+            %mesh.elements=FlipElements(mesh.elements);
+            if MUAold.nod~=3
+                meshElementsToBeCoarsened=pointLocation(mesh.TR,[MUAold.xEle(ElementsToBeCoarsened) MUAold.yEle(ElementsToBeCoarsened)]);
+            else
+                meshElementsToBeCoarsened=ElementsToBeCoarsened;
+            end
+            mesh = bisectionCoarsen(mesh,meshElementsToBeCoarsened);
+        end
+        
+        %elements=TestAndCorrectForInsideOutElements(CtrlVar,mesh.coordinates,mesh.elements);
+        
+        Nb=size(mesh.coordinates,1);  Eb=size(mesh.elements,1);
+        
+        isMeshChanged= ~(Na==Nb && Ea==Eb) ;
+        
+        if isMeshChanged
+            fprintf('In local mesh-refinement step the change in the number of elements and nodes was %i and %i, respectivily  (#R/#C)=(%i/%i). \n',...
+                Eb-Ea,Nb-Na,nRefine,nCoarsen)
+            MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates);
+            MUAnew.RefineMesh=mesh;
+        else
+            fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
+            MUAnew=MUAold;
+        end
+        %%
+        
+        
+    otherwise
+        
+   
+        error('case not found.')
+        
+end
+
+%mesh1 = bisectionCoarsen(mesh1,'all') ;  %markedElements, varargin)
+%figure(1000) ; PlotFEmesh(mesh1.coordinates,mesh1.elements,CtrlVar) ;  title('mesh coarsen')
+
+%subplot(1,2,2) ; PlotMuaMesh(CtrlVar,UpdateMUA(CtrlVar,MUAnew));  title('new')
+%%
 
 
 

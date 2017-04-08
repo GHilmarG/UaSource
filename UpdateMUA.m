@@ -81,6 +81,9 @@ if MeshHasChanged
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
     end
     
+    [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
+    
+    
 end
 
 
@@ -119,6 +122,11 @@ end
 if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
+
+if ~isfield(MUA,'xEle')
+    [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
+end
+
 
 
 
