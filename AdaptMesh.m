@@ -175,6 +175,8 @@ elseif isMeshAdapt
         BCsOld=BCsNew;
         GFold=GFnew;
         
+        
+        
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
             fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
         end
