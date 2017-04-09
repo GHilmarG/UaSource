@@ -212,12 +212,15 @@ elseif isMeshAdapt
         end
         
         % At the end of an iteration, the new becomes old
-        MUAnew=UpdateMUA(CtrlVar,MUAnew);
-        lnew=UaLagrangeVariables;
-        [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-        
-        % if there is another iteration
-        
+        isChanged=HasMeshChanged(MUAnew,MUAold);
+        if isChanged
+            MUAnew=UpdateMUA(CtrlVar,MUAnew);
+            lnew=UaLagrangeVariables;
+            [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
+        else
+            MUAnew=MUAold;
+            lnew=lold;
+        end
      
         if (CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1) || CtrlVar.CreateMeshAdaptVideo
          
@@ -308,10 +311,6 @@ isChanged=HasMeshChanged(MUAnew,MUAold);
 
 if isChanged
     [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-    
-    
-    
-    
     %[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
 end
 
