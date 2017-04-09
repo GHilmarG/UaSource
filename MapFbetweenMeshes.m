@@ -1,9 +1,9 @@
-function [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold)
+function [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold)
 
          
 
-narginchk(7,7)
-nargoutchk(4,4)
+narginchk(8,8)
+nargoutchk(5,5)
 
 isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
@@ -12,10 +12,12 @@ Fnew=Fold;
 if ~isMeshChanged
     GFnew=GFold;
     BCsNew=BCsOld;
+    lnew=lold;
     return
 end
 
-
+MUAnew=UpdateMUA(CtrlVar,MUAnew);
+lnew=UaLagrangeVariables;
 
 x=MUAnew.coordinates(:,1); y=MUAnew.coordinates(:,2);
 

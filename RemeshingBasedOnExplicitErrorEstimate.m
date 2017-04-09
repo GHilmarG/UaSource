@@ -24,10 +24,10 @@ xGLmesh=[] ; yGLmesh=[];
 %%    Step 1 : Define desired size of elements based on some criteria
 % x, y are x,y coordinates of nodes
 
-[UserVar,x0,y0,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators]=DesiredEleSizes(UserVar,CtrlVar,MUA,F,l,GF,Ruv,Lubvb);
+[UserVar,xNod,yNod,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators]=DesiredEleSizes(UserVar,CtrlVar,MUA,F,l,GF,Ruv,Lubvb);
 
 if strcmp(CtrlVar.MeshGenerator,'gmsh')
-    if norm([x0-MUA.coordinates(:,1);y0-MUA.coordinates(:,2)]) > 100*eps
+    if norm([xNod-MUA.coordinates(:,1);yNod-MUA.coordinates(:,2)]) > 100*eps
         error('RemeshingBasedOnExplicitErrorEstimate:gmsh','When using gmsh desired ele sizes must be defined at nodes')
     end
     TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh over which
@@ -48,11 +48,11 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     %% Global remeshing
     switch lower(CtrlVar.MeshGenerator)
         case 'mesh2d'
-            CtrlVar.MeshSize=zeros(length(x0),3);
-            CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
+            CtrlVar.MeshSize=zeros(length(xNod),3);
+            CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
         case 'gmsh'
             
-            GmshBackgroundScalarField.xy=[x0(:) y0];
+            GmshBackgroundScalarField.xy=[xNod(:) yNod];
             GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
             GmshBackgroundScalarField.TRI=TRIxy0;
             
@@ -116,10 +116,10 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
         
         switch lower(CtrlVar.MeshGenerator)
             case 'mesh2d'
-                CtrlVar.MeshSize=zeros(length(x0),3);
-                CtrlVar.MeshSize(:,1)=x0 ; CtrlVar.MeshSize(:,2)=y0; CtrlVar.MeshSize(:,3)=EleSizeDesired;
+                CtrlVar.MeshSize=zeros(length(xNod),3);
+                CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
             case 'gmsh'
-                GmshBackgroundScalarField.xy=[x0(:) y0(:)] ;
+                GmshBackgroundScalarField.xy=[xNod(:) yNod(:)] ;
                 GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
                 GmshBackgroundScalarField.TRI=TRIxy0 ;
                 

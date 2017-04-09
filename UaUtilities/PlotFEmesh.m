@@ -75,7 +75,7 @@ end
 
 if ~isfield(CtrlVar,'PlotEleLabels')
     if CtrlVar.PlotLabels
-        CtrlVar.PlotEleLabels=q;
+        CtrlVar.PlotEleLabels=1;
     else
         CtrlVar.PlotEleLabels=0;
     end
@@ -84,7 +84,7 @@ end
 
 if ~isfield(CtrlVar,'PlotNodalLabels')
     if CtrlVar.PlotLabels
-        CtrlVar.PlotNodalLabels=q;
+        CtrlVar.PlotNodalLabels=1;
     else
         CtrlVar.PlotNodalLabels=0;
     end

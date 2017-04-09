@@ -36,7 +36,7 @@ Lubvb=[];
 Ruv=[];
 
 tTime=tic;
-%% Clear any persistent variabls
+%% Clear any persistent variables
 clear AdaptiveTimeStepping
 clear AdaptMesh
 clear BCs2MLC

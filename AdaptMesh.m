@@ -1,16 +1,17 @@
 
-function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,Ruv,Lubvb)
+function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb)
 
 %save TestSave ; error('sdfa')
 
 narginchk(10,10)
 nargoutchk(7,7)
 
-persistent MUA_Background FigMesh VideoMesh
+persistent FigMesh VideoMesh
 
 
 MUAnew=MUAold;
-Fnew=Fold;BCsNew=BCsOld;
+Fnew=Fold;
+BCsNew=BCsOld;
 lnew=lold;
 GFnew=GFold;
 
@@ -21,7 +22,8 @@ end
 
 
 % I want to control directly when FE-mesh is plotted, and avoid the potential FE-mesh plotting in genmesh2d
-PlotMeshOnInput=CtrlVar.PlotMesh; CtrlVar.PlotMesh=0;
+
+
 
 
 if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=2
@@ -45,126 +47,12 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
 
 if isMeshAdvanceRetreat
     
+    [UserVar,RunInfo,MUAnew]=MeshAdvanceRetreat(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
     
-    %%  FE mesh advance or retreat
-    if CtrlVar.InfoLevelAdaptiveMeshing>=1
-        fprintf(CtrlVar.fidlog,' FE mesh advance or retreat, element activated/deactivated at time %-g \n ',CtrlVar.time);
-    end
-    
-    if isempty(MUA_Background)
-        
-        if    exist(fullfile(cd,CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName), 'file')  == 2 ...
-                || exist(fullfile(cd,[CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'.mat']), 'file')  == 2
-           
-                
-                ListOfVariables=who('-file',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName);
-                
-                if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                    fprintf('Reading ''background'' MUA from: %s ',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
-                end
-                
-                if ismember('MUA_Background',ListOfVariables)
-                    
-                    load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,'MUA_Background')
-                    
-                elseif ismember('MUA',ListOfVariables)
- 
-                    
-                    VAR='MUA';
-                    MUA_Background=load(CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName,VAR);
-                    MUA_Background=MUA_Background.(VAR);
-                    
-                else
-                    
-                    fprintf(' Neither MUA or MUA_Background found in %s.! \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
-                    error('AdaptMesh:MUA_BackgroundNotFound','Where is MUA_Background?')
-                    
-                end
-   
-                MUA_Background=UpdateMUA(CtrlVar,MUA_Background);
-                if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                    fprintf('done \n ')
-                end
-         
-        else
-            fprintf('File with background meshfile %s could not be found \n',CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName)
-            fprintf('Note: When using the''FEmeshAdvanceRetreat'' option, a background mesh must be defined.\n')
-            fprintf('The background mesh is usually same as the intial mesh used in the run, but must be defined by the user.\n')
-            fprintf('Possible solution: \n')
-            fprintf('Load a MUA structure previously created in an initial meshing step and save in a seperate file. \n')
-            fprintf('For example: load NewMeshFile.mat ; MUA_Background=MUA ; save(''Backgroundmesh'',''MUA_Background'') \n')
-            fprintf('And in Ua2D_InitialUserInput: CtrlVar.FEmeshAdvanceRetreatBackgroundMeshFileName=''Backgroundmesh'' ; \n')
-            fprintf('                              CtrlVar.FEmeshAdvanceRetreat=1 ; \n')
-            
-            error('Ua:AdaptMesh:NoBackgroundMeshfile',' exiting ' )
-        end
-        
-    end
-    
-    
-    hBackground=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,MUA_Background.coordinates(:,1),MUA_Background.coordinates(:,2),CtrlVar.ThickMin,Fold.h);
-    [UserVar,iDeactivatedElements]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,hBackground);
-    
-    
-
-    
-    fprintf(CtrlVar.fidlog,'%i elements of background mesh deactivated. ',numel(find(iDeactivatedElements)));
-    
-    
-    if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-        
-        figure(10000)
-        subplot(2,1,1,'replace')
-        hold off
-        PlotNodalBasedQuantities(MUA_Background.connectivity,MUA_Background.coordinates,hBackground,CtrlVar);
-        xlabel('x (km)') ; ylabel('y (km)') ;
-        colorbar ; title(colorbar,'(m)') ; % caxis([0 100])
-        hold on
-        
-        title(sprintf('hBackground at t=%#5.1f ',CtrlVar.time))
-        %tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)]);
-        axis equal tight
-        
-        ind=hBackground<=CtrlVar.ThickMinDeactivateElements;
-        plot(MUA_Background.coordinates(ind,1)/CtrlVar.PlotXYscale,MUA_Background.coordinates(ind,2)/CtrlVar.PlotXYscale,'.r')
-        hold off
-        
-        
-        subplot(2,1,2,'replace')
-        hold off
-        PlotFEmesh(MUA_Background.coordinates,MUA_Background.connectivity,CtrlVar)
-        hold on
-        ind=hBackground<=CtrlVar.ThickMinDeactivateElements;
-        plot(MUA_Background.coordinates(ind,1)/CtrlVar.PlotXYscale,MUA_Background.coordinates(ind,2)/CtrlVar.PlotXYscale,'.r')
-        
-        xEleBackground=Nodes2EleMean(MUA_Background.connectivity,MUA_Background.coordinates(:,1));
-        yEleBackground=Nodes2EleMean(MUA_Background.connectivity,MUA_Background.coordinates(:,2));
-        
-        plot(xEleBackground(iDeactivatedElements)/CtrlVar.PlotXYscale,yEleBackground(iDeactivatedElements)/CtrlVar.PlotXYscale,'og')
-        title(sprintf('time=%-g \t #Ele=%-i, #Nodes=%-i, #nod=%-i, \n # EleBG=%-i, #NodesBG=%-i, #nodBG=%-i \n Green=Elements to deactivate',...
-            CtrlVar.time,MUAold.Nele,MUAold.Nnodes,MUAold.nod,MUA_Background.Nele,MUA_Background.nod,MUA_Background.Nnodes))
-        axis equal tight
-    end
-    
-    % eliminate elements
-    if numel(find(iDeactivatedElements))>0
-        [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,MUA_Background.coordinates,MUA_Background.connectivity);
-        clear MUA
-        MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
-        clear connectivity coordinates
-        MUAnew=UpdateMUA(CtrlVar,MUAnew);
-        
-        
-        fprintf(CtrlVar.fidlog,'Change in the number of elements : %+i \n ',MUAnew.Nele-MUAold.Nele);
-    end
-    
-    
-    isMeshChanged=HasMeshChanged(MUAnew,MUAold);
-    if ~isMeshChanged
-        CtrlVar.PlotMesh=PlotMeshOnInput;
+    if MUAnew.Nele==0
+        fprintf('No elements left in mesh! \n ')
         return
     end
-    
     
 elseif isMeshAdapt
     
@@ -175,57 +63,40 @@ elseif isMeshAdapt
         BCsOld=BCsNew;
         GFold=GFnew;
         
-        
-        
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
             fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
         end
         
+        %
+        %  1) Determine new desired element sizes and identify elements for refinement
+        %  or coarsening. 
+        %
+        %  2) Remesh: either global-remeshing or local-mesh refinement.
+        %
+        %  3) Map all variables onto new mesh.
+        %
         
         
-        if contains(CtrlVar.MeshRefinementMethod,'implicit','IgnoreCase',true)
-            
-            error(' implicit error estimate not fully implemented \n')
-            %                 [coordinates,connectivity]=DesiredEleSizesBasedOnImplicitErrorEstimate(UserVar,MeshBoundaryCoordinates,Boundary,...
-            %                     s,b,S,B,h,ub,vb,coordinates,connectivity,nip,AGlen,C,Luv,Luvrhs,l.ubvb,n,m,alpha,rho,rhow,g,CtrlVar.CurrentRunStepNumber,CtrlVar);
-            
-        elseif contains(CtrlVar.MeshRefinementMethod,'explicit','IgnoreCase',true)
-            
-            
-            % do I need to calculate velocities for error estimates?
-            CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
-            
-            if CalcVel
-                [UserVar,RunInfo,Fold,lold,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold);
-            end
-            
-            [UserVar,CtrlVar,MUAnew,xGLmesh,yGLmesh]=...
-                RemeshingBasedOnExplicitErrorEstimate(UserVar,CtrlVar,MUAold,Fold,lold,GFold,CtrlVar.MeshBoundaryCoordinates,Ruv,Lubvb);
-            %GFnew here still based on old mesh
-        else
-            error(' unknown case  ')
-        end
-
+        [UserVar,RunInfo,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+            NewDesiredEleSizesAndElementsToRefineOrCoarsen(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
+        
+        [UserVar,RunInfo,CtrlVar,MUAnew]=...
+            Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,...
+            xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
+        
+        
         
         if MUAnew.Nele==0
             fprintf('No elements left in mesh! \n ')
-            CtrlVar.PlotMesh=PlotMeshOnInput;
             return
         end
         
-        % At the end of an iteration, the new becomes old
-        isChanged=HasMeshChanged(MUAnew,MUAold);
-        if isChanged
-            MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            lnew=UaLagrangeVariables;
-            [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-        else
-            MUAnew=MUAold;
-            lnew=lold;
-        end
-     
+        
+        [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+        
+        
         if (CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1) || CtrlVar.CreateMeshAdaptVideo
-         
+            
             
             if isempty(FigMesh)
                 FigMesh=figure ;
@@ -267,16 +138,7 @@ elseif isMeshAdapt
     
 end
 
-if MUAnew.Nele==0
-    fprintf('No elements left in mesh! \n ')
-    CtrlVar.PlotMesh=PlotMeshOnInput;
-    return
-end
 
-
-
-MUAnew=UpdateMUA(CtrlVar,MUAnew);
-lnew=UaLagrangeVariables;
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('After remeshing: ') ; 
@@ -309,12 +171,17 @@ if CtrlVar.AdaptMeshAndThenStop
     return
 end
 
-isChanged=HasMeshChanged(MUAnew,MUAold);
 
-if isChanged
-    [UserVar,Fnew,BCsNew,GFnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold);
-    %[UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
-end
+
+%% MUA change, if so map all variables over to new mesh
+
+
+[UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+
+% I still need to determine when to recalcuate uv 
+% [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
+
+
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
