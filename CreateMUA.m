@@ -1,4 +1,4 @@
-function MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,FindMUA_Boundary)
+function MUA=CreateMUA(CtrlVar,connectivity,coordinates)
 
 % MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,FindMUA_Boundary)
 %
@@ -10,25 +10,7 @@ function MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,Find
 %
 %
 
-if nargin<4
-    CalcMUA_Derivatives=1;
-end
-
-if nargin<5
-    FindMUA_Boundary=1;
-end
-
-if ~isfield(CtrlVar.MUA,'MassMatrix')
-   CtrlVar.MUA.MassMatrix=0;
-end
-
-
-if ~isfield(CtrlVar.MUA,'StiffnessMatrix')
-   CtrlVar.MUA.StiffnessMatrix=0;
-end
-
-
-
+narginchk(3,3)
 
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
@@ -52,18 +34,24 @@ ndim=2;
 
 MUA.DetJ=[];
 
-if CalcMUA_Derivatives
+if CtrlVar.CalcMUA_Derivatives
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+else
+    MUA.Deriv=[];
+    MUA.DetJ=[];
 end
 
 [MUA.connectivity,isChanged]=TestAndCorrectForInsideOutElements(CtrlVar,MUA.coordinates,MUA.connectivity);
 
-if isChanged && CalcMUA_Derivatives
+if isChanged && CtrlVar.CalcMUA_Derivatives
     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
 end
 
-if FindMUA_Boundary
+if CtrlVar.FindMUA_Boundary
     [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
+else
+    MUA.Boundary=[];
+    MUA.TR=[];
 end
 
 if CtrlVar.MUA.MassMatrix

@@ -20,21 +20,12 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
 end
 
-
-% I want to control directly when FE-mesh is plotted, and avoid the potential FE-mesh plotting in genmesh2d
-
-
-
-
 if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=2
     figure
     PlotFEmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar);
     title(sprintf('Initial mesh on input to AdaptMesh : #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
 end
 
-
-% Either there is mesh advance and/or retreat, or mesh adaptation
-% If MeshAdvanceRetreat, do not do MeshAdapt
 
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
 
@@ -66,25 +57,17 @@ elseif isMeshAdapt
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
             fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
         end
-        
-        %
-        %  1) Determine new desired element sizes and identify elements for refinement
+
+        %  Determine new desired element sizes and identify elements for refinement
         %  or coarsening. 
-        %
-        %  2) Remesh: either global-remeshing or local-mesh refinement.
-        %
-        %  3) Map all variables onto new mesh.
-        %
-        
-        
         [UserVar,RunInfo,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
             NewDesiredEleSizesAndElementsToRefineOrCoarsen(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
         
+        %  Remesh: either global-remeshing or local-mesh refinement.
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
             Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,...
             xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
-        
-        
+
         
         if MUAnew.Nele==0
             fprintf('No elements left in mesh! \n ')
@@ -94,7 +77,7 @@ elseif isMeshAdapt
         
         [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
         
-        
+        %% Plots
         if (CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1) || CtrlVar.CreateMeshAdaptVideo
             
             
@@ -112,8 +95,6 @@ elseif isMeshAdapt
                 FigMesh=figure ;
                 hold off
             end
-
-            
             
             if CtrlVar.PlotBCs
                 PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
@@ -133,6 +114,7 @@ elseif isMeshAdapt
                 writeVideo(VideoMesh,frame);
             end
         end
+        %%
         
     end
     
@@ -150,7 +132,7 @@ if CtrlVar.AdaptMeshAndThenStop
     
     if CtrlVar.doplots  && CtrlVar.InfoLevelAdaptiveMeshing>=10
         
-        %%[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
+ 
         xGL=[] ; yGL=[]; GLgeo=[];
         CtrlVar.PlotGLs=1;
         figure ; PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
@@ -173,14 +155,24 @@ end
 
 
 
-%% MUA change, if so map all variables over to new mesh
-
+%% map variables to new mesh
 
 [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
 
-% I still need to determine when to recalcuate uv 
-% [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);  % should really not be needed
-
+%  Do velocities need to be recalculated?
+%
+%  Always recalculate velocities if: 
+%
+%   CtrlVar.InitialDiagnosticStepAfterRemeshing is true
+%   but also if mesh refinement method was not 'newest vertex bisection'
+%
+isMeshingLocalWithoutSmoothing=contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0;
+if CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing
+    isMeshChanged=HasMeshChanged(MUAold,MUAnew);
+    if isMeshChanged
+        [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+    end
+end
 
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)

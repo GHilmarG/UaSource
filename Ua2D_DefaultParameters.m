@@ -98,8 +98,11 @@ CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnos
                                  % 2) at the start of an implicit uvh transient run.
                                  % Unless asked by the user, no initial diagnostic step is done at the beginning of a transient restart run.
 
-CtrlVar.InitialDiagnosticStepAfterRemeshing=1 ; % after each remeshing, do an initial diagnostic step before continuing with further prognostic steps. (Always a good idea.) 
-
+CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
+                                                % Note: a diagnostic calculation is always done after global re-meshing
+                                                % irrespectivly of the value of this parameter. However, after local re-meshing,
+                                                % and provided CtrlVar.LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
+                                                % not performed unless this paramter is set to true.
 %% Restart option
 CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)
 CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
@@ -827,7 +830,8 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=false;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-
+CtrlVar.CalcMUA_Derivatives=1;
+CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
 % A minimum ice thickness can be enforced in different ways using the following methods:
 %  1) `reset method' : simply resetting the thickness to min thickness at node where thickness is less than a prescribed value.

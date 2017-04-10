@@ -69,8 +69,19 @@ if MeshHasChanged
     MUA.nod=size(MUA.connectivity,2);
     [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
     
-    [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    if CtrlVar.FindMUA_Boundary
+        [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
+    else
+        MUA.Boundary=[];
+        MUA.TR=[];
+    end
+    
+    if CtrlVar.CalcMUA_Derivatives
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    else
+        MUA.Deriv=[];
+        MUA.DetJ=[];
+    end
     
     
     if CtrlVar.MUA.MassMatrix
@@ -89,11 +100,12 @@ end
 
 
 %% and now the possibility that the mesh has not changed but some of the fields were not defined previously
-if ~isfield(MUA,'Boundary') || ~isfield(MUA.Boundary,'x') || ~isfield(MUA.Boundary,'y')
-    fprintf('UpdateMUA: finding mesh bounday \n ')
-    MUA.Boundary=FindBoundary(MUA.connectivity,MUA.coordinates);
+if  CtrlVar.FindMUA_Boundary
+    if ~isfield(MUA,'Boundary') || ~isfield(MUA.Boundary,'x') || ~isfield(MUA.Boundary,'y')
+        fprintf('UpdateMUA: finding mesh bounday \n ')
+        MUA.Boundary=FindBoundary(MUA.connectivity,MUA.coordinates);
+    end
 end
-
 
 
 if ~isfield(MUA,'points')  || ~isfield(MUA,'weights')
@@ -102,17 +114,19 @@ if ~isfield(MUA,'points')  || ~isfield(MUA,'weights')
     [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
 end
 
-if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+if CtrlVar.CalcMUA_Derivatives
+    if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    end
 end
-
 
 [NeleTest,ndimTest,nodTest,nipTest]=size(MUA.Deriv);
 
-if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+if CtrlVar.CalcMUA_Derivatives
+    if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    end
 end
-
 
 
 if  CtrlVar.MUA.MassMatrix && ~isfield(MUA,'M')
