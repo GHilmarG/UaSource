@@ -1,10 +1,12 @@
-function [UserVar,EleSizeDesired,ElementsToBeRefined]=...
-    DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+            DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+        
 
 %%
-% Define desired sizes of elements or specify which elements to refine.
+% Define desired sizes of elements or specify which elements to refine or
+% coarsen.
 %
-% [EleSizeDesired,ElementsToBeRefined]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+% [EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
 %
 % Only used in combination with adaptive meshing.
 %
@@ -22,6 +24,14 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined]=...
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
+%
+% Note that this m-file is only called if the adaptive meshing option is used.
+% Also, that elements will only be refined/coarsened if local mesh refinement is
+% used. These options must be set accordingly in Ua2D_InitialUserInput.
+%
+% 
+%
+%
 %%
  
  

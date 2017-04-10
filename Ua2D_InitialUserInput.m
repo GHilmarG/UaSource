@@ -3,7 +3,8 @@ function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar
 
 %%  This input file is used if Ua is run directly from the source code folder.
 %  
-% 
+% You will always need to create your own version of this file and put it into
+% you working directory together with the other user-input m-files. 
 %
 %
 

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_InitialUserInput</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-11-01"><meta name="DC.source" content="Ua2D_InitialUserInput.m"><style type="text/css">
+      --><title>Ua2D_InitialUserInput</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-04-10"><meta name="DC.source" content="Ua2D_InitialUserInput.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,137 +66,204 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
-</pre><p>[UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)</p><p>Set the values of various fields of the run control variable CtrlVar as well as the time, time step, and the MeshBoundaryCoordinates</p><p>See also Ua2D_DefaultParameters.m</p><pre class="codeinput">    warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default Ua2D_InitialUserInput'</span>)
-    warning(<span class="string">'off'</span>,<span class="string">'Ua:DefaultDefine'</span>)
-    UserVar.Experiment=<span class="string">'DefaultRun'</span>;
-
-    CtrlVar.doPrognostic=0 ;
-    CtrlVar.doDiagnostic=1  ;
-    CtrlVar.doInverseStep=0;
-    CtrlVar.Restart=0;
-
-    CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    CtrlVar.time=0 ;
-    CtrlVar.dt=1;
-    CtrlVar.TotalNumberOfForwardRunSteps=1;
-
-    CtrlVar.FlowApproximation=<span class="string">'hybrid'</span>;
-</pre><pre class="codeinput">    xd=200e3; xu=-200e3 ; yl=200e3 ; yr=-200e3;
-    MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
-    CtrlVar.GmshGeoFileAdditionalInputLines{1}=<span class="string">'Periodic Line {1,2} = {3,4};'</span>;  <span class="comment">% these lines are added to the gmsh .geo input file each time such a file is created</span>
-    CtrlVar.OnlyMeshDomainAndThenStop=0;
-    <span class="comment">%CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual</span>
-    CtrlVar.TriNodes=6;   <span class="comment">% [3,6,10]</span>
-    CtrlVar.MeshSize=200e3;
-    CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;
-    CtrlVar.MeshSizeMax=CtrlVar.MeshSize;
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">This input file is used if Ua is run directly from the source code folder.</a></li><li><a href="#5">Types of run</a></li><li><a href="#6">Reading in mesh</a></li><li><a href="#7">Plotting options</a></li><li><a href="#9">adapt mesh</a></li><li><a href="#10">Pos. thickness constraints</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
+</pre><h2 id="2">This input file is used if Ua is run directly from the source code folder.</h2><p>You will always need to create your own version of this file and put it into you working directory together with the other user-input m-files.</p><pre class="codeinput">UserVar.MisExperiment=<span class="string">'ice0'</span>;            <span class="comment">% This I use in DefineMassBalance</span>
+UserVar.Outputsdirectory=<span class="string">'ResultsFiles'</span>; <span class="comment">% This I use in UaOutputs</span>
+</pre><pre class="codeinput">CtrlVar.Experiment=[<span class="string">'MismipPlus-'</span>,UserVar.MisExperiment];
+</pre><h2 id="5">Types of run</h2><pre class="codeinput">CtrlVar.TimeDependentRun=1;
+CtrlVar.TotalNumberOfForwardRunSteps=3;
+CtrlVar.TotalTime=100;
+CtrlVar.Restart=0;
 
 
-    CtrlVar.AdaptMesh=1;
-    CtrlVar.AdaptMeshInitial=1  ;
-    CtrlVar.AdaptMeshIterations=4;
-    CtrlVar.NumberOfSmoothingErrorIndicatorIterations=1;
-    CtrlVar.AdaptMeshAndThenStop=0;
-    <span class="comment">%CtrlVar.MeshRefinementMethod='implicit';</span>
-    CtrlVar.MeshRefinementMethod=<span class="string">'explicit:local'</span>;
-    CtrlVar.RefineCriteria=<span class="string">'effective strain rates'</span>;
-    <span class="comment">%CtrlVar.RefineCriteria='||grad(dhdt)||';</span>
-    <span class="comment">%CtrlVar.RefineCriteria='dhdt curvature';</span>
-    <span class="comment">%CtrlVar.RefineCriteria='|dhdt|';</span>
-    <span class="comment">%CtrlVar.RefineCriteria='thickness curvature';</span>
-    <span class="comment">%CtrlVar.RefineCriteria='thickness gradient';</span>
-    CtrlVar.MaxNumberOfElements=2500;
-</pre><pre class="codeinput">    CtrlVar.LineSeachAllowedToUseExtrapolation=1;
-</pre><pre class="codeinput">    CtrlVar.WriteRestartFile=1;
+CtrlVar.dt=0.01;
+CtrlVar.time=0;
 
-    CtrlVar.doplots=1;
-    CtrlVar.doRemeshPlots=1;
-    CtrlVar.doAdaptMeshPlots=1; <span class="comment">% if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing</span>
-    CtrlVar.PlotNodes=1;       <span class="comment">% If true then nodes are plotted when FE mesh is shown</span>
-    CtrlVar.PlotXYscale=1000;     <span class="comment">% used to scale x and y axis of some of the figures, only used for plotting purposes</span>
-    CtrlVar.PlotLabels=0 ; CtrlVar.PlotMesh=1; CtrlVar.PlotBCs=1;CtrlVar.PlotNodes=1;
-    CtrlVar.TransientPlotDt=NaN;   <span class="comment">% model time interval between calls to `FE2dTransientPlots.m'</span>
-    CtrlVar.InfoLevelNonLinIt=1;
+CtrlVar.UaOutputsDt=0; <span class="comment">% interval between calling UaOutputs. 0 implies call it at each and every run step.</span>
+                       <span class="comment">% setting CtrlVar.UaOutputsDt=1; causes UaOutputs to be called every 1 years.</span>
+                       <span class="comment">% This is a more reasonable value once all looks OK.</span>
+
+CtrlVar.ATStimeStepTarget=1;
+CtrlVar.WriteRestartFile=1;
+</pre><h2 id="6">Reading in mesh</h2><pre class="codeinput">CtrlVar.ReadInitialMesh=0;    <span class="comment">% if true then read FE mesh (i.e the MUA variable) directly from a .mat file</span>
+                              <span class="comment">% unless the adaptive meshing option is used, no further meshing is done.</span>
+CtrlVar.ReadInitialMeshFileName=<span class="string">'AdaptMesh.mat'</span>;
+CtrlVar.SaveInitialMeshFileName=<span class="string">'NewMeshFile.mat'</span>;
+</pre><h2 id="7">Plotting options</h2><pre class="codeinput">CtrlVar.doplots=1;
+CtrlVar.PlotMesh=1;
+CtrlVar.PlotBCs=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+CtrlVar.doRemeshPlots=1;
+CtrlVar.PlotXYscale=1000;
+</pre><pre class="codeinput">CtrlVar.TriNodes=3;
+
+
+CtrlVar.NameOfRestartFiletoWrite=[<span class="string">'Restart'</span>,CtrlVar.Experiment,<span class="string">'.mat'</span>];
+CtrlVar.NameOfRestartFiletoRead=CtrlVar.NameOfRestartFiletoWrite;
+</pre><h2 id="9">adapt mesh</h2><pre class="codeinput"><span class="comment">%CtrlVar.InfoLevelAdaptiveMeshing=100;</span>
+
+
+<span class="comment">% very coarse mesh resolution</span>
+CtrlVar.MeshSize=20e3;       <span class="comment">% over-all desired element size</span>
+CtrlVar.MeshSizeMax=20e3;    <span class="comment">% max element size</span>
+CtrlVar.MeshSizeMin=0.05*CtrlVar.MeshSize;     <span class="comment">% min element size</span>
+
+<span class="comment">% reasonably fine mesh resolution</span>
+<span class="comment">%CtrlVar.MeshSize=8e3;       % over-all desired element size</span>
+<span class="comment">%CtrlVar.MeshSizeMax=8e3;    % max element size</span>
+<span class="comment">%CtrlVar.MeshSizeMin=200;    % min element size</span>
+
+CtrlVar.MaxNumberOfElements=250e3;           <span class="comment">% max number of elements. If #elements larger then CtrlMeshSize/min/max are changed</span>
+
+CtrlVar.AdaptMesh=1;           <span class="comment">%</span>
+CtrlVar.SaveAdaptMeshFileName=<span class="string">'AdaptMesh.mat'</span>;
+
+
+
+CtrlVar.AdaptMeshInitial=1 ;       <span class="comment">% if true, then a remeshing will always be performed at the inital step</span>
+CtrlVar.AdaptMeshAndThenStop=0;    <span class="comment">% if true, then mesh will be adapted but no further calculations performed</span>
+                                   <span class="comment">% useful, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)</span>
+CtrlVar.doAdaptMeshPlots=0;       <span class="comment">% if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing</span>
+
+<span class="comment">%CtrlVar.RefineCriteria={'flotation','thickness curvature','||grad(dhdt)||'};</span>
+<span class="comment">%CtrlVar.RefineCriteriaWeights=[1,1,1];                %</span>
+CtrlVar.RefineCriteriaFlotationLimit=[NaN,NaN];
+
+CtrlVar.RefineCriteria={<span class="string">'flotation'</span>,<span class="string">'thickness gradient'</span>};
+CtrlVar.RefineCriteriaWeights=[1,0.75];                <span class="comment">%</span>
+
+CtrlVar.RefineCriteria={<span class="string">'thickness gradient'</span>};
+CtrlVar.RefineCriteriaWeights=[1];                <span class="comment">%</span>
+
+CtrlVar.AdaptMeshInterval=1;  <span class="comment">% number of run-steps between mesh adaptation</span>
+CtrlVar.AdaptMeshIterations=1;
+
+
+CtrlVar.MeshAdapt.GLrange=[10000 5000 ; 3000 2000];
+</pre><h2 id="10">Pos. thickness constraints</h2><pre class="codeinput">CtrlVar.ThickMin=1; <span class="comment">% minimum allowed thickness without (potentially) doing something about it</span>
+CtrlVar.ResetThicknessToMinThickness=0;  <span class="comment">% if true, thickness values less than ThickMin will be set to ThickMin</span>
+CtrlVar.ThicknessConstraints=1  ;        <span class="comment">% if true, min thickness is enforced using active set method</span>
+CtrlVar.ThicknessConstraintsItMax=5  ;
+</pre><pre class="codeinput">xd=640e3; xu=0e3 ; yr=0 ; yl=80e3 ;
+MeshBoundaryCoordinates=[xu yr ; xu yl ; xd yl ; xd yr];
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-
 function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar)
+
+
+%%  This input file is used if Ua is run directly from the source code folder.
+%  
+% You will always need to create your own version of this file and put it into
+% you working directory together with the other user-input m-files. 
+%
+%
+
+
 %%
-% [UserVar,CtrlVar,time,dt,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(CtrlVar)
-% 
-% Set the values of various fields of the run control variable CtrlVar as well
-% as the time, time step, and the MeshBoundaryCoordinates
-%
-%
-%
-% See also Ua2D_DefaultParameters.m
-%
-%
+UserVar.MisExperiment='ice0';            % This I use in DefineMassBalance
+UserVar.Outputsdirectory='ResultsFiles'; % This I use in UaOutputs
+
 %%
-    warning('Ua:DefaultDefine','Using default Ua2D_InitialUserInput')
-    warning('off','Ua:DefaultDefine')
-    UserVar.Experiment='DefaultRun';
-   
-    CtrlVar.doPrognostic=0 ;
-    CtrlVar.doDiagnostic=1  ;
-    CtrlVar.doInverseStep=0;
-    CtrlVar.Restart=0;  
-    
-    CtrlVar.InitialDiagnosticStep=1; CtrlVar.Implicituvh=1;
-    CtrlVar.time=0 ; 
-    CtrlVar.dt=1; 
-    CtrlVar.TotalNumberOfForwardRunSteps=1;
-    
-    CtrlVar.FlowApproximation='hybrid';
-    
-    %%
-    xd=200e3; xu=-200e3 ; yl=200e3 ; yr=-200e3;
-    MeshBoundaryCoordinates=flipud([xu yr ; xd yr ; xd yl ; xu yl]);
-    CtrlVar.GmshGeoFileAdditionalInputLines{1}='Periodic Line {1,2} = {3,4};';  % these lines are added to the gmsh .geo input file each time such a file is created
-    CtrlVar.OnlyMeshDomainAndThenStop=0;
-    %CtrlVar.GmshMeshingAlgorithm=8;  % see gmsh manual 
-    CtrlVar.TriNodes=6;   % [3,6,10]
-    CtrlVar.MeshSize=200e3;
-    CtrlVar.MeshSizeMin=0.001*CtrlVar.MeshSize;
-    CtrlVar.MeshSizeMax=CtrlVar.MeshSize;
-    
-    
-    CtrlVar.AdaptMesh=1;
-    CtrlVar.AdaptMeshInitial=1  ; 
-    CtrlVar.AdaptMeshIterations=4;
-    CtrlVar.NumberOfSmoothingErrorIndicatorIterations=1;
-    CtrlVar.AdaptMeshAndThenStop=0;
-    %CtrlVar.MeshRefinementMethod='implicit'; 
-    CtrlVar.MeshRefinementMethod='explicit:local'; 
-    CtrlVar.RefineCriteria='effective strain rates';
-    %CtrlVar.RefineCriteria='||grad(dhdt)||';
-    %CtrlVar.RefineCriteria='dhdt curvature';
-    %CtrlVar.RefineCriteria='|dhdt|';
-    %CtrlVar.RefineCriteria='thickness curvature';
-    %CtrlVar.RefineCriteria='thickness gradient';
-    CtrlVar.MaxNumberOfElements=2500;
-    
-   
-    
-    %%
-    CtrlVar.LineSeachAllowedToUseExtrapolation=1;
-    
-    %%
-    
-    CtrlVar.WriteRestartFile=1;
-    
-    CtrlVar.doplots=1;
-    CtrlVar.doRemeshPlots=1;
-    CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
-    CtrlVar.PlotNodes=1;       % If true then nodes are plotted when FE mesh is shown
-    CtrlVar.PlotXYscale=1000;     % used to scale x and y axis of some of the figures, only used for plotting purposes
-    CtrlVar.PlotLabels=0 ; CtrlVar.PlotMesh=1; CtrlVar.PlotBCs=1;CtrlVar.PlotNodes=1;
-    CtrlVar.TransientPlotDt=NaN;   % model time interval between calls to `FE2dTransientPlots.m'
-    CtrlVar.InfoLevelNonLinIt=1;
-    
-    
+
+CtrlVar.Experiment=['MismipPlus-',UserVar.MisExperiment];   
+%% Types of run
+%
+CtrlVar.TimeDependentRun=1; 
+CtrlVar.TotalNumberOfForwardRunSteps=3;
+CtrlVar.TotalTime=100;
+CtrlVar.Restart=0;  
+
+
+CtrlVar.dt=0.01; 
+CtrlVar.time=0; 
+
+CtrlVar.UaOutputsDt=0; % interval between calling UaOutputs. 0 implies call it at each and every run step.
+                       % setting CtrlVar.UaOutputsDt=1; causes UaOutputs to be called every 1 years.
+                       % This is a more reasonable value once all looks OK.
+
+CtrlVar.ATStimeStepTarget=1;
+CtrlVar.WriteRestartFile=1;
+
+%% Reading in mesh
+CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable) directly from a .mat file
+                              % unless the adaptive meshing option is used, no further meshing is done.
+CtrlVar.ReadInitialMeshFileName='AdaptMesh.mat';
+CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
+%% Plotting options
+CtrlVar.doplots=1;
+CtrlVar.PlotMesh=1; 
+CtrlVar.PlotBCs=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+CtrlVar.doRemeshPlots=1;
+CtrlVar.PlotXYscale=1000; 
+%%
+
+CtrlVar.TriNodes=3;
+
+
+CtrlVar.NameOfRestartFiletoWrite=['Restart',CtrlVar.Experiment,'.mat'];
+CtrlVar.NameOfRestartFiletoRead=CtrlVar.NameOfRestartFiletoWrite;
+
+
+
+
+%% adapt mesh
+%CtrlVar.InfoLevelAdaptiveMeshing=100;
+
+
+% very coarse mesh resolution
+CtrlVar.MeshSize=20e3;       % over-all desired element size
+CtrlVar.MeshSizeMax=20e3;    % max element size
+CtrlVar.MeshSizeMin=0.05*CtrlVar.MeshSize;     % min element size
+
+% reasonably fine mesh resolution
+%CtrlVar.MeshSize=8e3;       % over-all desired element size
+%CtrlVar.MeshSizeMax=8e3;    % max element size
+%CtrlVar.MeshSizeMin=200;    % min element size
+
+CtrlVar.MaxNumberOfElements=250e3;           % max number of elements. If #elements larger then CtrlMeshSize/min/max are changed
+
+CtrlVar.AdaptMesh=1;           % 
+CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat'; 
+
+
+
+CtrlVar.AdaptMeshInitial=1 ;       % if true, then a remeshing will always be performed at the inital step
+CtrlVar.AdaptMeshAndThenStop=0;    % if true, then mesh will be adapted but no further calculations performed
+                                   % useful, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)
+CtrlVar.doAdaptMeshPlots=0;       % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
+
+%CtrlVar.RefineCriteria={'flotation','thickness curvature','||grad(dhdt)||'};
+%CtrlVar.RefineCriteriaWeights=[1,1,1];                %  
+CtrlVar.RefineCriteriaFlotationLimit=[NaN,NaN];     
+
+CtrlVar.RefineCriteria={'flotation','thickness gradient'};
+CtrlVar.RefineCriteriaWeights=[1,0.75];                %  
+
+CtrlVar.RefineCriteria={'thickness gradient'};
+CtrlVar.RefineCriteriaWeights=[1];                %  
+  
+CtrlVar.AdaptMeshInterval=1;  % number of run-steps between mesh adaptation
+CtrlVar.AdaptMeshIterations=1;
+
+
+CtrlVar.MeshAdapt.GLrange=[10000 5000 ; 3000 2000];
+
+
+
+%% Pos. thickness constraints
+CtrlVar.ThickMin=1; % minimum allowed thickness without (potentially) doing something about it
+CtrlVar.ResetThicknessToMinThickness=0;  % if true, thickness values less than ThickMin will be set to ThickMin
+CtrlVar.ThicknessConstraints=1  ;        % if true, min thickness is enforced using active set method
+CtrlVar.ThicknessConstraintsItMax=5  ; 
+
+%%
+
+xd=640e3; xu=0e3 ; yr=0 ; yl=80e3 ;  
+MeshBoundaryCoordinates=[xu yr ; xu yl ; xd yl ; xd yr];
+
+ 
 end
 
 ##### SOURCE END #####
