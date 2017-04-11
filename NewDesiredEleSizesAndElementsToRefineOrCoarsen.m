@@ -1,4 +1,4 @@
-function  [UserVar,RunInfo,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
     NewDesiredEleSizesAndElementsToRefineOrCoarsen(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb)
 
 %
@@ -15,7 +15,7 @@ hf=(F.S-F.B)*F.rhow./F.rho ;
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
 M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-EleSizeCurrent=sqrt(M*EleArea);
+EleSizeCurrent=sqrt(M*EleArea);  % Elesizes around nodes
 % figure ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSize0);
 % title('Nodal areas')
 
@@ -27,7 +27,11 @@ NodalErrorIndicators=[];
 CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
 
 if CalcVel
-    [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+    u=F.ub+F.ud ; v=F.vb+F.vd;
+    isCalculated=numel(u)==MUA.Nnodes && numel(v)==MUA.Nnodes && ~all(u==0) && ~all(v==0) ;
+    if ~isCalculated
+        [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+    end
 end
 
 
@@ -41,12 +45,78 @@ for I=1:numel(CtrlVar.RefineCriteria)
         
         case 'effective strain rates'
             
-            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n);
-            NodalErrorIndicator=ProjectFintOntoNodes(MUA,e);
+            %
+            %   I think I may need to rewrite this whole lot at some stage
+            %   the main idea is (should be)) that errors are related to element size h and some quantitie e
+            %   such that 
+            %   
+            %   Errors = e h 
+            %
+            %   so that if e is large I can reduced the errors by reducing h 
+            %   
+            %   If I want same errors everywhere then I want Errors=Constant, i.e.
+            %   equlibriated mesh, or
+            %   
+            %   e h = Errors
+            %
+            %   I don't know what the errors are in absolut term so I write
+            %
+            %   e h = K
+            %
+            %   where K is some constant.
+            %
+            %   Not knowing absolut errors, I need some additonal assumption to fix the
+            %   value of K. Also in practical terms I must put some upper and lower values
+            %   on the mesh size  hMin < h < hMax
+            %  
+            %   I write
+            %
+            %   (e+e0) (h-hMin)= K
+            %    
+            %  ->    h=  K/(e+e0) + hMin
+            %
+            % if e-> infty then h=hMin
+            %
+            % if e=0  the I want h=hMax ->  hMax=K/e0+hMin
+            %                           ->  K= e0 (hMax-hMin) 
+            %
+            % So   h = hMin + e0 (hMax-hMin)/(e+e0) 
+            %
+            % Beside hMax and hMin I need a value e0 for which I want h=hMin if e << e0 
+            % 
+            % At e=e0 I have h= hMin+(hMax-hMin)/2=(hMax+hMin)/2
+            %
+            %
+            %
+            %  If I write 
+            %
+            %  Errors = e h^p 
+            %
+            %  then
+            %
+            %   (e+e0) (h-hMin)^p= K
+            %
+            %    h=  (K/(e+e0))^(1/p)  + hMin
+            %
+            %    hMax= (K/e0))^(1/p)) + hMin
+            %
+            %    K=e0 (hMax-hMin)^p
+            %
+            %    ->  h =  (e0/(e+e0))^(1/p) (hMax-hMin)  + hMin   
+            %
+            %
+            
+            
+            
+            u=F.ub+F.ud ; v=F.vb+F.vd ; 
+             [~,~,~,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
+            %[~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,u,v,F.AGlen,F.n);
+            NodalErrorIndicator=e;
             NodalErrorIndicator(NodalErrorIndicator<0)=0;
             
             for II=1:CtrlVar.NumberOfSmoothingErrorIndicatorIterations
-                EleErrorIndicator=Nodes2EleMean(MUA.connectivity,NodalErrorIndicator);  NodalErrorIndicator=M*EleErrorIndicator;
+                EleErrorIndicator=Nodes2EleMean(MUA.connectivity,NodalErrorIndicator);  
+                NodalErrorIndicator=M*EleErrorIndicator;
             end
             
             if ~isnan(CtrlVar.RefineCriteriaFlotationLimit(I))
@@ -66,19 +136,19 @@ for I=1:numel(CtrlVar.RefineCriteria)
             Thresh=test(iThresh);
             NodalErrorIndicator(NodalErrorIndicator<Thresh)=Thresh;
         end
-            
-            
-            NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
-            
-            if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
-                figure(1710) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar); 
-                               title('Relative error based on effective strain rates') ;
-            end
-            
-            
-            NodalErrorIndicators.StrainRates=NodalErrorIndicator;
- 
- 
+        
+        
+        NodalErrorIndicator=NodalErrorIndicator/max(NodalErrorIndicator);
+        
+        if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
+            figure(1710) ; PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,NodalErrorIndicator,CtrlVar);
+            title('Relative error based on effective strain rates') ;
+        end
+        
+        
+        NodalErrorIndicators.StrainRates=NodalErrorIndicator;
+        
+        
         case '|dhdt|'
             
             NodalErrorIndicator=abs(F.dhdt);
@@ -221,6 +291,7 @@ for I=1:numel(CtrlVar.RefineCriteria)
                 end
                 
             end
+            
         case 'thickness gradient'
             
             if (max(F.h)-min(F.h))< 10
@@ -480,7 +551,7 @@ end
 
 % No further user defined modifications to EleSizeDesired
 
-%% now create a (logical) list of elements to be refined, i.e. split up into four sub-elements
+%% now create a (logical) list of elements to be refined
 
 switch CtrlVar.RefineCriteria{1}
     
@@ -520,39 +591,55 @@ end
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be the same \n')
 
 
-if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots==1 && CtrlVar.InfoLevelAdaptiveMeshing>=10
-    figure(1830)
-    subplot(1,2,1,'replace')
-    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
-    title(' final desired ele sizes after user modification ');
-
-    subplot(1,2,2,'replace')
-    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeCurrent,CtrlVar);
-    title(' current ele sizes  ');
-    hold off
-end
-
-
-
-
-if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-    
-    %figure ; PlotElementBasedQuantities(MUA.connectivity,MUA.coordinates,double(ElementsToBeRefined))  ;  title(' Refine Elements')
-    
-    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    figure ;
-    PlotMuaMesh(CtrlVar,MUA,[],'k');
-    hold on
-    PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
-    PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
+if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
     
     
-    title('Elements to be refined/coarsened in blue/red')
-    fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
-    fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
     
-end
+    if contains(lower(CtrlVar.MeshRefinementMethod),'global')
+        
+         fig=findobj(0,'name','Global mesh refinement');
+        
+        if isempty(fig)
+           figure('name','Global mesh refinement')
+        else 
+            figure(fig)
+        end
+        
+        subplot(1,2,1,'replace')
+        PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
+        title(' final desired ele sizes after user modification ');
+        
+        subplot(1,2,2,'replace')
+        PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeCurrent,CtrlVar);
+        title(' current ele sizes  ');
+        hold off
 
+        
+        
+    elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
+
+        fig=findobj(0,'name','Local mesh refinement');
+        
+        if isempty(fig)
+           figure('name','Local mesh refinement')
+        else 
+            figure(fig)
+        end
+        
+        CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+        
+        PlotMuaMesh(CtrlVar,MUA,[],'k');
+        hold on
+        PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
+        PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
+        
+        
+        title('Elements to be refined/coarsened in blue/red')
+        fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
+        fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
+        
+    end
+    
 
 
 

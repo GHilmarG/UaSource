@@ -60,8 +60,8 @@ elseif isMeshAdapt
 
         %  Determine new desired element sizes and identify elements for refinement
         %  or coarsening. 
-        [UserVar,RunInfo,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-            NewDesiredEleSizesAndElementsToRefineOrCoarsen(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
+        [UserVar,RunInfo,Fold,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+            NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
         
         %  Remesh: either global-remeshing or local-mesh refinement.
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
