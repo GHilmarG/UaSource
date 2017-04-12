@@ -20,6 +20,7 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 % Show only elements 1 to 100 in red
 %%
 
+
 if isempty(CtrlVar)
     CtrlVar.PlotLabels=0;
     CtrlVar.MeshColor='k';

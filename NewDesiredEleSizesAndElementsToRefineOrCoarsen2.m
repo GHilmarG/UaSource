@@ -8,9 +8,9 @@ function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,Elemen
 % Scales element sizes to fit within the range of CtrlVar.MeshSizeMin to CtrlVar.MeshSizeMax
 %
 
-ubvbLambda=l.ubvb;
 
-hf=(F.S-F.B)*F.rhow./F.rho ;
+
+
 
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
@@ -24,6 +24,7 @@ EleSizeDesired=zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 EleSizeIndicator =zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 
 NodalErrorIndicators=[];
+Kfig=0;
 
 %CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
 
@@ -59,9 +60,25 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
             [~,~,~,ErrorProxy]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
-
+            
+        case 'effective strain rates gradient'
+            
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            u=F.ub+F.ud ; v=F.vb+F.vd;
+            isCalculated=numel(u)==MUA.Nnodes && numel(v)==MUA.Nnodes && ~all(u==0) && ~all(v==0) ;
+            if ~isCalculated
+                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+            end
+            
+            u=F.ub+F.ud ; v=F.vb+F.vd;
+            [~,~,~,ErrorProxy]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
+            [dfdx,dfdy]=calcFEderivativesMUA(ErrorProxy,MUA,CtrlVar);
+            [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+            ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
+            
             
         case 'flotation'
+            
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             hf=(F.S-F.B)*F.rhow./F.rho ;
@@ -70,28 +87,35 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
         case 'thickness gradient'
             
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             [dfdx,dfdy]=calcFEderivativesMUA(F.h,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'upper surface gradient'
             
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'lower surface gradient'
             
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             [dfdx,dfdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'dhdt gradient'
             
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            
             ErrorProxy=abs(F.dhdt);
-            if all(ErrorProxy<1e-5)
+            if all(ErrorProxy<100*eps)
                 ErrorIndicatorUsefull=0;
+                fprintf(CtrlVar.fidlog,' remeshing criterion %s too small to be of use and discarded. \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             else
+                
                 [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
                 [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
                 ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
@@ -99,6 +123,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
         case '|dhdt|'
             
+            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             ErrorProxy=abs(F.dhdt);
             if all(ErrorProxy<1e-5)
                 ErrorIndicatorUsefull=0;
@@ -114,51 +139,52 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
     
     %% calculations specific to error criterion done
     
-    if ~ErrorIndicatorUsefull
-        EleSizeIndicator =  zeros(numel(xNod),1)+CtrlVar.MeshSizeMax;
-        fprintf(CtrlVar.fidlog,' Error indicator too similar across the mesh to be usefull. \n ');
-    else
-        EleSizeIndicator=Error2EleSize(CtrlVar,ErrorProxy,CtrlVar.ExplicitMeshRefinementCriteria(I).Scale,...
-            CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,...
-            CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax,...
-            CtrlVar.ExplicitMeshRefinementCriteria(I).p);
-        % take the minimum of each error indicator as measure for ele size
-        EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+    EleSizeIndicator=Error2EleSize(CtrlVar,ErrorProxy,CtrlVar.ExplicitMeshRefinementCriteria(I).Scale,...
+        CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,...
+        CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax,...
+        CtrlVar.ExplicitMeshRefinementCriteria(I).p);
+    % take the minimum of each error indicator as measure for ele size
+    EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+    
+    
+    
+    %% Plots
+    if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
         
-        
-        
-        %% Plots
-        if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-            
-            FigName=['Explicit Mesh Refinement ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name];
-            fig=findobj(0,'name',FigName);
-            if isempty(fig)
-                fig=figure('name',FigName);
-                fig.Position=[200,200,1600,600] ;
-            else
-                figure(fig);
-            end
-            
-            subplot(1,3,1)
-            plot(ErrorProxy,EleSizeIndicator,'.r') ; 
-            xlabel(CtrlVar.ExplicitMeshRefinementCriteria(I).Name)
-            ylabel('Ele Size')
-%            ylim=([CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax]);
-            hold on 
-            plot([CtrlVar.ExplicitMeshRefinementCriteria(I).Scale CtrlVar.ExplicitMeshRefinementCriteria(I).Scale],...
-                [CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax],'g');
-            subplot(1,3,2)
-            histogram(EleSizeIndicator) ;  xlabel('EleSizeIndicator') ; ylabel('#')
-            title(sprintf('e0=%f hMin=%f hMax=%f',...
-                CtrlVar.ExplicitMeshRefinementCriteria(I).Scale,...
-                CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,...
-                CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax))
-            subplot(1,3,3)
-            histogram(EleSizeIndicator./EleSizeCurrent) ;  
-            xlabel('EleSizeIndicator./EleSizeCurrent') ;
-            ylabel('#')
+        FigName=['Explicit Mesh Refinement ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name];
+        fig=findobj(0,'name',FigName);
+        if isempty(fig)
+            fig=figure('name',FigName);
+            fig.Position=[200+20*Kfig,200,1600,600] ;
+            Kfig=Kfig+1;
+        else
+            figure(fig);
+            hold off
         end
+        
+        subplot(1,3,1) ; hold off
+        plot(ErrorProxy,EleSizeIndicator,'.r') ;
+        title('Desired element sizes as a function of error proxy')
+        xlabel(CtrlVar.ExplicitMeshRefinementCriteria(I).Name)
+        ylabel('Ele Size Estimate')
+
+        hold on
+        plot([CtrlVar.ExplicitMeshRefinementCriteria(I).Scale CtrlVar.ExplicitMeshRefinementCriteria(I).Scale],...
+            [CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax],'g');
+        
+        subplot(1,3,2) ; hold off
+        histogram(EleSizeIndicator) ;  xlabel('EleSizeIndicator') ; ylabel('# Elements')
+        title(sprintf('Scale=%g hMin=%g hMax=%g',...
+            CtrlVar.ExplicitMeshRefinementCriteria(I).Scale,...
+            CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,...
+            CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax))
+        
+        subplot(1,3,3) ; hold off
+        histogram(EleSizeIndicator./EleSizeCurrent) ;
+        xlabel('EleSizeIndicator./EleSizeCurrent') ;
+        ylabel('# Elements')
     end
+    
     
     %%
     
@@ -194,14 +220,12 @@ EleSizeDesired(I)=CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing*EleSizeCur
 
 if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
     
-    fprintf('Remeshing based on distance of nodes from grounding line.\n')
+    %fprintf('Remeshing based on distance of nodes from grounding line.\n')
     
     KdTree=[];
     CtrlVar.PlotGLs=0;
     CtrlVar.GLsubdivide=1;
     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
-    
-    
     
     
     for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
@@ -249,14 +273,14 @@ eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
 % at any given refinement step
 
 test=sort(eRatio);
-ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<1;
+ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<0.75;
 
 % have to make sure that if an element has just been refined that it will not
 % then afterwards be a candidate for coarsening. If an element was refined, the
 % size decreased by about a factor of 2 so if the ratio was 1+eps it is now
 % 0.5+eps and I must set eRatio>2 at the very least, for coarsening
 
-ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>4;
+ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>3;
 
 %end
 
@@ -283,9 +307,11 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
             figure('name','Global mesh refinement')
         else
             figure(fig)
+            hold off
         end
         
         subplot(1,2,1,'replace')
+        hold off
         PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
         title(' final desired ele sizes after user modification ');
         
@@ -293,6 +319,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeCurrent,CtrlVar);
         title(' current ele sizes  ');
         hold off
+        drawnow
         
         
         
@@ -301,9 +328,11 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         fig=findobj(0,'name','Local mesh refinement');
         
         if isempty(fig)
-            figure('name','Local mesh refinement')
+            fig=figure('name','Local mesh refinement');
+            fig.Position=[1100,100,1000,1000] ;
         else
-            figure(fig)
+            fig=figure(fig);
+            hold off
         end
         
         CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
@@ -312,9 +341,11 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         hold on
         PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
         PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
-        
-        
-        title('Elements to be refined/coarsened in blue/red')
+        axis tight
+        drawnow
+        nR=numel(find(ElementsToBeRefined));
+        nC=numel(find(ElementsToBeCoarsened));
+        title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
         fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
         fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
         

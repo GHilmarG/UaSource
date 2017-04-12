@@ -7,6 +7,7 @@ classdef UaRunInfo
         BackTrack
         CPU
         Message
+        MeshAdapt
     end
     
     
@@ -41,6 +42,9 @@ classdef UaRunInfo
             obj.CPU.Solution=0;
             obj.Message="" ;
             
+            obj.MeshAdapt="";
+
+
         end
     end
     

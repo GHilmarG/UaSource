@@ -28,8 +28,8 @@ if CtrlVar.TimeDependentRun
     if CtrlVar.CurrentRunStepNumber==1  && ~CtrlVar.Restart
         
         fprintf('Note: As this is the first run-step in a time-dependent run: \n')
-        fprintf('When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
-        fprintf('are therefore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
+        fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
+        fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         [UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
         Fnew.h=Fnew.s-Fnew.b;
         
@@ -44,8 +44,8 @@ else
     
     % if a diagnostic step then surface (s) and bed (b), and hence the thickness (h), are defined by the user
     fprintf('Note: As this is not a time-dependent run: \n')
-    fprintf('When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
-    fprintf('are therefore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
+    fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
+    fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
     
     [UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
     Fnew.h=Fnew.s-Fnew.b;

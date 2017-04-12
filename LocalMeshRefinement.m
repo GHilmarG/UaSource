@@ -1,4 +1,4 @@
-function MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined,ElementsToBeCoarsened)
+function [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened)
 
 persistent wasRefine
 
@@ -31,7 +31,8 @@ persistent wasRefine
 % CtrlVar.LocalMeshRefinementMethod='red-green';
 % CtrlVar.LocalMeshRefinementMethod='newest vertex bisection';
 
-narginchk(4,4)
+narginchk(5,5)
+
 
 if ~islogical(ElementsToBeRefined)
     
@@ -58,8 +59,6 @@ if isempty(wasRefine)
 end
 
 
-%figure ; subplot(1,2,1) ; PlotMuaMesh(CtrlVar,UpdateMUA(CtrlVar,MUAold));  title('original')
-
 [MUAold.coordinates,MUAold.connectivity]=ChangeElementType(MUAold.coordinates,MUAold.connectivity,3);
 
 switch CtrlVar.MeshRefinementMethod
@@ -67,6 +66,7 @@ switch CtrlVar.MeshRefinementMethod
     case {'explicit:local:red-green','explicit:local'}
         
         
+        RunInfo.MeshAdapt='Red-Green Refinement';
         [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,T);
         [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
         MUAold.connectivity=FlipElements(MUAold.connectivity);
@@ -96,26 +96,21 @@ switch CtrlVar.MeshRefinementMethod
         
         Na=size(mesh.coordinates,1);  Ea=size(mesh.elements,1);
         
-        % do refinement/coarsening alternativily
-        if wasRefine
-            isRefine=0;
+        % do refinement/coarsening alternativily, unless if there are
+        % significant in number of elements to be refined/coarsened
+        
+        
+        if wasRefine  &&  ( nRefine < 2*nCoarsen) || nRefine==0
+                isRefine=0;
         else
-            isRefine=1;
+                isRefine=1;
         end
-        
-        % except if either nRefine or nCoarsen happens to be zero
-        
-        if nCoarsen==0
-            isRefine=1;
-        end
-        
-        if nRefine==0
-            isRefine=0;
-        end
+              
         
         wasRefine=isRefine;
         
         if isRefine
+            RunInfo.MeshAdapt='Bisection Refinement';
             fprintf(' Refining %i elements \n',nRefine)
             if MUAold.nod~=3
                 meshElementsToBeRefined=pointLocation(mesh.TR,[MUAold.xEle(ElementsToBeRefined) MUAold.yEle(ElementsToBeRefined)]);
@@ -124,6 +119,7 @@ switch CtrlVar.MeshRefinementMethod
             end
             mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
         else
+            RunInfo.MeshAdapt='Bisection Coarsening';
             fprintf(' Coarsening %i elements \n',nCoarsen)
             %mesh.elements=FlipElements(mesh.elements);
             if MUAold.nod~=3
@@ -158,13 +154,6 @@ switch CtrlVar.MeshRefinementMethod
         error('case not found.')
         
 end
-
-%mesh1 = bisectionCoarsen(mesh1,'all') ;  %markedElements, varargin)
-%figure(1000) ; PlotFEmesh(mesh1.coordinates,mesh1.elements,CtrlVar) ;  title('mesh coarsen')
-
-%subplot(1,2,2) ; PlotMuaMesh(CtrlVar,UpdateMUA(CtrlVar,MUAnew));  title('new')
-%%
-
 
 
 end

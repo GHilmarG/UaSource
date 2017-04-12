@@ -12,7 +12,7 @@ switch CtrlVar.GmshInputFormat
     
     
     case 1
-        fprintf('PlotGmshGeometryDefinition: gmsh input format 1 \n')
+        %fprintf('PlotGmshGeometryDefinition: gmsh input format 1 \n')
         
         I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
         CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
@@ -24,7 +24,7 @@ switch CtrlVar.GmshInputFormat
     case 2
         
         
-        fprintf('PlotGmshGeometryDefinition: gmsh input format 2 \n')
+        %fprintf('PlotGmshGeometryDefinition: gmsh input format 2 \n')
         GmshPointsInLoop=FindGmshPointsInLoop(CtrlVar);
 
         

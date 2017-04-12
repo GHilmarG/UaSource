@@ -1,21 +1,23 @@
-function [UserVar,RunInfo,CtrlVar,MUA]=...
-    Remeshing(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,...
+function [UserVar,RunInfo,CtrlVar,MUAnew]=...
+    Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCs,F,l,GF,...
     xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened)
 
 
 if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
     
-    MUA=LocalMeshRefinement(CtrlVar,MUA,ElementsToBeRefined,ElementsToBeCoarsened);
+    [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened);
     
 elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
-
-
-    [UserVar,RunInfo,MUA]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUA,xNod,yNod,EleSizeDesired);
+    
+    
+    [UserVar,RunInfo,MUAnew]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUAold,xNod,yNod,EleSizeDesired);
     
 else
     fprintf('Incorrect value for CtrlVar.MeshRefinementMethod (%s) \n',CtrlVar.MeshRefinementMethod)
     error('RemeshingBasedOnExplicitErrorEstimate:CaseNotFound','Case not found.')
 end
+
+
 
 
 

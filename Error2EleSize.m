@@ -29,7 +29,7 @@ function h=Error2EleSize(CtrlVar,e,e0,hMin,hMax,p)
 % for p=2 : h(e0) =  1/4 (hMax-hMin)  + hMin
 %
 %
-%
+%%
 
 if isempty(hMin)
     hMin=CtrlVar.MeshSizeMin;

@@ -6,9 +6,6 @@ function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunIn
 narginchk(10,10)
 nargoutchk(7,7)
 
-persistent FigMesh VideoMesh
-
-
 MUAnew=MUAold;
 Fnew=Fold;
 BCsNew=BCsOld;
@@ -20,12 +17,6 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
 end
 
-if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=2
-    figure
-    PlotFEmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar);
-    title(sprintf('Initial mesh on input to AdaptMesh : #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
-end
-
 
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
 
@@ -34,6 +25,11 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
     && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
     && ~isMeshAdvanceRetreat;
 
+
+JJ=0 ;
+nNewElements=inf;
+nNewNodes=inf;
+nNoChange=0;
 
 
 if isMeshAdvanceRetreat
@@ -47,7 +43,33 @@ if isMeshAdvanceRetreat
     
 elseif isMeshAdapt
     
-    for JJ=1:CtrlVar.AdaptMeshIterations
+    while true
+  
+        
+        JJ=JJ+1;
+        
+        if JJ>=CtrlVar.AdaptMeshIterations
+            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i%) exceeds ''CtrlVar.AdaptMeshIterations'' (%i%)\n',...
+                JJ,CtrlVar.AdaptMeshIterations)
+            break
+        end
+        
+        if abs(nNewElements)<CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
+            
+            nNoChange=nNoChange+1;
+            %if ~contains(RunInfo.MeshAdapt,'Bisection Coarsening')
+            if nNoChange>2
+                
+                fprintf('Breaking out of adapt mesh iteration because change in the number of elements (%i) less than ''CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan'' (%i)\n',...
+                    abs(nNewElements),CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+                break
+                
+            end
+        else
+            nNoChange=0;
+        end
+        
+        
         
         MUAold=MUAnew;
         Fold=Fnew;
@@ -55,11 +77,11 @@ elseif isMeshAdapt
         GFold=GFnew;
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Iteration #%-i out of %-i \n ',CtrlVar.CurrentRunStepNumber,JJ,CtrlVar.AdaptMeshIterations);
+            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Remeshing iteration #%-i \n ',CtrlVar.CurrentRunStepNumber,JJ);
         end
-
+        
         %  Determine new desired element sizes and identify elements for refinement
-        %  or coarsening. 
+        %  or coarsening.
         [UserVar,RunInfo,Fold,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
             NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
         
@@ -67,7 +89,7 @@ elseif isMeshAdapt
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
             Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,...
             xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
-
+        
         
         if MUAnew.Nele==0
             fprintf('No elements left in mesh! \n ')
@@ -75,76 +97,57 @@ elseif isMeshAdapt
         end
         
         
+        nNewElements=MUAnew.Nele-MUAold.Nele;
+        nNewNodes=MUAnew.Nnodes-MUAold.Nnodes;
+        
         [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
         
+        
         %% Plots
-        if (CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=1) || CtrlVar.CreateMeshAdaptVideo
+        if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
             
-            
-            if isempty(FigMesh)
-                FigMesh=figure ;
-                %FigMesh.Position=[0 0 figsWidth 3*figHeights];
-                FigMesh.Position=[1 1 1000 1000];% full laptop window
-                axis tight
-                if CtrlVar.CreateMeshAdaptVideo
-                    VideoMesh=VideoWriter('MeshAdapt.avi');
-                    VideoMesh.FrameRate=1;
-                    open(VideoMesh);
-                end
+            FigNameBA='Adapt Mesh: before and after';
+            fig=findobj(0,'name',FigNameBA);
+            if isempty(fig)
+                fig=figure('name',FigNameBA);
+                fig.Position=[100,100,1000,1000] ;
             else
-                FigMesh=figure ;
+                fig=figure(fig);
                 hold off
             end
             
-            if CtrlVar.PlotBCs
-                PlotBoundaryConditions(CtrlVar,MUAnew,BCsNew);
-            else
-                
-                PlotFEmesh(MUAnew.coordinates,MUAnew.connectivity,CtrlVar); hold on
-                title(sprintf('AdaptMesh Iteration %i: #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-            end
-            
-            if CtrlVar.GLmeshing
-                hold on ; plot(xGLmesh,yGLmesh,'-rx','LineWidth',2);
-            end
-            
+            subplot(2,1,1)
+            hold off
+            xGL=[] ; yGL=[]; GLgeo=[];
+            PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,GLgeo,xGL,yGL,'r');
+            title(sprintf('Mesh before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
             axis tight
-            if CtrlVar.CreateMeshAdaptVideo
-                frame = getframe(gcf);
-                writeVideo(VideoMesh,frame);
-            end
+            
+            subplot(2,1,2)
+            hold off
+            xGL=[] ; yGL=[]; GLgeo=[];
+            CtrlVar.PlotGLs=1;
+            PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+            title(sprintf('Mesh after remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,GLgeo,xGL,yGL,'r');
+            axis tight
+            
+            
+           
         end
         %%
-        
     end
-    
 end
 
 
-
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf('After remeshing: ') ; 
+    fprintf('After remeshing: ') ;
     PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
 end
 
 
 if CtrlVar.AdaptMeshAndThenStop
-    
-    if CtrlVar.doplots  && CtrlVar.InfoLevelAdaptiveMeshing>=10
-        
- 
-        xGL=[] ; yGL=[]; GLgeo=[];
-        CtrlVar.PlotGLs=1;
-        figure ; PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
-        title(sprintf('Mesh after remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,GLgeo,xGL,yGL,'r');
-        
-        xGL=[] ; yGL=[]; GLgeo=[];
-        figure ; PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
-        hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,GLgeo,xGL,yGL,'r');
-        title(sprintf('Mesh before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
-        %%
-    end
     
     MUA=MUAnew;
     save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
@@ -161,7 +164,7 @@ end
 
 %  Do velocities need to be recalculated?
 %
-%  Always recalculate velocities if: 
+%  Always recalculate velocities if:
 %
 %   CtrlVar.InitialDiagnosticStepAfterRemeshing is true
 %   but also if mesh refinement method was not 'newest vertex bisection'
@@ -179,10 +182,6 @@ if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
     save(CtrlVar.SaveAdaptMeshFileName,'MUA')
     fprintf(' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
-end
-
-if ~isempty(VideoMesh)
-    close(VideoMesh)
 end
 
 
