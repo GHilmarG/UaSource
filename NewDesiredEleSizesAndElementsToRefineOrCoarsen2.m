@@ -25,6 +25,7 @@ EleSizeIndicator =zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 
 NodalErrorIndicators=[];
 Kfig=0;
+isCalculated=false;
 
 %CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
 
@@ -53,9 +54,10 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             u=F.ub+F.ud ; v=F.vb+F.vd;
-            isCalculated=numel(u)==MUA.Nnodes && numel(v)==MUA.Nnodes && ~all(u==0) && ~all(v==0) ;
-            if ~isCalculated
+            
+            if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                isCalculated=true;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
@@ -65,9 +67,10 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             u=F.ub+F.ud ; v=F.vb+F.vd;
-            isCalculated=numel(u)==MUA.Nnodes && numel(v)==MUA.Nnodes && ~all(u==0) && ~all(v==0) ;
-            if ~isCalculated
+            
+            if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                isCalculated=true;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;

@@ -30,7 +30,7 @@ JJ=0 ;
 nNewElements=inf;
 nNewNodes=inf;
 nNoChange=0;
-
+RunInfo.MeshAdapt.isChanged=false; 
 
 if isMeshAdvanceRetreat
     
@@ -100,7 +100,7 @@ elseif isMeshAdapt
         nNewElements=MUAnew.Nele-MUAold.Nele;
         nNewNodes=MUAnew.Nnodes-MUAold.Nnodes;
         
-        [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+        [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
         
         
         %% Plots
@@ -160,7 +160,7 @@ end
 
 %% map variables to new mesh
 
-[UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+[UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
 
 %  Do velocities need to be recalculated?
 %

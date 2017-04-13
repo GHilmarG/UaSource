@@ -1,15 +1,15 @@
-function [UserVar,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold)
+function [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold)
 
          
 
-narginchk(8,8)
-nargoutchk(5,5)
+narginchk(9,9)
+nargoutchk(6,6)
 
-isMeshChanged=HasMeshChanged(MUAold,MUAnew);
+RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
 Fnew=Fold;
 
-if ~isMeshChanged
+if ~RunInfo.MeshAdapt.isChanged
     GFnew=GFold;
     BCsNew=BCsOld;
     lnew=lold;

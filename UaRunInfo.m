@@ -42,7 +42,8 @@ classdef UaRunInfo
             obj.CPU.Solution=0;
             obj.Message="" ;
             
-            obj.MeshAdapt="";
+            obj.MeshAdapt.Method="";
+            obj.MeshAdapt.isChanged=false;
 
 
         end

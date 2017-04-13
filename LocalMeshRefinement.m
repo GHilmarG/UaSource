@@ -66,7 +66,7 @@ switch CtrlVar.MeshRefinementMethod
     case {'explicit:local:red-green','explicit:local'}
         
         
-        RunInfo.MeshAdapt='Red-Green Refinement';
+        RunInfo.MeshAdapt.Method='Red-Green Refinement';
         [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,T);
         [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
         MUAold.connectivity=FlipElements(MUAold.connectivity);
@@ -110,7 +110,7 @@ switch CtrlVar.MeshRefinementMethod
         wasRefine=isRefine;
         
         if isRefine
-            RunInfo.MeshAdapt='Bisection Refinement';
+            RunInfo.MeshAdapt.Method='Bisection Refinement';
             fprintf(' Refining %i elements \n',nRefine)
             if MUAold.nod~=3
                 meshElementsToBeRefined=pointLocation(mesh.TR,[MUAold.xEle(ElementsToBeRefined) MUAold.yEle(ElementsToBeRefined)]);
@@ -119,7 +119,7 @@ switch CtrlVar.MeshRefinementMethod
             end
             mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
         else
-            RunInfo.MeshAdapt='Bisection Coarsening';
+            RunInfo.MeshAdapt.Method='Bisection Coarsening';
             fprintf(' Coarsening %i elements \n',nCoarsen)
             %mesh.elements=FlipElements(mesh.elements);
             if MUAold.nod~=3
