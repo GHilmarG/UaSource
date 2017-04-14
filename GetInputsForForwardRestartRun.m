@@ -1,7 +1,7 @@
 function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar)
 
 
-fprintf('\n\n ---------  Reading restart file and defining start values for restart run.\n')
+fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
 
 Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
@@ -72,18 +72,19 @@ end
 if CtrlVar.ResetTime==1
     CtrlVarInRestartFile.time=CtrlVar.time;
     CtrlVarInRestartFile.CurrentRunStepNumber=0;
-    fprintf(CtrlVar.fidlog,' Time reset to %-g \n',time);
+    fprintf(CtrlVar.fidlog,' Time reset to %-g \n',CtrlVarInRestartFile.time);
 end
 
 if CtrlVar.ResetTimeStep==1
     CtrlVarInRestartFile.dt=CtrlVar.dt;
-    fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',dt);
+    fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',CtrlVarInRestartFile.dt);
 end
 
-fprintf(CtrlVar.fidlog,' Read restart file %s.  Starting restart run at t=%-g with dt=%-g \n',CtrlVar.NameOfRestartFiletoRead,time,dt);
+fprintf(CtrlVar.fidlog,' Starting restart run at t=%-g with dt=%-g \n',...
+    CtrlVarInRestartFile.time,CtrlVarInRestartFile.dt);
 
 if  CtrlVarInRestartFile.time> CtrlVar.TotalTime
-    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',time,CtrlVar.TotalTime) ;
+    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.TotalTime) ;
     return
 end
 

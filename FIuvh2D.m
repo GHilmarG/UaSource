@@ -285,7 +285,7 @@ else
                 fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',NewActive);
                 fprintf(CtrlVar.fidlog,'\n ')   ;
             else
-                fprintf(CtrlVar.fidlog,'No nodes activated or deactivated. \n')   ;
+                fprintf(CtrlVar.fidlog,'No thickness constraints activated or deactivated. \n')   ;
             end
             
             if isActiveSetModified==1 && it <= ItMax

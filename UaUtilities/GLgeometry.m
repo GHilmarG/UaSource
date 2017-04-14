@@ -3,7 +3,7 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %%
 % Calculates grounding lines based on the floating/grounding condition at each node.
 %
-% Examples:
+% *Examples:*
 %
 %   [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %
@@ -65,10 +65,13 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %
 %
 % Note on plotting: if the grounding line is plotted as:
+%
 %            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k')
-% then matlab creates a new `Line Object' for each and every line segement.
-% For grounding lines crossing a large number of elements this can be a very slow way of plotting.
-% To speed things up plot the grounding line by first aligning up the line segements:
+%
+% then matlab creates a new `Line Object' for each and every line segement. For
+% grounding lines crossing a large number of elements this can be a very slow
+% way of plotting. To speed things up plot the grounding line by first aligning
+% up the line segements:
 %
 %       [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
 %       plot(xGL,yGL,'k')
