@@ -53,6 +53,11 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rh
 %Tzd=T0*(b-B)/zref;
 %ab=rho*cw*Gt*uH.*Tzd/rhofw/L;
 
+
+% zd is the ice draft, here it is b when afloat
+% zb is the bedrock elevation, or B
+% Hc=zd-db = b=B
+
 as=0.3; 
 
 switch UserVar.MisExperiment
@@ -71,6 +76,9 @@ switch UserVar.MisExperiment
             Omega=0.2 ;
             z0=-100;
             ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+            
+            
+            % when b>-100, for example b=-50 , then   z0-b=-100+50 =-50 < 0 
             
         else
             ab=zeros(MUA.Nnodes,1);

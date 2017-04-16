@@ -58,7 +58,7 @@ elseif isMeshAdapt
             
             nNoChange=nNoChange+1;
             %if ~contains(RunInfo.MeshAdapt,'Bisection Coarsening')
-            if nNoChange>2
+            if nNoChange>1 || (nNewElements==0 && nNewNodes==0)
                 
                 fprintf('Breaking out of adapt mesh iteration because change in the number of elements (%i) less than ''CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan'' (%i)\n',...
                     abs(nNewElements),CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
