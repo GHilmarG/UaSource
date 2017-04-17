@@ -95,6 +95,8 @@ else
         
         uvhIt=1; ActiveSetReset=0; VariablesReset=0;  ReduceTimeStep=0;% needed in inner loop
         while uvhIt<3  % I have a possible inner iteration here because
+            
+            
             % if uvh2D does not converge fully, it is usually best to just update the
             % active set on the partially converged solution
             
@@ -102,6 +104,11 @@ else
             %    save TestSave ; warning('h0 negative on input to uvh2D. min(h0)=%g ') ;
             %    keyboard
             %end
+            
+            
+            
+            
+            
             
             [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
             

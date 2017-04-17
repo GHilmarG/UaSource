@@ -3,15 +3,23 @@ function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardR
 
 fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
+try
+    Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
+    
+catch exception
+    fprintf(CtrlVar.fidlog,'%s \n',exception.message);
+    error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
+end
 
-Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
 
 if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
         load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','GF','l');
-        
+        Nnodes=MUA.Nnodes; Nele=MUA.Nele; 
+        MUAold=MUA;
+        MUA=UpdateMUA(CtrlVar,MUA);
     catch exception
         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
         error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
@@ -26,8 +34,8 @@ else
             'Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
             'GLdescriptors','l','alpha','g');
         Co=[] ; mo=[] ; Ca=[] ; ma=[] ; dasdh=[] ; dabdh=[] ; uo=[] ; vo=[];
-        
-        
+        MUAold=MUA;
+        Nnodes=MUA.Nnodes; Nele=MUA.Nele; 
         F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dubdt,dvbdt,duddt,dvddt,g,alpha);
         
     catch exception
@@ -38,19 +46,6 @@ else
 end
 
 
-% Thickness should only depend on s and b in restart file
-% (The only exeption being that if h is less than CtrlVar.ThickMin,
-% and CtrlVar.ResetThicknessToMinThickness true, then h is first modified accordingly.)
-F.h=F.s-F.b;
-
-[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-%[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
-
-if exist('MUA','var')==0
-    fprintf(' The variable MUA not found in restart file. Try to read connectivity and coordinates from restart file and then to create MUA \n')
-    load(CtrlVar.NameOfRestartFiletoRead,'connectivity','coordinates')
-    MUA=CreateMUA(CtrlVar,connectivity,coordinates,1,1);
-end
 
 if exist('BCs','var')==0
     fprintf(' The variable BCs not found in restart file. Reset. \n')
@@ -88,7 +83,7 @@ if  CtrlVarInRestartFile.time> CtrlVar.TotalTime
     return
 end
 
-MUAold=MUA;
+
 
 
 if CtrlVar.ReadInitialMesh==1
@@ -122,13 +117,15 @@ for I=1:CtrlVar.RefineMeshOnRestart
     
 end
 
-MeshChanged=HasMeshChanged(MUAold,MUA);
 
-if MeshChanged
+isMeshChanged=HasMeshChanged(MUA,MUAold);
+
+
+if isMeshChanged
     
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
-    
-    [UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
+    [UserVar,RunInfo,F,BCs,GF,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF,l);
+    %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     
     
 else

@@ -3,13 +3,6 @@ function [UserVar,RunInfo,F1,l1,BCs1,GF1]=SSTREAM_TransientImplicit(UserVar,RunI
 narginchk(8,8)
 nargoutchk(5,6)
 
-%
-%
-% [UserVar,ub1,vb1,h1,luv1,lh1,RunInfo]=...
-%     SSTREAM_TransientImplicit(UserVar,CtrlVar,MUA,BCs,dt,h0,S,B,ub0,vb0,ub1,vb1,h1,as0,ab0,as1,ab1,dudt,dvdt,luv,lh,...
-%     AGlen,C,n,m,alpha,rho,rhow,g)
-
-
 
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
@@ -96,12 +89,7 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
         && ~Stagnated ) ...
         || iteration < CtrlVar.NRitmin
     iteration=iteration+1;
-    
-    % If I want to implement an in complete NR method, then presumably all that is
-    % needed is to call uvhAssembly once in a while with just the first output
-    % argument, ie R, and only update K occationally
-    
-    
+        
     
     [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
     

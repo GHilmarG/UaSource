@@ -121,7 +121,7 @@ elseif isMeshAdapt
             xGL=[] ; yGL=[]; GLgeo=[];
             PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
             hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,GLgeo,xGL,yGL,'r');
-            title(sprintf('Mesh before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+            title(sprintf('Adapt-mesh iteration #%i \n Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAold.Nele,MUAold.Nnodes,MUAold.nod))
             axis tight
             
             subplot(2,1,2)
@@ -129,7 +129,7 @@ elseif isMeshAdapt
             xGL=[] ; yGL=[]; GLgeo=[];
             CtrlVar.PlotGLs=1;
             PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
-            title(sprintf('Mesh after remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+            title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
             hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,GLgeo,xGL,yGL,'r');
             axis tight
             
