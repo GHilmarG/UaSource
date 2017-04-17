@@ -143,7 +143,8 @@ switch CtrlVar.MeshRefinementMethod
             MUAnew.RefineMesh=mesh;
         else
             fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
-            MUAnew=MUAold;
+ 
+            MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates);
         end
         %%
         
