@@ -49,42 +49,6 @@ if ~ismember(CtrlVar.TriNodes,[3 6 10])
     error('Ua:CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
 end
 
-if ~iscell(CtrlVar.RefineCriteria) ; CtrlVar.RefineCriteria=cellstr(CtrlVar.RefineCriteria) ; end
-
-[~,n2]=size(CtrlVar.RefineCriteria);
-if ~isfield(CtrlVar,'RefineCriteriaWeights')
-    CtrlVar.RefineCriteriaWeights=zeros(1,n2)+1;
-end
-
-
-
-if ~isfield(CtrlVar,'RefineCriteriaFlotationLimit')
-    CtrlVar.RefineCriteriaFlotationLimit=zeros(1,n2)+NaN  ;
-end
-
-
-[~,m2]=size(CtrlVar.RefineCriteriaFlotationLimit);
-
-if n2~=m2
-    fprintf(CtrlVar.fidlog,'Number of elements in CtrlVar.RefineCriteriaFloationLimit (%i) not equal to number of RefineCriteria (%i) \n',m2,n2);
-    if n2==1
-        fprintf(CtrlVar.fidlog,'Assuming no such limits for any of the mesh refinement criteria. \n');
-        CtrlVar.RefineCriteriaFlotationLimit=zeros(n2,1)+NaN;
-    else
-        error('Ua:CtrlVarValidityCheck:RefineCriteriaFloationLimit','CtrlVar not valid')
-    end
-end
-
-[~,m2]=size(CtrlVar.RefineCriteriaWeights);
-if n2~=m2
-    fprintf(CtrlVar.fidlog,'Number of elements in CtrlVar.RefineCriteriaWeights (%i) not equal to number of RefineCriteria (%i) \n',m2,n2);
-    if n2==1
-        CtrlVar.RefineCriteriaWeights=zeros(n2,1)+1;
-        fprintf(' Assuming all criteria have equal weights. All weights set to 1 \n')
-    else
-        error('Ua:CtrlVarValidityCheck:RefineCriteriaWeights','CtrlVar not valid')
-    end
-end
 
 %% if user requires an inverse step, set prognostic and diagnostic flags to zero
 if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict

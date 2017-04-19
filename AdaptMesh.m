@@ -49,7 +49,7 @@ elseif isMeshAdapt
         JJ=JJ+1;
         
         if JJ>=CtrlVar.AdaptMeshIterations
-            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i%) exceeds ''CtrlVar.AdaptMeshIterations'' (%i%)\n',...
+            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i) exceeds ''CtrlVar.AdaptMeshIterations'' (%i)\n',...
                 JJ,CtrlVar.AdaptMeshIterations)
             break
         end
