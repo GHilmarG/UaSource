@@ -281,7 +281,7 @@ else
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR converged to given tolerance of %-g with r=%-g in %-i iterations.\n',CtrlVar.NLtol,r,iteration) ;
         end
         if CtrlVar.InfoLevelCPU>0  % if 1 then some info on CPU time usage is given
-            fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solving system=%g \n',tEnd,RunInfo.CPU.Solution,RunInfo.CPU.Assembly) ;
+            fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solution=%g \n',tEnd,RunInfo.CPU.Assembly,RunInfo.CPU.Solution) ;
         end
     end
     

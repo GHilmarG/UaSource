@@ -354,7 +354,7 @@ CtrlVar.InfoLevelAdjoint=1; % Overall level of information (inverse runs).
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
                             
 
-CtrlVar.InfoLevelNonLinIt=1; % Info level for non-line solve. Generally:
+CtrlVar.InfoLevelNonLinIt=1; % Info level for non-lin solve. Generally:
 %   0  : no information on non-linear step printed.
 %   1  : basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
@@ -970,6 +970,10 @@ CtrlVar.RefineMeshOnStart=0;
 % Note that none of the options listed below related to mesh refinement are
 % used unless CtrlVar.AdaptMesh is set to true.
 %
+% 
+%
+%
+%
 % Remeshing can be based on one or more of the following
 % relative refinement criteria:
 %
@@ -994,7 +998,9 @@ CtrlVar.RefineMeshOnStart=0;
 %
 % One can also specify directly the desired element sizes (explicit:global
 % option) or the elements to be refined (explicit:local option), using the user
-% m-file `DefineDesireEleSizes.m'
+% m-file 
+% 
+%   DefineDesireEleSizes.m
 %
 % Note: Adapt meshing can only be done in a combination with a forward run.
 % Adapt meshing can not be done in an inverse run. Usually before starting with
@@ -1280,7 +1286,7 @@ CtrlVar.MassBalanceGeometryFeedback=0;  % If the mass balance depends on geometr
                                         %
                                         %  However, if there is no dependency of the mass balance on geometry, always set
                                         %  CtrlVar.MassBalanceGeometryFeedback=0
-                                        %  as doing so avoids calls to DefineMassBalance.m within the non-line loop.
+                                        %  as doing so avoids calls to DefineMassBalance.m within the non-lin loop.
                                         %
 CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface mass balance.
                                                % If not equal to zero, then the actual mass-balance value used at the end of the time step,
@@ -1296,8 +1302,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
 %% Sea ice/melange                                               
 %
 % Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and athmospheric
-% drag acting over the floating sections.
-%
+% drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
 CtrlVar.IncludeMelangeModelPhysics=0;
@@ -1336,8 +1341,8 @@ CtrlVar.ParallelAssembly=1;
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 
 %%
-
- CtrlVar.DevelopmentVersion=1;  % Internal variable, always set to 0 (unless you want to use some untried, untested and unfinished features....) 
+CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
+                                % (unless you want to use some untried, untested and unfinished features....)
 
 end
 
