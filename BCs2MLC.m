@@ -1,11 +1,16 @@
 function MLC=BCs2MLC(MUA,BCs)
 
-persistent LastMLC LastBCs
-
-if isequal(BCs,LastBCs)
-    MLC=LastMLC;
-    return
-end
+%
+% this only works if MUA has not changed either, if MUA has changed, but BCs
+% have not, this will results in an error!
+% persistent LastMLC LastBCs
+% 
+% if isequal(BCs,LastBCs)
+%     MLC=LastMLC;
+%     return
+% end
+%
+%
 
 MLC=MultiLinearConstraints;
 
@@ -38,7 +43,7 @@ MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
 MLC.hL=hL; MLC.hRhs=hRhs; 
 
-LastBCs=BCs ; LastMLC=MLC;
+%LastBCs=BCs ; LastMLC=MLC;
 
 
 end

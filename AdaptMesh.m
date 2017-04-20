@@ -12,6 +12,7 @@ BCsNew=BCsOld;
 lnew=lold;
 GFnew=GFold;
 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
@@ -48,13 +49,13 @@ elseif isMeshAdapt
         
         JJ=JJ+1;
         
-        if JJ>=CtrlVar.AdaptMeshIterations
-            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i) exceeds ''CtrlVar.AdaptMeshIterations'' (%i)\n',...
-                JJ,CtrlVar.AdaptMeshIterations)
+        if JJ>CtrlVar.AdaptMeshMaxIterations
+            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i) exceeds ''CtrlVar.AdaptMeshMaxIterations'' (%i)\n',...
+                JJ,CtrlVar.AdaptMeshMaxIterations)
             break
         end
         
-        if abs(nNewElements)<CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
+        if abs(nNewElements)<=CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
             
             nNoChange=nNoChange+1;
             %if ~contains(RunInfo.MeshAdapt,'Bisection Coarsening')
@@ -152,7 +153,6 @@ if CtrlVar.AdaptMeshAndThenStop
     MUA=MUAnew;
     save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
     fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
-    fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
     return
 end
 

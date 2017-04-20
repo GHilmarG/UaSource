@@ -105,6 +105,15 @@ if isfield(CtrlVar,'GmeshMeshingAlgorithm')
     error('Ua:CtrlVarValidyCheck','The field CtrlVar.GmeshMeshingAlgorithm no longer used. Replace with CtrlVar.GmshMeshingAlgorithm.')
 end
 
+%% adapt
+
+if isfield(CtrlVar,'AdaptMeshIterations')
+
+    fprintf('Note: CtrlVar.AdaptMeshIterations is no longer used.\n')
+    fprintf('Use   CtrlVar.AdaptMeshMaxIterations instead.\n')
+    error('Ua:CtrlVarValidyCheck','The field CtrlVar.AdaptMeshIterations is no longer used. Replace with CtrlVar.AdaptMeshMaxIterations')
+    
+end
 
 %% inverse
 

@@ -24,7 +24,7 @@ switch lower(CtrlVar.MeshGenerator)
     case 'gmsh'
         
         GmshBackgroundScalarField.xy=[xNod(:) yNod];
-        GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
+        GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
         GmshBackgroundScalarField.TRI=TRIxy0;
         
     otherwise
@@ -112,7 +112,7 @@ while (MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements ||  MUA.Nele<EleFactorDo
     %         if CtrlVar.GLmeshing==1
     %             [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
     %         else
-    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
     %end
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1

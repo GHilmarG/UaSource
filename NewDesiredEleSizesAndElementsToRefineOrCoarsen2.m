@@ -87,7 +87,6 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             hf=(F.S-F.B)*F.rhow./F.rho ;
             ErrorProxy = DiracDelta(1/CtrlVar.RefineDiracDeltaWidth,F.h-hf,CtrlVar.RefineDiracDeltaOffset);
             
-            
         case 'thickness gradient'
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
@@ -166,9 +165,10 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         end
         
         subplot(1,3,1) ; hold off
-        plot(ErrorProxy,EleSizeIndicator,'.r') ;
+        %plot(ErrorProxy,EleSizeIndicator,'.r') ;
+        semilogy(ErrorProxy,EleSizeIndicator,'.r') ;
         title('Desired element sizes as a function of error proxy')
-        xlabel(CtrlVar.ExplicitMeshRefinementCriteria(I).Name)
+        xlabel(['Error proxy: ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name])
         ylabel('Ele Size Estimate')
 
         hold on
@@ -206,7 +206,9 @@ end
 
 % do not allow EleSize to change too much and take a weighted average of
 % the previous and the new EleSize:
-EleSizeDesired=0.95*EleSizeDesired+0.05*EleSizeCurrent;
+%EleSizeDesired=0.95*EleSizeDesired+0.05*EleSizeCurrent;
+W=0.5;
+EleSizeDesired=W*EleSizeDesired+(1-W)*EleSizeCurrent;
 
 % and also put strickt limits on change in EleSize:
 EleSizeRatio=EleSizeDesired./EleSizeCurrent;
@@ -299,8 +301,7 @@ assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number o
 
 
 if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-    
-    
+
     
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         

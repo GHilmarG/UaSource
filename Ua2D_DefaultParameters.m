@@ -1081,7 +1081,7 @@ CtrlVar.hpower=1;         % used to go from an error estimate to a size estimate
                           % h=1/error^hpower ,  where `h' is the desired element size and `error' a local
                           % error estimate.
 
-CtrlVar.AdaptMeshIterations=1;  % Number of adapt mesh iterations.
+CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
                                 
@@ -1128,7 +1128,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 
 I=I+1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Name='thickness gradient';
-CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.001;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.01;
 CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
@@ -1178,6 +1178,11 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 %
 %
 %
+CtrlVar.RefineDiracDeltaWidth=100;
+CtrlVar.RefineDiracDeltaOffset=0;
+
+
+
 CtrlVar.MeshAdapt.GLrange=[];                                                    
 
 

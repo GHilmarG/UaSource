@@ -70,9 +70,7 @@ if CtrlVar.OnlyMeshDomainAndThenStop
         figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
     end
     
-    s=[]; b=[] ; S=[] ; B=[] ; rho=[] ; rhow=[]; alpha=[] ; g=[] ;
-    C=[] ; m=[] ; AGlen=[] ; n=[] ; ud=[] ; vd=[] ; ub=[] ;vb=[] ;as=[] ; ab=[] ; GF=[];
-    
+    BCs=[]; F=[] ; l=[] ; GF=[] ;
     
     fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return

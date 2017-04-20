@@ -71,7 +71,17 @@ connectivity=TestAndCorrectForInsideOutElements(CtrlVar,coordinates,connectivity
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 if  CtrlVar.doplots && CtrlVar.PlotMesh
-     figure ; hold off ; PlotFEmesh(coordinates,connectivity,CtrlVar)
+    
+    FigName='Mesh';
+    fig=findobj(0,'name',FigName);
+    if isempty(fig)
+        fig=figure('name',FigName);
+        fig.Position=[1,1,1000,1000] ;
+    else
+        fig=figure(fig);
+        hold off
+    end
+    PlotFEmesh(coordinates,connectivity,CtrlVar)
 end
 
 
