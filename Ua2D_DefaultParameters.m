@@ -1073,15 +1073,9 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
 % 
 %
 
-
-CtrlVar.AdaptMeshInitial=1  ; % remesh in first iteration (Itime=1)  even if mod(Itime,CtrlVar.AdaptMeshInterval)~=0.
-CtrlVar.AdaptMeshInterval=1 ; % remesh whenever mod(Itime,CtrlVar.AdaptMeshInterval)==0
-
-CtrlVar.hpower=1;         % used to go from an error estimate to a size estimate for an element
-                          % h=1/error^hpower ,  where `h' is the desired element size and `error' a local
-                          % error estimate.
-
-CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations.
+CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespecitivy of the value of AdaptMeshInterval
+CtrlVar.AdaptMeshInterval=1 ; % Number of run-steps between mesh adaptation 
+CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
                                 

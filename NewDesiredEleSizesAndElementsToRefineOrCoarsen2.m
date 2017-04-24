@@ -346,13 +346,13 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
         PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
         axis tight
-        drawnow
+        
         nR=numel(find(ElementsToBeRefined));
         nC=numel(find(ElementsToBeCoarsened));
         title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
         fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
         fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
-        
+        drawnow
     end
     
     

@@ -57,47 +57,121 @@ CtrlVar.NameOfRestartFiletoRead=CtrlVar.NameOfRestartFiletoWrite;
 
 
 
+
 %% adapt mesh
-%CtrlVar.InfoLevelAdaptiveMeshing=100;
+CtrlVar.AdaptMesh=1;         %
+CtrlVar.InfoLevelAdaptiveMeshing=1;
+CtrlVar.GmshMeshingAlgorithm=8;     % see gmsh manual
 
-
-% very coarse mesh resolution
+CtrlVar.MeshSizeMax=20e3; % max element size (corse resolution)
 CtrlVar.MeshSize=20e3;       % over-all desired element size
-CtrlVar.MeshSizeMax=20e3;    % max element size
-CtrlVar.MeshSizeMin=0.05*CtrlVar.MeshSize;     % min element size
+CtrlVar.MeshSizeMin=2e3;   % min ele size (corse resolution)
 
 % reasonably fine mesh resolution
-%CtrlVar.MeshSize=8e3;       % over-all desired element size
+%
 %CtrlVar.MeshSizeMax=8e3;    % max element size
 %CtrlVar.MeshSizeMin=200;    % min element size
 
 CtrlVar.MaxNumberOfElements=250e3;           % max number of elements. If #elements larger then CtrlMeshSize/min/max are changed
 
-CtrlVar.AdaptMesh=1;           % 
-CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat'; 
+
+CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat';
+CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If left empty, no file is written
+
+CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection';
+%CtrlVar.MeshRefinementMethod='explicit:local';
+%CtrlVar.MeshRefinementMethod='explicit:global';
 
 
+CtrlVar.LocalAdaptMeshSmoothingIterations=0;
+CtrlVar.sweep=0;
 
 CtrlVar.AdaptMeshInitial=1 ;       % if true, then a remeshing will always be performed at the inital step
 CtrlVar.AdaptMeshAndThenStop=0;    % if true, then mesh will be adapted but no further calculations performed
-                                   % useful, for example, when trying out different remeshing options (then use CtrlVar.doRemeshPlots=1 to get plots)
-CtrlVar.doAdaptMeshPlots=0;       % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
 
-%CtrlVar.RefineCriteria={'flotation','thickness curvature','||grad(dhdt)||'};
-%CtrlVar.RefineCriteriaWeights=[1,1,1];                %  
-CtrlVar.RefineCriteriaFlotationLimit=[NaN,NaN];     
 
-CtrlVar.RefineCriteria={'flotation','thickness gradient'};
-CtrlVar.RefineCriteriaWeights=[1,0.75];                %  
+I=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='effective strain rates';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.01;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 
-CtrlVar.RefineCriteria={'thickness gradient'};
-CtrlVar.RefineCriteriaWeights=[1];                %  
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='effective strain rates gradient';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.001/1000;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=true;
+
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='flotation';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.001;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='thickness gradient';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.001;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=true;
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='upper surface gradient';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.01;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='lower surface gradient';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=0.01;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='|dhdt|';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=10;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+
+I=I+1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Name='dhdt gradient';
+CtrlVar.ExplicitMeshRefinementCriteria(I).Scale=1/1000;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=CtrlVar.MeshSizeMin;
+CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
+CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+
   
 CtrlVar.AdaptMeshInterval=1;  % number of run-steps between mesh adaptation
-CtrlVar.AdaptMeshIterations=1;
+CtrlVar.AdaptMeshMaxIterations=100;
+CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=10;
 
-
-CtrlVar.MeshAdapt.GLrange=[10000 5000 ; 3000 2000];
+CtrlVar.MeshAdapt.GLrange=[10000 5000 ; 3000 CtrlVar.MeshSizeMin];
 
 
 

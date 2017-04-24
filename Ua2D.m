@@ -306,7 +306,7 @@ while 1
     
        
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
-    if CtrlVar.AdaptMesh || CtrlVar.TimeGeometries.Flag ||  CtrlVar.FEmeshAdvanceRetreat
+    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat
         
 
         [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
