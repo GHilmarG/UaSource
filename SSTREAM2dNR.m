@@ -213,7 +213,18 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         [gammaTestVector,ind]=sort(gammaTestVector) ; rTestvector=rTestvector(ind) ;
         
         
-        figure ; plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
+        
+        FigName='SSTREAM backtracking';
+        fig=findobj(0,'name',FigName);
+        if isempty(fig)
+            fig=figure('name',FigName);
+            fig.Position=[20,620,600,600] ;
+        else
+            fig=figure(fig);
+            hold off
+        end
+        
+        plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
         
         plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
         

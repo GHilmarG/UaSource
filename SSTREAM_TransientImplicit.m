@@ -151,7 +151,20 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
         
         
         slope=-2*r0;
-        figure ; plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
+        
+        FigName='uvh iteration: line-search';
+        fig=findobj(0,'name',FigName);
+        if isempty(fig)
+            fig=figure('name',FigName);
+            fig.Position=[10,10,600,600] ;
+        else
+            fig=figure(fig);
+            hold off
+        end
+        
+        
+        
+        plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
         plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
         plot([gammaTestVector(1) gammaTestVector(2)],[rTestvector(1) rTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
         
@@ -264,7 +277,19 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     
     [~,~,a1]=detrend_xt(log10(diffVector(N:iteration)),N:iteration);
     fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
-    figure; semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR uvh implicit') ; xlabel('Iteration') ; ylabel('Residual')
+    
+    FigName='NR uvh implicit';
+    fig=findobj(0,'name',FigName);
+    if isempty(fig)
+        fig=figure('name',FigName);
+        fig.Position=[10,10,800,800] ;
+    else
+        fig=figure(fig);
+        hold off
+    end
+    
+    
+    semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR uvh implicit') ; xlabel('Iteration') ; ylabel('Residual')
 end
 
 if ~isempty(L)
