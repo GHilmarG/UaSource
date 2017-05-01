@@ -145,12 +145,12 @@ if CtrlVar.InverseRun
     
  
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),[string('aglen'),string('c')])
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c"])
         fprintf('the string CtrlVar.Inverse.InvertFor must contain ``AGlen`` and/or ``C`` \n')
         error('Invalid inputs.')
     end
     
-    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),[string('fixpoint'),string('adjoint')])
+    if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),["fixpoint","adjoint"])
         fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
         error('Invalid inputs.')
     end

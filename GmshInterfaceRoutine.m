@@ -41,7 +41,7 @@ if nargin<3 || isempty(GmshBackgroundScalarField)  % mesh domain (without using 
     
     % possibly create a new .geo input file for GMESH. If not then it is assumed that
     % such a file already exists
-    if ~isempty(strfind(lower(CtrlVar.GmshMeshingMode),'create new gmsh .geo input file'))
+    if contains(lower(CtrlVar.GmshMeshingMode),'create new gmsh .geo input file')
         CreateGmshInitialMeshingInputFile(CtrlVar,MeshBoundaryCoordinates,CtrlVar.GmshFile);
     end
     % read .geo input file for GMESH
@@ -56,7 +56,7 @@ if nargin<3 || isempty(GmshBackgroundScalarField)  % mesh domain (without using 
         error(' file input error ')
     end
     
-    if ~isempty(strfind(lower(CtrlVar.GmshMeshingMode),'mesh domain'))
+    if contains(lower(CtrlVar.GmshMeshingMode),'mesh domain')
         
         RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
         
@@ -80,7 +80,7 @@ end
 
 
 % call gmsh
-if ~isempty(strfind(lower(CtrlVar.GmshMeshingMode),'mesh domain'))
+if contains(lower(CtrlVar.GmshMeshingMode),'mesh domain')
     fprintf(CtrlVar.fidlog,'Calling gmsh with %s as a geo input file, and creating %s output file \n',[CtrlVar.GmshFile,'.geo'],[CtrlVar.GmshFile,'.msh']);
     fprintf(CtrlVar.fidlog,'The gmsh call is:  %s  \n',RunString);
     if CtrlVar.GmshPause>0
@@ -98,7 +98,7 @@ if ~isempty(strfind(lower(CtrlVar.GmshMeshingMode),'mesh domain'))
 end
 
 %%
-if ~isempty(strfind(lower(CtrlVar.GmshMeshingMode),'load .msh'))
+if contains(lower(CtrlVar.GmshMeshingMode),'load .msh')
     FileName=[CtrlVar.GmshFile,'.msh'];
     fprintf(CtrlVar.fidlog,'Loading %s \n',FileName);
     Gmsh=load_gmshGHG(FileName);

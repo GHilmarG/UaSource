@@ -7,7 +7,7 @@ if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
     
     [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened);
     
-elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
+elseif contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     
     
     [UserVar,RunInfo,MUAnew]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUAold,xNod,yNod,EleSizeDesired);

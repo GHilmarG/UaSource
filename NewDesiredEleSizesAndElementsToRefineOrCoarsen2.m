@@ -51,8 +51,9 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         
         case 'effective strain rates'
             
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             u=F.ub+F.ud ; v=F.vb+F.vd;
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
@@ -64,8 +65,9 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             [~,~,~,ErrorProxy]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
             
         case 'effective strain rates gradient'
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             u=F.ub+F.ud ; v=F.vb+F.vd;
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
@@ -82,8 +84,9 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
         case 'flotation'
             
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             hf=(F.S-F.B)*F.rhow./F.rho ;
             ErrorProxy = DiracDelta(1/CtrlVar.RefineDiracDeltaWidth,F.h-hf,CtrlVar.RefineDiracDeltaOffset);
             
@@ -95,22 +98,25 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'upper surface gradient'
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'lower surface gradient'
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             [dfdx,dfdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'dhdt gradient'
-            
-            fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
+            end
             
             ErrorProxy=abs(F.dhdt);
             if all(ErrorProxy<100*eps)
@@ -132,6 +138,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             end
             
         otherwise
+            
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.RefineCriteria{I});
             error(' what case? ')
@@ -170,7 +177,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         title('Desired element sizes as a function of error proxy')
         xlabel(['Error proxy: ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name])
         ylabel('Ele Size Estimate')
-
+        
         hold on
         plot([CtrlVar.ExplicitMeshRefinementCriteria(I).Scale CtrlVar.ExplicitMeshRefinementCriteria(I).Scale],...
             [CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin,CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax],'g');
@@ -196,10 +203,11 @@ end
 
 
 if all(EleSizeDesired==CtrlVar.MeshSizeMax)
-    fprintf(' After using relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
-    fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
-    fprintf(' Will now set all ele sizes equal to CtrlVar.MeshSize=%g \n ',CtrlVar.MeshSize);
-    
+    if CtrlVar.InfoLevelAdaptiveMeshing>=1
+        fprintf(' After using relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
+        fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
+        fprintf(' Will now set all ele sizes equal to CtrlVar.MeshSize=%g \n ',CtrlVar.MeshSize);
+    end
     EleSizeDesired=zeros(MUA.Nnodes,1)+CtrlVar.MeshSize;
 end
 
@@ -238,12 +246,15 @@ if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
         ds=CtrlVar.MeshAdapt.GLrange(I,1);
         dh=CtrlVar.MeshAdapt.GLrange(I,2);
         if dh<CtrlVar.MeshSizeMin
-            fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
-            fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+                fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+            end
             dh=CtrlVar.MeshSizeMin;
         end
-        fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
-        
+        if CtrlVar.InfoLevelAdaptiveMeshing>=1
+            fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+        end
         ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
         
         EleSizeIndicator(ID)=dh;
@@ -282,10 +293,10 @@ ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)
 
 % have to make sure that if an element has just been refined that it will not
 % then afterwards be a candidate for coarsening. If an element was refined, the
-% size decreased by about a factor of 2 so if the ratio was 1+eps it is now
-% 0.5+eps and I must set eRatio>2 at the very least, for coarsening
+% size decreased by about a factor of 2 so if the ratio was 0.75+eps it is now
+% 0.75/2+eps and I must set eRatio>1.5 at the very least, for coarsening
 
-ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>3;
+ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>1.75;
 
 %end
 
@@ -300,8 +311,19 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')
 
 
-if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
-
+if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5
+    
+    xyRange=range(MUA.coordinates);
+    
+    xyRatio=xyRange(2)/xyRange(1);
+    if xyRatio<1
+        xFigWidth=1000;
+        yFigWidth=25+xFigWidth*xyRatio;
+    else
+        yFigWidth=1000;
+        xFigWidth=yFigWidth/xyRatio;
+    end
+    
     
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         
@@ -309,6 +331,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
         if isempty(fig)
             figure('name','Global mesh refinement')
+            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
         else
             figure(fig)
             hold off
@@ -333,7 +356,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
         if isempty(fig)
             fig=figure('name','Local mesh refinement');
-            fig.Position=[1100,100,1000,1000] ;
+            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
         else
             fig=figure(fig);
             hold off
@@ -350,6 +373,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         nR=numel(find(ElementsToBeRefined));
         nC=numel(find(ElementsToBeCoarsened));
         title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
+        
         fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
         fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
         drawnow

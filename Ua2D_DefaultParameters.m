@@ -221,7 +221,10 @@ CtrlVar.AGlenmin=100*eps;
 CtrlVar.AGlenmax=1e10;
 
 %% Non-linear iteration-loop parameters
-% The non-linear system is considered solved once the residuals are smaller than NLtol,
+% The non-linear system is considered solved once the residuals are smaller than 
+%
+%   CtlrVar.NLtol
+%
 % and the normalised chances in u,h and \lambda smaller than du, dh and dl.
 %
 % The most (arguably even the only) important number is NLtol.
@@ -232,33 +235,44 @@ CtrlVar.AGlenmax=1e10;
 % Although one would expect these to go to zero with increasing iteration number, these are not very reliable
 % estimates of the actual error.  Generally set du and dh to not too large value, but do not focus too much on those numbers
 % (The error in solving the boundary conditions is always checked internally.)
+%
+% Note: there is no need to put any constrains on the Lagrange variables used to
+% enforce the BCs because 1) the BCs are currently always linear, and 2) it is
+% always checked internally that the BCs have been solved correctly. In fact, it
+% can be a bad idea to enforce a limit on this change because sometimes the
+% change in lambda between non-linear iteration steps is just a direct response
+% to how the primary variables (u,v,h) change.  The norm of these changes can
+% then be large despite the BCs being exactly fulfilled.)
+%
 CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
 CtrlVar.du=1e-2;     % tolerance for change in (normalised) speed
 CtrlVar.dh=1e-2;     % tolerance for change in (normalised) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalised) lambda variables used to enforced BCs
-%    Note: there is no need to put any constrains on the Lagrange variables
-%    used to enforce the BCs because 1) the BCs are currently always linear,
-%    and 2) it is always checked internally that the BCs have been solved correctly.
-%    In fact, it can be a bad idea to enforce a limit on this change because
-%    sometimes the change in lambda between non-linear iteration steps is just a
-%    direct response to how the primary variables (u,v,h) change.  The norm
-%    of these changes can then be large despite the BCs being exactly fulfilled.)
 
-CtrlVar.NR=1;             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
-% Modified Newton-Raphson only evaluates the left-hand side (the stiffness matrix) if certain
-% criteria are fullfilled. This will reduced time spend with matrix assembly but
-% also reduced the rate of convergence. Depending on the problem using the
-% modified NR method may, or may not, lead to an overall reduction in
-% computational time.
-%
-% There are two criteria that determine if the left-hand side is updated or not:
-% 1) interval and 2) (residual) reduction criteria. The interval criteria
-% determines the number of iterations between updates. (The matris is always
-% updated at the beginning of the non-linear iteration.) The reduction criteria
-% forces re-assembly if the reduciton in last iteration was not greater than
-% a given fraction.
-%
 
+%%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
+%
+% When solving the non-linear system (forward model) the recomended option is is
+% to use the full Newton-Raphson method
+%
+% One can also use the modified Newton-Raphson or the Picard iteration.
+%
+% Modified Newton-Raphson only evaluates the left-hand side (the stiffness
+% matrix) if certain criteria are fullfilled. This will reduced time spend with
+% matrix assembly but also reduced the rate of convergence. Depending on the
+% problem using the modified NR method may, or may not, lead to an overall
+% reduction in computational time.
+%
+% When using the modified Newton-Raphson methode, there are two criteria that
+% determine if the left-hand side is updated or not: 1) interval and 2)
+% (residual) reduction criteria. The interval criteria determines the number of
+% iterations between updates. (The matris is always updated at the beginning of
+% the non-linear iteration.) The reduction criteria forces re-assembly if the
+% reduciton in last iteration was not greater than a given fraction.
+%
+% Note:Most of the following parameters related to the NR iteration do, in general,
+% not to be modified and the default values should in most situation be OK.
+CtrlVar.NR=1;                             % 1 gives Newton-Raphson (use Newton-Raphson whenever possible)
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, always a positive integer number.
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; % fractional reduction forcing an update
 CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
@@ -298,24 +312,26 @@ CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evalu
 
 
 %% Lin equation solver parameters
-
-
-% Linear symmetrical solver is either Matlab \ operator, or Uzawa (outer) iteration
-% CtrlVar.SymmSolver can be one of {'Backslash','Uzawa','AugmentedLagrangian'}
-CtrlVar.SymmSolver='AugmentedLagrangian';  %
-
-% Linear asymmetrical solver is either Matlab \ operator or Augmented Lagrangian Solver (ALS)
-% CtrlVar.AsymmSolver='Backslash';
-CtrlVar.AsymmSolver='AugmentedLagrangian';  %
-% For asymmetrical indefinite block-structured systems
-% the ALS method is almost always better than the default Matlab backslash operator. 
-% ALS is an iterative method with an inner and outer iteration. Convergence depends on
+%
+% Linear symmetrical solver is either Matlab \ operator, or Augmentd Lagrangian
+% (Uzawa)
+%
+% The matlab \ operatior sometimes fails for indefinite block matrices. For
+% that reason the default linear solver is Augmented Lagrangian Solver (ALS)
+%
+% ALS uses an outer iteration and the inner probeme is solved direction. Usually
+% only a few outer iteratsion are required.
+%
+% For asymmetrical indefinite block-structured systems the ALS method is almost
+% always better than the default Matlab backslash operator. ALS is an iterative
+% method with an inner and outer iteration. Convergence depends on
 % ALSpower. If ALS does not converge then tying a smaller ALSpower
 % usually does the trick.
+%
+CtrlVar.SymmSolver='AugmentedLagrangian';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
+CtrlVar.AsymmSolver='AugmentedLagrangian';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
-
-
 CtrlVar.LinSolveTol=1e-10;  % Residual when solving linear system.
                             % If the standard Matlab backslash algorithm is used, default Matlab values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
@@ -354,7 +370,16 @@ CtrlVar.InfoLevelAdjoint=1; % Overall level of information (inverse runs).
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
                             
 
-CtrlVar.InfoLevelNonLinIt=1; % Info level for non-lin solve. Generally:
+CtrlVar.InfoLevelNonLinIt=1; 
+%
+%
+% The level of information giving about the non-linear iteration is determine
+% by the variable 
+%
+%   CtrlVar.InfoLevelNonLinIt 
+%
+% Higher values give more information
+%
 %   0  : no information on non-linear step printed.
 %   1  : basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
@@ -362,6 +387,28 @@ CtrlVar.InfoLevelNonLinIt=1; % Info level for non-lin solve. Generally:
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
 
+
+%
+%
+% The level of information giving about adaptive meshing is determined by the
+% variable 
+%
+%   CtrlVar.InfoLevelAdaptiveMeshing
+%
+% Some plots are generated if the value is >=5, but only if the logical variales
+%
+%   CtrlVar.doplots
+%   CtrlVar.doAdaptMeshPlots
+%
+% are both true.
+%
+%   0  : no information on adaptive meshing printed.
+% >=5  : plots on desired element sizes and elements to be subdivided or
+%        coarsened
+% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%
+%
+%
 CtrlVar.InfoLevelAdaptiveMeshing=1;  
 
 CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it sometimes uses a inner and outer loop to deal with indefinite systems)

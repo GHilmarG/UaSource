@@ -1,4 +1,4 @@
-function MUA=CreateMUA(CtrlVar,connectivity,coordinates)
+function MUA=CreateMUA(CtrlVar,connectivity,coordinates,RefineMesh)
 
 % MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,FindMUA_Boundary)
 %
@@ -10,7 +10,11 @@ function MUA=CreateMUA(CtrlVar,connectivity,coordinates)
 %
 %
 
-narginchk(3,3)
+narginchk(3,4)
+
+if nargin<4
+    RefineMesh=[];
+end
 
 % eliminate coordinates that are not part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
@@ -64,8 +68,10 @@ if CtrlVar.MUA.StiffnessMatrix
 end
 
 
- [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
+[MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
 
-
+if ~isempty(RefineMesh)
+    MUA.RefineMesh=RefineMesh;
+end
 
 end

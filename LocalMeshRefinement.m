@@ -26,24 +26,27 @@ persistent wasRefine
 % so first change to 3-nod if needed
 %%
 
-% load TestSave
-% CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;  CtrlVar.PlotLabels=0;
-% CtrlVar.LocalMeshRefinementMethod='red-green';
-% CtrlVar.LocalMeshRefinementMethod='newest vertex bisection';
 
 narginchk(5,5)
 
-
+% Make sure that lists are logical
 if ~islogical(ElementsToBeRefined)
     
     T= false(MUAold.Nele,1);
     T(ElementsToBeRefined)=true;
-    
-else
-    
-    T=ElementsToBeRefined;
+    ElementsToBeRefined=T;
     
 end
+
+if ~islogical(ElementsToBeCoarsened)
+    
+    T= false(MUAold.Nele,1);
+    T(ElementsToBeCoarsened)=true;
+    ElementsToBeCoarsened=T;
+    
+end
+
+
 
 nRefine=numel(find(ElementsToBeRefined));
 nCoarsen=numel(find(ElementsToBeCoarsened));
@@ -51,6 +54,11 @@ nCoarsen=numel(find(ElementsToBeCoarsened));
 
 if nRefine==0 && nCoarsen==0
     MUAnew=MUAold;
+    
+    if CtrlVar.InfoLevelAdaptiveMeshing>=1
+        fprintf('LocalMeshRefinement: No elements to be refined or coarsened.\n')
+    end
+    
     return
 end
 
@@ -67,7 +75,7 @@ switch CtrlVar.MeshRefinementMethod
         
         
         RunInfo.MeshAdapt.Method='Red-Green Refinement';
-        [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,T);
+        [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,ElementsToBeRefined);
         [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
         MUAold.connectivity=FlipElements(MUAold.connectivity);
         
@@ -88,7 +96,7 @@ switch CtrlVar.MeshRefinementMethod
             mesh=MUAold.RefineMesh;
         end
         
-                
+        
         if MUAold.nod~=3
             mesh.TR=triangulation(mesh.elements,mesh.coordinates);
         end
@@ -101,11 +109,11 @@ switch CtrlVar.MeshRefinementMethod
         
         
         if wasRefine  &&  ( nRefine < 2*nCoarsen) || nRefine==0
-                isRefine=0;
+            isRefine=0;
         else
-                isRefine=1;
+            isRefine=1;
         end
-              
+        
         
         wasRefine=isRefine;
         
@@ -139,19 +147,19 @@ switch CtrlVar.MeshRefinementMethod
         if isMeshChanged
             fprintf('In local mesh-refinement step the change in the number of elements and nodes was %i and %i, respectivily  (#R/#C)=(%i/%i). \n',...
                 Eb-Ea,Nb-Na,nRefine,nCoarsen)
-            MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates);
-            MUAnew.RefineMesh=mesh;
+            MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
+            
         else
             fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
- 
-            MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates);
+            MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates,mesh);
+            
         end
         %%
         
         
     otherwise
         
-   
+        
         error('case not found.')
         
 end

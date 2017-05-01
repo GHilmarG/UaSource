@@ -31,7 +31,7 @@ JJ=0 ;
 nNewElements=inf;
 nNewNodes=inf;
 nNoChange=0;
-RunInfo.MeshAdapt.isChanged=false; 
+RunInfo.MeshAdapt.isChanged=false;
 
 if isMeshAdvanceRetreat
     
@@ -45,13 +45,15 @@ if isMeshAdvanceRetreat
 elseif isMeshAdapt
     
     while true
-  
+        
         
         JJ=JJ+1;
         
         if JJ>CtrlVar.AdaptMeshMaxIterations
-            fprintf('Breaking out of adapt mesh iteration because number of iterations (%i) exceeds ''CtrlVar.AdaptMeshMaxIterations'' (%i)\n',...
-                JJ,CtrlVar.AdaptMeshMaxIterations)
+            if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                fprintf('Breaking out of adapt mesh iteration because number of iterations (%i) exceeds ''CtrlVar.AdaptMeshMaxIterations'' (%i)\n',...
+                    JJ,CtrlVar.AdaptMeshMaxIterations)
+            end
             break
         end
         
@@ -60,9 +62,10 @@ elseif isMeshAdapt
             nNoChange=nNoChange+1;
             %if ~contains(RunInfo.MeshAdapt,'Bisection Coarsening')
             if nNoChange>1 || (nNewElements==0 && nNewNodes==0)
-                
-                fprintf('Breaking out of adapt mesh iteration because change in the number of elements (%i) less than ''CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan'' (%i)\n',...
-                    abs(nNewElements),CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+                if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                    fprintf('Breaking out of adapt mesh iteration because change in the number of elements (%i) less than ''CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan'' (%i)\n',...
+                        abs(nNewElements),CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+                end
                 break
                 
             end
@@ -135,7 +138,7 @@ elseif isMeshAdapt
             axis tight
             
             
-           
+            
         end
         %%
     end

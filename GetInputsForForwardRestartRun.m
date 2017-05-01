@@ -17,7 +17,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     try
         
         load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','GF','l');
-        Nnodes=MUA.Nnodes; Nele=MUA.Nele; 
+
         MUAold=MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
     catch exception
@@ -35,7 +35,6 @@ else
             'GLdescriptors','l','alpha','g');
         Co=[] ; mo=[] ; Ca=[] ; ma=[] ; dasdh=[] ; dabdh=[] ; uo=[] ; vo=[];
         MUAold=MUA;
-        Nnodes=MUA.Nnodes; Nele=MUA.Nele; 
         F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dubdt,dvbdt,duddt,dvddt,g,alpha);
         
     catch exception
@@ -88,12 +87,6 @@ if  CtrlVarInRestartFile.time> CtrlVar.TotalTime
     fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.TotalTime) ;
     return
 end
-
-%         CtrlVar.time=CtrlVarInRestartFile.time;
-%         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
-%         CtrlVar.dt=CtrlVarInRestartFile.dt;
-%         CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
-
 
 if CtrlVar.ReadInitialMesh==1
     fprintf(CtrlVar.fidlog,' On restart loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
@@ -169,10 +162,6 @@ fprintf('       These will owerwrite those in restart file.\n')
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
 [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-
-%[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
-%GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
-
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
 [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);

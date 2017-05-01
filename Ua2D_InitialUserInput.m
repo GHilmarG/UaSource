@@ -42,7 +42,7 @@ CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
 %% Plotting options
 CtrlVar.doplots=1;
 CtrlVar.PlotMesh=1; 
-CtrlVar.PlotBCs=1;
+CtrlVar.PlotBCs=0;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 CtrlVar.doRemeshPlots=1;
 CtrlVar.PlotXYscale=1000; 
@@ -60,7 +60,7 @@ CtrlVar.NameOfRestartFiletoRead=CtrlVar.NameOfRestartFiletoWrite;
 
 %% adapt mesh
 CtrlVar.AdaptMesh=1;         %
-CtrlVar.InfoLevelAdaptiveMeshing=1;
+CtrlVar.InfoLevelAdaptiveMeshing=5;
 CtrlVar.GmshMeshingAlgorithm=8;     % see gmsh manual
 
 CtrlVar.MeshSizeMax=20e3; % max element size (corse resolution)
