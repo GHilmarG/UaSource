@@ -1,4 +1,4 @@
-function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,edge,face,GmshBackgroundScalarField)
+function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,edge,part,GmshBackgroundScalarField)
 
 %% Generate FE mesh
 %
@@ -9,27 +9,33 @@ function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,edge,fa
 
 nargoutchk(2,2)
 
+if nargin<5
+    GmshBackgroundScalarField=[];
+end
+
 
 options.output=false;
 
 switch lower(CtrlVar.MeshGenerator)
     
     case 'mesh2d'
-        hdata.fun = @hfun;
-        hdata.args  = {CtrlVar.MeshSize};
+          
+        opts=CtrlVar.Mesh2d.opts; 
+  
+        hfun=@Mesh2dEleSizeFunction;
+
+        [points,edge,part]=MeshBoundaryCoordinates2Mesh2dFormat(CtrlVar,MeshBoundaryCoordinates);
+        [coordinates,edge,connectivity] = refine2(points,edge,part,opts,hfun,CtrlVar,GmshBackgroundScalarField);
+
+        %[coordinates,connectivity] = mesh2d(MeshBoundaryCoordinates,[],hdata,options);
         
-        if nargin<3 || isempty(edge) || isempty(face)
-            [coordinates,connectivity] = mesh2d(MeshBoundaryCoordinates,[],hdata,options);
-        else
-            [coordinates,connectivity]=meshfaces(MeshBoundaryCoordinates,edge,face,hdata,options);
-        end
         
     case 'gmsh'
         
         if nargin<5
             GmshBackgroundScalarField=[];
         end
-
+        
         [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmshBackgroundScalarField);
         
     otherwise

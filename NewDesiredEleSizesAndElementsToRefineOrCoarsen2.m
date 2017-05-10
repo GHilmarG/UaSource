@@ -330,7 +330,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         fig=findobj(0,'name','Global mesh refinement');
         
         if isempty(fig)
-            figure('name','Global mesh refinement')
+            fig=figure('name','Global mesh refinement');
             fig.Position=[1100,100,xFigWidth,yFigWidth] ;
         else
             figure(fig)

@@ -4,13 +4,13 @@ function [UserVar,RunInfo,MUA]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUA,xNod,
 
 if any(isnan(EleSizeDesired)) ; save TestSave ; error('fdsa') ; end
 
-if strcmp(CtrlVar.MeshGenerator,'gmsh')
-    if norm([xNod-MUA.coordinates(:,1);yNod-MUA.coordinates(:,2)]) > 100*eps
-        error('RemeshingBasedOnExplicitErrorEstimate:gmsh','When using gmsh desired ele sizes must be defined at nodes')
-    end
-    TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh over which
-    % the error estimation is performed
+%if strcmp(CtrlVar.MeshGenerator,'gmsh')
+if norm([xNod-MUA.coordinates(:,1);yNod-MUA.coordinates(:,2)]) > 100*eps
+    error('RemeshingBasedOnExplicitErrorEstimate:gmsh','When using gmsh desired ele sizes must be defined at nodes')
 end
+TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh over which
+% the error estimation is performed
+%end
 
 
 
@@ -21,6 +21,7 @@ switch lower(CtrlVar.MeshGenerator)
     case 'mesh2d'
         CtrlVar.MeshSize=zeros(length(xNod),3);
         CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
+        
     case 'gmsh'
         
         GmshBackgroundScalarField.xy=[xNod(:) yNod];
@@ -30,6 +31,12 @@ switch lower(CtrlVar.MeshGenerator)
     otherwise
         error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
 end
+
+
+GmshBackgroundScalarField.xy=[xNod(:) yNod];
+GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
+GmshBackgroundScalarField.TRI=TRIxy0;
+
 
 %     if CtrlVar.GLmeshing==1
 %         GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,F.MUA.connectivity,CtrlVar);  % Do I need this?, broken anyhow...
@@ -87,19 +94,19 @@ while (MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements ||  MUA.Nele<EleFactorDo
     CtrlVar.MeshSizeMin=NewMinE;
     
     
-    switch lower(CtrlVar.MeshGenerator)
-        case 'mesh2d'
-            CtrlVar.MeshSize=zeros(length(xNod),3);
-            CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
-        case 'gmsh'
-            GmshBackgroundScalarField.xy=[xNod(:) yNod(:)] ;
-            GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-            GmshBackgroundScalarField.TRI=TRIxy0 ;
-            
-            if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
-        otherwise
-            error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
-    end
+    %    switch lower(CtrlVar.MeshGenerator)
+    %        case 'mesh2d'
+    %            CtrlVar.MeshSize=zeros(length(xNod),3);
+    %            CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
+    %        case 'gmsh'
+    GmshBackgroundScalarField.xy=[xNod(:) yNod(:)] ;
+    GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
+    GmshBackgroundScalarField.TRI=TRIxy0 ;
+    
+    %            if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
+    %        otherwise
+    %            error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
+    %    end
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
         if MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements

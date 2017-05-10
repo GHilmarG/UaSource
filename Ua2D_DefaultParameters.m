@@ -826,7 +826,29 @@ CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
+CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
+CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+
+%% Selecting the external mesh generator
+%
+% As external mesh generators one can use either `gmsh' or `mesh2d'
+%
+% Note that mesh2d does not support periodic boundary conditions.
+%
+%
+%
 CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
+%CtrlVar.MeshGenerator='mesh2d'; 
+
+%% Options related to the use of the gmsh external mesh generator
+
+
+CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+                           % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
+                           % Format 1 is simpler
+                           % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
+                           % flexible. See ExamplesOfMeshGeneration.m for further description and examples.
+
 CtrlVar.GmshFile='GmshFile';  % name of gmsh input/output files (no file extensions)
 
 CtrlVar.GmshMeshingAlgorithm=1;     % see gmsh manual
@@ -846,18 +868,25 @@ CtrlVar.GmshPause=0;      % very occasionally gmsh returns an error when run fro
                           % The duration of the pause is measured in seconds.
                           
                           
-CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
-                           % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
-                           % Format 1 is simpler
-                           % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
-                           % flexible. See ExamplesOfMeshGeneration.m for further description and examples.
+
 CtrlVar.GmshBoundaryType='lines';   % (spline|lines)
 CtrlVar.GmshCharacteristicLengthExtendFromBoundary=0;
 CtrlVar.GmshCharacteristicLengthFromCurvature = 0 ;
 CtrlVar.GmshGeoFileAdditionalInputLines{1}='   ';  % these lines are added to the gmsh .geo input file each time such a file is created
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+%% Options related to the use of the mesh2d external mesh generator
+
+CtrlVar.Mesh2d.opts.kind = 'delfront';
+CtrlVar.Mesh2d.opts.rho2 = 1.025 ;
+CtrlVar.Mesh2d.opts.SIZ1 = 0.5;
+CtrlVar.Mesh2d.opts.SIZ2 = 0.1;
+CtrlVar.Mesh2dInputFormat=1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
+                              % 2 used the input format of mesh2d itself and if using this option one must
+                              % also define the 'edge' and 'part' input fields. In this case teh
+                              % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
+CtrlVar.Mesh2d.edge=[];
+CtrlVar.Mesh2d.part=[];
+                              
 
 %% Controlling element sizes
 % 
