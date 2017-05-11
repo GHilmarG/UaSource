@@ -43,7 +43,8 @@ end
 
 if isempty(B) || numel(B)==0
     CtrlVar.SymmSolver='Bempty';
-elseif isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+elseif all(full(sum(B~=0,2))==1)
+%    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
     CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
 end
 
@@ -83,7 +84,9 @@ switch CtrlVar.SymmSolver
         AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
         sol=AA\ff;
         
-        x=zeros(nA,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
+        x=zeros(nA,1) ; 
+        x(iConstrainedDOF)=g ; 
+        x(iFreeDOF)=sol;
         y=B*(f-A*x);
 
 %  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-B x)

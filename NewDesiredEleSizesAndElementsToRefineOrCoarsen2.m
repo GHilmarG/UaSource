@@ -289,14 +289,15 @@ eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
 % at any given refinement step
 
 test=sort(eRatio);
-ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<0.75;
+Ratio=0.9;
+ElementsToBeRefined=eRatio<=test(ceil(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio<Ratio;
 
 % have to make sure that if an element has just been refined that it will not
 % then afterwards be a candidate for coarsening. If an element was refined, the
-% size decreased by about a factor of 2 so if the ratio was 0.75+eps it is now
-% 0.75/2+eps and I must set eRatio>1.5 at the very least, for coarsening
+% size decreased by about a factor of 2 so if the ratio was R+eps it is now
+% R/2+eps and I must set eRatio>2*R at the very least, for coarsening
 
-ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>1.75;
+ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRatio)) & eRatio>(2.1*Ratio);
 
 %end
 

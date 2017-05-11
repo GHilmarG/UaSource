@@ -44,7 +44,9 @@ clear CostFunctionValueAndGradient
 clear JGH
 clear NrOfIntegrationPoints
 clear LocalMeshRefinement
+clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
+clear multiWaitbar
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
 

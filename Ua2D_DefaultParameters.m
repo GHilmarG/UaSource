@@ -838,7 +838,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 %
 %
 CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
-%CtrlVar.MeshGenerator='mesh2d'; 
+CtrlVar.MeshGenerator='mesh2d'; 
 
 %% Options related to the use of the gmsh external mesh generator
 
@@ -882,7 +882,7 @@ CtrlVar.Mesh2d.opts.SIZ1 = 0.5;
 CtrlVar.Mesh2d.opts.SIZ2 = 0.1;
 CtrlVar.Mesh2dInputFormat=1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
                               % 2 used the input format of mesh2d itself and if using this option one must
-                              % also define the 'edge' and 'part' input fields. In this case teh
+                              % also define the 'edge' and 'part' input fields. In this case the
                               % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
 CtrlVar.Mesh2d.edge=[];
 CtrlVar.Mesh2d.part=[];

@@ -45,7 +45,8 @@ end
 n=size(A,1) ; m=size(B,1);
 if isempty(B) || numel(B)==0
     CtrlVar.AsymmSolver='Bempty';
-elseif isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+elseif all(full(sum(B~=0,2))==1)
+    %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
 end
 
