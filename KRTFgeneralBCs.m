@@ -56,7 +56,7 @@ end
 if any(isnan(F.ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
 if any(isnan(F.vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
 
-if CtrlVar.Piccard
+if CtrlVar.Picard
     Dvisk=0;
     Dbeta=0;
 else

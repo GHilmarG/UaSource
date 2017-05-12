@@ -21,7 +21,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=NaN;             % In a transient run this variable is the (model) time. Then set this to some 
-                              % reasonable initial value, for example CtralVar.time=0;
+                              % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -65,7 +65,7 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 % sensitivity tests with respect to geometry.
 %
 % Also, one can redefine the ocean surface elevation at each run step in both
-% transient and non-transiten (diagnostic) runs.
+% transient and non-transient (diagnostic) runs.
 %
 CtrlVar.DefineOceanSurfaceAtEachTimeStep=0;   % if true,  `DefineGeometry.m' is called at each time step, returning S, and only S.
                                               % if false, `DefineGeometry.m' is only called at the beginning of a run
@@ -84,7 +84,7 @@ CtrlVar.TestForRealValues=1;
 CtrlVar.TriNodes=6 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
 
 %% Control on transient runs
-% Once either the number of time steps or total time modelled reaches prescribed values
+% Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
 
 CtrlVar.TotalTime=1e10;          % maximum model time
@@ -100,9 +100,9 @@ CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnos
 
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
-                                                % irrespectivly of the value of this parameter. However, after local re-meshing,
+                                                % irrespective of the value of this parameter. However, after local re-meshing,
                                                 % and provided CtrlVar.LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
-                                                % not performed unless this paramter is set to true.
+                                                % not performed unless this parameter is set to true.
 %% Restart option
 CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)
 CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
@@ -138,17 +138,15 @@ CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smal
 CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrows indicating boundary conditions when plotting boundary conditions. 
                                                   % The arrows are automatically scales with respect to mesh size, but if they are
                                                   % too small or too large this parameter can be used to affect their size. 
-CtrlVar.CreateMeshAdaptVideo=0; 
+
 %% Plotting mesh
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
 % either PlotFEmesh or PlotMuaMesh (see help PlotFEmesh)
 CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1; 
-CtrlVar.FEmeshPlotTitle=[]; % Title for FE mesh plot, if left empty then something sensible is used instead
-CtrlVar.PlotFEmeshAndSaveMesh=0 ; % when plotting mesh also save mesh to a file
 CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
 CtrlVar.PlotNodes=0;       % If true then nodes are plotted when FE mesh is shown
-CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labelled with their respective numbers
+CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labeled with their respective numbers
 CtrlVar.LabelNodes=0;      % Nodal labels are plotted
 CtrlVar.LabelElements=0;   % Element labels are plotted
 CtrlVar.PlotNodesSymbol='o';
@@ -161,7 +159,7 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 %
 % Transient runs can be done either (fully) implicitly, or semi-implicitly
 % In a (fully) implicit approach, the time-integration is done implicitly with respect to both velocities and thickness.
-% In a semi-implict approach, the time-integration is done implicitly with respect to thickness, and explicitly with respect to velocities.
+% In a semi-implicit approach, the time-integration is done implicitly with respect to thickness, and explicitly with respect to velocities.
 %
 % There are currently two fully-implicit time-stepping methods implemented: The 'theta' and the 'supg' methods.
 %
@@ -197,11 +195,11 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 
 
 
-%% Numerical Regularisation Parameters  (note: these are not related to inverse modelling regularisation)
+%% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
 CtrlVar.Czero=1e-10;        % 
-CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularisation parameter when calculating dIdCq.
+CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularization parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
 CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
 CtrlVar.AGlenAdjointZero=100*eps; 
@@ -225,7 +223,7 @@ CtrlVar.AGlenmax=1e10;
 %
 %   CtlrVar.NLtol
 %
-% and the normalised chances in u,h and \lambda smaller than du, dh and dl.
+% and the normalized chances in u,h and \lambda smaller than du, dh and dl.
 %
 % The most (arguably even the only) important number is NLtol.
 % NLtol is a tolerance on the norm of the solution residuals, i.e. the resulting residuals once the solution is
@@ -245,30 +243,30 @@ CtrlVar.AGlenmax=1e10;
 % then be large despite the BCs being exactly fulfilled.)
 %
 CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=1e-2;     % tolerance for change in (normalised) speed
-CtrlVar.dh=1e-2;     % tolerance for change in (normalised) thickness
-CtrlVar.dl=100;      % tolerance for change in (normalised) lambda variables used to enforced BCs
+CtrlVar.du=1e-2;     % tolerance for change in (normalized) speed
+CtrlVar.dh=1e-2;     % tolerance for change in (normalized) thickness
+CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
-% When solving the non-linear system (forward model) the recomended option is is
+% When solving the non-linear system (forward model) the recommended option is is
 % to use the full Newton-Raphson method
 %
 % One can also use the modified Newton-Raphson or the Picard iteration.
 %
 % Modified Newton-Raphson only evaluates the left-hand side (the stiffness
-% matrix) if certain criteria are fullfilled. This will reduced time spend with
+% matrix) if certain criteria are fulfilled. This will reduced time spend with
 % matrix assembly but also reduced the rate of convergence. Depending on the
 % problem using the modified NR method may, or may not, lead to an overall
 % reduction in computational time.
 %
-% When using the modified Newton-Raphson methode, there are two criteria that
+% When using the modified Newton-Raphson method, there are two criteria that
 % determine if the left-hand side is updated or not: 1) interval and 2)
 % (residual) reduction criteria. The interval criteria determines the number of
-% iterations between updates. (The matris is always updated at the beginning of
+% iterations between updates. (The matrix is always updated at the beginning of
 % the non-linear iteration.) The reduction criteria forces re-assembly if the
-% reduciton in last iteration was not greater than a given fraction.
+% reduction in last iteration was not greater than a given fraction.
 %
 % Note:Most of the following parameters related to the NR iteration do, in general,
 % not to be modified and the default values should in most situation be OK.
@@ -284,18 +282,18 @@ CtrlVar.ModifiedNRuvhReductionCriterion=0.5;
 % the fractional reduction r/r0 over previous iteration was less than 0.95.
 %
 
-CtrlVar.Piccard=0;        % 1 gives Piccard iteration, otherwise NR iteration (always use NR whenever possible).
+CtrlVar.Picard=0;        % 1 gives Picard iteration, otherwise NR iteration (always use NR whenever possible).
 CtrlVar.NRviscosity=1;    % if 1 derivatives with respect to viscosity are included in the NR method
 CtrlVar.NRbeta2=1;        % if 1 derivatives with respect to slipperiness are included in the NR method
-                          % Note: if Piccard=0 then the NRviscosity and NRbeta2 values are overwritten and set to 0. 
+                          % Note: if Picard=0 then the NRviscosity and NRbeta2 values are overwritten and set to 0. 
 CtrlVar.NRitmax=50;       % maximum number of NR iteration
-CtrlVar.Piccarditmax=30;  % maximum number of Piccard iterations
-CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Piccard iteration
+CtrlVar.Picarditmax=30;  % maximum number of Picard iterations
+CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picard iteration
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
-CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Piccard backtracking as a fraction of the full Newton/Picard step.
+CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
 
@@ -313,14 +311,15 @@ CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evalu
 
 %% Lin equation solver parameters
 %
-% Linear symmetrical solver is either Matlab \ operator, or Augmentd Lagrangian
-% (Uzawa)
+% Linear symmetrical solver is either Matlab \ operator, or Augmented Lagrangian
+% Solver (ALS)
+% 
 %
-% The matlab \ operatior sometimes fails for indefinite block matrices. For
+% The matlab \ operator sometimes fails for indefinite block matrices. For
 % that reason the default linear solver is Augmented Lagrangian Solver (ALS)
 %
-% ALS uses an outer iteration and the inner probeme is solved direction. Usually
-% only a few outer iteratsion are required.
+% ALS uses an outer iteration and the inner problem is solved direction. Usually
+% only a few outer iterations are required.
 %
 % For asymmetrical indefinite block-structured systems the ALS method is almost
 % always better than the default Matlab backslash operator. ALS is an iterative
@@ -352,7 +351,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1,3,4,6,7,12,16
                    % The default values are: 
                    % nip=3 and niph=3 for linear elements (three node elements)
-                   % nip=7 and niph=7 for quadric elements (six node elements)
+                   % nip=7 and niph=7 for quadratic elements (six node elements)
                    % nip=12 and niph=12 for cubic elements (ten node elements)
                    % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
@@ -386,8 +385,6 @@ CtrlVar.InfoLevelNonLinIt=1;
 % >=2  : info on backtracking step as well.
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
-
-
 %
 %
 % The level of information giving about adaptive meshing is determined by the
@@ -395,7 +392,7 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 %   CtrlVar.InfoLevelAdaptiveMeshing
 %
-% Some plots are generated if the value is >=5, but only if the logical variales
+% Some plots are generated if the value is >=5, but only if the logical variables
 %
 %   CtrlVar.doplots
 %   CtrlVar.doAdaptMeshPlots
@@ -416,16 +413,12 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
                               
-CtrlVar.Report_if_b_less_than_B=0; % 
-
+CtrlVar.Report_if_b_less_than_B=0; %
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;
-
 CtrlVar.InfoLevelCPU=1;  % if 1 then some info on CPU time usage is given
-
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
-
 
 
 %% Inversion 
@@ -440,14 +433,14 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 %  J=  I + R
 %
-% where I is a misift term, and R a regularisation term.
+% where I is a misfit term, and R a regularization term.
 %
 %
 % The misfit term is:
 %
 %  I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy
 %
-% and the regularisation term can be either (Bayesian)
+% and the regularization term can be either (Bayesian)
 %
 %  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  
 %
@@ -457,11 +450,11 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % where p is A or log(A), C or log(C)
 %
-% There are number of different minimisation methods implemented. Although the
+% There are number of different minimization methods implemented. Although the
 % methodology behind the inversion is rigorous, in practice when working with
-% real data the inversions sometimes get stuck in some local minima. The
-% different optimisations methods implemented use slighlty different search
-% directions, and switching methods may help getting out of a local minima as
+% real data the inversions sometimes get stuck in some local minimum. The
+% different optimization methods implemented use slightly different search
+% directions, and switching methods may help getting out of a local minimum as
 % seen by one particular method. (When using synthetic data this is hardly ever
 % an issue).
 %
@@ -477,15 +470,15 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite
 % significantly down. Once that method stagnates (which it almost always will
 % because the gradient used in that method is just a rough estimate and
-% generally not exact), switch to another minimisation approach, for example the
+% generally not exact), switch to another minimization approach, for example the
 % UaOptimisation using the adjoint gradients.
 %
-% Ua has some inbuilt optimisation methods and these are used by default.
-% However, if the matlab optimisation toolbox is installed, the matlab routines
+% Ua has some inbuilt optimization methods and these are used by default.
+% However, if the matlab optimization toolbox is installed, the matlab routines
 % can be used instead.
 %
 % Note #1: Some parameter combinations can be inconsistent. For example inverting
-% for A only and applying regularisation on A and C, i.e.
+% for A only and applying regularization on A and C, i.e.
 %
 %   CtrlVar.Inverse.InvertFor='logAGlen' ;
 %   CtrlVar.Inverse.Regularize.Field='logAGlenlogC'
@@ -500,12 +493,12 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
 % for them, but it is better to try to keep all inputs consistent.
 %
-% Note #2: It is possible to invert for any combinatin of log(A) or A  and log(C)
+% Note #2: It is possible to invert for any combination of log(A) or A  and log(C)
 % or C. So for example one can invert for log(A) and C by setting 
 %
 %   CtrlVar.Inverse.InvertFor='logAGlenC' ;
 %
-% Also one can invert for log(C) and log(A) and regularise A and C by setting
+% Also one can invert for log(C) and log(A) and regularize A and C by setting
 %
 %
 %   CtrlVar.Inverse.InvertFor='logAGlenlogC' ;
@@ -515,14 +508,15 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:
 %
 % Note on Ua versus Matlab optimization: Generally using the Matlab optimization
-% routines has been a bit of a dissapointment. For a number of well-known test
+% routines has been a bit of a disappointment. For a number of well-known test
 % cases (Rosenbrock function etc.) the Matlab routines are far better than the
 % simple inbuilt UaOptimization methods. For some real-world applications that
 % have been tried, for example an inversion over PIG-TWG, the Matlab routines
 % also tend to perform much better. However, there are other cases where the
-% UaOptimization methods perform better, which giving the simplicity of the
-% approach is arguably a bit odd...
+% UaOptimization methods perform better,.
 %
+
+
 
 CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
@@ -542,28 +536,28 @@ CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','log
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
 
-% The gradient of the objective function can be premultiplied with the inverse
+% The gradient of the objective function can be pre-multiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
-% advantages and disadvantages. The best initial approahc is presumably to use
-% 'I', and then to try out 'M' for comparision.
+% advantages and disadvantages. The best initial approach is presumably to use
+% 'I', and then to try out 'M' for comparison.
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 
-% Regularisation can be applied on A and C or log(A) and log(C). Also possible
+% Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
 %
-% Select Bayesian motivated regularisation by setting 
-% CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularisation
+% Select Bayesian motivated regularization by setting 
+% CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularization
 % by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
 %
-% Default is Tikhonov regularisation on log(A) and log(C)
+% Default is Tikhonov regularization on log(A) and log(C)
 CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','logAGlen','logAGlenlogC'}
 
 
-% [ -- Parameters specific to Tikhonov regularisation See the above definition
-% of the regularisation term R in the case of Tikhonov regularisation. The
+% [ -- Parameters specific to Tikhonov regularization See the above definition
+% of the regularization term R in the case of Tikhonov regularization. The
 % values of these parameters can be expected to be highly problem dependent. By
-% default regularisation is switched on, but can the switched off by setting the
+% default regularization is switched on, but can the switched off by setting the
 % gs and the ga parameters to zero.
 CtrlVar.Inverse.Regularize.C.gs=1; 
 CtrlVar.Inverse.Regularize.C.ga=1;
@@ -576,7 +570,7 @@ CtrlVar.Inverse.Regularize.logAGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
 %  -]
 
-% I and R are multiplied by these followign DataMisit and Regularisation
+% I and R are multiplied by these following DataMisit and Regularisation
 % multipliers. This is a convening shortcut of getting rid of either the misfit
 % (I) or the regularization term (R) in the objective function (J) altogether.
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
@@ -587,7 +581,7 @@ CtrlVar.Inverse.Regularize.Multiplier=1;
 % UaOptimization i.e. only if
 % CtrlVar.Inverse.MinimisationMethod='UaOptimization'; 
 %
-% The Ua optimisation is a simple non-linear conjugate-gradient method with
+% The Ua optimization is a simple non-linear conjugate-gradient method with
 % automated resets, combined with a (one-sided) line search. The reset is done
 % if the angle between subsequent steepest decent directions is to far from 90
 % degrees, or if the update parameter becomes negative (only relevant for
@@ -611,12 +605,12 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 %
 % Refer to the matlab documentation for further information. 
 %
-% The optimisation routines used are either the matlab routine fminunc or
+% The optimization routines used are either the matlab routine fminunc or
 % fmincon.
 %
 % You will need to have the matlab optimisation toolbox to be able to do this.
 %  
-% The Matlab optimisation toolbox has various algorithms to choose from, each of
+% The Matlab optimization toolbox has various algorithms to choose from, each of
 % which has large number of parameters.
 %
 % Define the algorithm and set the options defining:  
@@ -714,14 +708,14 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 % compared with those obtained from brute force finite difference calculations.
 % Only do this for small problems!
 CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
-% of the directinal derivative of the objective function.
+% of the directional derivative of the objective function.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
-% The brute-force gradient can be calculated using first-order foward
+% The brute-force gradient can be calculated using first-order forward
 % differences, second-order central differences, or fourth-order central
 % differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
-% if left empty, values are calulated for every node/element within the mesh.
+% if left empty, values are calculated for every node/element within the mesh.
 % If set to for example [1,10,45] values are calculated for these three
 % nodes/elements.
 % end, testing adjoint parameters.
@@ -768,7 +762,7 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
 % NaN implies no limit to the number of calls
 
 
-%% Optaining information about the run, during the run.
+%% Obtaining information about the run, during the run.
 %
 % A simply way of getting information about the run from within the user m-files
 % is by inspecting the fields of the CtrlVar.  The CtrlVar is given an in input
@@ -837,7 +831,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 %
 %
 %
-CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
+%CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
 CtrlVar.MeshGenerator='mesh2d'; 
 
 %% Options related to the use of the gmsh external mesh generator
@@ -863,7 +857,7 @@ CtrlVar.GmshVerbosityLevel=1;    % see gmsh manual, higher values give more info
 CtrlVar.GmshPause=0;      % very occasionally gmsh returns an error when run from within matlab
                           % but runs OK if run outside of matlab for exactly the same problem (!).
                           % The reasons for this are not clear, possibly related to delayed writing of
-                          % files and some syncronisation issues. Possibly remedy is to introduced a short
+                          % files and some synchronization issues. Possibly remedy is to introduced a short
                           % pause before calling gmsh. GmshPause>0 creates such a pause.
                           % The duration of the pause is measured in seconds.
                           
@@ -899,7 +893,7 @@ CtrlVar.MeshSizeMax=CtrlVar.MeshSize;        % max element size
 
 CtrlVar.MaxNumberOfElements=100e3;           % max number of elements. If #elements larger then CtrlMeshSize/min/max are changed
 CtrlVar.MaxNumberOfElementsUpperLimitFactor=1.3;  % if actual number of elements is larger than CtrlVar.MaxNumberOfElements by this factor
-                                                  % the domain is remeshed by modifying MeshSizeMin 
+                                                  % the domain is re-meshed by modifying MeshSizeMin 
 CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % Note that the `MeshSize' part of the names of these variables is possibly somewhat
 % misleading. These variables relate to the size of the elements not the overall
@@ -1015,7 +1009,7 @@ CtrlVar.RefineMeshOnStart=0;
 % *         red-green
 % *         newest vertex bisection
 %
-% The mesh refinement method is selced by setting the value of string variable
+% The mesh refinement method is selected by setting the value of string variable
 %
 %   CtrlVar.MeshRefinementMethod
 %
@@ -1066,7 +1060,7 @@ CtrlVar.RefineMeshOnStart=0;
 %
 % These (relative) criteria can be combined.
 %
-% The refinement critera are specified by setting the variable
+% The refinement criteria are specified by setting the variable
 %
 %   CtrlVar.ExplicitMeshRefinementCriteria
 %
@@ -1084,8 +1078,8 @@ CtrlVar.RefineMeshOnStart=0;
 % independent) forward runs and use those to optimize the mesh prior to start of
 % any inverse runs.
 %
-% In addition to the above listed realtive refinedment criteria, one can also
-% specify one type of an absolut mesh criterion based on distance from grounding
+% In addition to the above listed relative refinement criteria, one can also
+% specify one type of an absolute mesh criterion based on distance from grounding
 % lines.
 %
 % The desired sizes of elements within a given distance from any grounding lines
@@ -1097,7 +1091,7 @@ CtrlVar.RefineMeshOnStart=0;
 %
 %   CtrlVar.MeshAdapt.GLrange=[5000 1000];
 %
-% specifies that all elements witin 5000 meters should be 1000 m large (here
+% specifies that all elements located within 5000 meters should be 1000 m large (here
 % assuming the distance unit is meters) if all elements.
 %
 % And setting
@@ -1112,7 +1106,7 @@ CtrlVar.RefineMeshOnStart=0;
 %
 %   CtrlVar.MeshAdapt.GLrange=[];                                                    
 %
-% Note: This absolut mesh criterion requires the matlab function rangesearch
+% Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
@@ -1149,7 +1143,7 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
 % 
 %
 
-CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespecitivy of the value of AdaptMeshInterval
+CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespective of the value of AdaptMeshInterval
 CtrlVar.AdaptMeshInterval=1 ; % Number of run-steps between mesh adaptation 
 CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
@@ -1376,7 +1370,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
 
 %% Sea ice/melange                                               
 %
-% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and athmospheric
+% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
 % drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
