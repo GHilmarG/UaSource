@@ -2,5 +2,5 @@
 
 
 <p align="center">
-  <img src = "../Data/AntarcticMesh.png">
+  <img src = "../master/Data/AntarcticMesh.png">
 </p>
