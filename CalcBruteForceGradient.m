@@ -11,7 +11,7 @@ else
 end
 
 
-fprintf(' Calculating gradients using brute force method. \n')
+fprintf(' Calculating gradients using brute-force method. \n')
 
 
 J0=func(p0);
@@ -21,36 +21,52 @@ J0=func(p0);
 delta=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*norm(p0);
 
 dJ=p0*0+NaN;
-
+dJtemp=dJ;
 
 switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
     
     case {'forward','first-order'}
         
-        parfor I=iRange
-            
+        
+        parfor k=1:numel(iRange)
+            I=iRange(k);
             p1=p0;
             p1(I)=p1(I)+delta;
             J1=func(p1);
-            dJ(I)=(J1-J0)/delta;
+            dJtemp(k)=(J1-J0)/delta;
             
+        end
+        
+        for k=1:numel(iRange)
+            dJ(iRange(k))=dJtemp(k);
         end
         
     case {'central','second-order'}
         
-        parfor I=iRange
+        
+        parfor k=1:numel(iRange)
+            I=iRange(k);
             p1=p0;
             pm1=p0;
             p1(I)=p1(I)+delta;
             J1=func(p1);
+            
             pm1(I)=pm1(I)-delta;
             Jm1=func(pm1);
             
-            dJ(I)=(J1-Jm1)/delta/2;
+            dJtemp(k)=(J1-Jm1)/delta/2;
         end
         
+        for k=1:numel(iRange)
+            dJ(iRange(k))=dJtemp(k);
+        end
+        
+        
     case 'fourth-order'
-        parfor I=iRange
+        
+        parfor k=1:numel(iRange)
+            I=iRange(k);
+            
             p1=p0;
             pm1=p0;
             p2=p0;
@@ -65,7 +81,11 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             Jm1=func(pm1);
             Jm2=func(pm2);
             
-            dJ(I)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/delta;
+            dJtemp(k)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/delta;
+        end
+        
+        for k=1:numel(iRange)
+            dJ(iRange(k))=dJtemp(k);
         end
         
     otherwise
@@ -79,14 +99,14 @@ end
 % using the fact that df/dx=Im(f(x+i dx))/dx
 % delta=1e-6*norm(p0);
 % dJ=p0*0;
-% 
+%
 % for I=iRange
-%     
+%
 %     p1=p0;
 %     p1(I)=p1(I)+1i*delta;
 %     J1=func(p1);
 %     dJ(I)=imag(J1)/delta;
-%     
+%
 % end
 
 %%

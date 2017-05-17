@@ -554,7 +554,7 @@ while 1
     end
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
-        WriteRestartFile()
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo); 
     end
     
     
@@ -602,9 +602,7 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
-    
-    WriteRestartFile()
-    
+    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo); 
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
@@ -615,33 +613,6 @@ if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 fclose(CtrlVar.InfoFile);
 
 SayGoodbye(CtrlVar)
-
-%% nested functions
-
-
-    function WriteRestartFile
-        RestartFile=CtrlVar.NameOfRestartFiletoWrite;
-        fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writing restart file %s  at t=%-g \n %s \n ',CtrlVar.Experiment,datestr(now),RestartFile,CtrlVar.time);
-        %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-        CtrlVarInRestartFile=CtrlVar;
-        UserVarInRestartFile=UserVar;
-        nStep=CtrlVar.CurrentRunStepNumber;  % later get rid of nStep from all restart files
-        Itime=CtrlVar.CurrentRunStepNumber;  % later get rid of Itime from all restart files
-        time=CtrlVar.time;
-        dt=CtrlVar.dt;
-        try
-            save(RestartFile,'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','time','dt','F','GF','l','RunInfo','-v7.3');
-
-            fprintf(CtrlVar.fidlog,' Writing restart file was successful. \n');
-            
-        catch exception
-            fprintf(CtrlVar.fidlog,' Could not save restart file %s \n ',RestartFile);
-            fprintf(CtrlVar.fidlog,'%s \n',exception.message);
-        end
-        
-    end
-
-
 
 
 end

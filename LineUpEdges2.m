@@ -101,7 +101,7 @@ flipped=0;
 while ~all(isnan(xa))
     
     
-    
+   
     
     % find input GL location closest to last included output GL pos
     % the current endpoint of the polygone is
