@@ -39,6 +39,7 @@ if numel(Reactions.h)>0
     if Two
         subplot(1,2,2)
         PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ; 
+        axis tight
     end
     
     [AreaTri]=TriAreaFE(MUA.coordinates,MUA.connectivity);
