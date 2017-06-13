@@ -148,13 +148,13 @@ else
     if isA
         if CtrlVar.AGlenisElementBased
             
-            MA=gaA^2*Areas/Area;
+            MA=gaA.^2*Areas/Area;
             npA=numel(dpA);
             NA=sparse(1:npA,1:npA,MA,npA,npA);
             
         else
             
-            NA=(gsA^2*(Dxx+Dyy)+gaA^2*M)/Area;
+            NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
             
         end
         RAGlen=dpA'*NA*dpA/2;
@@ -167,13 +167,13 @@ else
     if isC
         if CtrlVar.CisElementBased
             
-            MC=gaC^2*Areas/Area;
+            MC=gaC.^2*Areas/Area;
             npC=numel(dpC);
             NC=sparse(1:npC,1:npC,MC,npC,npC);
             
         else
             
-            NC=(gsC^2*(Dxx+Dyy)+gaC^2*M)/Area;
+            NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
             
         end
         

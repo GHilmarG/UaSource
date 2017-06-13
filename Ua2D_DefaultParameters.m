@@ -547,14 +547,22 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 % to use a covariance matrix for A and C. 
 %
 % Select Bayesian motivated regularization by setting 
-% CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularization
-% by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
+%
+%   CtrlVar.Inverse.Regularize.Field='cov' 
+% 
+% and Tikhonov regularization
+% by setting 
+%
+%   CtrlVar.Inverse.Regularize.Field 
+%
+% to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
 %
 % Default is Tikhonov regularization on log(A) and log(C)
+%
 CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','logAGlen','logAGlenlogC'}
 
 
-% [ -- Parameters specific to Tikhonov regularization See the above definition
+% [ -- Parameters specific to Tikhonov regularization. See the above definition
 % of the regularization term R in the case of Tikhonov regularization. The
 % values of these parameters can be expected to be highly problem dependent. By
 % default regularization is switched on, but can the switched off by setting the
