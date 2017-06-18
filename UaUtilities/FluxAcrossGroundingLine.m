@@ -27,9 +27,13 @@ CtrlVar.GLsubdivide=1;
 
 if isempty(Fub)
     Fub=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),ub);
-    Fvb=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),vb);
-    Fr=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),rho);
-    Fh=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),h);
+    Fvb=Fub; Fr=Fub; Fh=Fub;
+    Fvb.Values=vb;
+    Fr.Values=rho;
+    Fh.Values=h;
+%     Fvb=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),vb);
+%     Fr=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),rho);
+%     Fh=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),h);
     
 end
 
