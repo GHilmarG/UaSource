@@ -16,7 +16,7 @@ switch N
     case 6
         [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
     otherwise
-        error('Ua:GetGeometry','Define Geometry must return either 5 or 6 output arguments')
+        error('Ua:GetGeometry','DefineGeometry must return either 5 or 6 output arguments')
 end
 
 
