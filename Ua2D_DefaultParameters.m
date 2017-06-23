@@ -20,7 +20,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=NaN;             % In a transient run this variable is the (model) time. Then set this to some 
+CtrlVar.time=NaN;             % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
@@ -109,7 +109,8 @@ CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
 CtrlVar.WriteRestartFileInterval=100;    % restart file written at this time-step interval  (note, these are run steps, not model time)
 CtrlVar.ResetTime=0 ;                    % set to 1 to reset (model) time at start of restart run
 CtrlVar.RestartTime=NaN;                 % if ResetTime is true, then this is the model time at the start of the restart run
-CtrlVar.ResetTimeStep=0;                 % 1 if time step should be reset to dt given in the Ua2D_InitialUserInputFile
+CtrlVar.ResetTimeStep=0;                 % true if time step should be reset to dt given in the Ua2D_InitialUserInputFile
+CtrlVar.ResetRunStepNumber=0;            % if true, RunStepNumber is set to zero at the beginning of a restart run. 
 CtrlVar.NameOfRestartFiletoRead='Ua2D_Restartfile.mat';
 CtrlVar.NameOfRestartFiletoWrite='Ua2D_Restartfile.mat';
 
@@ -547,14 +548,22 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 % to use a covariance matrix for A and C. 
 %
 % Select Bayesian motivated regularization by setting 
-% CtrlVar.Inverse.Regularize.Field='cov' and Tikhonov regularization
-% by setting CtrlVar.Inverse.Regularize.Field to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
+%
+%   CtrlVar.Inverse.Regularize.Field='cov' 
+% 
+% and Tikhonov regularization
+% by setting 
+%
+%   CtrlVar.Inverse.Regularize.Field 
+%
+% to either 'C','logC','AGlen','logAGlen',or 'logAGlenlogC'
 %
 % Default is Tikhonov regularization on log(A) and log(C)
+%
 CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','logAGlen','logAGlenlogC'}
 
 
-% [ -- Parameters specific to Tikhonov regularization See the above definition
+% [ -- Parameters specific to Tikhonov regularization. See the above definition
 % of the regularization term R in the case of Tikhonov regularization. The
 % values of these parameters can be expected to be highly problem dependent. By
 % default regularization is switched on, but can the switched off by setting the

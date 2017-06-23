@@ -64,21 +64,25 @@ end
 
 
 if CtrlVar.ResetTime==1
-    CtrlVarInRestartFile.time=CtrlVar.time;
-    CtrlVarInRestartFile.CurrentRunStepNumber=0;
-    fprintf(CtrlVar.fidlog,' Time reset to %-g \n',CtrlVarInRestartFile.time);
-else
-     CtrlVar.time=CtrlVarInRestartFile.time;
-     CtrlVar.RestartTime=CtrlVarInRestartFile.time;
-     CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
+    CtrlVarInRestartFile.time=CtrlVar.RestartTime;
+    fprintf(CtrlVar.fidlog,' Time reset to CtrlVar.RestartTime=%-g \n',CtrlVarInRestartFile.time);
 end
 
 if CtrlVar.ResetTimeStep==1
     CtrlVarInRestartFile.dt=CtrlVar.dt;
-    fprintf(CtrlVar.fidlog,' Time-step reset to %-g \n',CtrlVarInRestartFile.dt);
-else
-    CtrlVar.dt=CtrlVarInRestartFile.dt;
+    fprintf(CtrlVar.fidlog,' Time-step reset to CtrlVar.dt=%-g \n',CtrlVarInRestartFile.dt);
 end
+
+if CtrlVar.ResetRunStepNumber
+    CtrlVarInRestartFile.CurrentRunStepNumber=0;
+    fprintf(' RunStepNumber reset to 0 \n')
+end
+
+CtrlVar.time=CtrlVarInRestartFile.time;
+CtrlVar.RestartTime=CtrlVarInRestartFile.time;
+CtrlVar.dt=CtrlVarInRestartFile.dt;
+CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
+
 
 fprintf(CtrlVar.fidlog,' Starting restart run at t=%-g with dt=%-g \n',...
     CtrlVarInRestartFile.time,CtrlVarInRestartFile.dt);

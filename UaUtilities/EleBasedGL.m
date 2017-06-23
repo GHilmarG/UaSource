@@ -59,7 +59,12 @@ ds=sqrt((xa-xb).^2+(ya-yb).^2);
 nx=ya-yb ; ny=xb-xa ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
 xEdge=(xa+xb)/2; yEdge=(ya+yb)/2;
 
-[xGLele,yGLele]=LineUpEdges2(CtrlVar,xa,xb,ya,yb);
+if ~(isfield(GF,'xGLele') && isfield(GF,'yGLele') && ~isempty(GF.xGLele) && ~isempty(GF.yGLele))
+    [xGLele,yGLele]=LineUpEdges2(CtrlVar,xa,xb,ya,yb);
+else
+    xGLele=GF.xGLele ;
+    yGLele=GF.yGLele;
+end
 
 
 

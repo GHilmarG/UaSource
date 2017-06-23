@@ -59,11 +59,12 @@ switch MUA.nod
         
         uhr=ub.*h.*rho;
         vhr=vb.*h.*rho;
-        qxS=dsGL.*mean(uhr(FB),2) ; 
+        qxS=dsGL.*mean(uhr(FB),2) ;
         qyS=dsGL.*mean(vhr(FB),2);
         qGL=qxS.*nxGL+qyS.*nyGL; % units: m m (m/yr) * kg/m^3 =kg/yr
-        
-        
+        qGLx=qGL.*nxGL ;
+        qGLy=qGL.*nyGL ;
+        EN=[FB(:,1) FB(:,2)];
     case 6
         
         % a bit more accurate estimate for 6-node elements. Here I used the two corner

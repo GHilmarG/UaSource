@@ -157,7 +157,7 @@ for iEdge=1:3
     GL2y(ind1)=(threshold-gfb(ind1)).*(yc(ind1)-yb(ind1))./(gfc(ind1)-gfb(ind1))+yb(ind1);  % if gfc<threshold
     GL2y(ind2)=(threshold-gfa(ind2)).*(yc(ind2)-ya(ind2))./(gfc(ind2)-gfa(ind2))+ya(ind2);  % if gfc>threshold
     
-    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
+    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny+eps); nx=nx./temp ; ny=ny./temp;
     
     
     GLele(GLgeoEdge)=true;

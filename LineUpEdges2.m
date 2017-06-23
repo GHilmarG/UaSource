@@ -35,6 +35,7 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %     equal ; hold on ; if i==numel(col) ; i=0 ; end
 % end
 
+%save TestSave ; error('fsda')
 
 if numel(xa) ~= numel(xb)
     error('Ua:LineUpEdges:IncorrectNumberOfElements','number of elements in xa must equal number of elements in xb')

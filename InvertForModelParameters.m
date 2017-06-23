@@ -8,12 +8,56 @@ if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Initia
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
 end
 
+
+%% Did user define regularization parameters in `DefineInputForInverseRun'?
+% If so, then use those values
+
+if ~isempty(Priors.Regularize.logC.gs)
+    CtrlVar.Inverse.Regularize.logC.gs=Priors.Regularize.logC.gs;
+end
+
+if ~isempty(Priors.Regularize.logC.ga)
+    CtrlVar.Inverse.Regularize.logC.ga=Priors.Regularize.logC.ga;
+end
+
+
+if ~isempty(Priors.Regularize.C.gs)
+    CtrlVar.Inverse.Regularize.C.gs=Priors.Regularize.C.gs;
+end
+
+if ~isempty(Priors.Regularize.C.ga)
+    CtrlVar.Inverse.Regularize.C.ga=Priors.Regularize.C.ga;
+end
+
+
+if ~isempty(Priors.Regularize.logAGlen.gs)
+    CtrlVar.Inverse.Regularize.logAGlen.gs=Priors.Regularize.logAGlen.gs;
+end
+
+if ~isempty(Priors.Regularize.logAGlen.ga)
+    CtrlVar.Inverse.Regularize.logAGlen.ga=Priors.Regularize.logAGlen.ga;
+end
+
+
+if ~isempty(Priors.Regularize.AGlen.gs)
+    CtrlVar.Inverse.Regularize.AGlen.gs=Priors.Regularize.AGlen.gs;
+end
+
+if ~isempty(Priors.Regularize.AGlen.ga)
+    CtrlVar.Inverse.Regularize.AGlen.ga=Priors.Regularize.AGlen.ga;
+end
+
+
+
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
+
+
+
 [p0,plb,pub]=InvValues2p(CtrlVar,InvStartValues); 
 
-%
+
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
 [J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
