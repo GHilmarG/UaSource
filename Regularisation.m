@@ -10,7 +10,13 @@ RegOuts=[];
 [Areas,xEle,yEle,Area]=TriAreaFE(MUA.coordinates,MUA.connectivity);
 
 
-%% C
+%%
+% I start by defining dpX, gsX and gaX, where X is either C or A and  
+%  dpX=X-X_{Prior}
+%  gsX and gaX are the slope and amplitude regularization pre-factors 
+%
+
+% C
 if contains(lower(CtrlVar.Inverse.InvertFor),'c')
     
     isC=1;
@@ -51,7 +57,7 @@ else
     
 end
 
-%% AGlen
+% AGlen
 if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
     
     isA=1;
@@ -108,7 +114,11 @@ if ~(CtrlVar.AGlenisElementBased   &&  CtrlVar.CisElementBased)
     
 end
 
-if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
+
+%% Now dpX, gsX and gaX have all be defined
+
+
+if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regularization
     
     % R= (C-C_prior)' CC^{-1} (C-C_prior)  / (2N)
     
@@ -143,7 +153,10 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')
     dRdp=[dRdAGlen;dRdC];
     
     
-else
+    
+else  % Tikhonov regularization
+
+    
     
     if isA
         if CtrlVar.AGlenisElementBased
@@ -189,8 +202,10 @@ else
     dRdp=[dRdAGlen;dRdC];
     ddRddp=[];
     
+    
+    
 end
-%%
+
 R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
 ddRddp=CtrlVar.Inverse.Regularize.Multiplier*ddRddp;
