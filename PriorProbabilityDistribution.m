@@ -18,17 +18,7 @@ classdef PriorProbabilityDistribution
         
         TrueC=[];
         TrueAGlen=[];
-        
-        %         Cgs=1;
-        %         Cga=1;
-        %         logCga=1;
-        %         logCgs=1 ;
-        %
-        %         AGlengs=1;
-        %         AGlenga=1;
-        %         logAGlenga=1;
-        %         logAGlengs=1 ;
-        %
+ 
         Regularize
         
         

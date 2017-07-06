@@ -1,4 +1,9 @@
-function [p,lb,ub]=InvValues2p(CtrlVar,InvValues)
+function [p,plb,pub]=InvValues2p(CtrlVar,InvValues)
+
+
+
+
+
 
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
@@ -43,8 +48,13 @@ elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
 end
 
 p=[pA;pC];
-lb=[lbA;lbC];
-ub=[ubA;ubC];
+plb=[lbA;lbC];
+pub=[ubA;ubC];
+
+
+
+
+
 
 end
 
