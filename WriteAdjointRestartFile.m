@@ -5,9 +5,11 @@ fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.Inverse.Nam
 
 CtrlVarInRestartFile=CtrlVar;
 UserVarInRestartFile=UserVar;
+time=CtrlVar.time;
+dt=CtrlVar.dt;
 save(CtrlVar.Inverse.NameOfRestartOutputFile,...
     'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
-    'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','-v7.3');
+    'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
 
 
 if CtrlVar.AGlenisElementBased
