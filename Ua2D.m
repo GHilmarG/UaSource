@@ -47,6 +47,18 @@ clear LocalMeshRefinement
 clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
 clear multiWaitbar
+% also those potentially defined in user input files
+clear DefineSlipperyDistribution
+clear DefineAGlenDistribution
+clear DefineGeometry
+clear DefineInputsForInverseRun
+clear DefineDensities
+clear DefineDesiredEleSize
+clear DefineBoundaryConditions
+clear DefineMassBalance
+clear UaOutputs
+
+
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
 
@@ -59,6 +71,7 @@ RunInfo.Message(1)="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
+
 
 %%
 
