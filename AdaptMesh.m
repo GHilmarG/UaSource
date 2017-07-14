@@ -151,11 +151,14 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
 end
 
 
-if CtrlVar.AdaptMeshAndThenStop
-    
+
+if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
     save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
     fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+end
+
+if CtrlVar.AdaptMeshAndThenStop
     return
 end
 
@@ -173,18 +176,14 @@ end
 %   but also if mesh refinement method was not 'newest vertex bisection'
 %
 isMeshingLocalWithoutSmoothing=contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0;
-if CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing
-    isMeshChanged=HasMeshChanged(MUAold,MUAnew);
-    if isMeshChanged
-        [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+
+if ~CtrlVar.AdaptMeshAndThenStop
+    if CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing
+        isMeshChanged=HasMeshChanged(MUAold,MUAnew);
+        if isMeshChanged
+            [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+        end
     end
-end
-
-
-if ~isempty(CtrlVar.SaveAdaptMeshFileName)
-    MUA=MUAnew;
-    save(CtrlVar.SaveAdaptMeshFileName,'MUA')
-    fprintf(' Adapted FE mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
 
 

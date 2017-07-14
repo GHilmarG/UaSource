@@ -1,14 +1,13 @@
-function Ua2D(UserVar)
+function Ua2D(UserVar,varargin)
 
 %% Driver for the 2HD Úa model
-% Ua2D(UserRunParameters)
-%
-%
+% 
+
+
 
 if nargin==0
     UserVar=[];
 end
-
 
 SetUaPath() %% set path
 
@@ -65,7 +64,7 @@ CtrlVar=Ua2D_DefaultParameters();
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
-[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
+[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
 
 RunInfo.Message(1)="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
