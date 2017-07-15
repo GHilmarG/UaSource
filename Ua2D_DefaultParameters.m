@@ -328,8 +328,8 @@ CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evalu
 % ALSpower. If ALS does not converge then tying a smaller ALSpower
 % usually does the trick.
 %
-CtrlVar.SymmSolver='AugmentedLagrangian';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
-CtrlVar.AsymmSolver='AugmentedLagrangian';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
+CtrlVar.SymmSolver='Auto';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
+CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-10;  % Residual when solving linear system.

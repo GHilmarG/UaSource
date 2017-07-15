@@ -14,7 +14,7 @@ function [stat] = inpoly2(varargin)
 %   NODE(EDGE(KK,1),:) and NODE(EDGE(KK,2),:) are the coord-
 %   inates of the endpoints of the KK-TH edge. If the argum-
 %   ent EDGE is omitted it assumed that the vertices in NODE
-%   are connected in ascending order.
+%   are connected in ascendinsize(Ig order.
 %
 %   See also INPOLYGON
 
