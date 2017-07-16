@@ -158,16 +158,45 @@ if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
 
+%%
+%% map variables to new mesh
+
+[UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+
+%%
+
+if CtrlVar.DeactivateElements
+    
+    xEle=Nodes2EleMean(MUAnew.connectivity,MUAnew.coordinates(:,1));
+    yEle=Nodes2EleMean(MUAnew.connectivity,MUAnew.coordinates(:,2));
+    ElementsToBeDeactivated=false(MUAnew.Nele,1);
+    
+    [UserVar,ElementsToBeDeactivated]=...
+        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,xEle,yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,GFnew);
+    
+    if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
+        figure
+        PlotMuaMesh(CtrlVar,MUA,ElementsToBeDeactivated,'r')
+        hold on
+        PlotMuaMesh(CtrlVar,MUA,~ElementsToBeDeactivated,'k')
+        title('Elements to be deactivated in red')
+    end
+    
+    [coordinates,connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,MUAnew.coordinates,MUAnew.connectivity);
+    
+    MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
+    
+    [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+end
+%%
+
 if CtrlVar.AdaptMeshAndThenStop
     return
 end
 
 
 
-%% map variables to new mesh
-
-[UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
-
+%%
 %  Do velocities need to be recalculated?
 %
 %  Always recalculate velocities if:

@@ -1,11 +1,15 @@
-function  [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,coordinates,connectivity)
+function  [coordinates,connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,coordinates,connectivity)
 
 % [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,coordinates,connectivity)
 % Deactivates elements in the list iDeactivatedElements
 % Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly
 % Elements and nodes are renumbered
 
-connectivity(iDeactivatedElements,:)=[];
+if ~any(ElementsToBeDeactivated)
+    return
+end
+
+connectivity(ElementsToBeDeactivated,:)=[];
 
 % eliminate coordinates that are no longer part of mesh, and update connectivity accordingly
 [K,~,J]=unique(connectivity(:));
