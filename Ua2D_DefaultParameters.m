@@ -199,8 +199,8 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=0    ;        % must be much smaller than C, and can in fact be set to zero. 
-CtrlVar.HeZero=1e-10;       % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
+CtrlVar.Czero=1e-20    ;    % must be much smaller than C. 
+CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
 
