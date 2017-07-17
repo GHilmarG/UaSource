@@ -52,15 +52,15 @@ n=size(A,1) ; m=size(B,1);
 %     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
 % end
 
-if isequal(lower(CtrlVar.SymmSolver),'auto')
+if isequal(lower(CtrlVar.AsymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
-        CtrlVar.SymmSolver='Bempty';
+        CtrlVar.AsymmSolver='Bempty';
     elseif all(full(sum(B~=0,2))==1)
         %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-        CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
     else
-        CtrlVar.SymmSolver='AugmentedLagrangian';
+        CtrlVar.AsymmSolver='AugmentedLagrangian';
     end
     
 end

@@ -9,7 +9,7 @@ function [UserVar,ElementsToBeDeactivated]=...
 %   [UserVar,ElementsToBeDeactivated]=...
 %       DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
 %
-% *Example:*  To deactivate all elements within the region bounded by
+% *Example:*  To deactivate all elements outside of the region bounded by
 % BoundaryCoordinats in run-step 2:
 %
 % 

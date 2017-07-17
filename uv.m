@@ -100,6 +100,7 @@ switch lower(CtrlVar.FlowApproximation)
         %SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
+        
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
         GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
         [txzb,tyzb]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb);
