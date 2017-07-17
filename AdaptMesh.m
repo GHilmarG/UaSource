@@ -145,11 +145,6 @@ elseif isMeshAdapt
 end
 
 
-if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf('After remeshing: ') ;
-    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
-end
-
 
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
@@ -165,7 +160,13 @@ end
 
 %%
 
-if CtrlVar.DeactivateElements
+if CtrlVar.ManuallyDeactivateElements
+    
+    
+    if CtrlVar.InfoLevelAdaptiveMeshing>=1
+        fprintf('Manual deactivation of elements.\n'); 
+    end
+    
     
     xEle=Nodes2EleMean(MUAnew.connectivity,MUAnew.coordinates(:,1));
     yEle=Nodes2EleMean(MUAnew.connectivity,MUAnew.coordinates(:,2));
@@ -182,13 +183,22 @@ if CtrlVar.DeactivateElements
         title('Elements to be deactivated in red')
     end
     
-    [coordinates,connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,MUAnew.coordinates,MUAnew.connectivity);
+    [MUAnew.coordinates,MUAnew.connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,MUAnew.coordinates,MUAnew.connectivity);
     
-    MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
+    MUAnew=UpdateMUA(CtrlVar,MUAnew);
+    %MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
     
     [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
 end
 %%
+
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    fprintf('After remeshing: ') ;
+    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
+end
+
+
 
 if CtrlVar.AdaptMeshAndThenStop
     return

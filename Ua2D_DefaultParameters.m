@@ -962,7 +962,7 @@ CtrlVar.ThicknessBarrierDiagonalFraction=1;   % size of barrier term in comparis
 CtrlVar.ThicknessBarrierMinThickMultiplier=2; % exp. barrier is 1 at ThickMin * MinThickMuliplier
 CtrlVar.ThicknessBarrierAccumulation=0.01;
 
-%% Advance/Retreat mesh and activation/deactivation of elements
+%% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
 % A `background' FE mesh is required. In most cases this background FE mesh will simply be the initial FE mesh
 % used at the start of the calculation.
@@ -1141,7 +1141,7 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
 %
 %
 
-CtrlVar.DeactivateElements=0; 
+CtrlVar.ManuallyDeactivateElements=0; 
 
 
 %% Controlling when and how often mesh is adapted    
