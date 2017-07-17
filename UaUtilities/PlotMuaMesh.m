@@ -1,23 +1,26 @@
 function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
-% PlotMuaMesh(CtrlVar,MUA,ElementList)
 %
-% Examples:
+%   PlotMuaMesh(CtrlVar,MUA,ElementList)
 %
-% figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)
+% *Examples:*
 %
-% figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input
+%   figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)
 %
-% CtrlVar.NodeColor='r';
-% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Plot nodes in red
+%   figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input
 %
-% CtrlVar.PlotLabels=0;
-% CtrlVar.PlotXYscale=1000;
-% figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
+%   CtrlVar.NodeColor='r';
+%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Plot nodes in red
 %
-% figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r');
+%   CtrlVar.PlotLabels=0;
+%   CtrlVar.PlotXYscale=1000;
+%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
+%
 % Show only elements 1 to 100 in red
+%
+%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r');
+%
 %%
 
 

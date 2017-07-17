@@ -70,7 +70,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
     DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
 </pre><h2 id="2">Manually deactivate elements within a mesh.</h2><p>This file is called within each run step if CtrlVar.ManuallyDeactivateElements=true</p><pre class="language-matlab">[UserVar,ElementsToBeDeactivated]=<span class="keyword">...</span>
     DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
-</pre><p><b>Example:</b>  To deactivate all elements within the region bounded by BoundaryCoordinats in run-step 2:</p><pre class="language-matlab"><span class="keyword">if</span> CtrlVar.CurrentRunStepNumber==2
+</pre><p><b>Example:</b>  To deactivate all elements outside of the region bounded by BoundaryCoordinats in run-step 2:</p><pre class="language-matlab"><span class="keyword">if</span> CtrlVar.CurrentRunStepNumber==2
 </pre><pre>     BoundaryCoordinates=[0 0 ; 10e3 0 ; 10e3 20e3 ; -5e3 15e3 ] ;
      In=inpoly([xEle yEle],BoundaryCoordinates);
      ElementsToBeDeactivated=~In;</pre><pre>     figure
@@ -91,7 +91,7 @@ function [UserVar,ElementsToBeDeactivated]=...
 %   [UserVar,ElementsToBeDeactivated]=...
 %       DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
 %
-% *Example:*  To deactivate all elements within the region bounded by
+% *Example:*  To deactivate all elements outside of the region bounded by
 % BoundaryCoordinats in run-step 2:
 %
 % 
