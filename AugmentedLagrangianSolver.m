@@ -181,7 +181,7 @@ if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
 end
 
 if CtrlVar.InfoLevelLinSolve>=10
-    fprintf(' ------------ AugmentedLagrangianLinSolver:                                                 --------\n ')
+    fprintf(' --------------------------- AugmentedLagrangianLinSolver: ----------------------------------------------------------------------------------------------\n ')
     fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iterativily \n')
     fprintf(' starting with [A B'' ; B iW]=[f;g]  , where iW=1/10^(k+CtrlVar.ALSpower)  using k=%g and CtrlVar.ALSpower=%g \n ',...
         full(k),CtrlVar.ALSpower)
@@ -195,7 +195,7 @@ if CtrlVar.InfoLevelLinSolve>=10
         fprintf('%10i \t %20.10g \t \t %20.10g \t \t %30.10g \t %20.10g \t %20.10g \n',...
             I,InfoVector(I,1),InfoVector(I,2),InfoVector(I,3),InfoVector(I,4),InfoVector(I,5))
     end
-    fprintf(' -----------------------------------------------------------------------------------------------------\n ')
+    fprintf(' --------------------------------------------------------------------------------------------------------------------------------------------------------\n ')
     iRange=1:Iteration;  figure ; semilogy(iRange,InfoVector(iRange,1),'o-r'); xlabel(' Iteration '); ylabel('Relative change in x and y')
     hold on ; semilogy(iRange,InfoVector(iRange,2),'+-g'); xlabel(' Iteration ');
     legend('|x-x0|/|x|','|y-y0|/|y|') ; title(' Augmented-Lagrangian linear solver ([A B'' ; B 0] [x;y] =[f;g])')

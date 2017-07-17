@@ -1,6 +1,6 @@
-function [tm,im] = pushvert(tr,pi)
-%PUSHVERT find the tree-to-vertex mappings.
-%   [TM,IM] = PUSHVERT(TR,PI) returns the tree-to-vertex and 
+function [tm,im] = mapvert(tr,pi)
+%MAPVERT find the tree-to-vertex mappings.
+%   [TM,IM] = MAPVERT(TR,PI) returns the tree-to-vertex and 
 %   vertex-to-tree mappings for a given aabb-tree TR and a 
 %   collection of query vertices PI.
 %
@@ -16,11 +16,11 @@ function [tm,im] = pushvert(tr,pi)
 %   Specifically, nodes in the list IM.LL{JJ} intersect with
 %   the item IM.II(JJ).
 %
-%   See also MAKETREE
+%   See also QUERYSET, MAPRECT, MAKETREE
 
 %   Darren Engwirda : 2014 --
 %   Email           : engwirda@mit.edu
-%   Last updated    : 05/01/2017
+%   Last updated    : 06/04/2017
 
 %----------------------- call SCANTREE to do the actual work
     if (nargout == +1)

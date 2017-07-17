@@ -43,12 +43,28 @@ end
 
 
 n=size(A,1) ; m=size(B,1);
-if isempty(B) || numel(B)==0
-    CtrlVar.AsymmSolver='Bempty';
-elseif all(full(sum(B~=0,2))==1)
-    %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-    CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+
+% 
+% if isempty(B) || numel(B)==0
+%     CtrlVar.AsymmSolver='Bempty';
+% elseif all(full(sum(B~=0,2))==1)
+%     %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+%     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+% end
+
+if isequal(lower(CtrlVar.SymmSolver),'auto')
+    
+    if isempty(B) || numel(B)==0
+        CtrlVar.SymmSolver='Bempty';
+    elseif all(full(sum(B~=0,2))==1)
+        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+        CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+    else
+        CtrlVar.SymmSolver='AugmentedLagrangian';
+    end
+    
 end
+
 
 tSolve=tic; 
 

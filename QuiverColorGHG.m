@@ -370,6 +370,8 @@ end
 
 nPowRange=Par.QuiverColorPowRange;
 
+if ~Par.QuiverSameVelocityScalingsAsBefore
+
 if verLessThan('matlab','8.4')
     
     %pre 2014b version
@@ -465,6 +467,7 @@ else
     Par.QuiverTickLabels=ticklabel;
     Par.QuiverTicks=Ticks;
     
+end
 end
 
 

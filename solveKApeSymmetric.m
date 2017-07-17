@@ -40,15 +40,18 @@ if ny0~=nB
     save TestSave ; error('error in solveKApeSymmetric')
 end
 
-
-if isempty(B) || numel(B)==0
-    CtrlVar.SymmSolver='Bempty';
-elseif all(full(sum(B~=0,2))==1)
-%    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-    CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+if isequal(lower(CtrlVar.SymmSolver),'auto')
+    
+    if isempty(B) || numel(B)==0
+        CtrlVar.SymmSolver='Bempty';
+    elseif all(full(sum(B~=0,2))==1)
+        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+        CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+    else
+        CtrlVar.SymmSolver='AugmentedLagrangian';
+    end
+    
 end
-
-
 
 tSolve=tic; 
 

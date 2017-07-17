@@ -11,6 +11,8 @@ Eta=real(0.5*A.^(-1./n).*e.^((1-n)./n));
 
 E=real((1-n)./(4*n).*A.^(-1./n).*e.^((1-3*n)./n));
 
+
+
 if nargout>3
     dEtadA= - real(A.^(-1./n-1).*e.^((1-n)./n)./(2*n));
 end
