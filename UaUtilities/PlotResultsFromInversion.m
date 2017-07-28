@@ -18,8 +18,7 @@ us=F.ub+F.ud; vs=F.vb+F.vd;
 
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
-GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
-xGL=[] ; yGL=[] ;
+GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
 
 %%
 figure
@@ -129,6 +128,25 @@ if isprop(InvFinalValues,'uAdjoint')
 end
 %% Plot velocities and velocity residuals
 CtrlVar.VelPlotIntervalSpacing='log10';
+if ~exist('x','var')
+    x=MUA.coordinates(:,1);
+    y=MUA.coordinates(:,2);
+end
+
+if ~exist('us','var')
+    us=F.ub+F.ud; vs=F.vb+F.vd;
+end
+
+if ~exist('usError','var')
+    usError=sqrt(spdiags(Meas.usCov));
+    vsError=sqrt(spdiags(Meas.vsCov));
+    wsError=sqrt(spdiags(Meas.wsCov));
+end
+if ~exist('GLgeo','var')
+    GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
+end
+
+
 figure
 subplot(2,2,1);
 QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar);

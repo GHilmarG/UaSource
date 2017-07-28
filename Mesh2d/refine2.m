@@ -74,29 +74,51 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 %   Delaunay-refinement type mesh-generation. Both standard
 %   Delaunay-refinement and Frontal-Delaunay type algorithms
 %   are available. The Frontal-Delaunay approach is a simpl-
-%   ified version of the algorithm described in: D. Engwirda
-%   "Locally optimal Delaunay-refinement and optimisation-
-%   based mesh generation", Ph.D. Thesis, Univ. of Sydney, 
-%   2014. This work is an extension of the "off-centre" type
-%   methodology introduced in: H. Erten and A. Ungor, "Qual-
-%   ity triangulations with locally optimal Steiner points",
-%   SIAM Journal on Sci. Comp. 31(3) 2009, pp: 2103--2130.
+%   ified version of the JIGSAW algorithm, described in:
+%
+% * D. Engwirda, (2014): "Locally-optimal Delaunay-refineme-
+%   nt and optimisation-based mesh generation", Ph.D. Thesis 
+%   School of Mathematics and Statistics, Univ. of Sydney.
+%   http://hdl.handle.net/2123/13148
+%
+% * D. Engwirda & D. Ivers, (2016): "Off-centre Steiner poi-
+%   nts for Delaunay-refinement on curved surfaces", Comput-
+%   er-Aided Design, (72), 157--171.
+%   http://dx.doi.org/10.1016/j.cad.2015.10.007
+
+%   This work is an extension of the "off-centre" type tech-
+%   niques introduced in: 
+%
+% * H. Erten & A. Ungor, (2009): "Quality triangulation with 
+%   locally optimal Steiner points", SIAM Journal on Scient-
+%   ific Comp. 31(3), 2103--2130.
+%
+% * S. Rebay, (1993): "Efficient Unstructured Mesh Generati-
+%   on by Means of Delaunay Triangulation and Bowyer-Watson 
+%   Algorithm, J. Comp. Physics 106(1), 125--138.
+%   http://dx.doi.org/10.1006/jcph.1993.1097
+
 %   Generally speaking, the Delaunay-refinement method impl-
-%   emented here is a variantion of the original algorithm 
-%   described in: J. Ruppert, "A Delaunay refinement algori-
-%   thm for quality 2-dimensional mesh generation." Journal 
-%   of algorithms 18(3) 1995, pp: 548--585. See also: S. Ch-
-%   eng, T. Dey and J. Shewchuk, "Delaunay mesh generation",
-%   CRC Press, 2012, for a comprehensive coverage of Delaun-
-%   ay-based meshing techniques.
+%   emented here is a variantion of the "classical" algorit-
+%   hm introduced in: 
+%
+% * J. Ruppert, (1995): "A Delaunay refinement algorithm for 
+%   quality 2-dimensional mesh generation." Journal of Algo-
+%   rithms 18(3), 548--585. 
+
+%   See also: S. Cheng, T. Dey & J. Shewchuk, (2012): "Dela-
+%   unay mesh generation", CRC Press, for comprehensive cov-
+%   erage of Delaunay-based meshing techniques.
 
 %   A much more advanced, and fully three-dimensional imple-
 %   mentation is available as part of the JIGSAW library. 
 %   For details, see: github.com/dengwirda/jigsaw-matlab.
 
+%-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 29/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 07/07/2017
+%-----------------------------------------------------------
     
     filename = mfilename('fullpath') ;
     filepath = fileparts( filename ) ;
@@ -115,7 +137,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
     if (nargin>=+6), harg = varargin(6:end); end
 
    [opts] = makeopt(opts);
-
+ 
 %---------------------------------------------- default EDGE
     nnod = size(node,1);
     
@@ -183,7 +205,7 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         nadj = ...
             accumarray(eloc(:),1) ;
  
-        if ( mod(nadj,+2) ~= +0 )
+        if (any(mod(nadj,2) ~= 0) )
         error('refine2:nonmanifoldInputs', ...
             'Non-manifold PART detected.') ;
         end
@@ -201,22 +223,23 @@ function [vert,conn,tria,tnum] = refine2(varargin)
 ' -------------------------------------------------------\n', ...
              ] ) ;
     end
-
+    
 %-------------------------------- PASS 0: inflate box bounds
     vert = node ; tria = []; tnum = []; 
     conn = PSLG ; iter = +0;
 
-    vmin = min(vert,[],+1) ;    % inflate bbox for stability
-    vmax = max(vert,[],+1) ;
+    vmin = min(vert,[],1);      % inflate bbox for stability
+    vmax = max(vert,[],1);
     
     vdel = vmax - 1.*vmin;
     vmin = vmin - .5*vdel;
     vmax = vmax + .5*vdel;
 
-    vbox = [vmin(1), vmin(2)
-            vmax(1), vmin(2)
-            vmax(1), vmax(2)
-            vmin(1), vmax(2)
+    vbox = [
+        vmin(1), vmin(2)
+        vmax(1), vmin(2)
+        vmax(1), vmax(2)
+        vmin(1), vmax(2)
            ] ;
     vert = [vert ; vbox] ;
 
@@ -235,10 +258,24 @@ function [vert,conn,tria,tnum] = refine2(varargin)
         cdtref2(vert,conn,tria,tnum, ...
             node,PSLG,part,opts,hfun,harg,iter);
     
-%-------------------------------- trim extra adjacency info.
-    tria = tria(:,1:3) ;
-    
     if (~isinf(opts.disp)), fprintf(1,'\n'); end
+        
+%-------------------------------- trim extra adjacency info.
+    tria = tria( :,1:3);
+    
+%-------------------------------- trim vert. - deflate bbox.
+    keep = false(size(vert,1),1);
+    keep(tria(:)) = true ;
+    keep(conn(:)) = true ;
+  
+    redo = zeros(size(vert,1),1);
+    redo(keep) = ...
+        (+1:length(find(keep)))';
+    
+    conn = redo(conn);
+    tria = redo(tria);
+    
+    vert = vert(keep,:);
     
 end
 
@@ -261,7 +298,8 @@ function [vert,conn,tria,tnum,iter] = ...
        [vert,conn, ...
         tria,tnum] = deltri2(vert,conn, ...
                              node,PSLG, ...
-                             part) ;
+                             part, ...
+                             opts.dtri) ;
                             
     %------------------------------------- build current adj
        [edge,tria] = tricon2(tria,conn) ;
@@ -565,7 +603,7 @@ function [vert,conn,tria,tnum,iter] = ...
              - [jlen,jlen].*evec ;
              
     %------------------------------------- iter. "size"-type
-        for ioff = +1 : +4
+        for ioff = +1 : +3
     %------------------------------------- eval. length-fun.
         if (~isempty(hfun))
             if (isnumeric(hfun))
@@ -713,10 +751,12 @@ function [vert,conn,tria,tnum,iter] = ...
     tcpu.offc = +0. ;
     tcpu.filt = +0. ;
 
+    vidx = (1:size(vert,1))';     %- "new" vert list to test
+    
     tnow =  tic ;
 
-    bias = +.775;
-
+    near = +.775;
+    
     while  (true)
     
         iter = iter + 1 ;
@@ -724,11 +764,19 @@ function [vert,conn,tria,tnum,iter] = ...
     %------------------------------------- build current CDT
         ttic = tic ;
         
+        nold = size(vert,1) ;
+        
        [vert,conn, ...
         tria,tnum]= deltri2(vert,conn, ...
                             node,PSLG, ...
-                            part) ;
-                            
+                            part, ....
+                            opts.dtri) ;
+
+        nnew = size(vert,1) ;
+        
+        vidx = ...
+       [vidx; (nold:nnew)'] ;
+                        
         tcpu.dtri = ...
             tcpu.dtri + toc(ttic) ;
 
@@ -753,7 +801,7 @@ function [vert,conn,tria,tnum,iter] = ...
 
     %------------------------------------- refinement scores
         scr2 = rho2 .* bal2(:,+3) ;
-
+       
         tcpu.ball = ...
             tcpu.ball + toc(ttic) ;
   
@@ -766,8 +814,9 @@ function [vert,conn,tria,tnum,iter] = ...
               ones(size(vert,1),1);
             fun2 = hfun ;
             else
-            fun0 = feval( ...
-                hfun,vert,harg{:});
+            fun0(vidx) = ...
+                feval(hfun, ...
+            vert(vidx,:), harg{:});
             fun0 = fun0(:) ;
             fun2 = fun0(tria(:,1))...
                  + fun0(tria(:,2))...
@@ -822,8 +871,12 @@ function [vert,conn,tria,tnum,iter] = ...
     %------------------------------------- do circ-ball pt's
         new2 = zeros(length(num2),3);
         new2(:,1:2) = bal2(num2,1:2);
-        new2(:,  3) = ...
-            bal2(num2,3) * bias^2;
+        
+        rmin = ...                      %- min. insert radii
+            len2(num2)*(1.-eps^.75)^2 ;
+        
+        new2(:,  3) = max( ...
+            bal2(num2,3)*near^2,rmin) ;
         
         
         case 'delfront'
@@ -835,37 +888,48 @@ function [vert,conn,tria,tnum,iter] = ...
      
         ttic = tic ;
     
-        ftri = false(length(num2),1) ;
-        tadj = zeros(length(num2),1) ;
-    
     %------------------------------------- find frontal edge
        [lmin,emin] = ...
             minlen2(vert,tria(num2,:)) ;
 
+        ftri = false(length(num2),1) ;
         epos = zeros(length(num2),1) ;
-
+        tadj = zeros(length(num2),1) ;
+        
         for ii = +1 : length(epos)
-            epos(ii) = ...
-              tria(num2(ii),emin(ii)+3);
-        end
-    %------------------------------------- find neighb. tria
-        for ii = +1 : length(epos)
-        if (num2(ii)~= edge(epos(ii),3))
-            tadj(ii) = edge(epos(ii),3);
-        else
-            tadj(ii) = edge(epos(ii),4);
-        end
+            epos(ii) = tria( ...
+                num2(ii),emin(ii)+3) ;
         end
         
     %------------------------------------- find frontal tria
-        for ii = +1 : length(tadj)
-        if (edge(epos(ii),5) > +0)
-            ftri(ii) = true ;       
-        else
-            ftri(ii) = ~ref2(tadj(ii)) ;
-        end
+        for enum = +1 : +3
+        
+            eidx = tria(num2,enum+3) ;
+            
+            ftri = ...
+            ftri | edge(eidx,5) > +0 ;
+        
+            ione = ...
+                num2 ~= edge(eidx,3) ;
+            itwo = ~ione ;
+            
+            tadj(ione) = ...
+                edge(eidx(ione),3);
+            tadj(itwo) = ...
+                edge(eidx(itwo),4);
+        
+            okay = tadj > +0 ;
+            tidx = tadj(okay);
+        
+            ftri(okay) = ...
+            ftri(okay) | ~ref2(tidx) ;
+        
         end
         
+        if (~any(ftri))                 %- can this happen!?
+        ftri = true(length(num2),+1) ; 
+        end
+       
     %------------------------------------- locate offcentres 
         emid = vert(edge(epos,+1),:) ...
              + vert(edge(epos,+2),:) ;
@@ -901,7 +965,7 @@ function [vert,conn,tria,tnum,iter] = ...
         emid + [dist,dist] .* vvec ;
     
     %------------------------------------- iter. "size"-type
-        for isub = +1 : +4
+        for isub = +1 : +3
     %------------------------------------- eval. length-fun.           
         if (~isempty(hfun))
             if (isnumeric(hfun))
@@ -918,9 +982,12 @@ function [vert,conn,tria,tnum,iter] = ...
         end
 
     %------------------------------------- "size"-type dist.        
-        hprj = 0.5*hmid + 0.5*hprj ;
+        hprj = .33*hmid + .67*hprj ;
         
         dsiz = +sqrt(3.)/2. * hprj ;
+        
+        dsiz(dsiz<elen*.50) = +inf ;    %- edge-ball limiter
+        dsiz(dsiz>vlen*.95) = +inf ;    %- circ-ball limiter
         
     %------------------------------------- bind "safe" dist. 
        [dist,ioff] = ...
@@ -934,31 +1001,17 @@ function [vert,conn,tria,tnum,iter] = ...
     
         orad = ...    
         sqrt((elen*.5).^2 + dist.^2) ;
-        
-    %------------------------------------- select offcentres
-        vtri = ioff == +3 ;             %- voronoi-points
-        ftri = ioff ~= +3 ...           %- frontal-points
-             & ftri ;
- 
-    %-- since this is a "multirefinement" type approach, try
-    %-- to place as many points in one pass as possible. We
-    %-- could place just the "frontal" offcentres, but appa-
-    %-- rantly, also pushing the circumcentres when they are
-    %-- locally closest to their respective frontal edges
-    %-- works just fine too! This approach also deals with a
-    %-- few issues that occur when |FTRI| is small. Specifi-
-    %-- cally, it ensures that the proximity/encroachment
-    %-- filters below can't zip the insertions away to zero!
     
-        keep = ftri | vtri;
-             
     %------------------------------------- do offcentre pt's
         new2 = ...
-        zeros(length(find(keep)), 1) ;
+        zeros(length(find(ftri)),+3) ;
+        new2(:,1:2) = off2(ftri,1:2) ;
         
-        new2(:,1:2) = off2(keep,1:2) ;
-        new2(:,  3) = ...
-           (orad(keep) * bias) .^ 2;
+        rmin = ...                      %- min. insert radii
+            lmin(ftri)*(1.-eps^.75)^2 ;
+        
+        new2(:,  3) = max( ...
+            (orad(ftri)*near).^2,rmin);
        
         tcpu.offc = ...
             tcpu.offc + toc (ttic) ;
@@ -971,15 +1024,20 @@ function [vert,conn,tria,tnum,iter] = ...
       
     %------------------------------------- proximity filters
        [vp,vi] = ...
-          findball(new2,new2(:,1:2));
-       
-        keep = true (size(new2,1),1);
+          findball(new2,new2(:,1:2)) ;
+     
+        keep = true (size(new2,1),1) ;      
         for ii = size(vp,1):-1:+1
             for ip = vp(ii,1) ...
                    : vp(ii,2)
                 jj = vi(ip);
-                if (jj<ii && keep(jj))           
-                keep(ii) = false ;
+                if (keep(jj) && ...
+                    keep(ii) && ...
+                    jj < ii )
+                
+                keep(ii) = false ; 
+                break;
+          
                 end 
             end
         end
@@ -994,7 +1052,7 @@ function [vert,conn,tria,tnum,iter] = ...
           findball(bal1,new2(:,1:2));
         
         keep = true (size(new2,1),1);
-        for ii = size(vp,1):-1:+1
+        for ii = +1:+1:size(vp,1)
             for ip = vp(ii,1) ...
                    : vp(ii,2)
                 jj = vi(ip);
@@ -1020,12 +1078,18 @@ function [vert,conn,tria,tnum,iter] = ...
             tcpu.filt + toc(ttic) ;
         
     %------------------------------------- split constraints
-        vnew = (1:length( ...
-          find(ref1)))'+size(vert,1);
+        idx1 = ...
+       (1:size(new1))'+size(vert,1) ;
         
-        cnew = [conn( ref1,1), vnew
-                conn( ref1,2), vnew];
+        idx2 = ...
+       (1:size(new2))'+size(new1,1) ...
+                      +size(vert,1) ;
+       
+        cnew = [conn( ref1,1), idx1
+                conn( ref1,2), idx1];
         conn = [conn(~ref1,:); cnew];
+        
+        vidx = [idx1; idx2];
  
     %------------------------------------- update vertex set              
         nold = size(vert,1);
@@ -1076,11 +1140,21 @@ end
 function [opts] = makeopt(opts)
 %MAKEOPT setup the options structure for REFINE2.
 
+    if (~isfield(opts,'dtri'))
+        opts.dtri = 'constrained';
+    else
+    if (~strcmpi(opts.dtri, 'conforming') && ...
+        ~strcmpi(opts.dtri,'constrained') )
+        error( ...
+        'refine2:invalidOption','Invalid constraint KIND.'); 
+    end
+    end
+
     if (~isfield(opts,'kind'))
         opts.kind = 'delfront';
     else
-    if (~strcmpi(opts.kind,'delfront') && ...
-        ~strcmpi(opts.kind,'delaunay') )
+    if (~strcmpi(opts.kind, 'delfront') && ...
+        ~strcmpi(opts.kind, 'delaunay') )
         error( ...
         'refine2:invalidOption','Invalid refinement KIND.'); 
     end

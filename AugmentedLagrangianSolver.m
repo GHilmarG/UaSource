@@ -1,7 +1,10 @@
 function [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar)
 
+isUpperLeftBlockMatrixSymmetrical=issymmetric(A);
+
+
 if CtrlVar.InfoLevelLinSolve>=10
-    if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
+    if isUpperLeftBlockMatrixSymmetrical
         fprintf(' Solving a symmetrical indefinite block system using the Augmented Lagrangian Solver (ALS) \n' )
     else
         fprintf(' Solving asymetrical indefinite block system using the Augmented Lagrangian Solver (ALS) \n' )
@@ -65,7 +68,9 @@ T=[A B' ; B iW];
 
 tStart=tic;
 
-if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
+
+
+if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
     [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifronta sparse direct solver using AMD ordering
     sol=zeros(m+n,1);
 else
@@ -114,7 +119,7 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     fg=[f ; g + iW*y0];
     % sol=Q*(U\(L\(P*(R\fg))));
     
-    if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
+    if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
         fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
     else
         sol=Q*(U\(L\(P*(R\fg))));
@@ -181,7 +186,7 @@ if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
 end
 
 if CtrlVar.InfoLevelLinSolve>=10
-    fprintf(' ------------ AugmentedLagrangianLinSolver:                                                 --------\n ')
+    fprintf(' --------------------------- AugmentedLagrangianLinSolver: ----------------------------------------------------------------------------------------------\n ')
     fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iterativily \n')
     fprintf(' starting with [A B'' ; B iW]=[f;g]  , where iW=1/10^(k+CtrlVar.ALSpower)  using k=%g and CtrlVar.ALSpower=%g \n ',...
         full(k),CtrlVar.ALSpower)
@@ -195,7 +200,7 @@ if CtrlVar.InfoLevelLinSolve>=10
         fprintf('%10i \t %20.10g \t \t %20.10g \t \t %30.10g \t %20.10g \t %20.10g \n',...
             I,InfoVector(I,1),InfoVector(I,2),InfoVector(I,3),InfoVector(I,4),InfoVector(I,5))
     end
-    fprintf(' -----------------------------------------------------------------------------------------------------\n ')
+    fprintf(' --------------------------------------------------------------------------------------------------------------------------------------------------------\n ')
     iRange=1:Iteration;  figure ; semilogy(iRange,InfoVector(iRange,1),'o-r'); xlabel(' Iteration '); ylabel('Relative change in x and y')
     hold on ; semilogy(iRange,InfoVector(iRange,2),'+-g'); xlabel(' Iteration ');
     legend('|x-x0|/|x|','|y-y0|/|y|') ; title(' Augmented-Lagrangian linear solver ([A B'' ; B 0] [x;y] =[f;g])')

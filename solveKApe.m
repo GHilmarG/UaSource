@@ -43,12 +43,30 @@ end
 
 
 n=size(A,1) ; m=size(B,1);
-if isempty(B) || numel(B)==0
-    CtrlVar.AsymmSolver='Bempty';
-elseif all(full(sum(B~=0,2))==1)
-    %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-    CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+
+% 
+% if isempty(B) || numel(B)==0
+%     CtrlVar.AsymmSolver='Bempty';
+% elseif all(full(sum(B~=0,2))==1)
+%     %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+%     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+% end
+
+if isequal(lower(CtrlVar.AsymmSolver),'auto')
+    
+    if isempty(B) || numel(B)==0
+        CtrlVar.AsymmSolver='Bempty';
+%    elseif all(full(sum(B~=0,2))==1)
+%        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+%        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+    else
+        CtrlVar.AsymmSolver='AugmentedLagrangian';
+        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g; 
+    end
+    
 end
+
+
 
 tSolve=tic; 
 
@@ -66,10 +84,14 @@ switch CtrlVar.AsymmSolver
         end
         
     case 'EliminateBCsSolveSystemDirectly'
+        
         if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
         
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
-        iFreeDOF=setdiff(1:n,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
+        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); 
+        iConstrainedDOF=iConstrainedDOF(:);
+        
+        iFreeDOF=setdiff(1:n,iConstrainedDOF); 
+        iFreeDOF=iFreeDOF(:);
         
         
         AA=A; ff=f;
@@ -77,16 +99,20 @@ switch CtrlVar.AsymmSolver
         sol=AA\ff;
         
         x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
-        y=B*(f-A*x);
-%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-B x)
+        y=B'\(f-A*x);
+
+%
+%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
 %  [B   0 ] [y]  [g]      
 %
-% -> A x + B' y = f -> y = B'\(f-B x)
+% -> A x + B' y = f -> y = B'\(f-A x)
+%   B'*B=1 then
+%   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
 %
-%       
+
     case 'AugmentedLagrangian'
         
-        CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=0;
+        
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
         
     case 'EliminateBCsSolveSystemIterativly'
@@ -154,11 +180,15 @@ if CtrlVar.InfoLevelLinSolve>=10
         n+m,n,m,tSolve,CtrlVar.AsymmSolver)
     if CtrlVar.InfoLevelCPU 
         fprintf(CtrlVar.fidlog,' in %-g sec. \n',tSolve) ;
-    end ;
+    end 
 end
 
-
-
+%% Testing
+if isempty(B)
+    fprintf('solveKApe: Solution residual %g \n',norm(A*x-f))
+else
+    fprintf('solveKApe: Solution residuals %g %g \n',norm(A*x+B'*y-f),norm(B*x-g))
+end
 
 end
 

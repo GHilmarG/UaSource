@@ -1,14 +1,13 @@
-function Ua2D(UserVar)
+function Ua2D(UserVar,varargin)
 
 %% Driver for the 2HD Úa model
-% Ua2D(UserRunParameters)
-%
-%
+% 
+
+
 
 if nargin==0
     UserVar=[];
 end
-
 
 SetUaPath() %% set path
 
@@ -47,18 +46,31 @@ clear LocalMeshRefinement
 clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
 clear multiWaitbar
+% also those potentially defined in user input files
+clear DefineSlipperyDistribution
+clear DefineAGlenDistribution
+clear DefineGeometry
+clear DefineInputsForInverseRun
+clear DefineDensities
+clear DefineDesiredEleSize
+clear DefineBoundaryConditions
+clear DefineMassBalance
+clear UaOutputs
+
+
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
 
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
-[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
+[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
 
 RunInfo.Message(1)="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
+
 
 %%
 
@@ -309,7 +321,7 @@ while 1
     
        
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
-    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat
+    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
 
         [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);

@@ -40,15 +40,19 @@ if ny0~=nB
     save TestSave ; error('error in solveKApeSymmetric')
 end
 
+if isequal(lower(CtrlVar.SymmSolver),'auto')
+    
+    if isempty(B) || numel(B)==0
+        CtrlVar.SymmSolver='Bempty';
+%     elseif all(full(sum(B~=0,2))==1)
+%         %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+%         CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+    else
+        CtrlVar.SymmSolver='AugmentedLagrangian';
 
-if isempty(B) || numel(B)==0
-    CtrlVar.SymmSolver='Bempty';
-elseif all(full(sum(B~=0,2))==1)
-%    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-    CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+    end
+    
 end
-
-
 
 tSolve=tic; 
 
@@ -87,14 +91,15 @@ switch CtrlVar.SymmSolver
         x=zeros(nA,1) ; 
         x(iConstrainedDOF)=g ; 
         x(iFreeDOF)=sol;
-        y=B*(f-A*x);
+        %y=B*(f-A*x);
+        y=B'\(f-A*x);
 
-%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-B x)
+%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
 %  [B   0 ] [y]  [g]      
 %
-% -> A x + B' y = f -> y = B'\(f-B x)
+% -> A x + B' y = f -> y = B'\(f-A x)
 %   B'*B=1 then
-%   y = B'\(f-B x) = inv(B') B' B (f-B x)=  B (f-B x)
+%   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
 %
 
 

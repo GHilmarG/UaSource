@@ -107,7 +107,7 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
     r0=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
     
     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
-    
+   
     
     if any(isnan(duvh)) ; save TestSave  ; fprintf(CtrlVar.fidlog,'error: NaN in solution of implicit system \n') ; error(' NaN in solution of implicit uvh system ' ) ; end
     %%
@@ -144,8 +144,10 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
             [~,~,rTest,~,~,~]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
             gammaTestVector(I)=gammaTest ; rTestvector(I)=rTest;
         end
+        
         gammaTestVector=[gammaTestVector(:);infovector(:,1)];
         rTestvector=[rTestvector(:);infovector(:,2)];
+        
         [gammaTestVector,ind]=unique(gammaTestVector) ; rTestvector=rTestvector(ind) ;
         [gammaTestVector,ind]=sort(gammaTestVector) ; rTestvector=rTestvector(ind) ;
         

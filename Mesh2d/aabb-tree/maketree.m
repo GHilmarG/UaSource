@@ -39,70 +39,118 @@ function [tr] = maketree(rp,varargin)
 %   NMIN,NMAX are the coordinates of the enclosing node in
 %   the tree, and IX is the splitting axis. Nodes that beco-
 %   me "full" of "long" items may exceed their maximum rect-
-%   angle capacity.
+%   angle capacity. OP.VTOL = {.55} is a "volume" splitting
+%   criteria, designed to continue subdivision while the net
+%   node volume is reducing. Specifically, a node is split 
+%   if V1+V2 <= OP.VTOL*VP, where VP is the d-dim. "volume"
+%   of the parent node, and V1,V2 are the volumes associated 
+%   with its children.
 %
-%   See also DRAWTREE, FINDBALL
+%   See also DRAWTREE, QUERYSET, MAPVERT, MAPRECT
 
 % Please see the following for additional information:
 %
-%   Engwirda, D. Unstructured tessellation and mesh generat-
-%   ion. Ph.D. Thesis, School of Mathematics and Statistics, 
-%   Univ. of Sydney, 2014.
+%   Darren Engwirda, "Locally-optimal Delaunay-refinement & 
+%   optimisation-based mesh generation". Ph.D. Thesis, Scho-
+%   ol of Mathematics and Statistics, Univ. of Sydney, 2014:
+%   http://hdl.handle.net/2123/13148
 
 %   Darren Engwirda : 2014 --
-%   Email           : engwirda@mit.edu
-%   Last updated    : 25/01/2017
+%   Email           : de2363@columbia.edu
+%   Last updated    : 07/07/2017
 
     tr.xx = []; tr.ii = []; tr.ll = {}; op = [];
+    
 %------------------------------ quick return on empty inputs
     if (isempty(rp)), return; end
+    
 %---------------------------------------------- basic checks    
     if (~isnumeric(rp))
         error('maketree:incorrectInputClass', ...
             'Incorrect input class.');
     end
+    
 %---------------------------------------------- basic checks
     if (nargin < +1 || nargin > +2)
         error('maketree:incorrectNoOfInputs', ...
             'Incorrect number of inputs.');
     end
-    if (ndims(rp) ~= +2 || mod(size(rp,2),+2) ~= +0)
+    if (ndims(rp) ~= +2 || ...
+            mod(size(rp,2),2)~= +0)
         error('maketree:incorrectDimensions', ...
             'Incorrect input dimensions.');
     end
+    
 %------------------------------- extract user-defined inputs
     if (nargin >= +2), op = varargin{1}; end
+    
+    isoctave = exist( ...
+        'OCTAVE_VERSION','builtin') > 0;
+    
+    if (isoctave)
+    
+    %-- faster for OCTAVE with large tree block size; slower
+    %-- loop execution...
+    
+        NOBJ = +1024 ; 
+        
+    else
+    
+    %-- faster for MATLAB with small tree block size; better
+    %-- loop execution... 
+    
+        NOBJ =  + 32 ;
+        
+    end
+    
 %--------------------------------------- user-defined inputs
     if (~isstruct(op))
-        op.nobj = +32;
+        
+        op.nobj = NOBJ ;
         op.long = .75;
+        op.vtol = .55;
+        
     else
+    
     %-------------------------------- bound population count
         if (isfield(op,'nobj'))
             if (op.nobj <= +0 )
-                error('Invalid options.');
+                error('Invalid options.') ;
             end
         else
-            op.nobj = +32;
+            op.nobj = NOBJ ;
         end
+        
     %-------------------------------- bound "long" tolerance
         if (isfield(op,'long'))
             if (op.long < +.0 || op.long > +1.)
-                error('Invalid options.');
+                error('Invalid options.') ;
             end
         else
             op.long = .75; 
         end
+        
+    %-------------------------------- bound "long" tolerance
+        if (isfield(op,'vtol'))
+            if (op.vtol < +.0 || op.vtol > +1.)
+                error('Invalid options.') ;
+            end
+        else
+            op.vtol = .55; 
+        end
+        
     end
-
+    
 %---------------------------------- dimensions of rectangles
     nd = size(rp,2) / +2 ;
     ni = size(rp,1) ;
+    
 %------------------------------------------ alloc. workspace
     xx = zeros(ni*1,2*nd);
     ii = zeros(ni*1,2);
     ll = cell (ni*1,1);
     ss = zeros(ni*1,1);
+    
 %------------------------------------ min & max coord. masks
     lv = false(size(rp,2),1);
     rv = false(size(rp,2),1);
@@ -110,20 +158,27 @@ function [tr] = maketree(rp,varargin)
     rv((1:nd)+nd*+1) = true ;
 
 %----------------------------------------- inflate rectangle
-    rd = rp(:,rv)-rp(:,lv);
-    rp(:,lv) = rp(:,lv)-rd*eps^.8;
-    rp(:,rv) = rp(:,rv)+rd*eps^.8;
+    r0 = min(rp(:,lv),[],1) ;
+    r1 = max(rp(:,rv),[],1) ;
+   
+    rd = repmat(r1-r0,ni,1) ;
+    
+    rp(:,lv) = ...
+    rp(:,lv) - rd * eps^.8;
+    rp(:,rv) = ...
+    rp(:,rv) + rd * eps^.8;
     
 %----------------------------------------- rectangle centres
-    rc =(rp(:,lv)+rp(:,rv)) * +.5;
+    rc = rp(:,lv)+rp(:,rv);
+    rc = rc * .5 ;
 %----------------------------------------- rectangle lengths
     rd = rp(:,rv)-rp(:,lv);
-    
-%------------------------------------ indexing for root node
-    ii(1,1) = +0;
-    ii(1,2) = +0;
+
 %------------------------------ root contains all rectangles
     ll{1} = (+1:ni)' ;
+%------------------------------------ indexing for root node
+    ii(1,1) = +0 ;
+    ii(1,2) = +0 ;
 %------------------------------ root contains all rectangles
     xx(1,lv) = min(rp(:,lv),[],1);
     xx(1,rv) = max(rp(:,rv),[],1);
@@ -132,67 +187,125 @@ function [tr] = maketree(rp,varargin)
     ss(+1) = +1; ns = +1; nn = +1;   
     while (ns ~= +0)
     %----------------------------------- pop node from stack
-        ni = ss(ns); 
-        ns = ns - 1;
-    %--------------------------- divide node if too populous
-        if (length(ll{ni}) > op.nobj)
-        %------------------------------------ child indexing
-            n1 = nn+1; 
-            n2 = nn+2;
-        %----------------------- set of rectangles in parent
-            li = ll{ni} ;
-        %----------------------- split plane on longest axis
-            ndim = xx(ni,rv)-xx(ni,lv);
-           [mx,ax] = max(ndim);
-          
-        %----------------------- push rectangles to children
-            il = rd(li,ax) > op.long * mx;
-            lp = li( il);           %  "long" rectangles
-            ls = li(~il);           % "short" rectangles
+        ni = ss(ns) ; 
+        ns = ns - 1 ;
+    %----------------------------------- push child indexing
+        n1 = nn + 1 ; 
+        n2 = nn + 2 ;           
+        
+    %--------------------------- set of rectangles in parent
+        li = ll{ni} ;    
+    %--------------------------- split plane on longest axis
+        dd = xx(ni,rv) ...
+           - xx(ni,lv) ;
+       [dd,ia] = sort(dd);
+  
+        for id = nd : -1 : +1
+    %--------------------------- push rectangles to children         
+            ax = ia (id) ;
+            mx = dd (id) ;
+    
+            il = rd(li,ax) > ...
+                op.long * mx ;
+            lp = li( il) ;          %  "long" rectangles
+            ls = li(~il) ;          % "short" rectangles
+        
+            if (length(lp) < ...
+            0.5*length(ls)&& ...
+                length(lp) < ...
+            0.5 * op.nobj)
+                break ;
+            end 
+        end
+        
+        if (isempty(ls) )
+    %-------------------------------- partition empty, done!
+            continue ;
+        end
+        
+    % select the split position: take the mean of the set of
+    % (non-"long") rectangle centres along axis AX
+    %-------------------------------------------------------
+        sp = sum(rc(ls,ax))/length(ls);
+       
+    %---------------------------- partition based on centres
+        i2 = rc(ls,ax)>sp ;
+        l1 = ls(~i2) ;              %  "left" rectangles
+        l2 = ls( i2) ;              % "right" rectangles
+    
+        if (isempty(l1) || ...
+            isempty(l2) )
+    %-------------------------------- partition empty, done!
+            continue ;
+        end
+        
+    %-------------------------------- finalise node position
+        xx(n1,lv) = ...
+            min(rp(l1,lv),[],1) ;
+        xx(n1,rv) = ...
+            max(rp(l1,rv),[],1) ;
+        xx(n2,lv) = ...
+            min(rp(l2,lv),[],1) ;
+        xx(n2,rv) = ...
+            max(rp(l2,rv),[],1) ;
             
-        % select split position: take the mean of the set of
-        % (non-"long") rectangle centres along axis AX
-        %---------------------------------------------------
-            sp = sum(rc(ls,ax))/length(ls);
-        %------------------------ partition based on centres
-            i2 = rc(ls,ax)>sp ;
-            l1 = ls(~i2);           %  "left" rectangles
-            l2 = ls( i2);           % "right" rectangles
-           
-        %------------------------ deal with empty partitions
-            if (isempty(l1) || ...
-                isempty(l2) )
-            %---- must be full of "long" items - don't split
-                continue;
+    %--------------------------- push child nodes onto stack        
+        if (length(ll{ni}) <= op.nobj)
+        
+            vi = prod(xx(ni,rv) ... % upper d-dim "vol."
+                    - xx(ni,lv) ) ;
+            v1 = prod(xx(n1,rv) ... % lower d-dim "vol."
+                    - xx(n1,lv) ) ; 
+            v2 = prod(xx(n2,rv) ...
+                    - xx(n2,lv) ) ;
+        
+            if (v1+v2 < op.vtol*vi)
+               
+    %-------------------------------- parent--child indexing
+            ii(n1,1) = ni ; 
+            ii(n2,1) = ni ;
+            ii(ni,2) = n1 ;
+            
+    %-------------------------------- finalise list indexing
+            ll{ni,1} = lp ;
+            ll{n1,1} = l1 ;
+            ll{n2,1} = l2 ;
+        
+            ss(ns+1) = n1 ;
+            ss(ns+2) = n2 ;
+            ns = ns+2; nn = nn+2;
+            
             end
             
-        %---------------------------- finalise node position
-            xx(n1,lv) = min(rp(l1,lv),[],1);
-            xx(n1,rv) = max(rp(l1,rv),[],1);
-            xx(n2,lv) = min(rp(l2,lv),[],1);
-            xx(n2,rv) = max(rp(l2,rv),[],1);
-        %---------------------------- parent--child indexing
-            ii(n1,1) = ni; 
-            ii(n2,1) = ni;
-            ii(ni,2) = n1;
-        %---------------------------- finalise list indexing
-            ll{ni}   = lp;
-            ll{n1}   = l1;
-            ll{n2}   = l2;
-        %----------------------- push child nodes onto stack
-            ss(ns+1) = n1;
-            ss(ns+2) = n2;
-            nn = nn+2; ns = ns+2;
-        end       
+        else
+    %-------------------------------- parent--child indexing
+            ii(n1,1) = ni ; 
+            ii(n2,1) = ni ;
+            ii(ni,2) = n1 ;
+            
+    %-------------------------------- finalise list indexing
+            ll{ni,1} = lp ;
+            ll{n1,1} = l1 ;
+            ll{n2,1} = l2 ;
+        
+            ss(ns+1) = n1 ;
+            ss(ns+2) = n2 ;
+            ns = ns+2; nn = nn+2;
+        
+        end
+        
     end
 %----------------------------------------------- trim alloc.
     xx = xx(1:nn,:);
     ii = ii(1:nn,:);
     ll(nn+1:end) = [] ;
+    
 %----------------------------------------------- pack struct
-    tr.xx = xx; 
-    tr.ii = ii; 
-    tr.ll = ll;
+    tr.xx = xx ; 
+    tr.ii = ii ; 
+    tr.ll = ll ;
     
 end
+
+
 

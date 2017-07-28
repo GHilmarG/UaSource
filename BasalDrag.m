@@ -11,6 +11,13 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 %
 %
 %
+%  Regularisation parameters:
+%
+%  CtrlVar.Czero
+%  CtrlVar.SpeedZero
+%  CtrlVar.HeZero
+%
+%
 %
 
 %% Basal drag term : ice
@@ -18,10 +25,14 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 
 beta2i=(C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 
+He=He+CtrlVar.HeZero ; % Regularisation 
+
 taubxi=He.*beta2i.*ub;
 taubyi=He.*beta2i.*vb;
 
 Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
+
+
 
 dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
 dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);

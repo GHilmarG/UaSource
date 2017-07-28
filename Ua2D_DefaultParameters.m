@@ -199,7 +199,11 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=1e-10;        % 
+CtrlVar.Czero=1e-20    ;    % must be much smaller than C. 
+CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
+                            % non-zero basal drag term everywhere.)  
+                            %
+
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularization parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
 CtrlVar.dbdyZero=1;   % a crude solution is to limit bed slopes to 45 degrees. 
@@ -328,8 +332,8 @@ CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evalu
 % ALSpower. If ALS does not converge then tying a smaller ALSpower
 % usually does the trick.
 %
-CtrlVar.SymmSolver='AugmentedLagrangian';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
-CtrlVar.AsymmSolver='AugmentedLagrangian';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
+CtrlVar.SymmSolver='Auto';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
+CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-10;  % Residual when solving linear system.
@@ -958,7 +962,7 @@ CtrlVar.ThicknessBarrierDiagonalFraction=1;   % size of barrier term in comparis
 CtrlVar.ThicknessBarrierMinThickMultiplier=2; % exp. barrier is 1 at ThickMin * MinThickMuliplier
 CtrlVar.ThicknessBarrierAccumulation=0.01;
 
-%% Advance/Retreat mesh and activation/deactivation of elements
+%% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
 % A `background' FE mesh is required. In most cases this background FE mesh will simply be the initial FE mesh
 % used at the start of the calculation.
@@ -1124,6 +1128,7 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
                                                    % 'explicit:local'
                                                    % 'explicit:local:red-green'
                                                    % 'explicit:local:newest vertex bisection';
+                                                   
 %  
 % `explicit:global' implies a global remeshing of the whole domain. This is a
 % very flexible approach  allowing for both increasing and decreasing mesh
@@ -1134,7 +1139,11 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
 % very elegant way of refining the mesh, but does not allow for subsequent mesh
 % coarsening.
 %
-%                                                                                                     
+%
+
+CtrlVar.ManuallyDeactivateElements=0; 
+
+
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted
