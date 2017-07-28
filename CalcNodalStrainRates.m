@@ -3,14 +3,17 @@ function [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 
 
 %%
-%  Calculates horizontal strain rates given horizontal velocities. 
+%  
+% Calculates horizontal strain rates given horizontal velocities. 
 %
 %   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 %
 % Returns nodal values.
 %
 % Note: The strain rates are calculated at integration points and then projected
-% onto nodes. The projection does not conserve positivity and positve
+% onto nodes. 
+%
+% The projection does not conserve positivity and positve
 % integration values can become negative at nodes. The effectiv strain rate , e,
 % is for this reason calculated directly from nodal values, ensuring that e is
 % always positive.
