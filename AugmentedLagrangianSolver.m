@@ -1,7 +1,10 @@
 function [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar)
 
+isUpperLeftBlockMatrixSymmetrical=issymmetric(A);
+
+
 if CtrlVar.InfoLevelLinSolve>=10
-    if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
+    if isUpperLeftBlockMatrixSymmetrical
         fprintf(' Solving a symmetrical indefinite block system using the Augmented Lagrangian Solver (ALS) \n' )
     else
         fprintf(' Solving asymetrical indefinite block system using the Augmented Lagrangian Solver (ALS) \n' )
@@ -65,7 +68,9 @@ T=[A B' ; B iW];
 
 tStart=tic;
 
-if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
+
+
+if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
     [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifronta sparse direct solver using AMD ordering
     sol=zeros(m+n,1);
 else
@@ -114,7 +119,7 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     fg=[f ; g + iW*y0];
     % sol=Q*(U\(L\(P*(R\fg))));
     
-    if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
+    if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
         fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
     else
         sol=Q*(U\(L\(P*(R\fg))));

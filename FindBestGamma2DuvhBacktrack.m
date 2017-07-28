@@ -69,7 +69,7 @@ while ExtrapolationStep && iarm<=10
         if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
         
         
-        [UserVar,RunInfo,r1,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
         
@@ -97,10 +97,11 @@ while ExtrapolationStep && iarm<=10
 end
 
 
-
+iarmExtrapolation=iarm;
+iarm=0;
 
 %% backtracking step
-while r >  target && iarm<=iarmmax && gamma > GammaMin
+while r >  target && iarm<=iarmmax && gamma > GammaMin  && r > CtrlVar.NLtol
     
     iarm=iarm+1;
     if iarm==1  % parabolic backtracking step
@@ -155,46 +156,19 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin
         fprintf(CtrlVar.fidlog,'B: iarm=%-i \t gammab=%-g \t gammac=%-g \t r0=%-g \t r1=%-g \t r=%-g \t  rc=%-g \t target=%-g \t r/rtarget=%-g \n',iarm,gammab,gammac,r0,r1,r,rc,target,r/target);
     end
 end
-
-
-
-if iarm==0 && r> 0.1*r0 && r> CtrlVar.NLtol
-    %% it is so cheap to calculate the cost function that I do so even if first step has been accepted (here I'm allowing for some extrapolation beyond full Newton step)
-    
-    gammaTest=-Slope0/2/(rb-r0-Slope0);
-    if gammaTest > 1.2*gammab ; gammaTest=1.2*gammab ; elseif gammaTest < 0.1*gammab ; gammaTest=0.1*gammab;end
-    
-    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
-    infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
-    if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ; iarm=iarm+1; end
-    
-elseif iarm==1 && r> 0.1*r0 && gammaNaN==0
-    % another case that is sometimes worthwile investigating is if first backtracking step can be improved
-    
-    gammaTest=gamma/2;
-    
-    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
-    
-    infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
-    if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ;  iarm=iarm+1; end
-    
-    [~,ind]=sort(infovector(:,1)); infovector(:,1)=infovector(ind,1); infovector(:,2)=infovector(ind,2);
-    
-    % cubic fit trough the values at 0, 1, and gamma
-    gammaTest=CubicFit(Slope0,r0,infovector(2,2),1,infovector(2,1),r1);
-    if gammaTest > 0.9 ; gammaTest=0.9 ; elseif gammaTest < 0.01 ; gammaTest=0.01 ;end
-    
-    [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
-    
-    infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
-    if rTest<r ; r=rTest ; gamma=gammaTest ;
-        fprintf(CtrlVar.fidlog,' cubic fit improved \n ');
-    end
-    
-end
+% 
+% if iarm==1 && r> 0.1*r0 && gammaNaN==0 && r> CtrlVar.NLtol
+%     % another case that is sometimes worthwile investigating is if first backtracking step can be improved
+%     
+%     gammaTest=gamma/2;
+%     
+%     [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
+%     %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+%     
+%     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
+%     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ;  iarm=iarm+1; end
+% 
+% end
 
 infovector=infovector(1:I-1,:);
 

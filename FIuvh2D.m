@@ -137,7 +137,7 @@ else
                 fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dt,dt/10);
                 dt=dt/10; CtrlVar.dt=dt;
                 fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
-                F1.ub=F0.ub*0 ; F1.vb=F0.vb*0 ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
+                F1.ub=F0.ub ; F1.vb=F0.vb ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0; 
             elseif ~ActiveSetReset
                 ActiveSetReset=1;
