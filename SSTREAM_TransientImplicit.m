@@ -151,7 +151,6 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
         [gammaTestVector,ind]=unique(gammaTestVector) ; rTestvector=rTestvector(ind) ;
         [gammaTestVector,ind]=sort(gammaTestVector) ; rTestvector=rTestvector(ind) ;
         
-        
         slope=-2*r0;
         
         FigName='uvh iteration: line-search';
