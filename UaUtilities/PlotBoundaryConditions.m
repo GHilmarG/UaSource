@@ -1,4 +1,4 @@
-function PlotBoundaryConditions(CtrlVar,MUA,BCs)
+function PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %%
 %  PlotBoundaryConditions(CtrlVar,MUA,BCs)
 %
@@ -10,7 +10,7 @@ function PlotBoundaryConditions(CtrlVar,MUA,BCs)
 
 CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
-PlotMuaMesh(CtrlVar,MUA)  ; hold on
+PlotMuaMesh(CtrlVar,MUA,[],varargin{:})  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
 

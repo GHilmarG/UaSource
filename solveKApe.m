@@ -185,15 +185,27 @@ end
 
 %% Testing
 if isempty(B)
-    res=norm(A*x-f);
+    if norm(f)>eps
+        res=norm(A*x-f)/norm(f);
+    else
+        res=norm(A*x-f);
+    end
     if res>1e-5
-        fprintf('solveKApe: Solution residual appears too large! %g \n',norm(A*x-f))
+        fprintf('solveKApe: Solution residual appears too large! %g \n',res)
     end
 else
-    res1=norm(A*x+B'*y-f);
-    res2=norm(B*x-g);
+    if norm(f)>eps
+        res1=norm(A*x+B'*y-f)/norm(f);
+    else
+        res1=norm(A*x+B'*y-f);
+    end
+    if norm(g)>eps
+        res2=norm(B*x-g)/norm(g);
+    else
+        res2=norm(B*x-g);
+    end
     if res1> 1e-5 || res2 > 1e-5
-        fprintf('solveKApe: Solution residuals appear to be too large! %g %g \n',norm(A*x+B'*y-f),norm(B*x-g))
+        fprintf('solveKApe: Solution residuals appear to be too large! %g %g \n',res1,res2)
     end
 end
 
