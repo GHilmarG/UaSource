@@ -1,5 +1,8 @@
 function [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar)
 
+%save TestSave
+%error('asdf')
+
 isUpperLeftBlockMatrixSymmetrical=issymmetric(A);
 
 
@@ -62,6 +65,7 @@ x0=zeros(n,1);
 k=round(log10(norm(diag(A))))  ;   
 w=10^(k+CtrlVar.ALSpower)  ;
 iW=speye(m)/w;
+
 
 
 T=[A B' ; B iW];

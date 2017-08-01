@@ -6,19 +6,8 @@ if nOut~=6
     error('Ua:GetGeometry','Need 6 output arguments')
 end
 
-N=nargout('DefineGeometry');
 
-
-switch N
-    
-    case 5
-        [s,b,S,B,alpha]=DefineGeometry(CtrlVar.Experiment,CtrlVar,MUA,time,FieldsToBeDefined);
-    case 6
-        [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
-    otherwise
-        error('Ua:GetGeometry','DefineGeometry must return either 5 or 6 output arguments')
-end
-
+[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
 
 % some error checks
 errorStruct.identifier = 'GetGeometry:NaNinInput';

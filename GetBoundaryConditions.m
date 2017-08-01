@@ -106,7 +106,7 @@ if CtrlVar.doplots && CtrlVar.PlotBCs
         figure(BCsFig)
     end
     hold off
-    PlotBoundaryConditions(CtrlVar,MUA,BCs,[],'k');
+    PlotBoundaryConditions(CtrlVar,MUA,BCs,'k');
 end
 
 
