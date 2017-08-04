@@ -13,6 +13,13 @@ narginchk(4,4)
 
 % if the mesh has changed over the last time step, then only derivatives of F0 will have been updated, and not those of Fm1.
 
+if CtrlVar.DebugMode
+    filename='Debug_Dumpfile_ExplicitEstimationForUaFields.mat';
+   fprintf('ExplicitEstimationForUaFields: Creating dumpfile %s \n',filename) 
+end
+
+
+
 if CtrlVar.CurrentRunStepNumber>=3
     
     if  (numel(F0.dubdt)~=numel(Fm1.dubdt)) ...

@@ -107,12 +107,15 @@ else
             
             
             
-            
+            if CtrlVar.DebugMode
+                warning('FIuvh2D:nonconvergent','Ahead of uvh2D call')
+                filename='Dump_Before_FIuvh2D.mat';
+                fprintf('Saving all data in %s \n',filename)
+                save(filename)
+            end
             
             
             [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-            
-            
             
             
             % keep a copy of the old active set
@@ -131,6 +134,16 @@ else
             if RunInfo.Forward.Converged==1
                 break
             end
+            
+            if CtrlVar.DebugMode
+                warning('FIuvh2D:nonconvergent','uvh2D did not converge')
+                filename='Dump_FIuvh2D.mat';
+                fprintf('Saving all data in %s \n',filename)
+                save(filename)
+                error('asdf')
+            end
+            
+            
             
             if ~ReduceTimeStep
                 ReduceTimeStep=1;
@@ -157,6 +170,8 @@ else
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0; 
                 
             end
+            
+        
             
             isActiveSetModified=1;
             uvhIt=uvhIt+1;

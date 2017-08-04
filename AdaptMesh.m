@@ -12,11 +12,10 @@ BCsNew=BCsOld;
 lnew=lold;
 GFnew=GFold;
 
-CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
-if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
-end
+
+
+%%
 
 
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
@@ -26,12 +25,25 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
     && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
     && ~isMeshAdvanceRetreat;
 
+if ~isMeshAdapt && ~isMeshAdvanceRetreat
+    return
+end
+
 
 JJ=0 ;
 nNewElements=inf;
 nNewNodes=inf;
 nNoChange=0;
 RunInfo.MeshAdapt.isChanged=false;
+
+
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
+end
+
+
 
 if isMeshAdvanceRetreat
     

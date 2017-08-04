@@ -2,6 +2,8 @@ function varargout=ExplicitEstimation(dt,dtRatio,Itime,varargin)
 
 % varargout=ExplicitEstimation(dt,dtRatio,Itime,varargin)
 % explicit estimate using second-order variable time step Adams-Bashforth
+% http://lucan.me.jhu.edu/wiki/index.php/Second-order_variable_time_step_Adams-Bashforth_method
+%
 
 
 nInputs=nargin-3;

@@ -468,6 +468,10 @@ while 1
                     F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   
                     F.ub=F.ub*0; F.vb=F.vb*0; F.ud=F.ud*0;F.vd=F.vd*0;
                     l.ubvb=l.ubvb*0; l.h=l.h*0;
+                    filename='Dumpfile_Ua2D.mat';
+                    fprintf('Saving all data in a dumpfile %s \n',filename)
+                    save(filename)
+                    
                 else
                     uvhStep=0;
                 end

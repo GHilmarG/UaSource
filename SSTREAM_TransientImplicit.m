@@ -322,6 +322,9 @@ end
 if iteration > CtrlVar.NRitmax
     fprintf(CtrlVar.fidlog,'Warning: maximum number of NRuvh iterations %-i reached \n',CtrlVar.NRitmax);
     warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
+    filename='Dumpfile_SSTREAM_TransientImplicit.mat';
+    fprintf('Saving all data in a dumpfile %s \n',filename)
+    save(filename)
 end
 
 RunInfo.Forward.Iterations=iteration;   
