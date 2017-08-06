@@ -61,6 +61,44 @@ tStart=tic;
 dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
 
 
+%%
+if CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step
+    N=3;
+    
+    speed1=sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb); 
+    speed0=sqrt(F0.ub.*F0.ub+F0.vb.*F0.vb);
+    Duv=(speed1-speed0)./(speed0+10*CtrlVar.SpeedZero);
+    Dh=(F1.h-F0.h)./(F0.h+10*CtrlVar.ThickMin);
+    
+    
+    
+%     figure ; histogram(Duv);
+%     figure ; histogram(Dh);
+    
+   
+    Iuvh=((Duv-mean(Duv))> N*std(Duv)) | ((Dh-mean(Dh)) > N*std(Dh)) | abs(Duv)>0.1 | abs(Dh) > 0.1;
+    
+    
+    fprintf(' Guarding agains wild extrapolation in uvh step.\n')
+    fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
+        numel(find(Iuvh)),numel(Iuvh))
+    
+    
+%     Iuvh=abs(dub-mean(dub))>N*std(dub) | abs(dvb-mean(dvb))>N*std(dvb) | abs(dh-mean(dh))>N*std(dh) ;
+%     fprintf(' Guarding agains wild extrapolation in uvh step.\n')
+%     fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
+%         numel(find(Iuvh)),numel(Iuvh))
+%     
+    
+ 
+    
+    F1.ub(Iuvh)=F0.ub(Iuvh);
+    F1.vb(Iuvh)=F0.vb(Iuvh);
+    F1.h(Iuvh)=F0.h(Iuvh);
+end
+
+
+
 
 %% assemble global Lagrange constraint matrix
 MLC=BCs2MLC(MUA,BCs1);
@@ -312,9 +350,20 @@ else
     if CtrlVar.InfoLevelNonLinIt>=1
         fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
             CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
-        
-        fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+        try
+            fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+                CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+        catch
+            
+            FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
+            if CtrlVar.Restart
+                CtrlVar.InfoFile = fopen(FileName,'a');
+            else
+                CtrlVar.InfoFile = fopen(FileName,'w');
+            end
+            fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+                CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+        end
     end
 end
 

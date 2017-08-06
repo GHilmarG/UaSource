@@ -252,6 +252,7 @@ CtrlVar.du=1e-2;     % tolerance for change in (normalized) speed
 CtrlVar.dh=1e-2;     % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
+CtrlVar.Residual.uvh='uvh';
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -301,7 +302,7 @@ CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm 
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
-
+CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
