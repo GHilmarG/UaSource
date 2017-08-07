@@ -30,7 +30,7 @@ if ZeroFields
     
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
     F0.ub=F0.ub*0; F0.vb=F0.vb*0;
-    F1.h=F0.h ; % debeug , 8 August, 2017
+    %F1.h=F0.h ; % debeug , 8 August, 2017
 end
 
 
