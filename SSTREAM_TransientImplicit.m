@@ -126,6 +126,10 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
         &&  iteration <= CtrlVar.NRitmax ...
         && ~Stagnated ) ...
         || iteration < CtrlVar.NRitmin
+    
+
+    
+    
     iteration=iteration+1;
         
     
@@ -160,7 +164,7 @@ while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDl
     %% either accept full Newton step or do a line search
 
     
-    % Var her
+    
     [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
     
     iarm=RunInfo.BackTrack.iarm;
