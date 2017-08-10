@@ -120,16 +120,86 @@ dl=luvh*0;
 Fext0=R0;
 
 iteration=0 ; Stagnated=0;
-r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlambda=1e10;
+r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlambda=1e10;  gamma=NaN;
 
-while ((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
-        &&  iteration <= CtrlVar.NRitmax ...
+while true
+    
+    
+    ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
         && ~Stagnated ) ...
-        || iteration < CtrlVar.NRitmin
+        || iteration < CtrlVar.NRitmin;
     
+    
+    ResidualsCriteria=(~(r< CtrlVar.NLtol ) ...
+        && ~Stagnated ) ...
+        || iteration < CtrlVar.NRitmin;
+    
+    
+    IncrementCriteria=(~(gamma>0.25 && diffDu < CtrlVar.du && diffDh< CtrlVar.dh  && diffDlambda < CtrlVar.dl) ...
+        && ~Stagnated ) ...
+        || iteration < CtrlVar.NRitmin;
+    
+    
+    
+    if iteration > CtrlVar.NRitmax ...
+       
+        if CtrlVar.InfoLevelNonLinIt>=1
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Maximum number of iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt)
+            fprintf(' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r)
+        end
+        RunInfo.Forward.Converged=0;
+        break
+    end
+    
+    
+    
+    switch lower(CtrlVar.uvhConvergenceCriteria)
+        
+        case 'residuals'
+            
+            if ~ResidualsCriteria
+                
+                tEnd=toc(tStart);
+                if CtrlVar.InfoLevelNonLinIt>=1
+                    fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
+                        CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
+                end
+                RunInfo.Forward.Converged=1;
+                break
+                
+            end
+            
+        case 'increments'
+            
+            if ~IncrementCriteria
+                
+                tEnd=toc(tStart);
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g and dh=%g with r=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,CtrlVar.du,CtrlVar.dh,r,iteration,tEnd) 
+                RunInfo.Forward.Converged=1;
+                break
+                
+            end
+            
+        case 'residuals and increments'
+            
+            if ~ResidualsAndIncrementCriteria
+                
+                tEnd=toc(tStart);
+                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual and increment tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
+                RunInfo.Forward.Converged=1;
+                break
+            end
+            
+            
+        otherwise
+            fprintf(' CtrlVar.uvhConvergenceCriteria (%s) not set to a valid value.\n',CtrlVar.uvhConvergenceCriteria)
+            error('parameter values incorrect')
+    end
 
-    
-    
+
+
     iteration=iteration+1;
         
     
@@ -310,7 +380,7 @@ end
 %% return calculated values at the end of the time step
 %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
 
-tEnd=toc(tStart);
+
 
 %% print/plot some info
 
@@ -343,33 +413,24 @@ if ~isempty(L)
 end
 
 
-if r>CtrlVar.NLtol
-    fprintf(CtrlVar.fidlog,' SSTREAM(uvh)  did not converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
-    fprintf(CtrlVar.InfoFile,' SSTREAM(uvh)  did not converge to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd);
-    
-    RunInfo.Forward.Converged=0;
-else
-    
-    RunInfo.Forward.Converged=1;
-    if CtrlVar.InfoLevelNonLinIt>=1
-        fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
-            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
-        try
-            fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-                CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
-        catch
-            
-            FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
-            if CtrlVar.Restart
-                CtrlVar.InfoFile = fopen(FileName,'a');
-            else
-                CtrlVar.InfoFile = fopen(FileName,'w');
-            end
-            fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-                CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+
+if CtrlVar.InfoLevelNonLinIt>=1
+    try
+        fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+    catch
+        
+        FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
+        if CtrlVar.Restart
+            CtrlVar.InfoFile = fopen(FileName,'a');
+        else
+            CtrlVar.InfoFile = fopen(FileName,'w');
         end
+        fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
     end
 end
+
 
 
 if iteration > CtrlVar.NRitmax
@@ -380,7 +441,7 @@ if iteration > CtrlVar.NRitmax
     save(filename)
 end
 
-RunInfo.Forward.Iterations=iteration;   
+RunInfo.Forward.Iterations=iteration;
 RunInfo.Forward.Residual=r;
 
 

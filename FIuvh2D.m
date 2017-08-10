@@ -143,37 +143,46 @@ else
                 error('asdf')
             end
             
+            % If not converged try:
+            % 1) Reset variables to values at the beginning of time ste
+            % 2) If that does not work, reset active set
+            % 3) If that does not work reset time step.
             
-            
-            if ~ReduceTimeStep
+            if ~VariablesReset
+                
+                VariablesReset=1;
+                if CtrlVar.ThicknessConstraintsInfoLevel>=1
+                    fprintf(CtrlVar.fidlog,' uvh2D did not converge. Resetting u1, v1 and h1 to values at start of time step. \n');
+                end
+                
+                F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
+                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
+                
+            elseif ~ActiveSetReset
+                
+                ActiveSetReset=1;
+                if CtrlVar.ThicknessConstraintsInfoLevel>=1
+                    fprintf(CtrlVar.fidlog,' uvh2D did not converge in first active-set iteration. Resetting variables and eliminating active-set. \n');
+                end
+                F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
+                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
+                BCs1.hPosNode=[] ;  BCs1.hPosValue=[];
+                isActiveSetModified=1;
+                
+            elseif ~ReduceTimeStep
+                
                 ReduceTimeStep=1;
                 fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dt,dt/10);
                 dt=dt/10; CtrlVar.dt=dt;
                 fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
                 F1.ub=F0.ub ; F1.vb=F0.vb ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0; 
-            elseif ~ActiveSetReset
-                ActiveSetReset=1;
-                if CtrlVar.ThicknessConstraintsInfoLevel>=1 
-                    fprintf(CtrlVar.fidlog,' uvh2D did not converge in first active-set iteration. Eliminate active-set and try again \n');
-                end
-                F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0; 
-                BCs1.hPosNode=[] ;  BCs1.hPosValue=[] ;
-                
-            elseif ~VariablesReset
-                VariablesReset=1;
-                if CtrlVar.ThicknessConstraintsInfoLevel>=1 
-                    fprintf(CtrlVar.fidlog,' uvh2D did not converge. Resetting (u1,v1) to zero and setting h1=h0 \n');
-                end
-                F1.ub=F0.ub0 ; F1.vb=F0.vb*0; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0; 
+                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 
             end
             
         
             
-            isActiveSetModified=1;
+            
             uvhIt=uvhIt+1;
         end
         
