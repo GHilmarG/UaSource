@@ -135,7 +135,7 @@ while true
         || iteration < CtrlVar.NRitmin;
     
     
-    IncrementCriteria=(~(gamma>0.25 && diffDu < CtrlVar.du && diffDh< CtrlVar.dh  && diffDlambda < CtrlVar.dl) ...
+    IncrementCriteria=(~(diffDu < CtrlVar.du*gamma && diffDh< CtrlVar.dh*gamma  ) ...
         && ~Stagnated ) ...
         || iteration < CtrlVar.NRitmin;
     
@@ -426,6 +426,7 @@ if CtrlVar.InfoLevelNonLinIt>=1
         else
             CtrlVar.InfoFile = fopen(FileName,'w');
         end
+        tEnd=toc(tStart);
         fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
             CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
     end

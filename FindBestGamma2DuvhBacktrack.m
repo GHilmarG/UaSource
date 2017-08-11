@@ -101,7 +101,7 @@ iarmExtrapolation=iarm;
 iarm=0;
 
 %% backtracking step
-while r >  target && iarm<=iarmmax && gamma > GammaMin  && r > CtrlVar.NLtol
+while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
     
     iarm=iarm+1;
     if iarm==1  % parabolic backtracking step
