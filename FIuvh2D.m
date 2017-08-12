@@ -41,7 +41,7 @@ else
     % hPosValue
     
     
-    
+    ActiveSetReset=0; VariablesReset=0;  % keep this out here, only set once, whereas ReduceTimeStep is reset in each active-set iteration.
     
     %hfixednodeposNew=[];
     if CtrlVar.ThicknessConstraintsInfoLevel>=10 
@@ -93,10 +93,10 @@ else
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;
         
         
-        uvhIt=1; ActiveSetReset=0; VariablesReset=0;  ReduceTimeStep=0;% needed in inner loop
-        while uvhIt<3  % I have a possible inner iteration here because
+        uvhIt=0; ReduceTimeStep=0;% needed in inner loop
+        while uvhIt<=2  % I have a possible inner iteration here because
             
-            
+             uvhIt=uvhIt+1;
             % if uvh2D does not converge fully, it is usually best to just update the
             % active set on the partially converged solution
             
@@ -156,24 +156,27 @@ else
                 end
                 
                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
+                %F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
+                %this
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 
-            elseif ~ActiveSetReset
-                
-                ActiveSetReset=1;
-                if CtrlVar.ThicknessConstraintsInfoLevel>=1
-                    fprintf(CtrlVar.fidlog,' uvh2D did not converge in first active-set iteration. Resetting variables and eliminating active-set. \n');
-                end
-                F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
-                BCs1.hPosNode=[] ;  BCs1.hPosValue=[];
-                isActiveSetModified=1;
-                
+%             elseif ~ActiveSetReset
+%                 
+%                 ActiveSetReset=1;
+%                 if CtrlVar.ThicknessConstraintsInfoLevel>=1
+%                     fprintf(CtrlVar.fidlog,' uvh2D did not converge in first active-set iteration. Resetting variables and eliminating active-set. \n');
+%                 end
+%                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h; 
+%         
+%                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
+%                 BCs1.hPosNode=[] ;  BCs1.hPosValue=[];
+%                 isActiveSetModified=1;
+%                 
             elseif ~ReduceTimeStep
                 
                 ReduceTimeStep=1;
                 fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dt,dt/10);
-                dt=dt/10; CtrlVar.dt=dt;
+                dt=dt/2; CtrlVar.dt=dt;
                 fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
                 F1.ub=F0.ub ; F1.vb=F0.vb ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
@@ -183,7 +186,7 @@ else
         
             
             
-            uvhIt=uvhIt+1;
+           
         end
         
         

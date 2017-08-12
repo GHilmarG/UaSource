@@ -124,11 +124,11 @@ r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlam
 
 while true
     
-    
-    ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
-        && ~Stagnated ) ...
-        || iteration < CtrlVar.NRitmin;
-    
+%     
+%     ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
+%         && ~Stagnated ) ...
+%         || iteration < CtrlVar.NRitmin;
+%     
     
     ResidualsCriteria=(~(r< CtrlVar.NLtol ) ...
         && ~Stagnated ) ...
@@ -183,16 +183,25 @@ while true
             
         case 'residuals and increments'
             
-            if ~ResidualsAndIncrementCriteria
+            if ~ResidualsCriteria && ~IncrementCriteria
                 
                 tEnd=toc(tStart);
-                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual and increment tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
+                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual and increment tolerance with r=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
                 RunInfo.Forward.Converged=1;
                 break
             end
             
+         case 'residuals or increments'
             
+            if ~ResidualsCriteria || ~IncrementCriteria
+                
+                tEnd=toc(tStart);
+                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual or increment tolerance with r=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
+                RunInfo.Forward.Converged=1;
+                break
+            end    
         otherwise
             fprintf(' CtrlVar.uvhConvergenceCriteria (%s) not set to a valid value.\n',CtrlVar.uvhConvergenceCriteria)
             error('parameter values incorrect')
@@ -203,29 +212,34 @@ while true
     iteration=iteration+1;
         
     
-    [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+%     [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+%     
+%     
+%     %% solve the (asymmetrical) linear system
+%     if ~isempty(L)
+%         frhs=-R-L'*luvh;
+%         grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
+%     else
+%         frhs=-R;
+%         grhs=[];
+%     end
+%     
+%     
+%     r0=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
+%     
+%     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+%    
+%     
+%     if any(isnan(duvh)) ; save TestSave  ; fprintf(CtrlVar.fidlog,'error: NaN in solution of implicit system \n') ; error(' NaN in solution of implicit uvh system ' ) ; end
+%     %%
+%     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
     
-    
-    %% solve the (asymmetrical) linear system
-    if ~isempty(L)
-        frhs=-R-L'*luvh;
-        grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
-    else
-        frhs=-R;
-        grhs=[];
-    end
-    
-    
-    r0=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
-    
+    %% Residuals and Newton step at gamma=0;
+    gamma=0;
+    [UserVar,RunInfo,r0,ruv0,rh0,rl0,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
-   
-    
-    if any(isnan(duvh)) ; save TestSave  ; fprintf(CtrlVar.fidlog,'error: NaN in solution of implicit system \n') ; error(' NaN in solution of implicit uvh system ' ) ; end
-    %%
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
-    
-    
+  
     %% calculate  residuals at full Newton step
     gamma=1;
         
@@ -243,6 +257,7 @@ while true
     
     if RunInfo.BackTrack.Converged==0
         Stagnated=1;
+        RunInfo.Forward.Converged=0;
     end
     
     %% If desired, plot residual along search direction

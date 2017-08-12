@@ -1,16 +1,22 @@
-function [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0)
+function [UserVar,RunInfo,r,ruv,rh,rl,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0)
 
 
 
 narginchk(15,15)
+
+Nout=nargout; 
 
 F1.ub=F1.ub+gamma*dub;
 F1.vb=F1.vb+gamma*dvb;
 F1.h=F1.h+gamma*dh;
 luvh=luvh+gamma*dl;
 
-[UserVar,RunInfo,R]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
-
+if Nout>6
+    [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    
+else
+    [UserVar,RunInfo,R]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+end
 
 
 
