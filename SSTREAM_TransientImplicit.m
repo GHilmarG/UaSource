@@ -164,7 +164,7 @@ while true
                     fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
                         CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
                 end
-                RunInfo.Forward.Converged=1;
+
                 break
                 
             end
@@ -176,7 +176,7 @@ while true
                 tEnd=toc(tStart);
                 fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g and dh=%g with r=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,CtrlVar.du,CtrlVar.dh,r,iteration,tEnd) 
-                RunInfo.Forward.Converged=1;
+                
                 break
                 
             end
@@ -199,7 +199,7 @@ while true
                 tEnd=toc(tStart);
                 fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual or increment tolerance with r=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
-                RunInfo.Forward.Converged=1;
+
                 break
             end    
         otherwise
@@ -395,7 +395,12 @@ end
 %% return calculated values at the end of the time step
 %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
 
-
+% I got out of the while loop if either if the solver converged, or
+% backtrack stagnated.
+RunInfo.Forward.Converged=1;
+if RunInfo.BackTrack.Converged==0
+    RunInfo.Forward.Converged=0;
+end
 
 %% print/plot some info
 
