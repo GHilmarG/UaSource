@@ -31,6 +31,8 @@ classdef UaRunInfo
             obj.Forward.Converged=0;
             obj.Forward.Iterations=NaN;
             obj.Forward.Residual=NaN;
+            obj.Forward.time=NaN;
+            obj.Forward.dt=NaN;
             
             obj.Forward.ActiveSetConverged=NaN;
             
