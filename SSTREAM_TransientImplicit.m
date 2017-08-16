@@ -130,13 +130,11 @@ while true
 %         || iteration < CtrlVar.NRitmin;
 %     
     
-    ResidualsCriteria=(~(r< CtrlVar.NLtol ) ...
-        && ~Stagnated ) ...
+    ResidualsCriteria=(~(r< CtrlVar.NLtol )) ...
         || iteration < CtrlVar.NRitmin;
     
     
-    IncrementCriteria=(~(diffDu < CtrlVar.du*gamma && diffDh< CtrlVar.dh*gamma  ) ...
-        && ~Stagnated ) ...
+    IncrementCriteria=(~(diffDu < CtrlVar.du && diffDh< CtrlVar.dh  )) ...
         || iteration < CtrlVar.NRitmin;
     
     
@@ -152,6 +150,13 @@ while true
     end
     
     
+    
+    if Stagnated
+        
+        fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+                        CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
+       break
+    end
     
     switch lower(CtrlVar.uvhConvergenceCriteria)
         
@@ -186,8 +191,8 @@ while true
             if ~ResidualsCriteria && ~IncrementCriteria
                 
                 tEnd=toc(tStart);
-                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual and increment tolerance with r=%-g in %-i iterations and in %-g  sec \n',...
-                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
+                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) and increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
                 RunInfo.Forward.Converged=1;
                 break
             end
@@ -196,10 +201,11 @@ while true
             
             if ~ResidualsCriteria || ~IncrementCriteria
                 
-                tEnd=toc(tStart);
-                fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual or increment tolerance with r=%-g in %-i iterations and in %-g  sec \n',...
-                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
-
+                tEnd=toc(tStart);       
+                  fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) or increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
+                
+                
                 break
             end    
         otherwise
@@ -234,13 +240,13 @@ while true
 %     %%
 %     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
     
-    %% Residuals and Newton step at gamma=0;
+    %% Residuals , at gamma=0;
     gamma=0;
     [UserVar,RunInfo,r0,ruv0,rh0,rl0,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
   
-    %% calculate  residuals at full Newton step
+    %% calculate  residuals at full Newton step, i.e. at gamma=1
     gamma=1;
         
     [UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
@@ -309,9 +315,9 @@ while true
     
     %% calculate statistics on change in speed, thickness and Lagrange parameters
     D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
-    diffDu=gamma*full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-    diffDh=gamma*full(max(abs(dh))/mean(abs(F1.h)));            % max change in thickness divided by mean thickness
-    diffDlambda=gamma*max(abs(dl))/mean(abs(luvh));
+    diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
+    diffDh=full(max(abs(dh))/mean(abs(F1.h)));            % max change in thickness divided by mean thickness
+    diffDlambda=max(abs(dl))/mean(abs(luvh));
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
     

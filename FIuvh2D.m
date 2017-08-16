@@ -42,7 +42,7 @@ else
     
     
     ActiveSetReset=0; VariablesReset=0;  % keep this out here, only set once, whereas ReduceTimeStep is reset in each active-set iteration.
-    
+    iCounter=1;
     %hfixednodeposNew=[];
     if CtrlVar.ThicknessConstraintsInfoLevel>=10 
         fprintf(CtrlVar.fidlog,'  Enforcing min thickness of %-g using active-set method \n',CtrlVar.ThickMin);
@@ -73,7 +73,7 @@ else
     isActiveSetModified=1;
     it=0;
     ItMax=CtrlVar.ThicknessConstraintsItMax  ;
-    nlIt=zeros(ItMax+1,1);  %
+    nlIt=zeros(ItMax+1,1)*2+NaN;  %
     Released=[] ; Activated=[];
     
     while isActiveSetModified==1
@@ -116,7 +116,8 @@ else
             
             
             [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-            
+            nlIt(iCounter)=RunInfo.Forward.Iterations;  iCounter=iCounter+1;
+            RunInfo.Forward.Iterations=mean(nlIt,'omitnan');
             
             % keep a copy of the old active set
             LastActiveSet=BCs1.hPosNode;
@@ -156,10 +157,10 @@ else
                 end
                 
                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                %F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
-                %this
+                F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
+               
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
-                
+               % BCs1.hPosNode=[] ;  BCs1.hPosValue=[]; isActiveSetModified=1;
 %             elseif ~ActiveSetReset
 %                 
 %                 ActiveSetReset=1;
@@ -175,8 +176,10 @@ else
             elseif ~ReduceTimeStep
                 
                 ReduceTimeStep=1;
-                fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dt,dt/10);
+                dtOld=CtrlVar.dt;
                 dt=dt/2; CtrlVar.dt=dt;
+                fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
+                
                 fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
                 F1.ub=F0.ub ; F1.vb=F0.vb ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
@@ -190,7 +193,7 @@ else
         end
         
         
-        nlIt(it)=RunInfo.Forward.Iterations;  % if the active set is repeatedly updated,
+        
         % keep track of the number of non-lin iteration in each update
         
         
@@ -334,6 +337,11 @@ else
     
     %RunInfo.Iterations=nlIt(1); % here I use the number of NR iterations in the first update as a measure of
     % the nonlinearity of the problem
+    
+    % To do: I could consider relaxing the convergence criterias while
+    % within the active set loop, and only fully converge once the active
+    % set have been found, of course this assumes that as the final
+    % convergence is reached, the active set no longer changes.
     
     if it > ItMax
         RunInfo.Forward.ActiveSetConverged=0;
