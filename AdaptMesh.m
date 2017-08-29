@@ -93,7 +93,7 @@ elseif isMeshAdapt
         GFold=GFnew;
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Remeshing iteration #%-i \n ',CtrlVar.CurrentRunStepNumber,JJ);
+            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Remeshing iteration #%-i (#Ele=%i,#Nodes=%i) \n ',CtrlVar.CurrentRunStepNumber,JJ,MUAold.Nele,MUAold.Nnodes);
         end
         
         %  Determine new desired element sizes and identify elements for refinement
@@ -153,6 +153,30 @@ elseif isMeshAdapt
             
         end
         %%
+        
+        if ~isfield(RunInfo.MeshAdapt.Mesh,'Nele')
+            RunInfo.MeshAdapt.Mesh.Nele=NaN;
+            RunInfo.MeshAdapt.Mesh.Nnodes=NaN;
+            RunInfo.MeshAdapt.Mesh.RunStepNumber=NaN;
+            RunInfo.MeshAdapt.Mesh.time=NaN;
+        end
+        
+        k=find(isnan(RunInfo.MeshAdapt.Mesh.Nele),1);
+        
+        if isempty(k)
+            RunInfo.MeshAdapt.Mesh.Nele=[RunInfo.MeshAdapt.Mesh.Nele;RunInfo.MeshAdapt.Mesh.Nele*0+NaN];
+            RunInfo.MeshAdapt.Mesh.Nnodes=[RunInfo.MeshAdapt.Mesh.Nnodes;RunInfo.MeshAdapt.Mesh.Nnodes*0+NaN];
+            RunInfo.MeshAdapt.Mesh.RunStepNumber=[RunInfo.MeshAdapt.Mesh.RunStepNumber;RunInfo.MeshAdapt.Mesh.RunStepNumber*0+NaN];
+            RunInfo.MeshAdapt.Mesh.time=[RunInfo.MeshAdapt.Mesh.time;RunInfo.MeshAdapt.Mesh.time*0+NaN];
+            
+            k=find(isnan(RunInfo.MeshAdapt.Mesh.Nele),1);
+        end
+        
+        RunInfo.MeshAdapt.Mesh.Nele(k)=MUAnew.Nele;
+        RunInfo.MeshAdapt.Mesh.Nnodes(k)=MUAnew.Nnodes;
+        RunInfo.MeshAdapt.Mesh.RunStepNumber(k)=CtrlVar.CurrentRunStepNumber;
+        RunInfo.MeshAdapt.Mesh.time(k)=CtrlVar.time;
+                
     end
 end
 

@@ -266,7 +266,6 @@ end
 %%
 
 
-
 % No further user defined modifications to EleSizeDesired
 
 %% now create a (logical) list of elements to be locally refined
@@ -305,9 +304,12 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
-
-
+% Now get user modifications
 [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
+
+
+
+
 
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')
 

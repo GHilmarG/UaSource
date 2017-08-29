@@ -37,7 +37,7 @@ end
 
 
 if isequal(CtrlVar.Residual.uvh,'uv')
-    r=ruv; % debug August 2017
+    r=ruv; 
 end
 
 end

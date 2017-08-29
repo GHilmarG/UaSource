@@ -8,6 +8,7 @@ classdef UaRunInfo
         CPU
         Message
         MeshAdapt
+        
     end
     
     
@@ -46,6 +47,10 @@ classdef UaRunInfo
             
             obj.MeshAdapt.Method="";
             obj.MeshAdapt.isChanged=false;
+            obj.MeshAdapt.Mesh.Nele=NaN;
+            obj.MeshAdapt.Mesh.Nnodes=NaN;
+            obj.MeshAdapt.Mesh.RunStepNumber=NaN;
+            obj.MeshAdapt.Mesh.time=NaN;
 
 
         end

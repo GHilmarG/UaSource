@@ -19,6 +19,13 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 
 persistent NodTri EleTri Nele Nnodes nod
 
+if islogical(Variable)
+    
+    Variable=double(Variable);
+    
+end
+
+
 [N,M]=size(Variable);
 
 if N==MUA.Nnodes && M==1   % nodal variable

@@ -40,6 +40,7 @@ else % h residuals only
     
     hold on
     title('Nodal Force residuals (R+transpose(L) lambda)')
+    
     PlotScale=0.1*max(abs(R))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
     xmax=max(x) ; xmin=min(x) ; ymax=max(y) ;ymin=min(y);
     
