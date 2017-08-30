@@ -159,8 +159,13 @@ if CtrlVar.InverseRun
 end
 
 
-if isfield(CtrlVar,'ResetTimeStep')
-
+if isfield(CtrlVar,'AdaptMeshInterval')
+    
+    fprintf(' Note: CtrlVar.AdaptMeshInterval no longer used. Use CtrlVar.AdaptMeshRunStepInterval instead.\n')
+    fprintf(' setting CtrlVar.AdaptMeshRunStepInterval=CtrlVar.AdaptMeshInterval \n')
+    CtrlVar.AdaptMeshRunStepInterval=CtrlVar.AdaptMeshInterval;
+    
+end
 
 
 end

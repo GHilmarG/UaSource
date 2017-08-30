@@ -1153,7 +1153,7 @@ CtrlVar.ManuallyDeactivateElements=0;
 % One can control the run-step interval between mesh adapt iterations through 
 % the variable 
 %
-%   CtrlVar.AdaptMeshInterval
+%   CtrlVar.AdaptMeshRunStepInterval
 %
 % One can control how many adapt iterations are performed within a run-step
 % through the variables 
@@ -1163,8 +1163,9 @@ CtrlVar.ManuallyDeactivateElements=0;
 % 
 %
 
-CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespective of the value of AdaptMeshInterval
-CtrlVar.AdaptMeshInterval=1 ; % Number of run-steps between mesh adaptation 
+CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
+CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation 
+CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adaptation 
 CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 

@@ -1,7 +1,9 @@
 
 function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb)
 
-%save TestSave ; error('sdfa')
+
+persistent AdaptMeshTime
+
 
 narginchk(10,10)
 nargoutchk(7,7)
@@ -20,10 +22,42 @@ GFnew=GFold;
 
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
 
+% isMeshAdapt=CtrlVar.AdaptMesh  ...
+%     && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshRunStepInterval)==0 ...
+%     && CtrlVar.AdaptMeshRunStepInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
+%     && ~isMeshAdvanceRetreat;
+
+
+if isempty(AdaptMeshTime)
+    if CtrlVar.AdaptMeshTimeInterval>0
+        AdaptMeshTime=ceil(CtrlVar.time/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+    else
+        AdaptMeshTime=0;
+    end
+end
+
+if CtrlVar.AdaptMeshTimeInterval==0
+    isAdaptMeshTime=true;
+elseif CtrlVar.time >= AdaptMeshTime
+    isAdaptMeshTime=true;
+    AdaptMeshTime=ceil((CtrlVar.time+eps)/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+else
+    isAdaptMeshTime=false;
+end
+
+if CtrlVar.AdaptMeshRunStepInterval==0
+    isAdaptMeshRunStepInterval=true;
+elseif mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshRunStepInterval)==0
+    isAdaptMeshRunStepInterval=true;
+else
+    isAdaptMeshRunStepInterval=false;
+end
+
+
 isMeshAdapt=CtrlVar.AdaptMesh  ...
-    && (CtrlVar.AdaptMeshInitial || (mod(CtrlVar.CurrentRunStepNumber,CtrlVar.AdaptMeshInterval)==0 ...
-    && CtrlVar.AdaptMeshInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
+    && (CtrlVar.AdaptMeshInitial || (isAdaptMeshRunStepInterval && isAdaptMeshTime)) ...
     && ~isMeshAdvanceRetreat;
+
 
 if ~isMeshAdapt && ~isMeshAdvanceRetreat
     return

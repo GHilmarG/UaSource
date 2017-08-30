@@ -327,6 +327,7 @@ while 1
         [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
         
+        
         if MUA.Nele==0 
             fprintf('FE mesh is empty \n ')
             break ;
