@@ -167,7 +167,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 
   
-CtrlVar.AdaptMeshInterval=1;  % number of run-steps between mesh adaptation
+CtrlVar.AdaptMeshRunStepInterval=1;  % number of run-steps between mesh adaptation
 CtrlVar.AdaptMeshMaxIterations=100;
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=10;
 
