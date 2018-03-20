@@ -170,8 +170,10 @@ Heint = HeavisideApprox(kH,hint-hfint,CtrlVar.Hh0);  % important to calculate He
 HEint = HeavisideApprox(kH,hfint-hint,CtrlVar.Hh0);
 deltaint=DiracDelta(kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
 Deltaint=DiracDelta(kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
-dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;
-Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint;
+
+
+dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
+Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
 
 
 
