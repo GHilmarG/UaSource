@@ -10,8 +10,8 @@ function [h1,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da
 MLC=BCs2MLC(MUA,BCs);
 Lh=MLC.hL ; Lhrhs=MLC.hRhs ;
 
-lambdah=l.h;
-Itime=CtrlVar.CurrentRunStepNumber;
+lambdah=l.h;   % TO DO/to do: consider checking that l.h has indeed the right dimentions. Here lambdah is only an initial guess for lambdah when solved using an iterative solver.
+
 dt=CtrlVar.dt;
 
 switch lower(CtrlVar.FlowApproximation)
