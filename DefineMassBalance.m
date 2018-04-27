@@ -26,7 +26,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rh
 % surface to 10 over all ice shelves:
 %
 %   as=zeros(MUA.Nnodes,1);
-%   ab=-(1-GF.node)+10 
+%   ab=-(1-GF.node)*10 
 %
 %
 % To set upper surface mass balance as a function of local surface elevation and
