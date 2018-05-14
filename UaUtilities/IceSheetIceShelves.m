@@ -42,10 +42,11 @@ function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnode
 %
 %%
 
+GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
+
 if nargin<6 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
     [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
 end
-
 
 
 GF.ElementsCrossingGroundingLines=GLele;
