@@ -794,9 +794,25 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 % In almost all cases the simplest option tends to be to define the outlines of
 % the computational domain in Ua2D_InitialUserInput.
 %
-% In that case Úa will call an external mesh generator. The external mesh
-% generator used by Ua is "gmsh" which is a well known and a well supported open
-% source mesh generator (http://geuz.org/gmsh/) The outlines of the mesh are
+% Currently two external mesh generators can be called direclty from Úa:
+%
+%   gmsh
+%   mesh2d
+%
+% The external mesh generator "gmsh" is a well known and a well supported open
+% source mesh generator (http://geuz.org/gmsh/) 
+%
+% mesh2d is a matlab based mesh generator (see:
+% https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation)
+%
+% IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and
+% mesh2d on how to do this.
+%
+% *By default Úa uses mesh2d*
+%
+%
+% When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% used. In either case the outlines of the mesh are
 % defined by the variable 'MeshBoundaryCoordinates' set in
 % Ua2D_InitialUserInput.m. This approach is quite flexible and allows for
 % complicated computational domains containing holes and/or separated domains.
@@ -822,7 +838,7 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % CtrlVar.GmshMeshingMode='load .msh'                                                               % option i
 % CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii
-CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and load .msh file';     % option iii, which is the default option
+CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and load .msh file';       % option iii, which is the default option when using gmsh
 %
 % After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.
 % 
@@ -847,7 +863,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 %
 %
 %CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
-CtrlVar.MeshGenerator='mesh2d'; 
+CtrlVar.MeshGenerator='mesh2d';  % this is the deault option 
 
 %% Options related to the use of the gmsh external mesh generator
 

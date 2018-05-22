@@ -110,7 +110,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
                         dtOut=CtrlVar.ATStimeStepTarget ;
                         fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached target time step of %-g and is therefore not increased further \n ',CtrlVar.ATStimeStepTarget);
                     else
-                        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
+                        if dtOut>dtIn
+                            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
+                        end
                     end
                     
                     
