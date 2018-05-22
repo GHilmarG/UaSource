@@ -9,10 +9,10 @@ end
 
 %% Calculates b, s, and h, consistent with the floating condition.
 % [b,s,h,GF]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
-% sets b and b given h, S and B and the densities rho and rhow
+% calculates b and s from h, S and B and the densities rho and rhow
 %
-% Note: h is only modified where on input h is smaller than CtrlVar.ThickMin,
-%       provided CtrlVar.ResetThicknessToMinThickness is true.
+% Note: h is only modified if on input h is smaller than CtrlVar.ThickMin,
+%       and CtrlVar.ResetThicknessToMinThickness is true.
 %
 %
 % Step 1: where grounded, b is set equal to B
@@ -37,7 +37,8 @@ end
 hf=rhow*(S-B)./rho ;
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
-GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
+
+%GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
 bfloat=S-rho.*h/rhow;
 
