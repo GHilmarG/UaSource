@@ -1179,10 +1179,10 @@ CtrlVar.ManuallyDeactivateElements=0;
 % 
 %
 
-CtrlVar.AdaptMeshInitial=1  ; % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
+CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
 CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation 
 CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adaptation 
-CtrlVar.AdaptMeshMaxIterations=1;  % Number of adapt mesh iterations within each run-step.
+CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
                                 
@@ -1205,7 +1205,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
-CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;  % One can turn each refinement criteria on or off by setting this field to true or false, respectivily. 
 
 
 I=I+1;

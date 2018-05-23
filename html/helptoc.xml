@@ -39,6 +39,7 @@
                 <tocitem target="IceSheetIceShelves.html">IceSheetIceShelves</tocitem>
                 <tocitem target="FindAllNodesWithinGivenRangeFromGroundingLine.html">FindAllNodesWithinGivenRangeFromGroundingLine</tocitem>
                 <tocitem target="CalcNodalStrainRates.html">Calculate strain rates</tocitem>
+                <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

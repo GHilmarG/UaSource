@@ -11,11 +11,14 @@ function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserV
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
 
 %% define measurements and measurement errors
-% Here it is assumed that one is inverting measurements of surface velocities 
+% Here it is assumed that one is inverting measurements of surface velocities
 % and that scattered interpolants have already been defined and stored in a file
-% 
+%
 fprintf(' Loading measured velocities \n')
+locdir=pwd;
+cd(UserVar.InterpolantsDirectory)
 load('MyMeasurements','Fu','Fv')
+cd(locdir)
 
 Meas.us=Fu(x,y);  % Mapping measurements onto FE mesh
 Meas.vs=Fv(x,y);
