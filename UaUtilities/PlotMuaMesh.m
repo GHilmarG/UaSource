@@ -2,24 +2,43 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
 %
-%   PlotMuaMesh(CtrlVar,MUA,ElementList)
+%   PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+%
+% The only essential input is MUA, the others are optiona.
+%
+% varargin is passed onto PlotFEmsh and then onto triplot.
 %
 % *Examples:*
 %
-%   figure ; PlotMuaMesh(CtrlVar,MUA,ElementList)
+% Plot Mesh:
 %
-%   figure ; PlotMuaMesh([],MUA);  % CtrlVar is an optional input
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   figure ; PlotMuaMesh([],MUA)
 %
-%   CtrlVar.NodeColor='r';
-%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Plot nodes in red
+% Plot the first 10000 elements in black:
 %
-%   CtrlVar.PlotLabels=0;
-%   CtrlVar.PlotXYscale=1000;
-%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100);  % Show only elements 1 to 100
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   figure ; PlotMuaMesh(CtrlVar,MUA,1:10000)
 %
-% Show only elements 1 to 100 in red
+% Plot every 10th element in black and the nodes of those elements in black and do not plot the MeshBoundaryCoordinates
 %
-%   figure ; PlotMuaMesh(CtrlVar,MUA,1:100,'r');
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   CtrlVar.PlotNodes=1; CtrlVar.NodeColor='r';
+%   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   figure ; PlotMuaMesh(CtrlVar,MUA,1:10:size(MUA.connectivity,1))
+%
+%
+% Plot elements 3 to 10 in green and their nodes in red.
+% Label both nodes and elements. Do not plot the MeshBoundaryCoordinates
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   CtrlVar.PlotNodes=1; CtrlVar.NodeColor='r';
+%   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   CtrlVar.PlotEleLabels=1;
+%   CtrlVar.PlotNodalLabels=1;
+%   CtrlVar.PlotNodesSymbol='*';
+%   CtrlVar.PlotNodesSymbolSize=10;
+%   figure ; PlotMuaMesh(CtrlVar,MUA,3:10,'g')
 %
 %%
 

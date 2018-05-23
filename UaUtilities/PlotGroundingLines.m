@@ -22,22 +22,28 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Plot grounding lines with minimum of required input:
 %
-%    PlotGroundingLines([],MUA,GF);
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+%   figure ; 
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF) ;
 %
-% Plot grounding lines in red:
-% 
-%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') 
-%                                                                    
+% Plot grounding lines in red over the computational mesh in black:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   figure
+%   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   CtrlVar.PlotIndividualGLs=1 ; 
+%   PlotMuaMesh(CtrlVar,MUA,[],'k') ;
+%   hold on
+%   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+%
 % Plot grounding lines twice using outputs from first call in the second call:
-%
+% 
+%    load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %    GLgeo=[] ; xGL=[], yGL=[];
-%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
-%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
-%
-%
-% Plot grounding lines in read with double line width:
-%
-%    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+%    figure
+%    tic; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); toc
+%    tic; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); toc
 %
 % To plot grounding lines for higher-order elements with sub-element resolution
 % set CtrlVar.GLsubdivide=1. Doing so causes higher-order elements to be split
@@ -113,7 +119,9 @@ if CtrlVar.PlotGLs
         %col=['b','r'];
         for ii=1:numel(I)-1
             i=i+1;
-            plot(xGL(I(ii):I(ii+1)),yGL(I(ii):I(ii+1)),col(i)) ; axis equal ; hold on ;
+            
+            plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:}) ;
+            axis equal ; hold on ;
             if i==numel(col) ; i=0 ; end
         end
         ax=gca; ax.DataAspectRatio=[1 1 1];

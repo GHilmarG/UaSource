@@ -12,8 +12,18 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % Examples:
 %
-% figure ; PlotMeshScalarVariable(CtrlVar,MUA,h)   
-% plots the thickness distribution
+% plot element sizes
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title('Element sizes')
+%
+%
+% Plot a nodal variable (here as an example, the x coordinates of the nodes)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   x=MUA.coordinates(:,1)
+%   figure ; PlotMeshScalarVariable([],MUA,x) ; 
 %
 %%
 
