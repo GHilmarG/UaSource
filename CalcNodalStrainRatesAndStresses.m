@@ -1,5 +1,6 @@
 function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
 
+%%
 % Calculates strains and devitoric stresses.
 %
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
@@ -23,6 +24,23 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 % Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h
 %
 %
+% Example:
+% 
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   CtrlVar=CtrlVarInRestartFile;
+%   [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb,F.ud,F.vd);
+%   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
+%   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   scale=1e-3;
+%   FigStrainAndStresses=figure; 
+%   PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,txx(I),txy(I),tyy(I),scale);
+%   hold on
+%   PlotMuaBoundary(CtrlVar,MUA,'k')
+%   axis equal
+%
+%
+%%
 
 %narginchk(11,13)
 %nargoutchk(1,9);

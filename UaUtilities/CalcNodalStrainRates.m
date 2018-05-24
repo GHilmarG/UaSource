@@ -36,6 +36,8 @@ if nargin == 6
         
         [exxd,eyyd,exyd]=ProjectFintOntoNodes(MUA,exxd,eyyd,exyd);
     end
+else
+    exxd=[] ; eyyd=[] ; exyd=[]; 
 end
 
 

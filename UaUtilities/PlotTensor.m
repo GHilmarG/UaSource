@@ -1,5 +1,6 @@
 function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 
+%%
 % Plots a 2x2 symmetrical tensor quantity.
 % PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
@@ -8,8 +9,22 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 % Compression is plotted in red, extension in blue.
 %
-
-
+% *Example:*
+%
+%   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
+%   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+%   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   FigTensor=figure;
+%   CtrlVar.PlotNodes=0; PlotMuaMesh(CtrlVar,MUA,[],'color','k') ;                           % Plot FE mesh
+%   hold on
+%   scale=1e4; LineWidth=2 ;
+%   PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  % plot strain rates
+%   axis equal tight
+%   FigTensor.Children.Title.String='Strain rates'
+%
+%%
 
 
     headscale=0.3;

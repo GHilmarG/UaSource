@@ -25,6 +25,7 @@
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
                 <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable</tocitem>
                 <tocitem target="QuiverColorGHG.html">QuiverColorGHG</tocitem>
+                <tocitem target="PlotTensor.html">Plot tensor quantity such as strain rates</tocitem>
                 <tocitem target="PlotMuaBoundary.html">Plot MUA boundary</tocitem>
                 <tocitem target="PlotGroundingLines.html">Plot grounding lines</tocitem>
                 <tocitem target="PlotBoundaryConditions.html">Plot boundary conditions</tocitem>
@@ -39,6 +40,7 @@
                 <tocitem target="IceSheetIceShelves.html">IceSheetIceShelves</tocitem>
                 <tocitem target="FindAllNodesWithinGivenRangeFromGroundingLine.html">FindAllNodesWithinGivenRangeFromGroundingLine</tocitem>
                 <tocitem target="CalcNodalStrainRates.html">Calculate strain rates</tocitem>
+                <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
             </tocitem>
         </tocitem>

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMuaBoundary</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="PlotMuaBoundary.m"><style type="text/css">
+      --><title>PlotMuaBoundary</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="PlotMuaBoundary.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,9 +67,13 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotMuaBoundary(CtrlVar,MUA,varargin)
-</pre><p>Plots the boundaries of the MUA mesh. PlotMuaBoundary(CtrlVar,MUA,varargin)</p><p>varargin is passed over to plot</p><p>Examples: PlotMuaBoundary(CtrlVar,MUA) PlotMuaBoundary(CtrlVar,MUA,'b')  % plots the boundaries in blue PlotMuaBoundary([],MUA,'r','LineWidth',2)</p><p>Another option of just plotting the mesh boundaries is simply to do: figure ; plot(MUA.coordinates(MUA.Boundary.Edges,1)/CtrlVar.PlotXYscale, MUA.coordinates(MUA.Boundary.Edges,2)/CtrlVar.PlotXYscale, 'k', 'LineWidth',2) ; in which case the `PlotBoundary' m-file is not used.</p><pre class="codeinput">PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,varargin{:})
+</pre><p>Plots the boundaries of the MUA mesh. PlotMuaBoundary(CtrlVar,MUA,varargin)</p><p>varargin is passed over to plot</p><p>Examples:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>,<span class="string">'GF'</span>)
+</pre><pre class="language-matlab">figure ; PlotMuaBoundary(CtrlVar,MUA)
+</pre><pre class="language-matlab">figure ; PlotMuaBoundary(CtrlVar,MUA,<span class="string">'b'</span>)  <span class="comment">% plots the boundaries in blue</span>
+</pre><pre class="language-matlab">figure ; PlotMuaBoundary([],MUA,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2)
+</pre><p>Another option of just plotting the mesh boundaries is simply to do: figure ; plot(MUA.coordinates(MUA.Boundary.Edges,1)/CtrlVar.PlotXYscale, MUA.coordinates(MUA.Boundary.Edges,2)/CtrlVar.PlotXYscale, 'k', 'LineWidth',2) ; in which case the `PlotBoundary' m-file is not used.</p><pre class="codeinput">PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,varargin{:})
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function PlotMuaBoundary(CtrlVar,MUA,varargin)
 
@@ -80,9 +84,14 @@ function PlotMuaBoundary(CtrlVar,MUA,varargin)
 % varargin is passed over to plot
 %
 % Examples: 
-% PlotMuaBoundary(CtrlVar,MUA)
-% PlotMuaBoundary(CtrlVar,MUA,'b')  % plots the boundaries in blue
-% PlotMuaBoundary([],MUA,'r','LineWidth',2)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar','GF') 
+%
+%   figure ; PlotMuaBoundary(CtrlVar,MUA)
+%
+%   figure ; PlotMuaBoundary(CtrlVar,MUA,'b')  % plots the boundaries in blue
+%
+%   figure ; PlotMuaBoundary([],MUA,'r','LineWidth',2)
 %
 %
 % Another option of just plotting the mesh boundaries is simply to do: 

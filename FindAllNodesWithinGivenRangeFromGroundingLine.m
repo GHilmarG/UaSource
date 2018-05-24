@@ -23,14 +23,31 @@ function [ID,idx,D,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar
 %
 %
 %
-% Example:
+% *Examples:*
 %
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+% Find all nodes within a distance of 1000 from the grounding line and plot those nodes.
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar','GF') 
 %   ds=1000;
-%   ID=FindAllNodesWithinGivenRangeFromGroundingLine([],MUA,xGL,yGL,ds)
+%   ID=FindAllNodesWithinGivenRangeFromGroundingLine([],MUA,xGL,yGL,ds) ;   
+%   x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+%   figure ; plot(x(ID)/CtrlVar.PlotXYscale,y(ID)/CtrlVar.PlotXYscale,'*r')
+%
+%
+% Find all nodes within a distance of 5000 from the grounding line.
+% Plot the grounding lines anda those nodes over the FE mesh.
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar','GF') 
+%   figure
+%   CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   PlotMuaMesh(CtrlVar,MUA)
+%   hold on 
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+%   ds=5000;
+%   ID=FindAllNodesWithinGivenRangeFromGroundingLine([],MUA,xGL,yGL,ds) ;
 %   hold on
 %   x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-%   plot(x(ID),y(ID),'.r')
+%   plot(x(ID)/CtrlVar.PlotXYscale,y(ID)/CtrlVar.PlotXYscale,'*r')
 %%
 
 
