@@ -50,7 +50,8 @@ if ~isempty(ub)
     eyyb=dvbdy;
     exyb=0.5*(dubdy+dvbdx);
     [exxb,eyyb,exyb]=ProjectFintOntoNodes(MUA,exxb,eyyb,exyb);
-    
+else
+    exxb=[] ; eyyb=[] ; exyb=[]; 
 end
 
 if nargin == 6
