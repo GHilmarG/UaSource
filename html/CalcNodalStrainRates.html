@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcNodalStrainRates</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-07-29"><meta name="DC.source" content="CalcNodalStrainRates.m"><style type="text/css">
+      --><title>CalcNodalStrainRates</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="CalcNodalStrainRates.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,7 +68,18 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 </pre><p>Calculates horizontal strain rates given horizontal velocities.</p><pre class="language-matlab">[exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
-</pre><p>Returns nodal values.</p><p>Note: The strain rates are calculated at integration points and then projected onto nodes.</p><p>The projection does not conserve positivity and positve integration values can become negative at nodes. The effectiv strain rate , e, is for this reason calculated directly from nodal values, ensuring that e is always positive.</p><pre class="codeinput">unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
+</pre><p>Returns nodal values.</p><p>Note: The strain rates are calculated at integration points and then projected onto nodes.</p><p>The projection does not conserve positivity and positve integration values can become negative at nodes. The effectiv strain rate , e, is for this reason calculated directly from nodal values, ensuring that e is always positive.</p><p>Example:</p><p>Read data, calculate nodal strain rates, and then plot over FE mesh at roughly equal spaced grid.</p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
+CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+[exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             <span class="comment">% calculate strain rates</span>
+[X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
+I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  <span class="comment">% find nodes within computational grid closest to the regularly scape X and Y grid points.</span>
+figure
+CtrlVar.PlotNodes=0; PlotMuaMesh(CtrlVar,MUA,[],<span class="string">'color'</span>,<span class="string">'k'</span>) ;                           <span class="comment">% Plot FE mesh</span>
+hold <span class="string">on</span>
+scale=1e5; LineWidth=2 ;
+PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  <span class="comment">% plot strain rates</span>
+axis <span class="string">equal</span>
+</pre><p>See also CalcNodalStrainRatesAndStresses</p><pre class="codeinput">unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
 exx=zeros(MUA.Nele,MUA.nip);
 eyy=zeros(MUA.Nele,MUA.nip);
@@ -112,7 +123,25 @@ function [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 % this reason calculated directly from nodal values, ensuring that e is
 % always positive.
 %
+% Example: 
 %
+% Read data, calculate nodal strain rates, and then plot over FE mesh at roughly equal spaced grid.
+%
+%   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
+%   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+%   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   figure
+%   CtrlVar.PlotNodes=0; PlotMuaMesh(CtrlVar,MUA,[],'color','k') ;                           % Plot FE mesh
+%   hold on
+%   scale=1e5; LineWidth=2 ;
+%   PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  % plot strain rates
+%   axis equal
+%
+%
+% See also CalcNodalStrainRatesAndStresses
+
 
 unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);

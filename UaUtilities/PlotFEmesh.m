@@ -110,8 +110,11 @@ coordinates=coordinates/CtrlVar.PlotXYscale;
 %FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 TR=CreateFEmeshTriRep(connectivity,coordinates);
 
+if numel(varargin)==1
+   varargin={'color',varargin{1}};
+end
 
-triplot(TR,varargin{:}) ;
+triplot(TR,'color',CtrlVar.MeshColor,varargin{:}) ;
 hold on
 
 if nargin>3
