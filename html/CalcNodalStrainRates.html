@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
 </pre><p>Calculates horizontal strain rates given horizontal velocities.</p><pre class="language-matlab">[exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 </pre><p>Returns nodal values.</p><p>Note: The strain rates are calculated at integration points and then projected onto nodes.</p><p>The projection does not conserve positivity and positve integration values can become negative at nodes. The effectiv strain rate , e, is for this reason calculated directly from nodal values, ensuring that e is always positive.</p><p>Example:</p><p>Read data, calculate nodal strain rates, and then plot over FE mesh at roughly equal spaced grid.</p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
 CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
@@ -79,32 +79,39 @@ hold <span class="string">on</span>
 scale=1e5; LineWidth=2 ;
 PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  <span class="comment">% plot strain rates</span>
 axis <span class="string">equal</span>
-</pre><p>See also CalcNodalStrainRatesAndStresses</p><pre class="codeinput">unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
-exx=zeros(MUA.Nele,MUA.nip);
-eyy=zeros(MUA.Nele,MUA.nip);
-exy=zeros(MUA.Nele,MUA.nip);
-
-<span class="keyword">for</span> Iint=1:MUA.nip
-
-    Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-
-    <span class="keyword">for</span> I=1:MUA.nod
-        exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*unod(:,I);
-        eyy(:,Iint)=eyy(:,Iint)+Deriv(:,2,I).*vnod(:,I);
-        exy(:,Iint)=exy(:,Iint)+0.5*(Deriv(:,1,I).*vnod(:,I) + Deriv(:,2,I).*unod(:,I));
-    <span class="keyword">end</span>
+</pre><p>See also CalcNodalStrainRatesAndStresses</p><pre class="codeinput"><span class="keyword">if</span> ~nargin==4 || ~nargin==6
+    error(<span class="string">'Ua:CalcNodalStrainRates'</span>,<span class="string">'Wrong number of input arguments'</span>)
 <span class="keyword">end</span>
 
+<span class="keyword">if</span> ~isempty(ub)
 
-[exx,eyy,exy]=ProjectFintOntoNodes(MUA,exx,eyy,exy);
+    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA,CtrlVar);
+    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA,CtrlVar);
+    exxb=dubdx;
+    eyyb=dvbdy;
+    exyb=0.5*(dubdy+dvbdx);
+    [exxb,eyyb,exyb]=ProjectFintOntoNodes(MUA,exxb,eyyb,exyb);
 
-e=real(sqrt(exx.^2+eyy.^2+exx.*eyy+exy.^2));
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin == 6
+    <span class="keyword">if</span> ~isempty(ud)
+        [duddx,duddy]=calcFEderivativesMUA(ud,MUA,CtrlVar);
+        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA,CtrlVar);
+
+        exxd=duddx;
+        eyyd=dvddy;
+        exyd=0.5*(duddy+dvddx);
+
+        [exxd,eyyd,exyd]=ProjectFintOntoNodes(MUA,exxd,eyyd,exyd);
+    <span class="keyword">end</span>
+<span class="keyword">else</span>
+    exxd=[] ; eyyd=[] ; exyd=[];
+<span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-
-function [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
+function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
 
 
 %%
@@ -143,29 +150,41 @@ function [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
 % See also CalcNodalStrainRatesAndStresses
 
 
-unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);
-exx=zeros(MUA.Nele,MUA.nip);
-eyy=zeros(MUA.Nele,MUA.nip);
-exy=zeros(MUA.Nele,MUA.nip);
 
-for Iint=1:MUA.nip
+if ~nargin==4 || ~nargin==6
+    error('Ua:CalcNodalStrainRates','Wrong number of input arguments')
+end
+
+if ~isempty(ub)
     
-    Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA,CtrlVar);
+    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA,CtrlVar);
+    exxb=dubdx;
+    eyyb=dvbdy;
+    exyb=0.5*(dubdy+dvbdx);
+    [exxb,eyyb,exyb]=ProjectFintOntoNodes(MUA,exxb,eyyb,exyb);
     
-    for I=1:MUA.nod
-        exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*unod(:,I);
-        eyy(:,Iint)=eyy(:,Iint)+Deriv(:,2,I).*vnod(:,I);
-        exy(:,Iint)=exy(:,Iint)+0.5*(Deriv(:,1,I).*vnod(:,I) + Deriv(:,2,I).*unod(:,I));
+end
+
+if nargin == 6
+    if ~isempty(ud)
+        [duddx,duddy]=calcFEderivativesMUA(ud,MUA,CtrlVar);
+        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA,CtrlVar);
+        
+        exxd=duddx;
+        eyyd=dvddy;
+        exyd=0.5*(duddy+dvddx);
+        
+        [exxd,eyyd,exyd]=ProjectFintOntoNodes(MUA,exxd,eyyd,exyd);
     end
+else
+    exxd=[] ; eyyd=[] ; exyd=[]; 
 end
 
 
-[exx,eyy,exy]=ProjectFintOntoNodes(MUA,exx,eyy,exy);
- 
-e=real(sqrt(exx.^2+eyy.^2+exx.*eyy+exy.^2));
-
 end
+
+
 
 ##### SOURCE END #####
 --></body></html>

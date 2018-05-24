@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMeshScalarVariable</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-23"><meta name="DC.source" content="PlotMeshScalarVariable.m"><style type="text/css">
+      --><title>PlotMeshScalarVariable</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="PlotMeshScalarVariable.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,12 +67,15 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
-</pre><p>Plots a scalar variable over the mesh domain as a patch (see help patch)</p><p>PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)</p><p>variable can be either nodal or element variable</p><p>vararing is passed on to the patch command</p><p>Examples:</p><p>plot element sizes</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+</pre><p>Plots a scalar variable over the mesh domain as a patch (see help patch)</p><p>PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)</p><p>variable can be either nodal or element variable</p><p>vararing is passed on to the patch command</p><p><b>Examples:</b></p><p>Plot element sizes</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
 figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title(<span class="string">'Element sizes'</span>)
 </pre><p>Plot a nodal variable (here as an example, the x coordinates of the nodes)</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 x=MUA.coordinates(:,1)
 figure ; PlotMeshScalarVariable([],MUA,x) ;
+</pre><p>Plot the floating mask:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
+x=MUA.coordinates(:,1);
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title(<span class="string">'The nodal floating mask (floating=0, grounded=1)'</span>)
 </pre><pre class="codeinput"><span class="keyword">persistent</span> NodTri EleTri Nele Nnodes nod
 
 <span class="keyword">if</span> islogical(Variable)
@@ -128,9 +131,9 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % vararing is passed on to the patch command
 %
-% Examples:
+% *Examples:*
 %
-% plot element sizes
+% Plot element sizes
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
@@ -143,6 +146,11 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %   x=MUA.coordinates(:,1)
 %   figure ; PlotMeshScalarVariable([],MUA,x) ; 
 %
+% Plot the floating mask:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','GF','CtrlVar')
+%   x=MUA.coordinates(:,1);
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title('The nodal floating mask (floating=0, grounded=1)')
 %%
 
 persistent NodTri EleTri Nele Nnodes nod

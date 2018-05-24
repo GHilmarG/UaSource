@@ -39,7 +39,7 @@
                 <tocitem target="EleBasedGL.html">EleBasedGL</tocitem>
                 <tocitem target="IceSheetIceShelves.html">IceSheetIceShelves</tocitem>
                 <tocitem target="FindAllNodesWithinGivenRangeFromGroundingLine.html">FindAllNodesWithinGivenRangeFromGroundingLine</tocitem>
-                <tocitem target="CalcNodalStrainRates.html">Calculate strain rates</tocitem>
+                <tocitem target="CalcNodalStrainRates.html">Calculate nodal strain rates</tocitem>
                 <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
             </tocitem>
