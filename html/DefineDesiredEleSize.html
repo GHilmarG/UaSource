@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineDesiredEleSize</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-07-16"><meta name="DC.source" content="DefineDesiredEleSize.m"><style type="text/css">
+      --><title>DefineDesiredEleSize</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-25"><meta name="DC.source" content="DefineDesiredEleSize.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,16 +68,25 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=<span class="keyword">...</span>
             DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
-</pre><p>Define desired sizes of elements or specify which elements to refine or coarsen.</p><pre class="language-matlab">[EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=<span class="keyword">...</span>
-    DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
-</pre><p>Only used in combination with adaptive meshing.</p><p>Allows user to set desired ele sizes (EleSize) at given locations (x,y).</p><p>On input EleSize are desired ele sizes at (x,y) as calculated by &Uacute;a based on some user-defined criteria.</p><p>On output EleSize are user-modified values.</p><p>Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element) vector 'ElementsToBeRefine', only the values.</p><p>x,y are the locations where new element sizes are specifed.</p><p>ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements to be refined, or a list of numbers of elements to be refined.</p><p>Note that this m-file is only called if the adaptive meshing option is used. Also, that elements will only be refined/coarsened if local mesh refinement is used. These options must be set accordingly in Ua2D_InitialUserInput.</p><p><b>Example:</b> To set desired ele sized to 1000 within a given boundary (this boundary must of course be within the overall boundary of the computational domain):</p><pre class="language-matlab">Boundary=[0        0 ; <span class="keyword">...</span>
+</pre><p>Define desired sizes of elements or specify which elements to refine or coarsen.</p><pre class="language-matlab">[UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=<span class="keyword">...</span>
+         DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+</pre><p>Only used in combination with adaptive meshing.</p><p>Allows user to set:</p><div><ul><li>EleSizeDesired when using global mesh refinement</li><li>ElementsToBeRefined when using local mesh refinement with either the red-green or the newest vertex bisection</li><li>ElementsToBeRefined and ElementsToBeCoarsened when using local mesh refinement with the the newest vertex bisection</li></ul></div><p>On input EleSize are desired ele sizes at (x,y) as calculated by &Uacute;a based on some user-defined criteria.</p><p>On output EleSize are user-modified values.</p><p>Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element) vector 'ElementsToBeRefine', only the values.</p><p>When using the gobal remeshing option x,y are the locations where new element sizes are specifed (these are the coordinates of the mesh)</p><p>Note: When using the local remeshing option, x and y as given on input are not relevant.       In this case use MUA.xEle and MUA.yEle as the x, y locations where the elements are to be refined or coarsened.</p><p>ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements to be refined, or a list of numbers of elements to be refined.</p><p>Note that this m-file is only called if the adaptive meshing option is used. Also, that elements will only be refined/coarsened if local mesh refinement is used. These options must be set accordingly in Ua2D_InitialUserInput.</p><p><b>Example:</b> To set desired ele sized to 1000 within a given boundary (this boundary must of course be within the overall boundary of the computational domain):</p><pre class="language-matlab">Boundary=[0        0 ; <span class="keyword">...</span>
         10e3      0 ; <span class="keyword">...</span>
         10e3      10e3;
         0       10e3];
 </pre><pre class="language-matlab">I=inpoly([x y],Boundary) ;
 EleSizeDesired(I)=1000;
 </pre><p>Here Boundary doese not have to be just a simple square, it can be a polygon of any shape.</p><p><b>Example:</b> To set all ele size of all floating elements (i.e. ice shelves) to 1000:</p><pre class="language-matlab">EleSizeDesired(GF.Node&lt;0.5)=1000;
-</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p><b>Example</b> defining either EleSizeDesired or ElementsToBeRefined depending on adaptive meshing option selected:</p><pre>   switch lower(CtrlVar.MeshRefinementMethod)</pre><pre>       case 'explicit:global'</pre><pre>       % when using global mesh refinement, return EleSizeIndicator defined at nodes</pre><pre>           EleSizeIndicator=EleSizeDesired;</pre><pre>           EleSizeIndicator(GF.node&lt;0.1)=UserVar.MeshSizeIceShelves;
+           EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);</pre><pre>           EleSizeIndicator(s&lt;1500)=CtrlVar.MeshSizeMax/5;
+           EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);</pre><pre>           xmin=-1727e3   ; xmax=-1100e3 ; ymin=-600e3 ; ymax=-20.e3;
+           ind=x&lt; xmax &amp; x&gt;xmin &amp; y&gt;ymin &amp; y&lt; ymax ;
+           EleSizeDesired(~ind)=CtrlVar.MeshSizeMax;</pre><pre>       case 'explicit:local:newest vertex bisection'</pre><pre>       % When using local mesh refinement, return ElementsToBeRefined and ElementsToBeCoarsened defined over elements
+       %
+       % ElementsToBeCoarsened is only used in combination with the 'newest vertex bisection' local mesh-refinement method
+       %
+           xmin=-1727e3   ; xmax=-1100e3 ; ymin=-600e3 ; ymax=-20.e3;
+           ind=MUA.xEle &lt; xmax &amp; MUA.xEle &gt; xmin &amp; MUA.yEle &gt;ymin &amp; MUA.yEle &lt; ymax ;</pre><pre>           ElementsToBeRefined(~ind)=false;</pre><pre>   end</pre><pre class="codeinput"><span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
@@ -88,12 +97,17 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % Define desired sizes of elements or specify which elements to refine or
 % coarsen.
 %
-%   [EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-%       DefineDesiredEleSize(CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+%   [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+%            DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
 %
 % Only used in combination with adaptive meshing.
 %
-% Allows user to set desired ele sizes (EleSize) at given locations (x,y).
+% Allows user to set:
+% 
+% * EleSizeDesired when using global mesh refinement
+% * ElementsToBeRefined when using local mesh refinement with either the red-green or the newest vertex bisection
+% * ElementsToBeRefined and ElementsToBeCoarsened when using local mesh refinement with the the newest vertex bisection
+% 
 %
 % On input EleSize are desired ele sizes at (x,y) as
 % calculated by Úa based on some user-defined criteria.
@@ -103,7 +117,10 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element)
 % vector 'ElementsToBeRefine', only the values.
 %
-% x,y are the locations where new element sizes are specifed. 
+% When using the gobal remeshing option x,y are the locations where new element sizes are specifed (these are the coordinates of the mesh)
+% 
+% Note: When using the local remeshing option, x and y as given on input are not relevant. 
+%       In this case use MUA.xEle and MUA.yEle as the x, y locations where the elements are to be refined or coarsened. 
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
@@ -127,14 +144,67 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 %
 % Here Boundary doese not have to be just a simple square, it can be a polygon of any shape.   
 %
-%
-% 
-%
 % *Example:* To set all ele size of all floating elements (i.e. ice shelves)
 % to 1000:
 %
 %   EleSizeDesired(GF.Node<0.5)=1000;
 %
+% *Example* defining either EleSizeDesired or ElementsToBeRefined depending on adaptive meshing option selected:
+%
+%     switch lower(CtrlVar.MeshRefinementMethod)
+%     
+%         case 'explicit:global' 
+%         
+%         % when using global mesh refinement, return EleSizeIndicator defined at nodes
+% 
+%             EleSizeIndicator=EleSizeDesired;
+% 
+%             EleSizeIndicator(GF.node<0.1)=UserVar.MeshSizeIceShelves;
+%             EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+%         
+%             EleSizeIndicator(s<1500)=CtrlVar.MeshSizeMax/5;
+%             EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+%         
+%             xmin=-1727e3   ; xmax=-1100e3 ; ymin=-600e3 ; ymax=-20.e3;
+%             ind=x< xmax & x>xmin & y>ymin & y< ymax ;
+%             EleSizeDesired(~ind)=CtrlVar.MeshSizeMax;
+%         
+%         case 'explicit:local:newest vertex bisection'
+%         
+%         % When using local mesh refinement, return ElementsToBeRefined and ElementsToBeCoarsened defined over elements
+%         %
+%         % ElementsToBeCoarsened is only used in combination with the 'newest vertex bisection' local mesh-refinement method 
+%         %
+%             xmin=-1727e3   ; xmax=-1100e3 ; ymin=-600e3 ; ymax=-20.e3;
+%             ind=MUA.xEle < xmax & MUA.xEle > xmin & MUA.yEle >ymin & MUA.yEle < ymax ;
+%       
+%             ElementsToBeRefined(~ind)=false; 
+% 
+%     end
+% 
+% 
+% 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %%
  
  

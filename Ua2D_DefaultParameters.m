@@ -9,7 +9,6 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
-
 %%
 %  
 %  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
