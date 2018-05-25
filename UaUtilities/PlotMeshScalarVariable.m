@@ -10,11 +10,26 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % vararing is passed on to the patch command
 %
-% Examples:
+% *Examples:*
 %
-% figure ; PlotMeshScalarVariable(CtrlVar,MUA,h)   
-% plots the thickness distribution
+% Plot element sizes
 %
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title('Element sizes')
+%
+%
+% Plot a nodal variable (here as an example, the x coordinates of the nodes)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   x=MUA.coordinates(:,1)
+%   figure ; PlotMeshScalarVariable([],MUA,x) ; 
+%
+% Plot the floating mask:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','GF','CtrlVar')
+%   x=MUA.coordinates(:,1);
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title('The nodal floating mask (floating=0, grounded=1)')
 %%
 
 persistent NodTri EleTri Nele Nnodes nod

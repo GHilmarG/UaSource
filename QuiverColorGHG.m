@@ -4,7 +4,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % Just a wrapper around quiver to generate coloured arrow field with a colorbar.
 %
-% [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
+%   [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can
 % be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve
@@ -41,22 +41,56 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % varargin is passed on to quiver
 %
-% Examples:
+% *Examples:*
 %
-%   QuiverColorGHG(x,y,ub,vb);
+%  figure
+%  load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%  QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb);
+%
+% Plot all velocites with arrows of equal length:
+%
+%  load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   CtrlVar=CtrlVarInRestartFile;
+%  speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+%  Par.MinPlottedSpeed=max(speed);
+%  Par.VelColorBarTitle=' ';
+%  Par.PlotXYscale=CtrlVar.PlotXYscale
+%  figure
+%  QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb,Par);
+%  hold on ; PlotMuaBoundary(CtrlVar,MUA,'k')
+%
+% Plot velocities at approx equally spaced intervals:
+%
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   CtrlVar=CtrlVarInRestartFile;
+%   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
+%   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   FigVelocities=figure; 
+%   Par.PlotXYscale=CtrlVar.PlotXYscale ; 
+%   Par.MinPlottedSpeed=0; 
+%   QuiverColorGHG(MUA.coordinates(I,1),MUA.coordinates(I,2),F.ub(I),F.vb(I),Par);
+%   hold on ; PlotMuaBoundary(CtrlVar,MUA,'k')
+%   
+%
+% Plot velocities using logarithmic scaling.
+%
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   CtrlVar=CtrlVarInRestartFile;
+%   FigVelocities=figure; 
+%   CtrlVar.VelPlotIntervalSpacing='log10' ; 
+%   QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb,CtrlVar);
+%   hold on ; PlotMuaBoundary(CtrlVar,MUA,'k')
 %
 % Plotting velocities on top of FE mesh:
 % 
-%   PlotMuaMesh(CtrlVar,MUA,ElementList)
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   CtrlVar=CtrlVarInRestartFile;
+%   PlotMuaMesh(CtrlVar,MUA)
 %   hold on
-%   QuiverColorGHG(x,y,ub,vb,CtrlVar);
+%   QuiverColorGHG(x,y,F.ub,F.vb,CtrlVar);
 %
 %
-% Plot all velocities with same length arrows, colour coding shows actual speed.
-%
-%   speed=sqrt(ub.*ub+vb.*vb);
-%   Par.MinPlottedSpeed=max(speed);
-%   QuiverColorGHG(x,y,ub,vb,Par);
 %
 % Two calls with same velocity scaling:
 %

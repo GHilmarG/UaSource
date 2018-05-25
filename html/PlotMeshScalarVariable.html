@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMeshScalarVariable</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-05-27"><meta name="DC.source" content="PlotMeshScalarVariable.m"><style type="text/css">
+      --><title>PlotMeshScalarVariable</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="PlotMeshScalarVariable.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,13 +67,31 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
-</pre><p>Plots a scalar variable over the mesh domain as a patch (see help patch)</p><p>PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)</p><p>variable can be either nodal or element variable</p><p>vararing is passed on to the patch command</p><p>Examples:</p><p>figure ; PlotMeshScalarVariable(CtrlVar,MUA,h) plots the thickness distribution</p><pre class="codeinput"><span class="keyword">persistent</span> NodTri EleTri Nele Nnodes nod
+</pre><p>Plots a scalar variable over the mesh domain as a patch (see help patch)</p><p>PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)</p><p>variable can be either nodal or element variable</p><p>vararing is passed on to the patch command</p><p><b>Examples:</b></p><p>Plot element sizes</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title(<span class="string">'Element sizes'</span>)
+</pre><p>Plot a nodal variable (here as an example, the x coordinates of the nodes)</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+x=MUA.coordinates(:,1)
+figure ; PlotMeshScalarVariable([],MUA,x) ;
+</pre><p>Plot the floating mask:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
+x=MUA.coordinates(:,1);
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title(<span class="string">'The nodal floating mask (floating=0, grounded=1)'</span>)
+</pre><pre class="codeinput"><span class="keyword">persistent</span> NodTri EleTri Nele Nnodes nod
+
+<span class="keyword">if</span> islogical(Variable)
+
+    Variable=double(Variable);
+
+<span class="keyword">end</span>
+
 
 [N,M]=size(Variable);
 
 <span class="keyword">if</span> N==MUA.Nnodes &amp;&amp; M==1   <span class="comment">% nodal variable</span>
 
-    <span class="keyword">if</span> isempty(NodTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    <span class="keyword">if</span> isempty(NodTri)
+        NodTri=MUA.connectivity;
+    <span class="keyword">elseif</span> MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         NodTri=MUA.connectivity;
     <span class="keyword">end</span>
 
@@ -81,7 +99,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 <span class="keyword">elseif</span> N==MUA.Nele &amp;&amp; M==1 <span class="comment">% element variable</span>
 
-    <span class="keyword">if</span> isempty(EleTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    <span class="keyword">if</span> isempty(EleTri)
+        EleTri=MUA.connectivity;
+    <span class="keyword">elseif</span> MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         EleTri=MUA.connectivity;
     <span class="keyword">end</span>
 
@@ -89,14 +109,15 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 <span class="keyword">else</span>
 
-    error(<span class="string">'Ua:PlotMeshScalarVariable:InconsistentDimentions'</span>,<span class="string">'Inconsitent dimentions'</span>)
+    fprintf(<span class="string">'PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n'</span>)
+    warning(<span class="string">'Ua:PlotMeshScalarVariable:Inconsistentdimensions'</span>,<span class="string">'Inconsistent dimensions'</span>)
 
 
 <span class="keyword">end</span>
 
 Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 
@@ -110,20 +131,44 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % vararing is passed on to the patch command
 %
-% Examples:
+% *Examples:*
 %
-% figure ; PlotMeshScalarVariable(CtrlVar,MUA,h)   
-% plots the thickness distribution
+% Plot element sizes
 %
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title('Element sizes')
+%
+%
+% Plot a nodal variable (here as an example, the x coordinates of the nodes)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   x=MUA.coordinates(:,1)
+%   figure ; PlotMeshScalarVariable([],MUA,x) ; 
+%
+% Plot the floating mask:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','GF','CtrlVar')
+%   x=MUA.coordinates(:,1);
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title('The nodal floating mask (floating=0, grounded=1)')
 %%
 
 persistent NodTri EleTri Nele Nnodes nod
+
+if islogical(Variable)
+    
+    Variable=double(Variable);
+    
+end
+
 
 [N,M]=size(Variable);
 
 if N==MUA.Nnodes && M==1   % nodal variable
     
-    if isempty(NodTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    if isempty(NodTri)
+        NodTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod 
         NodTri=MUA.connectivity;
     end
     
@@ -131,7 +176,9 @@ if N==MUA.Nnodes && M==1   % nodal variable
     
 elseif N==MUA.Nele && M==1 % element variable
     
-    if isempty(EleTri) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+    if isempty(EleTri) 
+        EleTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         EleTri=MUA.connectivity;
     end
     
@@ -139,7 +186,8 @@ elseif N==MUA.Nele && M==1 % element variable
     
 else
     
-    error('Ua:PlotMeshScalarVariable:InconsistentDimentions','Inconsitent dimentions')
+    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
+    warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
     
     
 end

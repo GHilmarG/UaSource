@@ -1,8 +1,15 @@
 function PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %%
-%  PlotBoundaryConditions(CtrlVar,MUA,BCs)
+%  PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %
 %  Gives a graphical representation of boundary conditions. 
+%
+%  varargin is passed on to PlotMuaMesh
+%
+% Example:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   figure ; PlotBoundaryConditions(CtrlVar,MUA,BCs,'k')
 %
 %%
 

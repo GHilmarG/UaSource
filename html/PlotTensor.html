@@ -1,0 +1,202 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PlotTensor</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="PlotTensor.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+</pre><p>Plots a 2x2 symmetrical tensor quantity. PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)</p><p>Tensor T=[txx  txy]          [txy  tyy]</p><p>Compression is plotted in red, extension in blue.</p><p><b>Example:</b></p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
+CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+[exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             <span class="comment">% calculate strain rates</span>
+[X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
+I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  <span class="comment">% find nodes within computational grid closest to the regularly scape X and Y grid points.</span>
+FigTensor=figure;
+CtrlVar.PlotNodes=0; PlotMuaMesh(CtrlVar,MUA,[],<span class="string">'color'</span>,<span class="string">'k'</span>) ;                           <span class="comment">% Plot FE mesh</span>
+hold <span class="string">on</span>
+scale=1e4; LineWidth=2 ;
+PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  <span class="comment">% plot strain rates</span>
+axis <span class="string">equal</span> <span class="string">tight</span>
+FigTensor.Children.Title.String=<span class="string">'Strain rates'</span>
+</pre><pre class="codeinput">    headscale=0.3;
+    sharp=0.3;
+
+    <span class="keyword">if</span> nargin&lt;7 ; LineWidth=1; <span class="keyword">end</span>
+
+    <span class="keyword">for</span> k=1:length(x)
+
+        <span class="keyword">if</span> ~isnan(txx(k))
+            D=[txx(k) txy(k) ; txy(k) tyy(k)];
+            [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
+
+
+            p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
+            p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
+
+
+            <span class="keyword">if</span> l1 &lt; 0
+                head=-1;
+                col=[1 0 0 ];
+            <span class="keyword">else</span>
+                head=1;
+                col=[0 0 1];
+            <span class="keyword">end</span>
+
+
+            ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
+            ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
+
+            <span class="keyword">if</span> l2 &lt; 0
+                head=-1;
+                col=[1 0 0 ];
+            <span class="keyword">else</span>
+                head=1;
+                col=[0 0 1];
+            <span class="keyword">end</span>
+            ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
+            ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">return</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+
+%%
+% Plots a 2x2 symmetrical tensor quantity.
+% PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+%
+% Tensor T=[txx  txy]
+%          [txy  tyy]
+%
+% Compression is plotted in red, extension in blue.
+%
+% *Example:*
+%
+%   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
+%   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+%   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   FigTensor=figure;
+%   CtrlVar.PlotNodes=0; PlotMuaMesh(CtrlVar,MUA,[],'color','k') ;                           % Plot FE mesh
+%   hold on
+%   scale=1e4; LineWidth=2 ;
+%   PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  % plot strain rates
+%   axis equal tight
+%   FigTensor.Children.Title.String='Strain rates'
+%
+%%
+
+
+    headscale=0.3;
+    sharp=0.3;
+    
+    if nargin<7 ; LineWidth=1; end
+    
+    for k=1:length(x)
+        
+        if ~isnan(txx(k))
+            D=[txx(k) txy(k) ; txy(k) tyy(k)];
+            [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
+            
+            
+            p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
+            p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
+            
+            
+            if l1 < 0
+                head=-1;
+                col=[1 0 0 ];
+            else
+                head=1;
+                col=[0 0 1];
+            end
+            
+            
+            ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
+            ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
+            
+            if l2 < 0
+                head=-1;
+                col=[1 0 0 ];
+            else
+                head=1;
+                col=[0 0 1];
+            end
+            ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
+            ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
+        end
+    end
+    
+    
+    return
+    
+end
+
+##### SOURCE END #####
+--></body></html>

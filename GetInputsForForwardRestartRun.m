@@ -62,6 +62,11 @@ if exist('RunInfo','var')==0
     RunInfo=UaRunInfo;
 end
 
+if ~isobject(RunInfo)
+   fprintf(' The variable RunInfo found in restart file is not an object. Presumably an old style restart file. \n')
+   fprintf(' Recreating RunInfo as  UaRunInfo object. \n')
+   RunInfo=UaRunInfo; 
+end
 
 if CtrlVar.ResetTime==1
     CtrlVarInRestartFile.time=CtrlVar.RestartTime;

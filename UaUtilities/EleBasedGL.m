@@ -20,12 +20,17 @@ function [xGLele,yGLele,triGR,FB,xEdge,yEdge,nx,ny,ds]=EleBasedGL(CtrlVar,MUA,GF
 % To plot FE mesh of grounded elements, the grounding line, and normals to the
 % grounding line:
 %
-%     figure ;
-%     triplot(triGR)
-%     hold on
-%     quiver(xEdge,yEdge,nx,ny) ; axis equal
-%     plot(xGLele,yGLele,'r')
-%     plot(xEdge,yEdge,'.g')
+% Example:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar','GF')
+%   [xGLele,yGLele,triGR,FB,xEdge,yEdge,nx,ny,ds]=EleBasedGL(CtrlVar,MUA,GF) ; 
+%
+%   figure ;
+%   triplot(triGR)                            % Plot the triangulation of grounded elements
+%   hold on
+%   quiver(xEdge,yEdge,nx,ny) ; axis equal ;  % Plot the normals to each grounding-line edges
+%   plot(xGLele,yGLele,'r')                   % Plot the grounding line edges
+%   plot(xEdge,yEdge,'.g')                    % Plot centre points of each grounding-line edge
 %
 %
 %  
@@ -41,6 +46,8 @@ end
 if nargin<4 || isempty(DoPlots)
     DoPlots=0;
 end
+
+GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
 if isfield(CtrlVar,'GLthreshold')
     I=GF.ele>CtrlVar.GLthreshold;

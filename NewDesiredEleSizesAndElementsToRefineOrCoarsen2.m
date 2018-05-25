@@ -62,7 +62,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
-            [~,~,~,ErrorProxy]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
+            [~,~,~,ErrorProxy]=CalcHorizontalNodalStrainRates(CtrlVar,MUA,u,v);
             
         case 'effective strain rates gradient'
             if CtrlVar.InfoLevelAdaptiveMeshing>=1
@@ -76,7 +76,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
-            [~,~,~,ErrorProxy]=CalcNodalStrainRates(CtrlVar,MUA,u,v);
+            [~,~,~,ErrorProxy]=CalcHorizontalNodalStrainRates(CtrlVar,MUA,u,v);
             [dfdx,dfdy]=calcFEderivativesMUA(ErrorProxy,MUA,CtrlVar);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);

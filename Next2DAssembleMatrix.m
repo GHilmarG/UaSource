@@ -1,5 +1,18 @@
 function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connectivity,nip,CtrlVar)
 	
+%
+%  dh/dt + p_x (u h ) + \p_y (v h) = a  
+%
+% Theta method: \Delta h / Delta t = \Theta d h_1/dt + (1-\Theta) d h_0/dt 
+%
+% 0 : Start of time step
+% 1 : End of time step
+%
+% d h_0/dt= a0 - d (u0 h0)/dx - d (v0 h0) /dy 
+%
+% This is a linear equation with respect to h
+%
+% 
 	
 	Nnodes=max(connectivity(:)); [Nele,nod]=size(connectivity);
 	ndim=2; dof=1; neq=dof*Nnodes;

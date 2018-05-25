@@ -4,8 +4,8 @@ nargoutchk(1,1)
 narginchk(4,4)
 
 
-% This returnd F1 does not depend on any of the fields of F1.  I just give this
-% as an imput so that F1 is not redefined as a structure and to unsure that the
+% The returned F1 does not depend on any of the fields of F1.  I just give this
+% as an input so that F1 is not redefined as a structure and to ensure that the
 % all other fields are not lost.
 
 %[ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,F.ub,F.dubdt,F.dubdtm1,F.vb,F.dvbdt,F.dvbdtm1,F.ud,F.duddt,F.duddtm1,F.vd,F.dvddt,F.dvddtm1,F.h,F.dhdt,F.dhdtm1);

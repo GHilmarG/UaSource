@@ -7,9 +7,12 @@ function PlotMuaBoundary(CtrlVar,MUA,varargin)
 % varargin is passed over to plot
 %
 % Examples: 
-% PlotMuaBoundary(CtrlVar,MUA)
-% PlotMuaBoundary(CtrlVar,MUA,'b')  % plots the boundaries in blue
-% PlotMuaBoundary([],MUA,'r','LineWidth',2)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar','GF') 
+%
+%   figure ; PlotMuaBoundary(CtrlVar,MUA)
+%
+%   figure ; PlotMuaBoundary([],MUA,'r','LineWidth',2)
 %
 %
 % Another option of just plotting the mesh boundaries is simply to do: 
