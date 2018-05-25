@@ -184,7 +184,8 @@ end
 %  ocean specific density.  The thickness is preserved, and s and b are
 %  consistent with the floating condition for a given ice tickness h, rho and
 %  rhow.
-RunInfo.Message(numel(RunInfo.Message)+1)="All initial inputs now defined.";
+if ~isfield(RunInfo,'Message') ; RunInfo.Message=[] ; end
+RunInfo.Message(numel(RunInfo.Message)+1)="All initial inputs now defined.";  % this is a string, will only work correclty post Matlab 2017b.
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
 
 
