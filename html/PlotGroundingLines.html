@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotGroundingLines</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-23"><meta name="DC.source" content="PlotGroundingLines.m"><style type="text/css">
+      --><title>PlotGroundingLines</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-29"><meta name="DC.source" content="PlotGroundingLines.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -69,18 +69,18 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
   </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Plots grounding lines</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 </pre><h2 id="2">Plots grounding lines</h2><p>[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)</p><p>The only required inputs are:</p><pre class="language-matlab">MUA
 GF
-</pre><p>Other fields can be left empty. However, if the grounding line needs to be plotted repeatedly for same MUA and GF, entering GLgeo, xGL and yGL, obtained as outputs from a previouis call, will speed things up.</p><p>varargin is passed over the the plot function and can be any input accepted by the matlap plot function.</p><p><b>Examples:</b></p><p>Plot grounding lines with minimum of required input:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+</pre><p>Other fields can be left empty. However, if the grounding line needs to be plotted repeatedly for same MUA and GF, entering GLgeo, xGL and yGL, obtained as outputs from a previouis call, will speed things up.</p><p>varargin is passed over the the plot function and can be any input accepted by the matlap plot function.</p><p><b>Examples:</b></p><p>Plot grounding lines with minimum of required input:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
 Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
 figure ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF) ;
-</pre><p>Plot grounding lines in red over the computational mesh in black:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+</pre><p>Plot grounding lines in red over the computational mesh in black:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
 figure
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 CtrlVar.PlotIndividualGLs=1 ;
 PlotMuaMesh(CtrlVar,MUA,[],<span class="string">'k'</span>) ;
 hold <span class="string">on</span>
-PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],<span class="string">'LineWidth'</span>,2);
-</pre><p>Plot grounding lines twice using outputs from first call in the second call:</p><pre>  load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],<span class="string">'color'</span>,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+</pre><p>Plot grounding lines twice using outputs from first call in the second call:</p><pre>  load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
   GLgeo=[] ; xGL=[], yGL=[];
   figure
   tic; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); toc
@@ -138,6 +138,8 @@ PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],<span class="string">'LineWidth'</spa
         ax=gca; ax.DataAspectRatio=[1 1 1];
     <span class="keyword">end</span>
 <span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using PlotGroundingLines (line 80)
+Not enough input arguments.
 </pre><pre class="codeinput"><span class="keyword">end</span>
 </pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
@@ -165,24 +167,24 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Plot grounding lines with minimum of required input:
 %
-%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
 %   figure ; 
 %   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF) ;
 %
 % Plot grounding lines in red over the computational mesh in black:
 %
-%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   figure
 %   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 %   CtrlVar.PlotIndividualGLs=1 ; 
 %   PlotMuaMesh(CtrlVar,MUA,[],'k') ;
 %   hold on
-%   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+%   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'color','r','LineWidth',2);
 %
 % Plot grounding lines twice using outputs from first call in the second call:
 % 
-%    load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%    load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %    GLgeo=[] ; xGL=[], yGL=[];
 %    figure
 %    tic; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); toc

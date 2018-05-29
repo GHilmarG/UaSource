@@ -22,24 +22,24 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Plot grounding lines with minimum of required input:
 %
-%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
 %   figure ; 
 %   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF) ;
 %
 % Plot grounding lines in red over the computational mesh in black:
 %
-%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   figure
 %   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 %   CtrlVar.PlotIndividualGLs=1 ; 
 %   PlotMuaMesh(CtrlVar,MUA,[],'k') ;
 %   hold on
-%   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+%   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'color','r','LineWidth',2);
 %
 % Plot grounding lines twice using outputs from first call in the second call:
 % 
-%    load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%    load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %    GLgeo=[] ; xGL=[], yGL=[];
 %    figure
 %    tic; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); toc
