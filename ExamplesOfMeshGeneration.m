@@ -247,6 +247,8 @@ drawnow
 % the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface
 
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
                          1 NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
@@ -266,6 +268,8 @@ drawnow
 
 
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar.MeshGenerator='gmsh';  % this option only works with gmsh...
+%CtrlVar.MeshGenerator='mesh2d';  
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; ...      
                          2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
@@ -278,7 +282,8 @@ drawnow
 
 %% Example: Internal boundaries
 
-
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
@@ -313,6 +318,7 @@ drawnow
 %
 CtrlVar=Ua2D_DefaultParameters(); 
 UserVar=[];
+CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.GmshInputFormat=2; % using input format 2
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
@@ -351,6 +357,7 @@ drawnow
 CtrlVar=Ua2D_DefaultParameters(); 
 UserVar=[];
 MeshBoundaryCoordinates=[];
+CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3;
 
@@ -411,6 +418,7 @@ i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
 
 
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=5e3; 
 CtrlVar.MeshSizeMin=1e3; 
