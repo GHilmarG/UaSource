@@ -320,7 +320,9 @@ CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.InfoLevelCPU=1;  <span class="comment">% if 1 then some info on CPU time usage is given</span>
 CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard output is directed to a logfile</span>
 <span class="comment">% name of logfile is  $Experiment.log</span>
-</pre><h2 id="26">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function J (i.e. the function to be minimized) has the form</p><pre>J=  I + R</pre><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><pre>I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy</pre><p>and the regularization term can be either (Bayesian)</p><pre>R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)</pre><p>where KC and KA are covariance matrices, or (Tikhonov)</p><pre>R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy</pre><p>where p is A or log(A), C or log(C)</p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>The inversion for C and A can be done with C and A defined on nodes or elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlen'</span> ;
+</pre><h2 id="26">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq08369003733283222926.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq12181943583103488439.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq12924131073447543161.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq15019012425984498030.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq13887426895847926300.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:404px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq04487584478622693718.png" alt="$K_C$" style="width:21px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq09497593338882125070.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq06301708164122530744.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:366px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq09941021013676836398.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq05147331747641807187.png" alt="$A$" style="width:10px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04475604477142801974.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq03986222445007418011.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04408148735986522086.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>The inversion for C and A can be done with C and A defined on nodes or elements. See:</p><pre class="language-matlab">CtrlVar.AGlenisElementBased
+CtrlVar.CisElementBased.
+</pre><p>In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlen'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'logAGlenlogC'</span>
 </pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPointC' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPointC'}</span>
 CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span class="comment">% {'C','logC','AGlen','logAGlen','logAGlenlogC'}</span>
@@ -1328,26 +1330,33 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is to invert for log(A) and log(C) simultaneously.
 %
-% The objective function J (i.e. the function to be minimized) has the form
+% The objective function $J$ (i.e. the function to be minimized) has the form
 %
-%  J=  I + R
+% $$ J=  I + R  $$ 
 %
 % where I is a misfit term, and R a regularization term.
 %
 %
 % The misfit term is:
 %
-%  I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy
+% 
+% $$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$
+% 
+% where 
 %
-% and the regularization term can be either (Bayesian)
+% $${\cal A} = \int dx dy$$  
+% 
+% 
 %
-%  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  
+% and the regularization term can be either on the form (Bayesian)
 %
-% where KC and KA are covariance matrices, or (Tikhonov)
+% $$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$
 %
-%  R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy
+% where  $K_C$  and   $K_A$  are covariance matrices, or (Tikhonov)
 %
-% where p is A or log(A), C or log(C)
+% $$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$
+%
+% where $p$ is $A$ or $log(A)$ , $C$ or $log(C)$
 %
 % There are number of different minimization methods implemented. Although the
 % methodology behind the inversion is rigorous, in practice when working with
@@ -1359,10 +1368,14 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 %
 % The inversion for C and A can be done with C and A defined on nodes or
-% elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the
-% past only inversion for element-based variables was possible, but now (as of
-% Jan 2017) one can invert for either nodal or element values. By default, the
-% inversion is done on nodal values.
+% elements. See: 
+%
+%
+%   CtrlVar.AGlenisElementBased 
+%   CtrlVar.CisElementBased. 
+%
+% In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element
+% values. By default, the inversion is done on nodal values.
 %
 %
 % Hint: Often starting inverting for C using the fix-point method (see

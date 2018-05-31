@@ -69,12 +69,23 @@ if CtrlVar.Inverse.CalcGradI
     
     switch lower(CtrlVar.Inverse.DataMisfit.GradientCalculation)
         
-        case 'fixpoint'
+        case {'fixpoint','fixpointc'}
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'c')
                 
-                dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,GF,F.ub,F.vb,Meas.us,Meas.vs);
-                np=numel(dIdp); ddIddp=sparse(np,np);
+                if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+                    
+                    fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
+                    fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
+                    fprintf(' Fixpoint evaluation of data misfit gradient only possibly when solving for slipperiness alone. \n')
+                    error('Fixpoint evaluation of data misfit gradient not implemented for AGlen or logAGlen inversion. ')
+                    
+                else
+                    
+                    dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,GF,F.ub,F.vb,Meas.us,Meas.vs);
+                    np=numel(dIdp); ddIddp=sparse(np,np);
+                    
+                end
                 
             else
                 
@@ -214,7 +225,7 @@ if CtrlVar.Inverse.CalcGradI
         otherwise
             
             fprintf(' CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
-            fprintf(' but the only allowed values are ''fixpoint'' and''adjoint'' \n')
+            fprintf(' but the only allowed values are ''fixpoint'' and ''adjoint'' \n')
             error(' which case? ')
             
     end

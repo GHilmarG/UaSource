@@ -435,26 +435,33 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is to invert for log(A) and log(C) simultaneously.
 %
-% The objective function J (i.e. the function to be minimized) has the form
+% The objective function $J$ (i.e. the function to be minimized) has the form
 %
-%  J=  I + R
+% $$ J=  I + R  $$ 
 %
 % where I is a misfit term, and R a regularization term.
 %
 %
 % The misfit term is:
 %
-%  I= (1/Area)   \int  (((u-uMeas)/uErrors)^2 + ((v-vMeas)/vErrors)^2) ) dx dy
+% 
+% $$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$
+% 
+% where 
 %
-% and the regularization term can be either (Bayesian)
+% $${\cal A} = \int dx dy$$  
+% 
+% 
 %
-%  R= (C-Cprior) inv(KC) (C-Cprior)  +  (A-Aprior) inv(KA) (A-Aprior)  
+% and the regularization term can be either on the form (Bayesian)
 %
-% where KC and KA are covariance matrices, or (Tikhonov)
+% $$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$
 %
-%  R= (1/Area)  \int (  gs^2 (grad (p-prior))^2  + ga^2 (p-prior)^2) dx dy
+% where  $K_C$  and   $K_A$  are covariance matrices, or (Tikhonov)
 %
-% where p is A or log(A), C or log(C)
+% $$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$
+%
+% where $p$ is $A$ or $log(A)$ , $C$ or $log(C)$
 %
 % There are number of different minimization methods implemented. Although the
 % methodology behind the inversion is rigorous, in practice when working with
@@ -466,18 +473,23 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 %
 % The inversion for C and A can be done with C and A defined on nodes or
-% elements. See: CtrlVar.AGlenisElementBased and CtrlVar.CisElementBased. In the
-% past only inversion for element-based variables was possible, but now (as of
-% Jan 2017) one can invert for either nodal or element values. By default, the
-% inversion is done on nodal values.
+% elements. See: 
 %
 %
-% Hint: Often starting inverting for C using the fix-point method (see
-% "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite
-% significantly down. Once that method stagnates (which it almost always will
-% because the gradient used in that method is just a rough estimate and
-% generally not exact), switch to another minimization approach, for example the
-% UaOptimisation using the adjoint gradients.
+%   CtrlVar.AGlenisElementBased 
+%   CtrlVar.CisElementBased. 
+%
+% In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element
+% values. By default, the inversion is done on nodal values.
+%
+%
+% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially
+% quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough
+% estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.
+%
+% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint
+% method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one
+% can switch to gradient calculation using adjoint
 %
 % Ua has some inbuilt optimization methods and these are used by default.
 % However, if the matlab optimization toolbox is installed, the matlab routines
@@ -490,10 +502,10 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='logAGlenlogC'
 %
 % is considered inconsistent (although in principle possible.) Also using the
-% `FixPointC' gradient calculation, which only works for C inversion, and
+% `FixPoint' gradient calculation, which only works for C inversion, and
 % inverting for both A and C, i.e. 
 %
-%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 %   CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
 %
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
@@ -540,7 +552,7 @@ CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','log
 % The gradient of the objective function is calculated using the adjoint method.
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
 % iteration, which is often a very good initial approach. 
-CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 
 % The gradient of the objective function can be pre-multiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
