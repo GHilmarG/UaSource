@@ -28,8 +28,8 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 %
 % When using the gobal remeshing option x,y are the locations where new element sizes are specifed (these are the coordinates of the mesh)
 % 
-% Note: When using the local remeshing option, x and y as given on input are not relevant. 
-%       In this case use MUA.xEle and MUA.yEle as the x, y locations where the elements are to be refined or coarsened. 
+% *Note: When using the local remeshing option, x and y as given on input are not relevant. 
+%       In this case use MUA.xEle and MUA.yEle as the x, y locations where the elements are to be refined or coarsened.* 
 %
 % ElementsToBeRefined can either be a logical array in which case values set to true/1 indicate elements
 % to be refined, or a list of numbers of elements to be refined.
@@ -93,27 +93,6 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % 
 % 
 % 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 %%
  
  

@@ -3,7 +3,8 @@
 function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 
 %%
-%   Defines model geometry
+% 
+% Defines model geometry
 %
 %  [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 %
@@ -31,9 +32,9 @@ function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsT
 % These fields need to be returned at the nodal coordinates. The nodal
 % coordinates are stored in MUA.coordinates
 %
-% alpha         is the tilt of the coordinate system with respect to gravity
-%               (not the slope of the ice surface). alpha
-%               is a scalar variable, and usully alpha=0
+%   alpha         is the tilt of the coordinate system with respect to gravity
+%                 (not the slope of the ice surface). alpha
+%                 is a scalar variable, and usully alpha=0
 %
 %%
 
