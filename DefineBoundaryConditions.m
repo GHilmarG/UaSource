@@ -4,7 +4,7 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 %
 % BC is a matlab object with the following fields 
 %
-% BCs = 
+%   BCs = 
 % 
 %   BoundaryConditions with properties:
 % 

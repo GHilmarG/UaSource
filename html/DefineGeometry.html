@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineGeometry</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-04-10"><meta name="DC.source" content="DefineGeometry.m"><style type="text/css">
+      --><title>DefineGeometry</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-31"><meta name="DC.source" content="DefineGeometry.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,13 +67,16 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
-</pre><pre class="language-matlab">Defines <span class="string">model</span> <span class="string">geometry</span>
-</pre><pre>[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre><p>FieldsToBeDefined is a string indicating which return values are required. For example if</p><pre class="language-matlab">FieldsToBeDefined=<span class="string">'sbSB'</span>
+</pre><p>Defines model geometry</p><pre>[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre><p>FieldsToBeDefined is a string indicating which return values are required. For example if</p><pre class="language-matlab">FieldsToBeDefined=<span class="string">'sbSB'</span>
 </pre><p>then s, b, S and B needed to be defined.</p><p>Typically, in a transient run</p><pre class="language-matlab">FieldsToBeDefined=<span class="string">'SB'</span>
 </pre><p>implying that only S and B needed to be defined, and s and b can be set to any value, for example s=NaN and b=NaN.</p><p>As in all other calls:</p><pre>s           is upper ice surface
 b           is lower ice surface
 B           is bedrock
-S           is ocean surface</pre><p>These fields need to be returned at the nodal coordinates. The nodal coordinates are stored in MUA.coordinates</p><p>alpha         is the tilt of the coordinate system with respect to gravity               (not the slope of the ice surface). alpha               is a scalar variable, and usully alpha=0</p><pre class="codeinput">x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+S           is ocean surface</pre><p>These fields need to be returned at the nodal coordinates. The nodal coordinates are stored in MUA.coordinates</p><pre class="language-matlab">alpha         <span class="string">is</span> <span class="string">the</span> <span class="string">tilt</span> <span class="string">of</span> <span class="string">the</span> <span class="string">coordinate</span> <span class="string">system</span> <span class="string">with</span> <span class="string">respect</span> <span class="string">to</span> <span class="string">gravity</span>
+            (not the slope of the ice surface). alpha
+            is <span class="string">a</span> <span class="string">scalar</span> <span class="string">variable</span>, and <span class="string">usully</span> <span class="string">alpha=0</span>
+</pre><pre class="codeinput">x=MUA.coordinates(:,1);
+y=MUA.coordinates(:,2);
 alpha=0.;
 
 
@@ -91,7 +94,8 @@ s=b+h0;
 function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 
 %%
-%   Defines model geometry
+% 
+% Defines model geometry
 %
 %  [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
 %
@@ -119,13 +123,14 @@ function [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsT
 % These fields need to be returned at the nodal coordinates. The nodal
 % coordinates are stored in MUA.coordinates
 %
-% alpha         is the tilt of the coordinate system with respect to gravity
+%   alpha         is the tilt of the coordinate system with respect to gravity
 %               (not the slope of the ice surface). alpha
 %               is a scalar variable, and usully alpha=0
 %
 %%
 
-x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+x=MUA.coordinates(:,1); 
+y=MUA.coordinates(:,2);
 alpha=0.;
 
 

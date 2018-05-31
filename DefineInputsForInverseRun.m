@@ -1,112 +1,127 @@
-function [InvStartValues,Priors,Meas,BCsAdjoint]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF)
+function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
+    DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 %%
-% An example of how to define inputs for an inverse run
+% *Note: This m-file is just an example of how to define inputs for an inverse run. You will need to modify to fit your own problem.*
 %
-% If doing an inverse run then a good starting point might be to 
-% put a copy of this file into your local run directory and then change as needed.
+% What you need to define are:
+% 
+% 
+% # Measurments and data errors (data errors are specified as diagonal covariance matrices.)
+% # Start values for inversion. (These are some values for the model parameters that you want to invert for.)
+% # Priors for the inverted fields. (Currently the only priors that are used the the priors for C and AGlen.)
 %
-%%
-
-x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
-
-%% define measurements and measurement errors
-% Here it is assumed that one is inverting measurements of surface velocities
-% and that scattered interpolants have already been defined and stored in a file
 %
-fprintf(' Loading measured velocities \n')
-locdir=pwd;
-cd(UserVar.InterpolantsDirectory)
-load('MyMeasurements','Fu','Fv')
-cd(locdir)
+% Note: When doing an inverse run, presumably a good start is to copy this file from the source directory to you own run director. 
+%
 
-Meas.us=Fu(x,y);  % Mapping measurements onto FE mesh
-Meas.vs=Fv(x,y);
-Meas.ws=Meas.vs*0 ;
+persistent FuMeas FvMeas FerrMeas  % keep scattered interpolants for the data in memory. 
 
-% Defining data errors and data covariance matrices.
-% Often errors are uncorrelated and the covariance matrices
-% are therefore diagonal.
-usError=1; vsError=1  ; wsError=1;
+
+%% Load measurments and define data errors as diagonal covariance matrices
+if isempty(FuMeas)  % Have I already loaded the data, if so don't do it again.
+    
+    fprintf('Loading interpolants for surface velocity data: %-s ',UserVar.SurfaceVelocityInterpolant)
+    load(UserVar.SurfaceVelocityInterpolant,'FuMeas','FvMeas','FerrMeas')
+    fprintf(' done.\n')
+end
+
+Meas.us=double(FuMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
+Meas.vs=double(FvMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
+Err=double(FerrMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
+
+MissingData=isnan(Meas.us) | isnan(Meas.vs) | isnan(Err) | (Err==0);
+Meas.us(MissingData)=0 ;  Meas.vs(MissingData)=0 ; Err(MissingData)=1e10; 
+
+usError=Err ; vsError=Err ; wsError=usError*0+1e10;
 Meas.usCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,usError.^2,MUA.Nnodes,MUA.Nnodes);
 Meas.vsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,vsError.^2,MUA.Nnodes,MUA.Nnodes);
 Meas.wsCov=sparse(1:MUA.Nnodes,1:MUA.Nnodes,wsError.^2,MUA.Nnodes,MUA.Nnodes);
 
-% if add errors
-%uMeas=uMeas+uError.*randn(MUA.Nnodes,1);
-%vMeas=vMeas+vError.*randn(MUA.Nnodes,1);
-%wMeas=wMeas+wError*randn(MUA.Nnodes,1);
+%% Define start values for inversion. These are some values for the model parameters that you want to invert for
 
-%% define boundary conditions of adjoint problem
-% The boundary conditions of the adjoint problem need to be defined.
-% Often the BCs of the adjoint problem are homogeneous.
-% If the forward problem uses periodic boundary conditions,
-% then those of the adjoint problem are usually periodic as well
-
-% If, for example, adjoint problem has the same boundary conditions as the forward, set: 
-% BCsAdjoint=BCs; % this would, for example, be the case if the forward problem has periodic BCs,
-                  % in which case the adjoint problem will have periodic BCs as well.
-
-% If the adjoint problem has homogeneous BCs (a very common case) then do: 
-BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
-BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ; BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
+% Here the values for AGlen and C are obtained by calling these m-files. Typically, however the start values would be some reasonable initial
+% estimates, or the results of a previous inversion. 
+[UserVar,InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.s-F.b,F.S,F.B,F.rho,F.rhow,GF);
+[UserVar,InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.s-F.b,F.S,F.B,F.rho,F.rhow,GF);
 
 
 
-%% now define priors
-% covariance matrices for priors
-% these covariance matrices are typically not diagonal
-% make sure to define those on nodes if A and C are defined on nodes
-% and on elements if A and C are defined as element values.
-% This here is just an example and might need to be adjusted.
-if CtrlVar.AGlenisElementBased
-    CAGlen=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
-else
-    CAGlen=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
-end
 
-if CtrlVar.isRegC    % only create a full covariance matrix if isRegC is on.
-    Err=1e-5 ; Sigma=10e3 ; DistanceCutoff=10*Sigma;
-    
-    if CtrlVar.CisElementBased
-        xEle=mean(reshape(x(MUA.connectivity,1),MUA.Nele,MUA.nod),2);  yEle=mean(reshape(y(MUA.connectivity,1),MUA.Nele,MUA.nod),2);
-        [CC]=SparseCovarianceDistanceMatrix(xEle,yEle,Err,Sigma,DistanceCutoff);
-    else
-        [CC]=SparseCovarianceDistanceMatrix(x,y,Err,Sigma,DistanceCutoff);
-    end
-    
-else
-    if CtrlVar.CisElementBased
-        CC=sparse(1:MUA.Nele,1:MUA.Nele,1,MUA.Nele,MUA.Nele);
-    else
-        CC=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1,MUA.Nnodes,MUA.Nnodes);
-    end
-end
+%% Define Priors. Currently the only priors that are used the the priors for C and AGlen.
+Priors.s=F.s;
+Priors.b=F.b;
+Priors.S=F.S;
+Priors.B=F.B;
+Priors.AGlen=AGlenVersusTemp(-10);
+Priors.n=3; 
+Priors.m=3; ub=10 ; tau=80 ; % units meters, year , kPa
+C0=ub/tau^Priors.m;
+Priors.C=C0;
+Priors.rho=F.rho;
+Priors.rhow=F.rhow;
 
-Priors.CovAGlen=CAGlen;
-Priors.CovC=CC;
 
-Priors.s=s;
-Priors.b=b;
-Priors.S=S;
-Priors.B=B;
 
-% Priors for C and A need to be defined
-% Here something simple is prescribed but this might be based on some
-% previous estimates, for example A could be based on some temperature model, etc.
+
+%% Covariance of prior (if using Bayesian Regularisation)
+% listingCC=dir('CC.mat') ; listingCA=dir('CAGlen.mat') ;
+%
 % 
-Priors.C=1e-6+zeros(MUA.Nnodes,1); % assuming C defined on nodes
-Priors.m=3;
-Priors.AGlen=AGlenVersusTemp(-10)+zeros(MUA.Nnodes,1); 
-Priors.n=3;
+%  Note: this is only used if using Bayesian Regularisation involving covariance matrices and when doing an element-wise inversion.
+%
+%  By default inversion is done over nodes and using Tikhonov regularisation. Hence, this defining covariance matrices for the priors is
+%  then not needed. 
+%
+% if strcmpi(CtrlVar.Inverse.Regularize.Field,'cov')
+%     CreateCovMatAndSave=1;
+%     if numel(listingCC)==1 && numel(listingCA)==1
+%         CreateCovMatAndSave=0;
+%         FileName='CC.mat';
+%         fprintf('DefineInverseModelingParameters: loading CC from file: %-s ',FileName)
+%         load(FileName,'CC') ;
+%         fprintf(' done \n ')
+%         %%
+%         
+%         FileName='CAGlen.mat';
+%         fprintf('DefineInverseModelingParameters: loading CAGlen from file: %-s ',FileName)
+%         load(FileName,'CAGlen');
+%         fprintf(' done \n ')
+%         
+%         if length(CC)~=length(F.C)
+%             CreateCovMatAndSave=1;
+%             fprintf(' Covariance matrix in input file does not have correct dimentions. Will create a new one \n')
+%         end
+%     end
+%     
+%     if CreateCovMatAndSave
+%         
+%         
+%         xEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1)); yEle=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
+%         Err=1e-1 ; Sigma=200 ; DistanceCutoff=5*Sigma;
+%         fprintf('creating sparse covariance matrix ')  ; tStart=tic;
+%         [CC]=SparseCovarianceDistanceMatrix(xEle,yEle,Err,Sigma,DistanceCutoff);
+%         tElapsed=toc(tStart);
+%         fprintf('in %-g sec \n',tElapsed)
+%         FileName='CC.mat'; save(FileName,'CC')
+%         
+%         Err=1e-5 ; Sigma=200 ; DistanceCutoff=5*Sigma;
+%         fprintf('creating sparse covariance matrix ')  ; tStart=tic;
+%         [CAGlen]=SparseCovarianceDistanceMatrix(xEle,yEle,Err,Sigma,DistanceCutoff);
+%         tElapsed=toc(tStart);
+%         fprintf('in %-g sec \n',tElapsed)
+%         FileName='CAGlen.mat'; save(FileName,'CAGlen')
+%     end
+% else
+%     CC=[] ;
+%     CAGlen=[];
+% end
+% 
+% Priors.CovAGlen=CAGlen;
+% Priors.CovC=CC;
+% 
+% 
 
-Priors.rho=rho;
-Priors.rhow=rhow;
-
-%% Define start values
-% I'm here setting starting values equal to priors
-[InvStartValues.C,InvStartValues.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
-[InvStartValues.AGlen,InvStartValues.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,s-b,S,B,rho,rhow,GF);
 
 
 end
