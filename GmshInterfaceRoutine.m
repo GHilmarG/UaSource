@@ -25,7 +25,7 @@ CtrlVar.GmshFile=[pathstr,name];
 str=computer;
 GmshHomeDirectory=getenv('GmshHomeDirectory');  
     
-if  strcmp(str,'GLNXA64')     
+if  strcmp(str,'GLNXA64') || strcmp(str,'MACI64')
     gmshRunString=fullfile(GmshHomeDirectory,'gmsh ');     % Unix
 else
     if isempty(GmshHomeDirectory)
