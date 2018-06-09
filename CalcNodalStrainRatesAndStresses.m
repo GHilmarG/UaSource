@@ -8,18 +8,20 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
 % On output all variables are nodal variables.
 %
-% txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
-% txx,tyy,txy   : horizontal deviatoric stresses
-% exx,eyy,exy   : horizontal strain rates
-% e             : effective strain rate
-% eta           : effective viscosity
+%   txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
+%   txx,tyy,txy   : horizontal deviatoric stresses
+%   exx,eyy,exy   : horizontal strain rates
+%   e             : effective strain rate
+%   eta           : effective viscosity
 %
 % the basal stress caculation is done using the basal boundary condition as:
-% txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
-%   < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
+%
+%   txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
+%       < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
 %
 % Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz}
-% wheere \sigma_{zz}= - \rho g (s-z)
+% where \sigma_{zz}= - \rho g (s-z)
+%
 % Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy}
 % Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h
 %
@@ -42,14 +44,6 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 %
 %%
 
-%narginchk(11,13)
-%nargoutchk(1,9);
-
-
-
-%save CalcNodalStrainRatesAndStressesTestSave
-
-%%
 
 [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF); % returns nodal values
 [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n); % returns integration point values
@@ -71,7 +65,7 @@ Tx=zeros(MUA.Nele,MUA.nod);
 Ty=zeros(MUA.Nele,MUA.nod);
 
 
-% vector over all elements for each integartion point
+% vector over all elements for each integration point
 for Iint=1:MUA.nip
     
     fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points

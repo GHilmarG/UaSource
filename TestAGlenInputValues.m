@@ -76,11 +76,21 @@ end
 
 if CtrlVar.AGlenisElementBased  && ~(length(MUA.connectivity)==length(AGlen))
     save TestSave ;
-    error(' AGlen is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
+    error('The variable AGlen is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
 elseif ~CtrlVar.AGlenisElementBased && ~(length(MUA.coordinates) == length(AGlen))
     save TestSave ;
-    error(' AGlen is node-based but does not have same number of elements as there are nodes in mesh. All variables saved in TestSave.mat ')
+    error('The variable AGlen is node-based but does not have same number of elements as there are nodes in mesh. All variables saved in TestSave.mat ')
 end
+
+
+if CtrlVar.AGlenisElementBased  && ~(length(MUA.connectivity)==length(n))
+    save TestSave ;
+    error('The variable n is element-based but does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
+elseif ~CtrlVar.AGlenisElementBased && ~(length(MUA.coordinates) == length(n))
+    save TestSave ;
+    error('The variable n is node-based but does not have same number of elements as there are nodes in mesh. All variables saved in TestSave.mat ')
+end
+
 
 [AGlen,iU,iL]=kk_proj(AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
 

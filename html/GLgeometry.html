@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>GLgeometry</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-30"><meta name="DC.source" content="GLgeometry.m"><style type="text/css">
+      --><title>GLgeometry</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-06-09"><meta name="DC.source" content="GLgeometry.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,8 +67,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
-</pre><p>Calculates grounding lines based on the floating/grounding condition at each node.</p><p>Examples:</p><pre class="language-matlab">[GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
-</pre><p>The  grounding line edges can be plotted as:</p><pre>     plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')</pre><p>To plot the normals to the grounding line, pointing outwards toward the ocean:</p><pre>     scale=0.1; H0=1000; hold on ;
+</pre><p>Calculates grounding lines based on the floating/grounding condition at each node.</p><p><b>Examples:</b></p><pre>     load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
+     [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);</pre><p>The  grounding line edges can be plotted as:</p><pre>     figure ; plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])') ; axis equal</pre><p>To plot the normals to the grounding line, pointing outwards toward the ocean:</p><pre>     scale=0.1; H0=1000; hold on ;
      quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,GLgeo(:,9),GLgeo(:,10),scale,'color','r')</pre><p>CtrlVar is optional. If given then only CtrlVar.GLsubdivide and CtrlVar.GLthreshold are needed.</p><p>CtrlVar.GLsubdivide   :  If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,                          and the grounding line is calculated for each sub-triangle</p><pre>CtrlVar.GLthreshold  : A threshold value determining where the GL is located with respect to the values of
                        flotation mask.  Usually CtrlVar.GLthreshold=0.5</pre><p>Within each element, or sub-triangle in case CtrlVar.GLsubdivide is true, the GL is a straight line going from one edge to another edge of the same element/sub-triangle</p><p>Output:</p><pre class="language-matlab">GLgeo(:,1)                        : list of <span class="string">elements</span> <span class="string">with</span> <span class="string">nodes</span> <span class="string">on</span> <span class="string">both</span> <span class="string">side</span> <span class="string">of</span> <span class="string">the</span> <span class="string">grounding</span> <span class="string">line</span>
 GLgeo(:,2)                        : edge number
@@ -77,7 +77,10 @@ GLgeo(:,[5 6])                    : y coordinates <span class="string">of</span>
 GLgeo(:,7)                        : mean x <span class="string">coordinate</span> <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span>
 GLgeo(:,8)                        : mean y <span class="string">coordinate</span> <span class="string">of</span> <span class="string">grounding</span> <span class="string">line</span> <span class="string">position</span> <span class="string">of</span> <span class="string">element</span> <span class="string">GLgeo(:,1)</span>
 GLgeo(:,9) and <span class="string">GLgeo(:,10)</span>        <span class="string">:</span> <span class="string">(x,y)</span> <span class="string">coordinates</span> <span class="string">of</span> <span class="string">the</span> <span class="string">(outwards)</span> <span class="string">normals</span> <span class="string">to</span> <span class="string">the</span> <span class="string">grounding</span> <span class="string">line</span>
-</pre><p>GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line</p><p>GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.   GLele :  a logical list of elements crossing grounding lines.</p><p>Does a reasonable job, but can only handle one grounding line going through each element.</p><p>Is fairly well vectorized with running time increasing linearly with problem size,</p><p>By default GL position is calculated from GF.node values, using only the corner points and assuming a linear variation within element.</p><p>Grounding line of element GLgeo(i,1) goes from edge GL(i,2) to edge rem(GL(i,2),3)+1</p><p>If a linked-up list of grounding line positions is required, use:       [xGL,yGL,GLindex] = ArrangeGroundingLinePos(CtrlVar,GLgeo,NGLmax)</p><p>Note on plotting: if the grounding line is plotted as:            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k') then matlab creates a new `Line Object' for each and every line segement. For grounding lines crossing a large number of elements this can be a very slow way of plotting. To speed things up plot the grounding line by first aligning up the line segements:</p><pre>     [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
+</pre><pre class="language-matlab">GLnodes : A list <span class="string">of</span> <span class="string">grounded</span> <span class="string">nodes</span> <span class="string">belonging</span> <span class="string">to</span> <span class="string">an</span> <span class="string">element</span> <span class="string">that</span> <span class="string">crosses</span> <span class="string">the</span> <span class="string">grounding</span> <span class="string">line</span>
+</pre><pre class="language-matlab">GLnodes :  a logical <span class="string">list</span> <span class="string">of</span> <span class="string">nodes</span> <span class="string">belonging</span> <span class="string">to</span> <span class="string">elements</span> <span class="string">crossing</span> <span class="string">grounding</span> <span class="string">lines.</span>
+GLele :  a logical <span class="string">list</span> <span class="string">of</span> <span class="string">elements</span> <span class="string">crossing</span> <span class="string">grounding</span> <span class="string">lines.</span>
+</pre><p>Does a reasonable job, but can only handle one grounding line going through each element.</p><p>Is fairly well vectorized with running time increasing linearly with problem size,</p><p>By default GL position is calculated from GF.node values, using only the corner points and assuming a linear variation within element.</p><p>Grounding line of element GLgeo(i,1) goes from edge GL(i,2) to edge rem(GL(i,2),3)+1</p><p>If a linked-up list of grounding line positions is required, use:       [xGL,yGL,GLindex] = ArrangeGroundingLinePos(CtrlVar,GLgeo,NGLmax)</p><p>Note on plotting: if the grounding line is plotted as:</p><pre>          plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k')</pre><p>then matlab creates a new `Line Object' for each and every line segement. For grounding lines crossing a large number of elements this can be a very slow way of plotting. To speed things up plot the grounding line by first aligning up the line segements:</p><pre>     [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
      plot(xGL,yGL,'k')</pre><p>alternativily, one can also use</p><pre class="language-matlab">PlotGroundingLines(CtrlVar,MUA,GF)
 </pre><p>to plot the grounding line, which takes care of this issue automatically.</p><p>see also: PlotGroundingLines, EleBasedGL</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;4 || isempty(CtrlVar)
 
@@ -150,7 +153,7 @@ GLgeo=zeros(Nele,10)+NaN ;  <span class="comment">% I'm being a bit wastefull he
     GL2y(ind1)=(threshold-gfb(ind1)).*(yc(ind1)-yb(ind1))./(gfc(ind1)-gfb(ind1))+yb(ind1);  <span class="comment">% if gfc&lt;threshold</span>
     GL2y(ind2)=(threshold-gfa(ind2)).*(yc(ind2)-ya(ind2))./(gfc(ind2)-gfa(ind2))+ya(ind2);  <span class="comment">% if gfc&gt;threshold</span>
 
-    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
+    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny+eps); nx=nx./temp ; ny=ny./temp;
 
 
     GLele(GLgeoEdge)=true;
@@ -179,22 +182,27 @@ GLgeo=GLgeo(ind,:);
 
 GLnodes=false(Nnode,1);
 GLnodes(connectivity(GLele,:))=true;
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in GLgeometry (line 106)
+[Nele,nod]=size(connectivity);
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 
 %%
 % Calculates grounding lines based on the floating/grounding condition at each node.
 %
-% Examples:
+% *Examples:*
 %
-%   [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+%       load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
+%       [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
 %
 %
 % The  grounding line edges can be plotted as:
 %
-%       plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')
+%       figure ; plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])') ; axis equal 
 %
 % To plot the normals to the grounding line, pointing outwards toward the ocean:
 %
@@ -218,18 +226,18 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 % Output:
 % 
 %   GLgeo(:,1)                        : list of elements with nodes on both side of the grounding line
-% GLgeo(:,2)                        : edge number
-% GLgeo(:,[3 4])                    : x  coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
-% GLgeo(:,[5 6])                    : y coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
-% GLgeo(:,7)                        : mean x coordinate of grounding line position of element GLgeo(:,1)
-% GLgeo(:,8)                        : mean y coordinate of grounding line position of element GLgeo(:,1)
-% GLgeo(:,9) and GLgeo(:,10)        : (x,y) coordinates of the (outwards) normals to the grounding line
+%   GLgeo(:,2)                        : edge number
+%   GLgeo(:,[3 4])                    : x  coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+%   GLgeo(:,[5 6])                    : y coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+%   GLgeo(:,7)                        : mean x coordinate of grounding line position of element GLgeo(:,1)
+%   GLgeo(:,8)                        : mean y coordinate of grounding line position of element GLgeo(:,1)
+%   GLgeo(:,9) and GLgeo(:,10)        : (x,y) coordinates of the (outwards) normals to the grounding line
 %
 %
-% GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
+%   GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
 %      
 %
-% GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.
+%   GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.
 %   GLele :  a logical list of elements crossing grounding lines.
 %
 % Does a reasonable job, but can only handle one grounding line going through
@@ -249,10 +257,13 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %
 %
 % Note on plotting: if the grounding line is plotted as:
+%
 %            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k')
-% then matlab creates a new `Line Object' for each and every line segement.
-% For grounding lines crossing a large number of elements this can be a very slow way of plotting.
-% To speed things up plot the grounding line by first aligning up the line segements:
+%
+% then matlab creates a new `Line Object' for each and every line segement. For
+% grounding lines crossing a large number of elements this can be a very slow
+% way of plotting. To speed things up plot the grounding line by first aligning
+% up the line segements:
 %
 %       [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
 %       plot(xGL,yGL,'k')
@@ -338,7 +349,7 @@ for iEdge=1:3
     GL2y(ind1)=(threshold-gfb(ind1)).*(yc(ind1)-yb(ind1))./(gfc(ind1)-gfb(ind1))+yb(ind1);  % if gfc<threshold
     GL2y(ind2)=(threshold-gfa(ind2)).*(yc(ind2)-ya(ind2))./(gfc(ind2)-gfa(ind2))+ya(ind2);  % if gfc>threshold
     
-    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny); nx=nx./temp ; ny=ny./temp;
+    nx=GL2y-GL1y ; ny=GL1x-GL2x ; temp=sqrt(nx.*nx+ny.*ny+eps); nx=nx./temp ; ny=ny./temp;
     
     
     GLele(GLgeoEdge)=true;

@@ -5,12 +5,13 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %
 % *Examples:*
 %
-%   [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
+%       load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
+%       [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
 %
 %
 % The  grounding line edges can be plotted as:
 %
-%       plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])')
+%       figure ; plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])') ; axis equal 
 %
 % To plot the normals to the grounding line, pointing outwards toward the ocean:
 %
@@ -34,18 +35,18 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 % Output:
 % 
 %   GLgeo(:,1)                        : list of elements with nodes on both side of the grounding line
-% GLgeo(:,2)                        : edge number
-% GLgeo(:,[3 4])                    : x  coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
-% GLgeo(:,[5 6])                    : y coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
-% GLgeo(:,7)                        : mean x coordinate of grounding line position of element GLgeo(:,1)
-% GLgeo(:,8)                        : mean y coordinate of grounding line position of element GLgeo(:,1)
-% GLgeo(:,9) and GLgeo(:,10)        : (x,y) coordinates of the (outwards) normals to the grounding line
+%   GLgeo(:,2)                        : edge number
+%   GLgeo(:,[3 4])                    : x  coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+%   GLgeo(:,[5 6])                    : y coordinates of grounding line position of element GLgeo(:,1) and edge GL(:,2)
+%   GLgeo(:,7)                        : mean x coordinate of grounding line position of element GLgeo(:,1)
+%   GLgeo(:,8)                        : mean y coordinate of grounding line position of element GLgeo(:,1)
+%   GLgeo(:,9) and GLgeo(:,10)        : (x,y) coordinates of the (outwards) normals to the grounding line
 %
 %
-% GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
+%   GLnodes : A list of grounded nodes belonging to an element that crosses the grounding line
 %      
 %
-% GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.
+%   GLnodes :  a logical list of nodes belonging to elements crossing grounding lines.
 %   GLele :  a logical list of elements crossing grounding lines.
 %
 % Does a reasonable job, but can only handle one grounding line going through

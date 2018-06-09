@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcNodalStrainRatesAndStresses</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="CalcNodalStrainRatesAndStresses.m"><style type="text/css">
+      --><title>CalcNodalStrainRatesAndStresses</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-06-09"><meta name="DC.source" content="CalcNodalStrainRatesAndStresses.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,12 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
-</pre><p>Calculates strains and devitoric stresses.</p><p>[txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)</p><p>Strains and stresses are first calculated at integration points, then projeted onto nodes. On output all variables are nodal variables.</p><p>txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction). txx,tyy,txy   : horizontal deviatoric stresses exx,eyy,exy   : horizontal strain rates e             : effective strain rate eta           : effective viscosity</p><p>the basal stress caculation is done using the basal boundary condition as: txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b   &lt; N_p | N_q &gt;  txzb_q = &lt; N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b &gt;</p><p>Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz} wheere \sigma_{zz}= - \rho g (s-z) Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h</p><p>Example:</p><pre class="language-matlab">load(<span class="string">'CrackRestartfileExample.mat'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'MUA'</span>,<span class="string">'F'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>)
+</pre><p>Calculates strains and devitoric stresses.</p><p>[txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)</p><p>Strains and stresses are first calculated at integration points, then projeted onto nodes. On output all variables are nodal variables.</p><pre class="language-matlab">txzb, tyzb    : x and <span class="string">y</span> <span class="string">components</span> <span class="string">of</span> <span class="string">the</span> <span class="string">basal</span> <span class="string">shear</span> <span class="string">stresses</span> <span class="string">(i.e. not x and y components of basal traction).</span>
+txx,tyy,txy   : horizontal deviatoric <span class="string">stresses</span>
+exx,eyy,exy   : horizontal strain <span class="string">rates</span>
+e             : effective strain <span class="string">rate</span>
+eta           : effective viscosity
+</pre><p>the basal stress caculation is done using the basal boundary condition as: txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b   &lt; N_p | N_q &gt;  txzb_q = &lt; N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b &gt;</p><p>Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz} wheere \sigma_{zz}= - \rho g (s-z) Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h</p><p>Example:</p><pre class="language-matlab">load(<span class="string">'CrackRestartfileExample.mat'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'MUA'</span>,<span class="string">'F'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>)
 CtrlVar=CtrlVarInRestartFile;
 [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb,F.ud,F.vd);
 x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
@@ -177,8 +182,12 @@ txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 <span class="keyword">if</span> ~isreal(eyy) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:eyybNotReal'</span>,<span class="string">'eyy not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(exy) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:eyybNotReal'</span>,<span class="string">'exy not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(e) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:ebNotReal'</span>,<span class="string">'e not real!'</span>) ; <span class="keyword">end</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in CalcNodalStrainRatesAndStresses (line 54)
+[tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF); % returns nodal values
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
 
@@ -190,11 +199,11 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
 % On output all variables are nodal variables.
 %
-% txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
-% txx,tyy,txy   : horizontal deviatoric stresses
-% exx,eyy,exy   : horizontal strain rates
-% e             : effective strain rate
-% eta           : effective viscosity
+%   txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
+%   txx,tyy,txy   : horizontal deviatoric stresses
+%   exx,eyy,exy   : horizontal strain rates
+%   e             : effective strain rate
+%   eta           : effective viscosity
 %
 % the basal stress caculation is done using the basal boundary condition as:
 % txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
