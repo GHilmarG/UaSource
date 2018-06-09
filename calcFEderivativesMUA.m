@@ -1,8 +1,23 @@
 function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 
-% [dfdx,dfdy,xint,yint]=calcFEderivatives(f,MUA,CtrlVar)
+%%
+%
+%   [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
+% 
 % calculates x and y derivatives of a nodal variable at integration points
-
+%
+%   f          :  a nodal quantity 
+%   dfdx, dfdy :  x and y derivatitves of f 
+%   xint, yint :  x, y locations of the elements of dfdx and dfdy 
+%
+%   CtrlVar    : optional, can be left empty. 
+% 
+% Note: On input f is a nodal variable, ie defined at nodes
+%       On return dfdx and dfdy are integration-point variables, ie defined at
+%       the integration points xint and yint.
+%
+% See also: ProjectFintOntoNodes
+%%
 
 
 ndim=2;
@@ -21,13 +36,8 @@ dfdx=zeros(MUA.Nele,MUA.nip); dfdy=zeros(MUA.Nele,MUA.nip);
 
 for Iint=1:MUA.nip
     
-    %    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
     Deriv=MUA.Deriv(:,:,:,Iint);
-    %    else
-    %        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    %    end
-
-    
+        
     for I=1:MUA.nod
         dfdx(:,Iint)=dfdx(:,Iint)+Deriv(:,1,I).*fnod(:,I);
         dfdy(:,Iint)=dfdy(:,Iint)+Deriv(:,2,I).*fnod(:,I);
