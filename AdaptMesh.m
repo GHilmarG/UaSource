@@ -219,7 +219,7 @@ end
 
 if ~isempty(CtrlVar.SaveAdaptMeshFileName)
     MUA=MUAnew;
-    save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
+    save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
     fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
 end
 

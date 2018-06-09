@@ -81,6 +81,15 @@ elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(C))
 end
 
 
+if CtrlVar.CisElementBased  && ~(length(MUA.connectivity)==length(m))
+    save TestSave ;
+    error(' m is element-based but on input does not have same number of elements as there are elements in mesh. All variables saved in TestSave.mat ')
+elseif ~CtrlVar.CisElementBased && ~(length(MUA.coordinates) == length(m))
+    save TestSave ;
+    error(' m is node-based but input does not have same number of elements as there are nodes in mesh. All variables saved in TestSave.mat ')
+end
+
+
 
 
 
