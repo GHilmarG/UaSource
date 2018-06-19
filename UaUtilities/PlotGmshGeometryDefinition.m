@@ -14,10 +14,16 @@ switch CtrlVar.GmshInputFormat
     case 1
         %fprintf('PlotGmshGeometryDefinition: gmsh input format 1 \n')
         
-        I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
-        CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
-        
-        plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'bx-','LineWidth',2)
+        if isfield(CtrlVar,'MeshBoundaryCoordinates')
+            I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
+            CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
+            
+            plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'bx-','LineWidth',2)
+        else
+            
+            warning('PlotGmshGeometryDefinition can not plot the CtrlVar.MeshBoundaryCoordinates because the field does not exist.')
+            
+        end
         GmshPointsInLoop=[];
         
         
@@ -26,13 +32,13 @@ switch CtrlVar.GmshInputFormat
         
         %fprintf('PlotGmshGeometryDefinition: gmsh input format 2 \n')
         GmshPointsInLoop=FindGmshPointsInLoop(CtrlVar);
-
+        
         
         for I=1:numel(GmshPointsInLoop)
             plot(GmshPointsInLoop{I}(:,1)/CtrlVar.PlotXYscale,GmshPointsInLoop{I}(:,2)/CtrlVar.PlotXYscale,'LineWidth',2)
         end
-            
-            
+        
+        
 end
 
 
