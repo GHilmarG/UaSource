@@ -40,12 +40,14 @@ clear AdaptiveTimeStepping
 clear AdaptMesh
 clear BCs2MLC
 clear CostFunctionValueAndGradient
+clear EleAverageInterpolate
 clear JGH
 clear NrOfIntegrationPoints
 clear LocalMeshRefinement
 clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
 clear multiWaitbar
+clear NewConjugatedGrad
 % also those potentially defined in user input files
 clear DefineSlipperyDistribution
 clear DefineAGlenDistribution
@@ -56,7 +58,9 @@ clear DefineDesiredEleSize
 clear DefineBoundaryConditions
 clear DefineMassBalance
 clear UaOutputs
-
+% Ua utilities
+clear PlotMeshScalarVariable 
+clear PlotFEmesh
 
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
@@ -444,7 +448,7 @@ while 1
             %
             
             F=ExplicitEstimationForUaFields(CtrlVar,F,F0,Fm1);
-            %[ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,F.ub,F.dubdt,F.dubdtm1,F.vb,F.dvbdt,F.dvbdtm1,F.ud,F.duddt,F.duddtm1,F.vd,F.dvddt,F.dvddtm1,F.h,F.dhdt,F.dhdtm1);
+            
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
             uvhStep=1;
