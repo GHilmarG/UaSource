@@ -276,7 +276,7 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %
 % where u is some typical velocity and L a scale for element size to be of relevance.
 %
-%  Typical suggestions in the litterature are on the form
+%  Typical suggestions in the literature are on the form
 %
 %  N'= kappa (L/2) u/|u| dNdx
 %

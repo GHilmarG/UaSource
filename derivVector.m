@@ -127,7 +127,7 @@ for J=1:nod
     
 end
 
-clearvars J11 J12 J21 J22
+% clearvars J11 J12 J21 J22
 % 
 % if all(detJ<0) 
 %     warning('derivVector:AllElementsInsideOut','Negative determinant in all elements \n  ') ;
