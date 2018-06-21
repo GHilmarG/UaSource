@@ -1,8 +1,9 @@
 
 %%
-UserVar.SUPG=1;  % True if using the SUPG
+
 MainFigure=2;    % Just the number of the main figure windwo
 DoPlots=1;
+UserVar=[];
 
 %% Main input variables
 hStep=1; hmin=1;
@@ -16,7 +17,7 @@ kappa=0;     U0=10;  % No diffusion, infinite Peclet number
 CtrlVar=Ua2D_DefaultParameters(); %
 CtrlVar.TriNodes=3;
 CtrlVar.MeshSizeMax=1;
-CtrlVar.MeshSizeMin=0.1;
+CtrlVar.MeshSizeMin=0.01;
 CtrlVar.MeshSize=0.1;
 MeshBoundaryCoordinates=[-10 -1 ; -10 1 ; 10 1 ; 10 -1];
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
@@ -52,18 +53,12 @@ switch CtrlVar.TriNodes
 end
 
 CFL=min(Tlength)/max(u0);
-dt=0.01; 
+dt=CFL/2;
 %dt=min([dt,CFL/2]);
 
 
 time=0;
 
-if ~UserVar.SUPG
-
-    CtrlVar.SUPG.beta0=0 ; CtrlVar.SUPG.beta1=0 ;
-else
-    CtrlVar.SUPG.beta0=1/2 ; CtrlVar.SUPG.beta1=0 ;  % 
-end
 
 %% Define BCs
 BCsTracer=BoundaryConditions;
@@ -83,14 +78,14 @@ if DoPlots
     subplot(2,1,1)
     PlotMeshScalarVariable(CtrlVar,MUA,c0) ;
     subplot(2,1,2)
-    plot(x(Y0ind),c0(Y0ind)) ;
+    plot(x,c0,'.') ;
 end
 
 speed=sqrt(u0.*u0+v0.*v0); 
 fprintf(' Local element Peclet number |v| l/2 kappa = %f \n',max(speed)*min(Tlength)./2/mean(kappa)) 
 
 %% And now finally calculate the trace evolution 
-for I=1:25
+for I=1:50
     
     CtrlVar.theta=0.75;  % Note, it is quite possible that backward Euler is the best approach here
                       % So instead of using the default value of theta=1/2, set theta=1. 
@@ -107,8 +102,8 @@ for I=1:25
         %plot(x(Y0ind),c1(Y0ind),'o-') ;
         plot(x,c1,'.') ;
         
-        if UserVar.SUPG
-            title(sprintf('c at t=%f with SUPG',time))
+        if CtrlVar.Tracer.SUPG.Use
+            title(sprintf('c at t=%f with SUPG and tau=%s',time,CtrlVar.Tracer.SUPG.tau))
         else
             title(sprintf('c at t=%f without SUPG ',time))
         end

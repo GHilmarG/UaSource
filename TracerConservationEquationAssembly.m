@@ -101,7 +101,7 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-        SUPG=fun(Inod)+tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+        SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
         
         SUPGdetJw=SUPG.*detJw;
         
