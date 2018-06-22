@@ -1,7 +1,7 @@
 
 %%
 
-MainFigure=2;    % Just the number of the main figure windwo
+MainFigure=10;    % Just the number of the main figure windwo
 DoPlots=1;
 UserVar=[];
 
@@ -11,11 +11,14 @@ hStep=1; hmin=1;
 kappa=0;     U0=10;  % No diffusion, infinite Peclet number
 %kappa=1e-4;  U0=10;  % advection dominated, large Peclet number.
 %kappa=1;  U0=10;  % a bit of both,
-%kappa=1;     U0=0;   % no advection, Peclet number equal to zero
+kappa=1;     U0=0;   % no advection, Peclet number equal to zero
 
 %% Create mesh
 CtrlVar=Ua2D_DefaultParameters(); %
-CtrlVar.TriNodes=3;
+CtrlVar.Tracer.SUPG.tau='taus' ; % {'tau1','tau2','taus','taut'}
+CtrlVar.theta=0.75;  % Note, it is quite possible that backward Euler is the best approach here
+% So instead of using the default value of theta=1/2, set theta=1.
+CtrlVar.TriNodes=6;
 CtrlVar.MeshSizeMax=1;
 CtrlVar.MeshSizeMin=0.01;
 CtrlVar.MeshSize=0.1;
@@ -25,9 +28,9 @@ CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates);
 figure ;  PlotMuaMesh(CtrlVar,MUA)
 
-x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);   
+x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
-%% Define velocities and initial tracer (thickness) distribution 
+%% Define velocities and initial tracer (thickness) distribution
 u0=zeros(MUA.Nnodes,1)+U0 ;  v0=zeros(MUA.Nnodes,1) ;
 a0=zeros(MUA.Nnodes,1) ;
 u1=u0 ; v1=v0 ; a1=a0;
@@ -36,7 +39,7 @@ c0=zeros(MUA.Nnodes,1) ;
 
 c0(x<0)=hmin+hStep ;  c0(x>=0)=hmin ;  % Here I define a step change in thickness at x=0
 
-figure(10) ; PlotMeshScalarVariable(CtrlVar,MUA,u0) ; 
+figure(1001); PlotMeshScalarVariable(CtrlVar,MUA,u0) ; 
 
 % calculate CFL condition and make sure time step is small enough
 Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity);
@@ -53,7 +56,8 @@ switch CtrlVar.TriNodes
 end
 
 CFL=min(Tlength)/max(u0);
-dt=CFL/2;
+dt=0.01;
+dt=min([dt,CFL]);
 %dt=min([dt,CFL/2]);
 
 
@@ -85,11 +89,10 @@ speed=sqrt(u0.*u0+v0.*v0);
 fprintf(' Local element Peclet number |v| l/2 kappa = %f \n',max(speed)*min(Tlength)./2/mean(kappa)) 
 
 %% And now finally calculate the trace evolution 
-for I=1:50
+for I=1:20
     
-    CtrlVar.theta=0.75;  % Note, it is quite possible that backward Euler is the best approach here
-                      % So instead of using the default value of theta=1/2, set theta=1. 
-                      % 
+
+                      
     [UserVar,c1,lambdah]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer) ;
     
     

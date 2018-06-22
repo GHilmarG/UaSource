@@ -30,7 +30,7 @@ I=speed<100*eps ; tau1(I)=dt(I)/6;
 
 %%
 taut=dt/2+eps;
-taus=0.5*l./speed+eps;
+taus=0.5*l./(speed+100*eps);  % Now this must go down to zero gracefully...
 tau2=1./(1./taut+1./taus);
 
 switch CtrlVar.Tracer.SUPG.tau
@@ -47,7 +47,7 @@ switch CtrlVar.Tracer.SUPG.tau
         error('in CalcSUPGtau case not found')
 end
 
-
+%fprintf('tau1=%f \t tau2=%f \t taus=%f \t taut=%f \n ',mean(tau1),mean(tau2),mean(taus),mean(taut))
 
 
 %%
