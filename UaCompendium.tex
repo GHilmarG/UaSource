@@ -18,6 +18,9 @@
 %\usepackage{ascii}
 %\usepackage{hyperref}
 
+\usepackage{caption}
+\usepackage{subcaption}
+
 \usepackage{varioref}
 
 
@@ -70,13 +73,18 @@
 \tableofcontents
 
 \frontmatter
+
+
+
 \chapter{Introduction}
 \Ua is a finite-element ice flow model.  This document provides some
 theoretical background information to \Ua. It is not a manual. This is
 a `life' document, i.e.\ it is constantly being modified and changed
 and the current from of the document is in no means final. It contains
 some general material on glacier mechanics, a bit on the FE method,
-and lots of some very specific \Ua related stuff. 
+and lots of some very specific \Ua related stuff.  Most of the
+material related stricly to glacier mechanics is from a course given
+at Caltech in 2014.
 
 \chapter{Notation and definitions}
 
@@ -243,6 +251,7 @@ direction $\bm{v}$ is $\nabla_{\bm{v}} \bm{f}(\bm{x})$.
 
 
 \mainmatter
+\part{\Ua Stuff}
 \chapter{Equations of ice flow}
 
 
@@ -578,9 +587,10 @@ The basal velocity can still be calculated by solving the SSTREAM/SSA
 equations provided the velocity is set to a value somewhere along the
 boundary by the boundary conditions (In this limit the SSTREAM field
 equations only provide constraints on the gradients of velocities). In
-the SIA equations the velocity is undetermined by the momentum
-equation, and must be determined from other consideration (such as
-mass conservation).
+the SIA equations the velocity can not be determined using the
+momentum equation (as by definition there is no direct functional
+relationship between velocity and basal shear traction), and must be
+determined from other consideration (such as mass conservation).
 
 Considering the limit where $m \to 0$ we see from Eq.~(\ref{eq:slida1})
 that now it is the basal shear traction that becomes infinitely
@@ -5312,118 +5322,712 @@ or
 \]
 
 
-\appendix
+\part{Some glacier mechanics stuff}
 
 
+\chapter{An ice shelf in one horizontal dimension (1HD).}
 
-\chapter{Calculating vertical surface velocity}
+We consider an ice shelf in one horizontal dimension (1HD) under
+plain-strain conditions
+\[
+\eyy=0 ,
+\]
+and in addition we assume $v=0$, and that all other transverse
+gradients to be zero as well. This ice shelf is laterally confined, ,
+i.e.\ it can not spread out in $y$ direction, but there is no
+friction along the sides. It is free to deform in $x$ direction only.
 
-The sign convention for upper- and lower-surface mass balance is such
-that the kinematic boundary conditions at the upper and
-lower surfaces read, respectively,
+The vertical stress is, as always in the SSA approximation, given by
+\begin{equation}
+\szz= -\rho g (s-z),
+\label{eq:szz}
+\end{equation}
+where $s$ is the upper surface. The traction at the lower surface,
+where $z=b$, must equal the ocean pressure giving
+\[
+\rho (s-b) = \rho_w (S-b) ,
+\]
+from which various other floating relationships follow:
 \begin{align} 
-\p_t s + u \p_x s +v \p_y s -w_s&=a_s  ,\label{eq:pts} \\
-\p_t b + u \p_x b +v \p_y b -w_b&=-a_b ,\label{eq:ptb} 
+h &= \rho_w d /\rho =\frac{s-S}{1-\rho/\rho_w} = \frac{\rho_w}{\rho} (S-b) ,\label{eq:hs1} \\
+b &= \frac{\rho s - \rho_w S}{\rho-\rho_w}  = S-\frac{\rho}{\rho_w} h , \label{eq:bh1}\\
+s &= S+(1-\rho/\rho_w) h = (1-\rho_w/\rho) b +\frac{\rho_w}{\rho} S, \label{eq:sb2}\\
+f&= (1-\rho/\rho_w) h  . \label{eq:f2}
 \end{align}
-i.e.\ adding ice is always defined as positive surface mass balance.
-
-Subtracting \eqref{eq:ptb} from \eqref{eq:pts} gives
-\[
-\p_t h+ u \, \p_x h +v \, \p_y h -w_s + w_b=a_s+a_b ,
-\]
-where it has been used that $u$ does not change with depth. Now using \eqref{eq:sb} gives
-\[
-\p_t h+ u \, \p_x h + v \, \p_y h +h ( \exx + \eyy)=a_s+a_b,
-\]
-or
-\begin{equation}
-\p_t h+ \p_x (u h) + \p_y ( v h)=a_s+a_b,
-\label{eq:conc}
-\end{equation}
-hence, in the flux-conservation equation both upper and lower mass balance terms have the same sign. 
 
 
+Note that we write $d=S-b$ for the ice shelf draft, $f=S-s$ for the
+freeboard, and $h=s-b$ and $H=S-B$.
 
 
-\section{grounded part}
-
-On the grounded part $\p_t s =\p_t h$ and the kinematic boundary condition gives
-\begin{equation}
-w_s=\p_t h  + u \, \p_x s + v \, \p_y s -a_s ,
-\label{eq:wsg}
-\end{equation}
-but this requires $\p_t h$ to be known before we can calculate $w_s$. An alternative approach is to 
-integrate the vertical strain rate $\ezz$ over the thickness, use the mass conservation equation and
-the fact that horizontal strain rates do not change across the thickness, to arrive at
+The SSTREAM/SSA equation to be solved is
+in this case simply
 \begin{equation} 
-w_s= w_b-h \, ( \exx + \eyy) .
-\label{eq:sb} \end{equation}
-We now calculate $w_b$ from the kinematic boundary condition at the lower surface as
-\[
-w_b=a_b + u \p_x b + v \p_y b ,
-\]
-and insert into \eqref{eq:sb} arriving at
-\begin{equation} 
-w_s= a_b + u \, \p_x b + v \, \p_y b -h \, ( \exx + \eyy) ,
-\label{eq:wsgrounded} 
+4 \p_x ( h \eta \p_x u ) =\rho g (1-\rho/\rho_w) h \, \p_x h  ,
+\label{eq:mbic1}
 \end{equation}
-which represents a convenient way of calculation $w_s$ once the horizontal velocity field has been determined.
-
-
-
-\section{floating part}
-Where the ice is afloat 
-\[
-s = S+(1-\rho/\rho_o) \, h 
-\]
-i.e.\
-\[
-\p_t s =  (1-\rho/\rho_o) \, \p_t h 
-\]
-The kinematic boundary condition at the surface gives
-\[
-w_s=\p_t s + u \, \p_x s + v \, \p_y s -a_s 
-\]
-and therefore
-\begin{equation}
-w_s=(1-\rho/\rho_o) \, \p_t h  + u \, \p_x s + v \, \p_y s -a_s 
-\label{eq:wsfloating}
-\end{equation}
-If $\p_t h$ is known \eqref{eq:wsfloating} can be used to calculate $w_s$, otherwise
-we use (\ref{eq:conc}) and find that
-\begin{equation}
-w_s=(1-\rho/\rho_o) \, (a_s+a_b - \p_x q_x - \p_y q_y)  + u \, \p_x s + v \, \p_y s -a_s 
-\label{eq:wsfloating2}
-\end{equation}
-
-
-An alternative way of calculating $w_s$ is to insert the floating condition
+where the  effective viscosity $\eta$ is given by
 \[ 
-s=(1-\rho_o/\rho) b 
+\eta=\frac{1}{2} A^{-1/n} |\partial_x u|^{(1-n)/n}.
 \]
-into (\ref{eq:pts}) and to use (\ref{eq:ptb}) to get rid of $\p_t b$ 
+
+Eq.~(\ref{eq:mbic1}) is the vertical integrated form of the momentum
+equation in $x$ direction, and reflects the equilibrium of vertically
+integrated forces in the horizontal direction .  The equation can also written
+in terms of the horizontal deviatoric stress $\tau_{xx}$ as
 \begin{equation} 
-(1-\rho_o/\rho) (w_b-a_b-u \p_x b-v p_y b) + (1-\rho_o/\rho) (u \p_x b + v \p_y b) -w_s =a_s 
-\label{eq:pts2} 
+2 \p_x ( h \tau_{xx} ) =\rho g (1-\rho/\rho_w) h \, \p_x h  ,
+\label{eq:1dstressf}
 \end{equation}
-to arrive at the simple and intuitive expression
+or as
 \begin{equation} 
-(1-\rho_o/\rho) (w_b-a_b)  =a_s+w_s 
-\label{eq:pts3} 
+\p_x ( h \tau_{xx} ) =\frac{1}{4} g \varrho \, \p_x h^2  ,
+\label{eq:1dstressfb}
 \end{equation}
-and then to use the (\ref{eq:sb}) to get rid of $w_b$ leading to
-%\[ 
-%(1-\rho_o/\rho) (w_s-a_b+h(\exx+\eyy))=a_s+w_s 
-%\]
-%or
-%\[ w_s (-\rho_o/\rho)  +    (1-\rho_o/\rho) (-a_b+h(\exx+\eyy))=a_s  \]
-%\[ (1-\rho_o/\rho) (-a_b+h(\exx+\eyy))-a_s = w_s \rho_o / \rho \]
+where
+\[
+\varrho=\rho \, (1-\rho/\rho_w) .
+\] 
+If $\varrho$ is independent of $x$
+(an assumption that has already been made in the derivation of
+Eq.~\ref{eq:mbic1}) then we can integrate (\ref{eq:1dstressfb}) on both
+sides, and we find that
+\begin{equation}
+\tau_{xx} =\frac{1}{4} g \varrho \,  h  + K,
+\label{eq:feq2}
+\end{equation}
+where $K$ is independent of $x$.
+
+Note that the freeboard $f=s-S$ is equal to 
+\[
+f=(1-\rho/\rho_w) h,
+\]
+so we can also write (\ref{eq:feq2}) as,
+\begin{equation}
+\txx =\frac{1}{4} g \rho f  + K.
+\label{eq:ssasxx}
+\end{equation}
+The integration constant $K$ follows from the boundary
+conditions, and we will show below that $K=0$. 
+
+Eq.~(\ref{eq:ssasxx}) shows that the horizontal deviatoric stresses
+are directly proportional to the freeboard. In some ways $g \rho f/4$ is
+the `driving stress' that drives the deformation of the ice shelf, and
+it plays a similar role to the driving stress $\rho g h \p_x s$ in the
+SIA.
+
+
+Knowing $\txx$ and $\szz$, we can now determine the pressure $p$
+from
+\begin{equation}
+p=\tzz-\szz=-\txx-\szz,
+\label{eq:p2}
+\end{equation}
+using the incompressibility condition $\exx+\ezz=0$ and the flow law.
+The horizontal stress $\sxx$ is then
+\begin{equation}
+\sxx=\txx-p=\txx-(-\txx-\szz)=2 \txx+\szz ,
+\label{eq:sxx2}
+\end{equation}
+
+Once we have determined all stresses, we can determine the deformation using
+the Glen-Steinemann flow law 
+\begin{equation}
+\eij=A \tau^{n-1} \tij,
+\label{eq:AGlen}
+\end{equation}
+where $A$ and $n$ are some rheological parameters, and $\tau$ is the
+second invariant of the deviatoric stress tensor given by
+\begin{equation}
+\tau=\left ( \tau_{pq} \tau_{pq} /2\right )^{1/2} .
+\label{eq:taueff}
+\end{equation}
+
+\section{Boundary condition at the calving front}
+
+
+Across the (vertical) interface between ice and ocean the traction
+must be continuous, i.e.\
+\[
+(\sigma_{\hbox{ice shelf}}-\sigma_{\hbox{ocean}} ) \normal=0 ,
+\] 
+where $\normal$ is a unit normal vector pointing horizontally outwards
+from the calving front. The position of the calving front is given by
+$x=x_c$.
+
+We ignore bending forces at the calving front and only require
+continuity of integrated values.  Hence we require
+\begin{equation}	
+\underbrace{\int_{b}^{s} \sxx \, dz}_{\hbox{ice shelf}} = \underbrace{\int_{b}^{S} \sxx \, dx }_{\hbox{ocean}}
+\end{equation}
+
+
+
+The vertically integrated force of the
+ocean on the ice at $x=x_c$ is given by the integral
+\begin{equation}
+\underbrace{\int_{b}^{s} \sxx \, dx }_{\hbox{ocean}}=-\int_{b}^{S} \rho_w g (S-z) \, dz = -\frac{1}{2} \rho_w g (S-b)^2,
+\label{eq:pshelf}
+\end{equation}
+where $S$ is the ocean surface.
+
+This integrated force must equal the vertical integrated horizontal
+stress within the ice shelf along the calving front given by the
+integral
+\[
+\int_{b}^{s} \sigma_{xx} \, dz ,
+\] 
+at $x=x_c$. We know $\szz$ within the ice shelf from Eq.~(\ref{eq:szz}). Using  Eq.~(\ref{eq:sxx2}) to express
+$\sxx$ in terms of $\szz$ and $\sxx$, we find
+\begin{eqnarray}
+\underbrace{\int_{b}^{s} \sigma_{xx} \, dz}_{\hbox{ice shelf}} &=& \int_{b}^{s} (2 \tau_{xx}+  \sigma_{zz}) \, dz \nonumber \\
+&=& 2 h \tau_{xx}+ \rho g \int_{b}^{s} (z-s) \, dz \nonumber \\
+&=& 2 h \tau_{xx}+ \rho g \left ((s^2-b^2)/2-s(s-b) \right ) \nonumber \\
+&=& 2 h \tau_{xx} - \frac{1}{2} \rho g h^2 , 
+\end{eqnarray}
+where we have made use of the fact that $\tau_{xx}$ is independent of $z$.
+Hence, equality of vertical integrated horizontal stresses at the calving front requires
+\begin{equation}
+2 h \tau_{xx} - \frac{1}{2} \rho g h^2 = -\frac{1}{2} \rho_w g  (S-b)^2 ,
+\label{eq:2ht}
+\end{equation}
+Using Eq.~(\ref{eq:2ht}) together with the floating condition (\ref{eq:bh1}) we find
+\begin{eqnarray}
+2 h \tau_{xx} &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_w g  (S-b)^2 \nonumber \\
+          &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_w g   h  (S-b)\frac{\rho}{\rho_w} \nonumber \\ 
+     &=& \frac{1}{2} \rho g h (h - S + b) \nonumber \\
+     &=& \frac{1}{2} \rho g h (s-S) \nonumber 
+\end{eqnarray}
+or 
+\begin{equation}
+\tau_{xx}= \frac{1}{4} \rho g f  \label{eq:bcstress1},
+\end{equation}
+at the calving front where $x=x_c$
+
+Comparing the above boundary condition, valid at the calving front, with expression
+(\ref{eq:feq2}), valid anywhere within the ice shelf, we find that integration constant $K$ in
+Eq.~(\ref{eq:feq2}) is equal to zero, and therefore
+\[
+\tau_{xx} = \frac{1}{4} \rho g f ,
+\] 
+everywhere. 
+
+Note that the (horizontal) boundary condition (\ref{eq:bcstress1}) is
+now identical to the expression for horizontal deviatoric stresses
+valid everywhere within the ice shelf.  Physically this implies that
+at any given location within the ice shelf, the stresses are identical
+to stresses imposed by the calving-front boundary condition at that
+location. In other words, if we were to cut off the ice shelf at any
+given location, thereby forming a new calving front, the stresses at
+that newly formed calving front will not be affected.  In this
+respect, the ice shelf downstream of a given point is `passive' and
+does not affect the flow in upstream direction. In particular, the
+stresses in the ice shelf downstream from the grounding line do not
+affect the stresses in the ice shelf at the grounding line.
+
+
+\section{The SSA as an expression of horizontal force balance.}
+Inserting the Glen-Steinemann flow law directly into the boundary
+condition (\ref{eq:bcstress1}) gives
+\[ 
+A^{-1/n} | \partial_x u|^{(1-n)/n}\, \partial_x u = \frac{1}{4} \rho g f
+\]
+Since $(s-S) \ge 0$, both  $\tau_{xx}$ and $\partial_x u$ are positive,
+and Eq.~(\ref{eq:bcstress1}) can  be written on the form
+\begin{equation}
+\dot{\epsilon}_{xx}=\partial_x u = A (\rho g f /4)^n ,
+\label{eq:bcstressu2}
+\end{equation}
+at $x=x_c$.  Further versions of Eq.~(\ref{eq:bcstress1}) are
+\begin{equation}
+2 A^{-1/n} h | \partial_x u|^{(1-n)/n} \, \partial_x u = \frac{1}{2} \rho g (1-\rho/\rho_w) h^2
+\label{eq:bcstressu}
+\end{equation}
+and
+\begin{equation}
+8 \eta h \partial_x u -\rho g (1-\rho/\rho_w) h^2 =0 ,
+\label{eq:bcstressu3}
+\end{equation}
+at $x=x_c$.  
+
+
+Note that if we differentiate Eq.~(\ref{eq:bcstressu3}) with respect to $x$, we find
+\begin{equation}
+4 \partial_x (\eta h \partial_x u ) = \rho g (1-\rho/\rho_w) h \partial_x h .
+\label{eq:bcstressu4}
+\end{equation}
+which is formally identical to Eq.~(\ref{eq:mbic1}) valid for any $x$. We arrived at
+(\ref{eq:bcstressu4}) by considering the vertical integrated force balance along the calving front
+using 1) the fact that the effective stress $\tau_{xx}$ is independent of $z$, and 2) that the
+vertical stress component $\sigma_{zz}$ is equal to the weight of the ice (Eq.~\ref{eq:szz}). By
+simply making these two assumptions, rather than deriving these facts through scaling analysis as we
+have done, we would have been able to derive Eq.~(\ref{eq:mbic1}) in a fairly simple manner.
+
+\section{Stresses and strains within a one-dimensional plane-strain ice shelf}
+We now know that 
+\begin{equation}
+\tau_{xx}=\frac{1}{4} \rho g f ,
+\end{equation}
+everywhere within a 1HD ice shelf.
+
+The only non-zero terms of the deviatoric stress tensor are $\txx$ and
+$\tzz$. From (\ref{eq:taueff}) we find that
+\[
+\tau=|\txx|=\frac{1}{4} \rho g f .
+\]
+and using the Glen-Steinemann flow law that
+\begin{equation}
+\exx=\p_x u = A \, (\rho g f/4)^n ,
+\label{eq:exx1HDf}
+\end{equation}
+or alternatively  using (\ref{eq:f2})
+\begin{equation}
+\exx=\p_x u = A \, (\varrho g h/4)^n ,
+\label{eq:exx1HD}
+\end{equation}
+where
+\[
+\varrho=\rho \, (1-\rho/\rho_w) .
+\]
+The horizontal stress component can then be calculated as
+\begin{equation}
+\sxx=2 \tau_{xx}+\szz =\frac{1}{2} \rho g f +(z-s) \rho g
+\label{eq:sxx4}
+\end{equation}
+where we have used Eq.~(\ref{eq:szz}). As can be seen $\sxx$ varies
+linearly with depth. Along the upper surface where $z=s$,
+$\sxx=\rho g f/2$ and is positive, and along the lower surface, where $z=b$,
+$\sxx=-\rho (1-\rho/\rho_w) g h /2$, and is negative.
+
+
+The pressure is given by
+\[
+p=\tzz-\szz=-\frac{1}{4} \rho g f + (s-z) \rho g.
+\]
+Note that the pressure is not hydrostatic.
+
+
+We write the transverse stress component as
+\[ \sigma_{yy}=\tau_{yy}-p=\tau_{yy}+\sigma_{zz}-\tau_{zz} . \]
+The plane strain conditions implies $\tau_{yy}=0$ and incompressibility $\tau_{zz}=-\tau_{xx}$, hence
+\[ \sigma_{yy}=\sigma_{zz}+\tau_{xx}=(z-s) \rho g + \rho g f/4 .\]
+
+
+\section{Shear stress}
+The shear stress $\txz$ is a first-order quantity (but its vertical
+derivative enters the equilibrium equations at zeroth order). From
+\[ \p_x \sxx + \p_z \sxz =0 .\]
+we find
+\begin{equation}
+\p_z \sxz=-\p_x \sxx =\frac{1}{2} \rho g \p_x s ,
+\end{equation}
+which shows that $\sxz$ also varies linearly with depth and that
+\begin{equation}
+\txz=\frac{1}{2} \rho g \, \p_x s \; z +K,
+\label{eq:txz1}
+\end{equation}
+where $K$ is an integration constant.
+
+
+The boundary condition at the upper surface ($z=s$) is
+\[
+\txz(z=s)=\sxx(z=s) \; \p_x s
+\]
+giving 
+\begin{equation}
+\txz(z=s)=\frac{1}{2} \rho g s \p_x s.
+\label{eq:txzs}
+\end{equation}
+using (\ref{eq:sxx4}).  Similarly the boundary condition at $z=b$
+gives,
+\begin{align}
+\txz(z=b)&=\rho g h \, \p_x b+ \sxx(z=b) \p_x b ,\nonumber \\
+&= \rho g h \, \p_x b + \frac{1}{2} \rho g f \, \p_x b- \rho g h \, \p_x b ,\nonumber \\
+&= \frac{1}{2} \rho g f \, \p_x b.
+\label{eq:txzb}
+\end{align}
+
+From Eq.~(\ref{eq:txzs}) we find can now determine $K$ in (\ref{eq:txz1}) and find
+\begin{equation}
+\txz=\frac{1}{2} \rho g \, \p_x s \; (z-S) .
+\label{eq:sxz2}
+\end{equation}
+It remains to be seen if this expression is consistent with the other
+boundary condition (\ref{eq:txzb}) at the lower surface. Inserting
+$z=b$ into (\ref{eq:sxz2}) gives
 \begin{equation} 
- w_s =  -(1-\rho/\rho_o)\,  \left (h(\exx+\eyy) - a_b\right ) - a_s \, \rho /\rho_o  
-\label{eq:wsfloating3}
-\end{equation} 
-The above expression shows that adding ice to the surface ($a_s>0$)  causes neg.\ vertical
-surface velocity, as does horizontal divergent flow ($\exx+\eyy>0$), and basal melting ($a_b<0$).
+\txz=\frac{1}{2} \rho g \, \p_x s \; (b-S) .
+\label{eq:sxz3}
+\end{equation}
+Using the floating condition one can show that
+\[
+\p_x s (b-S) = \p_x b \, (s-S),
+\]
+and therefore that (\ref{eq:sxz2}) fulfills the lower boundary condition also.
+
+
+\begin{figure}
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{IceShelfStresses.png}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{IceShelfStressesAndPressure.png}
+\end{subfigure}
+\caption{\label{fig:stresses}Left: Stresses within a one-dimensional
+  ice shelf. Horizontal Cauchy stresses are positive at the surface
+  and negative below $z=d/2$ where $d$ is the is ice shelf
+  draft. Horizontal and vertical deviatoric stresses are independent
+  of depth, and horizontal deviatoric stresses positive while veritcal
+  deviatoric stresses are negative. Parameters:
+  $\rho=910 \, \mathrm{kg\, m^{-3}}$,
+  $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$, $h= 100 \, \mathrm{m}$.}
+\end{figure}
+
+
+From (\ref{eq:sxz2}) we see that $\sxz/\tzz$ is $O(\de)$ as
+expected. In contrast to the other stress terms listed above, the
+shear stress $\txz$ is a first-order quantity.
+
+Summarising, the stress tensor in an ice shelf where all transverse gradients are zero
+($\partial/\partial y=0$) and $S=0$, is given by
+\begin{equation}
+ \bm{\sigma}= -\rho g \left ( \begin{array}{ccc} 
+s/2-z & 0  & -\frac{1}{2} z \partial_x s \\
+ 0  & 3 s/4-z &  0 \\
+ -\frac{1}{2} z \partial_x s & 0 & s-z \\ 
+ \end{array} \right ),
+\label{eq:shelfstresses}
+ \end{equation}
+and the pressure by
+\[ p=\rho g (3 s/4 -z) ,
+\]
+and deviatoric stress tensor
+\[
+\bm{\tau}=\bm{\sigma}+ \bm{1} p,
+\]
+is 
+\begin{equation}
+ \bm{\tau}= \rho g \left ( \begin{array}{ccc} 
+    s/4 & 0  & \frac{1}{2} z \partial_x s \\
+ 0  & 0 &  0 \\
+ \frac{1}{2} z \partial_x s & 0 & -s/4 \\ 
+ \end{array} \right ).
+\label{eq:shelfdevstresses}
+ \end{equation}
+
+
+
+ Note that the sign of the horizontal stress components ($\sigma_{xx}$
+ and $\sigma_{yy}$) changes with depth. At the surface ($z=s$)
+ horizontal stresses are positive, at the base ($z=b$) they are
+ negative. The longitudinal horizontal stresses ($\sigma_{xx}$) are
+ only positive (compression) for $z>s/2$ (see
+ Fig.~\ref{fig:stresses}).
+
+The stresses in the shelf given by Eq.~(\ref{eq:shelfstresses}) are valid everywhere within the ice
+shelf, in particular the stresses in the ice shelf at the grounding line are also given by
+Eq.~(\ref{eq:shelfstresses}). As is evident from Eq.~(\ref{eq:shelfstresses}) the stresses,
+and therefore also the strain rates, are at each location functions of local surface slope and local
+ice thickness only.
+
+Note that it has here been assumed that $S=0$, in which case $s=f$, so
+one could replace $s$ with the freeboard ($f$) in the above
+expressions for the stresses.
+
+
+The ocean pressure, $p_o$ is
+\[
+ p_o=  \rho_o (S-z)
+\]
+for $z<S$, and therfore
+\[
+ \sigma_{xx}+p_o= \rho g (s/2-z) + \rho_w z
+\]
+for $S=0$. For $z=-\frac{1}{2} \frac{\rho}{\rho_o} h$ the sum of
+horizontal stresses and ocean pressure is zero
+(Fig.~\ref{fig:stresses}).
+
+% Things to do: Side drag, solution for a floating ice shelf
+
+
+% \section{Ice stream-ice shelf model}
+% 
+% summarizing all equations
+% 
+% \subsubsection{Groundin line migration}
+% 
+% \[
+% \rho h= \rho_w b 
+% \]
+% where $b$ is the position of the lower ice surface. We denote the bedrock by $B(x)$. Where the ice
+% is grounded, i.e.\ for $x<x_{gl}$ we have $b(x)=B(x)$, otherwise $b>B$.
+% 
+% 
+% We write 
+% \[h=h(x_{gl}(t),t) \quad \hbox{and} \quad b=b(x_gl(t),t) \]
+% Differentiating with respect to $t$ gives
+% \[\rho (\p_t h + \p_{x_{gl}} h \, \p_t x_{gl} ) = -\rho_w (\p_t b + \p_{x_{gl}} b \, \p_t x_{gl} ) 
+% \]
+% or
+% \[
+% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho \p_t h}{\rho_w \p_x b + \rho \p_x h}
+% \]
+% where we have droped the subscript $gl$ from the $x$ derivative, and it is to be understood that all
+% spatial derivatives are to be taken at the current position of the grounding line. Using the
+% continuity equation $\p_t h+ \p_x q=a$ the above equation can also be written as
+% \[
+% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho (a-\p_x q}{\rho_w \p_x b + \rho \p_x h}
+% \]
+% 
+% 
+
+\section{Steady-state geometry of a 1HD plane-strain ice sheet}
+
+We will now derive an analytical expressions for steady-state geometry
+and the velocity of a 1HD plane-strain ice sheet. The surface
+mass-balance is assumed to be constant. This surface mass balance
+($a$) can be thought of as the sum of the mass fluxes along the upper
+($a_s$) and the lower surface ($a_b$), i.e.\ $a=a_s+a_b$.
+
+\begin{figure}
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{IceShelfProfile.png}
+\end{subfigure}
+\begin{subfigure}{0.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{IceShelfProfileFiniteLength.png}
+\end{subfigure}
+\caption{\label{fig:alp}Analytical ice shelf profile.  The left hand figure is for an
+  accumulation of $a=0.3\,\mathrm{m\,a^{-1}}$, while the figure on the
+  right was made for $a=-1\,\mathrm{m\,a^{-1}}$. All other parameters
+  are the same in both cases. Parameters: $A=1.14 \times
+  10^{-9}\,\mathrm{kPa^{-3} a^{-1}}$, $n=3$, $h_{gl}=2000\,\mathrm{m}$,
+  $u_{gl}=300\,\mathrm{m\,a^{-1}}$, $\rho=910 \, \mathrm{kg \,
+    m^{-3}}$, $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$. The value for
+  $A$ corresponds to an ice temperature of about -10 degrees Celsius.}
+\end{figure}
+
+From Eq.~(\ref{eq:exx1HD}) we have
+\begin{equation}
+\p_x u= A \, (\varrho g h/4)^n .
+\label{eq:exx1HDb}
+\end{equation}
+In a steady state, mass continuity requires
+\begin{equation}
+\p_x (uh)=a ,
+\label{eq:pq}
+\end{equation}
+where we have used that the ice flux $q$ is $q=uh$.
+Assuming constant accumulation rate we can integrate Eq.~(\ref{eq:pq}) giving
+\begin{equation}
+u(x) h(x) -q_{gl} = a (x-x_{gl})
+\label{eq:uhq}
+\end{equation}
+where $x_{gl}$ is the grounding line position, and $q_{gl}=q(x_{gl})$
+is the flux at the grounding line. We define the origin of the $x$
+coordinates so that $x_{gl}=0$.
+
+
+We also have from Eq.~(\ref{eq:pq}) \
+\begin{equation}
+h\, \p_x u + u \p_x h=a
+\label{eq:uuh}
+\end{equation}
+Replacing $u$ in (\ref{eq:uuh}) using (\ref{eq:uhq}) and inserting (\ref{eq:exx1HDb})
+for $\p_x u$, gives
+\begin{equation}
+ A h\, (\varrho g h/4)^n   +  ((a x+q_{gl})/h) \p_x h=a,
+\end{equation}
+which we write as
+\begin{equation}
+  \gamma h^{n+2}   +   (a x+q_{gl}) d_x h= a h,
+\label{eq:gxh}
+\end{equation}
+with
+\[
+\gamma=A (\varrho g/4)^n \; .
+\]
+Separating variables
+\begin{equation}
+  \frac{dh}{a h-\gamma h^{n+2}} = \frac{dx}{a x+q_{gl}},
+  \label{eq:gxh3}
+\end{equation}
+integrating both sides and simplifying gives
+\begin{equation}
+  h=\left ( \frac{1}{a}\left (\gamma+\frac{K}{(q+a x)^{n+1}} \right ) \right )^{-1/(n+1)},
+\end{equation}
+where $K$ is an integration constant.
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.75\textwidth]{1dSteadyStateIceShelf.png}
+\caption{\label{fig:ssiceshelf}
+Steady-state ice shelf thickness as a function of englacial
+  temperature and surface accumulation.  
+Parameters: $n=3$, $\rho=910 \, \mathrm{kg \,
+    m^{-3}}$, $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$.}
+\end{figure}
+
+We determine $K$ by specifying the
+thickness at the grounding line, i.e.\
+\[
+h(x_{gl}=0)=h_{gl},
+\]
+and using $q_{gl}=h_{gl} u_{gl}$ which gives 
+\[
+K=q_{gl}^{n + 1}(a/h_{gl}^{n + 1}-\gamma).
+\]
+The solution is shown in Fig.~\ref{fig:alp}. Possibly the most
+striking aspect of the solution is how quickly the thickness decreases
+downstream from the grounding line.
+
+Now that the ice geometry has been determined, the ice velocity can be
+calculated directly from
+\[
+u=(a x+ q_{gl})/h.
+\]
+
+
+For $a>0$, the ice sheet is infinitely long and approaches
+asymptotically the thickness $h(x\to +
+\infty)=(a/\gamma)^{1/(n+1)}$. For $a<0$, the ice shelf has a finite
+length $l$ given by $l=-q_{gl}/a$.
+
+The special case $a=0$ is not covered by the above equations. One
+finds that for $a=0$ the thickness distribution is given by
+\begin{equation}
+h=(h_{gl}^{-(n+1)}+\gamma (n+1) x/q_{gl})^{-1/(n+1)}.
+\end{equation}
+The above solution describes an ice shelf, with a given ice thickness
+$h=h_{gl}$ at the grounding line, that spreads out in 1HD without any
+addition or removal of mass. In the limit $x
+\to +\infty$ the ice thickness is zero.
+
+
+
+Note that in the above analysis we fixed the flux at the grounding
+line to $q_{gl}$. We then determined the ice geometry and velocities
+down-stream of the grounding line. We are here not in a position to
+calculate the flux at the grounding line for a given ice thickness (or
+as a function of any other aspects of the ice geometry that might
+affect the flux). For a given ice thickness $h=h_{gl}$, and a given
+ocean bathymetry ($B(x)$), we can however always determine possible
+positions of the grounding line from the floating condition $\rho h =
+\rho_w H$, where $H=S-B$ with $S$ the ocean surface and $B$ the ocean
+bed.
+
+
+
+Also note that there are two further possible solutions to the
+differential equation (\ref{eq:gxh}). There is the (trivial) solution
+$h=0$ and also the somewhat more interesting solution
+$h=(a/\gamma)^{1/(n+1)}$.  For $a<0$ this solution can be discarded
+(negative thickness). However, if $a>0$ this solution represents an
+ice shelf with a constant ice thickness that is regenerated through
+snow fall at the same rate that it spreads out. The ice thickness of
+such a steady-state ice shelf is shown in Fig.~\ref{fig:ssiceshelf} as
+a function of temperature and surface mass balance.
+
+Another interesting fact is that the ice shelf thickness can {\em increase}
+with distance downstream from the grounding line. This happens whenever
+\[
+h_{gl} < (a/\gamma)^{1/(n+1)} .
+\]
+This can be seen from an inspection of the solution shown above, or by writing
+\[
+u h= a x + q_{gl} ,
+\]
+differentiating and inserting Eq.~(\ref{eq:exx1HD}), giving
+\[
+u \p_x h + h A (\varrho g h/4)^n  = a ,
+\]
+and then using $u=(a x+ q_{gl})/h$ and solving for $\p_x h$ to arrive at
+\[
+\p_x h = \frac{a - \gamma h^{n+1}}{(a x + q_{gl})/h},
+\]
+showing that $\p_x h$ is positive for $h < (a/\gamma)^{1/(n+1)}$ .
+
+
+\section{Side-drag dominated ice shelf}
+
+We are here interested in the limiting case when all the driving
+stress is balanced by side drag alone, i.e. the term $\p_x ( h \txx)$
+now dropped. This is the opposite limit to the one we considered above
+where $\p_x ( h \txx)$ was the dominating term and was
+$\p_y (h \txy)$  was ignored.
+
+The shallow-ice stream (SSTREAM/SSA/Shelfy) equations are
+\begin{align} 
+\p_x ( h ( 2 \txx + \tyy)) +\p_y ( h \txy) - \tbx
+&=\rho g h \p_x s 
+\label{eq:stressx}\\
+\p_y (  h ( 2 \tyy + \txx)) +\p_x ( h \txy ) - \tby
+&= \rho g h \p_y s 
+\label{eq:stressy}
+\end{align}
+Over the floating section $\tbx=\tby=0$.  We assume
+\begin{align*}
+\eyy   &=\tyy=0 \\
+\p_y \txx&=0 \\
+\p_y s &= \p_y h =0 \\
+\end{align*}
+and ignore longitudinal streaching in the momemntum balance,
+hence Eqs.~(\ref{eq:stressx}) and (\ref{eq:stressy}) become
+\begin{align} 
+\p_y  \txy  &= \rho g \p_x h \label{eq:stressx2}\\
+\p_x ( h \txy )  &= 0  \label{eq:stressy2}
+\end{align}
+
+We integrate (\ref{eq:stressx2}) from the centerline $y=0$ to the
+left-hand margin $y=w$, where the total width of the ice shelf is $2w$, i.e.
+
+\[
+\tau_m = -\varrho g w \p_x h
+\]
+where we $\tau_m$ is a (positive) shear stress at the margin,
+i.e. $\tau_m=-\txy(y=w)$, and we have used that $\txy(y=0)=0$. We
+consider the plastic case when $\tau_m$ is a yield stress and
+independent of ice velocity. This simplification allows us to
+calculate the ice thickness directly as
+\[
+h= h_c- \frac{\tau_m}{\varrho g w} (x-x_c)
+\]
+where $h_c$ is the ice thickenss at the calving fron
+$x=x_c$. 
+
+Eq.~(\ref{eq:stressy2}) remains correct if evaluated along the centre
+line where $\txy=0$. However, it is unclear if and how this equation
+can be consistent with the assumption of constant side shear stress
+and variable ice thickness.
+
+
+Similar to the case where a plastic formulation for basal sliding is
+used, the geometry is determined directly from the yield
+stress.\footnote{For a plastic symmetrical ice sheet on a flat bed
+  \[ \rho g h \p_x h = \tau_b \] where $\tau_b$ is here the basal yield
+  stress and therefore  $ \p_x h^2 = \frac{2\tau_b}{\rho g}$ and hence 
+  \[ h^2= \frac{2\tau_b}{\rho g} |x -x_c| \] } The steady-state
+velocity can then be calculated from the ice thickness distribution
+using
+\[
+  h \p_x u + u \p_x h =0
+\]
+giving
+\[
+( \lambda -  (x-x_c) ) \; \p_x u -   u =0
+\]
+where
+\[
+\lambda=\frac{ \varrho g w h_c}{\tau_m} 
+\]
+
+
+
+
 
 
 
@@ -5492,153 +6096,6 @@ Hence
 u=C \tau +\frac{K \sinh \kappa x}{\kappa \cosh \kappa l}.
 \]
 
-
-
-\chapter{Integral theorem}
-
-If $f$ and $g$ are scalar functions then in $x$ and $y$ directions we have
-\begin{align}
-\int_{\Omega} f \, \p_x g \; d \Omega &= - \int_{\Omega} \p_x f \, g \; d \Omega + \oint_{\p \Omega} f \, g \, n_x \; d \Gamma \\
-\int_{\Omega} f \, \p_y g \; d \Omega &= - \int_{\Omega} \p_y f \, g \; d \Omega + \oint_{\p \Omega} f \, g \, n_y \; d \Gamma
-\end{align}
-If we write $g=g_x$ in the upper one and $g=g_y$ in the lower one, add
-them together and define $\bm{g}=(g_x,g_y)^T$ and
-$\hat{\bm{n}}=(n_x,n_y)^T$ then we arrive at
-\begin{equation}
-\int_{\Omega} f \, \nabla_{xy} \cdot \bm{g} \; d \Omega = -
-\int_{\Omega} \nabla_{xy} f \cdot \bm{g} \; d \Omega + \oint_{\p
-  \Omega} f \, \bm{g} \cdot \hat{\bm{n}} \; d \Gamma \\
-\label{eq:fgg}
-\end{equation}
-
-
-
-\chapter{Definition of gradients in terms of directional derivatives and inner products}
-\chaptermark{Gradients and inner products}
-
-Sensitivities are directional derivatives. The directional derivative
-of the scalar function $J(p)$ in the direction $\phi$
-is denoted by $D f(p)[\phi]$ and defined as
-\begin{align*}
- D f(p)[\phi] &= \lim_{\epsilon \to 0} \frac{d}{d \epsilon} f(p+\epsilon \phi)  \\
-               &= \lim_{\epsilon \to 0}  \frac{f(p+\epsilon \phi)-f(p)}{\epsilon}
-\end{align*}
-
-The directional derivative is sometimes written as $\delta f(p,\phi)$
-or as $f'(p,\phi)$ i.e.
-\[
-D f(p)[\phi]=f'(p,\phi)=\delta f(p,\phi)
-\]
-are just different ways of writing the directional derivative.
-
-We define the gradient through 
-\[
- D f(p)[\phi]  = < \nabla J(p), \phi >_H
-\]
-where $H$ is a Hilbert space and $f: H \to \mathbb{R}$. 
-Here $\nabla J(p)$ is the gradient of $J$, and the expression above
-{\em defines} the gradient in terms of the (directional) derivative
-for a given inner product.
-
-In other words, for a function $f:H \to \mathbb{R}$ the gradient is
-defined as the Riez-representation for the directional derivative
-$D f(p)[\phi]$ through
-\[
-< \nabla f (p) , \phi>_H= D f(p)[\phi] 
-\]
-The directional derivative depends on the inner product $< , >_H$ and
-the gradient is not defined without specifying the inner product.
-
-Example: Consider the case $H=\mathbb{R}^n$ with the inner product 
-\[
-<\bm{x},\bm{y}> = \bm{x}^T \bm{M} \bm{y}
-\]
-where $M$ is symmetric and positive definite (for example the mass
-matrix or any covariance matrix.)
-
-The directional derivative is
-\[
-D f(p)[\phi]=\frac{\p f}{\p p_q} \phi_q = < M^{-1} \p f / \p p_q, \phi_q> 
-\]
-and therefore 
-\[
- \nabla f = [ M^{-1}]_{pq} \; \p f /\p \phi_q  
-\] 
-
-Had we instead used the Euclidean inner product as $<\bm{x},\bm{y}> = \bm{x}^T
-\bm{y}$
-the corresponding Euclidean gradient would be 
-\[
- [\nabla_E f ]_p = \p f /\p \phi_q  
-\] 
-or
-\[
- \nabla f  = M^{-1} \, \nabla_{E} f
-\]
-where the subscript $E$ denotes the Euclidean gradient. This
-distinction becomes important in the application of the adjoint method
-where we obtain a gradient that is dependent on the natural FE inner
-product 
-\begin{align*}
-< f , g> &= \int f \, g \, dA \\
-         &=\int f_p \, \phi_p  \, g_q \, \phi_q  dA\\
-         &= \bm{f} M \bm{g} 
-\end{align*}
-Hence in FE the dual pairing is 
-\[
-< f , g > = \bm{f}^T \bm{M} \bm{g}
-\]
-where $f$.
-
-The adjoint $L^\ast$ of a given operator $L$ is defined as
-\[
-< L^\ast f, g > =< f, L g>  
-\]
-for any $f$ and $g$. 
-
-If we are working in $H_1=\mathbb{R}^{d_1}$ and the dual space is
-$H_2=\mathbb{R}^{d_2}$ and
-\[
- < f ,g >_{H_1 , H_2} = \bm{f}^T \bm{g}
-\]
-and
-\[
-< L^\ast f, g >_{H_1 , H_2}  =< f, L g>_{H_1 , H_2}   
-\]
-and we denote by $\bm{L}$ and $\bm{L}^\ast$the matrix representations
-of the continuous linear operators $L$ and $L^\ast$, respectively,
-then 
-\[
- \bm{L}^\ast = \bm{L}^T
-\]
-
-If,  on the other hand, we have the dual pairings
-\[
- < f ,g >_{H_1 , H_2}  = \bm{f}^T \bm{M} \bm{g}
-\]
-where $\bm{M}$ is a positive definite matrix, then
-\[
-\bm{L}^\ast=\bm{M}^{-T} \bm{L}^T \bm{M}^T
-\] 
-as can be seen as follows
-\begin{align*}
- <M^\ast f, g> &= < f, L g> \\
-              &= \bm{f}^T \bm{M} ( \bm{L} \bm{g}) \\
-              &= \bm{f}^T \bm{M} \bm{L} \bm{M}^{-1} \bm{M}  \bm{g} \\
-              &= (\bm{M}^{-T} \bm{L}^T \bm{M}^T \bm{f})^T  \bm{M}  \bm{g} \\
-              &= <\bm{M}^{-T} \bm{L}^T \bm{M}^T \bm{f} ,  \bm{g}) \\
-\end{align*}
-
-We can generalise this a bit further and consider the case where the
-dual space has a different dimension with
-\begin{align*}
-  <f,f>_{H_1 H_1} &= \bm{f}^T \bm{M}_1 \,\bm{f} \\
-  <g,g>_{H_2 H_2} &= \bm{g}^T \bm{M}_2 \, \bm{g}
-\end{align*}
-and find that 
-\[
-\bm{L}^\ast=\bm{M}_1^{-T} \bm{L}^T \bm{M}_2^T
-\]
 
 
 
@@ -6294,6 +6751,269 @@ then the grounding line is stable, but
 For a prograde bed, $\p_x B <0$, and therefore we must have $\p_h q >0$
 for the grounding line to be stable. Conversely, for a retrograde bed where $\p_x
 B > 0$ we must have $\p_x q <0$ for the grounding line to be stable.
+
+\part{Appendices}
+\appendix
+
+
+
+\chapter{Calculating vertical surface velocity}
+
+The sign convention for upper- and lower-surface mass balance is such
+that the kinematic boundary conditions at the upper and
+lower surfaces read, respectively,
+\begin{align} 
+\p_t s + u \p_x s +v \p_y s -w_s&=a_s  ,\label{eq:pts} \\
+\p_t b + u \p_x b +v \p_y b -w_b&=-a_b ,\label{eq:ptb} 
+\end{align}
+i.e.\ adding ice is always defined as positive surface mass balance.
+
+Subtracting \eqref{eq:ptb} from \eqref{eq:pts} gives
+\[
+\p_t h+ u \, \p_x h +v \, \p_y h -w_s + w_b=a_s+a_b ,
+\]
+where it has been used that $u$ does not change with depth. Now using \eqref{eq:sb} gives
+\[
+\p_t h+ u \, \p_x h + v \, \p_y h +h ( \exx + \eyy)=a_s+a_b,
+\]
+or
+\begin{equation}
+\p_t h+ \p_x (u h) + \p_y ( v h)=a_s+a_b,
+\label{eq:conc}
+\end{equation}
+hence, in the flux-conservation equation both upper and lower mass balance terms have the same sign. 
+
+
+
+
+\section{grounded part}
+
+On the grounded part $\p_t s =\p_t h$ and the kinematic boundary condition gives
+\begin{equation}
+w_s=\p_t h  + u \, \p_x s + v \, \p_y s -a_s ,
+\label{eq:wsg}
+\end{equation}
+but this requires $\p_t h$ to be known before we can calculate $w_s$. An alternative approach is to 
+integrate the vertical strain rate $\ezz$ over the thickness, use the mass conservation equation and
+the fact that horizontal strain rates do not change across the thickness, to arrive at
+\begin{equation} 
+w_s= w_b-h \, ( \exx + \eyy) .
+\label{eq:sb} \end{equation}
+We now calculate $w_b$ from the kinematic boundary condition at the lower surface as
+\[
+w_b=a_b + u \p_x b + v \p_y b ,
+\]
+and insert into \eqref{eq:sb} arriving at
+\begin{equation} 
+w_s= a_b + u \, \p_x b + v \, \p_y b -h \, ( \exx + \eyy) ,
+\label{eq:wsgrounded} 
+\end{equation}
+which represents a convenient way of calculation $w_s$ once the horizontal velocity field has been determined.
+
+
+
+\section{floating part}
+Where the ice is afloat 
+\[
+s = S+(1-\rho/\rho_o) \, h 
+\]
+i.e.\
+\[
+\p_t s =  (1-\rho/\rho_o) \, \p_t h 
+\]
+The kinematic boundary condition at the surface gives
+\[
+w_s=\p_t s + u \, \p_x s + v \, \p_y s -a_s 
+\]
+and therefore
+\begin{equation}
+w_s=(1-\rho/\rho_o) \, \p_t h  + u \, \p_x s + v \, \p_y s -a_s 
+\label{eq:wsfloating}
+\end{equation}
+If $\p_t h$ is known \eqref{eq:wsfloating} can be used to calculate $w_s$, otherwise
+we use (\ref{eq:conc}) and find that
+\begin{equation}
+w_s=(1-\rho/\rho_o) \, (a_s+a_b - \p_x q_x - \p_y q_y)  + u \, \p_x s + v \, \p_y s -a_s 
+\label{eq:wsfloating2}
+\end{equation}
+
+
+An alternative way of calculating $w_s$ is to insert the floating condition
+\[ 
+s=(1-\rho_o/\rho) b 
+\]
+into (\ref{eq:pts}) and to use (\ref{eq:ptb}) to get rid of $\p_t b$ 
+\begin{equation} 
+(1-\rho_o/\rho) (w_b-a_b-u \p_x b-v p_y b) + (1-\rho_o/\rho) (u \p_x b + v \p_y b) -w_s =a_s 
+\label{eq:pts2} 
+\end{equation}
+to arrive at the simple and intuitive expression
+\begin{equation} 
+(1-\rho_o/\rho) (w_b-a_b)  =a_s+w_s 
+\label{eq:pts3} 
+\end{equation}
+and then to use the (\ref{eq:sb}) to get rid of $w_b$ leading to
+%\[ 
+%(1-\rho_o/\rho) (w_s-a_b+h(\exx+\eyy))=a_s+w_s 
+%\]
+%or
+%\[ w_s (-\rho_o/\rho)  +    (1-\rho_o/\rho) (-a_b+h(\exx+\eyy))=a_s  \]
+%\[ (1-\rho_o/\rho) (-a_b+h(\exx+\eyy))-a_s = w_s \rho_o / \rho \]
+\begin{equation} 
+ w_s =  -(1-\rho/\rho_o)\,  \left (h(\exx+\eyy) - a_b\right ) - a_s \, \rho /\rho_o  
+\label{eq:wsfloating3}
+\end{equation} 
+The above expression shows that adding ice to the surface ($a_s>0$)  causes neg.\ vertical
+surface velocity, as does horizontal divergent flow ($\exx+\eyy>0$), and basal melting ($a_b<0$).
+
+
+
+\chapter{Integral theorem}
+
+If $f$ and $g$ are scalar functions then in $x$ and $y$ directions we have
+\begin{align}
+\int_{\Omega} f \, \p_x g \; d \Omega &= - \int_{\Omega} \p_x f \, g \; d \Omega + \oint_{\p \Omega} f \, g \, n_x \; d \Gamma \\
+\int_{\Omega} f \, \p_y g \; d \Omega &= - \int_{\Omega} \p_y f \, g \; d \Omega + \oint_{\p \Omega} f \, g \, n_y \; d \Gamma
+\end{align}
+If we write $g=g_x$ in the upper one and $g=g_y$ in the lower one, add
+them together and define $\bm{g}=(g_x,g_y)^T$ and
+$\hat{\bm{n}}=(n_x,n_y)^T$ then we arrive at
+\begin{equation}
+\int_{\Omega} f \, \nabla_{xy} \cdot \bm{g} \; d \Omega = -
+\int_{\Omega} \nabla_{xy} f \cdot \bm{g} \; d \Omega + \oint_{\p
+  \Omega} f \, \bm{g} \cdot \hat{\bm{n}} \; d \Gamma \\
+\label{eq:fgg}
+\end{equation}
+
+
+
+\chapter{Definition of gradients in terms of directional derivatives and inner products}
+\chaptermark{Gradients and inner products}
+
+Sensitivities are directional derivatives. The directional derivative
+of the scalar function $J(p)$ in the direction $\phi$
+is denoted by $D f(p)[\phi]$ and defined as
+\begin{align*}
+ D f(p)[\phi] &= \lim_{\epsilon \to 0} \frac{d}{d \epsilon} f(p+\epsilon \phi)  \\
+               &= \lim_{\epsilon \to 0}  \frac{f(p+\epsilon \phi)-f(p)}{\epsilon}
+\end{align*}
+
+The directional derivative is sometimes written as $\delta f(p,\phi)$
+or as $f'(p,\phi)$ i.e.
+\[
+D f(p)[\phi]=f'(p,\phi)=\delta f(p,\phi)
+\]
+are just different ways of writing the directional derivative.
+
+We define the gradient through 
+\[
+ D f(p)[\phi]  = < \nabla J(p), \phi >_H
+\]
+where $H$ is a Hilbert space and $f: H \to \mathbb{R}$. 
+Here $\nabla J(p)$ is the gradient of $J$, and the expression above
+{\em defines} the gradient in terms of the (directional) derivative
+for a given inner product.
+
+In other words, for a function $f:H \to \mathbb{R}$ the gradient is
+defined as the Riez-representation for the directional derivative
+$D f(p)[\phi]$ through
+\[
+< \nabla f (p) , \phi>_H= D f(p)[\phi] 
+\]
+The directional derivative depends on the inner product $< , >_H$ and
+the gradient is not defined without specifying the inner product.
+
+Example: Consider the case $H=\mathbb{R}^n$ with the inner product 
+\[
+<\bm{x},\bm{y}> = \bm{x}^T \bm{M} \bm{y}
+\]
+where $M$ is symmetric and positive definite (for example the mass
+matrix or any covariance matrix.)
+
+The directional derivative is
+\[
+D f(p)[\phi]=\frac{\p f}{\p p_q} \phi_q = < M^{-1} \p f / \p p_q, \phi_q> 
+\]
+and therefore 
+\[
+ \nabla f = [ M^{-1}]_{pq} \; \p f /\p \phi_q  
+\] 
+
+Had we instead used the Euclidean inner product as $<\bm{x},\bm{y}> = \bm{x}^T
+\bm{y}$
+the corresponding Euclidean gradient would be 
+\[
+ [\nabla_E f ]_p = \p f /\p \phi_q  
+\] 
+or
+\[
+ \nabla f  = M^{-1} \, \nabla_{E} f
+\]
+where the subscript $E$ denotes the Euclidean gradient. This
+distinction becomes important in the application of the adjoint method
+where we obtain a gradient that is dependent on the natural FE inner
+product 
+\begin{align*}
+< f , g> &= \int f \, g \, dA \\
+         &=\int f_p \, \phi_p  \, g_q \, \phi_q  dA\\
+         &= \bm{f} M \bm{g} 
+\end{align*}
+Hence in FE the dual pairing is 
+\[
+< f , g > = \bm{f}^T \bm{M} \bm{g}
+\]
+where $f$.
+
+The adjoint $L^\ast$ of a given operator $L$ is defined as
+\[
+< L^\ast f, g > =< f, L g>  
+\]
+for any $f$ and $g$. 
+
+If we are working in $H_1=\mathbb{R}^{d_1}$ and the dual space is
+$H_2=\mathbb{R}^{d_2}$ and
+\[
+ < f ,g >_{H_1 , H_2} = \bm{f}^T \bm{g}
+\]
+and
+\[
+< L^\ast f, g >_{H_1 , H_2}  =< f, L g>_{H_1 , H_2}   
+\]
+and we denote by $\bm{L}$ and $\bm{L}^\ast$the matrix representations
+of the continuous linear operators $L$ and $L^\ast$, respectively,
+then 
+\[
+ \bm{L}^\ast = \bm{L}^T
+\]
+
+If,  on the other hand, we have the dual pairings
+\[
+ < f ,g >_{H_1 , H_2}  = \bm{f}^T \bm{M} \bm{g}
+\]
+where $\bm{M}$ is a positive definite matrix, then
+\[
+\bm{L}^\ast=\bm{M}^{-T} \bm{L}^T \bm{M}^T
+\] 
+as can be seen as follows
+\begin{align*}
+ <M^\ast f, g> &= < f, L g> \\
+              &= \bm{f}^T \bm{M} ( \bm{L} \bm{g}) \\
+              &= \bm{f}^T \bm{M} \bm{L} \bm{M}^{-1} \bm{M}  \bm{g} \\
+              &= (\bm{M}^{-T} \bm{L}^T \bm{M}^T \bm{f})^T  \bm{M}  \bm{g} \\
+              &= <\bm{M}^{-T} \bm{L}^T \bm{M}^T \bm{f} ,  \bm{g}) \\
+\end{align*}
+
+We can generalise this a bit further and consider the case where the
+dual space has a different dimension with
+\begin{align*}
+  <f,f>_{H_1 H_1} &= \bm{f}^T \bm{M}_1 \,\bm{f} \\
+  <g,g>_{H_2 H_2} &= \bm{g}^T \bm{M}_2 \, \bm{g}
+\end{align*}
+and find that 
+\[
+\bm{L}^\ast=\bm{M}_1^{-T} \bm{L}^T \bm{M}_2^T
+\]
+
 
 \end{document}
  
