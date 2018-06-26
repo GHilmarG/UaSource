@@ -107,6 +107,6 @@
 \contentsline {section}{\numberline {E.2}Kinematic expression for GL migration }{88}
 \contentsline {section}{\numberline {E.3}Geometrical grounding-line migration}{89}
 \contentsline {section}{\numberline {E.4}Flux at the grounding line}{91}
-\contentsline {section}{\numberline {E.5}Balance between terms on both side of the grounding line}{92}
+\contentsline {section}{\numberline {E.5}Balance between terms on both side of the grounding line}{93}
 \contentsline {section}{\numberline {E.6}GL scalings (Schoof)}{93}
 \contentsline {section}{\numberline {E.7}Grounding-line instability}{95}

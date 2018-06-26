@@ -1,6 +1,7 @@
 \documentclass[10pt,a4paper]{book}
 
 
+
 \usepackage{a4wide}
 \usepackage{bm}
 \usepackage{natbib
@@ -586,7 +587,7 @@ that now it is the basal shear traction that becomes infinitely
 sensitive to basal velocity, or conversily, the basal velocity becomes
 in this limit independent of basal shear traction. Inserting $m=0$ into Eq.~(\ref{eq:slidb}) gives
 \[
-  \bm{v}_b   & =  C_v  \, \frac{\bm{t}_b}{| \bm{t}_b|}   \quad \text{for}   \quad m \to 0
+  \bm{v}_b    =  C_v  \, \frac{\bm{t}_b}{| \bm{t}_b|}   \quad \text{for}   \quad m \to 0
 \]  
 This is a limit
 which is (I find) difficult to understand in physical terms. The basal
@@ -5732,25 +5733,25 @@ $h=s-b$ is a function of time and space, i.e.
 We consider the rate-of-change as the grounding line
 is followed, i.e.\
 \begin{equation}
-\left . \frac{d h_{gl}}{dt} \right |_{x=x_{gl}} = \frac{\rho_w}{\rho} \left . \frac{d H_{gl}}{dt}\right |_{x=x_{gl}}  \; ,
+\left . \frac{d h_{gl}}{dt} \right |_{x=\xgl} = \frac{\rho_w}{\rho} \left . \frac{d H_{gl}}{dt}\right |_{x=\xgl}  \; ,
 \label{eq:dgl}
 \end{equation}
 where
 \[
-h_{gl}=h_{gl}(t,x_{gl}(t))\;,
+h_{gl}=h_{gl}(t,\xgl(t))\;,
 \] 
 and
 \[
-H_{gl}=H_{gl}(x_{gl}(t))\;,
+H_{gl}=H_{gl}(\xgl(t))\;,
 \] 
 and therefore
 \begin{equation}
-\frac{d h_{gl}}{dt}=\frac{\p h_{gl}}{\p t} + \frac{\p h_{gl}}{\p x_{gl}} \frac{\p x_{gl}}{\p t}\;,
+\frac{d h_{gl}}{dt}=\frac{\p h_{gl}}{\p t} + \frac{\p h_{gl}}{\p \xgl} \frac{\p \xgl}{\p t}\;,
 \label{eq:dhdt}
 \end{equation}
 and
 \begin{equation}
-\frac{d H_{gl}}{dt}=\frac{\p H}{\p x_{gl}} \frac{\p x_{gl}}{\p t}\;.
+\frac{d H_{gl}}{dt}=\frac{\p H}{\p \xgl} \frac{\p \xgl}{\p t}\;.
 \label{eq:dHdt}
 \end{equation}
 Inserting (\ref{eq:dhdt}) and (\ref{eq:dHdt}) into (\ref{eq:dgl}) gives
@@ -5960,7 +5961,7 @@ In terms of stresses this equation can also be written as
 \end{equation}
 
 
-Boundary conditions at the grounding line where $x=x_{gl}$ are
+Boundary conditions at the grounding line where $x=\xgl$ are
 \begin{align}
 \p_x u &= A (\varrho g h/4)^n  \label{eq:We3} \\
      h&=\rho_w H /\rho . \label{eq:fc}
@@ -5973,7 +5974,9 @@ If we insert the above expression into (\ref{eq:fu}), assuming $\p_x u > 0$, the
 \[
 \frac{1}{2}\varrho g \p_x h^2  - t_{bx} = \rho g h \p_x s
 \]
-If we now assume that $\p_x s \approx \p_x h$ upstream of the grounding line we obtain
+If we now assume that $\p_x s \approx \p_x h$ upstream of the
+grounding line, for example by setting $s=B+h$ with $\p_x B=0$ for $x>\xgl$, we
+obtain
 \begin{equation}
 [\frac{1}{2} \varrho g \p_x h^2] - [t_{bx}] = [\frac{1}{2} \rho g \p_x h^2]
 \label{eq:ghp}
@@ -6016,7 +6019,7 @@ t_{bx} \approx - \rho g h \p_x s
 \]
 i.e.\ that the second term on the left-hand sides of (\ref{eq:fu}) and
 (\ref{eq:fs}) is now approximately balanced by their respective right-hand
-sides.  Hence, using Weetman sliding law we have
+sides.  Hence, using Weertman sliding law we have
 \begin{equation}
    u = C (-\rho g h \p_x h )^m 
 \label{eq:uch}
@@ -6026,7 +6029,7 @@ where we have anticipated that $\p_x h$ will be strictly negative.
 
 In a steady state
 \begin{equation}
-  \p_x (uh) = a 
+  \p_x (uh) = a \label{eq:ass}
 \end{equation}
 which allows us to write
 \begin{equation}
@@ -6038,23 +6041,24 @@ Inserting the boundary condition (\ref{eq:We3}) into (\ref{eq:ahu}) gives
 \p_x h =(a- h A (\varrho g h/4)^n )/u 
 \label{eq:ahA}
 \end{equation}
-%As we have already determined $u$ as a function of $h$ and $\p_x h$,
-%this equation now gives us a relationship between the thickness ($h$),
-%and the thickness gradient ($\p_x h$). (The boundary condition at the
-%groudnding line allows us to express $\p_x u$ in terms of local thickness.) 
-
-
 Inserting (\ref{eq:ahA}) into (\ref{eq:uch}) and assuming that $a \ll
 h A (\varrho g h/4)^n $ gives
 \begin{equation}
    u = C \left (\rho g h h A (\rho g (1-\rho/\rho_w) g h/4)^n /u \right )^m 
 \label{eq:uch2}
 \end{equation}
+Note that here the velocity is expressed in terms of $h$ alone, and
+not also to surface slope $\p_x h$. We were able to use the boundary
+condition (\ref{eq:We3}), the mass conservation equation
+(\ref{eq:ass}), and the simplified momentum equation (\ref{eq:uch}) to
+arrive at Eq.~(\ref{eq:uch2}), giving velocity at the grounding-line as a
+function of thickness alone.
+
 %or
 %\[
 %u^{m+1}=  4^{-n m}\, C \,  A^m (g \rho)^{m+n m} (1-\rho/\rho_w)^{n m}  \;  h^{n m + 2 m} ,
 %\]
-and the flux  $q=uh$ is therefore
+The ice flux  $q=uh$ at the grounding line is therefore
 \begin{equation}
 q=  \left [ 4^{-n m} \, C \, A^m  (g \rho)^{m+n m} \; \left (1-\rho/\rho_w \right )^{n m}  \right ]^{1/(m+1)}  \; h^{(n m + 3 m + 1)/(m+1)} ,
 \label{eq:Schoofhq}
@@ -6068,12 +6072,12 @@ q=\rho  \left ( 4^{-n} C^{1/m} A (\rho g)^{n+1} (1-\rho/\rho_w)^n  \right )^{m/(
 h=\rho_w H /\rho.
 \]
 The relationship between flux relationship (\ref{eq:Schoofhq}) is
-identical to that of Schoof's `B' model.
-We arrived at this flux relation ship by assuming that velocity at
-the grounding line is given by the SIA relationship, and that $\p_x u$
-at the grounding line is given by the boundary condition
-(\ref{eq:We3}) for horizontal strain rates. In addition we assumed
-steady-state conditions and assumed $a \ll h \p_x u$.
+identical to that of Schoof's `B' model.  We arrived at this flux
+relation ship by assuming that velocity at the grounding line is given
+by the SIA relationship, and that $\p_x u$ at the grounding line is
+given by the boundary condition (\ref{eq:We3}) for horizontal strain
+rates. In addition we assumed steady-state conditions and assumed $a
+\ll h \p_x u$.
 
 
 
@@ -6090,8 +6094,8 @@ Field equation and boundary condition at the
 grounding line written in terms of velocity are
 \begin{align}
 2 A^{-1/n} \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - \He(h-h_f) \, C^{-1/m} \, |u|^{(1-m)/m} u & = \rho g h \p_x s  \label{eq:velssa}\\
-2 A^{-1/n} h |\p_x u|^{(1-n)/n}   \, \p_x u  = \frac{1}{2} \varrho g \, h^2   \quad & \text{at} \quad x=x_{gl}\label{eq:bc1b} \\
-h=h_f     \quad & \text{at} \quad x=x_{gl}\label{eq:bc2b}
+2 A^{-1/n} h |\p_x u|^{(1-n)/n}   \, \p_x u  = \frac{1}{2} \varrho g \, h^2   \quad & \text{at} \quad x=\xgl\label{eq:bc1b} \\
+h=h_f     \quad & \text{at} \quad x=\xgl\label{eq:bc2b}
 \end{align}
 
 where $\He$ is the Heaviside step function, and
@@ -6132,7 +6136,7 @@ Field equations written in terms of velocity and stresses, respectively, are
      2 \p_x \left ( h \txx \right )  - \tau_b & = \rho g h \p_x s  \label{eq:stress} 
 \end{align}
 where $\He$ is the Heaviside step function.
-Boundary conditions at $x=x_{gl}$ are
+Boundary conditions at $x=\xgl$ are
 \begin{align}
 2 A^{-1/n} h |\p_x u|^{(1-n)/n}   \, \p_x u & = \frac{1}{2} \varrho g \, h^2  \label{eq:bc1c} \\
 h&=h_f   \label{eq:bc2c}
@@ -6175,8 +6179,8 @@ where $\delta\approx 0.1$.
 Inserting these scalings into field equation (\ref{eq:vel}) and the boundary condition (\ref{eq:bc1c})
 gives
 \begin{align}
-4 \epsilon \, \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - |u|^{(1-m)/m} u & = h \, \p_x s \quad \text{for} \quad x<x_{gl} \label{eq:velscaled}\\
-|\p_x u|^{(1-n)/n} \, \p_x u&= \frac{\delta h}{8 \epsilon} \quad \text{at} \quad x=x_{gl} \label{eq:bc1scaled}
+4 \epsilon \, \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - |u|^{(1-m)/m} u & = h \, \p_x s \quad \text{for} \quad x<\xgl \label{eq:velscaled}\\
+|\p_x u|^{(1-n)/n} \, \p_x u&= \frac{\delta h}{8 \epsilon} \quad \text{at} \quad x=\xgl \label{eq:bc1scaled}
 \end{align}
 
 
@@ -6185,13 +6189,13 @@ gives
 
 Summarizing the scaled momentum equations are
 \begin{align}
-4 \epsilon \, \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - |u|^{(1-m)/m} u & = h \, \p_x s \quad \text{for} \quad x<x_{gl} \label{eq:velscaled2}\\
-|\p_x u|^{(1-n)/n} \, \p_x u&= \frac{\delta h}{8 \epsilon} \quad \text{at} \quad x=x_{gl} \label{eq:bc1scaledb}
+4 \epsilon \, \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - |u|^{(1-m)/m} u & = h \, \p_x s \quad \text{for} \quad x<\xgl \label{eq:velscaled2}\\
+|\p_x u|^{(1-n)/n} \, \p_x u&= \frac{\delta h}{8 \epsilon} \quad \text{at} \quad x=\xgl \label{eq:bc1scaledb}
 \end{align}
 
 
 Now we consider the scaled momentum equation (\ref{eq:velscaled}) in the
-vicinity of the grounding line. As we approach $x \to x_{gl}$ from
+vicinity of the grounding line. As we approach $x \to \xgl$ from
 the upstream side we expect the first term on the left-hand side of
 (\ref{eq:velscaled}) to be given by (\ref{eq:bc1scaled}). Inserting
 (\ref{eq:bc1scaled}) into (\ref{eq:velscaled}) gives
@@ -6251,43 +6255,45 @@ between the basal shear stress term and the driving stress.
 
 \section{Grounding-line instability}
 
-
-By integrating backwards from the grounding line it is easy to show that ice
-sheet volume is an increasing function of grounding line position.
-
-
-Steady state at $x_{gl}=x_0$, balance requires
+For a steady state with the grounding line located at $x=\xgl$, mass
+conservation requires
 \[
-\gamma x + q(x_0)=0
+\gamma \; \xgl + q(\xgl)=0
 \]
-Perturb $x_0$ by $\Delta x$
+where we have assumed that the ice divide is ast $x=0$ and the surface
+mass balance is $\gamma$. We assume the surface mass balance is spatially constant and
+positive, i.e.\ $\gamma > 0$. Clearly if $\gamma<0$, no ice sheet is possible. 
+
+Perturb $\xgl$ by $\Delta x$
 \[
-  x=x_0 + \Delta x
+  \xgl'=\xgl + \Delta x
 \]
 
 If
 \[
 \gamma \; \Delta x - \p_x q \; \Delta x < 0
 \]
-then more ice is flowing across the grounding line than is added over
-the surface upstream. The volume of the (grounded) ice sheet must
-decrease with time and the grounding line must retreat towards
-the original steady state. Hence, stable.
+then more ice flows across the grounding line than is added over the
+new surface $\Delta x$ upstream of the grounding line. The volume of
+the (grounded) ice sheet must decrease with time and the grounding
+line must retreat towards the original steady state. (Note that the
+derivative of $q$ with respect to $x$ is the derivative of $q$
+following the grounding-line position.)
 
-So if
+
+Hence, if
 \[
   \p_x q > \gamma
 \]
 then the grounding line is stable, but
-\[
-\p_x q = \p_h q \p_x h
-\]
-and for a normal slope $\p_h >0$, because of floating condition, and
-therefore we must have $\p_h q> 0$ at the grounding line for it to be
-stable. If on the other hand $\p_h q<0$ while $\p_x h>0$ then $\p_x q$
-is positive, the ice volume will increase and the grounding line
-advance away from its previous steady state.
-
-
+\begin{align*}
+  \frac{\p q}{\p x} &= \frac{\p q}{\p h} \frac{\p h}{\p x} \\
+  &= \frac{\p q}{\p h} \frac{\rho_o}{\rho} \frac{\p (S-B)}{\p x}\\
+  &= -  \frac{\rho_o}{\rho}\frac{\p q}{\p h} \frac{\p B}{\p x}
+\end{align*}
+For a prograde bed, $\p_x B <0$, and therefore we must have $\p_h q >0$
+for the grounding line to be stable. Conversely, for a retrograde bed where $\p_x
+B > 0$ we must have $\p_x q <0$ for the grounding line to be stable.
 
 \end{document}
+ 
