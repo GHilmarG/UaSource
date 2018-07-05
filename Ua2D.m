@@ -231,7 +231,7 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
         
-    fprintf('\n ===========   Inverting for model parameters. ================  \n')
+    fprintf('\n =========================   Inverting for model parameters. =========================  \n')
     [UserVar,F,l,InvFinalValues,RunInfo]=...
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
@@ -310,7 +310,9 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
-    if CtrlVar.InfoLevel >= 1 ; fprintf('\n ======> Current run step: %i <======\n',CtrlVar.CurrentRunStepNumber) ;  end
+    if CtrlVar.InfoLevel >= 1 
+        fprintf('\n ===============================> Current run step: %i <========================\n',CtrlVar.CurrentRunStepNumber) ;  
+    end
     
     if CtrlVar.PlotWaitBar 
         multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
@@ -407,7 +409,7 @@ while 1
             CtrlVar.RunInfoMessage=RunInfo.Message(end);
             
             fprintf(CtrlVar.fidlog,...
-                '\n ===== Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. \n ',...
+                '\n ---------> Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
             
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
