@@ -11,9 +11,9 @@ function [UserVar,rho,rhow,g]=DefineDensities(UserVar,CtrlVar,MUA,time,s,b,h,S,B
 % 
 %%  
         
-    rho=918+zeros(MUA.Nnodes,1) ; 
-    rhow=1028; 
-    g=9.81/1000;
+    rho=900+zeros(MUA.Nnodes,1) ; 
+    rhow=1000; 
+    g=9.8/1000;
     
     
 end

@@ -168,5 +168,21 @@ if isfield(CtrlVar,'AdaptMeshInterval')
 end
 
 
+if isfield(CtrlVar,'RefineCriteria')
+    
+    fprintf(' Note: CtrlVar.RefineCriteria no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
+    error('Ua:CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
+    
+end
+
+
+if isfield(CtrlVar,'RefineCriteriaWeights')
+    
+    fprintf(' Note: CtrlVar.RefineCriteriaWeights no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
+    error('Ua:CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
+    
+end
+
+
 end
 

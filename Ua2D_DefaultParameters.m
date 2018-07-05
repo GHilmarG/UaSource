@@ -100,7 +100,7 @@ CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnos
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
                                                 % irrespective of the value of this parameter. However, after local re-meshing,
-                                                % and provided CtrlVar.LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
+                                                % and provided CtrlVar. LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
                                                 % not performed unless this parameter is set to true.
 %% Restart option
 CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)
