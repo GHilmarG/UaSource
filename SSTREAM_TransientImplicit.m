@@ -446,15 +446,16 @@ if CtrlVar.InfoLevelNonLinIt>=1
             CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
     catch
         
-        FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
-        if CtrlVar.Restart
-            CtrlVar.InfoFile = fopen(FileName,'a');
-        else
-            CtrlVar.InfoFile = fopen(FileName,'w');
-        end
-        tEnd=toc(tStart);
-        fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
+%%  2gera2       
+%         FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
+%         if CtrlVar.Restart
+%             CtrlVar.InfoFile = fopen(FileName,'a');
+%         else
+%             CtrlVar.InfoFile = fopen(FileName,'w');
+%         end
+%         tEnd=toc(tStart);
+%         fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+%             CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
     end
 end
 
