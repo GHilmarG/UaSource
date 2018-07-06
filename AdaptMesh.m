@@ -127,7 +127,7 @@ elseif isMeshAdapt
         GFold=GFnew;
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
-            fprintf(CtrlVar.fidlog,' =====  Remeshing at start of run step %-i. Remeshing iteration #%-i (#Ele=%i,#Nodes=%i) \n ',CtrlVar.CurrentRunStepNumber,JJ,MUAold.Nele,MUAold.Nnodes);
+            fprintf(CtrlVar.fidlog,' --------->  Remeshing at start of run step %-i. Remeshing iteration #%-i (#Ele=%i,#Nodes=%i) \n ',CtrlVar.CurrentRunStepNumber,JJ,MUAold.Nele,MUAold.Nnodes);
         end
         
         %  Determine new desired element sizes and identify elements for refinement
