@@ -6227,13 +6227,10 @@ that all quantities must be evaluated at the current position of the
 grounding line). 
 
 
-All quantities on the right-hand side must be evaluated at the current
-position of the grounding line.  
-
 Eqs.~(\ref{eq:glkin1}) and (\ref{eq:glkin3}) are kinematic relationships,
 and we refer to this equation (\ref{eq:glkin3}) as the {\em kinematic
   grounding-line equation}. It contains no additional physics beside
-those of the floating condition and the mass-conservation equation.
+that of the floating condition.
 
 
 At the grounding line $h_f-h=0$, and with increasing distance directly
@@ -6448,10 +6445,10 @@ small compared to the right-hand side, and that the right-hand side
 must therefore be approximately balanced by the second term on the
 left-hand side of (\ref{eq:ghp}), i.e.
 \begin{equation}
-  [t_{bx}] = [-\frac{1}{2} \rho g h \p_x s]
+  [t_{bx}] = [-\frac{1}{2} \rho g \p_x h^2].
 \label{eq:ghp2}
 \end{equation}
-since $\p_x b \ll \p_x s$.  Note that the key assumption here is that
+Note that the key assumption here is that
 $\p_x s \approx \p_x h$ for $x < \xgl$.
 
 Downstream of the
@@ -6461,11 +6458,10 @@ grounding line, flotation implies that $\p_x s = \varrho \p_x h/\rho$
 (\ref{eq:ghp}) arrive at
 \begin{equation}
 [\frac{1}{2}\varrho g h^2] - [t_{bx}] = [\frac{1}{2} \varrho g  \p_x h^2]
-\label{eq:ghp}
+\label{eq:ghp2}
 \end{equation}
 and clearly now it is the first term on the left-hand side that balances the right-hand
 side.
-
 
 
 
@@ -6473,13 +6469,13 @@ We will now derive an approximation for the flux at the grounding line
 as a function of (local) ice thickness, and start by making the
 (possibly unjustified!) assumption that $\p_x s \approx \p_x h$ in which case as we have seen
 \[
-t_{bx} \approx - \rho g h \p_x s
+t_{bx} \approx - \rho g h \p_x s ,
 \]
 i.e.\ that the second term on the left-hand sides of (\ref{eq:fu}) and
 (\ref{eq:fs}) is now approximately balanced by their respective right-hand
 sides.  Hence, using Weertman sliding law we have
 \begin{equation}
-   u = C (-\rho g h \p_x h )^m 
+   u = C (-\rho g h \p_x h )^m ,
 \label{eq:uch}
 \end{equation}
 where we have anticipated that $\p_x h$ will be strictly negative. 
@@ -6487,30 +6483,24 @@ where we have anticipated that $\p_x h$ will be strictly negative.
 
 In a steady state
 \begin{equation}
-  \p_x (uh) = a \label{eq:ass}
+  \p_x (uh) = a , \label{eq:ass}
 \end{equation}
 which allows us to write
 \begin{equation}
- \p_x h =(a- h \p_x u)/u 
+ \p_x h =(a- h \p_x u)/u .
 \label{eq:ahu}
 \end{equation}
 Inserting the boundary condition (\ref{eq:We3}) into (\ref{eq:ahu}) gives
 \begin{equation}
-\p_x h =(a- h A (\varrho g h/4)^n )/u 
+\p_x h =(a- h A (\varrho g h/4)^n )/u ,
 \label{eq:ahA}
 \end{equation}
-Inserting (\ref{eq:ahA}) into (\ref{eq:uch}) and assuming that $a \ll
+and then inserting (\ref{eq:ahA}) into (\ref{eq:uch}) and assuming that $a \ll
 h A (\varrho g h/4)^n $ gives
 \begin{equation}
-   u = C \left (\rho g h h A (\rho g (1-\rho/\rho_w) g h/4)^n /u \right )^m 
+   u = C \left (\rho g h h A \left (\rho g (1-\rho/\rho_w) g h/4 \right )^n /u \right )^m .
 \label{eq:uch2}
 \end{equation}
-Note that here the velocity is expressed in terms of $h$ alone, and
-not also to surface slope $\p_x h$. We were able to use the boundary
-condition (\ref{eq:We3}), the mass conservation equation
-(\ref{eq:ass}), and the simplified momentum equation (\ref{eq:uch}) to
-arrive at Eq.~(\ref{eq:uch2}), giving velocity at the grounding-line as a
-function of thickness alone.
 
 %or
 %\[
@@ -6534,10 +6524,19 @@ identical to that of Schoof's `B' model.  We arrived at this flux
 relation ship by assuming that velocity at the grounding line is given
 by the SIA relationship, and that $\p_x u$ at the grounding line is
 given by the boundary condition (\ref{eq:We3}) for horizontal strain
-rates. In addition we assumed steady-state conditions and assumed $a
+rates. In addition we assumed steady-state conditions and that $a
 \ll h \p_x u$.
 
 
+Note that, as Eq.~(\ref{eq:uch2}) shows, it is possible to express the
+velocity at the grounding line as a function of the ice thickness $h$
+alone, i.e.\ without any reference to the surface slope $\p_x h$. This
+is possible because the surface slope at the grounding line is related
+to thickness through Eq.~(\ref{eq:ahA}). We were able to use the
+boundary condition (\ref{eq:We3}), the mass conservation equation
+(\ref{eq:ass}), and the simplified momentum equation (\ref{eq:uch}) to
+arrive at Eq.~(\ref{eq:uch2}), giving velocity at the grounding-line
+as a function of thickness alone.}
 
 
 \section{Balance between terms on both side of the grounding line}
