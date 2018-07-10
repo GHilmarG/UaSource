@@ -3,6 +3,10 @@ function [s,wt] = sample(element,nip,ndim)
 % returns the local coordinates (s) and weighting coefficients (wt)
 % of the integrating points.
 
+%
+% see also: http://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
+%
+
     s=zeros(nip,ndim)     ; % coordinates of integration points
     wt=zeros(nip,1) ;       % weights
     
@@ -85,7 +89,7 @@ function [s,wt] = sample(element,nip,ndim)
                     s(3,2)= 0.500000000000000;
                     wt(1:3)=0.333333333333333;
                     wt=0.5*wt;
-                case 4
+                case 4  % order 4, degree of precision 2
                     s(1,1)= 0.6;
                     s(1,2)= 0.2;
                     s(2,1)= 0.2;
@@ -97,7 +101,7 @@ function [s,wt] = sample(element,nip,ndim)
                     wt(1:3)= 0.520833333333333;
                     wt(4)=  -0.5625;
                     wt=0.5*wt;
-                case 6
+                case 6   % order 6, degree of precision 4.
                     s(1,1)= 0.816847572980459;
                     s(1,2)= 0.091576213509771;
                     s(2,1)= 0.091576213509771;
@@ -113,7 +117,7 @@ function [s,wt] = sample(element,nip,ndim)
                     wt(1:3)=0.109951743655322;
                     wt(4:6)=0.223381589678011;
                     wt=0.5*wt;
-                case 7
+                case 7        % order 7, degree of precision 5.
                     s(1,1)= 0.333333333333333;
                     s(1,2)= 0.333333333333333;
                     s(2,1)= 0.797426985353087;
@@ -132,7 +136,7 @@ function [s,wt] = sample(element,nip,ndim)
                     wt(2:4)=0.125939180544827;
                     wt(5:7)=0.132394152788506;
                     wt=0.5*wt;
-                case 12
+                case 12   % order 12, degree of precision 6.
                     s(1,1)= 0.873821971016996;
                     s(1,2)= 0.063089014491502;
                     s(2,1)= 0.063089014491502;
