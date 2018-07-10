@@ -3,7 +3,7 @@
 
 
 %\usepackage{a4wide}
-\usepackage[left=2.00cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
+\usepackage[left=2.50cm, right=2.50cm, top=2.50cm, bottom=2.50cm]{geometry}
 \usepackage{bm}
 \usepackage{natbib
 }\usepackage{amsmath}
@@ -91,13 +91,45 @@ at Caltech in 2014.
 
 
 
-
 \begin{figure}
 \centerline{\includegraphics[width=12cm]{ProblemGeometry.jpg}}
 \caption{Geometrical variables: Glacier surface ($s$)), glacier bed ($b$), ocean surface ($S$), ocean floor ($B$), 
 glacier thickness ($h=s-b$)), ocean depth ($H=S-B$), glacier draft ($d=S-b$), glacier freeboard ($f=s-S$). 
 \label{fig:PG}}
 \end{figure}
+
+\begin{table}
+\caption{\label{tab:geo1} List of variables}
+\begin{center}
+\begin{tabular}{cl}
+\hline
+$s$ & upper glacier surface \\
+$b$ & lower glacier surface \\
+$S$ & ocean surface \\
+$B$ & bedrock / ocean floor \\
+$h:=s-b$ & glacier thickness \\
+$H:=S-B$ & ocean depth (pos.\ or neg.\ depending on location) \\
+$H_{+} = \He(H) H$ & (positive) ocean depth \\
+$d:=\He(H) (S-b$) & glacier draft (positive by definition) \\
+$f:=s-S$ & freeboard (always positive) \\
+$ \G:=\He(h-h_f)$ & grounding mask, 1 if ice grounded, 0 otherwise. \\
+$h_f:=\rho_o H /\rho$ & maximal ice thickness without grounding \\
+$\alpha$                    & tilt of coordinate system\\
+$\rho$ & ice density \\
+$\rho_o$ & ocean density \\
+$\varrho =\rho \, (1-\rho/\rho_o)$ & \\
+$(u_b,v_b,w_b) $ & $xyz$ components of basal velocity \\
+$(u_s,v_s,w_s) $ & $xyz$ components of surface velocity \\
+$\txx$, $\tyy$, $\txy$ etc. & deviatoric stress components \\
+$\sxx$, $\syy$, $\sxy$ etc. & Cauchy stress components\\
+$\exx$, $\eyy$, $\exy$ etc. & strain rates \\
+$g$                         & gravitational acceleration\\
+
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
 
 Typical problem geometry is depicted in Fig.~\ref{fig:PG} and the main
 geometrical variables listed in Table~\ref{tab:geo1}.  Upper and lower
@@ -136,7 +168,7 @@ where $\He(x)$ is the Heaviside function, defined as
    \end{cases}
 \]
 
-The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat), is needed frequently and we define $\theta$ as
+The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat), is needed frequently and we define $\G$ as
 \[
 \G=\He(h-h_f)
 \]
@@ -157,39 +189,6 @@ H_{+} := \He(H) H ,
 \end{equation}
 i.e.\ $H_{+}=H$ if $H>0$ and zero otherwise.
 
-
-\begin{table}[tb]
-\caption{\label{tab:geo1} List of variables}
-\begin{center}
-\begin{tabular}{cl}
-\hline
-$s$ & upper glacier surface \\
-$b$ & lower glacier surface \\
-$S$ & ocean surface \\
-$B$ & bedrock / ocean floor \\
-$h:=s-b$ & glacier thickness \\
-$H:=S-B$ & ocean depth (pos.\ or neg.\ depending on location) \\
-$H_{+} = \He(H) H$ & (positive) ocean depth \\
-$d:=\He(H) (S-b$) & glacier draft (positive by definition) \\
-$f:=s-S$ & freeboard (always positive) \\
-$ \G:=\He(h-h_f)$ & grounding parameter, 1 if ice grounded, 0 otherwise. \\
-$h_f:=\rho_o H /\rho$ & maximal ice thickness without grounding \\
-$\alpha$                    & tilt of coordinate system\\
-$ \theta= \He(h-h_f)$       & grounding/floating mask \\
-$\rho$ & ice density \\
-$\rho_o$ & water/ocean density \\
-$\varrho =\rho \, (1-\rho/\rho_o)$ & \\
-$(u_b,v_b,w_b) $ & $xyz$ components of basal velocity \\
-$(u_s,v_s,w_s) $ & $xyz$ components of surface velocity \\
-$\txx$, $\tyy$, $\txy$ etc. & deviatoric stress components \\
-$\sxx$, $\syy$, $\sxy$ etc. & Cauchy stress components\\
-$\exx$, $\eyy$, $\exy$ etc. & strain rates \\
-$g$                         & gravitational acceleration\\
-
-\hline
-\end{tabular}
-\end{center}
-\end{table}
 
 
 
@@ -565,23 +564,20 @@ the velocity can be considered to become infinitely sensitive to basal
 shear traction.  For $m \to +\infty$, $1/m \to 0$ and inserting
 $1/m=0$ into Eq.~(\ref{eq:slida1}) gives
 \[ 
-     \bm{t}_b =  C_{\tau} \frac{\bm{v}_b}{| \bm{v}_b | }  \quad \text{for}   \quad m \to +\infty 
+     \bm{t}_b =  C_{\tau} \frac{\bm{v}_b}{| \bm{v}_b | }  \quad \text{for}   \quad m \to +\infty .
      \]
 Hence, the basal shear traction is determined by $C_{\tau}$, and
 $C_{\tau}$ can be considered to be a yield stress. In this particular
 limit it therefore arguably better to recast the 'sliding' law as
 \[
-\bm{t}_b=  \tau^* \frac{\bm{v}_b}{| \bm{v}_b | }
+\bm{t}_b=  \tau^* \frac{\bm{v}_b}{| \bm{v}_b | }   \quad \text{for}   \quad m \to +\infty ,
 \]
 where $\tau^*=C_{\tau}$ is a yield stress, and the `sliding law' is
 now simply a stress condition for the basal shear traction and
 $\tau^*$ a property of the bed (e.g.\ till) that is determined by some
 other physical principle.  Using this viewpoint, in the limit $m\to
 +\infty$ the parameter $C_v$ has no effect on the solution, but can be
-calculated afterwards from the velocity.
-
-
-In this limit (i.e.\ $m \to +\infty$) the basal sliding law does not
+calculated afterwards from the velocity. The basal sliding law does not
 impose any direct constraints on the basal sliding velocity, i.e.\ for
 given basal shear traction, the basal velocity can have any value.
 The basal velocity can still be calculated by solving the SSTREAM/SSA
@@ -593,12 +589,12 @@ momentum equation (as by definition there is no direct functional
 relationship between velocity and basal shear traction), and must be
 determined from other consideration (such as mass conservation).
 
-Considering the limit where $m \to 0$ we see from Eq.~(\ref{eq:slida1})
+Considering the opposite limit where $m \to 0$, we see from Eq.~(\ref{eq:slida1})
 that now it is the basal shear traction that becomes infinitely
 sensitive to basal velocity, or conversily, the basal velocity becomes
 in this limit independent of basal shear traction. Inserting $m=0$ into Eq.~(\ref{eq:slidb}) gives
 \[
-  \bm{v}_b    =  C_v  \, \frac{\bm{t}_b}{| \bm{t}_b|}   \quad \text{for}   \quad m \to 0
+  \bm{v}_b    =  C_v  \, \frac{\bm{t}_b}{| \bm{t}_b|}   \quad \text{for}   \quad m \to 0.
 \]  
 This is a limit
 which is (I find) difficult to understand in physical terms. The basal
@@ -2788,7 +2784,7 @@ subject to the (linear) constraints
 \label{eq:constraints}
 \end{equation}
 
-Introducing Lagrange parameters we solve (\ref{eq:System}) and
+Introducing Lagrange parameters we solve (\ref{eq:System2}) and
 (\ref{eq:constraints}) using the Newton-Raphson method
 \begin{equation}
 \left [ \begin{array}{cc}
@@ -2810,14 +2806,12 @@ Introducing Lagrange parameters we solve (\ref{eq:System}) and
 
 
 
-If the Newton-Raphson method converges then $\Delta \bm{x} \to 0$ and  $\Delta \bm{\lambda} \to 0$ and
-one could define an error criteria in terms of the norm of
-$\Delta \bm{x}$ and $\Delta \bm{\lambda}$ . However, this is not a good idea. A much better
-convergence criteria is the norm of the solution error, rather than the
-update to the solution.
-
-
-Writing the residual vector $\bm{R}$  as 
+If the Newton-Raphson method converges then $\Delta \bm{x} \to 0$ and
+$\Delta \bm{\lambda} \to 0$. This suggests defining an error criteria
+in terms of the norm of $\Delta \bm{x}$ and $\Delta \bm{\lambda}$,
+i.e.\ in terms of the size of the update to the solution. Another
+convergence criteria is the norm of the solution error, Writing the
+residual vector $\bm{R}$ as
 \[
 \bm{R}=\bm{T}(\bm{x})-\bf{F}
 \]
@@ -2832,14 +2826,18 @@ r=\sqrt{\frac{(\bm{R}+\bm{L}^T \bm{\lambda})^T (\bm{R}+\bm{L}^T \bm{\lambda}) + 
 At start of an iteration using as start values $\bm{x}=\bm{0}$ and
 $\bm{\lambda}=0$, the internal forces are all zero, $\bm{T}=\bm{0}$,
 and hence $r=1$. The iteration is continued until $r$ drops below a
-prescribed tolerance. If the boundary conditions are linear then
+prescribed tolerance.
+
+The primary convergence criteria in \Ua is based bot the size of the
+residuals. However, one can also define tolerances on $\bm{\Delta}
+\bm{x}$.
+
+
+If the boundary conditions are linear then
 $ \bm{L} \bm{x} - \bm{c} = 0 $ at any iteration step, and the
 corresponding term in the residual can be omitted. It is always
-tested internally that this condition is indeed fulfilled at the end
-of the non-linear iteration procedure. One can also prescribe
-tolerances on $\Delta \bm{x}$, but this is not recommended.
-
-
+tested internally in \Ua that this condition is indeed fulfilled at the end
+of the non-linear iteration procedure.
 
 \section{Line search}
 
@@ -5346,14 +5344,14 @@ The vertical stress is, as always in the SSA approximation, given by
 where $s$ is the upper surface. The traction at the lower surface,
 where $z=b$, must equal the ocean pressure giving
 \[
-\rho (s-b) = \rho_w (S-b) ,
+\rho (s-b) = \rho_o (S-b) ,
 \]
 from which various other floating relationships follow:
 \begin{align} 
-h &= \rho_w d /\rho =\frac{s-S}{1-\rho/\rho_w} = \frac{\rho_w}{\rho} (S-b) ,\label{eq:hs1} \\
-b &= \frac{\rho s - \rho_w S}{\rho-\rho_w}  = S-\frac{\rho}{\rho_w} h , \label{eq:bh1}\\
-s &= S+(1-\rho/\rho_w) h = (1-\rho_w/\rho) b +\frac{\rho_w}{\rho} S, \label{eq:sb2}\\
-f&= (1-\rho/\rho_w) h  . \label{eq:f2}
+h &= \rho_o d /\rho =\frac{s-S}{1-\rho/\rho_o} = \frac{\rho_o}{\rho} (S-b) ,\label{eq:hs1} \\
+b &= \frac{\rho s - \rho_o S}{\rho-\rho_o}  = S-\frac{\rho}{\rho_o} h , \label{eq:bh1}\\
+s &= S+(1-\rho/\rho_o) h = (1-\rho_o/\rho) b +\frac{\rho_o}{\rho} S, \label{eq:sb2}\\
+f&= (1-\rho/\rho_o) h  . \label{eq:f2}
 \end{align}
 
 
@@ -5364,7 +5362,7 @@ freeboard, and $h=s-b$ and $H=S-B$.
 The SSTREAM/SSA equation to be solved is
 in this case simply
 \begin{equation} 
-4 \p_x ( h \eta \p_x u ) =\rho g (1-\rho/\rho_w) h \, \p_x h  ,
+4 \p_x ( h \eta \p_x u ) =\rho g (1-\rho/\rho_o) h \, \p_x h  ,
 \label{eq:mbic1}
 \end{equation}
 where the  effective viscosity $\eta$ is given by
@@ -5377,7 +5375,7 @@ equation in $x$ direction, and reflects the equilibrium of vertically
 integrated forces in the horizontal direction .  The equation can also written
 in terms of the horizontal deviatoric stress $\tau_{xx}$ as
 \begin{equation} 
-2 \p_x ( h \tau_{xx} ) =\rho g (1-\rho/\rho_w) h \, \p_x h  ,
+2 \p_x ( h \tau_{xx} ) =\rho g (1-\rho/\rho_o) h \, \p_x h  ,
 \label{eq:1dstressf}
 \end{equation}
 or as
@@ -5387,7 +5385,7 @@ or as
 \end{equation}
 where
 \[
-\varrho=\rho \, (1-\rho/\rho_w) .
+\varrho=\rho \, (1-\rho/\rho_o) .
 \] 
 If $\varrho$ is independent of $x$
 (an assumption that has already been made in the derivation of
@@ -5401,7 +5399,7 @@ where $K$ is independent of $x$.
 
 Note that the freeboard $f=s-S$ is equal to 
 \[
-f=(1-\rho/\rho_w) h,
+f=(1-\rho/\rho_o) h,
 \]
 so we can also write (\ref{eq:feq2}) as,
 \begin{equation}
@@ -5467,7 +5465,7 @@ continuity of integrated values.  Hence we require
 The vertically integrated force of the
 ocean on the ice at $x=x_c$ is given by the integral
 \begin{equation}
-\underbrace{\int_{b}^{s} \sxx \, dx }_{\hbox{ocean}}=-\int_{b}^{S} \rho_w g (S-z) \, dz = -\frac{1}{2} \rho_w g (S-b)^2,
+\underbrace{\int_{b}^{s} \sxx \, dx }_{\hbox{ocean}}=-\int_{b}^{S} \rho_o g (S-z) \, dz = -\frac{1}{2} \rho_o g (S-b)^2,
 \label{eq:pshelf}
 \end{equation}
 where $S$ is the ocean surface.
@@ -5489,13 +5487,13 @@ $\sxx$ in terms of $\szz$ and $\sxx$, we find
 where we have made use of the fact that $\tau_{xx}$ is independent of $z$.
 Hence, equality of vertical integrated horizontal stresses at the calving front requires
 \begin{equation}
-2 h \tau_{xx} - \frac{1}{2} \rho g h^2 = -\frac{1}{2} \rho_w g  (S-b)^2 ,
+2 h \tau_{xx} - \frac{1}{2} \rho g h^2 = -\frac{1}{2} \rho_o g  (S-b)^2 ,
 \label{eq:2ht}
 \end{equation}
 Using Eq.~(\ref{eq:2ht}) together with the floating condition (\ref{eq:bh1}) we find
 \begin{eqnarray}
-2 h \tau_{xx} &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_w g  (S-b)^2 \nonumber \\
-          &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_w g   h  (S-b)\frac{\rho}{\rho_w} \nonumber \\ 
+2 h \tau_{xx} &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_o g  (S-b)^2 \nonumber \\
+          &=& \frac{1}{2} \rho g h^2 - \frac{1}{2} \rho_o g   h  (S-b)\frac{\rho}{\rho_o} \nonumber \\ 
      &=& \frac{1}{2} \rho g h (h - S + b) \nonumber \\
      &=& \frac{1}{2} \rho g h (s-S) \nonumber 
 \end{eqnarray}
@@ -5541,12 +5539,12 @@ and Eq.~(\ref{eq:bcstress1}) can  be written on the form
 \end{equation}
 at $x=x_c$.  Further versions of Eq.~(\ref{eq:bcstress1}) are
 \begin{equation}
-2 A^{-1/n} h | \partial_x u|^{(1-n)/n} \, \partial_x u = \frac{1}{2} \rho g (1-\rho/\rho_w) h^2
+2 A^{-1/n} h | \partial_x u|^{(1-n)/n} \, \partial_x u = \frac{1}{2} \rho g (1-\rho/\rho_o) h^2
 \label{eq:bcstressu}
 \end{equation}
 and
 \begin{equation}
-8 \eta h \partial_x u -\rho g (1-\rho/\rho_w) h^2 =0 ,
+8 \eta h \partial_x u -\rho g (1-\rho/\rho_o) h^2 =0 ,
 \label{eq:bcstressu3}
 \end{equation}
 at $x=x_c$.  
@@ -5554,7 +5552,7 @@ at $x=x_c$.
 
 Note that if we differentiate Eq.~(\ref{eq:bcstressu3}) with respect to $x$, we find
 \begin{equation}
-4 \partial_x (\eta h \partial_x u ) = \rho g (1-\rho/\rho_w) h \partial_x h .
+4 \partial_x (\eta h \partial_x u ) = \rho g (1-\rho/\rho_o) h \partial_x h .
 \label{eq:bcstressu4}
 \end{equation}
 which is formally identical to Eq.~(\ref{eq:mbic1}) valid for any $x$. We arrived at
@@ -5588,7 +5586,7 @@ or alternatively  using (\ref{eq:f2})
 \end{equation}
 where
 \[
-\varrho=\rho \, (1-\rho/\rho_w) .
+\varrho=\rho \, (1-\rho/\rho_o) .
 \]
 The horizontal stress component can then be calculated as
 \begin{equation}
@@ -5598,7 +5596,7 @@ The horizontal stress component can then be calculated as
 where we have used Eq.~(\ref{eq:szz}). As can be seen $\sxx$ varies
 linearly with depth. Along the upper surface where $z=s$,
 $\sxx=\rho g f/2$ and is positive, and along the lower surface, where $z=b$,
-$\sxx=-\rho (1-\rho/\rho_w) g h /2$, and is negative.
+$\sxx=-\rho (1-\rho/\rho_o) g h /2$, and is negative.
 
 
 The pressure is given by
@@ -5683,7 +5681,7 @@ and therefore that (\ref{eq:sxz2}) fulfills the lower boundary condition also.
   of depth, and horizontal deviatoric stresses positive while veritcal
   deviatoric stresses are negative. Parameters:
   $\rho=910 \, \mathrm{kg\, m^{-3}}$,
-  $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$, $h= 100 \, \mathrm{m}$.}
+  $\rho_o=1030 \, \mathrm{kg \, m^{-3}}$, $h= 100 \, \mathrm{m}$.}
 \end{figure}
 
 
@@ -5744,7 +5742,7 @@ The ocean pressure, $p_o$ is
 \]
 for $z<S$, and therfore
 \[
- \sigma_{xx}+p_o= \rho g (s/2-z) + \rho_w z
+ \sigma_{xx}+p_o= \rho g (s/2-z) + \rho_o z
 \]
 for $S=0$. For $z=-\frac{1}{2} \frac{\rho}{\rho_o} h$ the sum of
 horizontal stresses and ocean pressure is zero
@@ -5760,7 +5758,7 @@ horizontal stresses and ocean pressure is zero
 % \subsubsection{Groundin line migration}
 % 
 % \[
-% \rho h= \rho_w b 
+% \rho h= \rho_o b 
 % \]
 % where $b$ is the position of the lower ice surface. We denote the bedrock by $B(x)$. Where the ice
 % is grounded, i.e.\ for $x<x_{gl}$ we have $b(x)=B(x)$, otherwise $b>B$.
@@ -5769,17 +5767,17 @@ horizontal stresses and ocean pressure is zero
 % We write 
 % \[h=h(x_{gl}(t),t) \quad \hbox{and} \quad b=b(x_gl(t),t) \]
 % Differentiating with respect to $t$ gives
-% \[\rho (\p_t h + \p_{x_{gl}} h \, \p_t x_{gl} ) = -\rho_w (\p_t b + \p_{x_{gl}} b \, \p_t x_{gl} ) 
+% \[\rho (\p_t h + \p_{x_{gl}} h \, \p_t x_{gl} ) = -\rho_o (\p_t b + \p_{x_{gl}} b \, \p_t x_{gl} ) 
 % \]
 % or
 % \[
-% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho \p_t h}{\rho_w \p_x b + \rho \p_x h}
+% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho \p_t h}{\rho_o \p_x b + \rho \p_x h}
 % \]
 % where we have droped the subscript $gl$ from the $x$ derivative, and it is to be understood that all
 % spatial derivatives are to be taken at the current position of the grounding line. Using the
 % continuity equation $\p_t h+ \p_x q=a$ the above equation can also be written as
 % \[
-% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho (a-\p_x q}{\rho_w \p_x b + \rho \p_x h}
+% \p_t x_{gl} = -\frac{rho_w \p_t b + \rho (a-\p_x q}{\rho_o \p_x b + \rho \p_x h}
 % \]
 % 
 % 
@@ -5807,7 +5805,7 @@ mass-balance is assumed to be constant. This surface mass balance
   are the same in both cases. Parameters: $A=1.14 \times
   10^{-9}\,\mathrm{kPa^{-3} a^{-1}}$, $n=3$, $h_{gl}=2000\,\mathrm{m}$,
   $u_{gl}=300\,\mathrm{m\,a^{-1}}$, $\rho=910 \, \mathrm{kg \,
-    m^{-3}}$, $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$. The value for
+    m^{-3}}$, $\rho_o=1030 \, \mathrm{kg \, m^{-3}}$. The value for
   $A$ corresponds to an ice temperature of about -10 degrees Celsius.}
 \end{figure}
 
@@ -5870,7 +5868,7 @@ where $K$ is an integration constant.
 Steady-state ice shelf thickness as a function of englacial
   temperature and surface accumulation.  
 Parameters: $n=3$, $\rho=910 \, \mathrm{kg \,
-    m^{-3}}$, $\rho_w=1030 \, \mathrm{kg \, m^{-3}}$.}
+    m^{-3}}$, $\rho_o=1030 \, \mathrm{kg \, m^{-3}}$.}
 \end{figure}
 
 We determine $K$ by specifying the
@@ -5918,7 +5916,7 @@ as a function of any other aspects of the ice geometry that might
 affect the flux). For a given ice thickness $h=h_{gl}$, and a given
 ocean bathymetry ($B(x)$), we can however always determine possible
 positions of the grounding line from the floating condition $\rho h =
-\rho_w H$, where $H=S-B$ with $S$ the ocean surface and $B$ the ocean
+\rho_o H$, where $H=S-B$ with $S$ the ocean surface and $B$ the ocean
 bed.
 
 
@@ -6173,7 +6171,7 @@ grounding line, the ice-shelf provides no buttressing.
 
 At the grounding line we have
 \[
-\rho h =\rho_w H.
+\rho h =\rho_o H.
 \]
 or simply
 \[
@@ -6191,7 +6189,7 @@ $h=s-b$ is a function of time and space, i.e.
 We consider the rate-of-change as the grounding line
 is followed, i.e.\
 \begin{equation}
-\left . \frac{d h_{gl}}{dt} \right |_{x=\xgl} = \frac{\rho_w}{\rho} \left . \frac{d H_{gl}}{dt}\right |_{x=\xgl}  \; ,
+\left . \frac{d h_{gl}}{dt} \right |_{x=\xgl} = \frac{\rho_o}{\rho} \left . \frac{d H_{gl}}{dt}\right |_{x=\xgl}  \; ,
 \label{eq:dgl}
 \end{equation}
 where
@@ -6214,11 +6212,11 @@ and
 \end{equation}
 Inserting (\ref{eq:dhdt}) and (\ref{eq:dHdt}) into (\ref{eq:dgl}) gives
 \[
-\p_t h + \dot{x}_{gl} \, \p_x h = \frac{\rho_w}{\rho} \dot{x}_{gl} \, \p_x H 
+\p_t h + \dot{x}_{gl} \, \p_x h = \frac{\rho_o}{\rho} \dot{x}_{gl} \, \p_x H 
 \]
 or
 \begin{align}
-\dot{x}_{gl} & = \frac{\p_t h}{\frac{\rho_w}{\rho}\p_x H - \p_x h}  \label{eq:glkin1}\\
+\dot{x}_{gl} & = \frac{\p_t h}{\frac{\rho_o}{\rho}\p_x H - \p_x h}  \label{eq:glkin1}\\
             & = \frac{\p_t h }{\p_x (h_f -  h)}                 \label{eq:glkin3}
 \end{align}
 where we now have skipped writing the index $gl$. All derivatives in
@@ -6266,19 +6264,19 @@ but not spatially ( i.e.\ $\p_x S(t) = \p_x \bar{S} = \p_x \Delta S=0$)
 
 For $S=\bar{S}$ the grounding line is at  $x=\xgl$ and
 \begin{equation}
-\rho \, \left (s(\xgl)-b(\xgl) \right )=\rho_w (\bar{S}-B(\xgl)) .
+\rho \, \left (s(\xgl)-b(\xgl) \right )=\rho_o (\bar{S}-B(\xgl)) .
 \label{eq:mean}
 \end{equation}
 
 % Locally around the grounding line we assume a linear spatial variation
 % in the geometrical variables ($s$, $b$, $B$), but we do not assume the
 % up and downstream gradients to be equal. Downstream of the grounding
-% line the floating condition \[ \rho (s-b)=\rho_w (S-b) \quad \hbox{for} \quad x \ge \xgl,\]
+% line the floating condition \[ \rho (s-b)=\rho_o (S-b) \quad \hbox{for} \quad x \ge \xgl,\]
 % dictates that surface and thickness slopes are related through
 % \begin{align*}
-% \p_x h & = -\rho_w \p_x b /\rho ,\\
-% \p_x s & = - (\rho_w/\rho -1) \, \p_x b ,\\
-% \p_x s & = (1-\rho/\rho_w) \, \p_x h .
+% \p_x h & = -\rho_o \p_x b /\rho ,\\
+% \p_x s & = - (\rho_o/\rho -1) \, \p_x b ,\\
+% \p_x s & = (1-\rho/\rho_o) \, \p_x h .
 % \end{align*}
 
 
@@ -6286,22 +6284,22 @@ For a given perturbation, $\Delta S$, in ocean height, the grounding
 line moves by some distance $\Delta L$ in either up or down-stream direction. At this new grounding line
 position the floating condition must again hold, and we have
 \[
-\rho \left (s(\xgl+\Delta L )-b(\xgl+ \Delta L ) \right )=\rho_w (\bar{S}+\Delta S-B(\xgl+\Delta L)) 
+\rho \left (s(\xgl+\Delta L )-b(\xgl+ \Delta L ) \right )=\rho_o (\bar{S}+\Delta S-B(\xgl+\Delta L)) 
 \]
 or
 \[
-\rho (s(\xgl) + \p_x s \Delta L -b(\xgl) - \p_x b  \Delta L )=\rho_w (\bar{S}+\Delta S-B(\xgl) - \p_x B \Delta L)) 
+\rho (s(\xgl) + \p_x s \Delta L -b(\xgl) - \p_x b  \Delta L )=\rho_o (\bar{S}+\Delta S-B(\xgl) - \p_x B \Delta L)) 
 \]
 (For notational simplicity we have not indicated in the above equation
 that the derivatives are to be evaluated on both sides of the
 grounding line and that they are in fact directional derivatives in
 the up and down-stream directions.)  Using (\ref{eq:mean}) gives
 \[
-\rho (\p_x s - \p_x b  ) \Delta L=\rho_w (\Delta S- \p_x B \Delta L)) 
+\rho (\p_x s - \p_x b  ) \Delta L=\rho_o (\Delta S- \p_x B \Delta L)) 
 \]
 or
 \begin{equation}
-\Delta L^{+/-} = \frac{\rho_w \Delta S}{\rho (\p_x s^{+/-} - \p_x b^{+/-} ) + \rho_w \p_x B^{+/-}}
+\Delta L^{+/-} = \frac{\rho_o \Delta S}{\rho (\p_x s^{+/-} - \p_x b^{+/-} ) + \rho_o \p_x B^{+/-}}
 \label{eq:dLtide}
 \end{equation}
 Eq.~(\ref{eq:dLtide}) is valid even if the derivatives are not
@@ -6348,7 +6346,7 @@ equal on both sides of $x=\xgl$ as well.  There is then a break in
 thickness gradient at $x=\xgl$ given by
 \[
 \p_x h= \begin{cases} \p_x h^{+}=\p_x s - \p_x B & \text{for } x \leq \xgl \\
-                      \p_x h^{-}=\p_x s/(1-\rho/\rho_w) & \text{for } x \geq \xgl
+                      \p_x h^{-}=\p_x s/(1-\rho/\rho_o) & \text{for } x \geq \xgl
         \end{cases} 
 \]
 (There is no need to use the superscripts $+/-$ with $\p_x s$ and
@@ -6358,15 +6356,15 @@ expresson for the break in thickness gradient is inserted in
 (\ref{eq:dLtide}) we find that the migration distance $\Delta L^{-}$
 at a low tide (when $S=\bar{S}-\Delta L$), is given by
 \[
-\Delta L^{-} = - \frac{\Delta S}{\frac{\rho/\rho_w}{1-\rho/\rho_w} \p_x s + \p_x B} ,
+\Delta L^{-} = - \frac{\Delta S}{\frac{\rho/\rho_o}{1-\rho/\rho_o} \p_x s + \p_x B} ,
 \]
 and at a high tide by
 \[
-\Delta L^{+} = \frac{\Delta S/(1-\rho/\rho_w) }{\frac{\rho/\rho_w}{1-\rho/\rho_w} \p_x s + \p_x B} ,
+\Delta L^{+} = \frac{\Delta S/(1-\rho/\rho_o) }{\frac{\rho/\rho_o}{1-\rho/\rho_o} \p_x s + \p_x B} ,
 \]
 and that
 \[
-|\Delta L^{-}| = (1-\rho/\rho_w) | \Delta L^{+}| .
+|\Delta L^{-}| = (1-\rho/\rho_o) | \Delta L^{+}| .
 \] 
 In the case of a constant surface gradient, the upstream
 grounding-line shift at high tide is therefore about 9 times as large
@@ -6386,7 +6384,7 @@ An example of transient hydrostatic grounding-line migration in
 response to tides is shown in Fig.~\ref{fig:dLTide}. The migration was
 calculated using the flow model \'Ua. This model, as do most commonly
 used flow model in glaciology, assumes that the grounding line is
-always exactly where the hydrostatic floating condition $\rho h=\rho_w
+always exactly where the hydrostatic floating condition $\rho h=\rho_o
 (S-b)$ is met. The modelled grounding line displacements are in a good
 agreement with those calculated using Eq.~(\ref{eq:dLtide}). For
 example, in the case of constant surface slope the modelled values are
@@ -6419,7 +6417,7 @@ In terms of stresses this equation can also be written as
 Boundary conditions at the grounding line where $x=\xgl$ are
 \begin{align}
 \p_x u &= A (\varrho g h/4)^n  \label{eq:We3} \\
-     h&=\rho_w H /\rho . \label{eq:fc}
+     h&=\rho_o H /\rho . \label{eq:fc}
 \end{align}
 Note that boundary condition (\ref{eq:We3}) can be rearanged as
 \[
@@ -6498,26 +6496,30 @@ Inserting the boundary condition (\ref{eq:We3}) into (\ref{eq:ahu}) gives
 and then inserting (\ref{eq:ahA}) into (\ref{eq:uch}) and assuming that $a \ll
 h A (\varrho g h/4)^n $ gives
 \begin{equation}
-   u = C \left (\rho g h h A \left (\rho g (1-\rho/\rho_w) g h/4 \right )^n /u \right )^m .
+   u = C \left (\rho g h h A \left (\rho g \delta g h/4 \right )^n /u \right )^m .
 \label{eq:uch2}
 \end{equation}
 
-%or
-%\[
-%u^{m+1}=  4^{-n m}\, C \,  A^m (g \rho)^{m+n m} (1-\rho/\rho_w)^{n m}  \;  h^{n m + 2 m} ,
-%\]
+or
+\[
+u^{m+1}=  4^{-n m}\, C \,  A^m (g \rho)^{m+n m} \delta^{n m}  \;  h^{n m + 2 m} ,
+\]
+where $\delta$ is defined as
+\[
+\delta := 1- \rho/\rho_o
+\]
 The ice flux  $q=uh$ at the grounding line is therefore
 \begin{equation}
-q=  \left [ 4^{-n m} \, C \, A^m  (g \rho)^{m+n m} \; \left (1-\rho/\rho_w \right )^{n m}  \right ]^{1/(m+1)}  \; h^{(n m + 3 m + 1)/(m+1)} ,
+q=  \left [ 4^{-n m} \, C \, A^m  (g \rho)^{m+n m} \; \left (1-\rho/\rho_o \right )^{n m}  \right ]^{1/(m+1)}  \; h^{(n m + 3 m + 1)/(m+1)} ,
 \label{eq:Schoofhq}
 \end{equation}
 where\footnote{For $q=\rho u h$ and keeping the $\theta$ term we have
 \[
-q=\rho  \left ( 4^{-n} C^{1/m} A (\rho g)^{n+1} (1-\rho/\rho_w)^n  \right )^{m/(1+m)} \, \theta^{nm/(1+m)} \,  h^{(n m +3 m+1)/(1+m)} 
+q=\rho  \left ( 4^{-n} C^{1/m} A (\rho g)^{n+1} \delta^n  \right )^{m/(1+m)} \, \theta^{nm/(1+m)} \,  h^{(n m +3 m+1)/(1+m)} 
 \]
-}
+} $h$ is the thickness at the grounding line, i.e.
 \[
-h=\rho_w H /\rho.
+h=h_{\mathmr{gl}}=\rho_o H /\rho.
 \]
 The relationship between flux relationship (\ref{eq:Schoofhq}) is
 identical to that of Schoof's `B' model.  We arrived at this flux
@@ -6558,9 +6560,9 @@ h=h_f     \quad & \text{at} \quad x=\xgl\label{eq:bc2b}
 where $\He$ is the Heaviside step function, and
 where
 \[
-h_f=\rho_w H/\rho
+h_f=\rho_o H/\rho
 \]
-and where $\varrho=\rho (1-\rho/\rho_w)$. 
+and where $\varrho=\rho (1-\rho/\rho_o)$. 
 
 Inserting (\ref{eq:bc1b}) into (\ref{eq:velssa}) and assuming that over the grounded area 
 $ |\p_x s| \gg |\p_x b|$, and therefore that $\p_x h = \p_x s - \p_x b \approx \p_x s $, we arrive at
@@ -6572,10 +6574,10 @@ or
 \frac{1}{2} \varrho g \p_x  h^2  - \He(h-h_f) \, C^{-1/m} \, |u|^{(1-m)/m} u = \frac{1}{2} \rho g  \p_x h^2  \label{eq:velssa3}
 \]
 which immediately shows that the first term on the left hand side is
-$\varrho /\rho=\rho (1-\rho/\rho_w))/\rho=(1-\rho/\rho_w) \approx 0.1 $
+$\varrho /\rho=\rho (1-\rho/\rho_o))/\rho=(1-\rho/\rho_o) \approx 0.1 $
 the size of the right-hand side.
 
-Downstream of the grounding line $s=(1-\rho_w/\rho) h$ and therefore
+Downstream of the grounding line $s=(1-\rho_o/\rho) h$ and therefore
 $\p_x s = \delta \p_x b \approx 0.1 \p_x b$, or
 $\p_x s \ll \p_x h $ and this reversal of the relative sizes of the upper
 and lower slopes ensures that we now also have the right balance
@@ -6600,9 +6602,9 @@ h&=h_f   \label{eq:bc2c}
 \end{align}
 where
 \[
-h_f=\rho_w H/\rho
+h_f=\rho_o H/\rho
 \]
-and where $\varrho=\rho (1-\rho/\rho_w)$. The above model is only valid for $[z]/[x] \ll 1 $
+and where $\varrho=\rho (1-\rho/\rho_o)$. The above model is only valid for $[z]/[x] \ll 1 $
 and $u_d/u_b\ll 1$, where $u_d$ is the deformational velocity and
 $u_b$ the sliding velocity.
 
@@ -6628,7 +6630,7 @@ We introduce
 \end{equation}
 and will consider the case $\epsilon \ll 1$, and we also define
 \begin{equation}
-  \delta=1-\rho/\rho_w  
+  \delta=1-\rho/\rho_o  
 \end{equation}
 where $\delta\approx 0.1$.
 
@@ -6690,7 +6692,7 @@ first term on the left-hand side must balance the term on the right
 hand side. Here our formulation gives the right balance because since  $\p_x
 b$ and $\p_x h$ are related by the floating condition
 \[
-\p_x s= \p_x(h+b)=\p_x (h-(1-\rho/\rho_w) h)=\delta \; \p_x h ,
+\p_x s= \p_x(h+b)=\p_x (h-(1-\rho/\rho_o) h)=\delta \; \p_x h ,
 \]
 and when inserted into 
 \begin{equation}
