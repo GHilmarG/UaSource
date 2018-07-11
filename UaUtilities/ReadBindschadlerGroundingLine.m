@@ -20,7 +20,7 @@ else
 end
 
 
-load('GL','xGL','yGL')  ;
+load('GroundingLinesOfAntarticaFromBobBindschadler.mat','xGL','yGL')  ;
 cd(locdir)
 
 end
