@@ -30,15 +30,32 @@ if ~isfield(MUA,'nip')
 end
 
 
+if ~isfield(CtrlVar,'MUA')
+    CtrlVar.MUA.MassMatrix=0;
+    CtrlVar.MUA.StiffnessMatrix=0;
+end
+
+
 if ~isfield(CtrlVar.MUA,'MassMatrix')
-   CtrlVar.MUA.MassMatrix=0;
+    CtrlVar.MUA.MassMatrix=0;
 end
 
 
 if ~isfield(CtrlVar.MUA,'StiffnessMatrix')
-   CtrlVar.MUA.StiffnessMatrix=0;
+    CtrlVar.MUA.StiffnessMatrix=0;
 end
 
+if  ~isfield(CtrlVar,'InfoLevel')
+    CtrlVar.InfoLevel=1;
+end
+
+if ~isfield(CtrlVar,'FindMUA_Boundary')
+    CtrlVar.FindMUA_Boundary=0;
+end
+
+if ~isfield(CtrlVar,'CalcMUA_Derivatives')
+    CtrlVar.CalcMUA_Derivatives=0;
+end
 
 
 %% Now consider the possibility the FE coordinates and connectivity has changed
@@ -61,13 +78,15 @@ if MeshHasChanged
     end
     MUA.ndim=2;
     
-    CtrlVar=NrOfIntegrationPoints(CtrlVar); 
+    CtrlVar=NrOfIntegrationPoints(CtrlVar);
     MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
     
     MUA.Nele=size(MUA.connectivity,1);
     MUA.Nnodes=size(MUA.coordinates,1);
     MUA.nod=size(MUA.connectivity,2);
     [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
+    
+    
     
     if CtrlVar.FindMUA_Boundary
         [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);

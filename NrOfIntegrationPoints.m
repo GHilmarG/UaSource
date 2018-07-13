@@ -74,7 +74,11 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     
     %if CtrlVar.Implicituvh ; nip=niph ; end
     
-   
+   if ~isfield(CtrlVar,'nip') ; CtrlVar.nip=nip ; end
+   if ~isfield(CtrlVar,'niph') ; CtrlVar.niph=niph ; end
+    
+    
+    
     if isempty(CtrlVar.nip) ;  CtrlVar.nip=nip ; end
     if isempty(CtrlVar.niph) ;  CtrlVar.niph=niph ; end
    
