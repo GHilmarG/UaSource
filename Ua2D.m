@@ -454,8 +454,8 @@ while 1
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
             uvhStep=1;
-            while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin % if uvh step does not converge, it is repeated with a smaller dt value
-                CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
+            while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin  % if uvh step does not converge, it is repeated with a smaller dt value
+                CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
                 [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
                 CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
 
@@ -469,17 +469,19 @@ while 1
                 if RunInfo.Forward.Converged==0
                     
                     uvhStep=1;  % continue within while loop
-                    
-                    fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
-                    CtrlVar.dt=CtrlVar.dt/10;
-                    l.ubvb=l.ubvb*0; l.h=l.h*0;
-                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   
-                    F.ub=F.ub*0; F.vb=F.vb*0; F.ud=F.ud*0;F.vd=F.vd*0;
-                    l.ubvb=l.ubvb*0; l.h=l.h*0;
-                    filename='Dumpfile_Ua2D.mat';
-                    fprintf('Saving all data in a dumpfile %s \n',filename)
+                        
+                    filename=['Dumpfile_Ua2D-',CtrlVar.Experiment,'.mat'];
+                    fprintf('uvh has not converged! Saving all data in a dumpfile %s \n',filename)
                     save(filename)
                     
+                    fprintf(CtrlVar.fidlog,' ----!!!->>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
+                    fprintf(CtrlVar.fidlog,'             Also resetting field and Lagrange variables. \n');
+                    
+                    CtrlVar.dt=CtrlVar.dt/10;
+                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   
+                    l.ubvb=l.ubvb*0; l.h=l.h*0;
+                    F=StartVelocity(CtrlVar,MUA,BCs,F); 
+
                 else
                     uvhStep=0;
                 end
