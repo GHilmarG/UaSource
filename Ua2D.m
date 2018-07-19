@@ -466,16 +466,18 @@ while 1
                 
                 CtrlVar.dt=dt;
                 
-                if RunInfo.Forward.Converged==0
+                if ~RunInfo.Forward.Converged
                     
                     uvhStep=1;  % continue within while loop
                         
                     filename=['Dumpfile_Ua2D-',CtrlVar.Experiment,'.mat'];
-                    fprintf('uvh has not converged! Saving all data in a dumpfile %s \n',filename)
+                    fprintf('----!!!->>> uvh has not converged! Saving all data in a dumpfile %s \n',filename)
                     save(filename)
                     
                     fprintf(CtrlVar.fidlog,' ----!!!->>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
                     fprintf(CtrlVar.fidlog,'             Also resetting field and Lagrange variables. \n');
+                    fprintf(CtrlVar.fidlog,'             Starting values for velocities at end of time step set by StartVelocity.m \n');
+                    fprintf(CtrlVar.fidlog,'             Starting for s, b and h at end of time step set equal to values at beginning of time step. \n');
                     
                     CtrlVar.dt=CtrlVar.dt/10;
                     F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   

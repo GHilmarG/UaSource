@@ -1303,6 +1303,10 @@ CtrlVar.MeshAdapt.GLrange=[];
 CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
                 % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
+                % Note: This variable has UNITS!!!  The units are those of an inverse distance.
+                %       So if your distance units is meters, the unit of hH is 1/meters.
+                %       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance
+                %       that is small compared to other distances of interest.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
