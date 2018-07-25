@@ -171,7 +171,7 @@ end
 if isfield(CtrlVar,'RefineCriteria')
     
     fprintf(' Note: CtrlVar.RefineCriteria no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
-    error('Ua:CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     
 end
 
@@ -179,9 +179,31 @@ end
 if isfield(CtrlVar,'RefineCriteriaWeights')
     
     fprintf(' Note: CtrlVar.RefineCriteriaWeights no longer used. Use CtrlVar.ExplicitMeshRefinementCriteria instead.\n')
-    error('Ua:CtrlVarValidityCheck:Trinodes','CtrlVar not valid')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     
 end
+
+if isfield(CtrlVar,'DefineOceanSurfaceAtEachTimeStep')
+    
+    fprintf(' Note: CtrlVar.DefineOceanSurfaceAtEachTimeStep no longer used.\n')
+    fprintf('       Use CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry instead.\n')
+    fprintf('       For example: CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S".\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+    
+end
+
+
+if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
+    
+    fprintf(' Note: CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep no longer used.\n')
+    fprintf('       Use CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry instead.\n')
+    fprintf('       For example: CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB".\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+    
+end
+
+
+
 
 
 end

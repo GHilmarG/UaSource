@@ -357,15 +357,16 @@ while 1
     %% -------------------------------------------------------------------------------------------]
     
     %% [----------------------- Changes to F required at each RunStep
-
     
-    if CtrlVar.doDiagnostic
-        if CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep
-            [UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
+    if ~CtrlVar.doInverseStep
+        if CtrlVar.TimeDependentRun
+            [UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
+            F.h=F.s-F.b;
+        else
+            [UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
             F.h=F.s-F.b;
         end
-    elseif CtrlVar.DefineOceanSurfaceAtEachTimeStep
-        [UserVar,~,~,F.S,~,~]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'S');
+        
     end
     
     [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
