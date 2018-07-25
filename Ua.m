@@ -9,7 +9,7 @@ function Ua(UserVar,varargin)
 %                      Hybrid combinations of SIA and SSA (already implemented,
 %                      but still being developed further...)
 %
-% The code is developed by Hilmar Gudmundsson (ghg@bas.ac.uk).
+% The code is developed by Hilmar Gudmundsson (hilmar.gudmundsson@northumbria.ac.uk)
 %
 %% Running Úa
 %
