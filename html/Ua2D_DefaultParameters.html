@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-30"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-07-25"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">Types of run</a></li><li><a href="#6">Ice flow approximation</a></li><li><a href="#7">Boundary conditions</a></li><li><a href="#8">Manually updating geometry in the course of a run.</a></li><li><a href="#10">Element type</a></li><li><a href="#11">Control on transient runs</a></li><li><a href="#12">Restart option</a></li><li><a href="#14">Plotting</a></li><li><a href="#15">Plotting mesh</a></li><li><a href="#16">Numerical variables related to transient runs</a></li><li><a href="#17">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#18">Constraints on viscosity and slipperiness</a></li><li><a href="#19">Non-linear iteration-loop parameters</a></li><li><a href="#20">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#21">Backtracking parameters  -line search</a></li><li><a href="#22">Lin equation solver parameters</a></li><li><a href="#23">Internal variables related to matrix assembly</a></li><li><a href="#24">Number of integration points</a></li><li><a href="#25">Level of information given during a run</a></li><li><a href="#26">Inversion</a></li><li><a href="#27">Numbering of nodes and elements</a></li><li><a href="#28">Creation of a dumpfile</a></li><li><a href="#29">Outputs</a></li><li><a href="#30">Obtaining information about the run, during the run.</a></li><li><a href="#31">General Meshing Options</a></li><li><a href="#32">Selecting the external mesh generator</a></li><li><a href="#33">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#34">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#35">Controlling element sizes</a></li><li><a href="#36">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#37">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#38">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#39">Uniform global mesh refinement</a></li><li><a href="#40">Adaptive mesh refinement</a></li><li><a href="#41">Controlling when and how often mesh is adapted</a></li><li><a href="#42">Mesh refinement criteria</a></li><li><a href="#43">grounding-line mesh refinement</a></li><li><a href="#44">Parameters affecting the floating mask</a></li><li><a href="#45">Parameters affecting calculation of grounding line</a></li><li><a href="#46">A and C as element or nodal variables</a></li><li><a href="#47">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</a></li><li><a href="#48">Mass-balance geometry feedback</a></li><li><a href="#49">Sea ice/melange</a></li><li><a href="#51">Mapping from Mesh1 to Mesh2</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">Types of run</a></li><li><a href="#6">Ice flow approximation</a></li><li><a href="#7">Boundary conditions</a></li><li><a href="#8">Manually updating geometry in the course of a run.</a></li><li><a href="#10">Element type</a></li><li><a href="#11">Control on transient runs</a></li><li><a href="#12">Restart option</a></li><li><a href="#14">Plotting</a></li><li><a href="#15">Plotting mesh</a></li><li><a href="#16">Numerical variables related to transient runs</a></li><li><a href="#17">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#18">Constraints on viscosity and slipperiness</a></li><li><a href="#19">Non-linear iteration-loop parameters</a></li><li><a href="#20">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#21">Backtracking parameters  -line search</a></li><li><a href="#22">Lin equation solver parameters</a></li><li><a href="#23">Internal variables related to matrix assembly</a></li><li><a href="#24">Number of integration points</a></li><li><a href="#25">Level of information given during a run</a></li><li><a href="#26">Inversion</a></li><li><a href="#27">Numbering of nodes and elements</a></li><li><a href="#28">Creation of a dumpfile</a></li><li><a href="#29">Outputs</a></li><li><a href="#30">Obtaining information about the run, during the run.</a></li><li><a href="#31">General Meshing Options</a></li><li><a href="#32">Selecting the external mesh generator</a></li><li><a href="#33">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#34">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#35">Controlling element sizes</a></li><li><a href="#36">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#37">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#38">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#39">Uniform global mesh refinement</a></li><li><a href="#40">Adaptive mesh refinement</a></li><li><a href="#41">Controlling when and how often mesh is adapted</a></li><li><a href="#42">Mesh refinement criteria</a></li><li><a href="#43">grounding-line mesh refinement</a></li><li><a href="#44">Parameters affecting the floating mask</a></li><li><a href="#45">Parameters affecting calculation of grounding line</a></li><li><a href="#46">A and C as element or nodal variables</a></li><li><a href="#47">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</a></li><li><a href="#48">Mass-balance geometry feedback</a></li><li><a href="#49">Sea ice/melange</a></li><li><a href="#51">Mapping from Mesh1 to Mesh2</a></li><li><a href="#53">Tracers</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
 </pre><p>CtrlVar=Ua2D_DefaultParameters</p><pre>sets the fields of the CtrlVar to their default values</pre><pre>Most likely when running &Uacute;a, only a fairly limited number of the parameters listed below need to be set/changed.
 Changing the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'.
 That user m-file should be located in a separate run-directory, together with all the other user m-files</pre><pre class="codeinput">CtrlVar.Experiment=<span class="string">'UaDefaultRun'</span>;
@@ -100,11 +100,25 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   <span class="comment">% maximum number
 CtrlVar.BCsWeights=1;  <span class="comment">% testing parameter, do not change</span>
 
 <span class="comment">%</span>
-</pre><h2 id="8">Manually updating geometry in the course of a run.</h2><p>By default DefineGeometry is only called at the beginning of a run, and after a any mesh modifications.</p><p>However, it is possible to force additional `manual' updates to geometry during a diagnostic run. This is often useful, for example, for doing sensitivity tests with respect to geometry.</p><p>Also, one can redefine the ocean surface elevation at each run step in both transient and non-transient (diagnostic) runs.</p><pre class="codeinput">CtrlVar.DefineOceanSurfaceAtEachTimeStep=0;   <span class="comment">% if true,  `DefineGeometry.m' is called at each time step, returning S, and only S.</span>
-                                              <span class="comment">% if false, `DefineGeometry.m' is only called at the beginning of a run</span>
-                                              <span class="comment">%            and when the FE-mesh changes</span>
-CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep=1;  <span class="comment">% If true, the user-defined geometry (sbSB) is always used at each run step in a</span>
-                                                            <span class="comment">% diagnostic calculation.</span>
+</pre><h2 id="8">Manually updating geometry in the course of a run.</h2><p>By default DefineGeometry is only called at the beginning of a run, and after any mesh modifications such as re-meshing.</p><p>However, it is possible to force additional `manual' updates to geometry in a forward run. A `manual' update is simply a call to DefineGeometry.m where the geometry is then defined by the user.</p><p>The geometrical variables are: s, b, B and S.</p><p>To specify which geometrical variables should be updated/modifed set the following stings acordingly:</p><pre class="codeinput">CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry=<span class="string">""</span>;
+CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry=<span class="string">""</span>;
+<span class="comment">%</span>
+<span class="comment">% Possible values for these stings are any combinations of  "sbSB".</span>
+<span class="comment">%</span>
+<span class="comment">% Examples:</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S";</span>
+<span class="comment">%</span>
+<span class="comment">%  forces an update of the ocean surface, S, within each time step. This could, for example, be used to specify a time varying ocean surface</span>
+<span class="comment">%  elevation due to tides. Hence, DefineGeometry will be called at each transient with FieldsToBeDefined='S'</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB";</span>
+<span class="comment">%</span>
+<span class="comment">% forces all geometrical variables, i.e. upper ice surface (s), lower ice surface (b), ocean surface (S), and bedrock (B) to be defined in each</span>
+<span class="comment">% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='sbSB'</span>
+<span class="comment">%</span>
+<span class="comment">% The default option is not to modify any geometrical variables manually within a run step.</span>
+<span class="comment">%</span>
 </pre><pre class="codeinput">CtrlVar.TestUserInputs=1;  <span class="comment">% By default user inputs will be tested at the start of the run</span>
                            <span class="comment">% to suppress set TestUserInputs=0</span>
                            <span class="comment">% if user inputs are always to be tested throughout the run, set TestUserInputs=2</span>
@@ -124,7 +138,7 @@ CtrlVar.InitialDiagnosticStep=0; <span class="comment">% Start a transient run w
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; <span class="comment">% Forces a diagnostic calculation after re-meshing.</span>
                                                 <span class="comment">% Note: a diagnostic calculation is always done after global re-meshing</span>
                                                 <span class="comment">% irrespective of the value of this parameter. However, after local re-meshing,</span>
-                                                <span class="comment">% and provided CtrlVar.LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is</span>
+                                                <span class="comment">% and provided CtrlVar. LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is</span>
                                                 <span class="comment">% not performed unless this parameter is set to true.</span>
 </pre><h2 id="12">Restart option</h2><pre class="codeinput">CtrlVar.Restart=0;                       <span class="comment">% either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)</span>
 CtrlVar.WriteRestartFile=1;              <span class="comment">% if true, a restart file is written</span>
@@ -136,7 +150,8 @@ CtrlVar.ResetRunStepNumber=0;            <span class="comment">% if true, RunSte
 CtrlVar.NameOfRestartFiletoRead=<span class="string">'Ua2D_Restartfile.mat'</span>;
 CtrlVar.NameOfRestartFiletoWrite=<span class="string">'Ua2D_Restartfile.mat'</span>;
 </pre><pre class="codeinput">CtrlVar.SaveAdaptMeshFileName=[];          <span class="comment">% file name for saving adapt mesh. If left empty, no file is written</span>
-</pre><h2 id="14">Plotting</h2><p>Most plotting is typically done by the user using his own version of the `UaOutputs.m', or in a separate post-processing step However, some basic plots can be generated directly from within Ua.</p><pre class="codeinput">CtrlVar.doplots=1;          <span class="comment">% if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots</span>
+</pre><h2 id="14">Plotting</h2><p>Most plotting is typically done by the user using his own version of the m-file</p><pre class="language-matlab">UaOutputs.m
+</pre><p>or in a separate post-processing step.</p><p>However, some basic plots can be generated directly from within Ua.</p><pre class="codeinput">CtrlVar.doplots=1;          <span class="comment">% if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots</span>
 CtrlVar.PlotWaitBar=1;      <span class="comment">% a waitbar is plotted</span>
 CtrlVar.doAdaptMeshPlots=1; <span class="comment">% if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing</span>
 CtrlVar.PlotOceanLakeNodes=0;        <span class="comment">% Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean</span>
@@ -322,9 +337,9 @@ CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard ou
 <span class="comment">% name of logfile is  $Experiment.log</span>
 </pre><h2 id="26">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq08369003733283222926.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq12181943583103488439.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq12924131073447543161.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq15019012425984498030.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq13887426895847926300.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:404px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq04487584478622693718.png" alt="$K_C$" style="width:21px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq09497593338882125070.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq06301708164122530744.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:366px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq09941021013676836398.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq05147331747641807187.png" alt="$A$" style="width:10px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04475604477142801974.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq03986222445007418011.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04408148735986522086.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>The inversion for C and A can be done with C and A defined on nodes or elements. See:</p><pre class="language-matlab">CtrlVar.AGlenisElementBased
 CtrlVar.CisElementBased.
-</pre><p>In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlen'</span> ;
+</pre><p>In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element values. By default, the inversion is done on nodal values.</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlen'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'logAGlenlogC'</span>
-</pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPointC' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPointC'}</span>
+</pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPoint' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPoint'}</span>
 CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span class="comment">% {'C','logC','AGlen','logAGlen','logAGlenlogC'}</span>
 </pre><p>is inconsistent. Ua tries to spot these input parameter mistakes and correct for them, but it is better to try to keep all inputs consistent.</p><p>Note #2: It is possible to invert for any combination of log(A) or A  and log(C) or C. So for example one can invert for log(A) and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenC'</span> ;
 </pre><p>Also one can invert for log(C) and log(A) and regularize A and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ;
@@ -345,7 +360,7 @@ CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span cla
 <span class="comment">% The gradient of the objective function is calculated using the adjoint method.</span>
 <span class="comment">% When inverting for C only, one can also use a gradient based on a `FixPoint'</span>
 <span class="comment">% iteration, which is often a very good initial approach.</span>
-CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPointC'}</span>
+CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPoint'}</span>
 
 <span class="comment">% The gradient of the objective function can be pre-multiplied with the inverse</span>
 <span class="comment">% of the mass matrix. This creates a `mesh independent' gradient. This has both</span>
@@ -551,7 +566,8 @@ CtrlVar.CuthillMcKee=0;       <span class="comment">% renumber nodes using spars
 </pre><h2 id="28">Creation of a dumpfile</h2><p>Mainly used for testing purposes, but can in principle also be used to generate output data files.</p><pre class="codeinput">CtrlVar.WriteDumpFile=0;                      <span class="comment">% a dumpfile is created containing all variables</span>
 CtrlVar.WriteDumpFileStepInterval=1000;       <span class="comment">% number of time steps between writing a dump file</span>
 CtrlVar.WriteDumpFileTimeInterval=0;          <span class="comment">% time interval between writing a dump file</span>
-</pre><h2 id="29">Outputs</h2><p>For outputs Ua calls a routine called 'UaOutputs.m' Write your own version of this routine to fit your own output/plotting needs and keep the routine into you local run directory, i.e. the directory from which you run Ua Start by copying the example UaOutput.m routine from the Ua source installation folder to you local run directory.</p><pre class="codeinput">CtrlVar.UaOutputsDt=0; <span class="comment">% model time interval between calling UaOutputs.m</span>
+</pre><h2 id="29">Outputs</h2><p>For outputs Ua calls a routine called</p><pre class="language-matlab">UaOutputs.m
+</pre><p>Write your own version of this routine to fit your own output/plotting needs and keep the routine into you local run directory, i.e. the directory from which you run Ua Start by copying the example UaOutput.m routine from the Ua source installation folder to you local run directory.</p><pre class="codeinput">CtrlVar.UaOutputsDt=0; <span class="comment">% model time interval between calling UaOutputs.m</span>
 <span class="comment">% if set to zero UaOutputs is called at every time/run step</span>
 <span class="comment">% if set to a negative number, or NaN, UaOutputs is never called</span>
 CtrlVar.UaOutputsMaxNrOfCalls=NaN;  <span class="comment">% maximum nr of calls to UaOutputs</span>
@@ -561,7 +577,9 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  <span class="comment">% maximum nr of calls 
 </pre><h2 id="30">Obtaining information about the run, during the run.</h2><p>A simply way of getting information about the run from within the user m-files is by inspecting the fields of the CtrlVar.  The CtrlVar is given an in input to all such m-files.</p><p>For example, the counter CtrlVar.CurrentRunStepNumber gives the current run-step number.</p><pre class="codeinput">CtrlVar.CurrentRunStepNumber=0 ;  <span class="comment">% This is a counter that is increased by one at each run step.</span>
 </pre><h2 id="31">General Meshing Options</h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput.</p><p>Currently two external mesh generators can be called direclty from &Uacute;a:</p><pre class="language-matlab">gmsh
 mesh2d
-</pre><p>The external mesh generator "gmsh" is a well known and a well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>)</p><p>mesh2d is a matlab based mesh generator (see: https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation)</p><p>IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and mesh2d on how to do this.</p><p><b>By default &Uacute;a uses mesh2d</b></p><p>When generating the mesh from within &Uacute;a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being used. In either case the outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p><b>For examples of how to generate different type of meshes look at</b> <b>ExamplesOfMeshGeneration.m</b></p><p>Both when done from within &Uacute;a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:</p><div><ul><li>a) create an input file for gmsh (.geo)</li><li>b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)</li><li>c) read into &Uacute;a the resulting gmsh output file (.msh) with the mesh All, or some of these three steps can be done withing &Uacute;a.</li></ul></div><p>More specifically the options are:</p><div><ul><li>i)  Directly read existing gmsh output file (.msh)</li><li>ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)</li><li>iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)</li></ul></div><p>Option iii is the default option, in which case &Uacute;a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.</p><p>To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}</p><p>CtrlVar.GmshMeshingMode='load .msh'                                                               % option i CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii</p><pre class="codeinput">CtrlVar.GmshMeshingMode=<span class="string">'create new gmsh .geo input file and mesh domain and load .msh file'</span>;       <span class="comment">% option iii, which is the default option when using gmsh</span>
+</pre><p>The external mesh generator "gmsh" is a well known and a well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>)</p><p>mesh2d is a matlab based mesh generator (see: https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation)</p><p>IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and mesh2d on how to do this.</p><p><b>By default &Uacute;a uses mesh2d</b></p><p>When generating the mesh from within &Uacute;a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being used. In either case the outlines of the mesh are defined by the variable</p><pre class="language-matlab">MeshBoundaryCoordinates
+</pre><p>set in</p><pre class="language-matlab">Ua2D_InitialUserInput.m.
+</pre><p>This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p><b>For examples of how to generate different type of meshes look at</b> <b>ExamplesOfMeshGeneration.m</b></p><p>Both when done from within &Uacute;a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:</p><div><ul><li>a) create an input file for gmsh (.geo)</li><li>b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)</li><li>c) read into &Uacute;a the resulting gmsh output file (.msh) with the mesh All, or some of these three steps can be done withing &Uacute;a.</li></ul></div><p>More specifically the options are:</p><div><ul><li>i)  Directly read existing gmsh output file (.msh)</li><li>ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)</li><li>iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)</li></ul></div><p>Option iii is the default option, in which case &Uacute;a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.</p><p>To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}</p><p>CtrlVar.GmshMeshingMode='load .msh'                                                               % option i CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii</p><pre class="codeinput">CtrlVar.GmshMeshingMode=<span class="string">'create new gmsh .geo input file and mesh domain and load .msh file'</span>;       <span class="comment">% option iii, which is the default option when using gmsh</span>
 <span class="comment">%</span>
 <span class="comment">% After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.</span>
 <span class="comment">%</span>
@@ -818,6 +836,10 @@ CtrlVar.MeshAdapt.GLrange=[];
 </pre><h2 id="44">Parameters affecting the floating mask</h2><pre class="codeinput">CtrlVar.kH=1;   <span class="comment">% kH -&gt; infty gives an exact Heaviside and delta functions.</span>
                 <span class="comment">% kH=1 implies a grounding line "width" of 1 m up and down from floating condition</span>
                 <span class="comment">% kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition</span>
+                <span class="comment">% Note: This variable has UNITS!!!  The units are those of an inverse distance.</span>
+                <span class="comment">%       So if your distance units is meters, the unit of hH is 1/meters.</span>
+                <span class="comment">%       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance</span>
+                <span class="comment">%       that is small compared to other distances of interest.</span>
 CtrlVar.Hh0=0;  <span class="comment">% offset is Heaviside function when calculating GF field</span>
 </pre><h2 id="45">Parameters affecting calculation of grounding line</h2><p>The grounding line position does not enter any calculations done by &Uacute;a. The grounding line is primarily calculated for plotting purposes.</p><pre class="codeinput">CtrlVar.GLthreshold=0.5;  <span class="comment">% used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)</span>
 CtrlVar.GLsubdivide=0;    <span class="comment">% If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true</span>
@@ -886,12 +908,14 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  <span class="comment">% Dampens t
 </pre><h2 id="51">Mapping from Mesh1 to Mesh2</h2><p>when a new FE is created, the values from the old mesh need to be mapped onto the new mesh if the boundary of the mesh has not changed this only involves interpolation but if the boundary of Mesh2 is different from that of Mesh1 then extrapolation might be involved In this case one must check for such points and give them some sensible outside value.</p><pre class="codeinput">CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; <span class="comment">% for non evolving mesh boundaries, can be set to 0/false</span>
 CtrlVar.InpolyTol=0.1;       <span class="comment">% tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element</span>
 </pre><p>Parallel options:</p><p>The parallel profile is not modified within &Uacute;a. Set the properties of the local profile through the general Matlab settings. See the matlab manual for further information. If needed, the properties of the local profile can be adjusted in the Ua2D_InitialInput file</p><p>For example, to change the number of local workers to 6, one can do the following: myCluster = parcluster('local') myCluster.NumWorkers = 6; saveProfile(myCluster)</p><p>Consult the matlab manual for further information</p><pre class="codeinput">CtrlVar.ParallelAssembly=1;
+</pre><h2 id="53">Tracers</h2><pre class="codeinput">CtrlVar.Tracer.SUPG.Use=1;
+CtrlVar.Tracer.SUPG.tau=<span class="string">'taus'</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 </pre><pre class="codeinput">CtrlVar.fidlog=1;  <span class="comment">% unit number for standard output, no need to change.</span>
 </pre><pre class="codeinput">CtrlVar.DevelopmentVersion=0;  <span class="comment">% Internal variable, always set to 0</span>
                                 <span class="comment">% (unless you want to use some untried, untested and unfinished features....)</span>
 CtrlVar.DebugMode=false;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function CtrlVar=Ua2D_DefaultParameters
 
@@ -952,21 +976,36 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
-% a any mesh modifications.
+% any mesh modifications such as re-meshing. 
 %
 % However, it is possible to force additional `manual' updates to geometry
-% during a diagnostic run. This is often useful, for example, for doing
-% sensitivity tests with respect to geometry.
+% in a forward run. A `manual' update is simply a call to DefineGeometry.m where the 
+% geometry is then defined by the user.
 %
-% Also, one can redefine the ocean surface elevation at each run step in both
-% transient and non-transient (diagnostic) runs.
+% The geometrical variables are: s, b, B and S.
 %
-CtrlVar.DefineOceanSurfaceAtEachTimeStep=0;   % if true,  `DefineGeometry.m' is called at each time step, returning S, and only S.
-                                              % if false, `DefineGeometry.m' is only called at the beginning of a run
-                                              %            and when the FE-mesh changes
-CtrlVar.InDiagnosticRunsDefineIceGeometryAtEveryRunStep=1;  % If true, the user-defined geometry (sbSB) is always used at each run step in a 
-                                                            % diagnostic calculation.
-                                                        
+% To specify which geometrical variables should be updated/modifed set the following
+% stings acordingly: 
+%
+CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
+CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
+%
+% Possible values for these stings are any combinations of  "sbSB".  
+%
+% Examples: 
+%
+%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S";
+%
+%  forces an update of the ocean surface, S, within each time step. This could, for example, be used to specify a time varying ocean surface
+%  elevation due to tides. Hence, DefineGeometry will be called at each transient with FieldsToBeDefined='S'
+%
+%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB";  
+%
+% forces all geometrical variables, i.e. upper ice surface (s), lower ice surface (b), ocean surface (S), and bedrock (B) to be defined in each
+% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='sbSB'
+%
+% The default option is not to modify any geometrical variables manually within a run step. 
+%
 %%
 CtrlVar.TestUserInputs=1;  % By default user inputs will be tested at the start of the run
                            % to suppress set TestUserInputs=0
@@ -995,7 +1034,7 @@ CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnos
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
                                                 % irrespective of the value of this parameter. However, after local re-meshing,
-                                                % and provided CtrlVar.LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
+                                                % and provided CtrlVar. LocalAdaptMeshSmoothingIterations=0, a diagnostic calculation is
                                                 % not performed unless this parameter is set to true.
 %% Restart option
 CtrlVar.Restart=0;                       % either 0/false or 1/true.  Set to 1 for a restart run. (This also work for inverse runs. See below.)
@@ -1013,8 +1052,12 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 
 %% Plotting
 %
-% Most plotting is typically done by the user using his own version of the `UaOutputs.m',
-% or in a separate post-processing step
+% Most plotting is typically done by the user using his own version of the m-file 
+%
+%   UaOutputs.m
+%
+% or in a separate post-processing step.
+%
 % However, some basic plots can be generated directly from within Ua.
 %
 
@@ -1378,12 +1421,13 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % values. By default, the inversion is done on nodal values.
 %
 %
-% Hint: Often starting inverting for C using the fix-point method (see
-% "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite
-% significantly down. Once that method stagnates (which it almost always will
-% because the gradient used in that method is just a rough estimate and
-% generally not exact), switch to another minimization approach, for example the
-% UaOptimisation using the adjoint gradients.
+% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially
+% quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough
+% estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.
+%
+% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint
+% method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one
+% can switch to gradient calculation using adjoint
 %
 % Ua has some inbuilt optimization methods and these are used by default.
 % However, if the matlab optimization toolbox is installed, the matlab routines
@@ -1396,10 +1440,10 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='logAGlenlogC'
 %
 % is considered inconsistent (although in principle possible.) Also using the
-% `FixPointC' gradient calculation, which only works for C inversion, and
+% `FixPoint' gradient calculation, which only works for C inversion, and
 % inverting for both A and C, i.e. 
 %
-%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+%   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 %   CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
 %
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
@@ -1446,7 +1490,7 @@ CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','log
 % The gradient of the objective function is calculated using the adjoint method.
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
 % iteration, which is often a very good initial approach. 
-CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPointC'}
+CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 
 % The gradient of the objective function can be pre-multiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
@@ -1662,15 +1706,16 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 
 %%  Outputs
 %
-% For outputs Ua calls a routine called 'UaOutputs.m'
+% For outputs Ua calls a routine called 
+%
+%   UaOutputs.m
+%
 % Write your own version of this routine to fit your own output/plotting needs and keep
 % the routine into you local run directory, i.e. the directory from which you run Ua
 % Start by copying the example UaOutput.m routine from the Ua source installation folder
 % to you local run directory.
 %
-%
-%
-%
+
 
 
 CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
@@ -1718,8 +1763,15 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
-% defined by the variable 'MeshBoundaryCoordinates' set in
-% Ua2D_InitialUserInput.m. This approach is quite flexible and allows for
+% defined by the variable 
+%
+%   MeshBoundaryCoordinates 
+% 
+% set in
+%
+%   Ua2D_InitialUserInput.m. 
+%
+% This approach is quite flexible and allows for
 % complicated computational domains containing holes and/or separated domains.
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
@@ -2197,6 +2249,10 @@ CtrlVar.MeshAdapt.GLrange=[];
 CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
                 % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
+                % Note: This variable has UNITS!!!  The units are those of an inverse distance.
+                %       So if your distance units is meters, the unit of hH is 1/meters.
+                %       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance
+                %       that is small compared to other distances of interest.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
@@ -2347,6 +2403,11 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Consult the matlab manual for further information
 %
 CtrlVar.ParallelAssembly=1;
+%% Tracers
+CtrlVar.Tracer.SUPG.Use=1; 
+CtrlVar.Tracer.SUPG.tau='taus' ; % {'tau1','tau2','taus','taut'}  
+
+
 
 %%
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.

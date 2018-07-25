@@ -60,15 +60,33 @@ CtrlVar.BCsWeights=1;  % testing parameter, do not change
 % any mesh modifications such as re-meshing. 
 %
 % However, it is possible to force additional `manual' updates to geometry
-% in a forward run. 
+% in a forward run. A `manual' update is simply a call to DefineGeometry.m where the 
+% geometry is then defined by the user.
 %
+% The geometrical variables are: s, b, B and S.
 %
+% To specify which geometrical variables should be updated/modifed set the following
+% stings acordingly: 
 %
-
-CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";
+CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
 CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
-                                                            
-                                                            
+%
+% Possible values for these stings are any combinations of  "sbSB".  
+%
+% Examples: 
+%
+%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S";
+%
+%  forces an update of the ocean surface, S, within each time step. This could, for example, be used to specify a time varying ocean surface
+%  elevation due to tides. Hence, DefineGeometry will be called at each transient with FieldsToBeDefined='S'
+%
+%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB";  
+%
+% forces all geometrical variables, i.e. upper ice surface (s), lower ice surface (b), ocean surface (S), and bedrock (B) to be defined in each
+% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='sbSB'
+%
+% The default option is not to modify any geometrical variables manually within a run step. 
+%
 %%
 CtrlVar.TestUserInputs=1;  % By default user inputs will be tested at the start of the run
                            % to suppress set TestUserInputs=0
@@ -115,8 +133,12 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 
 %% Plotting
 %
-% Most plotting is typically done by the user using his own version of the `UaOutputs.m',
-% or in a separate post-processing step
+% Most plotting is typically done by the user using his own version of the m-file 
+%
+%   UaOutputs.m
+%
+% or in a separate post-processing step.
+%
 % However, some basic plots can be generated directly from within Ua.
 %
 
@@ -765,15 +787,16 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 
 %%  Outputs
 %
-% For outputs Ua calls a routine called 'UaOutputs.m'
+% For outputs Ua calls a routine called 
+%
+%   UaOutputs.m
+%
 % Write your own version of this routine to fit your own output/plotting needs and keep
 % the routine into you local run directory, i.e. the directory from which you run Ua
 % Start by copying the example UaOutput.m routine from the Ua source installation folder
 % to you local run directory.
 %
-%
-%
-%
+
 
 
 CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
@@ -821,8 +844,15 @@ CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one a
 %
 % When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
-% defined by the variable 'MeshBoundaryCoordinates' set in
-% Ua2D_InitialUserInput.m. This approach is quite flexible and allows for
+% defined by the variable 
+%
+%   MeshBoundaryCoordinates 
+% 
+% set in
+%
+%   Ua2D_InitialUserInput.m. 
+%
+% This approach is quite flexible and allows for
 % complicated computational domains containing holes and/or separated domains.
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
