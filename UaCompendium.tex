@@ -109,11 +109,12 @@ $S$ & ocean surface \\
 $B$ & bedrock / ocean floor \\
 $h:=s-b$ & glacier thickness \\
 $H:=S-B$ & ocean depth (pos.\ or neg.\ depending on location) \\
-$H_{+} = \He(H) H$ & (positive) ocean depth \\
+$H^{+} = \He(H) H$ & (positive) ocean depth \\
 $d:=\He(H) (S-b$) & glacier draft (positive by definition) \\
 $f:=s-S$ & freeboard (always positive) \\
 $ \G:=\He(h-h_f)$ & grounding mask, 1 if ice grounded, 0 otherwise. \\
-$h_f:=\rho_o H /\rho$ & maximal ice thickness without grounding \\
+$h_f:=\rho_o H /\rho$ & flotation thickness (maximal ice thickness without grounding) \\
+$h_f^{+}:=\rho_o H^+ /\rho$ & positive flotation thickness \\
 $\alpha$                    & tilt of coordinate system\\
 $\rho$ & ice density \\
 $\rho_o$ & ocean density \\
@@ -144,22 +145,17 @@ The maximal ice thickness possible without grounding is denoted by $h_f$ and is
 \[
 h_f :=(S-B) \rho_o/\rho ,
 \]
-where $\rho$ and $\rho_o$ are  the ice and the ocean densities, respectively. 
-
-
-The freeboard is
+where $\rho$ and $\rho_o$ are the ice and the ocean densities,
+respectively. The ice grounds if the ice thickness exceeds $h_f$, that
+is whenever $h>h_f$.  Note that $h_f$ becomes negative for $B>S$,
+i.e.\ whenever the bedrock ($B$) is located above sea level ($S$). In
+that case we always have $h>h_f$ for any positive ice thickness $h$
+and the ice is always grounded. We also define the positive flotation
+thickness, $h_f^+$, as
 \[
-f:=s-S,
+h_f^+ = h_f \, \He(h_f) ,
 \]
-and the draft $d$ is defined as
-\[
-d:=\begin{cases} S-b , & \mbox{if } \, S>b \\  0 , & \hbox{otherwise }  \end{cases}
-\]
-which can also be written as
-\[
-d=\He(H) (S-b) ,
-\]
-where $\He(x)$ is the Heaviside function, defined as
+where $\He$ is the Heaviside function, defined as
 
 \[ \He(x)=  \begin{cases} 
               0 & \text{for}   \quad x < 0 \\          
@@ -167,6 +163,7 @@ where $\He(x)$ is the Heaviside function, defined as
              1 & \text{for}    \quad x>0
    \end{cases}
 \]
+
 
 The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat), is needed frequently and we define $\G$ as
 \[
@@ -182,12 +179,27 @@ Hence
 \end{equation}
 The variable $\G$ can the thought of as a `grounding' parameter.
 
-The `positive' ocean depth $H_{+}$ is defined as
+
+
+The freeboard is
+\[
+f:=s-S,
+\]
+and the draft $d$ is defined as
+\[
+d:=\begin{cases} S-b , & \mbox{if } \, S>b \\  0 , & \hbox{otherwise }  \end{cases}
+\]
+which can also be written as
+\[
+d=\He(H) (S-b) ,
+\]
+
+The `positive' ocean depth $H^{+}$ is defined as
 \begin{equation}
-H_{+} := \He(H) H ,
+H^{+} := \He(H) H ,
 \label{eq:Hplus}
 \end{equation}
-i.e.\ $H_{+}=H$ if $H>0$ and zero otherwise.
+i.e.\ $H^{+}=H$ if $H>0$ and zero otherwise.
 
 
 
@@ -760,12 +772,12 @@ d=  \He(h_f-h) \rho h/\rho_o + \He(H) \He(h-h_f) H .
 \end{equation}
 or as
 \begin{equation}
-d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H_{+} .
+d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H^{+} .
 \label{eq:dp3}
 \end{equation}
 using
 \[
-H_{+}:= \He(H) \, H
+H^{+}:= \He(H) \, H
 \]
 
 
@@ -921,15 +933,15 @@ afloat.  Therefore
 \begin{align*} 
 g(\rho h -\rho_o d) \p_x b &=  \He(h-h_f) g(\rho h -\rho_o d) \p_x b \\
                           &=  \He(h-h_f) g(\rho h -\rho_o d) \p_x B \\ 
-                          &=  \He(h-h_f) g(\rho h -\rho_o H_{+}) \p_x B \\ 
+                          &=  \He(h-h_f) g(\rho h -\rho_o H^{+}) \p_x B \\ 
 \end{align*}
 where we used (\ref{eq:dp3}) and
 \[
- d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H_{+} ,
+ d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H^{+} ,
 \]
 and hence
 \[
- \He(h-h_f) d=  \He(h-h_f) H_{+} ,
+ \He(h-h_f) d=  \He(h-h_f) H^{+} ,
 \]
 in an integrated sense.
 
@@ -937,10 +949,10 @@ The basal drag terms are also zero where the ice is afloat and the
 system can therefore be written as
 \begin{align} 
 \p_x ( h ( 2 \txx + \tyy)) +\p_y ( h \txy) -  \tbx
-&=\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B 
+&=\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B 
 \label{eq:stressx3}\\
 \p_y (  h ( 2 \tyy + \txx)) +\p_x ( h \txy ) - \tby
-&=\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_y B
+&=\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_y B
 \label{eq:stressy3}
 \end{align}
 
@@ -954,10 +966,10 @@ the details are given in Section~\ref{sec:nBCs}.
 Written in terms of the velocity components: 
 \begin{align} 
 \p_x ( h \eta ( 4 \p_x u &+ 2 \p_y v)) + \p_y ( h \eta (\p_y u + \p_x v) ) - \tbx = \nonumber \\
-& \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B 
+& \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B 
 \label{eq:vel3x}\\
 \p_y (  h \eta ( 4 \p_y v &+ 2 \p_x u )) +\p_x ( h \eta (\p_x v + \p_y u ) -  \tby = \nonumber \\
-& \frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_y B
+& \frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_y B
 \label{eq:vel3y}
 \end{align}
 
@@ -965,7 +977,7 @@ Written in terms of the velocity components:
 
 In one horizontal dimension (1HD), i.e.\ in the flow-line case, the SSTREAM equation becomes
 \[
- 4 \p_x ( h \eta   \p_x u ) - \tbx = \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B 
+ 4 \p_x ( h \eta   \p_x u ) - \tbx = \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B 
 \]
 with
 \[
@@ -980,7 +992,7 @@ if we use Weertman sliding law.
 
 Inserting Glen's flow law we get
 \begin{equation}
- 2 \p_x ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u ) - \tbx = \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B 
+ 2 \p_x ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u ) - \tbx = \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B 
 \label{eq:SSTREAM1D}
 \end{equation}
 and if we can assume that $u>0$ and $\p_x u>0$  then the SSTREAM equation is
@@ -1012,7 +1024,7 @@ Eq.~\eqref{eq:stressx3}, i.e.\ $x$ direction, leads to
 \begin{align*} 
 0=&\iint_{\Omega} \Big ( h ( 2 \txx + \tyy) \p_x\phi +  h \txy \, \p_y\phi - \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, \p_x\phi 
 + \tbx \, N
-\\ & +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \Big ) \, dx \, dy
+\\ & +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \Big ) \, dx \, dy
 \\ & - \oint_{\Gamma} (h ( 2 \txx + \tyy) \,\phi \, n_x+  h \txy \,\phi \, n_y- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \,\phi n_x)\, , d\Gamma 
 \end{align*}
 Performing the same calculation of the $y$ direction results in
@@ -1030,10 +1042,10 @@ of transient flow.
 Expressing this equation in terms of the velocity components $u$ and $v$
 \begin{align} 
 0=&\iint_{\Omega} (h \eta ( 4 \p_x u + 2 \p_y v ) \p_x\phi +  h \eta (\p_y u + \p_x v) \p_y\phi + \He(h-h_f) \beta^2 u \,\phi \nonumber \\
-  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x\phi   +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B ) \, dx \, dy \nonumber \\
+  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x\phi   +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B ) \, dx \, dy \nonumber \\
   & - \oint_{\Gamma} (h \eta ( 4\p_x u + 2 \p_y v) \,\phi \, n_x+  h \eta (\p_y u + \p_x v) \,\phi \, n_y- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, N)\, n_x\, d\Gamma \label{eq:FEx2}\\
 0=&\iint_{\Omega} (h \eta ( 4 \p_y v + 2 \p_x u ) \p_y\phi +  h \eta (\p_x v + \p_y u) \p_x\phi + \He(h-h_f) \beta^2 v \,\phi \nonumber
-\\ &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_y\phi   +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B ) \, dx \, dy \nonumber \\
+\\ &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_y\phi   +\phi \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B ) \, dx \, dy \nonumber \\
   & - \oint_{\Gamma} (h \eta ( 4\p_y v + 2 \p_x u) \,\phi \, n_y+  h \eta (\p_x v + \p_y u) \,\phi \, n_x- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, N)\, n_y\, d\Gamma \label{eq:FEy2}
 \end{align}
 where the corresponding expression in $y$ direction has been added.
@@ -3458,7 +3470,7 @@ j'(A)= \p J(u(p),p)/ \p A + (\p F / \p A)^\ast  \lambda
 \end{equation}
 Focusing on the second term
 \begin{align*}
-  (\p_A F )^\ast  \lambda & = <\p_A  \left ( 2 \p_x ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u ) - \tbx - \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \right ) , \lambda>\\
+  (\p_A F )^\ast  \lambda & = <\p_A  \left ( 2 \p_x ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u ) - \tbx - \frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \right ) , \lambda>\\
                              & = - <  2 \p_A \left ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \right ) , \p_x \lambda>\\
                              & = - <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \delta A, \p_x \lambda>
 \end{align*}
@@ -3618,19 +3630,19 @@ r=< f_x , \lambda> + <f_y , \mu>
 
 \begin{align} 
 f_x=&\p_x ( h \eta ( 4 \p_x u + 2 \p_y v)) + \p_y ( h \eta (\p_y u + \p_x v) ) - \He(h-h_f) \tbx  \nonumber \\
-&-\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B 
+&-\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B 
 \label{eq:A1x}\\
 f_y=&\p_y (  h \eta ( 4 \p_y v + 2 \p_x u )) +\p_x ( h \eta (\p_x v + \p_y u ) - \He(h-h_f) \tby  \nonumber \\
-&-\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_y B
+&-\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_y B
 \label{eq:A1y}
 \end{align}
 or
 
 \begin{align*}
 r=& \iint  \big \{ ( \p_x ( h \eta ( 4 \p_x u + 2 \p_y v)) + \p_y ( h \eta (\p_y u + \p_x v) )) - \He(h-h_f) \tbx   \nonumber \\
-&-\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \big \} \, \lambda \, dx \, dy \nonumber \\
+&-\frac{1}{2} g \p_x (\rho h^2 - \rho_o d^2)+ g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \big \} \, \lambda \, dx \, dy \nonumber \\
 &+ \iint \big \{ (\p_y (  h \eta ( 4 \p_y v + 2 \p_x u )) +\p_x ( h \eta (\p_x v + \p_y u ) ) - \He(h-h_f) \tby  \nonumber \\
-&-\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_y B \big \} \mu \, dx \, dy
+&-\frac{1}{2} g \p_y (\rho h^2 - \rho_o d^2)+g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_y B \big \} \mu \, dx \, dy
 \end{align*}
 
 
@@ -3639,20 +3651,20 @@ r=& \iint  \big \{ ( \p_x ( h \eta ( 4 \p_x u + 2 \p_y v)) + \p_y ( h \eta (\p_y
 The use of Green's theorem gives
 \begin{align} 
 r=& -\iint_{\Omega} \big \{ h \eta ( 4 \p_x u + 2 \p_y v ) \p_x \lambda +  h \eta (\p_y u + \p_x v) \p_y \lambda + \He(h-h_f) \beta^2 u \, \lambda \nonumber \\
-  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x \lambda   + \lambda \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \big \} \, dx \, dy \nonumber \\
+  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x \lambda   + \lambda \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \big \} \, dx \, dy \nonumber \\
   &+ \oint_{\Gamma} (h \eta ( 4\p_x u + 2 \p_y v) \, \lambda \, n_x+  h \eta (\p_y u + \p_x v) \, \lambda \, n_y- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, \lambda n_x)\, \, d\Gamma \nonumber \\
   &- \iint_{\Omega} \big \{ h \eta ( 4 \p_y v + 2 \p_x u ) \p_y \mu +  h \eta (\p_x v + \p_y u) \p_x \mu + \He(h-h_f) \beta^2 v \,  \nonumber \\
-  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_y \mu   + \mu \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \big \}  \, dx \, dy \nonumber \\
+  &- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_y \mu   + \mu \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \big \}  \, dx \, dy \nonumber \\
   &+ \oint_{\Gamma} (h \eta ( 4\p_y v + 2 \p_x u) \, \mu \, n_y+  h \eta (\p_x v + \p_y u) \, \mu \, n_x- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, \mu n_y)\, \, d\Gamma \nonumber
 \end{align}
 and a second use of Green's theorem gives after some rearrangements
 
 \begin{align} 
 r=& \iint_{\Omega} \big \{ \p_x ( h \eta ( 4 \p_x \lambda + 2 \p_y \mu ))  \, u +  \p_y ( h \eta (\p_y \lambda + \p_x \mu)) \, u - \He(h-h_f) \beta^2 u \, \lambda \nonumber \\
-  &+ \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x \lambda   - \lambda \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \big \}  \, dx \, dy \nonumber \\
+  &+ \frac{1}{2} g (\rho h^2 - \rho_o d^2) \p_x \lambda   - \lambda \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \big \}  \, dx \, dy \nonumber \\
   &+ \oint_{\Gamma} (h \eta ( 4\p_x u + 2 \p_y v) \, \lambda \, n_x+  h \eta (\p_y u + \p_x v) \, \lambda \, n_y- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, \lambda n_x)\,\, d\Gamma \nonumber \\
   &+\iint_{\Omega} \big \{  \p_y ( h \eta ( 4 \p_x \mu + 2 \p_y \lambda )) \, v +   \p_x ( h \eta (\p_x \mu + \p_y \lambda)) \, v - \He(h-h_f) \beta^2 u \, \lambda \nonumber \\
-  &+ \frac{1}{2} cdg (\rho h^2 - \rho_o d^2) \p_y \mu   - \mu \, g\,\He(h-h_f) (\rho h -\rho_o H_{+}) \p_x B \big \} \, dx \, dy \nonumber \\
+  &+ \frac{1}{2} cdg (\rho h^2 - \rho_o d^2) \p_y \mu   - \mu \, g\,\He(h-h_f) (\rho h -\rho_o H^{+}) \p_x B \big \} \, dx \, dy \nonumber \\
   &+ \oint_{\Gamma} (h \eta ( 4\p_y v + 2 \p_x u) \, \mu \, n_y +  h \eta (\p_x v + \p_y u) \, \mu \, n_x- \frac{1}{2} g (\rho h^2 - \rho_o d^2) \, \mu n_y )\, \, d\Gamma \nonumber \\
   &-\oint_{\Omega} (u h \eta ( 4 \p_x \lambda + 2 \p_y \mu )  n_x +  u  h \eta (\p_y \lambda + \p_x \mu) n_y )\,d\Gamma \nonumber \\
   &-\oint_{\Omega} (v h \eta ( 4 \p_y \mu + 2 \p_y \lambda )  n_y +  v  h \eta (\p_x \mu + \p_y \lambda)  n_x )\, d\Gamma \nonumber 
@@ -4307,16 +4319,16 @@ To see this first notice that using Eq.~(\ref{eq:dp2})
 \begin{align*}
 g (\rho h - \rho_o d) \p_x b &= g(\rho h - \He(h_f-h) \rho h - \rho_o \He(H) \He(h-h_f) H) \p_x b \\
                             &= g(\rho h -(1-\He(h-h_f)) \rho h - \rho_o \He(H) \He(h-h_f) H) \p_x b \\
-                            &=g(\rho h +\He(h-h_f) ( \rho h-\rho_o H_{+})-\rho h) \p_x b \\
-                            &=g \He(h-h_f) (\rho h- \rho_o H_{+}) \p_x b \\
-                            &=g \He(h-h_f) (\rho h - \rho_o H_{+} ) \p_x B.
+                            &=g(\rho h +\He(h-h_f) ( \rho h-\rho_o H^{+})-\rho h) \p_x b \\
+                            &=g \He(h-h_f) (\rho h- \rho_o H^{+}) \p_x b \\
+                            &=g \He(h-h_f) (\rho h - \rho_o H^{+} ) \p_x B.
 \end{align*}
 Using the above expression we now calculate the directional derivative of $g(\rho h -\rho_o d) \p_x b$ with respect to
 $h$ and find
 \begin{align*}
 D\left (g(\rho h -\rho_o d) \p_x b\right )[\Delta h]
-&=\He(h_f-h) \rho g \, \p_x B \, \Delta h + g\, \delta(h-h_f) (\rho h - \rho_o H_{+} )\p_x B \, \Delta h\\
-&= \left ( \rho \He(h-h_f)   + \delta(h-h_f) (\rho h - \rho_o H_{+} ) \right ) \, g \, \p_x B \, \Delta h\\
+&=\He(h_f-h) \rho g \, \p_x B \, \Delta h + g\, \delta(h-h_f) (\rho h - \rho_o H^{+} )\p_x B \, \Delta h\\
+&= \left ( \rho \He(h-h_f)   + \delta(h-h_f) (\rho h - \rho_o H^{+} ) \right ) \, g \, \p_x B \, \Delta h\\
 &=  \rho g \, \He(h-h_f)   \, \p_x B \, \Delta h
 \end{align*}
 where the last step is correct when the expression is evaluated under an integral, thus demonstrating the correctness of Eq.~(\ref{eq:ddr}).

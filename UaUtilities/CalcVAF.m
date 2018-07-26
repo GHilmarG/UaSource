@@ -1,4 +1,4 @@
-function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,b,S,rho,rhow,GF)
+function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
 
 %%
 % Calculates volume above flotation, and optionally ice volume and grounded area
@@ -11,7 +11,11 @@ function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,b,S,rho,rhow,GF)
 narginchk(7,8)
 nargoutchk(1,3)
 
-VAF.node=(h+rhow.*(b-S)./rho).*heaviside(S-b);
+hf=(S-B).*rhow./rho ;  
+I=B>S; 
+hf(I)=0;  % this is the positive flotation thickness 
+
+VAF.node=h-hf;  % thickness above flotation
 VAF.ele=FEintegrate2D([],MUA,VAF.node);
 VAF.Total=sum(VAF.ele);
 

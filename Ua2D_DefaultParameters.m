@@ -33,7 +33,7 @@ CtrlVar.Restart=0;            % If true then the run is a restart run. Note that
                               % For example setting: 
                               %       CtrlVar.InverseRun=1; 
                               %       CtrlVar.Restart=1;
-                              % will give a restarted inverse run. (make sure a corresponding restart file does exist, see below.)
+                              % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
 
                               
