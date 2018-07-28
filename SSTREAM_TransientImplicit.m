@@ -119,16 +119,18 @@ dl=luvh*0;
 [UserVar,RunInfo,R0]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,true);
 Fext0=R0;
 
-iteration=0 ; Stagnated=0;
+iteration=0 ;
 r=1e10; diffVector=zeros(CtrlVar.NRitmax,1); diffDu=1e10 ; diffDh=1e10; diffDlambda=1e10;  gamma=NaN;
+RunInfo.Forward.Converged=0;
+RunInfo.BackTrack.Converged=1 ; 
 
 while true
     
-%     
-%     ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
-%         && ~Stagnated ) ...
-%         || iteration < CtrlVar.NRitmin;
-%     
+    %
+    %     ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
+    %         && ~Stagnated ) ...
+    %         || iteration < CtrlVar.NRitmin;
+    %
     
     ResidualsCriteria=(~(r< CtrlVar.NLtol )) ...
         || iteration < CtrlVar.NRitmin;
@@ -139,25 +141,38 @@ while true
     
     
     
-    if iteration > CtrlVar.NRitmax ...
-       
+    if iteration > CtrlVar.NRitmax
+        
         if CtrlVar.InfoLevelNonLinIt>=1
-            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Maximum number of iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt)
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt)
             fprintf(' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r)
         end
+        
+        if CtrlVar.WriteRunInfoFile
+            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt);
+            fprintf(RunInfo.File.fid,' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r);
+        end
+        
         RunInfo.Forward.Converged=0;
         break
     end
     
-    
-    
-    if Stagnated
+    if RunInfo.BackTrack.Converged==0
+        if CtrlVar.InfoLevelNonLinIt>=1
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+                CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
+        end
         
-        fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
-                        CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
-       break
+        if CtrlVar.WriteRunInfoFile
+            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+                CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
+        end
+        
+        RunInfo.Forward.Converged=0;
+        break
     end
     
+        
     switch lower(CtrlVar.uvhConvergenceCriteria)
         
         case 'residuals'
@@ -169,7 +184,7 @@ while true
                     fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
                         CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
                 end
-
+                RunInfo.Forward.Converged=1;
                 break
                 
             end
@@ -179,9 +194,11 @@ while true
             if ~IncrementCriteria
                 
                 tEnd=toc(tStart);
-                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g and dh=%g with r=%-g in %-i iterations and in %-g  sec \n',...
-                    CtrlVar.time,CtrlVar.dt,CtrlVar.du,CtrlVar.dh,r,iteration,tEnd) 
-                
+                if CtrlVar.InfoLevelNonLinIt>=1
+                    fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g and dh=%g with r=%-g in %-i iterations and in %-g  sec \n',...
+                        CtrlVar.time,CtrlVar.dt,CtrlVar.du,CtrlVar.dh,r,iteration,tEnd)
+                end
+                RunInfo.Forward.Converged=1;
                 break
                 
             end
@@ -191,8 +208,10 @@ while true
             if ~ResidualsCriteria && ~IncrementCriteria
                 
                 tEnd=toc(tStart);
+                if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) and increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
+                end
                 RunInfo.Forward.Converged=1;
                 break
             end
@@ -202,10 +221,11 @@ while true
             if ~ResidualsCriteria || ~IncrementCriteria
                 
                 tEnd=toc(tStart);       
+                if CtrlVar.InfoLevelNonLinIt>=1
                   fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) or increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
-                
-                
+                end
+                RunInfo.Forward.Converged=1;
                 break
             end    
         otherwise
@@ -260,11 +280,8 @@ while true
     iarm=RunInfo.BackTrack.iarm;
     infovector=RunInfo.BackTrack.Infovector;
     
+
     
-    if RunInfo.BackTrack.Converged==0
-        Stagnated=1;
-        RunInfo.Forward.Converged=0;
-    end
     
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
@@ -394,7 +411,20 @@ while true
     if CtrlVar.InfoLevelNonLinIt>=1
         fprintf(CtrlVar.fidlog,'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , ruv=%-14.7g , rh=%-14.7g , du=%-14.7g , dh=%-14.7g , dl=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
             iteration,iarm,gamma,r/r0,r0,r,ruv,rh,diffDu,diffDh,diffDlambda,BCsNormuv,BCsNormh);
+        
     end
+    
+    
+    
+    if CtrlVar.WriteRunInfoFile
+        
+         fprintf(RunInfo.File.fid,'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , ruv=%-14.7g , rh=%-14.7g , du=%-14.7g , dh=%-14.7g , dl=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
+            iteration,iarm,gamma,r/r0,r0,r,ruv,rh,diffDu,diffDh,diffDlambda,BCsNormuv,BCsNormh);
+        
+    end
+    
+    
+    
     
 end
 
@@ -403,7 +433,7 @@ end
 
 % I got out of the while loop if either if the solver converged, or
 % backtrack stagnated.
-RunInfo.Forward.Converged=1;
+%RunInfo.Forward.Converged=1;
 if RunInfo.BackTrack.Converged==0
     RunInfo.Forward.Converged=0;
 end
@@ -439,25 +469,7 @@ if ~isempty(L)
 end
 
 
-
-if CtrlVar.InfoLevelNonLinIt>=1
-    try
-        fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
-    catch
-        
-%%  2gera2       
-%         FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
-%         if CtrlVar.Restart
-%             CtrlVar.InfoFile = fopen(FileName,'a');
-%         else
-%             CtrlVar.InfoFile = fopen(FileName,'w');
-%         end
-%         tEnd=toc(tStart);
-%         fprintf(CtrlVar.InfoFile,' SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-%             CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,r,iteration,tEnd) ;
-    end
-end
+tEnd=toc(tStart);
 
 
 
@@ -472,6 +484,13 @@ end
 RunInfo.Forward.Iterations=iteration;
 RunInfo.Forward.Residual=r;
 
+
+if CtrlVar.WriteRunInfoFile
+    
+    fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
+        CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
+    
+end
 
 
 end

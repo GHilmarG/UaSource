@@ -70,8 +70,20 @@ CtrlVar=Ua2D_DefaultParameters();
 %  CtrlVar,UsrVar,Info,UaOuts
 [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
 
+
+%% RunInfo initialisation
 RunInfo.Message(1)="Start of Run";
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+if CtrlVar.Restart
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+else
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+end
+
+
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
+
+
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
 
@@ -93,24 +105,7 @@ CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
 
 [pathstr,name]=fileparts(CtrlVar.GmshFile); CtrlVar.GmshFile=[pathstr,name]; % get rid of eventual file extension
 
-%%  A RunInfo file is created and some basic information about the run is added to that file
-%   Inspecting the contents of this run info file is sometimes a convenient way of
-%   checking the status of the run.
 
-FileName=[CtrlVar.Experiment,'-RunInfo.txt'];
-if CtrlVar.Restart
-    CtrlVar.InfoFile = fopen(FileName,'a');
-else
-    CtrlVar.InfoFile = fopen(FileName,'w');
-end
-
-
-if CtrlVar.InfoFile<0
-   fprintf('opening the file %s resulted in an error:\n',FileName)
-   disp(errmsh)
-   error('Error opening a file. Possibly problems with permissions.')
-end
-    
 
 %%  Now initial information about the run has been defined
 % write out some basic information about the type of run selected
@@ -639,7 +634,8 @@ tTime=toc(tTime); fprintf(CtrlVar.fidlog,' Total time : %-g sec \n',tTime) ;
 
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
-fclose(CtrlVar.InfoFile);
+
+fclose(RunInfo.File.fid);
 
 SayGoodbye(CtrlVar)
 

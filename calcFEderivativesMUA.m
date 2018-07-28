@@ -48,11 +48,11 @@ end
 if nargout>2
     
     xint=zeros(MUA.Nele,MUA.nip) ; yint=zeros(MUA.Nele,MUA.nip);
-    coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,nod);
-    cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,nod);
+    coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
     
     for Iint=1:MUA.nip
-        fun=shape_fun(Iint,ndim,nod,points) ;
+        fun=shape_fun(Iint,ndim,MUA.nod,points) ;
         
         xint(:,Iint)=coox*fun;
         yint(:,Iint)=cooy*fun;

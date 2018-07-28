@@ -189,6 +189,8 @@ Tx=zeros(MUA.Nele,MUA.nod);  Ty=zeros(MUA.Nele,MUA.nod); Fx=zeros(MUA.Nele,MUA.n
 Tx0=Tx ;Fx0=Fx; Ty0=Ty ; Fy0=Fy; Th0=Th ;Fh0=Fh;
 Kxu0=Kxu ; Kxv0=Kxv ; Kyu0=Kyu ; Kyv0=Kyv ; Kxh0=Kxh ; Kyh0=Kyh ; Khu0=Khu ; Khv0=Khv ; Khh0=Khh;
 
+
+
 for Iint=1:MUA.nip
     
     

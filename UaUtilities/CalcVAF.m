@@ -11,9 +11,8 @@ function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
 narginchk(7,8)
 nargoutchk(1,3)
 
-hf=(S-B).*rhow./rho ;  
-I=B>S; 
-hf(I)=0;  % this is the positive flotation thickness 
+hf=(S-B).*rhow./rho ;    % if h> hf, then ice is grounded  (but note that hf is negative for B>S)
+hf(hf<0)=0;              % this is the positive flotation thickness 
 
 VAF.node=h-hf;  % thickness above flotation
 VAF.ele=FEintegrate2D([],MUA,VAF.node);

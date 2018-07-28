@@ -8,6 +8,8 @@ classdef UaRunInfo
         CPU
         Message
         MeshAdapt
+        File
+        
         
     end
     
@@ -16,6 +18,9 @@ classdef UaRunInfo
         
         function obj = UaRunInfo()
             
+            
+            obj.File.fid = NaN ;
+            obj.File.Name = NaN ;
             
             obj.Inverse.J = NaN ;
             obj.Inverse.Iterations = 0;

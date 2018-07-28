@@ -818,7 +818,7 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
 % run-step number.
 %
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
-
+CtrlVar.WriteRunInfoFile=1;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %
@@ -1327,7 +1327,7 @@ CtrlVar.MeshAdapt.GLrange=[];
 
 %% Parameters affecting the floating mask
 
-CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
+CtrlVar.kH=1e6;   % kH -> infty gives an exact Heaviside and delta functions.
                 % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
                 % Note: This variable has UNITS!!!  The units are those of an inverse distance.

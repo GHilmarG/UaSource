@@ -237,6 +237,11 @@ end
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
 
 
+% figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')
+% figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')
+
+
+
 
 CtrlVar.GroupRepresentation=0;
 

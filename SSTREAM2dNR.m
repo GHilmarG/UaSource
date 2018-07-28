@@ -68,6 +68,8 @@ if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ;
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
 
+diffVector=zeros(CtrlVar.NRitmax+1,1)+NaN;
+
 tAssembly=tic;
 F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
 
@@ -250,13 +252,21 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
         PlotForceResidualVectors('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
     end
+    
+    if NRincomplete
+        stri='i';
+    else
+        stri=[];
+    end
+    
     if CtrlVar.InfoLevelNonLinIt>=1
-        if NRincomplete
-            stri='i';
-        else
-            stri=[];
-        end
-        fprintf(CtrlVar.fidlog,'%sNRuv:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+        
+        fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
+    end
+    
+    if CtrlVar.WriteRunInfoFile
+        fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
             stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
     end
     
@@ -291,10 +301,17 @@ else
         if CtrlVar.InfoLevelNonLinIt>0
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR converged to given tolerance of %-g with r=%-g in %-i iterations.\n',CtrlVar.NLtol,r,iteration) ;
         end
+        
+        
         if CtrlVar.InfoLevelCPU>0  % if 1 then some info on CPU time usage is given
             fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solution=%g \n',tEnd,RunInfo.CPU.Assembly,RunInfo.CPU.Solution) ;
         end
     end
+    
+    
+     if CtrlVar.WriteRunInfoFile
+          fprintf(RunInfo.File.fid,' SSTREAM2dNR converged to given tolerance of %-g with r=%-g in %-i iterations.\n',CtrlVar.NLtol,r,iteration) ;
+     end
     
 end
 

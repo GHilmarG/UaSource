@@ -156,6 +156,12 @@ else
                     fprintf(CtrlVar.fidlog,' uvh2D did not converge. Resetting u1, v1 and h1 to values at start of time step. \n');
                 end
                 
+                
+                if CtrlVar.WriteRunInfoFile
+                    fprintf(RunInfo.File.fid,' uvh2D did not converge. Resetting u1, v1 and h1 to values at start of time step. \n');
+                end
+                
+                
                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
                
@@ -172,21 +178,29 @@ else
 %                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
 %                 BCs1.hPosNode=[] ;  BCs1.hPosValue=[];
 %                 isActiveSetModified=1;
-%                 
+%
             elseif ~ReduceTimeStep
                 
                 ReduceTimeStep=1;
                 dtOld=CtrlVar.dt;
                 dt=dt/2; CtrlVar.dt=dt;
-                fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                 
+                fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                 fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
+                
+                
+                if CtrlVar.WriteRunInfoFile
+                    fprintf(RunInfo.File.fid,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
+                    fprintf(RunInfo.File.fid,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
+                    
+                end
+                
                 F1.ub=F0.ub ; F1.vb=F0.vb ;  F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 
             end
             
-        
+            
             
             
            
