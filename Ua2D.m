@@ -71,19 +71,7 @@ CtrlVar=Ua2D_DefaultParameters();
 [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
 
 
-%% RunInfo initialisation
-RunInfo.Message(1)="Start of Run";
-RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-if CtrlVar.Restart
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-else
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
-end
-
-
-CtrlVar.RunInfoMessage=RunInfo.Message(end);
-
-
+%%
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
 
@@ -172,6 +160,17 @@ end
 if CtrlVar.TestUserInputs==1
     CtrlVar.TestUserInputs=0;
 end
+
+
+%% RunInfo initialisation
+RunInfo.Message(1)="Start of Run";
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+if CtrlVar.Restart
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+else
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+end
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
