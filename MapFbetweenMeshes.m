@@ -30,14 +30,19 @@ if CtrlVar.TimeDependentRun
         fprintf('Note: As this is the first run-step in a time-dependent run: \n')
         fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
         fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
-        [UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
-        Fnew.h=Fnew.s-Fnew.b;
+        
+        [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+        %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
+        %Fnew.h=Fnew.s-Fnew.b;
         
     else
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
-        [UserVar,~,~,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'SB');
         OutsideValue=0;
         Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+        [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');  % I calculate s and b from h
+        % [UserVar,~,~,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'SB');
+        % [UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
+        % [Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
     end
     
 else
@@ -47,8 +52,9 @@ else
     fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
     fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
     
-    [UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
-    Fnew.h=Fnew.s-Fnew.b;
+    [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+    %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
+    %Fnew.h=Fnew.s-Fnew.b;
     
 end
 
@@ -59,8 +65,8 @@ end
 %
 %
 
-[UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
-[Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
+%[UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
+%[Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
 
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew,GFnew);

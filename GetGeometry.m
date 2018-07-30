@@ -13,6 +13,8 @@ function [UserVar,s,b,S,B,alpha]=GetGeometry(UserVar,CtrlVar,MUA,time,FieldsToBe
 %
 
 
+error(' No longer to be used')
+
 nOut=nargout;
 if nOut~=6
     error('Ua:GetGeometry','Need 6 output arguments')
@@ -21,17 +23,20 @@ end
 
 s=[] ; b=[] ; B=[] ; S=[] ; 
 
-if nargin<=6
+if nargin<5 || isempty(FieldsToBeDefined)
     FieldsToBeDefined='sbSB';
 end
 
 
-if FieldsToBeDefined==""
-    return
-end
+
 
 
 [UserVar,sTemp,bTemp,STemp,BTemp,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined);
+
+% if FieldsToBeDefined==""
+%     return
+% end
+
 
 % some error checks
 errorStruct.identifier = 'GetGeometry:NaNinInput';

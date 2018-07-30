@@ -79,14 +79,14 @@ end
 %[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
 
 
-[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
+[UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
+
+%[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
 
-F.h=F.s-F.b;
-
-[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-
-[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+%F.h=F.s-F.b;
+%[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
+%[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 
 
