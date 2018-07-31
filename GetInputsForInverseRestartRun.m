@@ -1,5 +1,8 @@
-function      [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
-    GetInputsForInverseRestartRun(UserVar,CtrlVar)
+function [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
+    GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo)
+
+narginchk(3,3) 
+nargoutchk(11,11)
 
 
 fprintf(CtrlVar.fidlog,' Inverse run: loading restart file: %s \t ',CtrlVar.Inverse.NameOfRestartInputFile);
@@ -10,6 +13,9 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
 
 fprintf(CtrlVar.fidlog,' done \n ');
 
+
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
 
 if isempty(RunInfo.CPU)
     RunInfo.CPU.Solution=0;

@@ -99,6 +99,12 @@ CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
 % write out some basic information about the type of run selected
 PrintRunInfo(CtrlVar);
 
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+if CtrlVar.Restart
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+else
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+end
 
 %% Get input data
 if CtrlVar.InverseRun %  inverse run
@@ -109,7 +115,7 @@ if CtrlVar.InverseRun %  inverse run
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for an inverse restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
         [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
-            GetInputsForInverseRestartRun(UserVar,CtrlVar);
+            GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo);
         
     else % New inverse run
         
@@ -117,7 +123,8 @@ if CtrlVar.InverseRun %  inverse run
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new inverse run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
         % First get the usual input for a forward run
-        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
+        
+        [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
         % now get the additional variables specific to an inverse run
         [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo);
@@ -131,7 +138,7 @@ else
         
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a forward restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
-        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar);
+        [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
         
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
@@ -148,7 +155,7 @@ else
         
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new forward run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
-        [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar);
+        [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
             return
@@ -164,12 +171,7 @@ end
 
 %% RunInfo initialisation
 RunInfo.Message(1)="Start of Run";
-RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-if CtrlVar.Restart
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-else
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
-end
+
 
 
 %%

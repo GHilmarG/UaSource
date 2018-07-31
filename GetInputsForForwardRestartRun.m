@@ -1,5 +1,7 @@
-function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar)
+function [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo)
 
+narginchk(3,3) 
+nargoutchk(7,7)       
 
 fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
@@ -44,7 +46,8 @@ else
     
 end
 
-
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
 
 if exist('BCs','var')==0
     fprintf(' The variable BCs not found in restart file. Reset. \n')

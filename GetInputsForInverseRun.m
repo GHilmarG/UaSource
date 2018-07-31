@@ -2,6 +2,8 @@ function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInv
 
 %[UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l)
 
+narginchk(8,8) 
+nargoutchk(6,6)
 
 
 BCsAdjoint=BoundaryConditions;

@@ -1,6 +1,7 @@
-function  [UserVar,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar)
+function  [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo)
 
-
+narginchk(3,3) 
+nargoutchk(7,7)
 
 F=UaFields;
 

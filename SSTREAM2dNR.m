@@ -12,7 +12,6 @@ L=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 
 
-
 if isempty(cuv)
     l.ubvb=[];
 elseif numel(l.ubvb)~=numel(cuv)
