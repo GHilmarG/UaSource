@@ -57,7 +57,11 @@ if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative
 tStart=tic;
 
 
-
+[F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
+                                                                                   % that the geometrical fields are consistent with floation contition.
+                                                                                   % However, since the uvh formulation is with respect to h
+                                                                                   % alone, this will not affect the solution since this does not
+                                                                                   % change h. 
 dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
 
 
@@ -125,12 +129,7 @@ RunInfo.Forward.Converged=0;
 RunInfo.BackTrack.Converged=1 ; 
 
 while true
-    
-    %
-    %     ResidualsAndIncrementCriteria=((r> CtrlVar.NLtol || diffDu > CtrlVar.du || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) ...
-    %         && ~Stagnated ) ...
-    %         || iteration < CtrlVar.NRitmin;
-    %
+
     
     ResidualsCriteria=(~(r< CtrlVar.NLtol )) ...
         || iteration < CtrlVar.NRitmin;
@@ -237,29 +236,7 @@ while true
 
     iteration=iteration+1;
         
-    
-%     [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
-%     
-%     
-%     %% solve the (asymmetrical) linear system
-%     if ~isempty(L)
-%         frhs=-R-L'*luvh;
-%         grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
-%     else
-%         frhs=-R;
-%         grhs=[];
-%     end
-%     
-%     
-%     r0=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
-%     
-%     [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
-%    
-%     
-%     if any(isnan(duvh)) ; save TestSave  ; fprintf(CtrlVar.fidlog,'error: NaN in solution of implicit system \n') ; error(' NaN in solution of implicit uvh system ' ) ; end
-%     %%
-%     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
-    
+ 
     %% Residuals , at gamma=0;
     gamma=0;
     [UserVar,RunInfo,r0,ruv0,rh0,rl0,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
@@ -344,10 +321,7 @@ while true
     end
     
     %% update variables
-    %ub=ub+gamma*dub ; vb=vb+gamma*dvb; h=h+gamma*dh;
-    %luvh=luvh+gamma*dl;
-    %luv=luvh(1:nluv) ;
-    %lh=luvh(nluv+1:end);
+ 
     
     F1.ub=F1.ub+gamma*dub;
     F1.vb=F1.vb+gamma*dvb;
