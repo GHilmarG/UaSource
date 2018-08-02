@@ -1327,7 +1327,7 @@ CtrlVar.MeshAdapt.GLrange=[];
 
 %% Parameters affecting the floating mask
 
-CtrlVar.kH=1e6;   % kH -> infty gives an exact Heaviside and delta functions.
+CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
                 % kH=1 implies a grounding line "width" of 1 m up and down from floating condition
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
                 % Note: This variable has UNITS!!!  The units are those of an inverse distance.
