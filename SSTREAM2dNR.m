@@ -321,6 +321,7 @@ if iteration > CtrlVar.NRitmax
 end
 
 RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;
+RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations; 
 
 if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
 

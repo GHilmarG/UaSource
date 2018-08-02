@@ -219,6 +219,7 @@ if iteration > CtrlVar.NRitmax
 end
 
 RunInfo.Forward.Iterations=iteration;   
+RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations; 
 RunInfo.Forward.Residual=r;
 
 

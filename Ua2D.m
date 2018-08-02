@@ -279,11 +279,14 @@ end
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
-
+tStartInfo=tic;
 RunInfo.Message(numel(RunInfo.Message)+1)="Run Step Loop.";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
+RunInfo.Forward.IterationsTotal=0; 
 %%  RunStep Loop
 while 1
+    
+   
     
     if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
        
@@ -402,9 +405,19 @@ while 1
             RunInfo.Message(numel(RunInfo.Message)+1)="Time dependent step. Solving implicitly for velocities and thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message(end);
             
-            fprintf(CtrlVar.fidlog,...
-                '\n ---------> Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. \n ',...
-                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
+            
+            fprintf(...
+                '\n ---------> Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
+            
+            if CtrlVar.WriteRunInfoFile
+                tElapsedInfo = toc(tStartInfo);
+                fprintf(RunInfo.File.fid,...
+                    '  t-dt-tCPU-it-itTotal-date , %g , %g , %g  ,  %i , %i , %s \n',...
+                    CtrlVar.time,CtrlVar.dt,tElapsedInfo,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'));
+                tStartInfo=tic;
+            end
+            
             
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.

@@ -457,7 +457,7 @@ end
 
 RunInfo.Forward.Iterations=iteration;
 RunInfo.Forward.Residual=r;
-
+RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations; 
 
 if CtrlVar.WriteRunInfoFile
     

@@ -7,7 +7,7 @@ nargoutchk(7,7)
 dt=CtrlVar.dt;
 
 RunInfo.Forward.ActiveSetConverged=1;
-
+RunInfo.Forward.IterationsTotal=0; 
 
 if ~CtrlVar.ThicknessConstraints
     
