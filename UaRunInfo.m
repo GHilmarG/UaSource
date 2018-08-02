@@ -40,6 +40,7 @@ classdef UaRunInfo
             obj.Forward.Residual=NaN;
             obj.Forward.time=NaN;
             obj.Forward.dt=NaN;
+          
             
             obj.Forward.ActiveSetConverged=NaN;
             
@@ -57,9 +58,25 @@ classdef UaRunInfo
             obj.MeshAdapt.Mesh.Nnodes=NaN;
             obj.MeshAdapt.Mesh.RunStepNumber=NaN;
             obj.MeshAdapt.Mesh.time=NaN;
-
-
+            
+            
         end
+        
+        function obj = Validate(obj)
+            
+            if ~isfield(obj.Forward,'IterationsTotal')
+                obj.Forward.IterationsTotal=0;
+            end
+            
+            if ~isfield(obj.Forward,'Iterations')
+                obj.Forward.Iterations=NaN;
+            end
+            
+        end
+        
+  
+        
+        
     end
     
 end

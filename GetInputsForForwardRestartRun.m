@@ -20,6 +20,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
         
         load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','GF','l');
 
+        RunInfo=Validate(RunInfo);
         MUAold=MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
     catch exception
@@ -38,6 +39,8 @@ else
         Co=[] ; mo=[] ; Ca=[] ; ma=[] ; dasdh=[] ; dabdh=[] ; uo=[] ; vo=[];
         MUAold=MUA;
         F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dubdt,dvbdt,duddt,dvddt,g,alpha);
+        
+        RunInfo=UaRunInfo;
         
     catch exception
         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
