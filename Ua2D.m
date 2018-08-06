@@ -411,11 +411,13 @@ while 1
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
             
             if CtrlVar.WriteRunInfoFile
-                tElapsedInfo = toc(tStartInfo);
+                
+                RunInfo.CPU.Total=duration(0,0,cputime);
+                
                 fprintf(RunInfo.File.fid,...
-                    '  t-dt-tCPU-it-itTotal-date , %g , %g , %g  ,  %i , %i , %s \n',...
-                    CtrlVar.time,CtrlVar.dt,tElapsedInfo,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'));
-                tStartInfo=tic;
+                    '  t-dt-tCPU-it-itTotal-date , %g , %g , %s  ,  %i , %i , %s \n',...
+                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'));
+                
             end
             
             
@@ -598,6 +600,7 @@ while 1
     
 end
 
+RunInfo.CPU.Total=duration(0,0,cputime);
 RunInfo.Message(numel(RunInfo.Message)+1)="Calculations done. Creating outputs. ";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
 

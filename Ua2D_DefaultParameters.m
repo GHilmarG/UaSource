@@ -373,7 +373,7 @@ CtrlVar.GroupRepresentation=0;
 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
-                   % Possible Nr of integration points: 1,3,4,6,7,12,16
+                   % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
                    % The default values are: 
                    % nip=3 and niph=3 for linear elements (three node elements)
                    % nip=7 and niph=7 for quadratic elements (six node elements)

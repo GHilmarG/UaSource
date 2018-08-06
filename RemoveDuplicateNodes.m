@@ -6,6 +6,10 @@ function [coordinates,connectivity]=RemoveDuplicateNodes(coordinates,connectivit
     % [coordinates,connectivity]=RemoveDuplicateNodes(coordinates,connectivity,tolerance)
     % 
     
+    if size(connectivity,1) == 1 
+        return
+    end
+    
     if nargin < 3
         tolerance=100*eps;
     end

@@ -50,6 +50,7 @@ classdef UaRunInfo
             
             obj.CPU.Assembly=0;
             obj.CPU.Solution=0;
+            obj.CPU.Total=0;
             obj.Message="" ;
             
             obj.MeshAdapt.Method="";
@@ -72,9 +73,14 @@ classdef UaRunInfo
                 obj.Forward.Iterations=NaN;
             end
             
+            if ~isfield(obj.CPU,'Total')
+                obj.CPU.Total="";
+            end
+            
+            
         end
         
-  
+        
         
         
     end
