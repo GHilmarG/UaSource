@@ -6,7 +6,9 @@ function [s,wt] = sample(element,nip,ndim)
 %
 % see also: http://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
 %           http://people.sc.fsu.edu/~jburkardt/m_src/triangle_nco_rule/triangle_nco_rule.html
-
+%           http://people.sc.fsu.edu/~jburkardt/m_src/triangle_wandzura_rule/triangle_wandzura_rule.html
+%           https://arxiv.org/abs/1411.5631
+%
 s=zeros(nip,ndim)     ; % coordinates of integration points
 wt=zeros(nip,1) ;       % weights
 
