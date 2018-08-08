@@ -5,7 +5,7 @@ function [s,wt] = sample(element,nip,ndim)
 
 %
 % see also: http://people.sc.fsu.edu/~jburkardt/datasets/quadrature_rules_tri/quadrature_rules_tri.html
-%
+%           http://people.sc.fsu.edu/~jburkardt/m_src/triangle_nco_rule/triangle_nco_rule.html
 
 s=zeros(nip,ndim)     ; % coordinates of integration points
 wt=zeros(nip,1) ;       % weights
@@ -74,7 +74,7 @@ switch element
             otherwise
                 disp(' Wrong number of integrating points for a line' )
         end
-    case 'triangle'  % 1,3,4,6,7,12,16
+    case 'triangle'  % 1,3,4,6,7,9,12,13,16,19,28,37
         switch nip
             case 1
                 s(1,1)= 0.333333333333333;
@@ -89,7 +89,7 @@ switch element
                 s(3,2)= 0.500000000000000;
                 wt(1:3)=0.333333333333333;
                 wt=0.5*wt;
-            case 4  % order 4, degree of precision 2
+            case 4  % order 4, degree of precision 3
                 s(1,1)= 0.6;
                 s(1,2)= 0.2;
                 s(2,1)= 0.2;
