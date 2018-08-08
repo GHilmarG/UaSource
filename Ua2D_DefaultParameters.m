@@ -1483,7 +1483,11 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %
 % Consult the matlab manual for further information
 %
-CtrlVar.ParallelAssembly=1;
+CtrlVar.Parallel.uvhAssembly.parfor=1;
+CtrlVar.Parallel.uvhAssembly.spmd=1;
+
+
+
 %% Tracers
 CtrlVar.Tracer.SUPG.Use=1; 
 CtrlVar.Tracer.SUPG.tau='taus' ; % {'tau1','tau2','taus','taut'}  
