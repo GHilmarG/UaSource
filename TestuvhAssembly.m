@@ -1,5 +1,5 @@
 delete(gcp('nocreate'))
-poolobj=parpool('local',6);
+poolobj=parpool('local',[1 2]);
 
 %%
 poolobj = gcp('nocreate');
@@ -10,9 +10,11 @@ fprintf('\n\n\n\n')
 %load uvhAssembly.mat
 load TestSaveuvhAssembly
 
-
-
+%%
+fprintf('\n\n--------------------------------------------------------------------------------------------------\n\n')
 CtrlVar.Parallel.uvhAssembly.parfor=0;
+
+
 tic
 [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields);
 toc

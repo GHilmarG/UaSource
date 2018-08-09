@@ -87,9 +87,6 @@ end
 % do some basic test on the vality of the CtrlVar fields
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
 
-% if a log file is created, the this will be the name of the logfile
-CtrlVar.Logfile=[CtrlVar.Experiment,'.log'];
-[status,message]=copyfile(CtrlVar.Logfile,[CtrlVar.Logfile,'~']);  %  copy potential previous logfile
 
 [pathstr,name]=fileparts(CtrlVar.GmshFile); CtrlVar.GmshFile=[pathstr,name]; % get rid of eventual file extension
 
@@ -415,8 +412,9 @@ while 1
                 RunInfo.CPU.Total=duration(0,0,cputime);
                 
                 fprintf(RunInfo.File.fid,...
-                    '  t-dt-tCPU-it-itTotal-date , %g , %g , %s  ,  %i , %i , %s \n',...
-                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'));
+                    '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution , %g , %g , %s  ,  %i , %i , %s , %s , %s \n',...
+                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'),...
+                    duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh));
                 
             end
             

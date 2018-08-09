@@ -4,20 +4,21 @@ function [UserVar,RunInfo,r,ruv,rh,rl,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserV
 
 narginchk(15,15)
 
-Nout=nargout; 
+Nout=nargout;
 
 F1.ub=F1.ub+gamma*dub;
 F1.vb=F1.vb+gamma*dvb;
 F1.h=F1.h+gamma*dh;
 luvh=luvh+gamma*dl;
 
-if Nout>6
-    [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
-    
+CtrlVar.uvhMatrixAssembly.ZeroFields=false;
+if Nout<8
+    CtrlVar.uvhMatrixAssembly.Ronly=true;
 else
-    [UserVar,RunInfo,R]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    CtrlVar.uvhMatrixAssembly.Ronly=false;
 end
 
+[UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
 
 
 if ~isempty(L)
@@ -37,7 +38,7 @@ end
 
 
 if isequal(CtrlVar.Residual.uvh,'uv')
-    r=ruv; 
+    r=ruv;
 end
 
 end

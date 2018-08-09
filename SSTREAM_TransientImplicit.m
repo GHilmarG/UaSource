@@ -120,7 +120,9 @@ nlubvb=numel(l1.ubvb) ;
 dl=luvh*0;
 
 
-[UserVar,RunInfo,R0]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,true);
+CtrlVar.uvhMatrixAssembly.ZeroFields=true; 
+CtrlVar.uvhMatrixAssembly.Ronly=true;
+[UserVar,RunInfo,R0,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
 Fext0=R0;
 
 iteration=0 ;

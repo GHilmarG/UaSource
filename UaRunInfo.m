@@ -40,7 +40,7 @@ classdef UaRunInfo
             obj.Forward.Residual=NaN;
             obj.Forward.time=NaN;
             obj.Forward.dt=NaN;
-          
+            
             
             obj.Forward.ActiveSetConverged=NaN;
             
@@ -48,9 +48,14 @@ classdef UaRunInfo
             obj.BackTrack.iarm=NaN;
             obj.BackTrack.Infovector=NaN;
             
-            obj.CPU.Assembly=0;
-            obj.CPU.Solution=0;
+            
             obj.CPU.Total=0;
+            obj.CPU.Assembly.uv=0;
+            obj.CPU.Solution.uv=0;
+            obj.CPU.Assembly.uvh=0;
+            obj.CPU.Solution.uvh=0;
+            
+            
             obj.Message="" ;
             
             obj.MeshAdapt.Method="";
@@ -77,11 +82,24 @@ classdef UaRunInfo
                 obj.CPU.Total="";
             end
             
+            if ~isfield(obj.CPU.Assembly,'uvh')
+                obj.CPU.Assembly.uvh=0;
+            end
             
+            
+            if ~isfield(obj.CPU.Solution,'uvh')
+                obj.CPU.Solution.uvh=0;
+            end
+            
+            if ~isfield(obj.CPU.Assembly,'uv')
+                obj.CPU.Assembly.uv=0;
+            end
+            
+            
+            if ~isfield(obj.CPU.Solution,'uv')
+                obj.CPU.Solution.uv=0;
+            end
         end
-        
-        
-        
         
     end
     

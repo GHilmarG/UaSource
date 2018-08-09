@@ -65,17 +65,14 @@ if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ;
 
 
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
-RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
+
 
 diffVector=zeros(CtrlVar.NRitmax+1,1)+NaN;
 
-tAssembly=tic;
 F0=KRTFgeneralBCs(CtrlVar,MUA,F,true);
-
-
 Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-RunInfo.CPU.Assembly=toc(tAssembly);
-RunInfo.CPU.Solution=0;
+
+RunInfo.CPU.Solution.uv=0;
 
 if ~isempty(L)
     frhs=-Ruv-L'*l.ubvb;
@@ -86,40 +83,26 @@ else
 end
 
 r=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
-% 
-% if r< CtrlVar.NLtol
-%     
-%     RunInfo.Forward.Iterations=0;  RunInfo.Forward.Residual=r; RunInfo.CPU.Assembly=0; RunInfo.CPU.Solution=0; 
-%     Kuv=[];
-%     return
-%     
-% end
-
-
-
 
 diffDu=0; 
 
-iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution=0 ; RunInfo.CPU.Assembly=0;
+iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
 while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitmax  )  || (iteration < CtrlVar.NRitmin)
     
     
     iteration=iteration+1;
-    
-    %RunInfo.CPU.Assembly=0  ; RunInfo.CPU.Solution=0; % Do I want cumulative
-    %numbers?
-    
+
     
     if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
         
         tAssembly=tic;
         [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
-        RunInfo.CPU.Assembly=toc(tAssembly)+RunInfo.CPU.Assembly;
+        RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
         NRincomplete=0;
     else
         tAssembly=tic;
         Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-        RunInfo.CPU.Assembly=toc(tAssembly)+RunInfo.CPU.Assembly;
+        RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
         NRincomplete=1;
     end
     
@@ -167,7 +150,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
     end
     
-    RunInfo.CPU.Solution=toc(tSolution)+RunInfo.CPU.Solution;
+    RunInfo.CPU.Solution.uv=toc(tSolution)+RunInfo.CPU.Solution.uv;
     
     
     if CtrlVar.TestForRealValues
@@ -261,12 +244,12 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     if CtrlVar.InfoLevelNonLinIt>=1
         
         fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
+            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
     end
     
     if CtrlVar.WriteRunInfoFile
         fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly,RunInfo.CPU.Solution);
+            stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
     end
     
 end
@@ -303,7 +286,7 @@ else
         
         
         if CtrlVar.InfoLevelCPU>0  % if 1 then some info on CPU time usage is given
-            fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solution=%g \n',tEnd,RunInfo.CPU.Assembly,RunInfo.CPU.Solution) ;
+            fprintf(CtrlVar.fidlog,' CPU-uvSSTREAM: total time=%g \t Assembly=%g \t Solution=%g \n',tEnd,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv) ;
         end
     end
     

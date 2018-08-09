@@ -16,11 +16,7 @@ fprintf(CtrlVar.fidlog,' done \n ');
 
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-
-if isempty(RunInfo.CPU)
-    RunInfo.CPU.Solution=0;
-    RunInfo.CPU.Assembly=0;
-end
+RunInfo=Validate(RunInfo);
 % Set start values to last estimates
 InvStartValues=InvFinalValues;
 

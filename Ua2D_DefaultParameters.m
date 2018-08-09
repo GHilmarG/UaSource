@@ -1471,20 +1471,22 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %%
 % Parallel options:
 %
-% 
 % The parallel profile is not modified within Úa. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
-% information. If needed, the properties of the local profile can be adjusted in
-% the Ua2D_InitialInput file
+% information.  For example, to change the number of local workers to 6, one can do the
+% following: 
 %
-% For example, to change the number of local workers to 6, one can do the
-% following: myCluster = parcluster('local') myCluster.NumWorkers = 6;
-% saveProfile(myCluster)
+%   myCluster = parcluster('local') ;  
+%   myCluster.NumWorkers = 6;
+%   saveProfile(myCluster)
 %
-% Consult the matlab manual for further information
+% Consult the matlab documentation for further information.
 %
-CtrlVar.Parallel.uvhAssembly.parfor=1;
-CtrlVar.Parallel.uvhAssembly.spmd=1;
+
+CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];
+CtrlVar.Parallel.isTest=false;
 
 
 
