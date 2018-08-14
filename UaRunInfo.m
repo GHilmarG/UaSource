@@ -22,7 +22,7 @@ classdef UaRunInfo
             obj.File.fid = NaN ;
             obj.File.Name = NaN ;
             
-            obj.Inverse.J = NaN ;
+            
             obj.Inverse.Iterations = 0;
             obj.Inverse.J = NaN ;
             obj.Inverse.I = NaN ;
@@ -66,39 +66,6 @@ classdef UaRunInfo
             obj.MeshAdapt.Mesh.time=NaN;
             
             
-        end
-        
-        function obj = Validate(obj)
-            
-            if ~isfield(obj.Forward,'IterationsTotal')
-                obj.Forward.IterationsTotal=0;
-            end
-            
-            if ~isfield(obj.Forward,'Iterations')
-                obj.Forward.Iterations=NaN;
-            end
-            
-            if ~isfield(obj.CPU,'Total')
-                obj.CPU.Total="";
-            end
-            
-            if ~isfield(obj.CPU.Assembly,'uvh')
-                obj.CPU.Assembly.uvh=0;
-            end
-            
-            
-            if ~isfield(obj.CPU.Solution,'uvh')
-                obj.CPU.Solution.uvh=0;
-            end
-            
-            if ~isfield(obj.CPU.Assembly,'uv')
-                obj.CPU.Assembly.uv=0;
-            end
-            
-            
-            if ~isfield(obj.CPU.Solution,'uv')
-                obj.CPU.Solution.uv=0;
-            end
         end
         
     end

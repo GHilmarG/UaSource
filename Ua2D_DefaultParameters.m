@@ -362,6 +362,7 @@ CtrlVar.LinSolveTol=1e-10;  % Residual when solving linear system.
                             % the relative residual is defined in standard way as: 
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
                             % A value of 1e-10 is arguably an overly small number, in many cases 1e-6 would be considered acceptable
+CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider seeting to true if memory an issue                            
 
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default

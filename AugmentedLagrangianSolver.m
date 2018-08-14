@@ -72,14 +72,21 @@ T=[A B' ; B iW];
 
 tStart=tic;
 
+luvector=CtrlVar.Solve.LUvector;
 
 
 if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
-    [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifronta sparse direct solver using AMD ordering
+    [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifrontal sparse direct solver using AMD ordering
+    sol=zeros(m+n,1);
+elseif luvector
+    [L,U,p,q,R] = lu(T,'vector');  % this can not be used in a parallel mode
+    % [L,U,p] = lu(T,'vector');  % aparantly this can be used in a parallel mode, but used in non-parallel this is very slow!
     sol=zeros(m+n,1);
 else
-    [L,U,P,Q,R] = lu(T); % lu factorisation using UMFPACK
     
+    [L,U,P,Q,R] = lu(T); % lu factorisation using UMFPACK
+    %[L,U,P] = lu(T); % lu factorisation not using UMFPACK, much slower!
+
 end
 
 
@@ -99,6 +106,17 @@ if CtrlVar.InfoLevelLinSolve>1 ; fprintf(CtrlVar.fidlog,' LU factorisation in %g
 % S*A*S = P*L*D*L'*P'
 % S=S' , P*P'=1
 % sol=S*P*(L'\(D\(L\(P'*S*fg))));
+%
+% LU vector
+%  Example: 
+%
+%   A x = y ; 
+%  [L,U,p,q,R] = lu(A,'vector');
+%  x(q)=U\(L\(R(:,p)\y)) 
+%
+%    T sol = fg
+%    [L,U,p,q,R] = lu(T,'vector');
+%    sol(q)=U\(L\(R(:,p)\fg)) 
 
 
 % I measure the residual as res=norm([A B' ; B 0]-[f;g])/norm([f ; g])
@@ -125,8 +143,10 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     
     if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
         fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
+    elseif luvector
+        sol(q)=U\(L\(R(:,p)\fg)) ;
     else
-        sol=Q*(U\(L\(P*(R\fg))));
+        sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.
     end
     
     x=sol(1:n) ; y=sol(n+1:end);
