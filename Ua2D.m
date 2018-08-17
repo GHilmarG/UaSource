@@ -34,7 +34,7 @@ InvFinalValues=InversionValues;
 Lubvb=[];
 Ruv=[];
 
-tTime=tic;
+WallTime0=tic;
 %% Clear any persistent variables
 clear AdaptiveTimeStepping
 clear AdaptMesh
@@ -276,14 +276,14 @@ end
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
-tStartInfo=tic;
+
 RunInfo.Message(numel(RunInfo.Message)+1)="Run Step Loop.";
 CtrlVar.RunInfoMessage=RunInfo.Message(end);
 RunInfo.Forward.IterationsTotal=0; 
 %%  RunStep Loop
 while 1
     
-   
+    RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
     
     if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
        
@@ -410,11 +410,12 @@ while 1
             if CtrlVar.WriteRunInfoFile
                 
                 RunInfo.CPU.Total=duration(0,0,cputime);
+                RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
                 
                 fprintf(RunInfo.File.fid,...
-                    '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution , %g , %g , %s  ,  %i , %i , %s , %s , %s \n',...
+                    '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
                     CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'),...
-                    duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh));
+                    duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
                 
             end
             
@@ -464,36 +465,43 @@ while 1
             while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin  % if uvh step does not converge, it is repeated with a smaller dt value
                 CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
                 [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
-                CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
-
-               
+                CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+                
+                
                 %Fguessed=F;  could use norm of difference between explicit and implicit to
                 %control dt
-                [UserVar,RunInfo,F,l,BCs,GF,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs); 
+                [UserVar,RunInfo,F,l,BCs,GF,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
                 
-                CtrlVar.dt=dt;
+                CtrlVar.dt=dt;  % I might have changed dt within uvh
                 
                 if ~RunInfo.Forward.Converged
                     
                     uvhStep=1;  % continue within while loop
-                        
-                    filename=['Dumpfile_Ua2D-',CtrlVar.Experiment,'.mat'];
-                    fprintf('----!!!->>> uvh has not converged! Saving all data in a dumpfile %s \n',filename)
-                    save(filename)
                     
-                    fprintf(CtrlVar.fidlog,' ----!!!->>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
+                    filename="Dumpfile_Ua2D-"+CtrlVar.Experiment+".mat";
+                    fprintf(' ===>>> uvh did not converge! Saving all data in a dumpfile %s \n',filename)
+                    try
+                        save(filename)
+                    catch
+                        warning('Ua2D:FileNotSaved',...
+                            'could not save file %s.',filename)
+                    end
+                    
+                    
+                    fprintf(CtrlVar.fidlog,' =====>>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
                     fprintf(CtrlVar.fidlog,'             Also resetting field and Lagrange variables. \n');
                     fprintf(CtrlVar.fidlog,'             Starting values for velocities at end of time step set by StartVelocity.m \n');
                     fprintf(CtrlVar.fidlog,'             Starting for s, b and h at end of time step set equal to values at beginning of time step. \n');
                     
                     CtrlVar.dt=CtrlVar.dt/10;
-                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;   
+                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;
                     l.ubvb=l.ubvb*0; l.h=l.h*0;
-                    F=StartVelocity(CtrlVar,MUA,BCs,F); 
-
+                    F=StartVelocity(CtrlVar,MUA,BCs,F);
+                    
                 else
                     uvhStep=0;
                 end
+                
             end
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
@@ -642,7 +650,9 @@ if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.Writ
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
-tTime=toc(tTime); fprintf(CtrlVar.fidlog,' Total time : %-g sec \n',tTime) ;
+
+RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
+fprintf(CtrlVar.fidlog,' Wall-clock time : %s (hh:mm:ss) \n',RunInfo.CPU.WallTime) ;
 
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end

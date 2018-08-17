@@ -54,6 +54,7 @@ classdef UaRunInfo
             obj.CPU.Solution.uv=0;
             obj.CPU.Assembly.uvh=0;
             obj.CPU.Solution.uvh=0;
+            obj.CPU.WallTime="";
             
             
             obj.Message="" ;
