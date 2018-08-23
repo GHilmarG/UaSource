@@ -94,4 +94,7 @@ for I=1:numel(idx)
     end
 end
 
+ID=unique(ID); 
+
+
 end

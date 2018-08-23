@@ -88,6 +88,7 @@ end
 if ~isfield(CtrlVar,'PlotXYscale') ; CtrlVar.PlotXYscale=1 ; end
 if ~isfield(CtrlVar,'PlotGLs') ; CtrlVar.PlotGLs=1 ; end
 if ~isfield(CtrlVar,'PlotIndividualGLs') ; CtrlVar.PlotIndividualGLs=0 ; end
+if ~isfield(CtrlVar,'LineUpGLs') ; CtrlVar.LineUpGLs=1; end 
 
 
 if nargin<4 || isempty(GLgeo)
@@ -97,8 +98,18 @@ if nargin<4 || isempty(GLgeo)
 end
 
 if nargin<6 || ( isempty(xGL) || isempty(yGL))
-    xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
-    [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
+    
+    
+    if CtrlVar.LineUpGLs
+        xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
+        [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
+    else
+        xGL=[GLgeo(:,3)  ; GLgeo(:,4) ] ;
+        yGL=[GLgeo(:,5)  ; GLgeo(:,6) ] ;
+        temp=unique([xGL yGL],'rows') ;  
+        xGL=temp(:,1) ;  yGL=temp(:,2) ;
+    end
+    
 end
 
 

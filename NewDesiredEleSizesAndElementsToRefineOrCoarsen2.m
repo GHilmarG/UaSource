@@ -238,7 +238,8 @@ if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
     KdTree=[];
     CtrlVar.PlotGLs=0;
     CtrlVar.GLsubdivide=1;
-    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);
+    CtrlVar.LineUpGLs=0; 
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL. 
     
     
     for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
@@ -306,9 +307,6 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 
 % Now get user modifications
 [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
-
-
-
 
 
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')

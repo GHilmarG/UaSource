@@ -50,13 +50,21 @@ F.ExtrapolationMethod='nearest';
 % The underlying triangulation is only done once, and when interpolating different fields
 % only the values are changed.
 
+tol = eps*1000;
+[ID,d] = nearestNeighbor(MUA1.TR,[x2(:) y2(:)]);
+same=d<tol ; 
+
+
 for iVar=1:nVar
     
     if isempty(varargin{iVar})
         varargout{iVar}=[];
     else
         F.Values=double(varargin{iVar});
-        varargout{iVar}=F(x2,y2);
+        
+        varargout{iVar}=srMAP(x2,y2,F,ID,same);
+        
+        %varargout{iVar}=F(x2,y2);
     end
 end
 
