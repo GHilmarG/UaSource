@@ -376,7 +376,7 @@ CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and 
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
                    % The default values are: 
-                   % nip=3 and niph=3 for linear elements (three node elements)
+                   % nip=6 and niph=6 for linear elements (three node elements)
                    % nip=7 and niph=7 for quadratic elements (six node elements)
                    % nip=12 and niph=12 for cubic elements (ten node elements)
                    % The default values are usually fine, but sometimes increasing the number of

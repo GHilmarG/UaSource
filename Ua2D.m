@@ -300,7 +300,9 @@ while 1
     
     if CtrlVar.TimeDependentRun && CtrlVar.dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
         fprintf('Exiting time loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
-        TempFile=[CtrlVar.Experiment,'-UaDumpTimeStepTooSmall.mat']; fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; save(TempFile,'-v7.3')
+        TempFile=CtrlVar.Experiment+"-UaDumpTimeStepTooSmall.mat"; 
+        fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; 
+        save(TempFile,'-v7.3')
         break
     end
     

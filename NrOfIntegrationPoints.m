@@ -39,12 +39,14 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
 
             %nip=1 ; niph=1 ;  % not OK for both semi and fully implicit
             %nip=1; niph=3;    % OK for semi-implicit
-            nip=3; niph=3;   % OK for implicit and semi-implicit 
+            % nip=3; niph=3;   % OK for implicit and semi-implicit 
             
             %niph=3;
             %niph=4; % for some odd reason niph=4 sometimes causes convergence problems, while using niph=3 or niph=6 does not
             %nip=1 ; niph=3 ; % test
             %nip=3 ; niph=4 ; % test
+            
+            nip=6; niph=6;    % changed from 3 to 6 as default, 19 August, 2018
             
             
         case 6   % minimum of 4 needed for a linear problem
@@ -55,9 +57,10 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             %nip=12;
             
             %nip=6 ; niph=6;
-            nip=7 ; niph=7;  
-            %nip=12 ; niph=12;  
-            %nip=16; niph=16;
+            % nip=7 ; niph=7;  
+            
+            nip=9 ; niph=9;  % changed from 7 to 9 as default 19, August, 2018
+            
             
             
             

@@ -1,6 +1,8 @@
 function [UserVar,RunInfo,R,K]=uvhAssemblySPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 
+
+
 if isempty(CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
     poolobj = gcp('nocreate');
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
@@ -25,8 +27,10 @@ i2=MUA.Nele;
 Partition{nW}=i1:i2 ;
 %
 
-spmd
+spmd (0,nW) 
     % Build M directly on the workers to avoid communication
+    
+        
     M{labindex}=MUA;
     M{labindex}.connectivity=MUA.connectivity(Partition{labindex},:);
     M{labindex}.Nele=numel(Partition{labindex});
