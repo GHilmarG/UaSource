@@ -1469,8 +1469,8 @@ CtrlVar.MeltNodesDefinition='Edge-Wise';
 CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; % for non evolving mesh boundaries, can be set to 0/false
 CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element
 
-%%
-% Parallel options:
+%% Parallel options:
+% 
 %
 % The parallel profile is not modified within Úa. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
@@ -1483,10 +1483,12 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %
 % Consult the matlab documentation for further information.
 %
-
-CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];
+% Note: It appears using about 6 workers on parfor and smpd options both on is the best approach. 
+%       However, results are likely to be somewhat problem dependent. 
+%
+CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     % assembly over integration points done in parallel using parfor
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.isTest=false;
 
 
