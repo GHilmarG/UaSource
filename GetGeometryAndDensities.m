@@ -23,46 +23,51 @@ if nargin<5 || isempty(FieldsToBeDefined)
     FieldsToBeDefined='sbSB';
 end
 
-[UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined);
-
-% some error checks
-errorStruct.identifier = 'GetGeometry:NaNinInput';
-
-if contains(FieldsToBeDefined,'s')
-    if any(isnan(sTemp))
-        errorStruct.message = 'nan in s';
-        error(errorStruct)
+if ~(FieldsToBeDefined=="")
+    
+    [UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined);
+    
+    % some error checks
+    errorStruct.identifier = 'GetGeometry:NaNinInput';
+    
+    if contains(FieldsToBeDefined,'s')
+        if any(isnan(sTemp))
+            errorStruct.message = 'nan in s';
+            error(errorStruct)
+        end
+        F.s=sTemp;
     end
-    F.s=sTemp;
-end
-
-if contains(FieldsToBeDefined,'b')
-    if any(isnan(bTemp))
-        errorStruct.message = 'nan in b';
-        error(errorStruct)
+    
+    if contains(FieldsToBeDefined,'b')
+        if any(isnan(bTemp))
+            errorStruct.message = 'nan in b';
+            error(errorStruct)
+        end
+        F.b=bTemp;
     end
-    F.b=bTemp;
-end
-
-if contains(FieldsToBeDefined,'S')
-    if any(isnan(STemp))
-        errorStruct.message = 'nan in S';
-        error(errorStruct)
+    
+    if contains(FieldsToBeDefined,'S')
+        if any(isnan(STemp))
+            errorStruct.message = 'nan in S';
+            error(errorStruct)
+        end
+        F.S=STemp;
     end
-    F.S=STemp;
-end
-
-if contains(FieldsToBeDefined,'B')
-    if any(isnan(BTemp))
-        errorStruct.message = 'nan in B';
-        error(errorStruct)
+    
+    if contains(FieldsToBeDefined,'B')
+        if any(isnan(BTemp))
+            errorStruct.message = 'nan in B';
+            error(errorStruct)
+        end
+        F.B=BTemp;
     end
-    F.B=BTemp;
+    
+    if contains(FieldsToBeDefined,'s')|| contains(FieldsToBeDefined,'b')
+        F.h=F.s-F.b;
+    end
+    
 end
 
-if contains(FieldsToBeDefined,'s')|| contains(FieldsToBeDefined,'b')
-    F.h=F.s-F.b;
-end
 
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);

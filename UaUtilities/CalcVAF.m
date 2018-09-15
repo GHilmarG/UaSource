@@ -15,6 +15,7 @@ hf=(S-B).*rhow./rho ;       % if h> hf, then ice is grounded  (but note that hf 
 hf(hf<0)=0;                 % this is the positive flotation thickness 
 
 VAF.node=(h-hf).*GF.node ;  % thickness above flotation over grounded nodes
+% VAF.node=(h-hf).*heaviside(h-hf) 
 
 VAF.ele=FEintegrate2D([],MUA,VAF.node);
 VAF.Total=sum(VAF.ele);

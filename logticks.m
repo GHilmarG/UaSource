@@ -20,17 +20,18 @@ if nargin<3
     nTicks=12;
 end
 
-if nargin<4
+if nargin<4 || isempty(SpeedPlotIntervals)
+    if all(x==0)
+        SpeedPlotIntervals=[0.1 1];
+    else
     SpeedPlotIntervals=[min(x) max(x)];
+    end
 end
 
-if all(x==0)
-    MinExp=-1 ; MaxExp=1;
-else
     
-    MinExp=floor(log10(min(x)));
-    MaxExp=ceil(log10(max(x)));
-end
+MinExp=floor(log10(SpeedPlotIntervals(1))) ; % min(x)));
+MaxExp=ceil(log10(SpeedPlotIntervals(end))) ; % x)));
+
 
 
 if MaxExp-MinExp > nPowRange  % do not cover more than nPowRange orders of magnitudes
@@ -57,5 +58,11 @@ if numel(ticks)== 2 && min(x)>ticks(1) && max(x) < ticks(2)
     %ticks=[min(x) max(x)];
     ticks=[SpeedPlotIntervals(1) SpeedPlotIntervals(end)];
 end
+
+
+if ticks(end)<SpeedPlotIntervals(end)/2
+    ticks=[ticks SpeedPlotIntervals(end)];
+end
+
 
 end

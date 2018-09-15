@@ -111,6 +111,8 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   title(cbar,'(m/d)')   ;
 %%
 
+cbar=[];
+QuiverHandel=[];
 
 if numel(x) ==0
     return
@@ -183,14 +185,20 @@ if nargin>4 && ~isempty(Par)
     
     if ~isfield(Par,'MaxPlottedSpeed')  || isempty(Par.MaxPlottedSpeed)
         
-        if all(speed==0)
-            ticks=logticks(speed,Par.QuiverColorPowRange);
-            Par.MaxPlottedSpeed=max(ticks);
+        if isfield(Par,'QuiverColorSpeedLimits')  && ~isempty(Par.QuiverColorSpeedLimits)
+            Par.MaxPlottedSpeed=Par.QuiverColorSpeedLimits(2);
         else
-            %Par.MaxPlottedSpeed=max(speed(:))*1.001;
-            Par.MaxPlottedSpeed=max(speed(:));
+            
+            
+            if all(speed==0)
+                ticks=logticks(speed,Par.QuiverColorPowRange);
+                Par.MaxPlottedSpeed=max(ticks);
+                
+            else
+                %Par.MaxPlottedSpeed=max(speed(:))*1.001;
+                Par.MaxPlottedSpeed=max(speed(:));
+            end
         end
-        
     end
     
     
@@ -303,7 +311,7 @@ else
         
         case 'log10'
             
-            ticks=logticks(speed,Par.QuiverColorPowRange);
+            ticks=logticks(speed,Par.QuiverColorPowRange,12,Par.QuiverColorSpeedLimits);
             
             MinTick=min(ticks);
             
@@ -510,9 +518,8 @@ title(cbar,Par.VelColorBarTitle)   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
 
-Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
-
-Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call
+% Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
+% Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call
 
 
 axis equal
