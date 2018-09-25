@@ -1,5 +1,5 @@
 function SayGoodbye(CtrlVar)
 
-fprintf(CtrlVar.fidlog,' Allt gott юб endirinn er allra bestur! \n Run finishes at %s \n ',datestr(now));
+fprintf(CtrlVar.fidlog,' Run finishes at %s \n ================           Allt gott юб endirinn er allra bestur!    ======================',datestr(now));
 
 end
