@@ -13,10 +13,13 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
 
 fprintf(CtrlVar.fidlog,' done \n ');
 
+LastRunInfo=RunInfo;
 
+RunInfo=UaRunInfo;  % Hilmar check
+RunInfo.Inverse=LastRunInfo.Inverse;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-RunInfo=Validate(RunInfo);
+% RunInfo=Validate(RunInfo);  % hilmar check
 % Set start values to last estimates
 InvStartValues=InvFinalValues;
 

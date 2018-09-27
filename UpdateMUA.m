@@ -161,5 +161,13 @@ if ~isfield(MUA,'xEle')
 end
 
 
-
+if ~isfield(MUA,'Boundary') ||  ~isfield(MUA,'TR')
+    if CtrlVar.FindMUA_Boundary
+        [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
+    else
+        MUA.Boundary=[];
+        MUA.TR=[];
+    end
+end
+    
 end

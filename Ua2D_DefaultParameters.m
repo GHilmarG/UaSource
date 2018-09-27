@@ -1002,7 +1002,7 @@ CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear 
 
 
 % active-set method, option 2 
-CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2, the recommended option).
+CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
                                             % if the maximum number of active-set iterations is reached, a warning is give, but
                                             % the calculation is not stopped. (In many cases there is no need to wait for

@@ -77,19 +77,9 @@ if CtrlVar.OnlyMeshDomainAndThenStop
     return
 end
 
-%[DTxy,TRIxy]=TriangulationNodesIntegrationPoints(MUA);
-
 
 [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
-
-%[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
-
-%F.h=F.s-F.b;
-%[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-%[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-
-
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);

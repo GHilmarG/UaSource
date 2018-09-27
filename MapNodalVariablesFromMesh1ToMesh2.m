@@ -50,9 +50,13 @@ F.ExtrapolationMethod='nearest';
 % The underlying triangulation is only done once, and when interpolating different fields
 % only the values are changed.
 
+if ~isfield(MUA1,'TR')
+    MUA1.TR=CreateFEmeshTriRep(MUA.connectivity,MUA.coordinates);
+end
+
 tol = eps*1000;
 [ID,d] = nearestNeighbor(MUA1.TR,[x2(:) y2(:)]);
-same=d<tol ; 
+same=d<tol ;
 
 
 for iVar=1:nVar
