@@ -95,8 +95,14 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 %%  Now initial information about the run has been defined
 % write out some basic information about the type of run selected
 PrintRunInfo(CtrlVar);
-
-
+RunInfo.Message(1)="Start of Run";
+RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
+if CtrlVar.Restart
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+    fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
+else
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+end
 
 %% Get input data
 if CtrlVar.InverseRun %  inverse run

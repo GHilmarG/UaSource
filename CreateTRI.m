@@ -20,7 +20,7 @@ end
 
 ic=incenter(DT);
 
-% note: This will fail if there are several polygones
+% note: This will fail if there are several polygons
 [cnInt,on] = inpoly(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
 
 TRI=DT.ConnectivityList(cnInt,:);

@@ -12,8 +12,6 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideV
 
 %%
 
-
-
 nVarargsIn = length(varargin);
 
 %fprintf('MapNodalVariablesFromMesh1ToMesh2 : Total number of varargin inputs = %d\n',nVarargsIn);
@@ -50,12 +48,12 @@ F.ExtrapolationMethod='nearest';
 % The underlying triangulation is only done once, and when interpolating different fields
 % only the values are changed.
 
-if ~isfield(MUA1,'TR')
-    MUA1.TR=CreateFEmeshTriRep(MUA.connectivity,MUA.coordinates);
-end
+%tri=TriFE(MUA1.connectivity);  % Only corner points
+tri=CreateFEmeshTriRep(MUA1.connectivity,MUA1.coordinates);
+
 
 tol = eps*1000;
-[ID,d] = nearestNeighbor(MUA1.TR,[x2(:) y2(:)]);
+[ID,d] = nearestNeighbor(tri,[x2(:) y2(:)]);
 same=d<tol ;
 
 
