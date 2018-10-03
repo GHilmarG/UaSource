@@ -9,7 +9,11 @@ function SetRegionalPlotAxis(Region)
 %
 
 switch lower(Region)
-    
+     case 'pig'
+        
+        axis([-1680 -1540 -380 -140])
+        
+        
     case 'pigiceshelf'
         
         axis([-1680 -1540 -380 -240])
