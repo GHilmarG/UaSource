@@ -58,7 +58,7 @@ tStart=tic;
 
 
 [F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
-                                                                                   % that the geometrical fields are consistent with floation contition.
+                                                                                   % that the geometrical fields are consistent with floation condition.
                                                                                    % However, since the uvh formulation is with respect to h
                                                                                    % alone, this will not affect the solution since this does not
                                                                                    % change h. 
@@ -255,6 +255,11 @@ while true
     
     
     [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
+    
+    % [UserVar,RunInfo,r1Test,ruv1Test,rh1Test,rl1Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    %
+    % Is r1Test equal to r ?
+    %
     
     iarm=RunInfo.BackTrack.iarm;
     infovector=RunInfo.BackTrack.Infovector;

@@ -128,6 +128,7 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
     end
     
     [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+
     %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
     
     infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;

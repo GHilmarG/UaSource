@@ -28,12 +28,12 @@ function [qGL,qGLx,qGLy,xEdge,yEdge,nxGL,nyGL,dsGL,xGLele,yGLele,iE,EN]=FluxAcro
 %
 % Note: For 3-node elements, iE and EN are not needed.
 %
-% Note: qGL has the units: speed ice-thickness ice-density width = m/yr m kg/m^3 m = kg/yr
+% Note: qGL has the units: speed x ice-thickness x ice-density width = m/yr m kg/m^3 m = kg/yr
 % (if using m, yr, kg as units for distance, time and mass.)
 %
 % Note: If using repeatedly for higher-order elements and the same MUA and GF,
 %       give returned iE and EN from previous calls as inputs.
-% 
+%
 % Note: This routine uses a (slightly) different representation of the grounding line as that
 % given by, for example, PlotGroundingLine.m which is based on interpolation of
 % the GF nodal mask.
@@ -48,7 +48,7 @@ if nargin<9
     iE=[] ;
     EN=[];
 end
-    
+
 
 [xGLele,yGLele,triGR,FB,xEdge,yEdge,nxGL,nyGL,dsGL]=EleBasedGL(CtrlVar,MUA,GF,DoPlots);
 
@@ -59,8 +59,8 @@ switch MUA.nod
         
         uhr=ub.*h.*rho;
         vhr=vb.*h.*rho;
-        qxS=dsGL.*mean(uhr(FB),2) ;
-        qyS=dsGL.*mean(vhr(FB),2);
+        qxS=dsGL.*mean(uhr(FB),2) ;  % for a linear triangle element this is correct
+        qyS=dsGL.*mean(vhr(FB),2) ;
         qGL=qxS.*nxGL+qyS.*nyGL; % units: m m (m/yr) * kg/m^3 =kg/yr
         qGLx=qGL.*nxGL ;
         qGLy=qGL.*nyGL ;
@@ -68,7 +68,7 @@ switch MUA.nod
     case 6
         
         % a bit more accurate estimate for 6-node elements. Here I used the two corner
-        % nodes and the side node and integrate with Simpson's rule with is second order
+        % nodes and the side node and integrate with Simpson's rule, which is second order
         % just like the form functions. So this should be pretty much exact.
         
         if nargin <10 || isempty(EN)
@@ -93,11 +93,11 @@ switch MUA.nod
         % I'm integrating the flux in x and y directions
         % and then projecting along normal and tangential directions.
         % This will only be correct for straight edges within each triangle
-        % 
+        %
         
         qGL=qxS.*nxGL+qyS.*nyGL;
         
-        qGLx=qGL.*nxGL ; 
+        qGLx=qGL.*nxGL ;
         qGLy=qGL.*nyGL ;
         
     case 10
@@ -116,6 +116,7 @@ if DoPlots
     Par.RelativeVelArrowSize=10;
     Par.QuiverColorPowRange=2;
     QuiverColorGHG(xEdge,yEdge,qGLx,qGLy,Par);
+    
     axis equal
     
 end
