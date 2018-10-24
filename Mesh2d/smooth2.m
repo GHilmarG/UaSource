@@ -28,10 +28,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 % - OPTS.DISP = {+ 4} -- smoothing verbosity. Set to INF for 
 %   quiet execution.
 %
-%   See also REFINE2, DRAWSCR, TRIDEMO
-
-%%!! todo
-%   [VERT,EDGE,TRIA,TNUM] = SMOOTH2(... ,HFUN,HARG)
+%   See also REFINE2, TRICOST, TRIDEMO
 
 %   This routine is loosely based on the DISTMESH algorithm,
 %   employing a "spring-based" analogy to redistribute mesh
@@ -46,27 +43,31 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
 %-----------------------------------------------------------
 %   Darren Engwirda : 2017 --
 %   Email           : de2363@columbia.edu
-%   Last updated    : 11/07/2017
+%   Last updated    : 21/07/2017
 %-----------------------------------------------------------
     
-    filename = mfilename('fullpath');
-    filepath = fileparts( filename );
+    vert = []; conn = []; tria = [] ; 
+    tnum = []; 
+    opts = []; hfun = []; harg = {} ;
     
-    addpath([filepath,'/aabb-tree']);
-
-%---------------------------------------------- extract args
-    vert = []; conn = []; tria = []; tnum = [] ; 
-    opts = []; hfun = []; harg = {};
-
+%---------------------------------------------- extract args  
     if (nargin>=+1), vert = varargin{1}; end
     if (nargin>=+2), conn = varargin{2}; end
     if (nargin>=+3), tria = varargin{3}; end
     if (nargin>=+4), tnum = varargin{4}; end
     if (nargin>=+5), opts = varargin{5}; end
-    if (nargin>=+6), hfun = varargin{6}; end
-    if (nargin>=+7), harg = varargin(7:end); end
-
+    
    [opts] = makeopt(opts) ;
+
+%---------------------------------------------- default CONN
+    if (isempty(conn))
+      
+       [edge] = tricon2(tria);
+
+        ebnd = edge(:,4) < +1;              %-- use bnd edge
+        conn = edge(ebnd,1:2);
+        
+    end
    
 %---------------------------------------------- default TNUM
     if (isempty(tnum))
@@ -315,8 +316,10 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             tcpu.undo + toc(ttic) ;
     
     %------------------------------------- test convergence!
-        vdel = sqrt(...
-            sum((vert-vold).^2, 2)) ;
+        ttic = tic ;
+    
+        vdel = ...
+            sum((vert-vold).^2,2) ;
     
         evec = vert(edge(:,2),:) ...
              - vert(edge(:,1),:) ;
@@ -336,8 +339,6 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         emid = emid * 0.5 ;  
       
     %------------------------------------- |deg|-based prune
-        ttic = tic ;
-    
         keep = false(size(vert,1),1);
         keep(vdeg>+4) = true ;
     
@@ -349,7 +350,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         lmin = +1. / lmax ;
         
         less = scal<=lmin ;
-    %%!!todo: refine large edges
+    	more = scal>=lmax ;
         
         vbnd = false(size(vert,1),1);
         vbnd(conn(:,1)) = true ;
@@ -359,6 +360,7 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
              | vbnd(edge(:,2)) ;
         
         less(ebad(:)) = false;
+        more(ebad(:)) = false;
               
     %------------------------------------- force as disjoint
         lidx = find (less) ;
@@ -380,7 +382,13 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
             
             end
         end
- 
+        
+        ebad = ...
+           keep(edge(less,1)) ...
+         & keep(edge(less,2)) ;
+        
+        more(ebad(:)) = false ;
+         
     %------------------------------------- reindex vert/tria
         redo = ...
             zeros(size(vert,1),1);
@@ -450,7 +458,8 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         
         vert =[vert(keep,:);
                emid(less,:);
-              ] ;    
+               emid(more,:);
+              ] ;
         conn = redo(conn(:,1:2)) ;
         
         tcpu.keep = ...
@@ -460,26 +469,28 @@ function [vert,conn,tria,tnum] = smooth2(varargin)
         ttic = tic ;
        
        [vert,conn,tria,tnum] = ...
-          deltri2(vert,conn,node,PSLG,part) ;
+            deltri2 (vert, ...
+                conn,node,PSLG,part) ;
           
         tcpu.dtri = ...
             tcpu.dtri + toc(ttic) ;
         
     %------------------------------------- dump-out progess!
+        vdel = vdel./(hvrt.*hvrt) ;
+        move = vdel > opts.vtol^2 ;
+        nmov = ...
+            length(find(move));
+        
+        ntri = size(tria,1) ;
+        
         if (mod(iter,opts.disp)==+0)
-            move = abs (vdel) > ...
-                opts.vtol * hvrt;
-            numm = sum (move,1) ;
-            numt = size(tria,1) ;
             fprintf(+1, ...
             '%11i %18i %18i\n', ...
-            [iter,numm,numt]) ;
+            [iter,nmov,ntri]) ;
         end
         
     %------------------------------------- loop convergence!
-        if (all(abs(vdel)<=opts.vtol*hvrt))
-            break ;
-        end
+        if (nmov == +0), break; end
         
     end
 
