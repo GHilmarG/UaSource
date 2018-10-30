@@ -1315,8 +1315,10 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 %% Mesh smoothing 
 %
 % The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:
-%  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.
-%
+% 
+% # Global meshing using mesh2d 
+% # Local adaptive remeshing using the 'red-green' local mesh refinement option.
+% 
 % Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)
 %
 % Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.
@@ -1328,16 +1330,19 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 % 
 
 CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  % Maximum number of smoothing iterations when using 'mesh2d'.  
-CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.
-
-% parameters affecting the mesh smoothing operation: 
-CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; %  -- relative vertex movement tole-
+                                                % Set to zero to disable mesh-smoothing with mesh2d
+                                                %
+CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option. 
+                                                % Set to zero to disable mesh-smoothing after red-green refinement operation.
+%
+%   parameters affecting the mesh smoothing operation:
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ;         %  -- relative vertex movement tole-
 CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; % max. number of smoothing iterations
-CtrlVar.Smooth2.opts.disp = +4        ; %  smoothing verbosity. Set to INF for quiet execution.
+CtrlVar.Smooth2.opts.disp = +4        ;         %  smoothing verbosity. Set to INF for quiet execution.
 
 
                                                          
-%% grounding-line mesh refinement      
+%% Local mesh refinement around grounding line      
 %
 %
 %

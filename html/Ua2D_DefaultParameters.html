@@ -828,13 +828,18 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
-</pre><h2 id="43">Mesh smoothing</h2><p>The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.</p><p>Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)</p><p>Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.</p><p>Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality elements (hence on by default).</p><pre class="codeinput">CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  <span class="comment">% Maximum number of smoothing iterations when using 'mesh2d'.</span>
+</pre><h2 id="43">Mesh smoothing</h2><p>The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:</p><div><ol><li>Global meshing using mesh2d</li><li>Local adaptive remeshing using the 'red-green' local mesh refinement option.</li></ol></div><p>Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)</p><p>Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.</p><p>Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality elements (hence on by default).</p><pre class="codeinput">CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  <span class="comment">% Maximum number of smoothing iterations when using 'mesh2d'.</span>
+                                                <span class="comment">% Set to zero to disable mesh-smoothing with mesh2d</span>
+                                                <span class="comment">%</span>
 CtrlVar.LocalAdaptMeshSmoothingIterations=32;   <span class="comment">% Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.</span>
+                                                <span class="comment">% Set to zero to disable mesh-smoothing after red-green refinement operation.</span>
+<span class="comment">%</span>
+<span class="comment">%   parameters affecting the mesh smoothing operation:</span>
+<span class="comment">%</span>
 
-<span class="comment">% parameters affecting the mesh smoothing operation:</span>
-CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; <span class="comment">%  -- relative vertex movement tole-</span>
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ;         <span class="comment">%  -- relative vertex movement tole-</span>
 CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; <span class="comment">% max. number of smoothing iterations</span>
-CtrlVar.Smooth2.opts.disp = +4        ; <span class="comment">%  smoothing verbosity. Set to INF for quiet execution.</span>
+CtrlVar.Smooth2.opts.disp = +4        ;         <span class="comment">%  smoothing verbosity. Set to INF for quiet execution.</span>
 </pre><h2 id="44">grounding-line mesh refinement</h2><pre class="codeinput">CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
 CtrlVar.MeshAdapt.GLrange=[];   <span class="comment">% Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];</span>
@@ -2245,8 +2250,10 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 %% Mesh smoothing 
 %
 % The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:
-%  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.
-%
+% 
+% # Global meshing using mesh2d 
+% # Local adaptive remeshing using the 'red-green' local mesh refinement option.
+% 
 % Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)
 %
 % Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.
@@ -2258,12 +2265,17 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 % 
 
 CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  % Maximum number of smoothing iterations when using 'mesh2d'.  
-CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.
+                                                % Set to zero to disable mesh-smoothing with mesh2d
+                                                %
+CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option. 
+                                                % Set to zero to disable mesh-smoothing after red-green refinement operation.
+%
+%   parameters affecting the mesh smoothing operation:
+%
 
-% parameters affecting the mesh smoothing operation: 
-CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; %  REPLACE_WITH_DASH_DASH relative vertex movement tole-
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ;         %  REPLACE_WITH_DASH_DASH relative vertex movement tole-
 CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; % max. number of smoothing iterations
-CtrlVar.Smooth2.opts.disp = +4        ; %  smoothing verbosity. Set to INF for quiet execution.
+CtrlVar.Smooth2.opts.disp = +4        ;         %  smoothing verbosity. Set to INF for quiet execution.
 
 
                                                          

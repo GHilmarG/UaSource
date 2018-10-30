@@ -548,7 +548,7 @@ dimentions of stress.  We can then write (\ref{eq:slida}) and
 (\ref{eq:slidb}) as
 \begin{align}
   \bm{t}_b   & = \G \; C_{\tau} \left ( \frac{| \bm{v}_b|}{C_v} \right )^{1/m} \, \frac{\bm{v}_b}{| \bm{v}_b | } \label{eq:slida1} \\
-  \bm{v}_b   & =  C_v  \left ( \frac{ | \bm{t}_b|}{\G C_{\tau}} \right )^m \, \frac{\bm{t}_b}{| \bm{t}_b|}  \label{eq:slidb} 
+  \bm{v}_b   & =  C_v  \left ( \frac{ | \bm{t}_b|}{\G C_{\tau}} \right )^m \, \frac{\bm{t}_b}{| \bm{t}_b|}  \label{eq:slidb1} 
 \end{align}
 
 
@@ -5367,9 +5367,9 @@ where $z=b$, must equal the ocean pressure giving
 \]
 from which various other floating relationships follow:
 \begin{align} 
-h &= \rho_o d /\rho =\frac{s-S}{1-\rho/\rho_o} = \frac{\rho_o}{\rho} (S-b) ,\label{eq:hs1} \\
-b &= \frac{\rho s - \rho_o S}{\rho-\rho_o}  = S-\frac{\rho}{\rho_o} h , \label{eq:bh1}\\
-s &= S+(1-\rho/\rho_o) h = (1-\rho_o/\rho) b +\frac{\rho_o}{\rho} S, \label{eq:sb2}\\
+h &= \rho_o d /\rho =\frac{s-S}{1-\rho/\rho_o} = \frac{\rho_o}{\rho} (S-b) ,\label{eq:hs1b} \\
+b &= \frac{\rho s - \rho_o S}{\rho-\rho_o}  = S-\frac{\rho}{\rho_o} h , \label{eq:bh1b}\\
+s &= S+(1-\rho/\rho_o) h = (1-\rho_o/\rho) b +\frac{\rho_o}{\rho} S, \label{eq:sb2b}\\
 f&= (1-\rho/\rho_o) h  . \label{eq:f2}
 \end{align}
 
@@ -5982,10 +5982,10 @@ The shallow-ice stream (SSTREAM/SSA/Shelfy) equations are
 \begin{align} 
 \p_x ( h ( 2 \txx + \tyy)) +\p_y ( h \txy) - \tbx
 &=\rho g h \p_x s 
-\label{eq:stressx}\\
+\label{eq:stressx2b}\\
 \p_y (  h ( 2 \tyy + \txx)) +\p_x ( h \txy ) - \tby
 &= \rho g h \p_y s 
-\label{eq:stressy}
+\label{eq:stressy2b}
 \end{align}
 Over the floating section $\tbx=\tby=0$.  We assume
 \begin{align*}
@@ -5994,13 +5994,13 @@ Over the floating section $\tbx=\tby=0$.  We assume
 \p_y s &= \p_y h =0 \\
 \end{align*}
 and ignore longitudinal streaching in the momemntum balance,
-hence Eqs.~(\ref{eq:stressx}) and (\ref{eq:stressy}) become
+hence Eqs.~(\ref{eq:stressx2b}) and (\ref{eq:stressy2b}) become
 \begin{align} 
-\p_y  \txy  &= \rho g \p_x h \label{eq:stressx2}\\
-\p_x ( h \txy )  &= 0  \label{eq:stressy2}
+\p_y  \txy  &= \rho g \p_x h \label{eq:stressx2c}\\
+\p_x ( h \txy )  &= 0  \label{eq:stressy2c}
 \end{align}
 
-We integrate (\ref{eq:stressx2}) from the centerline $y=0$ to the
+We integrate (\ref{eq:stressx2c}) from the centerline $y=0$ to the
 left-hand margin $y=w$, where the total width of the ice shelf is $2w$, i.e.
 
 \[
@@ -6017,7 +6017,7 @@ h= h_c- \frac{\tau_m}{\varrho g w} (x-x_c)
 where $h_c$ is the ice thickenss at the calving fron
 $x=x_c$. 
 
-Eq.~(\ref{eq:stressy2}) remains correct if evaluated along the centre
+Eq.~(\ref{eq:stressy2c}) remains correct if evaluated along the centre
 line where $\txy=0$. However, it is unclear if and how this equation
 can be consistent with the assumption of constant side shear stress
 and variable ice thickness.
@@ -6475,7 +6475,7 @@ grounding line, flotation implies that $\p_x s = \varrho \p_x h/\rho$
 (\ref{eq:ghp}) arrive at
 \begin{equation}
 [\frac{1}{2}\varrho g h^2] - [t_{bx}] = [\frac{1}{2} \varrho g  \p_x h^2]
-\label{eq:ghp2}
+\label{eq:ghp2b}
 \end{equation}
 and clearly now it is the first term on the left-hand side that balances the right-hand
 side.
@@ -6957,19 +6957,20 @@ D f(p)[\phi]=\frac{\p f}{\p p_q} \phi_q = < M^{-1} \p f / \p p_q, \phi_q>
 \]
 and therefore 
 \[
- \nabla f = [ M^{-1}]_{pq} \; \p f /\p \phi_q  
+ [\nabla f]_p = [ M^{-1}]_{pq} \; \p f /\p \phi_q  
 \] 
 
 Had we instead used the Euclidean inner product as $<\bm{x},\bm{y}> = \bm{x}^T
 \bm{y}$
 the corresponding Euclidean gradient would be 
-\[
- [\nabla_E f ]_p = \p f /\p \phi_q  
-\] 
+\begin{equation}
+ [\nabla_E f ]_p = \p f /\p \phi_p  
+\end{equation}
 or
-\[
+\begin{equation}
  \nabla f  = M^{-1} \, \nabla_{E} f
-\]
+\label{eq:Mnablaf}
+\end{equation}
 where the subscript $E$ denotes the Euclidean gradient. This
 distinction becomes important in the application of the adjoint method
 where we obtain a gradient that is dependent on the natural FE inner
