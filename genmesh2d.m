@@ -14,21 +14,26 @@ if nargin<5
 end
 
 
-options.output=false;
 
 switch lower(CtrlVar.MeshGenerator)
     
     case 'mesh2d'
-          
-        opts=CtrlVar.Mesh2d.opts; 
-  
-        hfun=@Mesh2dEleSizeFunction;
-
-        [points,edge,part]=MeshBoundaryCoordinates2Mesh2dFormat(CtrlVar,MeshBoundaryCoordinates);
-        [coordinates,edge,connectivity] = refine2(points,edge,part,opts,hfun,CtrlVar,GmshBackgroundScalarField);
-
-        %[coordinates,connectivity] = mesh2d(MeshBoundaryCoordinates,[],hdata,options);
         
+        opts=CtrlVar.Mesh2d.opts;
+        
+        
+        hfun=@Mesh2dEleSizeFunction;
+        
+        [points,edge,part]=MeshBoundaryCoordinates2Mesh2dFormat(CtrlVar,MeshBoundaryCoordinates);
+        fprintf('Creating finite-element mesh using mesh2d.\n')
+        [coordinates,edge,connectivity,tnum] = refine2(points,edge,part,opts,hfun,CtrlVar,GmshBackgroundScalarField);
+        
+        if CtrlVar.GlobalAdaptMeshSmoothingIterations>0
+            fprintf('Smoothing finite-element mesh using smooth2.\n')
+            opts=CtrlVar.Smooth2.opts;
+            [coordinates,edge,connectivity,tnum] = smooth2(coordinates,edge,connectivity,tnum,opts) ;
+        end
+
         
     case 'gmsh'
         

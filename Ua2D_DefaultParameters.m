@@ -940,14 +940,17 @@ CtrlVar.GmshGeoFileAdditionalInputLines{1}='   ';  % these lines are added to th
 
 %% Options related to the use of the mesh2d external mesh generator
 
-CtrlVar.Mesh2d.opts.kind = 'delfront';
+CtrlVar.Mesh2d.opts.kind = 'DELFRONT'  ; %  {'DELFRONT','DELAUNAY'}
 CtrlVar.Mesh2d.opts.rho2 = 1.025 ;
-CtrlVar.Mesh2d.opts.SIZ1 = 0.5;
-CtrlVar.Mesh2d.opts.SIZ2 = 0.1;
-CtrlVar.Mesh2dInputFormat=1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
-                              % 2 used the input format of mesh2d itself and if using this option one must
-                              % also define the 'edge' and 'part' input fields. In this case the
-                              % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
+CtrlVar.Mesh2d.opts.ref1 = 'refine' ; 
+CtrlVar.Mesh2d.opts.siz1 = 1.333;
+CtrlVar.Mesh2d.opts.siz2 = 1.3;
+CtrlVar.Mesh2d.opts.disp = 10;
+
+CtrlVar.Mesh2dInputFormat= 1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
+                               % 2 used the input format of mesh2d itself and if using this option one must
+                               % also define the 'edge' and 'part' input fields. In this case the
+                               % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
 CtrlVar.Mesh2d.edge=[];
 CtrlVar.Mesh2d.part=[];
                               
@@ -1224,12 +1227,8 @@ CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adapt
 CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
-                                
-CtrlVar.LocalAdaptMeshSmoothingIterations=0;  % Number of Laplace mesh smoothing iterations used in local mesh refinement
 CtrlVar.LocalAdaptMeshRatio=0.25;             % The maximum number of elements subdivided during each local mesh refinement step
-                                              % as a fraction of the total number of elements.
-
-                                              
+                                              % as a fraction of the total number of elements.                              
                                               
 CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing=5;   % put a strict limit on how much ele sizes change during single
 CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing=1/5; % adaptive meshing step to avoid excessive changes.
@@ -1313,6 +1312,30 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 
+%% Mesh smoothing 
+%
+% The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:
+%  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.
+%
+% Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)
+%
+% Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.
+%
+% Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the
+% original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality
+% elements (hence on by default).
+%
+% 
+
+CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  % Maximum number of smoothing iterations when using 'mesh2d'.  
+CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.
+
+% parameters affecting the mesh smoothing operation: 
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; %  -- relative vertex movement tole-
+CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; % max. number of smoothing iterations
+CtrlVar.Smooth2.opts.disp = +4        ; %  smoothing verbosity. Set to INF for quiet execution.
+
+
                                                          
 %% grounding-line mesh refinement      
 %
@@ -1320,10 +1343,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 %
 CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
-
-
-
-CtrlVar.MeshAdapt.GLrange=[];                                                    
+CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 
 
 %% Parameters affecting the floating mask

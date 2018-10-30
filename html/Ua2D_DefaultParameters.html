@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-08-24"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-10-30"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,7 +66,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">Types of run</a></li><li><a href="#6">Ice flow approximation</a></li><li><a href="#7">Boundary conditions</a></li><li><a href="#8">Manually updating geometry in the course of a run.</a></li><li><a href="#10">Element type</a></li><li><a href="#11">Control on transient runs</a></li><li><a href="#12">Restart option</a></li><li><a href="#14">Plotting</a></li><li><a href="#15">Plotting mesh</a></li><li><a href="#16">Numerical variables related to transient runs</a></li><li><a href="#17">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#18">Constraints on viscosity and slipperiness</a></li><li><a href="#19">Non-linear iteration-loop parameters</a></li><li><a href="#20">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#21">Backtracking parameters  -line search</a></li><li><a href="#22">Lin equation solver parameters</a></li><li><a href="#23">Internal variables related to matrix assembly</a></li><li><a href="#24">Number of integration points</a></li><li><a href="#25">Level of information given during a run</a></li><li><a href="#26">Inversion</a></li><li><a href="#27">Numbering of nodes and elements</a></li><li><a href="#28">Creation of a dumpfile</a></li><li><a href="#29">Outputs</a></li><li><a href="#30">Obtaining information about the run, during the run.</a></li><li><a href="#31">General Meshing Options</a></li><li><a href="#32">Selecting the external mesh generator</a></li><li><a href="#33">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#34">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#35">Controlling element sizes</a></li><li><a href="#36">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#37">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#38">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#39">Uniform global mesh refinement</a></li><li><a href="#40">Adaptive mesh refinement</a></li><li><a href="#41">Controlling when and how often mesh is adapted</a></li><li><a href="#42">Mesh refinement criteria</a></li><li><a href="#43">grounding-line mesh refinement</a></li><li><a href="#44">Parameters affecting the floating mask</a></li><li><a href="#45">Parameters affecting calculation of grounding line</a></li><li><a href="#46">A and C as element or nodal variables</a></li><li><a href="#47">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</a></li><li><a href="#48">Mass-balance geometry feedback</a></li><li><a href="#49">Sea ice/melange</a></li><li><a href="#51">Mapping from Mesh1 to Mesh2</a></li><li><a href="#52">Parallel options:</a></li><li><a href="#53">Tracers</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">Types of run</a></li><li><a href="#6">Ice flow approximation</a></li><li><a href="#7">Boundary conditions</a></li><li><a href="#8">Manually updating geometry in the course of a run.</a></li><li><a href="#10">Element type</a></li><li><a href="#11">Control on transient runs</a></li><li><a href="#12">Restart option</a></li><li><a href="#14">Plotting</a></li><li><a href="#15">Plotting mesh</a></li><li><a href="#16">Numerical variables related to transient runs</a></li><li><a href="#17">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#18">Constraints on viscosity and slipperiness</a></li><li><a href="#19">Non-linear iteration-loop parameters</a></li><li><a href="#20">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#21">Backtracking parameters  -line search</a></li><li><a href="#22">Lin equation solver parameters</a></li><li><a href="#23">Internal variables related to matrix assembly</a></li><li><a href="#24">Number of integration points</a></li><li><a href="#25">Level of information given during a run</a></li><li><a href="#26">Inversion</a></li><li><a href="#27">Numbering of nodes and elements</a></li><li><a href="#28">Creation of a dumpfile</a></li><li><a href="#29">Outputs</a></li><li><a href="#30">Obtaining information about the run, during the run.</a></li><li><a href="#31">General Meshing Options</a></li><li><a href="#32">Selecting the external mesh generator</a></li><li><a href="#33">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#34">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#35">Controlling element sizes</a></li><li><a href="#36">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#37">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#38">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#39">Uniform global mesh refinement</a></li><li><a href="#40">Adaptive mesh refinement</a></li><li><a href="#41">Controlling when and how often mesh is adapted</a></li><li><a href="#42">Mesh refinement criteria</a></li><li><a href="#43">Mesh smoothing</a></li><li><a href="#44">grounding-line mesh refinement</a></li><li><a href="#45">Parameters affecting the floating mask</a></li><li><a href="#46">Parameters affecting calculation of grounding line</a></li><li><a href="#47">A and C as element or nodal variables</a></li><li><a href="#48">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</a></li><li><a href="#49">Mass-balance geometry feedback</a></li><li><a href="#50">Sea ice/melange</a></li><li><a href="#52">Mapping from Mesh1 to Mesh2</a></li><li><a href="#53">Parallel options:</a></li><li><a href="#54">Tracers</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
 </pre><p>CtrlVar=Ua2D_DefaultParameters</p><pre>sets the fields of the CtrlVar to their default values</pre><pre>Most likely when running &Uacute;a, only a fairly limited number of the parameters listed below need to be set/changed.
 Changing the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'.
 That user m-file should be located in a separate run-directory, together with all the other user m-files</pre><pre class="codeinput">CtrlVar.Experiment=<span class="string">'UaDefaultRun'</span>;
@@ -345,7 +345,7 @@ CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ; <span cla
 </pre><p>is inconsistent. Ua tries to spot these input parameter mistakes and correct for them, but it is better to try to keep all inputs consistent.</p><p>Note #2: It is possible to invert for any combination of log(A) or A  and log(C) or C. So for example one can invert for log(A) and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenC'</span> ;
 </pre><p>Also one can invert for log(C) and log(A) and regularize A and C by setting</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'logAGlenlogC'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'AGlenC'</span>
-</pre><p>To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:</p><p>Note on Ua versus Matlab optimization: Generally using the Matlab optimization routines has been a bit of a disappointment. For a number of well-known test cases (Rosenbrock function etc.) the Matlab routines are far better than the simple inbuilt UaOptimization methods. For some real-world applications that have been tried, for example an inversion over PIG-TWG, the Matlab routines also tend to perform much better. However, there are other cases where the UaOptimization methods perform better,.</p><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'UaOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
+</pre><p>To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:</p><p>Note on Ua versus Matlab optimization: Generally using the Matlab optimization routines has been a bit of a disappointment. For a number of well-known test cases (Rosenbrock function etc.) the Matlab routines are far better than the simple inbuilt UaOptimization methods. For some real-world applications that have been tried, for example an inversion over PIG-TWG, the Matlab routines also tend to perform much better. However, there are other cases where the UaOptimization methods perform better,.</p><pre class="codeinput">CtrlVar.Inverse.MinimisationMethod=<span class="string">'MatlabOptimization'</span>; <span class="comment">% {'MatlabOptimization','UaOptimization'}</span>
 CtrlVar.Inverse.Iterations=1; <span class="comment">% Number of inverse iterations</span>
 
 CtrlVar.Inverse.WriteRestartFile=1;  <span class="comment">% always a good idea to write a restart file.</span>
@@ -628,14 +628,17 @@ CtrlVar.GmshBoundaryType=<span class="string">'lines'</span>;   <span class="com
 CtrlVar.GmshCharacteristicLengthExtendFromBoundary=0;
 CtrlVar.GmshCharacteristicLengthFromCurvature = 0 ;
 CtrlVar.GmshGeoFileAdditionalInputLines{1}=<span class="string">'   '</span>;  <span class="comment">% these lines are added to the gmsh .geo input file each time such a file is created</span>
-</pre><h2 id="34">Options related to the use of the mesh2d external mesh generator</h2><pre class="codeinput">CtrlVar.Mesh2d.opts.kind = <span class="string">'delfront'</span>;
+</pre><h2 id="34">Options related to the use of the mesh2d external mesh generator</h2><pre class="codeinput">CtrlVar.Mesh2d.opts.kind = <span class="string">'DELFRONT'</span>  ; <span class="comment">%  {'DELFRONT','DELAUNAY'}</span>
 CtrlVar.Mesh2d.opts.rho2 = 1.025 ;
-CtrlVar.Mesh2d.opts.SIZ1 = 0.5;
-CtrlVar.Mesh2d.opts.SIZ2 = 0.1;
-CtrlVar.Mesh2dInputFormat=1;  <span class="comment">% {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1</span>
-                              <span class="comment">% 2 used the input format of mesh2d itself and if using this option one must</span>
-                              <span class="comment">% also define the 'edge' and 'part' input fields. In this case the</span>
-                              <span class="comment">% MeshBoundaryCoordinates become the 'points' input field in mesh2d.</span>
+CtrlVar.Mesh2d.opts.ref1 = <span class="string">'refine'</span> ;
+CtrlVar.Mesh2d.opts.siz1 = 1.333;
+CtrlVar.Mesh2d.opts.siz2 = 1.3;
+CtrlVar.Mesh2d.opts.disp = 10;
+
+CtrlVar.Mesh2dInputFormat= 1;  <span class="comment">% {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1</span>
+                               <span class="comment">% 2 used the input format of mesh2d itself and if using this option one must</span>
+                               <span class="comment">% also define the 'edge' and 'part' input fields. In this case the</span>
+                               <span class="comment">% MeshBoundaryCoordinates become the 'points' input field in mesh2d.</span>
 CtrlVar.Mesh2d.edge=[];
 CtrlVar.Mesh2d.part=[];
 </pre><h2 id="35">Controlling element sizes</h2><p>if no adaptive meshing is used then the element size is given by</p><pre class="codeinput">CtrlVar.MeshSize=10e3;                       <span class="comment">% over-all desired element size (however if gmsh is used without adaptive meshing</span>
@@ -665,7 +668,7 @@ CtrlVar.ResetThicknessInNonLinLoop=0;    <span class="comment">% if true, thickn
 
 
 <span class="comment">% active-set method, option 2</span>
-CtrlVar.ThicknessConstraints=1;             <span class="comment">% set to 1 to use the active-set method (Option 2, the recommended option).</span>
+CtrlVar.ThicknessConstraints=1;             <span class="comment">% set to 1 to use the active-set method (Option 2 above, and the recommended option).</span>
 CtrlVar.ThicknessConstraintsItMax=10  ;     <span class="comment">% maximum number of active-set iterations.</span>
                                             <span class="comment">% if the maximum number of active-set iterations is reached, a warning is give, but</span>
                                             <span class="comment">% the calculation is not stopped. (In many cases there is no need to wait for</span>
@@ -743,12 +746,8 @@ CtrlVar.AdaptMeshTimeInterval=0    ; <span class="comment">% Time intervale betw
 CtrlVar.AdaptMeshMaxIterations=1;    <span class="comment">% Maximum number of adapt mesh iterations within each run-step.</span>
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;
 
-
-CtrlVar.LocalAdaptMeshSmoothingIterations=0;  <span class="comment">% Number of Laplace mesh smoothing iterations used in local mesh refinement</span>
 CtrlVar.LocalAdaptMeshRatio=0.25;             <span class="comment">% The maximum number of elements subdivided during each local mesh refinement step</span>
                                               <span class="comment">% as a fraction of the total number of elements.</span>
-
-
 
 CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing=5;   <span class="comment">% put a strict limit on how much ele sizes change during single</span>
 CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing=1/5; <span class="comment">% adaptive meshing step to avoid excessive changes.</span>
@@ -829,13 +828,17 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
-</pre><h2 id="43">grounding-line mesh refinement</h2><pre class="codeinput">CtrlVar.RefineDiracDeltaWidth=100;
+</pre><h2 id="43">Mesh smoothing</h2><p>The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.</p><p>Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)</p><p>Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.</p><p>Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality elements (hence on by default).</p><pre class="codeinput">CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  <span class="comment">% Maximum number of smoothing iterations when using 'mesh2d'.</span>
+CtrlVar.LocalAdaptMeshSmoothingIterations=32;   <span class="comment">% Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.</span>
+
+<span class="comment">% parameters affecting the mesh smoothing operation:</span>
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; <span class="comment">%  -- relative vertex movement tole-</span>
+CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; <span class="comment">% max. number of smoothing iterations</span>
+CtrlVar.Smooth2.opts.disp = +4        ; <span class="comment">%  smoothing verbosity. Set to INF for quiet execution.</span>
+</pre><h2 id="44">grounding-line mesh refinement</h2><pre class="codeinput">CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
-
-
-
-CtrlVar.MeshAdapt.GLrange=[];
-</pre><h2 id="44">Parameters affecting the floating mask</h2><pre class="codeinput">CtrlVar.kH=1;   <span class="comment">% kH -&gt; infty gives an exact Heaviside and delta functions.</span>
+CtrlVar.MeshAdapt.GLrange=[];   <span class="comment">% Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];</span>
+</pre><h2 id="45">Parameters affecting the floating mask</h2><pre class="codeinput">CtrlVar.kH=1;   <span class="comment">% kH -&gt; infty gives an exact Heaviside and delta functions.</span>
                 <span class="comment">% kH=1 implies a grounding line "width" of 1 m up and down from floating condition</span>
                 <span class="comment">% kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition</span>
                 <span class="comment">% Note: This variable has UNITS!!!  The units are those of an inverse distance.</span>
@@ -843,13 +846,13 @@ CtrlVar.MeshAdapt.GLrange=[];
                 <span class="comment">%       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance</span>
                 <span class="comment">%       that is small compared to other distances of interest.</span>
 CtrlVar.Hh0=0;  <span class="comment">% offset is Heaviside function when calculating GF field</span>
-</pre><h2 id="45">Parameters affecting calculation of grounding line</h2><p>The grounding line position does not enter any calculations done by &Uacute;a. The grounding line is primarily calculated for plotting purposes.</p><pre class="codeinput">CtrlVar.GLthreshold=0.5;  <span class="comment">% used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)</span>
+</pre><h2 id="46">Parameters affecting calculation of grounding line</h2><p>The grounding line position does not enter any calculations done by &Uacute;a. The grounding line is primarily calculated for plotting purposes.</p><pre class="codeinput">CtrlVar.GLthreshold=0.5;  <span class="comment">% used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)</span>
 CtrlVar.GLsubdivide=0;    <span class="comment">% If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true</span>
                           <span class="comment">% then all nodal values of 6-node and 10-node triangles are also used. This is done by splitting those into 4 and 9 triangles, respectively</span>
-</pre><h2 id="46">A and C as element or nodal variables</h2><p>AGlen and C can be either nodal or element variables.</p><p>By default A and C are nodal variables.</p><pre class="codeinput">CtrlVar.AGlenisElementBased=0;
+</pre><h2 id="47">A and C as element or nodal variables</h2><p>AGlen and C can be either nodal or element variables.</p><p>By default A and C are nodal variables.</p><pre class="codeinput">CtrlVar.AGlenisElementBased=0;
 CtrlVar.CisElementBased=0;
 CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
-</pre><h2 id="47">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</h2><p>The adaptive-time-stepping algorithm is based on the idea of keeping the number of non-linear iterations close to a certain target (CtrlVar.ATSTargetIterations). This is a simple but highly effective method.  However, as the ATSA is not based on any kind of error estimates, it does not guarantee that errors will not accumulate, etc, and ATSA does not work for linear problems.</p><p>The main idea is to aim at a time step that limits the number of non-linear iteration to a relatively small number. If so, then most likely the Newton-Raphson iteration is in the quadratic regime. Experience has shown that a target number of iterations (CtrlVar.ATSTargetIterations) within 3 to 5 is good for this purpose</p><p>Time step is increased if r&lt;1 where</p><pre>   r=N/M</pre><pre class="language-matlab">where
+</pre><h2 id="48">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)</h2><p>The adaptive-time-stepping algorithm is based on the idea of keeping the number of non-linear iterations close to a certain target (CtrlVar.ATSTargetIterations). This is a simple but highly effective method.  However, as the ATSA is not based on any kind of error estimates, it does not guarantee that errors will not accumulate, etc, and ATSA does not work for linear problems.</p><p>The main idea is to aim at a time step that limits the number of non-linear iteration to a relatively small number. If so, then most likely the Newton-Raphson iteration is in the quadratic regime. Experience has shown that a target number of iterations (CtrlVar.ATSTargetIterations) within 3 to 5 is good for this purpose</p><p>Time step is increased if r&lt;1 where</p><pre>   r=N/M</pre><pre class="language-matlab">where
 N <span class="string">is</span> <span class="string">the</span> <span class="string">max</span> <span class="string">number</span> <span class="string">of</span> <span class="string">non-linear</span> <span class="string">iteration</span> <span class="string">over</span> <span class="string">last</span> <span class="string">n</span> <span class="string">time</span> <span class="string">steps</span>
 M <span class="string">is</span> <span class="string">the</span> <span class="string">target</span> <span class="string">number</span> <span class="string">of</span> <span class="string">iterations</span>
 </pre><pre class="language-matlab">here
@@ -869,7 +872,7 @@ CtrlVar.ATSintervalDown=3 ;         <span class="comment">%</span>
 CtrlVar.ATSTargetIterations=4;      <span class="comment">% if number of non-lin iterations has been less than ATSTargetIterations for</span>
                                     <span class="comment">% each and everyone of the last ATSintervalUp iterations, the time step is</span>
                                     <span class="comment">% increased by the factor ATStimeStepFactorUp</span>
-</pre><h2 id="48">Mass-balance geometry feedback</h2><p>If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs. This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user supplies the gradient of the mass balance with respect to thickness.</p><pre class="codeinput">CtrlVar.MassBalanceGeometryFeedback=0;  <span class="comment">% If the mass balance depends on geometry then</span>
+</pre><h2 id="49">Mass-balance geometry feedback</h2><p>If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs. This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user supplies the gradient of the mass balance with respect to thickness.</p><pre class="codeinput">CtrlVar.MassBalanceGeometryFeedback=0;  <span class="comment">% If the mass balance depends on geometry then</span>
                                         <span class="comment">% setting this parameter to either 1, 2 or 3 has the effect of</span>
                                         <span class="comment">% the mass-balance being updated within the non-linear transient-loop.</span>
                                         <span class="comment">% In principle this parameter should always be set to 3, but in practice the</span>
@@ -905,18 +908,18 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  <span class="comment">% Dampens t
                                                <span class="comment">% Should always be equal to 0 if possible.</span>
                                                <span class="comment">% If not equal to 0, the algorithm converges to a wrong solution (!),</span>
                                                <span class="comment">% although the error might be very small if mass-balance geometry feedback is not that strong.</span>
-</pre><h2 id="49">Sea ice/melange</h2><p>&Uacute;a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric drag acting over the floating sections.non-line% If used, then the drag parameters are defined in 'DefineSeaIceParameters'</p><pre class="codeinput">CtrlVar.IncludeMelangeModelPhysics=0;
+</pre><h2 id="50">Sea ice/melange</h2><p>&Uacute;a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric drag acting over the floating sections.non-line% If used, then the drag parameters are defined in 'DefineSeaIceParameters'</p><pre class="codeinput">CtrlVar.IncludeMelangeModelPhysics=0;
 </pre><pre class="codeinput">CtrlVar.MeltNodesDefinition=<span class="string">'Edge-Wise'</span>;
-</pre><h2 id="51">Mapping from Mesh1 to Mesh2</h2><p>when a new FE is created, the values from the old mesh need to be mapped onto the new mesh if the boundary of the mesh has not changed this only involves interpolation but if the boundary of Mesh2 is different from that of Mesh1 then extrapolation might be involved In this case one must check for such points and give them some sensible outside value.</p><pre class="codeinput">CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; <span class="comment">% for non evolving mesh boundaries, can be set to 0/false</span>
+</pre><h2 id="52">Mapping from Mesh1 to Mesh2</h2><p>when a new FE is created, the values from the old mesh need to be mapped onto the new mesh if the boundary of the mesh has not changed this only involves interpolation but if the boundary of Mesh2 is different from that of Mesh1 then extrapolation might be involved In this case one must check for such points and give them some sensible outside value.</p><pre class="codeinput">CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; <span class="comment">% for non evolving mesh boundaries, can be set to 0/false</span>
 CtrlVar.InpolyTol=0.1;       <span class="comment">% tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element</span>
-</pre><h2 id="52">Parallel options:</h2><p>The parallel profile is not modified within &Uacute;a. Set the properties of the local profile through the general Matlab settings. See the matlab manual for further information.  For example, to change the number of local workers to 6, one can do the following:</p><pre class="language-matlab">myCluster = parcluster(<span class="string">'local'</span>) ;
+</pre><h2 id="53">Parallel options:</h2><p>The parallel profile is not modified within &Uacute;a. Set the properties of the local profile through the general Matlab settings. See the matlab manual for further information.  For example, to change the number of local workers to 6, one can do the following:</p><pre class="language-matlab">myCluster = parcluster(<span class="string">'local'</span>) ;
 myCluster.NumWorkers = 6;
 saveProfile(myCluster)
 </pre><p>Consult the matlab documentation for further information.</p><p>Note: It appears using about 6 workers on parfor and smpd options both on is the best approach.       However, results are likely to be somewhat problem dependent.</p><pre class="codeinput">CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     <span class="comment">% assembly over integration points done in parallel using parfor</span>
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  <span class="comment">% If left empty, all workers available are used</span>
 CtrlVar.Parallel.isTest=false;
-</pre><h2 id="53">Tracers</h2><pre class="codeinput">CtrlVar.Tracer.SUPG.Use=1;
+</pre><h2 id="54">Tracers</h2><pre class="codeinput">CtrlVar.Tracer.SUPG.Use=1;
 CtrlVar.Tracer.SUPG.tau=<span class="string">'taus'</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 </pre><pre class="codeinput">CtrlVar.fidlog=1;  <span class="comment">% unit number for standard output, no need to change.</span>
 </pre><pre class="codeinput">CtrlVar.DevelopmentVersion=0;  <span class="comment">% Internal variable, always set to 0</span>
@@ -1483,7 +1486,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 
-CtrlVar.Inverse.MinimisationMethod='UaOptimization'; % {'MatlabOptimization','UaOptimization'}
+CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
@@ -1867,14 +1870,17 @@ CtrlVar.GmshGeoFileAdditionalInputLines{1}='   ';  % these lines are added to th
 
 %% Options related to the use of the mesh2d external mesh generator
 
-CtrlVar.Mesh2d.opts.kind = 'delfront';
+CtrlVar.Mesh2d.opts.kind = 'DELFRONT'  ; %  {'DELFRONT','DELAUNAY'}
 CtrlVar.Mesh2d.opts.rho2 = 1.025 ;
-CtrlVar.Mesh2d.opts.SIZ1 = 0.5;
-CtrlVar.Mesh2d.opts.SIZ2 = 0.1;
-CtrlVar.Mesh2dInputFormat=1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
-                              % 2 used the input format of mesh2d itself and if using this option one must
-                              % also define the 'edge' and 'part' input fields. In this case the
-                              % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
+CtrlVar.Mesh2d.opts.ref1 = 'refine' ; 
+CtrlVar.Mesh2d.opts.siz1 = 1.333;
+CtrlVar.Mesh2d.opts.siz2 = 1.3;
+CtrlVar.Mesh2d.opts.disp = 10;
+
+CtrlVar.Mesh2dInputFormat= 1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
+                               % 2 used the input format of mesh2d itself and if using this option one must
+                               % also define the 'edge' and 'part' input fields. In this case the
+                               % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
 CtrlVar.Mesh2d.edge=[];
 CtrlVar.Mesh2d.part=[];
                               
@@ -1929,7 +1935,7 @@ CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear 
 
 
 % active-set method, option 2 
-CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2, the recommended option).
+CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
                                             % if the maximum number of active-set iterations is reached, a warning is give, but
                                             % the calculation is not stopped. (In many cases there is no need to wait for
@@ -2151,12 +2157,8 @@ CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adapt
 CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
-                                
-CtrlVar.LocalAdaptMeshSmoothingIterations=0;  % Number of Laplace mesh smoothing iterations used in local mesh refinement
 CtrlVar.LocalAdaptMeshRatio=0.25;             % The maximum number of elements subdivided during each local mesh refinement step
-                                              % as a fraction of the total number of elements.
-
-                                              
+                                              % as a fraction of the total number of elements.                              
                                               
 CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing=5;   % put a strict limit on how much ele sizes change during single
 CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing=1/5; % adaptive meshing step to avoid excessive changes.
@@ -2240,6 +2242,30 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
 CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 
+%% Mesh smoothing 
+%
+% The finite-element mesh can be `smoothed' to improve the quality of the elements. This options is available for:
+%  1) Global meshing using mesh2d 2) Local adaptive remeshing using the 'red-green' local mesh refinement option.
+%
+% Mesh smoothing is not possible using gmsh (gmsh does it own automated smoothing.)
+%
+% Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.
+%
+% Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the
+% original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality
+% elements (hence on by default).
+%
+% 
+
+CtrlVar.GlobalAdaptMeshSmoothingIterations=32;  % Maximum number of smoothing iterations when using 'mesh2d'.  
+CtrlVar.LocalAdaptMeshSmoothingIterations=32;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option.
+
+% parameters affecting the mesh smoothing operation: 
+CtrlVar.Smooth2.opts.vtol = +1.0E-02  ; %  REPLACE_WITH_DASH_DASH relative vertex movement tole-
+CtrlVar.Smooth2.opts.iter = CtrlVar.GlobalAdaptMeshSmoothingIterations ; % max. number of smoothing iterations
+CtrlVar.Smooth2.opts.disp = +4        ; %  smoothing verbosity. Set to INF for quiet execution.
+
+
                                                          
 %% grounding-line mesh refinement      
 %
@@ -2247,10 +2273,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 %
 CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
-
-
-
-CtrlVar.MeshAdapt.GLrange=[];                                                    
+CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 
 
 %% Parameters affecting the floating mask

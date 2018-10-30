@@ -76,8 +76,14 @@ switch CtrlVar.MeshRefinementMethod
         
         RunInfo.MeshAdapt.Method='Red-Green Refinement';
         [MUAold.coordinates,MUAold.connectivity] = refine(MUAold.coordinates,MUAold.connectivity,ElementsToBeRefined);
-        [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
-        MUAold.connectivity=FlipElements(MUAold.connectivity);
+        
+        if CtrlVar.LocalAdaptMeshSmoothingIterations>0
+            opts=CtrlVar.Smooth2.opts;
+            tnum=[]; edge=[];
+            [MUAold.coordinates,edge,MUAold.connectivity,tnum] = smooth2(MUAold.coordinates,edge,MUAold.connectivity,tnum,opts);
+        end
+        %        [MUAold.coordinates] = GHGsmoothmesh(MUAold.coordinates,MUAold.connectivity,CtrlVar.LocalAdaptMeshSmoothingIterations,[]);
+        %        MUAold.connectivity=FlipElements(MUAold.connectivity);
         
         % create MUA (this takes care of any eventual change in element type as well)
         MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates);
