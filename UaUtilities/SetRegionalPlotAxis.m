@@ -9,7 +9,7 @@ function SetRegionalPlotAxis(Region)
 %
 
 switch lower(Region)
-     case 'pig'
+    case 'pig'
         
         axis([-1680 -1540 -380 -140])
         
@@ -33,6 +33,10 @@ switch lower(Region)
         axis([-1600 -400 100 1100])
     case'ross'
         axis([-600 400 -1400 -400])
+        
+    case 'thwaites'
+        
+        axis([-1610 -1490 -490 -380])
 end
 
 
