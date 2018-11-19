@@ -95,28 +95,51 @@
 \contentsline {subsubsection}{Ice shelf}{71}
 \contentsline {section}{\numberline {6.9}Thoughts about ice shelf von Neumann BC}{72}
 \contentsline {subsection}{\numberline {6.9.1}1d case}{72}
-\contentsline {part}{II\hspace {1em}Some glacier mechanics stuff}{73}
-\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{75}
-\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{76}
-\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{77}
-\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{78}
-\contentsline {section}{\numberline {7.4}Shear stress}{79}
-\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{80}
-\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{82}
-\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{85}
-\contentsline {section}{\numberline {8.1}Problem definition:}{85}
-\contentsline {section}{\numberline {8.2}Solution:}{85}
-\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{87}
-\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{87}
-\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{87}
-\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{89}
-\contentsline {section}{\numberline {9.4}Flux at the grounding line}{90}
-\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{92}
-\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{93}
-\contentsline {section}{\numberline {9.7}Grounding-line instability}{94}
-\contentsline {part}{III\hspace {1em}Appendices}{95}
-\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{97}
-\contentsline {section}{\numberline {A.1}grounded part}{97}
-\contentsline {section}{\numberline {A.2}floating part}{98}
-\contentsline {chapter}{\numberline {B}Integral theorem}{99}
-\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{101}
+\contentsline {part}{II\hspace {1em}Glacier mechanics}{73}
+\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{77}
+\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{78}
+\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{79}
+\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{80}
+\contentsline {section}{\numberline {7.4}Shear stress}{81}
+\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{82}
+\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{84}
+\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{87}
+\contentsline {section}{\numberline {8.1}Problem definition:}{87}
+\contentsline {section}{\numberline {8.2}Solution:}{87}
+\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{89}
+\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{89}
+\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{89}
+\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{91}
+\contentsline {section}{\numberline {9.4}Flux at the grounding line}{92}
+\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{94}
+\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{95}
+\contentsline {section}{\numberline {9.7}Grounding-line instability}{96}
+\contentsline {chapter}{\numberline {10}Shallow Ice Stream Approximation (SSTREAM/SSA)}{97}
+\contentsline {section}{\numberline {10.1}Field equations and boundary conditions}{97}
+\contentsline {section}{\numberline {10.2}Shallow Ice Stream Scalings}{98}
+\contentsline {subsection}{\numberline {10.2.1}Definition of scales}{98}
+\contentsline {subsection}{\numberline {10.2.2}Scaling the equations}{99}
+\contentsline {subsubsection}{Sliding law}{100}
+\contentsline {subsubsection}{Flow law}{102}
+\contentsline {subsubsection}{Slip ratio}{104}
+\contentsline {subsubsection}{Implications of different balances for the slip ratio}{104}
+\contentsline {section}{\numberline {10.3}The SSTREAM (zeroth-order) equations}{105}
+\contentsline {subsection}{\numberline {10.3.1}Boundary conditions}{105}
+\contentsline {subsection}{\numberline {10.3.2}Field equations}{105}
+\contentsline {subsection}{\numberline {10.3.3}Vertical integration}{106}
+\contentsline {subsection}{\numberline {10.3.4}Tensor of resisting stresses}{107}
+\contentsline {subsection}{\numberline {10.3.5}Weertman sliding law}{107}
+\contentsline {section}{\numberline {10.4}The shallow ice shelf approximation (SSHELF)}{108}
+\contentsline {subsection}{\numberline {10.4.1}Boundary conditions at the calving front}{109}
+\contentsline {subsection}{\numberline {10.4.2}Ice Shelf Buttressing}{111}
+\contentsline {section}{\numberline {10.5}Scaling the sliding law}{113}
+\contentsline {chapter}{\numberline {11}Pertubation solutions of the SSTREAM/SSA}{115}
+\contentsline {section}{\numberline {11.1}Problem definition}{115}
+\contentsline {subsection}{\numberline {11.1.1}Bedrock perturbations}{115}
+\contentsline {subsection}{\numberline {11.1.2}Slipperiness perturbations}{124}
+\contentsline {part}{III\hspace {1em}Appendices}{129}
+\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{131}
+\contentsline {section}{\numberline {A.1}grounded part}{131}
+\contentsline {section}{\numberline {A.2}floating part}{132}
+\contentsline {chapter}{\numberline {B}Integral theorem}{133}
+\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{135}
