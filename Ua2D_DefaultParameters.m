@@ -157,6 +157,10 @@ CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smal
 CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrows indicating boundary conditions when plotting boundary conditions. 
                                                   % The arrows are automatically scales with respect to mesh size, but if they are
                                                   % too small or too large this parameter can be used to affect their size. 
+                                                 
+                                                  
+                                                  
+CtrlVar.PlotPosition=[100 100 1000 1000];
 
 %% Plotting mesh
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 

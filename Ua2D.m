@@ -333,28 +333,42 @@ while 1
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,CtrlVar.time,CtrlVar.dt);
     end
     
-       
+    
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
-
+        
         [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
         
         
-        if MUA.Nele==0 
+        if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
             break ;
         end
         
+        if CtrlVar.doplots  && CtrlVar.PlotMesh
+            
+            FigMesh='Mesh';
+            fig=findobj(0,'name',FigMesh);
+            if isempty(fig)
+                fig=figure('name',FigMesh);
+                fig.Position=CtrlVar.PlotPosition;
+            else
+                fig=figure(fig);
+                hold off
+            end
+            PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+        end
+
+        
+        
         if CtrlVar.AdaptMeshAndThenStop
             
-            if CtrlVar.doplots  && CtrlVar.PlotMesh
-                figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+            if ~isempty(CtrlVar.SaveAdaptMeshFileName)
+                save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
+                fprintf(' MUA was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
             end
-            
-            save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
-            fprintf(' MUA was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
             fprintf('Exiting after remeshing because CtrlVar.AdaptMeshAndThenStop set to true. \n ')
             return
         end

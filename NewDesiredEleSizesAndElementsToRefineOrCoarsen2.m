@@ -203,7 +203,7 @@ end
 
 
 if all(EleSizeDesired==CtrlVar.MeshSizeMax)
-    if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    if CtrlVar.InfoLevelAdaptiveMeshing>=10
         fprintf(' After using relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
         fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
         fprintf(' Will now set all ele sizes equal to CtrlVar.MeshSize=%g \n ',CtrlVar.MeshSize);

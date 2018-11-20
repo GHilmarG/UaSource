@@ -87,7 +87,7 @@ if  CtrlVar.doplots && CtrlVar.PlotMesh
     fig=findobj(0,'name',FigName);
     if isempty(fig)
         fig=figure('name',FigName);
-        fig.Position=[1,1,1000,1000] ;
+        fig.Position=CtrlVar.PlotPosition;
     else
         fig=figure(fig);
         hold off
