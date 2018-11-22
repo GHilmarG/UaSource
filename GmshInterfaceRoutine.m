@@ -58,7 +58,7 @@ if nargin<3 || isempty(GmshBackgroundScalarField)  % mesh domain (without using 
     
     if contains(lower(CtrlVar.GmshMeshingMode),'mesh domain')
         
-        RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
+        RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -2 -format msh2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
         
     end
     

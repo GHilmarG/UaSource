@@ -358,7 +358,12 @@ while 1
                 fig=figure(fig);
                 hold off
             end
+            xlimtemp=fig.CurrentAxes.XLim;  ylimtemp=fig.CurrentAxes.YLim;
             PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+            hold on ; 
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r');
+            
+            xlim(xlimtemp) ; ylim(ylimtemp);
         end
 
         
