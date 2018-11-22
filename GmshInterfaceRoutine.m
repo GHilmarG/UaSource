@@ -73,7 +73,7 @@ else  % remesh with a given scalar background field defining desired ele sizes
     fprintf(CtrlVar.fidlog,'Creating a Gmsh scalar post file %s \n',FileName);
     CreateGmshBackgroundScalarMesh(GmshBackgroundScalarField.xy,GmshBackgroundScalarField.TRI,GmshBackgroundScalarField.EleSize,FileName);
     
-    RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -bgm ',FileName,' -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
+    RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -bgm ',FileName,' -format msh2 -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
     
     
 end

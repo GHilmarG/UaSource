@@ -1,7 +1,7 @@
-function [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF)
+function [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F)
 
 
-narginchk(5,5)
+narginchk(4,4)
 nargoutchk(2,2)
 
 N=nargout('DefineAGlenDistribution');
@@ -11,11 +11,11 @@ switch N
     
     case 2
         
-        [F.AGlen,F.n]=DefineAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        [F.AGlen,F.n]=DefineAGlenDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         
     case 3
         
-        [UserVar,F.AGlen,F.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        [UserVar,F.AGlen,F.n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         
     otherwise
         

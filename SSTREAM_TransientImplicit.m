@@ -1,7 +1,7 @@
-function [UserVar,RunInfo,F1,l1,BCs1,GF1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
+function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 narginchk(8,8)
-nargoutchk(5,6)
+nargoutchk(4,5)
 
 
 
@@ -57,7 +57,7 @@ if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative
 tStart=tic;
 
 
-[F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
+[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
                                                                                    % that the geometrical fields are consistent with floation condition.
                                                                                    % However, since the uvh formulation is with respect to h
                                                                                    % alone, this will not affect the solution since this does not
@@ -345,7 +345,7 @@ while true
     end
     
     % make sure to update s and b as well!
-    [F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+    [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
     CtrlVar.ResetThicknessToMinThickness=temp;
     
     if~isempty(Lh)
@@ -367,13 +367,13 @@ while true
     % only need to consider option 1 because if options 2 or 3 are used the
     % mass-blance is updated anyhow witin the assmebly loop.
     if CtrlVar.MassBalanceGeometryFeedback>0
-        %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
+        
         rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
         if rdamp~=0
             as1Old=F1.as ; ab1Old=F1.ab;
         end
         CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1,GF1);
+        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
         CtrlVar.time=CtrlVar.time-CtrlVar.dt;
         
         if rdamp~=0

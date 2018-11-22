@@ -1,5 +1,9 @@
 
-function [UserVar,RunInfo,F1,F0,l,Kuv,Ruv,Lubvb,GF1]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l)
+function [UserVar,RunInfo,F1,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l)
+
+
+nargoutchk(8,8)
+narginchk(8,8)
 
 %% 1) Calculate uv at the beginning of the time step.  
 %
@@ -24,8 +28,8 @@ F1=ExplicitEstimationForUaFields(CtrlVar,F1,F0,Fm1);
 
 CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
 
-GF=GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
-[UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1,GF);
+F1.GF=GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
+[UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
 CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
 
 dadt=(F1.as+F1.ab-(F0.as+F0.ab))/CtrlVar.dt;
@@ -33,7 +37,7 @@ dadt=(F1.as+F1.ab-(F0.as+F0.ab))/CtrlVar.dt;
 %% 3) calculate new ice thickness implicitly with respect to h.
 [F1.h,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
 % Make sure to update s and b too.
-[F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
 
 %% 4) And finally calculate uv based on the new geometry.

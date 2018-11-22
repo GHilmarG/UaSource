@@ -21,7 +21,7 @@ Fbackground.B=B;
 
 GFbackground=[];   % I would have to do this differently, first estimate s, b, S , B and rho on background mesh, calculate GF. And then reset s and b to B.
 
-[UserVar,Fbackground]=GetMassBalance(UserVar,CtrlVar,MUA_Background,Fbackground,GFbackground);
+[UserVar,Fbackground]=GetMassBalance(UserVar,CtrlVar,MUA_Background,Fbackground);
 
 
 I=find(Fbackground.as >= CtrlVar.MinSurfAccRequiredToReactivateNodes & Fbackground.h<=CtrlVar.ThickMinDeactivateElements);

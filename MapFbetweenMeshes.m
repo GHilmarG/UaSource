@@ -1,16 +1,16 @@
-function [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold)
+function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold)
 
          
 
-narginchk(9,9)
-nargoutchk(6,6)
+narginchk(8,8)
+nargoutchk(5,5)
 
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
 Fnew=Fold;
 
 if ~RunInfo.MeshAdapt.isChanged
-    GFnew=GFold;
+
     BCsNew=BCsOld;
     lnew=lold;
     return
@@ -31,7 +31,8 @@ if CtrlVar.TimeDependentRun
         fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
         fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         
-        [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+        
         %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
         %Fnew.h=Fnew.s-Fnew.b;
         
@@ -39,7 +40,10 @@ if CtrlVar.TimeDependentRun
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
         OutsideValue=0;
         Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
-        [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');  % I calculate s and b from h
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB'); 
+        
+        
+        % I calculate s and b from h
         % [UserVar,~,~,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'SB');
         % [UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
         % [Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
@@ -52,7 +56,8 @@ else
     fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
     fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
     
-    [UserVar,Fnew,GFnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+    [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
+    
     %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
     %Fnew.h=Fnew.s-Fnew.b;
     
@@ -69,14 +74,14 @@ end
 %[Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
 
-[UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew,GFnew);
-[UserVar,Fnew]=GetAGlenDistribution(UserVar,CtrlVar,MUAnew,Fnew,GFnew);
-[UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew,GFnew);
+[UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
+[UserVar,Fnew]=GetAGlenDistribution(UserVar,CtrlVar,MUAnew,Fnew);
+[UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew);
 
 BCsNew=BoundaryConditions;
-[UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew,GFnew);
+[UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
-[UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew,GFnew);
+[UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
 OutsideValues=[];
 

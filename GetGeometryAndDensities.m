@@ -1,4 +1,4 @@
-function [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
+function [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
 
 %
 % Wrapper around DefineGeometry.m
@@ -14,8 +14,8 @@ function [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBe
 
 
 nOut=nargout;
-if nOut~=3
-    error('Ua:GetGeometry','Need 3 output arguments')
+if nOut~=2
+    error('Ua:GetGeometry','Need 2 output arguments')
 end
 
 
@@ -25,7 +25,16 @@ end
 
 if ~(FieldsToBeDefined=="")
     
-    [UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined);
+    nArgs=nargin('DefineGeometry');
+    
+    switch nArgs
+        case 5
+            [UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined);
+        case 6
+            [UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined,F);
+        otherwise
+            errors('DefineGeometry must have either 5 or 6 inputs arguments.')
+    end
     
     % some error checks
     errorStruct.identifier = 'GetGeometry:NaNinInput';
@@ -71,7 +80,6 @@ end
 
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 end

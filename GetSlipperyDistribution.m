@@ -1,6 +1,6 @@
-function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF)
+function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F)
 
-narginchk(5,5)
+narginchk(4,4)
 nargoutchk(2,2)
 
 
@@ -11,11 +11,11 @@ switch N
     
     case 2
         
-        [F.C,F.m]=DefineSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        [F.C,F.m]=DefineSlipperyDistribution(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         
     case 3
         
-        [UserVar,F.C,F.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,GF);
+        [UserVar,F.C,F.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         
     otherwise
         

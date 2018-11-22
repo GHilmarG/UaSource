@@ -1,9 +1,9 @@
 
-function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF)
+function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F)
 
 persistent BCsFig
 
-narginchk(6,6)
+narginchk(5,5)
 nargoutchk(2,2)
 
 
@@ -21,11 +21,11 @@ if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
         
         case 1
             
-            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
+            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
             
         case 2
             
-            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
+            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
             
     end
     
@@ -36,7 +36,7 @@ else
     [ubFixedNode,ubFixedValue,vbFixedNode,vbFixedValue,...
         ubTiedNodeA,ubTiedNodeB,vbTiedNodeA,vbTiedNodeB,...
         hFixedNode,hFixedValue,hTiedNodeA,hTiedNodeB]=...
-        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,GF);
+        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
     
     BCs.ubFixedNode=ubFixedNode;
     BCs.ubFixedValue=ubFixedValue;

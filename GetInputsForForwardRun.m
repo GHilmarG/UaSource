@@ -1,7 +1,7 @@
-function  [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo)
+function  [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo)
 
 narginchk(3,3) 
-nargoutchk(7,7)
+nargoutchk(6,6)
 
 F=UaFields;
 
@@ -71,29 +71,29 @@ if CtrlVar.OnlyMeshDomainAndThenStop
         figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
     end
     
-    BCs=[]; F=[] ; l=[] ; GF=[] ;
+    BCs=[]; F=[] ; l=[] ; 
     
     fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return
 end
 
 
-[UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
+[UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
 TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
 
-[UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
-[UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
-[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+[UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+[UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
+[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
 
 F=StartVelocity(CtrlVar,MUA,BCs,F);  % initialize 
 
-[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
+[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
 
 F=StartVelocity(CtrlVar,MUA,BCs,F);  % modify based on BCs
 
-[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
 
-[UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F,GF);
+[UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F);
 
 
 l=UaLagrangeVariables; 

@@ -112,7 +112,7 @@ if CtrlVar.InverseRun %  inverse run
         
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for an inverse restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
-        [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
+        [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
             GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo);
         
     else % New inverse run
@@ -122,10 +122,10 @@ if CtrlVar.InverseRun %  inverse run
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
         % First get the usual input for a forward run
         
-        [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
+        [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
         % now get the additional variables specific to an inverse run
-        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,RunInfo);
+        [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
     end
     
@@ -153,7 +153,7 @@ else
         
         RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new forward run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
-        [UserVar,RunInfo,MUA,BCs,F,l,GF]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
+        [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
             return
@@ -196,7 +196,7 @@ CtrlVar.RunInfoMessage=RunInfo.Message(end);
 
 
 F.h=F.s-F.b;
-[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); 
 %GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
 
 
@@ -220,7 +220,7 @@ if CtrlVar.doInverseStep   % -inverse
     CtrlVar.UaOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     %         [db,dc] = Deblurr2D(NaN,...
@@ -235,7 +235,7 @@ if CtrlVar.doInverseStep   % -inverse
         
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
     [UserVar,F,l,InvFinalValues,RunInfo]=...
-        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
@@ -246,19 +246,19 @@ if CtrlVar.doInverseStep   % -inverse
     [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     if CtrlVar.doplots
-         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
     if CtrlVar.Inverse.WriteRestartFile
         
-        WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues);
+        WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues);
         
     end
     
     CtrlVar.UaOutputsInfostring='End of Inverse Run';
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
     SayGoodbye(CtrlVar);
     return  % This is the end of the (inverse) run
@@ -272,7 +272,7 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -338,7 +338,7 @@ while 1
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
         
-        [UserVar,RunInfo,MUA,BCs,F,l,GF]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb);
+        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
         
         
@@ -361,9 +361,9 @@ while 1
             xlimtemp=fig.CurrentAxes.XLim;  ylimtemp=fig.CurrentAxes.YLim;
             PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
             hold on ; 
-            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r');
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
             
-            xlim(xlimtemp) ; ylim(ylimtemp);
+            xlim(xlimtemp) ; ylim(ylimtemp); axis tight
         end
 
         
@@ -386,24 +386,24 @@ while 1
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
-            [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
+            [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
         else
-            [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
+            [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
         end
     end
     
     
 
-    [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
-    [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
+    [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+    [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
 
     if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
-        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
+        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
         F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
  
     
-    [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+    [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
     
     %%  -------------------------------------------------------------------------------------]
     
@@ -467,7 +467,7 @@ while 1
                     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
                     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
                     
-                    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+                    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
                     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
                         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
                             CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
@@ -494,13 +494,13 @@ while 1
             uvhStep=1;
             while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin  % if uvh step does not converge, it is repeated with a smaller dt value
                 CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-                [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+                [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
                 CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
                 
                 
                 %Fguessed=F;  could use norm of difference between explicit and implicit to
                 %control dt
-                [UserVar,RunInfo,F,l,BCs,GF,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
                 
                 CtrlVar.dt=dt;  % I might have changed dt within uvh
                 
@@ -537,8 +537,7 @@ while 1
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             %CtrlVar.time=round(CtrlVar.time,14,'significant');
             
-            [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);  % This should not be needed as uvh already takes care of this.
-           
+            [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             
             Fm1.dhdt=F0.dhdt ;
             Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -577,7 +576,7 @@ while 1
              
             F0=F;
             
-            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,GF]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             Fm1.dhdt=F0.dhdt ;
             Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -609,14 +608,14 @@ while 1
         
         if CtrlVar.MassBalanceGeometryFeedback>0
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
-            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
             %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
         end
         
         fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
         
-        UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
         %UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,dasdh,dabdh,GF,BCs,l);
         
         if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
@@ -627,7 +626,7 @@ while 1
     end
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
-        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo); 
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
     end
     
     
@@ -656,13 +655,13 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
     CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
         CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
         CtrlVar.time=CtrlVar.time-CtrlVar.dt;
         %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     %UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,dasdh,dabdh,GF,BCs,l);
     if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
@@ -676,7 +675,7 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo); 
+    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
