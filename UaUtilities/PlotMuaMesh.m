@@ -4,7 +4,7 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
 %   PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
-% The only essential input is MUA, the others are optiona.
+% The only essential input is MUA, the others are optional.
 %
 % varargin is passed onto PlotFEmsh and then onto triplot.
 %
@@ -75,7 +75,7 @@ PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
 
 
 
-if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo 
+if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
     hold on
     PlotGmshGeometryDefinition(CtrlVar);
 end

@@ -47,6 +47,8 @@ while 1
                 fileformat = 2;
                 tline = fgetl(fid);
                 fprintf('Mesh Type : %s',tline)
+                
+                
                 tline = fgetl(fid);
                 if (tline(1) == '$' && tline(2) == 'E'&& tline(3) == 'n')
                     tline = fgetl(fid);

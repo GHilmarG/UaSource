@@ -1,8 +1,8 @@
-function [UserVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
+function [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
     GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo)
 
 narginchk(3,3) 
-nargoutchk(11,11)
+nargoutchk(10,10)
 
 
 fprintf(CtrlVar.fidlog,' Inverse run: loading restart file: %s \t ',CtrlVar.Inverse.NameOfRestartInputFile);
@@ -12,6 +12,8 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues');
 
 fprintf(CtrlVar.fidlog,' done \n ');
+
+F.GF=GF;
 
 LastRunInfo=RunInfo;
 
@@ -37,7 +39,7 @@ isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors);
 
 if ~isCorrectDimensions
     
-    [UserVar,~,Priors,~,~,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,~,Priors,~,~,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     %[UserVar,~,Priors,~,~]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     
 end

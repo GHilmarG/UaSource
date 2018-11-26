@@ -58,6 +58,7 @@ classdef UaFields
         g=[];
         alpha=[];
         
+        GF=[];
     end
     
 end

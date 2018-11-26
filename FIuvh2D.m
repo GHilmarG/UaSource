@@ -1,8 +1,8 @@
-function [UserVar,RunInfo,F1,l1,BCs1,GF1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
+function [UserVar,RunInfo,F1,l1,BCs1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
 
 narginchk(9,9)
-nargoutchk(7,7)
+nargoutchk(6,6)
 
 dt=CtrlVar.dt;
 
@@ -12,7 +12,7 @@ RunInfo.Forward.IterationsTotal=0;
 if ~CtrlVar.ThicknessConstraints
     
     
-    [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+    [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1); 
     
     CtrlVar.NumberOfActiveThicknessConstraints=0;
     
@@ -115,7 +115,7 @@ else
             end
             
             
-            [UserVar,RunInfo,F1,l1,BCs1,GF1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+            [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1); 
             nlIt(iCounter)=RunInfo.Forward.Iterations;  iCounter=iCounter+1;
             RunInfo.Forward.Iterations=mean(nlIt,'omitnan');
             

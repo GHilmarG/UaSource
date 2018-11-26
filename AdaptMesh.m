@@ -1,19 +1,17 @@
 
-function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew,GFnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb)
+function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,RuvOld,Lubvb)
 
 
 persistent AdaptMeshTime
 
 
-narginchk(10,10)
-nargoutchk(7,7)
+narginchk(9,9)
+nargoutchk(6,6)
 
 MUAnew=MUAold;
 Fnew=Fold;
 BCsNew=BCsOld;
 lnew=lold;
-GFnew=GFold;
-
 
 
 
@@ -81,7 +79,7 @@ end
 
 if isMeshAdvanceRetreat
     
-    [UserVar,RunInfo,MUAnew]=MeshAdvanceRetreat(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
+    [UserVar,RunInfo,MUAnew]=MeshAdvanceRetreat(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,Fold.GF,RuvOld,Lubvb);
     
     if MUAnew.Nele==0
         fprintf('No elements left in mesh! \n ')
@@ -124,7 +122,8 @@ elseif isMeshAdapt
         MUAold=MUAnew;
         Fold=Fnew;
         BCsOld=BCsNew;
-        GFold=GFnew;
+        
+      
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1
             fprintf(CtrlVar.fidlog,' --------->  Remeshing at start of run step %-i. Remeshing iteration #%-i (#Ele=%i,#Nodes=%i) \n ',CtrlVar.CurrentRunStepNumber,JJ,MUAold.Nele,MUAold.Nnodes);
@@ -133,11 +132,11 @@ elseif isMeshAdapt
         %  Determine new desired element sizes and identify elements for refinement
         %  or coarsening.
         [UserVar,RunInfo,Fold,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-            NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,RuvOld,Lubvb);
+            NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,Fold.GF,RuvOld,Lubvb);
         
         %  Remesh: either global-remeshing or local-mesh refinement.
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
-            Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,GFold,...
+            Remeshing(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,Fold.GF,...
             xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
         
         
@@ -150,8 +149,9 @@ elseif isMeshAdapt
         nNewElements=MUAnew.Nele-MUAold.Nele;
         nNewNodes=MUAnew.Nnodes-MUAold.Nnodes;
         
-        [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
-        
+       
+        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+       
         
         %% Plots
         if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
@@ -170,7 +170,7 @@ elseif isMeshAdapt
             hold off
             xGL=[] ; yGL=[]; GLgeo=[];
             PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
-            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,GFold,GLgeo,xGL,yGL,'r');
+            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
             title(sprintf('Adapt-mesh iteration #%i \n Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',JJ,MUAold.Nele,MUAold.Nnodes,MUAold.nod))
             axis tight
             
@@ -180,7 +180,7 @@ elseif isMeshAdapt
             CtrlVar.PlotGLs=1;
             PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
             title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
-            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,GFnew,GLgeo,xGL,yGL,'r');
+            hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
             axis tight
             
             
@@ -226,7 +226,7 @@ end
 %%
 %% map variables to new mesh
 
-[UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+[UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
 
 %%
 
@@ -243,7 +243,7 @@ if CtrlVar.ManuallyDeactivateElements
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
     
     [UserVar,ElementsToBeDeactivated]=...
-        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,xEle,yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,GFnew);
+        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,xEle,yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
     
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
         figure
@@ -258,7 +258,9 @@ if CtrlVar.ManuallyDeactivateElements
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
     %MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
     
-    [UserVar,RunInfo,Fnew,BCsNew,GFnew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,GFold,lold);
+   
+    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+
 end
 %%
 
@@ -267,7 +269,6 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('After remeshing: ') ;
     PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
 end
-
 
 
 if CtrlVar.AdaptMeshAndThenStop
@@ -294,6 +295,8 @@ if ~CtrlVar.AdaptMeshAndThenStop
         end
     end
 end
+
+
 
 
 %%

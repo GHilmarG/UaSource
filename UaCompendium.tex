@@ -28,6 +28,7 @@
 \newcommand{\He}{\mathcal{H}}
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\p}{\partial}
+\newcommand{\epsi}{\varepsilon}
 \newcommand{\eps}{\dot{\epsilon}}
 \newcommand{\de}{\delta}
 \newcommand{\eij}{\dot{\epsilon}_{ij}}
@@ -55,11 +56,18 @@
 \newcommand{\syy}{\sigma_{yy}}
 \newcommand{\syz}{\sigma_{yz}}
 \newcommand{\szz}{\sigma_{zz}}
+\newcommand{\ngl}{\hat{\bm{n}}_{\mathrm{gl}}}
+\newcommand{\mgl}{\hat{\bm{m}}_{\mathrm{gl}}}
 \newcommand{\normal}{\hat{\bm{n}}}
 \newcommand{\normalh}{\hat{\bm{n}}_h}
+\newcommand{\normalc}{\hat{\bm{n}}_{c}}
 \newcommand{\I}{\mathrm{i}}
 \newcommand{\Ua}{\textsl{\'Ua}\,}
 \newcommand{\xgl}{x_{\mathrm{gl}}}
+\newcommand{\tgl}{\bm{t}_{\mathrm{gl}}}
+\newcommand{\tO}{\bm{t}_o}
+\newcommand{\ti}{\bm{t}_i}
+\newcommand{\T}{T}
 
 \providecommand{\abs}[1]{\lvert#1\rvert}
 \providecommand{\norm}[1]{\lVert#1\rVert}
@@ -159,7 +167,7 @@ where $\He$ is the Heaviside function, defined as
 
 \[ \He(x)=  \begin{cases} 
               0 & \text{for}   \quad x < 0 \\          
-             1/2 & \text{for}  \quad x=1/2 \\
+             1/2 & \text{for}  \quad x=0 \\
              1 & \text{for}    \quad x>0
    \end{cases}
 \]
@@ -5340,8 +5348,13 @@ or
 \]
 
 
-\part{Some glacier mechanics stuff}
+\part{Glacier mechanics}
 
+Here I've put some rather random bits related to glacier
+mechanics. The selection is based both on what many \Ua users might
+find useful, but also reflects somewhat the topics I've covered in
+previous lectures that I've given on glacier mechanics, especially
+lectures given at Caltech in 2014.
 
 \chapter{An ice shelf in one horizontal dimension (1HD).}
 
@@ -5989,38 +6002,43 @@ The shallow-ice stream (SSTREAM/SSA/Shelfy) equations are
 \end{align}
 Over the floating section $\tbx=\tby=0$.  We assume
 \begin{align*}
-\eyy   &=\tyy=0 \\
-\p_y \txx&=0 \\
-\p_y s &= \p_y h =0 \\
+\eyy   &=\tyy=0, \\
+\p_y \txx&=0, \\
+\p_y s &= \p_y h =0, \\
 \end{align*}
 and ignore longitudinal streaching in the momemntum balance,
 hence Eqs.~(\ref{eq:stressx2b}) and (\ref{eq:stressy2b}) become
 \begin{align} 
-\p_y  \txy  &= \rho g \p_x h \label{eq:stressx2c}\\
-\p_x ( h \txy )  &= 0  \label{eq:stressy2c}
+\p_y  ( h \txy)   &= \varrho g h \p_x h, \label{eq:stressx2c}\\
+\p_x ( h \txy )  &= 0.  \label{eq:stressy2c}
 \end{align}
 
-We integrate (\ref{eq:stressx2c}) from the centerline $y=0$ to the
+We integrate (\ref{eq:stressx2c}) with respect to $y$ from the center-line $y=0$ to the
 left-hand margin $y=w$, where the total width of the ice shelf is $2w$, i.e.
 
 \[
-\tau_m = -\varrho g w \p_x h
+\tau_m = -\varrho g w \p_x h,
 \]
 where we $\tau_m$ is a (positive) shear stress at the margin,
 i.e. $\tau_m=-\txy(y=w)$, and we have used that $\txy(y=0)=0$. We
 consider the plastic case when $\tau_m$ is a yield stress and
 independent of ice velocity. This simplification allows us to
-calculate the ice thickness directly as
+{\em calculate the ice thickness directly} as
 \[
-h= h_c- \frac{\tau_m}{\varrho g w} (x-x_c)
+h= h_c- \frac{\tau_m}{\varrho g w} (x-x_c),
 \]
-where $h_c$ is the ice thickenss at the calving fron
-$x=x_c$. 
+where $h_c$ is the ice thickness at the calving front $x=x_c$. The ice
+thickness is now a linear function of distance $x$. For a given
+location, $x_c$, of the grounding line, the grounding line will simply
+be located where the ice draft reaches the ocean floor. In this
+particular case the mass balance upstream of the grounding line has no
+impact on the position of the grounding line.
 
 Eq.~(\ref{eq:stressy2c}) remains correct if evaluated along the centre
 line where $\txy=0$. However, it is unclear if and how this equation
 can be consistent with the assumption of constant side shear stress
-and variable ice thickness.
+and variable ice thickness. But if the ice behaves, as we assume, as a
+plastic material, then this poses not problem. 
 
 
 Similar to the case where a plastic formulation for basal sliding is
@@ -6032,17 +6050,19 @@ stress.\footnote{For a plastic symmetrical ice sheet on a flat bed
 velocity can then be calculated from the ice thickness distribution
 using
 \[
-  h \p_x u + u \p_x h =0
+  h \p_x u + u \p_x h =0,
 \]
 giving
 \[
-( \lambda -  (x-x_c) ) \; \p_x u -   u =0
+( \lambda -  (x-x_c) ) \; \p_x u -   u =0,
 \]
 where
 \[
-\lambda=\frac{ \varrho g w h_c}{\tau_m} 
+\lambda=\frac{ \varrho g w h_c}{\tau_m} .
 \]
-
+The lenghtscale $\lambda$ is $\varrho g h_c/\tau_m$ times the
+half-width of the ice shelf. I'm guessing a reasonable estimate is
+$O(\varrho g h_c/\tau_m)=1$ so $\lambda$ might be similar to the width.
 
 
 
@@ -6773,6 +6793,2012 @@ For a prograde bed, $\p_x B <0$, and therefore we must have $\p_h q >0$
 for the grounding line to be stable. Conversely, for a retrograde bed where $\p_x
 B > 0$ we must have $\p_x q <0$ for the grounding line to be stable.
 
+
+\chapter{Shallow Ice Stream Approximation (SSTREAM/SSA)}
+
+
+\section{Field equations and boundary conditions}
+
+The field equations are
+\begin{eqnarray}
+v_{i,i}&=&0   \quad \hbox{(mass)}  \\ \sigma_{ki,k}+\rho
+b_i&=&0  \quad \hbox{(linear momentum)}  \\ \sigma_{ij}
+-\sigma_{ji} & = & 0\quad \hbox{(angular momentum)} 
+\end{eqnarray}
+where $v_i$ are the components of the velocity vector, $\sigma_{ij}$
+the components of the full stress tensor (i.e.\ the Cauchy stress
+tensor), and $\rho$ the ice density.
+
+
+In addition we have the kinematic boundary conditions
+\begin{equation}
+\frac{\partial s}{\partial t}
++u\frac{\partial s}{\partial x}
++v\frac{\partial s}{\partial y}
+-w=a
+\label{eq:kinsurf}
+\end{equation}
+valid at the surface $z=s(x,y)$, where $a$ is the accumulation rate,
+and we have used $u$, $v$, and $w$ to denote the $x$, $y$, and $z$
+components of the velocity vector, respectively. There is a
+corresponding equation valid at the glacier sole. At the glacier sole
+both the accumulation rate and the rate of elevation can often be
+ignored. The kinematic boundary condition is then usually referred to
+as the `no-penetration condition'.
+
+The relation between strain rates and stresses is taken to be 
+\begin{equation}
+\dot{\epsilon}_{ij}=A(T) \, \tau^{n-1}\,\tau_{ij}.
+\label{eq:Glen1}
+\end{equation}
+where $A$ is the rate factor and $n$ the stress exponent. Furthermore,
+$\tau_{ij}$ are the deviatoric stress components
+\[
+\tau_{ij}=\sigma_{ij}- \delta_{ij} \sigma_{kk}/3, 
+\]
+$\eij$ are the components of the deformation rate tensor (the
+stretching tensor), and $\tau$ is {\em effective stress} (the square root of the (negative of the)
+second invariant of the deviatoric stress tensor), i.e.\
+\[
+\tau=\sqrt{ \tau_{ij} \tau_{ij}/2}.
+\]
+Eq.~\eqref{eq:Glen1} is the well-known Glen-Steinemann law
+\cite[]{Steinemann:1954,Steinemann1958a,Steinemann1958b,Glen1955}. Outside
+of glaciology it is better known as the Norton-Hoff rheology model, or
+simply as power-law rheology. An increasingly popular alternative
+description of ice rheology can be found in
+\cite{Goldsby&Kohlstedt:2001}.
+
+
+In the situation when the glacier slides over its bed various theoretical
+arguments show that we have a mixed-type basal boundary condition to
+consider of the type
+\[ 
+\bm{t}_b=\bm{f}(\bm{v}_b)
+\]
+where $\bm{f}$ is some function, $\bm{t}_b$ is the basal stress
+vector given by
+\[
+\bm{t}_b=\sigma
+\normal-(\normal^T \cdot \bm{\sigma} \normal)
+\normal ,\] 
+with $\normal$ being a unit normal vector to the bed pointing into the
+ice, and $\bm{v}_b$ is the basal sliding velocity
+\[
+\bm{v}_b=\bm{v}-(\normal^T \cdot \bm{v}) \normal .
+\]
+
+
+
+Sometimes a power-law type sliding law 
+\begin{equation}
+\bm{v}_b=c\,|\bm{t}_b|^{m-1} \bm{t}_b,
+\label{eq:slidlaw}
+\end{equation}
+is used, but the correctness of this assumption is debated.  The function $c$ is referred to as the
+basal slipperiness.  The sliding law (\ref{eq:slidlaw}) is usually referred to as Weertman sliding
+law. Alternative forms of Weertman sliding law are
+\[
+|\bm{v}_b| = c |\bm{t}_b|^m ,
+\]
+and
+\[
+\bm{t}_b=c^{-1/m} |\bm{v}_b|^{(1-m)/m} \bm{v}_b .
+\]
+
+
+%\begin{eqnarray*} \p_x
+%\sxx+\p_y \txy + \p_z \txz = 0 \\ \p_x
+%\txy+\p_y \syy + \p_z \sigma_{yz} = 0 \\ \p_x
+%\txz+\p_y \sigma_{yz} + \p_z \szz = 0 \\ 
+%\end{eqnarray*}
+
+
+
+
+\begin{figure}
+\centerline{\includegraphics[width=12cm]{ProblemGeometry.jpg}}
+\caption{\bf Problem geometry.
+\label{fig:PG}}
+\end{figure}
+
+
+\section{Shallow Ice Stream Scalings}
+\subsection{Definition of scales}
+The shallow ice stream approximation is one of the classical scaling
+theories in glaciology. It plays a fundamental role in the study of
+ice stream dynamics. The resulting equations are often referred to
+as the MacAyeal equations \cite[]{MAcAyeal1989} but I will here refer to
+these equations as the shallow-ice-stream equations (SSTREAM).  These equations
+have been derived numerous times in various papers and doctoral
+thesis, 
+\cite[e.g.][]{Morland:1984,MuszynskiBrichfield:1987,MAcAyeal1989,Baral:1999,Schoof:2006a}.
+One will find reading the literature that there are many different
+ways of deriving the equations. 
+
+In the following we will perform scaling analysis of all relevant equations. In general we write for any 
+variable $X$
+\[
+X= [X] X^*
+\]
+where $[X]$ is the scale and $X^*$ the dimensionless counterpart to $X$. We do this to all variables
+entering the problem. The idea is that the sizes of all dimensionless variables are comparable, and
+that the relative sizes  of two variables can be deduced from comparing their respective scales. 
+
+\smallskip
+The SSTREAM scalings are motivated by three observations:
+
+First, horizontal span is much larger than thickness. The ratio between ice thickness and horizontal
+span is therefore small compared to unity.
+
+Second, most of the forward motion of ice streams is due to sliding. It is not uncommon for
+the slip ratio, defined as the ratio between forward motion due to basal motion to forward motion
+due to shearing throughout the ice, to be on the order of 100 to 1000.  Hence, basal and surface
+velocities are about equal, and one can use the same scale for both of them.
+
+Third, on ice streams and ice shelves vertical shearing is small
+compared to longitudinal stretching, and vertical shear stresses small
+compared to horizontal deviatoric stresses. In particular, one can
+expect that horizontal strain rates are `balanced' by the horizontal
+deviatoric stresses.
+\footnote{Note that this situation contracts
+sharply with what is found on most alpine glaciers, ice sheets
+and ice caps, where rates of ice deformation due to shearing
+dominate horizontal strain rates (except for the top most
+layer). In this case normal deviatoric stresses are small compared
+to the shear stress and the normal stress field close to being
+isotropic.}  What is meant by `balancing' different quantities will
+become clear in what follows.
+
+
+
+
+Motivated by these observations we now consider the case of an ice
+stream with horizontal length scale $[x]$ and vertical length scale
+$[z]$ where the shallow ice approximation $[z]/[x]=\de \ll 1$ holds,
+and write
+\[
+(x,y,z)=[x](x^*,y^*,\de z^*).
+\]
+where the asterisks denote scaled dimensionless  variables.  
+
+
+
+For the
+mass conservation equation ($v_{i,i}=0$) to be invariant we scale the
+velocity as
+\begin{equation}
+(u,v,w)=[u] (u^*,v^*,\de w^*).
+\label{eq:scaleu}
+\end{equation}
+If we furthermore require the kinematic boundary condition at the
+surface 
+\[
+\p_t s + u \, \p_x s +v \, \p_y s-w =a,
+\]
+where $s$ is the surface to be invariant under the scalings we must have
+\[ a=\de [u] a^* ,\] 
+where $a$ is the accumulation rate. Thus the scale for $a$ is $[a]=\de [u]=[w]$, which seems
+reasonable as we can expect the vertical velocity to scale with accumulation rate for small surface
+slopes.  We also find, using the same invariant requirement for the surface kinematic boundary
+condition, that the time must be scaled as
+\[ t=[x] [u]^{-1} t^* .\]
+
+
+
+For $[x] \sim 1000\,\mathrm{km}$, and a vertical dimension of 100 m
+to 1 km, we have $\de$ in the range of 0.001 to 0.01. Horizontal
+velocities can be expected to be on the order of a
+$100\,\mathrm{m\,a^{-1}}$ and $w$ around $0.1$ to
+$1\,\mathrm{m\,a^{-1}}$, giving the same range of $\de$. The time scale
+$[t]=[x] [u]^{-1}$ is therefore on the order of 1 to 10 ka.
+
+
+We assume that the velocity is of same order across the whole ice thickness. In particular we assume
+that the horizontal components of the basal sliding velocity ($u_b$ and $v_b$) are of the
+same order as the surface velocity, i.e.\
+\begin{equation}
+(u_b,v_b)=[u] (u_b^*,v_b^*)
+\label{eq:ubscaled}
+\end{equation}
+
+% As a scale for the stresses we use
+% \begin{equation}
+%  [\sigma]=A^{-1/n} ([a]/[z])^{1/n} , \label{eq:stressscale}
+% \end{equation} 
+% which is motivated by the expectation $\exx \sim a/H$
+% and Glen's flow law 
+% \[
+% \tau_{ij}=A^{-1/n} \,\dot{\epsilon}^{(1-n)/n}\, \dot{\epsilon}_{ij},
+% \]
+% where $\dot{\epsilon}$ is the effective strain rate defined through
+% $\dot{\epsilon}:=(\dot{\epsilon}_{ij} \dot{\epsilon}_{ij}/2)^{1/2}$
+% and $\tau_{ij}$ are the deviatoric stress components.   
+
+
+We are considering a situation where the vertical shear components are
+small compared to all other stress components. A set of scalings for
+the stresses which reflects this situation is
+\begin{eqnarray}
+\lefteqn{(\sxx,\syy,\szz,\txy,\txz,\tyz)}\nonumber \\
+& & =[\sigma] (\sxx^*,\syy^*,\szz^*,\txy^*,\de \txz^*, \de \tyz^*).
+\label{eq:scal}
+\end{eqnarray}
+Same scale is used for the pressure, that is $p=[\sigma] p^*$. For the time being, we
+do not specify how the scale $[\sigma]$ relates to other variables entering the problem.
+
+
+Note that we are assuming a ratio between vertical and horizontal dimensions equal to that of the
+vertical and horizontal deviatoric stresses, so for example
+\[
+\de=\frac{[z]}{[x]}=\frac{[\tau_{xz}]}{[\tau_{xx}]} .
+\]
+In other words, the {\em aspect ratio}, $[z]/[x]$, is the same as the {\em stress ratio},
+$[\tau_{xz}]/[\tau_{xx}]$.
+
+\subsection{Scaling the equations}
+
+The analysis is done in a coordinate system which is tilted forward in
+$x$ direction by the angle $\alpha$. The equilibrium equations are
+\begin{eqnarray*}
+\p_{x} \sxx+\p_{y} \txy + \p_{z} \txz &=& -\rho g \sin \alpha,\\
+\p_{x} \txy+\p_{y} \syy + \p_{z} \sigma_{yz} &=& 0 ,\\
+\p_{x} \txz+\p_{y}\sigma_{yz} + \p_{z} \szz &=& \rho g \cos \alpha.
+\end{eqnarray*}
+The above listed scalings give
+\[
+[\sigma] [x]^{-1} \p_{x^*} \sxx^*+[\sigma] [x]^{-1} \p_{y^*} \txy^* + 
+[\sigma] \de [x]^{-1} \de^{-1} \p_{z^*} \txz^* =  -\rho g \sin \alpha  , 
+\]
+\[ [\sigma] [x]^{-1} \p_{x^*} \txy^*+[\sigma] [x]^{-1} \p_{y^*} \syy^* + 
+[\sigma] \de [x]^{-1} \de^{-1} \p_{z^*} \sigma_{yz}^* = 0 , 
+\]
+
+\[
+\,[\sigma] [x]^{-1} \de  \p_{x^*} \txz^*+ [\sigma] [x]^{-1}\de \p_{y^*}\sigma_{yz}^* + 
+[\sigma] [x]^{-1} \de^{-1} \p_{z^*} \szz^* = \rho g \cos \alpha ,
+\]
+which can be written as
+\begin{eqnarray} 
+\p_{x^*} \sxx^*+\p_{y^*} \txy^* + \p_{z^*} \txz^* &=& -\rho g [x] [\sigma]^{-1}
+\sin \alpha \label{eq:s1} , \\ 
+\p_{x^*} \txy^*+\p_{y^*} \syy^* + \p_{z^*} \sigma_{yz}^* &=& 0 , \label{eq:s2} \\ 
+\de^2 \p_{x^*} \txz^*+ \de^2 \p_{y^*}\sigma_{yz}^* + \p_{z^*} \szz^* &=& \rho g \de [x] [\sigma]^{-1} \, \cos \alpha  ,
+\label{eq:s3}
+\end{eqnarray}
+If we now fix the scale $[\sigma]$ for the stresses as
+\begin{equation}
+[\sigma]=\rho g [z] = \rho g \de [x], \label{eq:stressscale}
+\end{equation}
+we arrive at
+\begin{eqnarray} 
+\p_{x^*} \sxx^*+\p_{y^*} \txy^* + \p_{z^*} \txz^* &=& - \de^{-1} \sin \alpha \label{eq:ss1}  , \\ 
+\p_{x^*} \txy^*+\p_{y^*} \syy^* + \p_{z^*} \sigma_{yz}^* &=& 0 , \label{eq:ss2} \\ 
+\de^2 \p_{x^*} \txz^*+ \de^2 \p_{y^*}\sigma_{yz}^* + \p_{z^*} \szz^* &=&  \, \cos \alpha  .
+\label{eq:ss3} 
+\end{eqnarray}
+For the two terms on the right-hand side of the above set of equations to be of order unity we must furthermore require
+\[
+\alpha=O(\de),
+\]
+i.e.\ the tilt angle $\alpha$ of the coordinate system must be
+small. Hence, the angle $\alpha$ is not arbitrary. 
+(As we will see below, and as is to be expected, the shear stress
+$\txz$ scales with $\rho g [z] \sin \alpha$ so for it to be
+small in comparison to the stress scale $\rho g [z]$, $\alpha$ must be small.)
+
+Note that the stress scale must be $[\sigma]=\rho g [z]=\rho g \de
+[x]$ for the right-hand side term in Eq.~(\ref{eq:s3}) to be of order
+unity for $\alpha=0$. We could have defined this to be the stress
+scale from the outset, but doing so would have obscured the fact that
+this stress scale is required for the vertical gradient of the
+vertical stresses (i.e.\ $\p_z \szz$) to be balanced by the
+vertical component of the body force (i.e.\ $-\rho g $) for
+$\alpha=0$. Furthermore, note that had we defined the stress scale to
+be the product of thickness and mean slope, i.e.$[\sigma]=\rho g [z]
+[z]/[x]=\rho g \de [x] \de [x]/[x]=\rho g [x] \de^2$, the right-hand
+term in Eq.~(\ref{eq:ss3}) would have been on the order of $\de^{-1}$
+for $\alpha=0$, with no term on the left-hand side of that equation to
+mach that term.
+
+If we only consider terms of zeroth order and drop terms of order
+$\de$ and higher, we arrive at a reduced system where the horizontal
+gradients of the vertical shear stresses are omitted from the
+equilibrium equations.  There are no first-order terms in the scaled
+equilibrium equations (\eqref{eq:ss1} to \eqref{eq:ss3}), and the
+resulting reduced system is therefore correct to second
+order. Despite no first-order terms appearing in the scaled
+equilibrium equations, it does of course not follow that none of the
+quantities entering these equations are of first order. The vertical
+shear stresses, $\txz$ and $\tyz$, are, for example, of
+first order.
+
+
+\subsubsection{Sliding law}
+We assume a power-law relationship between basal shear stress
+\[
+\bm{t}_b=\bm{\sigma}\,
+\normal-(\normal^T \cdot \bm{\sigma} \normal)
+\normal ,\] 
+and basal velocity
+\[
+\bm{v}_b=\bm{v}-(\normal^T \cdot \bm{v}) \normal .
+\]
+or
+\begin{equation}
+\bm{v}_b=c\,|\bm{t}_b|^{m-1} \bm{t}_b,
+\label{eq:slidu}
+\end{equation}
+where $\normal$ being a unit normal vector to the bed pointing into
+the ice. The scaling of the basal sliding law is done in Appendix A.
+We find that the components of the scaled basal shear stress vector
+are given by
+\begin{eqnarray}
+t_{bx}&=&[\sigma](\de \p_{x^*} b^* (\szz^*-\sxx^*)-\de \p_{y^*} b^* \txy^* + \de \txz^*) +O(\de^3)
+\label{eq:tbx},\\
+t_{by}&=&[\sigma] (\de \p_{y^*} b^* (\szz^*-\syy^*)-\de \p_{x^*} b^* \txy^* + \de \sigma_{yz}^*) +O(\de^3)
+\label{eq:tby} ,\\
+t_{bz}&=&[\sigma] (\de^2 ( (\szz^*-\sxx^*) (\p_{x^*} b^*)^2 + (\szz^*-\syy^*) (\p_{y^*} b^*)^2
+\label{eq:tbz} \\
+      & &-2 \txy^* \p_{x^*} b^* \,\p_{y^*} b^* + \txz^* \p_{x^*} b^* + \sigma_{yz}^* \p_{y^*} b^*)) +O(\de^4) .
+\nonumber
+\end{eqnarray}
+We see from the above listed equations that the $x$ and $y$ components
+of the shear stresses vector are of order $\de$, and that therefore the length of that vector is also or order $\de$, i.e.\ 
+\begin{equation}
+|\bm{t}_b|=O(\de).
+\label{eq:tbs}
+\end{equation}
+Hence
+\begin{eqnarray}
+|\bm{t}_b|&=& [|\bm{t}_b|] |\bm{t}_b^*| \nonumber \\
+&=& \de [\sigma] |\bm{t}_b^*| \nonumber .
+\end{eqnarray}
+or 
+\[ 
+[|\bm{t}_b|] = \de [\sigma] 
+\]
+
+The scaled basal sliding velocity ($\bm{v}_b$) is
+\begin{equation}
+\bm{v}_b= [u] \left ( \begin{array}{c}
+ u_b^*+O(\de^2) \\
+ v_b^*+O(\de^2)\\
+ \de u_b^* \, \p_{x^*} b^* +\de v_b^* \,\p_{y^*} b^* +O(\de^3)
+        \end{array} \right ) 
+\label{eq:vscaled}
+\end{equation}
+
+
+We have not yet specified the scale $[c]$ for the parameter $c$ in the sliding law but we have
+already introduced scales for the velocity and the stresses, so by inserting (\ref{eq:scaleu}),
+(\ref{eq:stressscale}), and (\ref{eq:scalec}) into (\ref{eq:slidu}) we arrive at
+\begin{eqnarray}
+[u] u^*_b &=& c  \,|\bm{t}_b|^{m-1} |\bm{t}_b^*|^{m-1} [t_{bx}] \, t_{bx}^* \nonumber \\
+       &=&  c  \,\de^{m-1} [\sigma]^{m-1} |\bm{t}_b^*|^{m-1} \, \de [\sigma] \, t_{bx}^* \nonumber \\
+       &=&  c  \,\de^{m} [\sigma]^{m} |\bm{t}_b^*|^{m-1} \, t_{bx}^* \nonumber 
+\end{eqnarray}
+or
+\begin{equation}
+u^*_b= c \,\de^{m} [\sigma]^{m} [u]^{-1} \, |\bm{t}_b^*|^{m-1} \, t_{bx}^*  .
+\label{eq:usb}
+\end{equation}
+If we want the the sliding velocity to be balanced by the basal shear stress, terms on both side of
+Eq.~(\ref{eq:usb}) must be of same order, hence
+\[
+c \,\de^{m} [\sigma]^{m} [u]^{-1}=O(1) .
+\]
+If we write
+\begin{equation}
+c=[c] c^* ,
+\label{eq:scalec}
+\end{equation}
+then
+\begin{equation}
+[c]= \de^{-m} [u] [\sigma]^{-m} .
+\label{eq:csigma}
+\end{equation}
+Eq.~(\ref{eq:csigma}) shows that $c$ is of the order $\de^{-m}$. In this
+sense the slipperiness ($c$) must be `large' for the theory to be
+consistent. 
+
+
+The product $c [\sigma]^m$ is the (typical) basal sliding velocity,
+while $[u]$ is the (typical) surface velocity. Hence,
+Eq.~(\ref{eq:csigma}) simply reflects the condition that for `most' of
+the forward motion to be due to basal sliding, the basal slipperiness
+$c$ must be `large'.  As an example, if $\p_x b=\p_y b=0$ we find that
+\[
+u^*= c^* \txz^{*m}.
+\]
+In principle we could have observed right at the beginning that 
+defining the vertical shear stress components to be of $O(\de)$ and $u=O(1)$ implies
+$c=O([u] [\sigma]^{-m}\,\de^{-m})$ for a basal sliding law of the form $u_b=c \tau_b^m$
+if $u_b$ is to be of same order as $u$.
+
+For the $z$ component of the sliding law obtain using
+Eq.~(\ref{eq:tbz}) and Eq.~(\ref{eq:vscaled})
+\begin{eqnarray}
+\lefteqn{\de u^* \p_{x^*} b^* +\de v^* \p_{y^*} b^*=c\,|\bm{t}_b|^{m-1}} \label{eq:cons}  \\ 
+&&
+[\sigma] (\de^2 ( (\szz^*-\sxx^*) (\p_{x^*} b^*)^2 + (\szz^*-\syy^*) (\p_{y^*} b^*)^2
+      -2 \txy^* \p_{x^*} b^* \,\p_{y^*} b^* + \txz^* \p_{x^*} b^* + \sigma_{yz}^* \p_{y^*} b^*)). 
+\nonumber
+\end{eqnarray}
+Note that the sum of the two terms on the left-hand-side as given by
+Eqs.~(\ref{eq:tbx}) and (\ref{eq:tby}) gives the left-hand side of
+(\ref{eq:cons}), so these equations are consistent. Note furthermore
+that the vertical component $w$ does not enter the sliding law The
+vertical component must be calculated from the basal kinematic
+boundary condition ($u \, \p_x b+ v \, \p_y b-w=0$).
+
+
+\subsubsection{Flow law}
+The flow law can be either written as
+\begin{equation}
+\dot{\epsilon}_{ij}=A(T) \, \tau^{n-1} \tau_{ij},
+\end{equation}
+or alternatively as
+\[
+\tau_{ij}=A^{-1/n} \,\dot{\epsilon}^{(1-n)/n}\, \dot{\epsilon}_{ij},
+\]
+where $\dot{\epsilon}=\sqrt{\eij \eij/2}$ is the {\em effective strain rate}, and $T$ the englacial temperature.
+ 
+We have so far not discussed the scalings for the normal deviatoric
+stresses $\tau^*_{xx}$, $\tau^*_{yy}$, and $\tau^*_{zz}$. These scalings
+follow directly from the fact that we decided above to scale both the
+normal stresses ($\sxx$, $\sxx$ $\sxx$) and the
+pressure with $[\sigma]$. Because $\tau_{xx}=\sxx+p=[\sigma]
+(\sxx^*+p^*)=[\sigma] \tau_{xx}^*$ and similarly for the other
+components we have
+\[ 
+(\tau_{xx},\tau_{yy},\tau_{zz})= [\sigma] (\tau_{xx}^*,\tau_{yy}^*,\tau_{zz}^*).
+\]
+The square root of the second invariant of the deviatoric stress
+tensor, or what glaciologist usually refer to as the {\em effective
+stress}, is thus
+\begin{equation}
+\tau=[\sigma] \sqrt{ (\tau^{*2}_{xx} +\tau^{*2}_{yy} +\tau^{*2}_{zz})/2 + \tau^{*2}_{xy}+\de^2 (\tau^{*2}_{xz}+\tau^{*2}_{yz})},
+\label{eq:taueff}
+\end{equation}
+and therefore
+\begin{equation}
+[\tau]= [\sigma]
+\label{eq:tst}
+\end{equation}
+and
+\[
+\tau=[\sigma] \tau^*
+\]
+where
+\[
+\tau^*=\sqrt{ (\tau^{*2}_{xx} +\tau^{*2}_{yy} +\tau^{*2}_{zz})/2 + \tau^{*2}_{xy}+\de^2 (\tau^{*2}_{xz}+\tau^{*2}_{yz})}.
+\]
+The effective stress $\tau$ is of order unity.
+
+
+Using the flow law and the incompressibility condition
+we find  
+\[
+0=v_{i,i}=\eii=\tau_{ii}
+\]
+and 
+\[ 
+\tau_{zz}^2=(\tau_{xx} +\tau_{yy})^2 
+\]
+which can be used to eliminate  $\tau_{zz}$ from Eq.~(\ref{eq:taueff}).
+
+
+
+We now look at the relation between the individual components of the
+stretching tensor (the strain rates) and the deviatoric stress tensor.
+We find, for example, that
+\[ \exx=A \tau^{n-1} \tau_{xx} ,\]
+is in scaled variables
+\[ [u] [x]^{-1} \exx^* = [\sigma]^n A \tau^{*^{n-1}} \tau_{xx}^*  .\]
+or
+\begin{equation}
+\exx^* = A [\sigma]^n [x] [u]^{-1} \tau^{*^{n-1}} \tau_{xx}^*  .
+\label{eq:exxs}
+\end{equation}
+where
+\[
+\exx^* = \p_{x^*} u^*
+\]
+If we want the horizontal strain rates ($\exx$, $\exy$, and $\eyy$) to be balanced by the
+corresponding horizontal deviatoric stresses, we must require that both sides of Eq.~(\ref{eq:exxs})
+are of same order implying
+\[
+ A [\sigma]^n [x] [u]^{-1}=O(1) .
+\]
+Writing
+\[
+A= [A] A^* ,
+\]
+therefore leads to
+\begin{equation}
+[A]=[u] [x]^{-1} [\sigma]^{-n} .
+\label{eq:Ascale}
+\end{equation}
+
+
+
+Next we look
+at
+\[ \exz=A \tau^{n-1} \tau_{xz} ,\]
+and find that this gives
+\[ [u] [x]^{-1} ( \de^{-1} \p_z^* u^* +  \de \p_{x^*} w^* ) = \de [\sigma]^n A \tau^{*^{n-1}} \tau_{xz}^*,\]
+which we can also write as
+\begin{eqnarray*}
+ \p_z^* u^* +  \de^2 \p_{x^*} w^*  &=& \de^2 [x] [\sigma]^n [u]^{-1} A \tau^{*^{n-1}} \tau_{xz}^* \\
+&=& \de^2 A^* \tau^{*^{n-1}} \tau_{xz}^* ,
+\end{eqnarray*}
+Note that here we are using the scale for $A$ given by (\ref{eq:Ascale}).
+We must equate terms of same order, and hence  find that
+\[ \p_z^* u^* =O(\de^2) ,\]
+and 
+\[ 
+\p_{x^*} w^*  = [x] [\sigma]^n [u]^{-1} A \tau^{*^{n-1}} \tau_{xz}^* .\]
+
+
+
+
+We have now reached the important conclusion that the {\em horizontal
+velocity component $u$ is independent of depth to second order}. Same
+argument shows that the other horizontal component $v$ is also
+independent of depth.  Thus, to second order the horizontal velocity
+components $u$ and $v$ are both independent of $z$. 
+
+
+We have shown that consistency with the scalings used for stresses
+requires $\p_z u$  to be $O(\de^2)$. Note that we have
+NOT shown vertical shearing ($\exz$) to be zero.  Both $\p_{x} w$ and
+$\tau_{xz}$ enter the field equations as first order terms.
+
+
+The incompressibility conditions states that 
+\[ \p_{x^*} u^* + \p_{y^*} v^* + \p_{z^*} w^* =0 .\]
+Differentiating with respect to $z$ and assuming that the order of
+differentiation can be changed gives
+\[ \p^2_{x^*z^*} u^* + \p^2_{y^*z^*} v^* + \p^2_{z^*z^*} w^* =0 .\]
+From which using $\p_{z^*} u^* =\p_{z^*} v^* =O(\de^2)$ it follows that 
+\[ 
+\p^2_{z^*z^*} w^* =O(\de^2)
+\]
+Hence, {\em to second order $\ezz$ is  independent of depth and the vertical velocity
+varies linearly with depth.}  
+
+
+
+It turns out to be more convenient working with the flow law in the form
+\[
+\tau_{ij}= 2 \eta \eij
+\]
+where $\eta$ is the {\em effective viscosity} defined as
+\[
+\eta=\frac{1}{2} A^{-1/n} \,\dot{\epsilon}^{(1-n)/n} .
+\]
+Toward this end we determine the effective strain rate
+\begin{eqnarray*}
+\dot{\epsilon}&=&\sqrt{(\exx^2+\eyy^2+\ezz^2)/2+\exy^2+\exz^2+\eyz^2}\\
+    &=&\sqrt{(\exx^2+\eyy^2+(\exx+\eyy)^2)/2+\exy^2+\exz^2+\eyz^2}.\\
+\end{eqnarray*}
+Inserting $\eij=(v_{i,j}+v_{j,i})/2$ and using the fact that 
+$\p_z u=O(\de^2)$ and $\p_z v=O(\de^2)$
+we find
+\begin{eqnarray*} 
+\dot{\epsilon}&=&[u] [x]^{-1}   (( \p_{x^*} u^*)^2 + (\p_{y^*} v^*)^2 +
+\p_{x^*} u^* \p_{y^*} v^* + (\p_{x^*} v^* + \p_{y^*} u^*)^2/4\\
+& & +(\de \p_{x^*} w^* + O(\de^2))^2/4 + (\de \p_{y^*} w^* + O(\de^2))^2/4  )^{1/2}\\
+&=&[u] [x]^{-1} \sqrt{ (\p_{x^*} u^*)^2 + (\p_{y^*} v^*)^2 +
+\p_{x^*} u^* \p_{y^*} v^* + (\p_{x^*} v^* + \p_{y^*} u^*)^2/4}+ O(\de^2),
+\end{eqnarray*} 
+or
+\begin{equation}
+\dot{\epsilon}=\sqrt{ (\p_{x} u)^2 + (\p_{y} v)^2 +
+\p_{x} u \,\p_{y} v + (\p_{x} v + \p_{y} u)^2/4}+ O(\de^2).
+\label{eq:e}
+\end{equation}
+
+
+
+
+\subsubsection{Slip ratio}
+
+We can write the horizontal velocity component $u$ as the sum
+\[
+u=u_b+u_d
+\]
+where $u_d$ is the {\em deformational velocity}, and $u_b$ the basal sliding velocity. The ratio
+\[
+\gamma:= \frac{u_b}{u_d}
+\]
+between the basal sliding velocity and the deformational velocity is
+the {\em slip ratio}. Using the relationship for the basal velocity for a uniformly inclined slab with ice thickness $h$, i.e.\
+\[
+u_d=\frac{2 A}{n+1} \tau^{n-1} \, \tau_{xz} \,h ,
+\]
+we find
+\begin{eqnarray}
+[u_d]&=&[A] [\tau]^{n-1} [\tau_{xy}] [z]\\
+     &=&[u] [x]^{-1} [\sigma]^{-n} \,  [\sigma]^{n-1} \de [\sigma]  \, \de [x] \label{eq:udscale} \\
+     &=& \de^2 [u] ,
+\end{eqnarray}
+where we have used Eqs.~(\ref{eq:tbs}), (\ref{eq:csigma}), (\ref{eq:tst}), and (\ref{eq:Ascale}).
+Since $[u_b]=[u]$, we have
+\begin{equation}
+\gamma=\frac{[u_b]}{[u_d]}= O(\de^{-2}) .
+\label{eq:gamma}
+\end{equation}
+
+
+Note that the we did not specify from the outset that the sliding velocity had to be large as
+compared to the deformational velocity, so (\ref{eq:gamma}) is a result rather than an assumption. It
+is worthwhile to think about how we arrived at the conclusion that the slip ratio is of order
+$\de^{-2}$. By assuming that the horizontal deviatoric stresses are large compared to vertical shear
+stresses (see Eq.~\ref{eq:scal}), and by balancing the horizontal strain rates with the horizontal
+deviatoric stresses (see Eq.~\ref{eq:exxs}), we arrived at a scale for the rate factor $A$ (see
+Eq.~\ref{eq:Ascale}). We furthermore assumed that the basal sliding velocity was of the same order
+as the surface velocity (see Eq.~\ref{eq:ubscaled}), i.e.\ of order unity. We then found the basal
+stress to be of order $\de$ (see Eq.~\ref{eq:tbs}), and by requiring a balance between the basal
+sliding velocity and the basal stress implied by the sliding law, we arrived at a scale for the
+basal slipperiness $c$ (see Eq.~\ref{eq:csigma}). It then follows, as shown above, that the slip
+ratio is of order $\de^{-2}$.
+
+
+We also have
+\[
+\frac{[c]}{[A]}= \frac{\de^{-m} [u] [\sigma]^{-m}}{[u] [x]^{-1} [\sigma]^{-n}}
+= \de^{-m} [x] [\sigma]^{n-m} .
+\]
+which puts constrains on the numerical value of $c$ with respect to that of $A$.
+
+\subsubsection{Implications of different balances for the slip ratio}
+
+When finding the scale $[u_d]$ (see (\ref{eq:udscale}) we used the
+fact that the effective stress ($\tau$) is of order unity (see
+Eq.~\ref{eq:tst}).  In the absence of any significant horizontal
+deviatoric stresses however, the effective stress would be of order
+$\de$ and $[u_d]/[u]=O(\de^{n+1})$. If the ice is not subjected to horizontal
+deviatoric stresses of order unity, we can still balance horizontal
+strain rates with the horizontal deviatoric stresses as we did above
+to arrive at $[A]$. However, in that case it seems more logical to
+balance the vertical shear strain rates and the vertical shear
+stresses to arrive at a (different) scale for $A$.
+
+
+Furthermore, had we not assumed the aspect ratio and the stress ratio to be equal, but instead
+written
+\[
+\frac{[z]}{[x]}=\epsi \quad \hbox{and} \quad \frac{[\tau_{xz}]}{[\tau_{xx}]}=\de ,
+\]
+with $\epsi$ now being the aspect ratio, and $\de$ as `stress' ratio,
+we would have found that
+\begin{eqnarray*}
+[u_d]&=& [A] [\sigma]^{n-1} \de [\sigma] [z]  \\
+     &=& [u] [\sigma]^{-n} [x]^{-1} [\sigma]^{n-1} \de [\sigma] \epsi [x]  \\
+     &=& [u]  \de \epsi  ,
+\end{eqnarray*}
+i.e.\
+\[ 
+\frac{[u_d]}{[u]}= \epsi \, \de . 
+\]
+Remember that the scaling originally introduced for velocity was in terms of  
+the basal sliding velocity, and that therefore in fact
+\[ 
+\frac{[u_d]}{[u_b]}= \epsi \, \de ,
+\]
+which is the inverse of the slip ratio.  We see that for any given
+aspect ratio $\epsi$, the slip ratio ($[u_b]/[u_d]$) becomes small as
+the stress ratio $\de$ goes to infinity, corresponding to the
+situation where horizontal deviatoric stresses are small compared to
+vertical shear stresses.
+
+
+\section{The SSTREAM (zeroth-order) equations}
+Now that we have scaled all equations we can collect terms to the
+desired order and go back to dimensional quantities. 
+
+
+Note that in the field equations and all the boundary conditions,
+first order terms are all identically equal to zero. Although we only
+collect zeroth order terms, the first order correction is zero and the
+theory is therefore correct to second order in $\de$.
+
+\setlength{\arraycolsep}{2pt}
+
+\subsection{Boundary conditions}
+The stress conditions at the surface $\bm{\sigma} \normal=\bm{0}$
+gives to second order
+\begin{eqnarray}
+-\sxx \, \p_{x} s - \txy \, \p_{y} s + \txz &=&0 ,\label{eq:bcs1}\\
+ -\txy \, \p_{x} s - \syy \, \p_{y} s + \tyz &=&0,\label{eq:bcs2}\\
+\szz&=&0 \label{eq:bcs3},
+\end{eqnarray}
+for $z=s(x,y)$.  
+And
+\begin{eqnarray}
+u_b&=& c \, |\bm{t}_b|^{m-1} t_{bx} ,\label{eq:bcb1}\\
+v_b&=& c \, |\bm{t}_b|^{m-1} t_{by} ,\label{eq:bcb2}
+\end{eqnarray}
+where
+\begin{eqnarray}
+t_{bx}&=&\p_{x} b \,(\szz-\sxx)- \p_{y} b \,\txy +  \txz \label{eq:tb2x},\\
+t_{by}&=&\p_{y} b \,(\szz-\syy)-\p_{x} b \,\txy + \tyz \label{eq:tb2y},
+\end{eqnarray}
+for $z=b(x,y)$.
+
+We could use the $z$ component of the sliding law to calculate $w_b$.  But since the sliding law is
+fully consistent with the no-penetration condition (see for example Eq.~\ref{eq:cons}) , it is
+easier to determine $w_b$ as a function of $u_b$ and $v_b$ and the bed geometry directly using the
+no-penetration condition.
+
+
+\subsection{Field equations}
+To zeroth order we obtain form Eq.~(\ref{eq:ss1}) to (\ref{eq:ss3}) 
+\begin{eqnarray} 
+\p_{x} \sxx+\p_{y} \txy + \p_{z} \txz &=& -\rho g \sin \alpha \label{eq:smx} \\ 
+\p_{x} \txy+\p_{y} \syy + \p_{z} \tyz &=& 0 , \label{eq:smy}\\ 
+\p_{z} \szz &=& \rho g \cos \alpha  \label{eq:smz}.
+\end{eqnarray}
+Using $\tij=2 \,\eta \eij$ and $\sij=\tij-p \,\delta_{ij}$ we can also write this system as
+\begin{eqnarray} 
+-\p_x p+ 2 \p_{x} (\eta \exx )+2 \p_{y} ( \eta \exy) + 2 \p_{z} ( \eta \exz) &=& -\rho g \sin \alpha, \label{eq:mx} \\ 
+-\p_y p+ 2 \p_{x} ( \eta \exy )+2 \p_{y} ( \eta \eyy) + 2 \p_{z} ( \eta \eyz) &=& 0, \label{eq:my} \\ 
+-\p_z p + 2 \p_{z} (\eta \ezz) &=& \rho g \cos \alpha \label{eq:mz}.
+\end{eqnarray}
+
+
+
+
+\subsection{Vertical integration}
+
+We start by considering Eq.~(\ref{eq:smz}). Integrating from $z$ to $z=s(x,y)$ gives
+\begin{equation}
+\szz(s)-\szz(z)=-(s-z) \rho g \cos \alpha .
+\label{eq:szz1}
+\end{equation}
+From (\ref{eq:bcs3}) we find $\szz(s)=0$ so that
+\begin{equation}
+\szz=(z-s) \rho g \cos \alpha . \label{eq:szz}
+\end{equation}
+We now integrate Eq.~(\ref{eq:smx}) over the depth and use Leibniz'
+rule 
+\[ 
+\p_x \int_{b(x)}^{s(x)} f(x,z) \, dz
+=\int_{b(x)}^{s(x)} \p_x f(x,z) \, dz + f(x,s) \p_x s - f(x,b) \p_x b
+\] 
+to interchange the order of integration and differentiation, and find
+\begin{eqnarray*}
+-\rho g (s-b) \sin \alpha&=& \p_x \int_{b}^{s} \sxx \, dz +\p_y \int_{b}^{s} \txy \, dz \\
+& & - \sxx(s)\, \p_x s -\txy(s)\, \p_y s +\txz(s) \\
+& & +\sxx(b)\, \p_x b +\txy(b)\, \p_y b -\txz(b) .\\
+\end{eqnarray*}
+Note that we did not have to specify how $\txz$ varies across the
+depth.  Because of boundary condition (\ref{eq:bcs1}) the second line
+is equal to zero.  Using (\ref{eq:tb2x}) we find that the third line
+can be written as $-t_{bx}+\p_x b \, \szz(b)$ so that
+\[
+-\rho g (s-b) \sin \alpha= \p_x \int_{b}^{s} \sxx \, dz +\p_y \int_{b}^{s} \txy \, dz 
+-t_{bx}+\p_x b \, \szz(b).
+\]
+Since $p=\tzz-\szz$ and $\txx+\tyy+\tzz=0$ because ice is
+incompressible, we find that $\sxx$ can be written as
+\begin{eqnarray}
+\sxx&=&\txx-p \nonumber \\
+    &=&\txx-\tzz+\szz \nonumber \\
+    &=& \txx -( -\txx-\tyy)+\szz  \nonumber \\
+&=&2 \txx+\tyy+\szz.  \label{eq:txxrel}
+\end{eqnarray}
+Because $u$ and $v$ are independent of depth it follows
+that $\txy$, $\txx$, and $\tyy$ are also all independent of depth. The
+corresponding vertical integrals are therefore simple to evaluate and we obtain
+\begin{equation}
+-\rho g h \sin \alpha= \p_x \int_{b}^{s} \szz \, dz 
++\p_x (h (2\txx+\tyy)) + \p_y(h\txy)-t_{bx}+\p_x b \, \szz(b),
+\label{eq:alm}
+\end{equation}
+where $h=s-b$ is the ice thickness.  We have already determined $\szz$
+(see Eq.~(\ref{eq:szz})) and find that
+\begin{eqnarray*}
+\p_x \int_{b}^{s} \szz \, dz 
+&=& \p_x \int_{b}^{s} (z-s) \rho g \cos \alpha \, dz \\
+&=& \p_x \left (-\frac{1}{2}(s-b)^2 \rho g \cos \alpha \right ) \\
+&=& -(s-b) \rho g \cos \alpha (\p_x s-\p_x b) \\
+&=&\szz(b) (\p_x s-\p_x b) ,
+\end{eqnarray*}
+which when inserted into Eq.~(\ref{eq:alm}) gives
+\[
+\p_x (h (2\txx+\tyy)) + \p_y(h\txy)-t_{bx}
+= \p_x s \,h \rho g \cos \alpha-\rho g h \sin \alpha .
+\]
+
+
+We can express this result in terms of the components of the velocity
+vector using $\tij=\eta (v_{i,j}+v_{j,i})$ and find that
+\begin{eqnarray} 
+\p_x ( 4 h \eta \p_x u + 2 h \eta \p_y v) +\p_y ( h \eta (\p_x v + \p_y u)) - t_{bx}
+&=&\rho g h (\p_x s \cos \alpha  -  \sin \alpha ),\\
+\p_y ( 4 h \eta \p_y v + 2 h \eta \p_x u) +\p_x ( h \eta (\p_y u + \p_x v)) - t_{by}
+&=&\rho g h \p_y s \cos \alpha  ,
+\end{eqnarray}
+where we have added the results for the $y$ direction which follow in an identical manner.\footnote{
+If $\rho$ is a function of $x$ and $y$ then $\p_x \int_{b}^{s} \szz \, dz=\szz(b) \p_x h -\frac{1}{2} h^2 g \cos \alpha\, \p_x \rho$ and we have
+\begin{eqnarray} 
+\p_x ( 4 h \eta \p_x u + 2 h \eta \p_y v) +\p_y ( h \eta (\p_x v + \p_y u)) - t_{bx}
+&=&\rho g h (\p_x s \cos \alpha  -  \sin \alpha )+\frac{1}{2} h^2 g \cos \alpha \, \p_x \rho,\\
+\p_y ( 4 h \eta \p_y v + 2 h \eta \p_x u) +\p_x ( h \eta (\p_y u + \p_x v)) - t_{by}
+&=&\rho g h \p_y s \cos \alpha  +\frac{1}{2} h^2 g \cos \alpha \, \p_y \rho,
+\end{eqnarray}
+}
+The effective viscosity is 
+\[
+\eta=\frac{1}{2} A^{-1/n} \,\dot{\epsilon}^{(1-n)/n} ,
+\]
+where
+\[ 
+\dot{\epsilon}=\sqrt{ (\p_{x} u)^2 + (\p_{y} v)^2 +
+\p_{x} u \,\p_{y} v + (\p_{x} v + \p_{y} u)^2/4}.
+\]
+
+
+\subsection{Tensor of resisting stresses}
+In most modeling work the coordinate system is not tilted. For
+$\alpha=0$ the vertically integrated form of the momentum equation in
+$x$ and $y$ directions is
+\begin{align}
+\p_x (h (2\txx+\tyy)) + \p_y(h\txy)-t_{bx} &= \rho g \,h \, \p_x s   \;  ,\\
+\p_y (h (2\txx+\tyy)) + \p_x(h\txy)-t_{by} &= \rho g \,h \, \p_y s    ,
+\end{align}
+This system can written in a more compact form as
+\begin{equation}
+\nabla_{xy}^T \cdot (h \, \bm{R}) - \bm{t}_{bh} = \rho g h \nabla_{xy}^T \, s  
+,
+\label{eq:FEao}
+\end{equation}
+where
+\begin{equation}
+\bm{R}=\begin{pmatrix} 2 \txx+\tyy & \txy \\ \txy & 2 \tyy + \txx \end{pmatrix},
+\label{eq:defSigmah}
+\end{equation}
+is sometimes referred to as the {\em resistive stress tensor}, and
+\[
+\nabla_{xy} = (\p_x , \p_y)^T ,
+\]
+and
+\[
+\bm{t}_{bh}= \left ( \begin{array}{c} t_{bx} \\ t_{by} \end{array} \right ).
+\]
+Note that as Eq.~(\ref{eq:txxrel}) shows
+\begin{align}
+2 \txx + \tyy &=  \sxx - \szz ,\\
+2 \tyy + \txx &=  \syy - \szz ,
+\end{align}
+and the resistive stress tensor can therefore be written as 
+\begin{equation}
+\bm{R}=\begin{pmatrix} \sxx-\szz & \txy \\ \txy & \syy - \szz \end{pmatrix}.
+\label{eq:defSigmah2}
+\end{equation}
+The resistive stress tensor is neither equal to the deviatoric stress
+tensor or the Cauchy stress tensor. In the Shallow Ice Stream
+approximation, the deviatoric and the resistive stress tensors are both
+independent of depth, whereas the Cauchy stress tensor is not.
+
+
+\subsection{Weertman sliding law}
+If we use Weertman sliding law the components of basal shear stress, $t_{bx}$ and $t_{by}$ can
+be written in terms of the basal velocity as
+\begin{eqnarray}
+t_{bx}&=& c^{-1/m} \, |\bm{v}_b|^{1/m-1} \, u ,\label{eq:bctx}\\
+t_{by}&=& c^{-1/m} \, |\bm{v}_b|^{1/m-1} \, v .\label{eq:bcty}
+\end{eqnarray}
+The sliding law is sometimes written as
+\begin{eqnarray}
+t_{bx}&=& \beta^2 \, u ,\\
+t_{by}&=& \beta^2 \,  v ,
+\end{eqnarray}
+where
+\[
+\beta= c^{-1/2m} \, |\bm{v}_b|^{\frac{1-m}{2m}}.
+\]
+%\[
+%\beta= \left (\frac{|\bm{v}_b|^{1-m}}{c} \right )^{1/2m}
+%\]
+in which case we can also write the field equations as
+\begin{eqnarray} 
+\p_x ( 4 h \eta \p_x u + 2 h \eta \p_y v) +\p_y ( h \eta (\p_x v + \p_y u)) - \beta^2 \, u
+&=&\rho g h (\p_x s \cos \alpha  -  \sin \alpha ),\\
+\p_y ( 4 h \eta \p_y v + 2 h \eta \p_x u) +\p_x ( h \eta (\p_y u + \p_x v)) - \beta^2 \, v
+&=&\rho g h \p_y s \cos \alpha  .
+\end{eqnarray}
+We now have a system of two partial differential equations that, given
+appropriate boundary conditions, can be solved for the velocity components $u$ and $v$. Remember
+that in general both $\eta$ and $\beta^2$ are functions of the strain rates and the velocity,
+respectively. The system is therefore non-linear and if solved numerically, some sort of appropriate
+iterative algorithm (e.g.\ Newton-Raphson) must be used.
+
+
+
+\section{The shallow ice shelf approximation (SSHELF)}
+The scaling analysis shown above applies to ice shelves as well. The
+only change we have to make is setting the basal shear stress to
+zero. There is no reason to do the analysis in a tilted coordinate
+system so we also set $\alpha=0$. Thus for floating ice shelves we have
+
+\begin{align} 
+\p_x ( 4 h \eta \p_x u + 2 h \eta \p_y v) +\p_y ( h \eta (\p_x v + \p_y u)) 
+&=\rho g  h \, \p_x s  , \label{eq:ttx}\\
+\p_y ( 4 h \eta \p_y v + 2 h \eta \p_x u) +\p_x ( h \eta (\p_y u + \p_x v)) 
+&=\rho g  h \, \p_y s  ,
+\label{eq:tty}
+\end{align}
+
+
+No stresses act at the upper boundary $z=s(x,y)$, and therefore the stress
+boundary conditions at the upper surface are (to second order) simply
+\begin{eqnarray}
+-\sxx \p_x s -\txy \p_y s + \txz&=& 0 ,\\ 
+-\txy \p_x s -\syy \p_y s + \tyz&=& 0 , \\
+                            \szz&=& 0. \label{eq:up}
+\end{eqnarray}
+The stress boundary conditions at the lower boundary
+$z=b(x,y)$ are
+\begin{eqnarray}
+-\sxx \p_x b -\txy \p_y b + \txz&=&p_w \,\p_x b ,\\
+-\txy \p_x b -\syy \p_y b + \tyz&=&p_w \,\p_y b ,\\
+                            \szz&=&-p_w  , \label{eq:do}
+\end{eqnarray}
+where
+\[
+p_w= \rho_w g (S-b) ,
+\]
+is the ocean pressure acting on the lower boundary of the ice shelf,
+with $\rho_w$ denoting the ocean density.
+
+
+We know that  
+\begin{equation}
+\szz=\rho g (z-s) , \label{eq:szzshelf}
+\end{equation}
+and the boundary condition (\ref{eq:do}) therefore implies that
+\[
+ \rho g (s-b)=  \rho_{w} g  (S-b),
+\]
+or
+\[
+ \rho g h= \rho_{w} g d.
+\]
+One can now work out various other floating relationships, and one finds that
+where the glacier is afloat the following relations hold:
+\begin{align} 
+h &= \rho_w d /\rho =\frac{s-S}{1-\rho/\rho_w} = \frac{\rho_w}{\rho} (S-b) ,\label{eq:hs1} \\
+b &= \frac{\rho s - \rho_w S}{\rho-\rho_w}  = S-\frac{\rho}{\rho_w} h , \label{eq:bh1}\\
+s &= S+(1-\rho/\rho_w) h = (1-\rho_w/\rho) b +\frac{\rho_w}{\rho} S, \label{eq:sb2}\\
+f&= (1-\rho/\rho_w) h  . 
+\end{align}
+
+If $\p_x S=0$, the slopes of the upper and the lower boundary are related through
+\begin{equation}
+b \, \p_x s +  s \, \p_x b = S \, \p_x h,
+\label{eq:resi}
+\end{equation}
+and also
+\begin{equation}
+\p_x s=(1-\rho/\rho_w) \p_x h .
+\label{eq:fl}
+\end{equation}
+The maximum ice thickness that an ice shelf can have without grounding is
+\[
+h_f := \rho_w H /\rho. 
+\]
+Where
+\[  h  \ge h_f , \]
+the ice is grounded.
+
+
+Using (\ref{eq:fl}) in (\ref{eq:ttx}) and (\ref{eq:tty}) gives
+\begin{eqnarray} 
+\p_x ( 4 h \eta \p_x u + 2 h \eta \p_y v) +\p_y ( h \eta (\p_x v + \p_y u)) 
+&=&\rho g (1-\rho/\rho_w) h \, \p_x h  ,\\
+\p_y ( 4 h \eta \p_y v + 2 h \eta \p_x u) +\p_x ( h \eta (\p_y u + \p_x v)) 
+&=&\rho g (1-\rho/\rho_w) h \, \p_y h  .
+\end{eqnarray}
+Expressed in terms of stresses these equations read
+\begin{eqnarray}
+\p_x (h (2\txx+\tyy)) + \p_y (h\txy) &=& \rho g (1-\rho/\rho_w) h \, \p_x h ,\\
+\p_y (h (2\tyy+\txx)) + \p_x (h\txy) &=& \rho g (1-\rho/\rho_w) h \, \p_y h  .
+\end{eqnarray} 
+Using the definition of the resisting stress tensor (see Eq.~\ref{eq:defSigmah})
+the equations can be written on a compact form as
+\[
+\nabla_{xy}^T \cdot (h \, \bm{R})  = \varrho \, g \, h \, \nabla_{xy} \, h ,
+\]
+where
+\[
+\varrho=\rho \, (1-\rho/\rho_w)
+.\]
+
+\begin{table}
+\caption{\label{tab:geo} List of main geometrical variables. ($\He(x)$
+  is the Heaviside step function.)}
+\begin{center}
+\begin{tabular}{cl}
+\hline
+symbol & definition\\
+\hline
+$s$ & upper glacier surface \\
+$b$ & lower glacier surface \\
+$S$ & ocean surface \\
+$B$ & bedrock / ocean floor \\
+$h:=s-b$ & glacier thickness \\
+$H:=S-B$ & ocean depth (pos.\ or neg.\ depending on location) \\
+$d:=\He(H) (S-b$) & glacier draft (positive by definition) \\
+$f:=s-S$ & freeboard (always positive) \\
+$h_f:=\rho_w H /\rho$ & maximum ice thickness without grounding \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Boundary conditions at the calving front}
+
+\label{sec:bccalving}
+At the calving front, $\Gamma_s$, we require balance of vertically integrated horizontal stresses, i.e.\
+\[
+\int_b^s \bm{\sigma}  \normalh = - \int_b^S p_w \, \normalh  \quad \hbox{on} \quad \Gamma_c ,
+\]
+where $p_w$ is the hydrostatic ocean pressure, and
+\begin{equation}
+\normalh=(n_x,n_y,0)^T ,
+\label{eq:normalh}
+\end{equation}
+is a unit normal pointing horizontally
+outward from the ice front.  In $x$ and $y$ directions this stress condition  is
+\begin{equation}
+ \int_b^s ( \sxx n_x + \txy n_y) \, dz = -\int_b^S  p_w n_x \, dz  \quad \hbox{on} \quad \Gamma_c ,
+\label{eq:bc1x}
+\end{equation}
+\begin{equation}
+  \int_b^s (\txy n_x + \syy n_y) \, dz = -\int_b^S p_w n_y \, dz \quad \hbox{on} \quad \Gamma_c .
+\label{eq:bc1y}
+\end{equation}
+If the draft $d$ at the ice front is zero,
+i.e.\ if the ice front is fully grounded, then $S<b$, the right-hand
+sides of \eqref{eq:bc1x} and \eqref{eq:bc1y} are to be set to zero.
+
+Because $\sxx$ can be written as
+\[ \sxx=2 \txx +\tyy + \szz ,\]
+(see Eq.~\ref{eq:txxrel}), and 
+\[ \szz=-\rho g (s-z) ,\]
+within the ice, we find that
+\begin{eqnarray*}
+\int_b^s \sxx \, dz &=& \int_b^s (2 \txx + \tyy) \, dz - \int_b^s \rho g (s-z) \, dx \nonumber \\
+                    &=& h (2 \txx + \tyy)  - \frac{\rho g}{2} h^2 \nonumber \\
+\end{eqnarray*}
+
+The $x$ component of the vertically integrated ocean pressure acting on the calving front is
+\begin{eqnarray*}
+-\int_b^S  p_w n_x \, dz &=& -\int_b^S  \rho_w g (S-z) n_x \, dz \\
+&=& -\frac{1}{2} \rho_w g (S-b)^2 \\
+&=& -\frac{1}{2} \rho_w g d^2
+\end{eqnarray*}
+
+Boundary conditions (\ref{eq:bc1x}) and (\ref{eq:bc1y}) can therefore be written as
+\begin{eqnarray}
+h (2 \txx + \tyy) n_x + h \txy n_y &=&  \frac{g}{2} (\rho h^2 - \rho_w  d^2)\, n_x \label{eq:bcgfx} \\
+h (2 \tyy + \txx) n_y + h \txy n_x &=&  \frac{g}{2} (\rho h^2 - \rho_w  d^2)\, n_y \label{eq:bcgfy}
+\end{eqnarray}
+or more compactly as
+\begin{equation}
+\bm{R}\, \, \normalc=\frac{g}{2h} ( \rho h^2-\rho_w d^2) \, \normalc
+\label{eq:BCCF}
+\end{equation}
+where
+\begin{equation}
+\normalc=(n_x,n_y)^T ,
+\label{eq:normalc}
+\end{equation}
+is a unit normal to the calving front.
+
+In arriving at (\ref{eq:bcgfx}) and (\ref{eq:bcgfy}) we have not
+specified any particular relationship between ice shelf thickness
+($h$) and ice shelf draft ($d$). These boundary conditions therefore
+apply to both grounded and floating ice edges.
+
+
+
+
+If the ice at the calving front is afloat, then $h$ and $d$ are
+related through the floating condition $\rho h =\rho_w d$. In that case  boundary
+conditions \eqref{eq:bcgfx} and \eqref{eq:bcgfy} take the form
+\begin{align}
+h (2 \txx + \tyy) n_x + h \txy \,n_y &= \frac{1}{2} \varrho g h^2   n_x ,\label{eq:bgfxfloat} \\
+h (2 \tyy + \txx) n_y + h \txy \,n_x &= \frac{1}{2} \varrho g h^2   n_y ,\label{eq:bgfyfloat} 
+\end{align}
+where
+\[
+\varrho:=\rho (1-\rho/\rho_w) ,
+\]
+or again more compactly using the resistive stress tensor as 
+\begin{equation}
+\bm{R}\, \, \normalc=\frac{1}{2} \varrho g h  \, \normalc.
+\label{eq:BCCFfloat}
+\end{equation}
+
+
+On the other hand if the ice terminates on land then $d=0$ and 
+\begin{align}
+h (2 \txx + \tyy) n_x + h \txy \,n_y &=  \frac{g}{2} \rho h^2 \, n_x  ,\label{eq:bcgfxgrounded} \\
+h (2 \tyy + \txx) n_y + h \txy \, n_x &=  \frac{g}{2} \rho h^2 \, n_y .\label{eq:bcgfygrounded} 
+\end{align}
+or
+\begin{equation}
+\bm{R}\, \, \normalc=\frac{1}{2} \rho g h  \, \normalc.
+\label{eq:BCCFgrounded}
+\end{equation}
+
+
+Written in terms of the velocity components the boundary conditions along a floating ice front are:
+\begin{align}
+  \eta h (4 \p_x u + 2  \p_y v) n_x + \eta h (\p_x v +\p_y u) n_y &= \frac{\varrho g h^2 }{2}  n_x ,\\
+\eta h (\p_x v + \p_y u) n_x + \eta h ( 4 \p_y v + 2 \p_x u) n_y &= \frac{\varrho g h^2 }{2}  n_y .
+\end{align}
+
+
+
+\subsection{Ice Shelf Buttressing}
+
+The vertically integrated condition on stresses at the calving front is
+\begin{equation}
+\int_b^s \bm{\sigma}_h  \normalc \, dz = - \int_b^S p_w \, \normalc  \, dz \quad \hbox{on} \quad \Gamma_c ,
+\label{eq:bsc}
+\end{equation}
+where the subscript $h$ on the Cauchy stress tensor implies that we
+are only considering the horizontal stress components, that is
+\begin{equation}
+\bm{\sigma}_h=\begin{pmatrix}  \sxx & \txy \\ \txy & \syy  \end{pmatrix}.
+\label{eq:sh}
+\end{equation}
+
+
+
+We denote the left-hand by $\bm{t}_i$ (traction on ice side) and
+those of the right-hand side by $\bm{t}_o$ (traction on ocean side), that is
+\[
+\bm{t}_i=\int_b^s \bm{\sigma}_h  \normalc \, dz \quad \hbox{on} \quad \Gamma_c
+\]
+and
+\[
+\bm{t}_o= - \int_b^S p_w \, \normalc  \, dz \quad \hbox{on} \quad \Gamma_c ,
+\]
+and find as shown above that
+\[
+\bm{t}_i=h \bm{R} \, \normalc - \frac{1}{2} \rho g h^2 \, \normalc
+\]
+and
+\[
+ \bm{t}_o= -\frac{1}{2} \rho_w d^2 \, \normalc= - \frac{1}{2} \frac{\rho}{\rho_w} \rho g h^2 \, \normalc
+\]
+For (\ref{eq:bsc}) to hold, i.e.\
+\[
+\bm{t}_i=\bm{t}_o
+\]
+it follows that
+\begin{equation}
+ \bm{R} \, \normalc =\frac{1}{2} \varrho g h \, \normalc
+ \label{eq:bcr}
+ \end{equation}
+Eq.~(\ref{eq:bcr}) is a boundary condition for the resistive stress
+tensor valid along a floating calving front.  Within an ice shelf, and along
+the grounding line, the resistive stress tensor will in general not
+fulfill this condition.
+
+
+We can define ice-shelf buttressing as the impact of the ice shelf on
+the stress regime along the grounding line. Note that in the absence
+of an ice shelf, and assuming that the ice front at the grounding line
+is exactly at flotation, the ice front will be in a direct contact
+with the ocean.  To quantify the impact of the ice shelf on stresses
+at the grounding line we must therefore compare the stresses along the
+grounding line to those caused by the ocean pressure.  More
+specifically, if we denote the vertically integrated horizontal
+traction along the grounding with $\tgl$, i.e.\
+\begin{equation}
+\tgl=\int_b^s \bm{\sigma}_h  \normalc \, dz \quad \hbox{on} \quad \Gamma_{\mathrm{gl}}
+\end{equation}
+the buttressing, $\bm{B}$,  is by definition
+\begin{equation}
+\bm{B}=\tO-\tgl .
+\end{equation}
+The normal and tangential components of the buttressing vector $\bm{B}$ are
+
+\begin{align}
+B_n &= \ngl^T \cdot ( \bm{t}_o - \tgl )\\
+&= - \frac{1}{2} \frac{\rho}{\rho_w} \rho g h^2 -  h \ngl \cdot (\bm{R} \, \normalc) + \frac{1}{2} \rho g h^2\\
+&=\frac{1}{2} \varrho g h^2 - h \ngl^T \cdot \bm{R} \, \ngl \label{eq:Bn}
+\end{align}
+and
+\begin{align}
+B_t &= \mgl^T \cdot ( \bm{t}_o - \tgl )\\
+&= 0 -  h\,  \mgl^T \cdot (\bm{R} \, \ngl) + 0\\
+&=h \, \mgl^T \cdot (\bm{R} \, \ngl) \label{eq:Bt}
+\end{align}
+where $\mgl$ is a unit vector in the horizontal plane tangential to
+the grounding line and $\mgl^T \cdot \ngl=0$.
+
+
+If we want to non-dimentionalise expressions (\ref{eq:Bn}) and
+(\ref{eq:Bt}) then we can do so in a number of different ways. We
+could for example normalize with the vertically integrated ocean
+pressure $|\tO|=\frac{1}{2} \rho_w g d^2$, or we could normalize using
+the magnitude of vertically integrated resistive stresses at a calving front, i.e.\ $h
+|\bm{R} \normalc|=\frac{1}{2} \varrho g h^2$. In ice shelves, and along
+grounding lines, horizontal deviatoric stresses are typically on the
+order of $\varrho g h$ and much smaller than $\rho g d$ and we
+therefore opt for the second option and define dimensionless normal and
+tangential buttressing numbers as
+\begin{align}
+  K_N&=\frac{\ngl^T \cdot (\tO-\tgl)}{h \normalc^T \cdot \bm{R} \normalc} \\
+  &=\frac{\frac{1}{2} \varrho g h -  \ngl^T \cdot \bm{R} \, \ngl}{\frac{1}{2} \varrho g h }\\
+   &=1- \frac{2 \ngl^T \cdot \bm{R} \, \ngl}{\varrho g h }
+\end{align}
+and
+\begin{align}
+  K_T&=\frac{\mgl^T \cdot ( \bm{t}_o - \tgl )}{h \normalc^T \cdot \bm{R} \normalc} \\
+     &=\frac{2 \mgl^T \cdot \bm{R} \, \ngl }{\varrho g h} ,
+\end{align}
+which agrees with Gudmundsson 2013.\footnote{If we normalize with the
+  (absolute value) of the vertically integrated ocean pressure
+\[
+T_N^{'}=\frac{\frac{1}{2} \varrho g h^2 - h \normalc^T \bm{R} \, \normalc}
+{\frac{1}{2} \rho_w g d^2  },
+\]
+then $T_N^{'}=-1$ for a fully grounded calving front, whereas $T+N=-1/(\rho_w/\rho-1)$. In general
+\[
+T_N^{'}=(\rho_w/\rho-1) T_N,
+\]
+so $T_N$ is about 10 times larger than $T_N^{'}$.}
+
+
+%\clearpage
+%\appendixpage
+%\appendix
+
+\section{Scaling the sliding law}
+We start by scaling the unit normal and find
+\begin{eqnarray}
+ \hat{\bm{n}}&=&\frac{1}{\sqrt{1+( \p_x b)^2 + (\p_y b)^2}}
+ \left ( \begin{array}{c} -\p_x b  \\ -\p_y b \\ 1 \end{array} \right )\nonumber \\
+    &=&\frac{1}{\sqrt{1+\de^2 ( \p_{x^*} b^*)^2 + \de^2 (\p_{y^*} b^*)^2}}
+ \left ( \begin{array}{c} -\de \p_{x^*} b^* \\ -\de \p_{y^*} b^* \\ 1 \end{array} \right )\nonumber \\
+    &=& \left (1-\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)/2+O(\de^4) \right )
+ \left ( \begin{array}{c} -\de \p_{x^*} b^* \\ -\de \p_{y^*} b^* \\ 1 \end{array} \right )\nonumber \\
+    &=&   \left ( \begin{array}{c} -\de \p_{x^*} b^* +O(\de^3) \\ 
+          -\de \p_{y^*} b^* +O(\de^3) \\ 
+         1 -\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)/2 +O(\de^4)
+ \end{array} \right ). \label{eq:n}
+ \end{eqnarray}
+\setlength{\arraycolsep}{0pt}
+The stress tensor is 
+ \[
+ \bm{\sigma}= [\sigma] \left ( \begin{array}{ccc} 
+ \sxx^* & \txy^* & \de \txz^* \\
+ \txy^* & \syy^* & \de \tyz^* \\
+ \de \txz^* & \de \tyz^* & \szz^* \\
+ \end{array} \right ),
+ \]
+and the product $\bm{\sigma} \normal$ is therefore
+ \begin{eqnarray}
+ \bm{\sigma} \hat{\bm{n}}&=& [\sigma]
+\left ( \begin{array}{ccc} 
+ \sxx^* & \txy^* & \de \txz^* \\
+ \txy^* & \syy^* & \de \tyz^* \\
+ \de \txz^* & \de \tyz^* & \szz^* \\
+ \end{array} \right )
+      \left ( \begin{array}{c} -\de \p_{x^*} b^* +O(\de^3) \\ 
+          -\de \p_{y^*} b^* +O(\de^3) \\ 
+         1 -\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)/2 +O(\de^4)
+ \end{array} \right )
+\nonumber \\
+ &=& [\sigma] \left (\begin{array}{c}
+ -\de \sxx^* \, \p_{x^*} b^* - \de \txy^* \, \p_{y^*} b^* + \de \txz^* +O(\de^3),\\
+ -\de \txy^* \, \p_{x^*} b^* - \de \syy^* \, \p_{y^*} b^* + \de \tyz^* +O(\de^3),\\
+ -\de^2 \txz^* \, \p_{x^*} b^* - \de^2 \tyz^* \, \p_{y^*} b^* 
++ \szz^* ( 1-\frac{1}{2}\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)  +O(\de^4)\\,
+ \end{array} \right ), \label{eq:sn}
+ \end{eqnarray}
+so that $\normal^T \cdot \bm{\sigma}^* \normal$ where  
+$\bm{\sigma}=[\sigma]\bm{\sigma}^*$ is given by
+ \begin{eqnarray*}
+ \normal^T \cdot \bm{\sigma}^* \normal&=&
+   \de^2 \p_{x^*} b^*  ( \sxx^* \, \p_{x^*} b^* +  \txy^* \, \p_{y^*} b^* -  \txz^*) 
++ \de^2 \p_{y^*} b^*  ( \txy^* \, \p_{x^*} b^* +  \syy^* \, \p_{y^*} b^* -  \tyz^*) \\
+& & -  \de^2 \txz^* \, \p_{x^*} b^* - \de^2 \tyz^* \, \p_{y^*} b^* + 
+\szz^*  ( 1-\frac{1}{2}\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2) +O(\de^4) , \\
+\end{eqnarray*}
+which, if we sort this according to order in $\de$, is
+\begin{eqnarray*}
+ \lefteqn{\normal^T \cdot \bm{\sigma}^* \normal= \szz^*}
+ \\ &+& \de^2 \left \{ (\sxx^*-\szz^*)  (\p_{x^*} b^*)^2 
++ (\syy^*-\szz^*) (\p_{y^*} b^*)^2
++2\txy^*
+ \p_{x^*} b^* \, \p_{y^*} b^* -2\txz^* \p_{x^*} b^* 
+ -2\tyz^* \p_{y^*} b^*
+ \right \} \\ &+&
+ O(\de^4) .\end{eqnarray*} 
+It follows that the normal stress vector on
+the bed, $(\hat{\bm{n}}^T \cdot \bm{\sigma} \hat{\bm{n}} )
+ \hat{\bm{n}}$, is
+ {\footnotesize
+ \begin{eqnarray*}
+ & &(\hat{\bm{n}}^T \cdot \bm{\sigma}^* \hat{\bm{n}} ) \hat{\bm{n}}=\\
+ & &\left ( \begin{array}{c} 
+ -\de \szz^* \p_{x^*} b^* +O(\de^3) \\
+ -\de \szz^* \p_{y^*} b^* +O(\de^3) \\
+ \szz^*(1-\de^2 ((\p_{x^*} b)^2+(\p_{y^*} b)^2)/2)+ \de^2 ( (\sxx^*-\szz^*) (\p_{x^*} b^*)^2 + (\syy^*-\szz^*) (\p_{y^*} b^*)^2
+ + 2 \txy \p_{x^*} b^* \,\p_{y^*} b^* -2 \txz \p_{x^*} b^* -2 \tyz \p_{y^*} b^*) +O(\de^4) 
+ \end{array} \right ).
+ \end{eqnarray*}}
+Predictably our insistence on keeping things up to third order is making things look a bit messy.
+
+The shear stress vector ($\bm{t}_b$) can now easily be calculated and is found to be 
+ \begin{eqnarray*}
+ \bm{t}_b&=&\bm{\sigma} \hat{\bm{n}} - (\hat{\bm{n}}^T \cdot \bm{\sigma} \hat{\bm{n}} ) \hat{\bm{n}}\\
+ &=&[\sigma]\left ( \begin{array}{c}
+ \de \p_{x^*} b^* (\szz^*-\sxx^*)-\de \p_{y^*} b^* \txy^* + \de \txz^* +O(\de^3)\\
+ \de \p_{y^*} b^* (\szz^*-\syy^*)-\de \p_{x^*} b^* \txy^* + \de \tyz^* +O(\de^3)\\
+ \de^2 ( (\szz^*-\sxx^*) (\p_{x^*} b^*)^2 + (\szz^*-\syy^*) (\p_{y^*} b^*)^2
+ -2 \txy^* \p_{x^*} b^* \,\p_{y^*} b^* + \txz^* \p_{x^*} b^* + \tyz^* \p_{y^*} b^*) +O(\de^4) 
+ \end{array} \right ) .
+ \end{eqnarray*}
+Hence, the components of the basal shear stress vector are $O(\de)$ or less.
+
+
+% \begin{eqnarray*} \p_x
+%\sxx+\p_y \txy + \p_z \txz = 0 \\ \p_x
+%\txy+\p_y \syy + \p_z \syz = 0 \\ \p_x
+%\txz+\p_y \syz + \p_z \szz = 0 \\ \end{eqnarray*}
+
+
+
+
+
+
+
+We now scale the basal velocity vector
+\[
+\bm{v}_b=\bm{v}-(\normal^T \cdot \bm{v}) \normal 
+\]
+and find 
+\begin{eqnarray*}
+\bm{v}_b&=&[u] \left (\begin{array}{c} 
+            u^* \\ v^* \\ \de w^* 
+        \end{array} \right ) \\
+&-&
+[u] \left ( \left ( \begin{array}{c} -\de \p_{x^*} b^* +O(\de^3) \\ 
+          -\de \p_{y^*} b^* +O(\de^3) \\ 
+         1 -\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)/2 +O(\de^4)
+ \end{array} \right )^T \cdot  \left (\begin{array}{c} 
+            u^* \\ v^* \\ \de w^* 
+        \end{array} \right ) \right )
+\left ( \begin{array}{c} -\de \p_{x^*} b^* +O(\de^3) \\ 
+          -\de \p_{y^*} b^* +O(\de^3) \\ 
+         1 -\de^2 ((\p_{x^*} b^*)^2+(\p_{y^*} b^*)^2)/2 +O(\de^4)
+ \end{array} \right ) \\
+&=& [u] \left (\begin{array}{c} 
+            u^* \\ v^* \\ \de w^* 
+        \end{array} \right ) 
+- [u] \left ( \begin{array}{c}
+\de^2 u^* (\p_{x^*} b^*)^2+\de^2 v^* \p_{y^*} b^* \,\p_{x^*} b^* - \de^2 \p_{x^*} \, w^* +O(\de^3)\\
+ \de^2 u^* \p_{x^*} b^* \,\p_{y^*} b^*+\de^2 v^* (\p_{y^*} b^*)^2 - \de^2 \p_{y^*} b^*\, w^* +O(\de^3)\\
+-\de u^* \p_{x^*} b^* - \de v^* \p_{x^*} b^* + \de w^* + O(\de^3) 
+        \end{array} \right )\\
+&=& [u] \left ( \begin{array}{c}
+ u^*+O(\de^2) \\
+ v^*+O(\de^2)\\
+ \de u^* \p_{x^*} b^* +\de v^* \p_{y^*} b^* +O(\de^3).
+        \end{array} \right ) .
+\end{eqnarray*}
+Hence, to second order
+\[
+\bm{v}_b=[u] \left (\begin{array}{c} 
+            u^* \\ v^* \\  \de u^* \p_{x^*} b^* +\de v^* \p_{y^*} b^* 
+        \end{array} \right ) .
+\]
+
+
+
+
+\chapter{Pertubation solutions of the SSTREAM/SSA}
+
+\section{Problem definition}
+We perform a small-amplitude perturbation analysis of the shallow ice
+stream (SSTREAM) equations. The discussion is limited to 1d along a
+flow line in which case the SSTREAM equations are
+\begin{equation}
+4 \p_x (h \eta \p_x u)  - (u/c)^{1/m}
+=\rho g h \p_x s \cos \alpha  - \rho g h \sin \alpha ,\label{eq:Mcx} 
+\end{equation}
+The horizontal velocity component ($u$) is constant across the depth,
+and the vertical velocity component ($w$) varies linearly with depth.
+In these equation $s$ is the surface, $h$ is ice thickness, $\eta$ is
+the effective ice viscosity, and $c$ is the basal slipperiness. The
+parameter $m$ and the basal slipperiness $c$ are parameters in the
+sliding law, We write the basal sliding law on the form
+\begin{equation}
+\mathbf{u}_b=c(x,y) |\mathbf{T}_b|^{m-1} \mathbf{T}_b.
+\label{eq:slidlaw}
+\end{equation}
+where $\mathbf{T}_b$ is the basal stress vector given by
+$\mathbf{T}_b=\sigma
+\normal-(\normal^T \cdot \sigma \normal)
+\normal$, with $\normal$ being a unit normal vector to the bed pointing into the
+ice. The function $c(x)$ is referred to as the basal slipperiness.
+
+For a linear viscous media ($n=1$) and a non-linear sliding law ($m$
+arbitrary) this equation can be linearised and solved analytically
+using standard methods as follows.  We write $f=\bar{f}+\Delta f$,
+where $f$ stands for some relevant variable entering the problem, and
+look for a zeroth-order solution where $\bar{f}$ is independent of $x$
+and $y$ and time $t$, while the first-order field $\Delta f$ is small
+but can be a function of space and time.  
+
+The perturbations in bedrock ($\Delta b$) and slipperiness ($\Delta
+c$) are step functions of time. They are applied at $t=0$, i.e.\ for
+$t<0$ we have $\Delta b=0$ and $\Delta c=0$ and for $t \ge 0$ both
+$\Delta b$ and $\Delta c$ are some constants.  Using this history
+definition the solutions for the velocity field and the surface
+geometry become functions of time.
+
+\subsection{Bedrock perturbations}
+
+We start by considering the response to small perturbation in basal
+topography ($\Delta b$).  Writing $h=\bar{h}+\Delta h$,
+$s=\bar{s}+\Delta s$, $b=\bar{b}+\Delta b$, where $h$ is ice
+thickness, $s$ surface topography, and $b$ bedrock topography, and
+furthermore $u=\bar{u}+\Delta u$, $w=\Delta w$, where $u$ and $w$ are
+the $x$ and $z$ components of the velocity vector, and $c=\bar{c}$
+where $c$ is the basal slipperiness (see Eq.~(\ref{eq:slidlaw}) and
+inserting into (\ref{eq:Mcx})  and solving gives the
+zeroth-order solution
+\begin{equation}
+\bar{u}=\bar{c} \rho g \bar{h} \sin \alpha  .
+\label{eq:zeroth} \end{equation}
+The zeroth-order solution represents a plug flow down an uniformly
+inclined plane.
+
+The first-order field equations are
+\begin{equation}
+4 \eta \bar{h} \p^2_{xx} \Delta u  -\gamma \Delta u 
+=\rho g \bar{h} \cos \alpha \p_x \Delta s - \rho g \sin \alpha \Delta h,
+\label{eq:Mcx1} 
+\end{equation}
+where
+\begin{equation}
+\gamma=\frac{\tau_d^{1-m}}{m \bar{c}} ,
+\end{equation}
+and 
+\begin{equation} 
+\tau_d=\rho g \bar{h} \sin \alpha,
+\end{equation}
+is the driving stress. 
+
+
+The domain of the first-order solution is transformed to that of the
+zeroth-order problem. Let $f(z)$ be some function of the vertical
+coordinate $z$. We have
+\[
+f=\bar{f}+\Delta f
+\]
+where $\bar{f}$ is the zeroth order approximation and $\Delta f$ the
+first order perturbation.
+For $z=\bar{z}+\Delta z$ we write
+\begin{eqnarray*}
+f(z)&=&\bar{f}(z)+\Delta f(z) \\
+&=& \bar{f}(\bar{z})+  \p_z \bar{f}|_{z=\bar{z}}(\bar{z}) \Delta z + \Delta f(\bar{z}) 
+\end{eqnarray*}
+where terms of second order have been ignored.
+
+
+For the kinematic boundary condition at the surface
+\[
+\p_t s + u \, \p_x s -w =0
+\]
+we, for example, get
+\[
+\p_t (\bar{s}+\Delta s)+ (\bar{u}+\Delta u + \p_z \bar{u}|_{z=\bar{s}}\,
+\Delta u) \p_x(\bar{s}+\Delta s)-(\bar{w} + \Delta w +\p_z \bar{w}|_{z=\bar{s}} \,\Delta s)=0.
+\]
+We have $\p_z \bar{u}=0$ and for the particular zeroth-order solution
+we are using (plug flow) we have $\p_z \bar{w}=0$. It follows that
+to first order the upper and lower boundary kinematic conditions are
+\begin{equation}
+\p_t \Delta s +\bar{u} \, \p_x \Delta s -\Delta w =0 ,\label{eq:kcs}
+\end{equation}
+and
+\begin{equation}
+\bar{u} \, \p_x \Delta b -\Delta w =0 ,\label{eq:kcb}
+\end{equation}
+respectively. In (\ref{eq:kcs}) the surface mass-balance perturbation
+has been set to zero. The jump conditions for the stresses have
+already been using in the derivation of (\ref{eq:Mcx}) and do not need
+to be considered further.
+
+This system of equations is solved using standard Fourier and Laplace
+transform methods. All variables are Fourier transformed with respect
+to the spatial variables $x$ and $y$ and Laplace transformed with
+respect to the time variable $t$.  The forward Fourier transform
+$f(k)$ of a function $f(x)$ is
+\begin{equation} 
+f(k) = \int\limits_{- \infty}^{+ \infty }
+f(x) e^{\I k x  }\,dx  ,
+\label{eq:Four} \end{equation}
+where $\I$ is the imaginary unit. The forward Laplace transform $f(r)$ of a
+function $f(t)$ is
+\begin{equation} 
+f(r)= \int_{0^{+}}^{+\infty} f(t)\, e^{-r t} \,dt .
+\end{equation}
+
+
+The Fourier and Laplace transforms of the first-order field
+Eq.~(\ref{eq:Mcx1}) is
+\begin{equation}
+4 \eta \bar{h} k^2\, \Delta u + \gamma \Delta u  
+= \rho g \sin \alpha (\Delta s-\Delta b)  + \I k \rho g \cos \alpha  \bar{h} \Delta s ,
+\label{eq:Mcx1kl}
+\end{equation}
+The Fourier transformed mass-conservation equation is
+\begin{equation}
+-\I k \, \Delta u + \p_z  \Delta w =0.
+\label{eq:Masskl}
+\end{equation}
+The Fourier-Lapalce transformed linearized kinematic boundary
+condition at the upper boundary (Eq.~(\ref{eq:kcs})) is
+\begin{equation}
+-\I k \bar{u} \,\Delta s +r \, \Delta s - \Delta s(t=0) -\Delta w =0,
+\label{eq:flbcs}
+\end{equation}
+and the one at the lower boundary is
+\begin{equation}
+-\I k \bar{u} \,\Delta b - w =0.
+\label{eq:flbcb}
+\end{equation}
+In addition we know that $u$ is constant over the depth, so that
+\begin{equation}
+\Delta u=\Delta u(k,t)
+\label{eq:ukt}
+\end{equation}
+and not $u=u(k,z,t)$. Furthermore, since $w$ is a linear function of
+depth we have
+\begin{equation}
+\p_z \Delta w= F(k,t)
+\label{eq:wkt}
+\end{equation}
+where $F$ is some function of $k$ and $t$ (but not of $z$).
+
+
+Eqs.~(\ref{eq:Mcx1kl}), (\ref{eq:Masskl}), (\ref{eq:flbcs}),
+(\ref{eq:flbcb}) together with (\ref{eq:ukt}) and (\ref{eq:wkt}) can
+now be solved for $\Delta u$, $\Delta w$, and $\Delta s$ as a function
+of $\Delta b$ for $\Delta s(t=0)=0$. There are various ways of doing
+this.  One can, for example, start by integrating Eq.~(\ref{eq:wkt})
+with respect to $z$ giving
+\begin{equation}
+\Delta w(z)= (z-b) \p_z \Delta w -\I k \bar{u} \Delta b
+\label{eq:dwz}
+\end{equation}
+where lower kinematic boundary condition (\ref{eq:flbcb}) has been
+used to determine the integration constant. Then $\Delta u$ can be
+eliminated from Eq.~(\ref{eq:Masskl}) using
+Eq.~(\ref{eq:Mcx1kl}). Inserting the resulting expression for $\p_z
+\, \Delta w$ into (\ref{eq:dwz}) and setting $z=\bar{s}$ gives $\Delta w$ as a 
+linear function of $\Delta s$ and $\Delta b$. The upper boundary
+kinematic condition (\ref{eq:flbcs}) can then be used to get rid of
+$\Delta w$ giving $\Delta s$ as a (linear) function of $\Delta b$.
+Doing these algebraic manipulations, one finds that the (complex)
+ratio between surface and bedrock amplitude $\T_{sb}=\Delta s/\Delta
+b$ is given by
+\begin{equation}
+\T_{sb}(k,r)=-\frac{\I k (\bar{u}+\tau_d/\xi)}{r (r-p)},
+\label{eq:tsbr}
+\end{equation}
+where 
+\begin{equation}
+p=\I/t_p-1/t_r,
+\label{eq:p}
+\end{equation}
+and the two timescales $t_p$ (phase time scale) and $t_r$ (relaxation
+time scale) are given by
+\begin{equation}
+t_p^{-1}=k (\bar{u}+\tau_d/\xi),
+\label{eq:sistp}
+\end{equation}
+and
+\begin{equation}
+t_r^{-1}=\xi^{-1} k^2 \tau_d \bar{h} \cot \alpha ,
+\label{eq:sistd}
+\end{equation}
+and furthermore
+\begin{equation}
+\xi=\gamma+4 \bar{h} k^2 \eta.
+\end{equation}
+
+
+The inverse Laplace transform is calculated using the Bromwich
+integral
+\begin{equation} 
+f(t)= \frac{1}{2\pi \I} \int_{\gamma-\I \infty}^{\gamma+\I \infty} e^{rt}
+f(r) \, dr .
+\end{equation} 
+We see from Eq.~(\ref{eq:tsbr}) that the $\T_{sb}(k,r)$ transfer
+function has two poles, one at $r=0$ and another one at $r=p$. The
+second pole is always in the left-half complex plane and the inverse
+Laplace transform can be evaluated by contour integration over a
+semicircle in the left hand plane. We find that
+\begin{equation}
+\T_{sb}(k,l,t)=\frac{\I k (\bar{u} \,\xi + \tau_d)}{p \,\xi} (e^{pt}-1).
+\label{eq:sisTsb}
+\end{equation}
+This transfer function describes the relation between surface and
+bedrock geometry, where $\Delta s(k,l,t)= \T_{sb}(k,l,t) \Delta
+b(k,l)$. Transfer functions giving the pertubations in velocity can be
+calculated in the same manner.
+
+
+\bigskip
+\noindent \textbf{Exercise:} 
+Calculate $T_{ss_0}:=s(k,t)/s(k,t=0)$ for $\Delta b=0$ and show that
+\begin{equation}
+T_{ss_0}=e^{p t}.
+\end{equation}
+
+
+%\renewcommand{\thefigure}{\arabic{figure}}
+
+\begin{figure}
+  \begin{minipage}[t]{0.5\linewidth}
+\centering
+\includegraphics[width=\textwidth]{tc-2007-0016-f01a}
+\caption{The phase speed  ($|\mathbf{v}_p|$) as a function of
+wavelength for $\theta{=}0$. The dashed-dotted curve is based on the
+shallow-ice-sheet (SSHEET) approximation, the dashed one is based on
+the shallow-ice-stream (SSTREAM) approximation, and the solid one is a
+full-system (FS) solution.  The surface slope is $\alpha{=}0.005$ and
+slip ratio $\bar{C}{=}30$ and $n=m=1$.  The unit on the $y$ axis is the mean surface
+velocity of the full-system solution ($\bar{u}{=}\bar{C}{+}1{=}31$).
+\label{fig:Vp}}
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[t]{0.5\linewidth}
+\centering
+\includegraphics[width=\textwidth]{tc-2007-0016-f01b.pdf}
+\caption{The $x$ component of the group velocity ($u_g$) as a function of
+wavelength for $\theta{=}0$. Values of mean surface slope and slip ratio
+are 0.005 and 30, respectively, and $m=n=1$.
+\label{fig:Ug}}
+\end{minipage}
+\end{figure}
+
+%\renewcommand{\thefigure}{\arabic{figure}a}
+\begin{figure}
+  \begin{minipage}[t]{0.5\linewidth}
+\centerline{
+\includegraphics[width=8.3cm]{tc-2007-0016-f02a.pdf}
+}
+\caption{The phase speed ($|\mathbf{v}_p|$) of the full-system
+solution as a function of wavelength $\lambda$ and orientation
+$\theta$ of the sinusoidal perturbations with respect to mean flow
+direction.  The mean surface slope is $\alpha{=}0.002$ and the slip ratio
+is $\bar{C}{=}100$, and $n=m=1$.  The plot has been normalised with the non-dimensional
+surface velocity $\bar{u}{=}\bar{C}{+}1{=}101$ of the full-system solution.
+\label{fig:FS_Vp}}
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[t]{0.5\linewidth}
+\centerline{
+\includegraphics[width=8.3cm]{tc-2007-0016-f02b.pdf}
+}
+\caption{The shallow-ice-stream phase speed as a
+function of wavelength $\lambda$ and orientation $\theta$.  As in
+Fig.~\ref{fig:FS_Vp}a the mean surface slope is $\alpha{=}0.002$ and the
+slip ratio is $\bar{C}{=}100$, $n=m=1$,  and the plot has been normalised with the
+non-dimensional surface velocity $\bar{u}{=}\bar{C}{+}1{=}101$ of the full-system
+solution.
+\label{fig:SSTREAM_Vp}}
+\end{minipage}
+ \end{figure}
+
+
+%\renewcommand{\thefigure}{\arabic{figure}}
+\begin{figure}
+\vspace*{2mm}
+\centerline{
+\includegraphics[width=8.3cm]{tc-2007-0016-f03.pdf}
+}
+\caption{The relaxation time scale ($t_r$) as a function of wavelength
+$\lambda$.  The wavelength is given in units of mean ice thickness
+($\bar{h}$) and $t_r$ is given in years. The mean surface slope is
+$\alpha{=}0.002$, the slip ratio is $\bar{C}{=}999$, and $n=m=1$. For
+these values $t_r$ is on the order of 10 years for a fairly wide range
+of wavelengths. Lowering the slip ratio will reduce the value of
+$t_r$. It follows that ice streams will react to sudden changes in
+basal properties or surface profile by a characteristic time scale of
+a few years.
+\label{fig:tr}}
+\end{figure}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f04.pdf}}
+\caption{Steady-state response of surface topography ($\Delta s$) to a 
+perturbation in bed topography ($\Delta b)$. The surface slope is
+0.002, the mean slip ratio $\bar{C}{=}100$, and $n=m=1$. Transfer
+functions based on the shallow-ice-stream approximation (dashed line,
+Eq.~\ref{eq:sisTsb}), the shallow-ice-sheet approximation (dotted
+line, and a full system solution (solid line) are shown.
+\label{fig:Tsbl_ss}}
+\end{figure}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{
+\includegraphics[width=8.3cm]{tc-2007-0016-f05.pdf}}
+\caption{Transient surface topography response to a sinusoidal 
+perturbation in bed topography applied at $t{=}0$. Shown are the
+amplitude ratios between surface and bed topography ($|T_{sb}|$)
+as a function of wavelength for $\alpha{=}0.002$, $\theta{=}0$,
+$\bar{C}{=}100$, and $n=m=1$ for $t{=}0.001$ (red), $t{=}0.01$ (blue),
+and $t{=}10$ (green).
+\label{fig:Tsbtrans}}
+\end{figure}
+
+
+
+%\renewcommand{\thefigure}{\arabic{figure}a}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f06a.pdf}}
+\caption{{\bf (a)} The SSTREAM amplitude ratio  ($|\T_{sb}|$) between
+surface and bed topography (Eq.~\ref{eq:sisTsb}).  Surface slope
+is 0.002, the slip ratio $\bar{C}{=}99$, and $n=m=1$.  $\lambda$ is
+the wavelength of the sinusoidal bed topography perturbation and $\theta$ is
+the angle with respect to the x axis, with $\theta{=}0$ and
+$\theta{=}90$ corresponding to transverse and longitudinal 
+undulations in bed topography, respectively.
+\label{fig:SISA_Tsb_kl_ss_100_0k002}}
+\end{figure}
+
+\addtocounter{figure}{-1}
+%\renewcommand{\thefigure}{\arabic{figure}b}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f06b.pdf}}
+\caption{{\bf (b)} The FS amplitude ratio between
+surface and bed topography ($|\T_{sb}|$).  The shape of the same transfer function
+for the same set of parameters based on the SSTREAM approximation is
+shown in Fig.~\ref{fig:SISA_Tsb_kl_ss_100_0k002}a.
+\label{fig:Tsbkl_ss_100_0k002}}
+\end{figure}
+
+\clearpage
+%\renewcommand{\thefigure}{\arabic{figure}a}
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f07a.pdf}}
+\caption{{\bf (a)} The steady-state amplitude ratio  ($|\T_{ub}|$) between
+longitudinal surface velocity ($\Delta u$) and bed topography ($\Delta
+b$) in the shallow-ice-stream approximation.  Surface slope is 0.002,
+the slip ratio is $99$, and $n=m=1$.
+\label{fig:SISA_Tub_kl_ss_100_0k002}}
+\end{figure}
+
+\addtocounter{figure}{-1}
+%\renewcommand{\thefigure}{\arabic{figure}b}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f07b.pdf}}
+\caption{{\bf (b)} The steady-state amplitude ratio ($|\T_{ub}|$) between
+longitudinal surface velocity ($\Delta u$) and bed topography
+($\Delta b$).  The shape of the
+same transfer function for the same set of parameters, but based on
+the shallow-ice-stream approximation, is shown in
+Fig.~\ref{fig:SISA_Tub_kl_ss_100_0k002}a.
+\label{fig:Tub_kl_ss_100_0k002}}
+\end{figure}
+\clearpage
+%\renewcommand{\thefigure}{\arabic{figure}a}
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f08a.pdf}}
+\caption{{\bf (a)} The steady-state amplitude ratio  ($|\T_{vb}|$) between
+transverse velocity ($\Delta v$) and bed topography ($\Delta b$)
+in the shallow-ice-stream approximation.
+Surface slope is 0.002, the slip ratio is $99$ and $n=m=1$.
+\label{fig:SISA_Tvb_kl_ss_100_0k002}}
+\end{figure}
+
+\addtocounter{figure}{-1}
+%\renewcommand{\thefigure}{\arabic{figure}b}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f08b.pdf}}
+\caption{{\bf (b)} The steady-state amplitude ratio ($|\T_{vb}|$ between
+transverse velocity ($\Delta v$) and bed topography ($\Delta b$).  The shape of the same
+transfer function for the same set of parameters, but based on the
+shallow-ice-stream approximation, is shown in
+Fig.~\ref{fig:SISA_Tvb_kl_ss_100_0k002}a.
+\label{fig:Tvb_kl_ss_100_0k002}}
+\end{figure}
+
+\clearpage
+
+
+%\renewcommand{\thefigure}{\arabic{figure}}
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f09.pdf}}
+\caption{Steady-state response of surface topography
+to a perturbation in bed topography for linear and non-linear
+sliding. All curves are for linear medium ($n{=}1$). The solid lines are
+calculated for linear sliding ($m{=}1$) and the dashed lines for
+non-linear sliding ($m{=}3$). The red lines are SSHEET solutions, the
+blue ones are SSTREAM solutions, and the black line is a FS
+solution which is only available for $m{=}1$. Mean surface slope is
+0.002 and slip ratio is equal to 100.
+\label{fig:Tsbm}}
+\end{figure}
+
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f10.pdf}}
+\caption{Steady-state response of surface topography
+to a basal slipperiness perturbation.  Shown are FS (solid line),
+SSTREAM (circles), and SSHEET (crosses) transfer amplitudes for both
+$\bar{C}{=}1$ and $\bar{C}{=}10$. In the plot the SSTREAM curves for
+$\bar{C}{=}1$ and $\bar{C}{=}10$ are too similar to be distinguished.  The
+surface slope is 0.002.
+\label{fig:Tsc}}
+\end{figure}
+
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f11.pdf}}
+\caption{Steady-state response of surface longitudinal
+($u$), transverse ($v$), and vertical ($w$) velocity components to a
+basal slipperiness perturbation. The surface slope is 0.002 and the
+slip ratio $\bar{C}{=}10$.  The $\T_{uc}$ and $\T_{wc}$ amplitudes are
+calculated for slipperiness perturbations aligned transversely to the
+flow direction ($\theta{=}0$). For $\T_{vc}$, $\theta{=}45$ degrees.  Of
+the two y axis the scale to the left is for the horizontal velocity
+components ($\T_{uc}$ and $\T_{wc}$), and the one to the right is the
+scale for $\T_{uc}$.
+\label{fig:TucTvcC10}}
+\end{figure}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f12.pdf}}
+\caption{Steady-state response of the surface longitudinal
+($\Delta u$) velocity component to a basal slipperiness perturbation
+in the shallow-ice-stream approximation. The
+surface slope is 0.002 and the slip ratio $\bar{C}{=}99$.
+\label{fig:SISATuc}}
+\end{figure}
+
+
+%\renewcommand{\thefigure}{\arabic{figure}a}
+
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f13a.pdf}}
+\caption{{\bf (a)} Surface topography response to a flow over a 
+Gaussian-shaped bedrock disturbance
+as given by a FS (lower half of figure) and a SSTREAM solution (upper
+half of figure). The mean flow direction is from left to
+right. Surface slope is 3 degrees and mean basal velocity equal to
+mean deformational velocity ($\bar{C}{=}1$). The spatial unit is one
+mean ice thickness ($\bar{h}$). The Gaussian-shaped bedrock
+disturbance has a width of 10 $\bar{h}$ and it's amplitude is 0.1
+$\bar{h}$. The problem definition is symmetrical about the x axis
+($y{=}0$) and any deviations in the figure from this symmetry are due
+to differences in the FS and the SSTREAM solutions.
+\label{fig:GaussTopo}}
+\end{figure}
+
+\addtocounter{figure}{-1}
+%\renewcommand{\thefigure}{\arabic{figure}b}
+\begin{figure}
+\vspace*{2mm}
+\centerline{\includegraphics[width=8.3cm]{tc-2007-0016-f13b.pdf}}
+\caption{{\bf (b)} Response in surface velocity to a Gaussian-shaped 
+bedrock perturbation. All parameters are equal to those in
+Fig.~\ref{fig:GaussTopo}a. The contour lines give horizontal speed and
+the vectors the horizontal velocities. The velocity unit is
+mean-deformational velocity ($\bar{u}_d$). The slip ratio is equal to
+one, and the mean surface velocity is $2 \bar{u}_d$. The upper half of
+the figure is the SSTREAM solution and the lower half the
+corresponding FS solution.
+\label{fig:GaussVel}}
+\end{figure}
+
+
+\subsection{Slipperiness perturbations}
+
+We now consider the response to small perturbation in basal
+slipperiness.  We write the slipperiness perturbation on the form
+\[
+c(x)=\bar{c}(1+\Delta c(x))
+\]
+where $\Delta c$ is the fractional perturbation in basal
+slipperiness. The total perturbation is $\bar{c} \Delta c$. As before
+we write $h=\bar{h}+\Delta h$, $s=\bar{s}+\Delta s$, $u=\bar{u}+\Delta
+u$, and $w=\Delta w$. Since there is no perturbation in basal
+topography we have $b=\bar{b}$ and $h=\bar{h}+\Delta s$.
+
+For the zeroth-order problem we get the plug-flow solution as before		
+\begin{equation}
+\bar{u}=\bar{c} \rho g \bar{h} \sin \alpha  .
+\end{equation}	
+
+\begin{equation}
+\p_t \Delta s +\bar{u} \, \p_x \Delta s -\Delta w =0 ,
+\end{equation}	
+and	
+\begin{equation}
+\bar{u} \, \p_x \Delta b -\Delta w =0 ,
+\end{equation}		
+
+
+To first order the upper and lower boundary kinematic conditions are	
+\begin{equation}	
+\p_t \Delta s +\bar{u} \, \p_x \Delta s -\Delta w =0 ,\label{eq:ksc}		
+\end{equation}	
+as before, while the basal boundary conditions are	
+\begin{equation}	
+\Delta w =0 ,
+\end{equation}	
+
+In the field equation (\ref{eq:Mcx}) we have, among other terms, the
+term $(u/c)^{1/m}$. For $u=\bar{u}+\Delta u$ and $c=\bar{c}(1+\Delta
+c)$ we find
+\[
+\left ( \frac{u}{c} \right )^{1/m} = \left 
+( \frac{\bar{u}+\Delta u}{\bar{c}(1+\Delta c)}
+\right )^{1/m}
+=\bar{c}^{1/m} ((\bar{u}+\Delta u)(1-\Delta c))^{1/m}
+=\left( \frac{\bar{u}}{\bar{c}}\right )^{1/m} -\gamma \bar{u} \Delta c +\gamma \Delta u
+\]
+where
+\[
+\gamma=\frac{1}{\bar{u} m} \left ( \frac{\bar{u}}{\bar{c}} \right )^{1/m} 
+= \frac{\tau_d^{1-m}}{m \bar{c}}
+\]
+where
+\begin{equation}
+\gamma=\frac{\tau_d^{1-m}}{m \bar{c}} ,
+\end{equation}
+and 
+\begin{equation} 
+\tau_d=\rho g \bar{h} \sin \alpha,
+\end{equation}
+is the driving stress. 
+
+We then find that the first-order field equations are
+\begin{equation}
+4 \eta \bar{h} \p^2_{xx} \Delta u  -\gamma \Delta u 
+=\rho g \bar{h} \cos \alpha \p_x \Delta s - \rho g \sin \alpha \Delta h,
+\end{equation}
+and these can be solved using standart Fourier and Laplace
+transformation methods as done above for the case of bedrock
+pertubations.
+
+
 \part{Appendices}
 \appendix
 
@@ -7036,6 +9062,10 @@ and find that
 \bm{L}^\ast=\bm{M}_1^{-T} \bm{L}^T \bm{M}_2^T
 \]
 
+
+\clearpage
+\bibliographystyle{apalike}
+\bibliography{glacier}
 
 \end{document}
  

@@ -58,7 +58,7 @@ if nargin<3 || isempty(GmshBackgroundScalarField)  % mesh domain (without using 
     
     if contains(lower(CtrlVar.GmshMeshingMode),'mesh domain')
         
-        RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
+        RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -2 -format msh2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
         
     end
     
@@ -73,7 +73,7 @@ else  % remesh with a given scalar background field defining desired ele sizes
     fprintf(CtrlVar.fidlog,'Creating a Gmsh scalar post file %s \n',FileName);
     CreateGmshBackgroundScalarMesh(GmshBackgroundScalarField.xy,GmshBackgroundScalarField.TRI,GmshBackgroundScalarField.EleSize,FileName);
     
-    RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -bgm ',FileName,' -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
+    RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -bgm ',FileName,' -format msh2 -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
     
     
 end

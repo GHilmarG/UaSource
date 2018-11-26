@@ -1,12 +1,12 @@
-function [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF)
+function [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F)
 
-narginchk(6,6)
+narginchk(5,5)
 nargoutchk(2,2)
 
 if CtrlVar.IncludeMelangeModelPhysics
     
     
-    [UserVar,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma]=DefineSeaIceParameters(UserVar,CtrlVar,MUA,BCs,GF,F.ub,F.vb,F.ud,F.vd,F.uo,F.vo,F.ua,F.va,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.AGlen,F.n,F.C,F.m);
+    [UserVar,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma]=DefineSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F.GF,F.ub,F.vb,F.ud,F.vd,F.uo,F.vo,F.ua,F.va,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.AGlen,F.n,F.C,F.m);
     
 
     %% Test values

@@ -76,7 +76,7 @@ if ~CtrlVar.ResetThicknessInNonLinLoop
     CtrlVar.ResetThicknessToMinThickness=0;
 end
 
-[F1.b,F1.s,F1.h,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
 CtrlVar.ResetThicknessToMinThickness=temp;
 
@@ -87,7 +87,7 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
         as1Old=F1.as ; ab1Old=F1.ab;
     end
     CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-    [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1,GF1);
+    [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
     CtrlVar.time=CtrlVar.time-CtrlVar.dt;
     switch CtrlVar.MassBalanceGeometryFeedback
         
