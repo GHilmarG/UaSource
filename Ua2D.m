@@ -340,7 +340,7 @@ while 1
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
-        
+ %       fprintf('AdaptMesh #s=%i #b=%i #S=%i #B=%i #h=%i #GF.node=%i \n ',numel(F.s),numel(F.b),numel(F.S),numel(F.B),numel(F.h),numel(F.GF.node))
         
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
@@ -359,11 +359,17 @@ while 1
                 hold off
             end
             xlimtemp=fig.CurrentAxes.XLim;  ylimtemp=fig.CurrentAxes.YLim;
-            PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+            %PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+            PlotMuaMesh(CtrlVar,MUA);
             hold on ; 
             [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
             
-            xlim(xlimtemp) ; ylim(ylimtemp); axis tight
+            xymin=min(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ; 
+            xymax=max(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ;
+            xlim([xymin(1) xymax(1)]) ; ylim([xymin(2) xymax(2)]); 
+            XYratio=(xymax(2)-xymin(2))/(xymax(1)-xymin(1)) ;
+            xl=fig.Position(1) ;  yd=fig.Position(2) ; xr=fig.Position(3) ;  yu=yd+(xr-xl)*XYratio;
+            fig.Position=[xl yd xr yu];
         end
 
         

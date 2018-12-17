@@ -40,10 +40,22 @@ if ~(FieldsToBeDefined=="")
     errorStruct.identifier = 'GetGeometry:NaNinInput';
     
     if contains(FieldsToBeDefined,'s')
+        
         if any(isnan(sTemp))
-            errorStruct.message = 'nan in s';
+            errorStruct.message = 's returned by DefineGeometry  contains nan.';
             error(errorStruct)
         end
+        
+        if ~isfinite(sTemp)
+            errorStruct.message = 's returned by DefineGeometry  not a finite number.';
+            error(errorStruct)
+        end
+        
+        if isempty(sTemp)
+            errorStruct.message = 's returned by DefineGeometry is empty.';
+            error(errorStruct)
+        end
+        
         F.s=sTemp;
     end
     
@@ -52,6 +64,18 @@ if ~(FieldsToBeDefined=="")
             errorStruct.message = 'nan in b';
             error(errorStruct)
         end
+        
+        if ~isfinite(bTemp)
+            errorStruct.message = 'b returned by DefineGeometry  not a finite number.';
+            error(errorStruct)
+        end
+        
+        if isempty(bTemp)
+            errorStruct.message = 'b returned by DefineGeometry is empty.';
+            error(errorStruct)
+        end
+        
+        
         F.b=bTemp;
     end
     
@@ -60,14 +84,40 @@ if ~(FieldsToBeDefined=="")
             errorStruct.message = 'nan in S';
             error(errorStruct)
         end
+        
+        
+        if ~isfinite(STemp)
+            errorStruct.message = 'S returned by DefineGeometry  not a finite number.';
+            error(errorStruct)
+        end
+        
+        if isempty(STemp)
+            errorStruct.message = 'S returned by DefineGeometry is empty.';
+            error(errorStruct)
+        end
+        
+        
         F.S=STemp;
     end
     
     if contains(FieldsToBeDefined,'B')
+
         if any(isnan(BTemp))
             errorStruct.message = 'nan in B';
             error(errorStruct)
         end
+
+        
+        if ~isfinite(BTemp)
+            errorStruct.message = 'B returned by DefineGeometry  not a finite number.';
+            error(errorStruct)
+        end
+        
+        if isempty(BTemp)
+            errorStruct.message = 'B returned by DefineGeometry is empty.';
+            error(errorStruct)
+        end
+        
         F.B=BTemp;
     end
     
