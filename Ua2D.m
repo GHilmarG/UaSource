@@ -358,18 +358,19 @@ while 1
                 fig=figure(fig);
                 hold off
             end
-            xlimtemp=fig.CurrentAxes.XLim;  ylimtemp=fig.CurrentAxes.YLim;
-            %PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+ 
             PlotMuaMesh(CtrlVar,MUA);
             hold on ; 
             [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
             
             xymin=min(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ; 
             xymax=max(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ;
-            xlim([xymin(1) xymax(1)]) ; ylim([xymin(2) xymax(2)]); 
+            xlim([xymin(1) xymax(1)]) ; 
+            ylim([xymin(2) xymax(2)]); 
             XYratio=(xymax(2)-xymin(2))/(xymax(1)-xymin(1)) ;
-            xl=fig.Position(1) ;  yd=fig.Position(2) ; xr=fig.Position(3) ;  yu=yd+(xr-xl)*XYratio;
-            fig.Position=[xl yd xr yu];
+            xl=fig.Position(1) ;  yd=fig.Position(2) ; width=fig.Position(3) ;  height=yd+width*XYratio;
+            fig.Position=[xl yd width height];
+            drawnow
         end
 
         

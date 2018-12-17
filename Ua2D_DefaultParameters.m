@@ -19,7 +19,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=NaN;             % In a transient run this variable is the (model) time. Set to some 
+CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
@@ -50,8 +50,10 @@ CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
                                        % But Hybrid is still in development and should not be used for the time being.
 
 %% Boundary conditions
-CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBCs' is called at the beginning of each time step and boundary conditions are updated
+CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
+                                                   % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
+                                                   % the boundary conditions are updated through a call to DefineBoundaryConditions.m
 CtrlVar.BCsWeights=1;  % testing parameter, do not change
 
 %

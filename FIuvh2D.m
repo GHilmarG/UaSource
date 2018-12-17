@@ -87,8 +87,10 @@ else
             end
         end
         
-        II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
-        F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, important for convergence
+        % II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
+        % F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
+        % However, I concluded (17 Dec, 2018) that it was better not to do this, as this can significantly inctrease the number of NR iterations.
+        % Better to do this only if the iteration does not converge.
         
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;
         
@@ -166,19 +168,7 @@ else
                 F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
                
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
-               % BCs1.hPosNode=[] ;  BCs1.hPosValue=[]; isActiveSetModified=1;
-%             elseif ~ActiveSetReset
-%                 
-%                 ActiveSetReset=1;
-%                 if CtrlVar.ThicknessConstraintsInfoLevel>=1
-%                     fprintf(CtrlVar.fidlog,' uvh2D did not converge in first active-set iteration. Resetting variables and eliminating active-set. \n');
-%                 end
-%                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h; 
-%         
-%                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
-%                 BCs1.hPosNode=[] ;  BCs1.hPosValue=[];
-%                 isActiveSetModified=1;
-%
+
             elseif ~ReduceTimeStep
                 
                 ReduceTimeStep=1;
