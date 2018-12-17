@@ -1,4 +1,4 @@
-function Ua(UserVar,varargin)
+function UserVar=Ua(UserVar,varargin)
 
 
 %% Úa
@@ -218,7 +218,7 @@ if nargin==0
     UserVar=[];
 end
 
-Ua2D(UserVar,varargin{:})
+UserVar=Ua2D(UserVar,varargin{:});
 
 
 end

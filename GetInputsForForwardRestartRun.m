@@ -164,7 +164,7 @@ else
         fprintf('are therefore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         
         %[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
-        [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
+        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
         TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
         %F.h=F.s-F.b;
         
@@ -180,12 +180,12 @@ fprintf('       These will owerwrite those in restart file.\n')
 
 %[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
 %[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-[UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F,GF);
-[UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F,GF);
-[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F,GF);
+[UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+[UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
+[UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
 
 BCs=BoundaryConditions;
-[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F,GF);
+[UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
 
 if CtrlVar.IncludeMelangeModelPhysics
     fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')

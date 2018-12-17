@@ -1,4 +1,4 @@
-function Ua2D(UserVar,varargin)
+function UserVar=Ua2D(UserVar,varargin)
 
 %% Driver for the 2HD Úa model
 % 
