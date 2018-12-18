@@ -152,7 +152,7 @@ else
         
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
         % [UserVar,~,~,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'SB');
-        [UserVar,F,GF]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'SB');
+        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'SB');
         
         l=UaLagrangeVariables;
         

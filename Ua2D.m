@@ -162,10 +162,6 @@ else
     
 end
 
-if CtrlVar.TestUserInputs==1
-    CtrlVar.TestUserInputs=0;
-end
-
 
 %% RunInfo initialisation
 RunInfo.Message(1)="Start of Run";

@@ -90,9 +90,6 @@ CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
 % The default option is not to modify any geometrical variables manually within a run step. 
 %
 %%
-CtrlVar.TestUserInputs=1;  % By default user inputs will be tested at the start of the run
-                           % to suppress set TestUserInputs=0
-                           % if user inputs are always to be tested throughout the run, set TestUserInputs=2 
 CtrlVar.TestForRealValues=1;
 %% Element type
 %
