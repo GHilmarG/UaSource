@@ -10,15 +10,20 @@
 
 %% Parameters
 FileNameSubstring='UserOutputFile-prognostic-n3-m5-MatlabOptimization-Nod3-I-Adjoint-Cga1-Cgs1-Aga1-Ags1-0-0-logAGlenlogC';
+FileNameSubstring='UserOutputFile-prognostic-n3-m5-MeltRate-100-MatlabOptimization-Nod3-I-Adjoint-Cga1-Cgs1-Aga1-Ags1-0-0-logAGlenlogC';
+
+
 PlotTimeInterval=1;                     % model time interval between creation of plots
 PlotTimeMax=1e10;
 PlotType='-mesh-';  %  specify the type of plot to create, see below, modify and expand as needed
 PlotType='-log10(BasalSpeed)-';
 PlotType='-dhdt-';
 PlotType='-ubvb-';
-PlotType='-ab-';
 PlotType='-h-';
 PlotType='-sbB-';
+PlotType='-MeltNodes-';
+PlotType='-ab-';
+
 PlotScreenPosition=[40 40 2300 1800]; % positon of figure on screen, adjust this to your own screen resolution
 PlotScreenPosition=[40 40 2000 1600]; %
 %pos=[200 50 1200 900];
@@ -64,7 +69,8 @@ while iFile<=nFiles   % loop over files
         end
         
         CtrlVar.PlotXYscale=1000;
-        GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+        [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar);
+        
         TRI=[]; DT=[]; xGL=[];yGL=[];
         x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
         ih=F.h<=CtrlVar.ThickMin;
@@ -337,23 +343,23 @@ while iFile<=nFiles   % loop over files
                 end
                 hold off
                 
-                CtrlVar.MeltNodesDefinition='Element-Wise';
-                [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF);
+                CtrlVar.MeltNodesDefinition='Node-Wise';
+                [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele);
                 PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
                 hold on
-                plot(x(MeltNodes)/CtrlVar.PlotXYscale,y(MeltNodes)/CtrlVar.PlotXYscale,'or',...
-                    'MarkerSize',3,'MarkerFaceColor','r')
+                plot(x(MeltNodes)/CtrlVar.PlotXYscale,y(MeltNodes)/CtrlVar.PlotXYscale,'o',...
+                    'MarkerSize',3,'MarkerFaceColor','g')
                 hold on
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel) ;
                 title(['Melt nodes: time=',num2str(CtrlVar.time)])
                 
                 
                 title(sprintf('Melt Nodes at t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                 
-                if PlotMinThickLocations
-                    plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
-                end
+%                 if PlotMinThickLocations
+%                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+%                 end
                 
                 if ~isempty(PlotRegion)
                     SetRegionalPlotAxis(PlotRegion);

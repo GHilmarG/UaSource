@@ -1,12 +1,19 @@
-function [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF)
+function [MeltNodes,GLgeo,GLnodes,GLele,OceanNodes,LakeNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
 
-
-% MeltNodes=DefineMeltNodes(CtrlVar,MUA,GF)
+%%
+%
+%   [MeltNodes,NotMeltNodes,GLgeo,GLnodes,GLele,OceanNodes,LakeNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+%
 % tries to come up with a resonable definition of nodes to which ocean-induced
 % melt should be applied to
 
+if nargin<4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
+    [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+end
 
-[OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,MUA.Boundary,MUA.connectivity,MUA.coordinates);
+[OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele);
+
+
 
 if MUA.nod ==3
     
@@ -71,11 +78,7 @@ else
     end
 end
 
-% exclude lake nodes
 
-if nargout >1
-    NotMeltNodes=setdiff(1:MUA.Nnodes,MeltNodes);     % since this is not a logical list, the inverse is calculated if needed
-end
 
 %%
 if CtrlVar.PlotMeltNodes && CtrlVar.doplots

@@ -1486,7 +1486,12 @@ CtrlVar.IncludeMelangeModelPhysics=0;
 
 
 %%
-CtrlVar.MeltNodesDefinition='Edge-Wise';
+
+CtrlVar.MeltNodesDefinition='Node-Wise'; %  ('Edge-Wise','Element-wise','Node-Wise')
+
+%
+%
+%
 
 %% Mapping from Mesh1 to Mesh2
 % when a new FE is created, the values from the old mesh need to be mapped onto the new mesh
