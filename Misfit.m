@@ -1,13 +1,27 @@
-function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo,drdu)
-
-
-
-Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
-% Calculate data misfit functions and gradients with respect to model parameters
-% p
-% and v.
+%
+%           J(u,p) = I(u(p)) + R(p)
+%
+% Forward model:   f(u(p),p)=0
+%
+%
+% Calculate data misfit functions and gradients with respect to control
+% variables p and the state variables u and v.
+%
+%   dfuv    : The derivative of the forward model f(u(p),p)=0 (scalar) with respect to
+%             the state variables (uv).
+%
+%
+%   As explained in Ua compendium the misfit term, I, can be written as
+%
+%       2 I=d M d + d (Dx +Dy) d
+%
+%  where d=d_measured-d_calculated
+%
+%
+Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 
 dIdC=[];
 dIdAGlen=[];
@@ -17,6 +31,8 @@ ddIddp=sparse(1,1);
 us=F.ub+F.ud ;
 vs=F.vb+F.vd ;
 
+
+% calculate residual terms, i.e. difference between meas and calc values.
 if isdiag(Meas.usCov)
     uErr=sqrt(spdiags(Meas.usCov));
     usres=(us-Meas.us)./uErr;
@@ -31,9 +47,19 @@ else
     error('MisfitFunction:Cov','Data covariance matrices must be diagonal')
 end
 
+% dhdt residuals
+dadt=F.as*0;
+
+[hnew,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F.h,F.ub,F.vb,F.dubdt,F.dvbdt,F.as+F.ab,dadt,F.ub,F.vb,F.as+F.ab,dadt,F.dubdt,F.dvbdt);
+dhdt=(hnew-F.h)/CtrlVar.dt;
+
+
+%% Calculate misfit term I and its gradient with respect to the state variables u and v
+% This is straigtforward as the misfit term is an explicit function of u
+% and v.
 switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
     
-    case 'uvdiscrete'
+    case 'uvdiscrete'  % this is here for comparision, do not use, it's wrong!
         
         N=numel(us);
         I=full(usres'*usres+vsres'*vsres)/2/N;
@@ -41,7 +67,7 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
         dIdv=vsres./vErr/N;
         dIduv=[dIdu(:);dIdv(:)];
         
-    case 'integral'
+    case 'integral' % always evaluate the continuous approximation 
         
         if ~isfield(MUA,'M')
             MUA.M=MassMatrix2D1dof(MUA);
@@ -64,6 +90,10 @@ MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
 
+%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C).
+%
+% This is a bit tricky because I=I(u(p))
+%
 if CtrlVar.Inverse.CalcGradI
     
     
@@ -102,7 +132,7 @@ if CtrlVar.Inverse.CalcGradI
             %% Step 1: solve linearized forward problem
             %[UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
             
-            %% Step 2:  Solve adjoint equation, i.e.   K l=-r
+            %% Step 2:  Solve adjoint equation, i.e.   dfuv l=-f
             % fprintf(' Solve ajoint problem \n ')
             % I need to impose boundary conditions on lx and ly
             % if the problem is (fully) adjoint I have exactly the same BC
@@ -115,7 +145,7 @@ if CtrlVar.Inverse.CalcGradI
             % Luv is #uv constraints x 2 Nnodes
             
             
-            dJdu=dIduv(:); % because the regularistion term does not depend on u or v
+            dJdu=dIduv(:); % because the regularization term does not depend on u or v
             
             MLC_Adjoint=BCs2MLC(MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
@@ -124,7 +154,7 @@ if CtrlVar.Inverse.CalcGradI
             
             dJduAdjoint=dJdu;
             
-            [lambda,lAdjoint]=solveKApeSymmetric(drdu,LAdjoint,dJduAdjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
+            [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,dJduAdjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
             if ~isreal(lAdjoint)

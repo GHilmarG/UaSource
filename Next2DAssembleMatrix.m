@@ -34,7 +34,7 @@ function [kv,rh]=Next2DAssembleMatrix(dt,h0,u0,v0,a0,u1,v1,a1,coordinates,connec
 	d1d1=zeros(Nele,nod,nod);
 	b1=zeros(Nele,nod);
 	
-	% vector over all elements for each integartion point
+	% vector over all elements for each integration point
 	for Iint=1:nip
 		
 		
