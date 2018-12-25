@@ -1,11 +1,12 @@
 function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 
 %%
-% Plots a 2x2 symmetrical tensor quantity.
-% PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+% Plots a 2x2 symmetrical tensor quantity
 %
-% Tensor T=[txx  txy]
-%          [txy  tyy]
+%   PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
+%
+%   T=[txx  txy]
+%     [txy  tyy]
 %
 % Compression is plotted in red, extension in blue.
 %
