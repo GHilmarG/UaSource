@@ -158,7 +158,7 @@ CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrow
                                                   % too small or too large this parameter can be used to affect their size. 
                                                  
                                                   
-                                                  
+CtrlVar.PlotSUPGparameter=0;                                                   
 CtrlVar.PlotPosition=[100 100 1000 1000];
 
 %% Plotting mesh
@@ -568,6 +568,9 @@ CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
     
+CtrlVar.Inverse.Measurements='-uv-' ;   % {'-uv-,'-uv-dhdt-','-dhdt-'}
+
+
 % It is usually better to invert for log(A) and log(C) rather than A and C.
 % The default is to invert for log(A) and log(C) simultaneously.
 CtrlVar.Inverse.InvertFor='logAGlenlogC' ; % {'C','logC','AGlen','logAGlen','logAGlenlogC'}
@@ -611,7 +614,7 @@ CtrlVar.Inverse.Regularize.Field='logAGlenlogC' ; % {'cov','C','logC','AGlen','l
 CtrlVar.Inverse.Regularize.C.gs=1; 
 CtrlVar.Inverse.Regularize.C.ga=1;
 CtrlVar.Inverse.Regularize.logC.ga=1;
-CtrlVar.Inverse.Regularize.logC.gs=1 ; 
+CtrlVar.Inverse.Regularize.logC.gs=1e10 ; 
 
 CtrlVar.Inverse.Regularize.AGlen.gs=1;
 CtrlVar.Inverse.Regularize.AGlen.ga=1;
@@ -1527,8 +1530,35 @@ CtrlVar.Parallel.isTest=false;
 
 
 %% Tracers
-CtrlVar.Tracer.SUPG.Use=1; 
-CtrlVar.Tracer.SUPG.tau='taus' ; % {'tau1','tau2','taus','taut'}  
+%
+% If required that m-File 'TracerConservationEquation.m' can be used to
+% solved the tracer conservation equation for the trace c on the form:
+%
+%  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a
+%
+%
+% (Note: dc/dt is here the local time derivative, ie not the material
+% derivative)
+%
+% The natural boundary condition is (grad c) \cdot \norm = 0, ie free
+% outflow condition
+%
+% It's possible to use the streamline upwind Petrov--Galerkin method
+% (SUPG), also named streamline diffusion finite element method (SDFEM),
+% to ensure a stable finite element solution
+%
+CtrlVar.Tracer.SUPG.Use=1;  
+% several different definitions of the SUPG parameter can be used:
+CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}  
+% tau1 : often recomended in textbooks for linear diffusion equations with
+%        spatially constant non-zero advection velocity
+% taut : dt/2,  'temporal' definition, independed of velocity
+% taus : l/(2u) 'spatial definition', independent of time step
+% tau2 : 1./(1./taut+1./taus), an 'inverse' average of taus and taut
+%
+% To plot these different definitions set CtrlVar.PlotSUPGparameter and CtrlVar.doplots both to true (see above).                                                  
+%
+
 
 
 

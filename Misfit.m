@@ -33,33 +33,47 @@ vs=F.vb+F.vd ;
 
 
 % calculate residual terms, i.e. difference between meas and calc values.
-if isdiag(Meas.usCov)
-    uErr=sqrt(spdiags(Meas.usCov));
-    usres=(us-Meas.us)./uErr;
-else
-    error('MisfitFunction:Cov','Data covariance matrices but be diagonal')
+if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
+    
+        if isdiag(Meas.usCov)
+            uErr=sqrt(spdiags(Meas.usCov));
+            usres=(us-Meas.us)./uErr;
+        else
+            error('MisfitFunction:Cov','Data covariance matrices but be diagonal')
+        end
+        
+        if isdiag(Meas.vsCov)
+            vErr=sqrt(spdiags(Meas.vsCov));
+            vsres=(vs-Meas.vs)./vErr;
+        else
+            error('MisfitFunction:Cov','Data covariance matrices must be diagonal')
+        end
 end
 
-if isdiag(Meas.vsCov)
-    vErr=sqrt(spdiags(Meas.vsCov));
-    vsres=(vs-Meas.vs)./vErr;
-else
-    error('MisfitFunction:Cov','Data covariance matrices must be diagonal')
+if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+        
+        %%
+        CtrlVar.Tracer.SUPG.Use=1; CtrlVar.Tracer.SUPG.tau='tau2';
+        [UserVar,hnew,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,CtrlVar.dt,F.h,F.ub,F.vb,F.as+F.ab,F.ub,F.vb,F.as+F.ab,0,BCs);
+        %[hnew,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F.h,F.ub,F.vb,F.dubdt,F.dvbdt,F.as+F.ab,F.as*0,F.ub,F.vb,F.as+F.ab,dadt,F.dubdt,F.dvbdt);
+        % [F.h hnew c1 c1-hnew]
+        F.dhdt=(hnew-F.h)/CtrlVar.dt;
+        
+        if isdiag(Meas.dhdtCov)
+            dhdtErr=sqrt(spdiags(Meas.dhdtCov));
+            dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr;
+        else
+            error('MisfitFunction:Cov','Data covariance matrices must be diagonal')
+        end
+        
 end
-
-% dhdt residuals
-dadt=F.as*0;
-
-[hnew,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F.h,F.ub,F.vb,F.dubdt,F.dvbdt,F.as+F.ab,dadt,F.ub,F.vb,F.as+F.ab,dadt,F.dubdt,F.dvbdt);
-dhdt=(hnew-F.h)/CtrlVar.dt;
-
 
 %% Calculate misfit term I and its gradient with respect to the state variables u and v
 % This is straigtforward as the misfit term is an explicit function of u
 % and v.
 switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
     
-    case 'uvdiscrete'  % this is here for comparision, do not use, it's wrong!
+    case 'uvdiscrete'  % this is here for comparision and testing, do not use, it's wrong!
         
         N=numel(us);
         I=full(usres'*usres+vsres'*vsres)/2/N;
@@ -67,15 +81,43 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
         dIdv=vsres./vErr/N;
         dIduv=[dIdu(:);dIdv(:)];
         
-    case 'integral' % always evaluate the continuous approximation 
+    case 'integral' % always evaluate the continuous approximation
         
         if ~isfield(MUA,'M')
             MUA.M=MassMatrix2D1dof(MUA);
         end
-        I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
-        dIdu=(MUA.M*usres)./uErr/Area;
-        dIdv=(MUA.M*vsres)./vErr/Area;
-        dIduv=[dIdu(:);dIdv(:)];
+  
+        switch CtrlVar.Inverse.Measurements
+            
+            case '-uv-'
+                
+                dIdu=(MUA.M*usres)./uErr/Area;
+                dIdv=(MUA.M*vsres)./vErr/Area;
+                
+                I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+                dIduv=[dIdu(:);dIdv(:)];
+                
+            case '-dhdt-'
+                
+                %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
+                I=full(dhdtres'*MUA.M*dhdtres)/2/Area;
+                
+                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres);
+                
+                dIduv=dIhduv/Area;
+                
+            case {'-uv-dhdt-','-dhdt-uv-'}
+                
+                dIdu=(MUA.M*usres)./uErr/Area;
+                dIdv=(MUA.M*vsres)./vErr/Area;
+                %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
+                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres);
+                dIhdu=dIhduv(1:MUA.Nnodes)/Area;
+                dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
+                
+                I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres+dhdtres'*MUA.M*dhdtres)/2/Area;
+                dIduv=[dIdu(:)+dIhdu;dIdv(:)+dIhdv];
+        end
         
         if ~isreal(dIduv)  && CtrlVar.TestForRealValues
             save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
@@ -126,13 +168,19 @@ if CtrlVar.Inverse.CalcGradI
             
             
         case 'adjoint'
-            % dIdp
-            
-            
-            %% Step 1: solve linearized forward problem
+            %% Inverse problem
+            %
+            % Forward model:
+            %   f(u(p),p)=0
+            %
+            %% Step 1: solve the non-linear forward problem
+            %
+            %       dfuv du = f(u)  ; u-> u+du until norm(f)<tolerance
+            %
             %[UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-            
-            %% Step 2:  Solve adjoint equation, i.e.   dfuv l=-f
+            %
+            %
+            %% Step 2:  Solve adjoint equation, i.e.   dfuv l = -dJduv
             % fprintf(' Solve ajoint problem \n ')
             % I need to impose boundary conditions on lx and ly
             % if the problem is (fully) adjoint I have exactly the same BC

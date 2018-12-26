@@ -1,6 +1,6 @@
 function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %%
-%  
+%
 %  Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 % calculates the integral of the product of the nodal variable
 %  varargin over each of the elements of the FE mesh.
@@ -19,13 +19,13 @@ function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %   CtrlVar=Ua2D_DefaultParameters;
 %   CtrlVar.TriNodes=3;
 %   MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-% 
+%
 %   CtrlVar.TriNodes=10; MUA=UpdateMUA(CtrlVar,MUA);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2) ;
 %   p=4;
 %   f=(1+x+y).^p;
-%   
-%   I=0 ; 
+%
+%   I=0 ;
 %   nipv=[1 3 4 6 7 9 12 13 16 19 28 37];
 %   F=nipv*0;
 %   for nip=nipv
@@ -33,13 +33,13 @@ function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %      Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
 %      Int=sum(Int);
 %      fprintf(' nip %i   \t Int=%f \n ',nip,Int)
-%      I=I+1 ; F(I)=Int; 
+%      I=I+1 ; F(I)=Int;
 %   end
-% 
+%
 %   figure ; plot(nipv,F,'-x')
 %   xlabel('nip')
 %   ylabel('Fint')
-% 
+%
 %%
 
 ndim=2;

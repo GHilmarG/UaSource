@@ -7,11 +7,13 @@ classdef Measurements
         us=[];
         vs=[];
         ws=[];
+        dhdt=[] ;
         %sCov=[];
         %bCov=[];
         usCov=[];
         vsCov=[];
         wsCov=[];
+        dhdtCov=[];
     end
     
 end
