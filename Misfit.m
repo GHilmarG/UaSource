@@ -104,7 +104,7 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 
                 [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres);
                 
-                dIduv=dIhduv/Area;
+                dIduv=dIhduv./dhdtErr/Area;
                 
             case {'-uv-dhdt-','-dhdt-uv-'}
                 
@@ -112,11 +112,16 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 dIdv=(MUA.M*vsres)./vErr/Area;
                 %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
                 [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres);
-                dIhdu=dIhduv(1:MUA.Nnodes)/Area;
-                dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
+                dIhdu=dIhduv(1:MUA.Nnodes)./dhdtErr/Area;
+                dIhdv=dIhduv(MUA.Nnodes+1:end)./dhdtErr/Area;
                 
                 I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres+dhdtres'*MUA.M*dhdtres)/2/Area;
-                dIduv=[dIdu(:)+dIhdu;dIdv(:)+dIhdv];
+                dIduv=[dIdu(:)+dIhdu(:);dIdv(:)+dIhdv(:)];
+            otherwise
+                
+                fprintf('The case %s for the variable CtrlVar.Inverse.Measurements not recognized.\n',CtrlVar.Inverse.Measurements)
+                error(' Redefine CtrlVar.Inverse.Measurements ')
+                
         end
         
         if ~isreal(dIduv)  && CtrlVar.TestForRealValues

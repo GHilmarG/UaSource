@@ -3025,9 +3025,9 @@ where $u$ and $v$ are the horizontal velocity components, and
 is the total area.
 
 
-\subsection{...not yet, but soon, was there, then disappeared, may come again...}
+\subsection{Including the rate-of-elevation change in the cost function}
 
-Currently the rate-of-elevation change in not included in the cost function. This may soon be added, in which case
+The rate-of-elevation change, $\p_t h$, can also be included in the cost function, leading to
 
 \[
   I=I_u+I_v+I_{\dot{h}}
@@ -3041,26 +3041,25 @@ I =&  \frac{1}{2\cal{A}} \int  ((u-u_{\mathrm{meas}})/u_{\mathrm{error}})^2 \, d
 where $u$ and $v$ are the horizontal velocity components, and
 $\dot{h}$ is the rate of thickness change.
 
-The rate of elevation change is calculated as
+The rate of thickness change is calculated as
 \[
 \dot{h}=- ( a - \p_x (uh) - \p_y (vh ))
 \]
-
-This will be solved in diagnostic mode, and in the adjoint method the
-gradient of the cost function with respect to the state variable
-$\mathbf{v}$ acquires an additional term:
+and in the adjoint method the gradient of the cost function with
+respect to the state variable $\mathbf{v}$ acquires an additional
+term:
 \[
  2 I =\| u - \tilde{u} \|^2 +  \| \dot{h}_d - ( a - \p_x (uh) ) \|
 \]
 or
 \[
-I_{\dot{h}}= \frac{1}{2 {\cal A}} \int ( a - \p_x (uh) - \p_y (vh ) - \dot{h}_{\mathrm{meas}})^2 \, dx \, dy
+I_{\dot{h}}= \frac{1}{2 {\cal A}} \int \left ( ( a - \p_x (uh) - \p_y (vh ) - \dot{h}_{\mathrm{meas}})/\dot{h}_{\mathrm{error}} \right )^2 \, dx \, dy
 \]
-and
+with the corresponding directional derivative with respect to $u$ and $v$ given by
 \[
-\delta_u I_{\dot{h}}= \frac{1}{{\cal A}} \int ( a - \p_x (uh) - \p_y (vh ) - \dot{h}_{\mathrm{meas}})   \p_x ( h \delta u) \, dx \, dy
+\delta_{uv} I_{\dot{h}}= \frac{1}{{\cal A}} \int \left ((u-u_{\mathrm{meas}})/u^2_{\mathrm{error}} \right )  \left ( \p_x ( h \delta u) + \p_y ( h \delta v) \right ) \, dx \, dy
 \]
-
+which, like the cost functin itself, is dimentionless.
 
 
 \section{Regularisation in \Ua}
@@ -3069,7 +3068,7 @@ In \Ua the regularisation can be done either using a Bayesian or
 Tikhonov regularisation. 
 
 
-Using the Bayesian motivated approach the regularisation term has the form
+Using the Bayesian motivated approach, the regularisation term has the form
 \begin{equation}
 R=(\bm{p}-\hat{\bm{p}})^T \bm{K}^{-1}_{pp} (\bm{p}-\hat{\bm{p}})
 \label{eq:BR}
@@ -3128,9 +3127,12 @@ where
 \label{eq:KTC}
 \end{equation}
 and $\bm{M}$ is the mass matrix and $\bm{D}_x$ and $\bm{D}_y$ the
-stiffness matrices. Hence, with the Tikhonov approach we are calculating
-directly the inverse of the covariance matrix $\bm{K}_{pp}$ given by (\ref{eq:KTC}) and this
-inverse will be sparse.
+stiffness matrices. Hence, with the Tikhonov approach we are
+calculating directly the inverse of matrix $\bm{K}_{pp}$ given by
+(\ref{eq:KTC}) and this inverse will be sparse. However, it is in
+general not clear if this is an inverse of a covariance matrix. One
+can show that for $\gamma_a=0$ and $\gamma_s\neq 0$, $\bm{K}$ as
+defined by Eq.~(\ref{eq:KTC}) is not a covariance matrix.  
 
 
 \section{Calculation of the gradient of the objective function with the adjoint method}

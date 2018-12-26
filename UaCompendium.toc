@@ -52,7 +52,7 @@
 \contentsline {chapter}{\numberline {5}Inverse modelling}{39}
 \contentsline {section}{\numberline {5.1}Objective functions}{39}
 \contentsline {section}{\numberline {5.2}Misfit functions in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{40}
-\contentsline {subsection}{\numberline {5.2.1}...not yet, but soon, was there, then disappeared, may come again...}{41}
+\contentsline {subsection}{\numberline {5.2.1}Including the rate-of-elevation change in the cost function}{41}
 \contentsline {section}{\numberline {5.3}Regularisation in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{41}
 \contentsline {section}{\numberline {5.4}Calculation of the gradient of the objective function with the adjoint method}{42}
 \contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{44}
