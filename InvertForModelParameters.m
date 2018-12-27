@@ -67,7 +67,7 @@ CtrlVar.Inverse.ResetPersistentVariables=1;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
-
+CtrlVar.WriteRunInfoFile=0;
 func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
@@ -83,8 +83,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     [J,dJdp,Hessian]=func(p0);
     
     
+    NA=numel(InvStartValues.AGlen);  % Number of A parameters to invert for
+    
+    if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
+        iRange=1:NA;
+    else
+        iRange=CtrlVar.Inverse.TestAdjoint.iRange;
+    end
+    
+    
+    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+        
+        iRange=[iRange(:);iRange(:)+NA];
+        
+    end
+    
+    I=(iRange>=1) & (iRange <= numel(p0));
+    iRange=iRange(I);
+    
     % calc brute force gradient
-    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar);
+    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
     InvFinalValues.dJdpTest=dJdpTest;
     
     

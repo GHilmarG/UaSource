@@ -1,6 +1,6 @@
 
 
-function [UserVar,rh]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres)
+function [UserVar,rh]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr)
 
 %
 %  (hdot-hmeas) ( d(h du)/dx + d(h dv)/dv )
@@ -11,6 +11,7 @@ neqx=MUA.Nnodes ;
 
 
 dhdtresnod=reshape(dhdtres(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
@@ -37,6 +38,7 @@ for Iint=1:MUA.nip
     % values at integration point
     
     dhdtresint=dhdtresnod*fun;
+    dhdtErrint=dhdtErrnod*fun;
     hint=hnod*fun;
     
     dhdx=zeros(MUA.Nele,1);
@@ -54,8 +56,8 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-        termx=-dhdtresint.*(dhdx.*fun(Inod)+hint.*Deriv(:,1,Inod)).*detJw;
-        termy=-dhdtresint.*(dhdy.*fun(Inod)+hint.*Deriv(:,2,Inod)).*detJw;
+        termx=-dhdtresint.*(dhdx.*fun(Inod)+hint.*Deriv(:,1,Inod)).*detJw./dhdtErrint;
+        termy=-dhdtresint.*(dhdy.*fun(Inod)+hint.*Deriv(:,2,Inod)).*detJw./dhdtErrint;
         
         bx(:,Inod)=bx(:,Inod)+termx;
         by(:,Inod)=by(:,Inod)+termy;
