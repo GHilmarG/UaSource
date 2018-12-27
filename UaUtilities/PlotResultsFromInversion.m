@@ -211,14 +211,48 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     dJdp=InvFinalValues.dJdp;
     dJdpTest=InvFinalValues.dJdpTest;
-    fprintf('Node/Ele   dJdp          dJdpTest      dJdp-dJdpTest     dJdp/dtdpTest \n')
-    iRange=find(~isnan(dJdpTest));
-    for ii=1:numel(iRange)
-        I=iRange(ii);
-        fprintf('%i %15g %15g  %15g  %15g \n',I,dJdp(I),dJdpTest(I),dJdp(I)-dJdpTest(I),dJdp(I)/dJdpTest(I))
+%     fprintf('#Parameter  dJdp          dJdpTest      dJdp-dJdpTest     dJdp/dtdpTest \n')
+%     
+%     for ii=1:numel(iRange)
+%         I=iRange(ii);
+%         fprintf('%i %15g %15g  %15g  %15g \n',I,dJdp(I),dJdpTest(I),dJdp(I)-dJdpTest(I),dJdp(I)/dJdpTest(I))
+%     end
+    
+  IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
+  fprintf('------------------------------------ AGlen gradients ---------------------------------------------------------------------\n')
+    fprintf('#Node/Ele  dJdA          dJdATest      dJdA-dJdATest     dJdA/dtdATest \n')
+    
+    for ii=1:numel(IA)
+        I=IA(ii);
+        fprintf('%i %15g %15g  %15g  %15g \n',I,...
+            InvFinalValues.dJdAGlen(I),...
+            InvFinalValues.dJdAGlenTest(I),...
+            InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I),...
+            InvFinalValues.dJdAGlen(I)/InvFinalValues.dJdAGlenTest(I))
     end
+
+
+    IC=find(~isnan(InvFinalValues.dJdCTest)) ;
+    
+    fprintf('--------------------------------------- C gradients ----------------------------------------------------------------------\n')
+    
+    fprintf('#Node/Ele  dJdC          dJdCTest      dJdC-dJdCTest     dJdC/dtdCTest \n')
+    
+    for ii=1:numel(IC)
+        I=IC(ii);
+        fprintf('%i %15g %15g  %15g  %15g \n',I,...
+            InvFinalValues.dJdC(I),...
+            InvFinalValues.dJdCTest(I),...
+            InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I),...
+            InvFinalValues.dJdC(I)/InvFinalValues.dJdCTest(I))
+    end
+    
+    
+    fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
+    
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
-    fprintf('||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
+    iRange=find(~isnan(dJdpTest));
+    fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
     
     %%
     

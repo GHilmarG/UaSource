@@ -10,7 +10,11 @@ function [h1,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da
 MLC=BCs2MLC(MUA,BCs);
 Lh=MLC.hL ; Lhrhs=MLC.hRhs ;
 
-lambdah=l.h;   % TO DO/to do: consider checking that l.h has indeed the right dimensions. Here lambdah is only an initial guess for lambdah when solved using an iterative solver.
+if numel(l.h)==numel(Lhrhs)
+    lambdah=l.h;   % TO DO/to do: consider checking that l.h has indeed the right dimensions. Here lambdah is only an initial guess for lambdah when solved using an iterative solver.
+else
+    lambdah=Lhrhs*0;
+end
 
 dt=CtrlVar.dt;
 

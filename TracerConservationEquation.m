@@ -1,6 +1,6 @@
 function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
 
-%
+%%
 % Solves the tracer conservation equation for the trace c on the form:
 %
 %  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a

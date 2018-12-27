@@ -248,6 +248,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     end
     
     if CtrlVar.WriteRunInfoFile
+
         fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
             stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
     end

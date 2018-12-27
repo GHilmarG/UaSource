@@ -7,6 +7,7 @@ ndim=2; dof=1; neq=dof*MUA.Nnodes;
 theta=CtrlVar.theta;
 tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
 
+
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 u0nod=reshape(u0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -29,14 +30,7 @@ tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
 d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
 b1=zeros(MUA.Nele,MUA.nod);
 
-
-% SUPG specific
-
-l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
-
-
-
-% vector over all elements for each integartion point
+% vector over all elements for each integration point
 for Iint=1:MUA.nip
     
     

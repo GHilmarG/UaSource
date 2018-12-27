@@ -27,7 +27,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'c')
         pPriorCovC=Priors.CovC;
         gsC=CtrlVar.Inverse.Regularize.logC.gs;
         gaC=CtrlVar.Inverse.Regularize.logC.ga;
-        
+            
         if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
             dCfactor=1;
         else
