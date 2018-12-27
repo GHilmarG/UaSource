@@ -2896,15 +2896,34 @@ it can be done without having to solve (\ref{eq:KLL}) again.)
 
 \chapter{Inverse modelling}
 
-We have a forward model
+Currently it is possible in \Ua to invert for $A$ and/or $C$, using
+measurments of horizontal surface velocities $(u_s,v_s)$ and rates of
+thickness changes ($\p_t h$).
+
+We denote the model parameters and the state variable by $p$ and $u$,
+respectively. The 'state variable' is any variable calculated by the
+model, such as velocity, rates of elevation change, etc. The 'control'
+variable is any model input variable requred by the model to calculate
+the state variables (e.g.\ $A$ and $C$,  $b$ and $s$, etc.). 
+
+We write the forward model as
 \[
 F(u(p),p)=0
 \]
-where $p$ are model parameters and $u$ the state variable. We consider
+where $p$ are model parameters and $u$ the state variable.
+
+A 'forward calculation' consists in finding $u$ such that the above
+equation is fullfilled for some given $p$. Roughly speaking, an
+'inverse problem' is the opposite problem of finding $p$ given
+$u$. However, when solving an inverse problem one generally also puts
+some constraintes on $p$.
+
+
+We consider
 the problem of minimising an objective function $J$ with respect to
 $p$. Typically the objective function $J$ can be thought of as a sum of two terms
 \[
- J(u,p)=I(u)+R(p)
+ J(u(p),p)=I(u(p))+R(p)
 \] 
 where $I$ is a misfit term and $R$ a regularisation term. 
 
@@ -3011,25 +3030,6 @@ where $l$ denotes length, so for example
 Currently the misfit function $I$ has the form
 
 \[
-  I=I_u+I_v
-\]
-or
-\begin{align*}
-I =&  \frac{1}{2\cal{A}} \int  ((u-u_{\mathrm{meas}})/u_{\mathrm{error}})^2 \, dA \\
-   +&  \frac{1}{2\cal{A}} \int  ((v-v_{\mathrm{meas}})/v_{\mathrm{error}})^2 \, dA \\
-\end{align*}
-where $u$ and $v$ are the horizontal velocity components, and
-\[
-{\cal A}= \int dA
-\]
-is the total area.
-
-
-\subsection{Including the rate-of-elevation change in the cost function}
-
-The rate-of-elevation change, $\p_t h$, can also be included in the cost function, leading to
-
-\[
   I=I_u+I_v+I_{\dot{h}}
 \]
 or
@@ -3039,7 +3039,12 @@ I =&  \frac{1}{2\cal{A}} \int  ((u-u_{\mathrm{meas}})/u_{\mathrm{error}})^2 \, d
    +& \frac{1}{2\cal{A}} \int  ((\dot{h} - \dot{h}_{\mathrm{meas}})/\dot{h}_{\mathrm{error}} )^2  \, dA \\
 \end{align*}
 where $u$ and $v$ are the horizontal velocity components, and
-$\dot{h}$ is the rate of thickness change.
+$\dot{h}$ is the rate of thickness change, while
+\[
+{\cal A}= \int dA
+\]
+is the total area.
+
 
 The rate of thickness change is calculated as
 \[
