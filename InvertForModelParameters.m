@@ -80,7 +80,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     
     % Get the gradient using the adjoint method
-    [J,dJdp,Hessian]=func(p0);
+    [J,dJdp,Hessian,JGHouts]=func(p0);
     
     
     NA=numel(InvStartValues.AGlen);  % Number of A parameters to invert for
@@ -115,7 +115,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if CtrlVar.Inverse.InvertForField=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        deltaStep=1;
+        %deltaStep=1;
     end
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
@@ -150,7 +150,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     else
         error('sfda')
     end
-     [dJdpTest(iRange) dJdp(iRange)]
+     % [dJdpTest(iRange) dJdp(iRange)]
 else
     
     
@@ -219,6 +219,7 @@ InvFinalValues.dRdp=JGHouts.dRdp;
 
 InvFinalValues.dJdAGlen=JGHouts.MisfitOuts.dIdAGlen+JGHouts.RegOuts.dRdAGlen;
 InvFinalValues.dJdC=JGHouts.MisfitOuts.dIdC+JGHouts.RegOuts.dRdC;
+InvFinalValues.dJdb=JGHouts.MisfitOuts.dIdb+JGHouts.RegOuts.dRdb;
 
 %% These are of less interest, but can be added
 %InvFinalValues.dIdAGlen=JGHouts.MisfitOuts.dIdAGlen;

@@ -34,6 +34,12 @@ elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')  % C
     else
         InvValues.C=p;
     end
+    
+elseif contains(lower(CtrlVar.Inverse.InvertFor),'-b-')  % C
+    
+    InvValues.b=p;
+    
+    
 else
     fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
     fprintf(' CtrlVar.Inverse.InvertFor does not have expected value.\n')

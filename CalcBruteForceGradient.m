@@ -36,7 +36,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
     case {'central','second-order'}
         
         
-        for k=1:numel(iRange)
+        parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             pm1=p0;

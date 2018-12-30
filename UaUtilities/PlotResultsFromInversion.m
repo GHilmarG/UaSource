@@ -304,8 +304,8 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
             InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I),...
             InvFinalValues.dJdAGlen(I)/InvFinalValues.dJdAGlenTest(I))
     end
-
-
+    
+    
     IC=find(~isnan(InvFinalValues.dJdCTest)) ;
     
     fprintf('--------------------------------------- C gradients ----------------------------------------------------------------------\n')
@@ -321,7 +321,20 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
             InvFinalValues.dJdC(I)/InvFinalValues.dJdCTest(I))
     end
     
+    Ib=find(~isnan(InvFinalValues.dJdbTest)) ;
     
+    fprintf('--------------------------------------- b gradients ----------------------------------------------------------------------\n')
+    
+    fprintf('#Node/Ele  dJdb          dJdbTest      dJdb-dJdbTest     dJdb/dtdbTest \n')
+    
+    for ii=1:numel(Ib)
+        I=Ib(ii);
+        fprintf('%i %15g %15g  %15g  %15g \n',I,...
+            InvFinalValues.dJdb(I),...
+            InvFinalValues.dJdbTest(I),...
+            InvFinalValues.dJdb(I)-InvFinalValues.dJdbTest(I),...
+            InvFinalValues.dJdb(I)/InvFinalValues.dJdbTest(I))
+    end
     fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
     
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
