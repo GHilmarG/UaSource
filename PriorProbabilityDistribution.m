@@ -3,7 +3,6 @@ classdef PriorProbabilityDistribution
     properties
         
         s=[];
-        b=[];
         S=[];
         B=[];
         rho=[];
@@ -11,14 +10,19 @@ classdef PriorProbabilityDistribution
         m=[];
         n=[];
         
-        C=[];
         AGlen=[];
         CovAGlen=[]
+        
+        C=[];
         CovC=[];
+        
+        b=[];
+        Covb=[];
         
         TrueC=[];
         TrueAGlen=[];
- 
+        Trueb=[];
+        
         Regularize
         
         
@@ -38,7 +42,8 @@ classdef PriorProbabilityDistribution
             obj.Regularize.logAGlen.gs=[];
             obj.Regularize.logAGlen.ga=[];
             
-            
+            obj.Regularize.b.gs=[];
+            obj.Regularize.b.ga=[];
         end
     end
     

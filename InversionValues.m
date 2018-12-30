@@ -7,6 +7,8 @@ classdef InversionValues
         n=[];
         C=[];
         AGlen=[];
+        b=[];
+        
         SearchStepSize=[];
         uAdjoint=[];
         vAdjoint=[];
@@ -21,23 +23,27 @@ classdef InversionValues
         dJdp=[];
         dJdC=[];
         dJdAGlen=[];
+        dJdb=[]; 
         
         dIdp=[];
         dIdC=[];
         dIdAGlen=[];
+        dIdb=[]; 
         
         dRdp=[];
         dRdC=[];
         dRdAGlen=[];
+        dRb=[]; 
         
         dJdpTest=[];
         dJdCTest=[];
         dJdAGlenTest=[];
+        dJdbTest=[]; 
         
         dIdpTest=[];
         dIdCTest=[];
         dIdAGlenTest=[];
-        
+        dIdbTest=[]; 
     
         
     end

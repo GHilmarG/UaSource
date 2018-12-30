@@ -25,6 +25,7 @@ Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 
 dIdC=[];
 dIdAGlen=[];
+dIdb=[];
 dIdp=[] ;
 ddIddp=sparse(1,1);
 
@@ -181,7 +182,7 @@ if CtrlVar.Inverse.CalcGradI
     
     switch lower(CtrlVar.Inverse.DataMisfit.GradientCalculation)
         
-        case {'fixpoint','fixpointc'}
+        case {'fixpoint','fixpointc','-fixpoint-','-fixpointc-'}
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'c')
                 
@@ -217,7 +218,7 @@ if CtrlVar.Inverse.CalcGradI
             %
             %       dfuv du = f(u)  ; u-> u+du until norm(f)<tolerance
             %
-            %[UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+            %       [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
             %
             %
             %% Step 2:  Solve adjoint equation, i.e.   dfuv l = -dJduv
@@ -296,7 +297,7 @@ if CtrlVar.Inverse.CalcGradI
                         
                         dIdC = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*uAdjoint+v.*vAdjoint);
                         
-                        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+                        if contains(lower(CtrlVar.Inverse.InvertFor),'-logc-')
                             dIdC=log(10)*Cnode.*dIdp;
                         end
                         
@@ -324,7 +325,7 @@ if CtrlVar.Inverse.CalcGradI
                     
                     case 'discrete' % Direct gradient evaluated from nodal points.
                         
-                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inverstion\n')
+                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inversion.\n')
                         error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
                         
                     case 'integral'
@@ -340,6 +341,25 @@ if CtrlVar.Inverse.CalcGradI
                 end
             end
             
+            
+            if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+                
+                switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
+                    
+                    case 'discrete' % Direct gradient evaluated from nodal points.
+                        
+                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with b inversion.\n')
+                        error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
+                        
+                    case 'integral'
+                        
+                        dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                        
+                end
+            end
+            
+            
+            
         otherwise
             
             fprintf(' CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
@@ -353,13 +373,13 @@ if CtrlVar.Inverse.CalcGradI
     
     switch lower(CtrlVar.Inverse.InvertFor)
         
-        case 'c'
+        case {'c','-c-'}
             Hscale=1/(mean(F.C)^2);
-        case 'aglen'
+        case {'aglen','-aglen-'}
             Hscale=1/(mean(F.AGlen)^2);
-        case 'logc'
+        case {'logc','-logc-'}
             Hscale=1/(log10(mean(F.C)^2));
-        case 'logaglen'
+        case {'logaglen','-logaglen-'}
             Hscale=1/(log10(mean(F.AGlen)^2));
     end
     
@@ -377,21 +397,45 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     
-    
-    
-    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    switch CtrlVar.Inverse.InvertForField
         
-        dIdp=[dIdAGlen;dIdC];
-        
-    elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        
-        dIdp=dIdAGlen;
-        
-    elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        
-        dIdp=dIdC;
-        
+        case 'A'
+            dIdp=dIdAGlen;
+        case 'b'
+            dIdp=dIdb;
+        case 'C'
+            dIdp=dIdC;
+        case 'Ab'
+            dIdp=[dIdAGlen;dIdb];
+        case 'AC'
+            dIdp=[dIdAGlen;dIdC];
+        case 'bC'
+            dIdp=[dIdb;dIdC];
+        case 'AbC'
+            dIdp=[dIdAGlen;dIdb;dIdC];
+            
+        otherwise
+            
+            dIdp=0;
+            error('sdfsa')
+            
     end
+    
+    %     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    %
+    %         dIdp=[dIdAGlen;dIdC];
+    %
+    %     elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    %
+    %         dIdp=dIdAGlen;
+    %
+    %     elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    %
+    %         dIdp=dIdC;
+    %
+    %     elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    %
+    %     end
     
 else
     
@@ -413,6 +457,7 @@ if nargout>3
     MisfitOuts.I=I;
     MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*dIdC;
     MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*dIdAGlen;
+    MisfitOuts.dIdb=CtrlVar.Inverse.DataMisfit.Multiplier*dIdb;
 end
 
 

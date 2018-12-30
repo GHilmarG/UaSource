@@ -13,6 +13,9 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,
 %  PlotResultsFromInversion(UserVarInRestartFile,CtrlVarInRestartFile,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 %
 %%
+
+fprintf(' Plotting results from inversion...')
+
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 us=F.ub+F.ud; vs=F.vb+F.vd;
 
@@ -21,27 +24,48 @@ x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
 
 %%
+
+if ~isempty(Meas.dhdt)
+     Iplot=2 ; Jplot=3;
+else
+     Iplot=2 ; Jplot=2;
+end
+Kplot=0;    
+
 figure
 
-subplot(2,2,1)
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ; hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us Meas on numerical grid') ;
 
-subplot(2,2,2)
+Kplot=Kplot+1;
+subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.vs) ; hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs Meas on numerical grid') ;
 
+if ~isempty(Meas.dhdt)
+    Kplot=Kplot+1;
+    subplot(Iplot,Jplot,Kplot)
+    PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    title('dhdt Meas on numerical grid') ;
+end
+
 usError=sqrt(spdiags(Meas.usCov));
 vsError=sqrt(spdiags(Meas.vsCov));
-wsError=sqrt(spdiags(Meas.wsCov));
+dhdtError=sqrt(spdiags(Meas.dhdtCov));
 
-subplot(2,2,3)
+
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot)
 
 
 PlotMeshScalarVariable(CtrlVar,MUA,usError) ; hold on ;
@@ -49,13 +73,24 @@ PlotMeshScalarVariable(CtrlVar,MUA,usError) ; hold on ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us error on numerical grid') ;
 
-subplot(2,2,4)
+Kplot=Kplot+1;
+subplot(Iplot,Jplot,Kplot)
 PlotMeshScalarVariable(CtrlVar,MUA,vsError) ; hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
 
+if ~isempty(Meas.dhdt)
+    Kplot=Kplot+1;
+    subplot(Iplot,Jplot,Kplot)
+    PlotMeshScalarVariable(CtrlVar,MUA,dhdtError) ; hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    title('dhdt error on numerical grid') ;
+    
+end
 
+    
 
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
@@ -148,7 +183,10 @@ end
 
 
 figure
-subplot(2,2,1);
+Kplot=0;
+
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar);
 title('((us-Meas.us)/usError,(vs-Meas.vs)/vsError)') ;
 hold on
@@ -157,7 +195,8 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-subplot(2,2,2);
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ;
 hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -165,7 +204,25 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-subplot(2,2,3);
+if ~isempty(Meas.dhdt)
+    
+    [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F);
+     
+    Kplot=Kplot+1;
+    subplot(Iplot,Jplot,Kplot);
+    PlotMeshScalarVariable(CtrlVar,MUA,(dhdt-Meas.dhdt)./dhdtError);
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    title('((dhdt-Meas.dhdt)/dhdtError)') ;
+    
+end
+
+
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot);
 [~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
 title('(Meas.us,Meas.vs)') ;
 hold on ;
@@ -174,7 +231,8 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-subplot(2,2,4);
+Kplot=Kplot+1;    
+subplot(Iplot,Jplot,Kplot);
 QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('(us,vs)') ;
 hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -182,6 +240,22 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
+
+
+if ~isempty(Meas.dhdt)
+     
+    Kplot=Kplot+1;
+    subplot(Iplot,Jplot,Kplot);
+    PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
+    title('(dhdt modelled)') ;
+    hold on ;
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    PlotMuaBoundary(CtrlVar,MUA,'b')  ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+end
+
+
 
 %%
 figure
@@ -445,4 +519,6 @@ else
     
 end
 %%
+fprintf('done.\n')
+
 end

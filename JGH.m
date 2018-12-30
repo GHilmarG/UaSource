@@ -82,10 +82,21 @@ elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')  % C
     else
         F.C=p;
     end
+    
+elseif contains(lower(CtrlVar.Inverse.InvertFor),'b')  % 
+    
+    I=GF.node>0.5; %only change b and B where grounded
+    F.b(I)=p(I); % this does change the thickness
+    F.B(I)=F.b(I); % now change B where grounded
+    F.h=F.s-F.b;
+
+%    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 else
+    
     fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
     fprintf(' CtrlVar.Inverse.InvertFor does not have an expected value.\n')
     error('JGH:incorrect inputs')
+    
 end
 
 

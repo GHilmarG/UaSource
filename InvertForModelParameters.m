@@ -91,42 +91,66 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
     
-    
-    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    switch strlength(CtrlVar.Inverse.InvertForField)
         
-        iRange=[iRange(:);iRange(:)+NA];
-        
+        case 2
+            iRange=[iRange(:);iRange(:)+NA];
+        case 3
+            iRange=[iRange(:);iRange(:)+NA;iRange(:)+NA];
     end
+    
+    
+    %     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    %
+    %         iRange=[iRange(:);iRange(:)+NA];
+    %
+    %     end
     
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
     % calc brute force gradient
-    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
+    
+    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*norm(p0);
+    
+    if CtrlVar.Inverse.InvertForField=="b"  % Must modify
+        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
+        deltaStep=1;
+    end
+    
+    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
     InvFinalValues.dJdpTest=dJdpTest;
     
-    
+    % I can simplify this contruct using CtrlVar.Inverse.InvertForField
     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
         
         NA=numel(InvStartValues.AGlen);
         InvFinalValues.dJdAGlenTest=dJdpTest(1:NA);
         InvFinalValues.dJdCTest=dJdpTest(NA+1:end);
-        
+        InvFinalValues.dJdbTest=[];
         
     elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
         
         InvFinalValues.dJdAGlenTest=dJdpTest;
         InvFinalValues.dJdCTest=[];
+        InvFinalValues.dJdbTest=[];
         
     elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
         
         InvFinalValues.dJdAGlenTest=[];
         InvFinalValues.dJdCTest=dJdpTest;
+        InvFinalValues.dJdbTest=[];
         
+    elseif contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+            
+        InvFinalValues.dJdAGlenTest=[];
+        InvFinalValues.dJdCTest=[];
+        InvFinalValues.dJdbTest=dJdpTest;
+       
     else
         error('sfda')
     end
-    
+     [dJdpTest(iRange) dJdp(iRange)]
 else
     
     
