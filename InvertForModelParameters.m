@@ -115,7 +115,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if CtrlVar.Inverse.InvertForField=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        %deltaStep=1;
+        deltaStep=1;
     end
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);

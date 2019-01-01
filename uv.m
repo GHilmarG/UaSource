@@ -23,7 +23,14 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
+dhError=norm(F.s-F.b-F.h);
 
+if dhError>100*eps
+    fprintf('uv: h found to be different from s-b, with norm(h-(s-b))=%f .\n',dhError)
+    fprintf('uv: h replaced by h=s-b. \n')
+    F.h=F.s-F.b;
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 if any(F.h<0)
     
@@ -41,7 +48,7 @@ if any(F.h<0)
     end
     
     fprintf('These thickness values will be set to %f \n',CtrlVar.ThickMin)
-    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
     
 end
 
@@ -78,15 +85,13 @@ switch lower(CtrlVar.FlowApproximation)
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         
-        %[UserVar,F.ub,F.vb,l.ubvb,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
         
     case 'ssheet'
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' start SSHEET diagnostic. \n') ;  end
-        [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-        %[F.b,F.s,F.h]=Calc_bs_From_hBS(F.h,F.S,F.B,F.rho,F.rhow,CtrlVar,MUA.coordinates);
+        [F.b,F.s,F.h]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
         
         [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
         l.ubvb=[] ; Kuv=[] ; Ruv=[];

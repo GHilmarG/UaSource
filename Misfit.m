@@ -354,7 +354,12 @@ if CtrlVar.Inverse.CalcGradI
                     case 'integral'
                         
                         dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                        
+                        dIdb=dIdb.*F.GF.node; % here forcing to be zero where afloat
+                                              % in principle this should
+                                              % automatically be the case
+                                              % once done in a fully
+                                              % consistent manner over the
+                                              % floating section in dIdbq
                 end
             end
             

@@ -136,6 +136,35 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 end
 
+if contains(CtrlVar.Inverse.InvertFor,'b')
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b);
+    title('InvFinalValues.b') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.b);
+    title('bstart') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b-InvStartValues.b);
+    title('InvFinalValues.b-bstart') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    
+    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B) ; title('F.s, F.b and F.B')
+end
+
+
+
+
+
+
 
 %%
 [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,InvFinalValues.C,InvFinalValues.m,GF) ;
@@ -405,6 +434,40 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
         %%
     end
+    
+       
+    if ~(isempty(InvFinalValues.dJdb) && isempty(InvFinalValues.dJdbTest))
+        
+        IFigAGlen=figure('Name','Inversion b','NumberTitle','off');
+        
+        
+        
+        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        title('dJdb Adjoint gradient')
+        
+        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdbTest) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        title('dJdb Brute force gradient')
+        
+        
+        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb-InvFinalValues.dJdbTest) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        title('Difference between adjoint and brute force derivatives')
+        
+        subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb./InvFinalValues.dJdb) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        title('Ratio between adjoint and brute force derivatives')
+        
+        IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
+        %%
+    end
+    
+    
     
     
     %%

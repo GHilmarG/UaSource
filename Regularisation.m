@@ -183,7 +183,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
     end
     
     
-    R=RAGlen++Rb+RC;
+    R=RAGlen+Rb+RC;
     dRdp=[dRdAGlen;dRdb;dRdC];
     
     

@@ -14,11 +14,15 @@ ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-qx=F.h.*F.ub;
-qy=F.h.*F.vb;
+%qx=F.h.*F.ub;
+%qy=F.h.*F.vb;
+%qxnod=reshape(qx(MUA.connectivity,1),MUA.Nele,MUA.nod);
+%qynod=reshape(qy(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-qxnod=reshape(qx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-qynod=reshape(qy(MUA.connectivity,1),MUA.Nele,MUA.nod);
+hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
+unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
 
@@ -32,17 +36,27 @@ for Iint=1:MUA.nip
     fun=shape_fun(Iint,ndim,MUA.nod,points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-
+    
     aint=anod*fun;
+    hint=hnod*fun;
+    uint=unod*fun;
+    vint=vnod*fun;
     
-    dqxdx=zeros(MUA.Nele,1);
-    dqydy=zeros(MUA.Nele,1);
-    
+    dhdx=zeros(MUA.Nele,1);
+    dhdy=zeros(MUA.Nele,1);
+    dudx=zeros(MUA.Nele,1);
+    dvdy=zeros(MUA.Nele,1);
     % derivatives at one integration point for all elements
     for Inod=1:MUA.nod
         
-        dqxdx=dqxdx+Deriv(:,1,Inod).*qxnod(:,Inod);
-        dqydy=dqydy+Deriv(:,2,Inod).*qynod(:,Inod);
+        %dqxdx=dqxdx+Deriv(:,1,Inod).*qxnod(:,Inod);
+        %dqydy=dqydy+Deriv(:,2,Inod).*qynod(:,Inod);
+        
+        dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
+        dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
+        
+        dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
+        dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
         
     end
     
@@ -50,7 +64,10 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-        term=(aint-dqxdx-dqydy).*fun(Inod).*detJw;
+        tx=(dhdx.*uint+hint.*dudx);
+        ty=(dhdy.*vint+hint.*dvdy);
+        
+        term=(aint-tx-ty).*fun(Inod).*detJw;
         b(:,Inod)=b(:,Inod)+term;
         
         
@@ -64,7 +81,7 @@ for Inod=1:MUA.nod
     rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
 end
 
-dhdt=MUA.M\rh; 
+dhdt=MUA.M\rh;
 dhdt=full(dhdt);
 
 end
