@@ -37,8 +37,15 @@ elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')  % C
     
 elseif contains(lower(CtrlVar.Inverse.InvertFor),'-b-')  % C
     
-    InvValues.b=p;
     
+    %  ad gera
+    InvValues.b=p;
+    % I=GF.node>0.5; %only change b and B where grounded
+    % InvValues.b(I)=p(I); % this does change the thickness
+    % InvValues.B(I)=InvValues.b(I); % now change B where grounded
+    % F.h=F.s-F.b;
+
+%    [F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
     
 else
     fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)

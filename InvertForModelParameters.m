@@ -10,7 +10,7 @@ end
 
 
 %% Did user define regularization parameters in `DefineInputForInverseRun'?
-% If so, then use those values
+% If so, then use those values, but if not, use corresponding priors
 
 if ~isempty(Priors.Regularize)
     
@@ -55,20 +55,23 @@ end
 %
 
 
-
+% p is the vector of the control variables, currenty p=[A,b,C]
+% with A, b or C here only being nonempty when inverted for, 
+% This mapping between A, b and C into the control variable is done by
+% InvValues2p()
 
 [p0,plb,pub]=InvValues2p(CtrlVar,InvStartValues); 
 
 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
-[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
 CtrlVar.WriteRunInfoFile=0;
-func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
@@ -115,7 +118,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if CtrlVar.Inverse.InvertForField=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        deltaStep=1;
+        %deltaStep=1;
     end
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
@@ -186,14 +189,15 @@ else
     %
     
 
-    [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
     
     
     NA=numel(InvStartValues.AGlen);
     NC=numel(InvStartValues.C);
     InvFinalValues=p2InvValues(CtrlVar,p,InvFinalValues,NA,NC);
-
+    
+    %[Aest,bEst,Cest]=p2ContrVar();
   
     
 end

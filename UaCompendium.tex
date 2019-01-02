@@ -3310,8 +3310,9 @@ this often involves some manipulations of the $< \lambda , F >$ term
 in Eq.~(\ref{eq:L1}).
  \end{enumerate}
 
- Usually only the regularisation term is an explicit function of the
- control variable, i.e.
+
+Usually only the regularisation term is an explicit function of the
+control variable, i.e.
 \[
  J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
 \]
@@ -3319,6 +3320,9 @@ and therefore
 \[
   \p_p J=  \p_p R 
 \]
+
+
+
 
 The adjoint variable $\lambda$ is the gradient of the objective
 function with respect to the state variable $u$
@@ -3605,6 +3609,23 @@ or
 [ (\p_b F )^\ast  \lambda]_p  =      < (\rho g  \p_x s + g h \p_x \rho ) \, \phi_p , \phi_q >  \lambda_q
 \]
 
+
+Usually only the regularisation term is an explicit function of the
+control variable, i.e.
+\[
+ J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
+\]
+and therefore
+\[
+  \p_p J=  \p_p R 
+\]
+But if we solve for $b$ and use $p_t h$ as a constraint, calculated as
+$a-\p_x (uh)$ we now have $b$ explicitly both in the mistfit term $I$
+and in the regularisation term $R$, so $\p_b J$ has now this
+additional $I$ term.
+
+
+
 \section{Inverting for $\log p$}
 To lessen the chances of a strictly positive parameter $p$ becoming
 negative in the course of the inversion we can make a change of
@@ -3629,6 +3650,7 @@ guarantee that $p$ will not become negative (and $\log p$ complex) during
 the optimization. In \Ua one therefore also enforces the positivity
 (non complex) constraint when inverting for $\log p$ of a strickly
 positive parameter.
+
 
 
 \section{The form of the adjoint equations for Bayesian approach using Gaussian statistics}

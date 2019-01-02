@@ -31,7 +31,8 @@ ddIddp=sparse(1,1);
 
 us=F.ub+F.ud ;
 vs=F.vb+F.vd ;
-
+dhdtres=[];
+dhdtErr=[];
 
 % calculate residual terms, i.e. difference between meas and calc values.
 if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
@@ -94,6 +95,10 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         
         [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F);
         
+%         if isempty(find(Meas.dhdtCov,1))
+%         ad gera
+%         end
+            
         if isdiag(Meas.dhdtCov)
             dhdtErr=sqrt(spdiags(Meas.dhdtCov));
             dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr;
@@ -234,14 +239,14 @@ if CtrlVar.Inverse.CalcGradI
             % Luv is #uv constraints x 2 Nnodes
             
             
-            dJdu=dIduv(:); % because the regularization term does not depend on u or v
+          
             
             MLC_Adjoint=BCs2MLC(MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
             
-            dJduAdjoint=dJdu;
+            dJduAdjoint=dIduv(:); % because the regularization term does not depend on u or v
             
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,dJduAdjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
             
@@ -280,7 +285,11 @@ if CtrlVar.Inverse.CalcGradI
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
             end
             
-            
+             %% Step 3:  <d_p F^* \lambda>, 
+             % Note that I'm adding the d_p R term in the regularisation step
+             % But I need to include a possible <d_p I , \phi> term here
+             % For p=A and p=C, d_p I =0 because I is not an explicit function of A and C
+             % But for b, d_b I = p_x (u db)
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'c')
                 
@@ -353,7 +362,8 @@ if CtrlVar.Inverse.CalcGradI
                         
                     case 'integral'
                         
-                        dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                        dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr);
+                        %dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
                         dIdb=dIdb.*F.GF.node; % here forcing to be zero where afloat
                                               % in principle this should
                                               % automatically be the case

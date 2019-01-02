@@ -1,6 +1,9 @@
-function [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+function [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 % Calculates objective function, gradient (accurate), Hessian (guessed)
+
+narginchk(12,12)
+
 
 persistent ubP vbP
 
@@ -23,31 +26,32 @@ end
 
 
 
-switch nargout
-    
-    case 1
-        
-        CtrlVar.Inverse.CalcGradR=0;
-        CtrlVar.Inverse.CalcGradI=0;
-        CtrlVar.Inverse.CalcHessR=0;
-        CtrlVar.Inverse.CalcHessI=0;
-        
-    case 2
-        
-        CtrlVar.Inverse.CalcGradR=1;
-        CtrlVar.Inverse.CalcGradI=1;
-        CtrlVar.Inverse.CalcHessR=0;
-        CtrlVar.Inverse.CalcHessI=0;
-        
-    case {3,4,5}
-        
-        CtrlVar.Inverse.CalcGradR=1;
-        CtrlVar.Inverse.CalcGradI=1;
-        CtrlVar.Inverse.CalcHessR=1;
-        CtrlVar.Inverse.CalcHessI=1;
-        
-end
+% switch nargout
+%     
+%     case 1
+%         
+%         CtrlVar.Inverse.CalcGradR=0;
+%         CtrlVar.Inverse.CalcGradI=0;
+%         CtrlVar.Inverse.CalcHessR=0;
+%         CtrlVar.Inverse.CalcHessI=0;
+%         
+%     case 2
+%         
+%         CtrlVar.Inverse.CalcGradR=1;
+%         CtrlVar.Inverse.CalcGradI=1;
+%         CtrlVar.Inverse.CalcHessR=0;
+%         CtrlVar.Inverse.CalcHessI=0;
+%         
+%     case {3,4,5}
+%         
+%         CtrlVar.Inverse.CalcGradR=1;
+%         CtrlVar.Inverse.CalcGradI=1;
+%         CtrlVar.Inverse.CalcHessR=1;
+%         CtrlVar.Inverse.CalcHessI=1;
+%         
+% end
 
+% Note: I should consider writing this as 
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')  % AC
     
@@ -85,7 +89,7 @@ elseif contains(lower(CtrlVar.Inverse.InvertFor),'c')  % C
     
 elseif contains(lower(CtrlVar.Inverse.InvertFor),'b')  % 
     
-    I=GF.node>0.5; %only change b and B where grounded
+    I=F.GF.node>0.5; %only change b and B where grounded
     F.b(I)=p(I); % this does change the thickness
     F.B(I)=F.b(I); % now change B where grounded
     F.h=F.s-F.b;
@@ -101,8 +105,8 @@ end
 
 
 [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-[R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo) ;
-[I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+[R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,Priors,Meas,BCsAdjoint,RunInfo) ;
+[I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
 
 
 
