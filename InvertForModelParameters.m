@@ -1,6 +1,8 @@
 
 function [UserVar,F,l,InvFinalValues,RunInfo]=...
-    InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+    InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+
+narginchk(11,11)
 
 InvFinalValues=InvStartValues;
 
@@ -9,60 +11,22 @@ if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Initia
 end
 
 
-%% Did user define regularization parameters in `DefineInputForInverseRun'?
-% If so, then use those values, but if not, use corresponding priors
-
-if ~isempty(Priors.Regularize)
-    
-    if ~isempty(Priors.Regularize.logC.gs)
-        CtrlVar.Inverse.Regularize.logC.gs=Priors.Regularize.logC.gs;
-    end
-    
-    if ~isempty(Priors.Regularize.logC.ga)
-        CtrlVar.Inverse.Regularize.logC.ga=Priors.Regularize.logC.ga;
-    end
-    
-    
-    if ~isempty(Priors.Regularize.C.gs)
-        CtrlVar.Inverse.Regularize.C.gs=Priors.Regularize.C.gs;
-    end
-    
-    if ~isempty(Priors.Regularize.C.ga)
-        CtrlVar.Inverse.Regularize.C.ga=Priors.Regularize.C.ga;
-    end
-    
-    
-    if ~isempty(Priors.Regularize.logAGlen.gs)
-        CtrlVar.Inverse.Regularize.logAGlen.gs=Priors.Regularize.logAGlen.gs;
-    end
-    
-    if ~isempty(Priors.Regularize.logAGlen.ga)
-        CtrlVar.Inverse.Regularize.logAGlen.ga=Priors.Regularize.logAGlen.ga;
-    end
-    
-    
-    if ~isempty(Priors.Regularize.AGlen.gs)
-        CtrlVar.Inverse.Regularize.AGlen.gs=Priors.Regularize.AGlen.gs;
-    end
-    
-    if ~isempty(Priors.Regularize.AGlen.ga)
-        CtrlVar.Inverse.Regularize.AGlen.ga=Priors.Regularize.AGlen.ga;
-    end
-    
-end
+%% Consider adding some test of input variables here, maybe see if all gs,ga fields are defined
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
 
+F.AGlen=InvStartValues.AGlen ; F.AGlenmin=Priors.AGlenmin;  F.AGlenmax=Priors.AGlenmax; 
+F.C=InvStartValues.C ; F.Cmin=Priors.Cmin;  F.Cmax=Priors.Cmax; 
+F.b=InvStartValues.b ; F.bmin=Priors.bmin;  F.bmax=Priors.bmax; 
+
+
+
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
-% This mapping between A, b and C into the control variable is done by
-% InvValues2p()
-
-[p0,plb,pub]=InvValues2p(CtrlVar,InvStartValues); 
-
-
+% This mapping between A, b and C into the control variable is done by F2p
+[p0,plb,pub]=F2p(CtrlVar,F); 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
 [J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -75,7 +39,7 @@ func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoin
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
-
+dJdpTest=[];
 CtrlVar.Inverse.ResetPersistentVariables=0;
 %%
 
@@ -99,16 +63,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3
-            iRange=[iRange(:);iRange(:)+NA;iRange(:)+NA];
+            iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-    
-    
-    %     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    %
-    %         iRange=[iRange(:);iRange(:)+NA];
-    %
-    %     end
-    
+
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
@@ -122,38 +79,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     end
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
-    InvFinalValues.dJdpTest=dJdpTest;
     
-    % I can simplify this contruct using CtrlVar.Inverse.InvertForField
-    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        
-        NA=numel(InvStartValues.AGlen);
-        InvFinalValues.dJdAGlenTest=dJdpTest(1:NA);
-        InvFinalValues.dJdCTest=dJdpTest(NA+1:end);
-        InvFinalValues.dJdbTest=[];
-        
-    elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        
-        InvFinalValues.dJdAGlenTest=dJdpTest;
-        InvFinalValues.dJdCTest=[];
-        InvFinalValues.dJdbTest=[];
-        
-    elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        
-        InvFinalValues.dJdAGlenTest=[];
-        InvFinalValues.dJdCTest=dJdpTest;
-        InvFinalValues.dJdbTest=[];
-        
-    elseif contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-            
-        InvFinalValues.dJdAGlenTest=[];
-        InvFinalValues.dJdCTest=[];
-        InvFinalValues.dJdbTest=dJdpTest;
-       
-    else
-        error('sfda')
-    end
-     % [dJdpTest(iRange) dJdp(iRange)]
 else
     
     
@@ -164,16 +90,12 @@ else
         case 'UaOptimization'
             
             [p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
-            
-            
-            
+
         case 'MatlabOptimization'
             
             clear fminconOutputFunction fminconHessianFcn fminuncOutfun
             
             [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo);
-            
-            
             
         otherwise
             
@@ -181,60 +103,16 @@ else
             fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
             error('what case? ')
     end
-    
-    
-    
-    %     [InvFinalValues.C,iU,iL]=kk_proj(InvFinalValues.C,CtrlVar.Cmax,CtrlVar.Cmin);
-    %     [InvFinalValues.AGlen,iU,iL]=kk_proj(InvFinalValues.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
-    %
-    
-
+ 
+    F=p2F(CtrlVar,p,F); 
     [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
-    
-    
-    NA=numel(InvStartValues.AGlen);
-    NC=numel(InvStartValues.C);
-    InvFinalValues=p2InvValues(CtrlVar,p,InvFinalValues,NA,NC);
-    
-    %[Aest,bEst,Cest]=p2ContrVar();
   
     
 end
 
-%% Values
-InvFinalValues.J=J;
-InvFinalValues.I=JGHouts.MisfitOuts.I;
-InvFinalValues.R=JGHouts.RegOuts.R;
-InvFinalValues.RAGlen=JGHouts.RegOuts.RAGlen;
-InvFinalValues.RC=JGHouts.RegOuts.RC;
-if isprop(InvFinalValues,'uAdjoint')
-    InvFinalValues.uAdjoint=JGHouts.MisfitOuts.uAdjoint;
-    InvFinalValues.vAdjoint=JGHouts.MisfitOuts.vAdjoint;
-end
 
-
-%% Gradients
-
-InvFinalValues.dJdp=dJdp;
-
-InvFinalValues.dIdp=JGHouts.dIdp;
-InvFinalValues.dRdp=JGHouts.dRdp;
-
-InvFinalValues.dJdAGlen=JGHouts.MisfitOuts.dIdAGlen+JGHouts.RegOuts.dRdAGlen;
-InvFinalValues.dJdC=JGHouts.MisfitOuts.dIdC+JGHouts.RegOuts.dRdC;
-InvFinalValues.dJdb=JGHouts.MisfitOuts.dIdb+JGHouts.RegOuts.dRdb;
-
-%% These are of less interest, but can be added
-%InvFinalValues.dIdAGlen=JGHouts.MisfitOuts.dIdAGlen;
-%InvFinalValues.dIdC=JGHouts.MisfitOuts.dIdC;
-
-%InvFinalValues.dRdAGlen=JGHouts.RegOuts.dRdAGlen;
-%InvFinalValues.dRdC=JGHouts.RegOuts.dRdC;
-
-
-InvFinalValues.SearchStepSize=RunInfo.Inverse.StepSize(end);
-
+InvFinalValues=Vars2InvValues(CtrlVar,F,InvFinalValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
 
 
 end

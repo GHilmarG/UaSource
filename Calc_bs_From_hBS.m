@@ -8,12 +8,14 @@ if ~ isstruct(CtrlVar)
 end
 
 %% Calculates b, s, and h, consistent with the floating condition.
-% [b,s,h,GF]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
-% calculates b and s from h, S and B and the densities rho and rhow
+% 
+%    [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
+%
 %
 % Note: h is only modified if on input h is smaller than CtrlVar.ThickMin,
 %       and CtrlVar.ResetThicknessToMinThickness is true.
 %
+%   MUA is only needed for plotting purposes, can be left empty.
 %
 % Step 1: where grounded, b is set equal to B
 %         where afloat,   b is calculated from h, rhow and rhow, using the
@@ -51,7 +53,7 @@ I=b<B ;
 
 if any(I)
     
-    if CtrlVar.Report_if_b_less_than_B
+    if CtrlVar.Report_if_b_less_than_B  && ~isempty(MUA)
         fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
         
         if CtrlVar.doplots==1

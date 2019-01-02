@@ -41,6 +41,31 @@ if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:emp
 if isempty(InvStartValues.n) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.n is empty') ; end
 if isempty(InvStartValues.m) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.m is empty') ; end
 
+if isempty(Priors.AGlenmax) 
+    Priors.AGlenmax=CtrlVar.AGlenmax;
+end
+
+if isempty(Priors.AGlenmin) 
+    Priors.AGlenmin=CtrlVar.AGlenmin;
+end
+
+if isempty(Priors.Cmax) 
+    Priors.Cmax=CtrlVar.Cmax;
+end
+
+
+if isempty(Priors.Cmin) 
+    Priors.Cmin=CtrlVar.Cmin;
+end
+
+if isempty(Priors.bmax) 
+    Priors.bmax=1e10;
+end
+
+
+if isempty(Priors.bmin) 
+    Priors.bmin=-1e10;
+end
 
 end
 

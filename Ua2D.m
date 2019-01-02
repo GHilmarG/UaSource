@@ -231,7 +231,7 @@ if CtrlVar.doInverseStep   % -inverse
         
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
     [UserVar,F,l,InvFinalValues,RunInfo]=...
-        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');

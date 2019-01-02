@@ -12,12 +12,19 @@ classdef PriorProbabilityDistribution
         
         AGlen=[];
         CovAGlen=[]
+        AGlenmax=[];
+        AGlenmin=[];
         
         C=[];
         CovC=[];
+        Cmax=[];
+        Cmin=[];
         
         b=[];
         Covb=[];
+        bmax=[];
+        bmin=[];
+        
         
         TrueC=[];
         TrueAGlen=[];

@@ -8,6 +8,7 @@ classdef InversionValues
         C=[];
         AGlen=[];
         b=[];
+        B=[] ; 
         
         SearchStepSize=[];
         uAdjoint=[];
