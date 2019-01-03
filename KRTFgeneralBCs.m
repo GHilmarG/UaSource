@@ -49,6 +49,14 @@ end
 
 if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
 if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
+
+
+if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+    CtrlVar.TestForRealValues=false;
+end
+
+
+
 if CtrlVar.TestForRealValues
     if ~isreal(F.C) ; save TestSave ; error('KRTF: C not real ') ; end
 end
@@ -337,8 +345,8 @@ for Iint=1:MUA.nip
         end
         
         t1=-g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        
         t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod); % beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
@@ -348,6 +356,7 @@ for Iint=1:MUA.nip
         
         t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
         t5=tauy.*fun(Inod); % beta2int.*vint.*fun(Inod); % basal friction, Weertman, v

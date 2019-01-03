@@ -4,7 +4,6 @@ NA=numel(F.AGlen);
 Nb=numel(F.b);
 NC=numel(F.C);
 
-
 switch  CtrlVar.Inverse.InvertForField
     
     case 'A'
@@ -44,7 +43,7 @@ switch  CtrlVar.Inverse.InvertForField
               
         I=find(F.GF.node>0.5); %only change b and B where grounded
         F.b(I)=p(I+NA);     % this does change the thickness
-        F.B(I)=F.b(I+NA);   % now change B where grounded
+        F.B(I)=F.b(I);   % now change B where grounded
         F.h=F.s-F.b;
         
        % F.b=p(NA+1:end);
@@ -91,7 +90,7 @@ switch  CtrlVar.Inverse.InvertForField
         
         I=find(F.GF.node>0.5); %only change b and B where grounded
         F.b(I)=p(NA+I);     % this does change the thickness
-        F.B(I)=F.b(NA+I);   % now change B where grounded
+        F.B(I)=F.b(I);   % now change B where grounded
         F.h=F.s-F.b;
         
         

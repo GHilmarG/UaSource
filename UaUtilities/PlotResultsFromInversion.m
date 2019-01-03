@@ -484,6 +484,14 @@ else
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
+    
+    if ~isempty(InvFinalValues.dJdb)
+        IFigGradientsb=figure('Name','dJdb Gradients','NumberTitle','off');
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb) ; title('dJdb')
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    end
+    
+    
     %subplot(3,1,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dRdp) ; title('dRdp')
     
     

@@ -16,12 +16,7 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
-
-F.AGlen=InvStartValues.AGlen ; F.AGlenmin=Priors.AGlenmin;  F.AGlenmax=Priors.AGlenmax; 
-F.C=InvStartValues.C ; F.Cmin=Priors.Cmin;  F.Cmax=Priors.Cmax; 
-F.b=InvStartValues.b ; F.bmin=Priors.bmin;  F.bmax=Priors.bmax; 
-
-
+F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
@@ -71,12 +66,14 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     % calc brute force gradient
     
-    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*norm(p0);
+    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
     
     if CtrlVar.Inverse.InvertForField=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
         %deltaStep=1;
     end
+    
+  
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
     

@@ -23,10 +23,11 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
-dhError=norm(F.s-F.b-F.h);
+
+dhError=norm(F.s-F.b-F.h)/sqrt(numel(F.s)); 
 
 if dhError>100*eps
-    fprintf('uv: h found to be different from s-b, with norm(h-(s-b))=%f .\n',dhError)
+    fprintf('uv: h found to be different from s-b, with mean norm(h-(s-b))=%g .\n',dhError)
     fprintf('uv: h replaced by h=s-b. \n')
     F.h=F.s-F.b;
     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -125,6 +126,12 @@ tdiagnostic=toc(tdiagnostic);
 if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Ended diagnostic in %-f sec \n ',tdiagnostic) ;
     
 end
+
+
+if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+    CtrlVar.TestForRealValues=false;
+end
+
 
 if  CtrlVar.TestForRealValues
     if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end

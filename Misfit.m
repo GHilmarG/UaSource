@@ -165,6 +165,11 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 
         end
         
+        
+        if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+            CtrlVar.TestForRealValues=false;
+        end
+        
         if ~isreal(dIduv)  && CtrlVar.TestForRealValues
             save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
         end
@@ -251,7 +256,11 @@ if CtrlVar.Inverse.CalcGradI
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,dJduAdjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
-            if ~isreal(lAdjoint)
+            if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+                CtrlVar.TestForRealValues=false;
+            end
+            
+            if CtrlVar.TestForRealValues && ~isreal(lAdjoint)
                 save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
             end
             
@@ -364,7 +373,7 @@ if CtrlVar.Inverse.CalcGradI
                         
                         dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr);
                         %dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                        dIdb=dIdb.*F.GF.node; % here forcing to be zero where afloat
+                        dIdb=dIdb.*F.GF.node; % here forcing the gradient to be zero where afloat
                                               % in principle this should
                                               % automatically be the case
                                               % once done in a fully

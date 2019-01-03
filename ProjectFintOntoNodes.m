@@ -40,7 +40,7 @@ for I=1:nVarargs
 end
 
 % create mass matrix
-A=MassMatrix2D1dof(MUA);
+
 b=zeros(MUA.Nnodes,nVarargs);
 
 % factorize
@@ -50,7 +50,15 @@ for I=1:nVarargs
 %      varargout{I}= P*(L' \(L \(P'*b(:,I))));
 end
 
-sol=A\b;
+%A=MassMatrix2D1dof(MUA);
+%sol=A\b;
+
+if ~isfield(MUA,'M')
+    MUA.M=MassMatrix2D1dof(MUA);
+end
+
+sol=MUA.M\b;
+
 for I=1:nVarargs
     varargout{I}=sol(:,I);
 end

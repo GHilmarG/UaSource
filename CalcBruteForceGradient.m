@@ -80,6 +80,28 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             dJ(iRange(k))=dJtemp(k);
         end
         
+        
+    case 'complex step differentiation'
+        
+        fprintf('Error: complex step differentiation not possible because now using a linear solver\n')
+        fprintf('that does not work with complex matrices.\n')
+        error('CalcBruteForceGradient:CSD','complex step differentiation not possible')
+        
+        
+        for k=1:numel(iRange)
+            
+            I=iRange(k);
+            p1=p0;
+            p1(I)=p1(I)+1i*deltaStep;
+            J1=func(p1);
+            dJtemp(k)=imag(J1)/deltaStep;
+            
+        end
+        
+        for k=1:numel(iRange)
+            dJ(iRange(k))=dJtemp(k);
+        end
+        
     otherwise
         
         fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value. \n')

@@ -55,7 +55,14 @@ if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and dia
     CtrlVar.doDiagnostic=0  ;
     CtrlVar.doPrognostic=0 ;
     CtrlVar.AdaptMesh=0;
+    CtrlVar.MUA.MassMatrix=true;
+    CtrlVar.MUA.StiffnessMatrix=true;
 end
+
+
+
+
+
 
 if CtrlVar.doplots==0 ; CtrlVar.PlotMesh=0; end
 
@@ -246,7 +253,15 @@ elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(Ct
     
 elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c') && ~contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
     
-    CtrlVar.Inverse.InvertForField='';
+    CtrlVar.Inverse.InvertForField=[];
+    
+end
+
+if CtrlVar.InverseRun && isempty(CtrlVar.Inverse.InvertForField)
+    
+    fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+    fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+    error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
     
 end
 
