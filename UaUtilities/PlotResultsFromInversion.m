@@ -37,8 +37,8 @@ figure
 Kplot=Kplot+1;    
 subplot(Iplot,Jplot,Kplot)
 
-PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ; 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us Meas on numerical grid') ;
 
@@ -291,8 +291,7 @@ figure
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated velocities') ;
-hold on ; 
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 %%  % Difference in speed
 
@@ -381,22 +380,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdC Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdC Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC./InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigC.Position=[948.43 41.571 1246.3 1115.4];
@@ -413,22 +416,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen-InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen./InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
@@ -445,22 +452,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdb Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdbTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('dJdb Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb-InvFinalValues.dJdbTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb./InvFinalValues.dJdb) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];

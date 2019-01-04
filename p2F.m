@@ -17,8 +17,11 @@ switch  CtrlVar.Inverse.InvertForField
     case 'b'
    
          
-        I=F.GF.node>0.5; %only change b and B where grounded
-        F.b(I)=p(I);     % this does change the thickness
+        I=F.GF.node>0.01; %only change b and B where grounded
+        %F.b(I)=p(I);     % this does change the thickness
+        
+        
+        F.b=p;
         F.B(I)=F.b(I);   % now change B where grounded
         F.h=F.s-F.b;
 

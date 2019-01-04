@@ -372,13 +372,15 @@ if CtrlVar.Inverse.CalcGradI
                     case 'integral'
                         
                         dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr);
-                        %dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                        dIdb=dIdb.*F.GF.node; % here forcing the gradient to be zero where afloat
-                                              % in principle this should
-                                              % automatically be the case
-                                              % once done in a fully
-                                              % consistent manner over the
-                                              % floating section in dIdbq
+                        
+                        %dIdb=F.GF.node.*dIdb;
+                        %[F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF);
+                        
+                       % dIdb=dIdb.*F.GF.node; % here forcing the gradient to be zero where afloat
+                                              % in principle this should automatically be the case once done in a fully consistent manner over
+                                              % the floating section in dIdbq
+                                              
+                       %dIdb(~F.GF.NodesUpstreamOfGroundingLines)=0;                       
                 end
             end
             

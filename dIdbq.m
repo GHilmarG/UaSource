@@ -34,7 +34,7 @@ end
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-%bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -68,7 +68,7 @@ for Iint=1:MUA.nip
     
     
     hint=hnod*fun;
-    %bint=bnod*fun;
+    bint=bnod*fun;
     %sint=snod*fun;
     dhdtresint=dhdtresnod*fun;
     dhdtErrint=dhdtErrnod*fun;
@@ -83,20 +83,26 @@ for Iint=1:MUA.nip
     mint=mnod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
+    Hint=Sint-Bint;
     
     
     AGlenInt=AGlennod*fun;
     AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
     uAdjointint=uAdjointnod*fun;
     vAdjointint=vAdjointnod*fun;
-    Hint=Sint-Bint;
+    
     hfint=F.rhow*Hint./rhoint;
     deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
+    HeHint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
+    dint = HeHint.*(Sint-bint);  % draft
+    
+    
     dudx=zeros(MUA.Nele,1);     dvdx=zeros(MUA.Nele,1);     dudy=zeros(MUA.Nele,1);     dvdy=zeros(MUA.Nele,1);
     dlxdx=zeros(MUA.Nele,1);    dlydx=zeros(MUA.Nele,1);    dlxdy=zeros(MUA.Nele,1);    dlydy=zeros(MUA.Nele,1);
     dsdx=zeros(MUA.Nele,1);     dsdy=zeros(MUA.Nele,1);
+    dbdx=zeros(MUA.Nele,1);     dbdy=zeros(MUA.Nele,1);
     dhdx=zeros(MUA.Nele,1);     dhdy=zeros(MUA.Nele,1);
     drhodx=zeros(MUA.Nele,1);   drhody=zeros(MUA.Nele,1);
     
@@ -110,6 +116,9 @@ for Iint=1:MUA.nip
         
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
+        
+        dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
+        dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
         
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
@@ -130,7 +139,8 @@ for Iint=1:MUA.nip
     detJw=detJ*weights(Iint);
     
     exy=(dudy+dvdx)/2;
-    
+    exx=dudx;
+    eyy=dvdy;
     
     %
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
@@ -139,14 +149,42 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-        T(:,Inod)=T(:,Inod)...
-            +etaint.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw...
-            +(dtaubxdh.*uAdjointint+dtaubydh.*vAdjointint).*fun(Inod).*detJw...
-            +F.g*ca*((rhoint.*dsdx+hint.*drhodx).*uAdjointint+(rhoint.*dsdy+hint.*drhody).*vAdjointint).*fun(Inod).*detJw...
-            -F.g*sa*((rhoint+hint.*drhodx).*uAdjointint).*fun(Inod).*detJw ;
+        t1=-F.g*((rhoint.*hint-F.rhow*dint).*Deriv(:,1,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdx).*uAdjointint*ca ...
+            -rhoint.*F.g.*fun(Inod).*sa.*uAdjointint;
+        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*HeHint.*fun(Inod)).*dlxdx;
+        
+        t3=fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
+        t4=fun(Inod).*etaint.*2.*exy.*dlxdy;
+        t5=dtaubxdh.*uAdjointint.*fun(Inod);
+        
+        Fx=(t1+t2).*detJw;
+        Tx=(t3+t4+t5).*detJw;
+        
+        
+        t1=-F.g* ((rhoint.*hint-F.rhow*dint).*Deriv(:,2,Inod)-(rhoint.*fun(Inod)+F.rhow*HeHint.*fun(Inod)).*dbdy).*vAdjointint *ca; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*HeHint.*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        
+        t3=fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+        t4=fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+        t5=dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        
+        Fy=(t1+t2).*detJw;
+        Ty=(t3+t4+t5).*detJw;
+        
+        
+        T(:,Inod)=T(:,Inod)-Tx+Fx-Ty+Fy;   % opposite sign to K because of the Newton sign
         
     end
     
+    
+    
+    % If dh/dt=d(s-b)/dt are measurments, and the control parameter p=b
+    % then dJ/db=dI/db + dR/db,
+    % has contributions from dI/db and dR/db
+    % rather than just the R term otherwise often is the
+    % case for control variables.
+    %
+    % calcualte: dI/db
     if contains(CtrlVar.Inverse.Measurements,'-dhdt-')
         for Inod=1:MUA.nod
             

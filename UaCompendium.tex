@@ -751,7 +751,7 @@ where $h_f$ is defined by (\ref{eq:float})
 \section{Expressing geometrical variables in terms of ice thickness}
 
 It is advantageous to be able to express geometrical variables such as $s$, $b$, and $d$ in terms of ice
-thickness $h$.  
+thickness $h$.
 
 It is easy to see that
 \begin{align}
@@ -759,10 +759,11 @@ s&= \He(h-h_f) \; (h+ B) + \He(h_f-h) \; (S+(1-\rho/\rho_o)\; h ) ,\label{eq:sh}
 b&=\He(h-h_f) \; B + \He(h_f-h) \; (S-\rho h/\rho_o), \label{eq:bh}
 \end{align}
 and that
-\begin{equation}
-d= \He(H) \, [ \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H ] ,
+\begin{align}
+  d  :=&\He(H) (S-b)  \\
+     =&\He(H) \, [ \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H ] ,
 \label{eq:dp}
-\end{equation}
+\end{align}
 i.e.\ 
 \[
 d=\begin{cases} 
@@ -3333,9 +3334,8 @@ function with respect to the state variable $u$
 
 In the adjoint method we need to calculate a number of derivatives. These are:
 \begin{enumerate}
-\item The derivative of the forward model with respect to the state variable, i.e $\p_u F $
-\item The derivative of the objective function with respect to the state variable, i.e.\ $\p_u J$
-\item The derivative of the forward model with respect to the control variable, i.e.\ $\p_p F$.
+\item The derivative of the forward model with respect to the state and control variables, i.e $\p_u F and $\p_p F$$
+\item The derivative of the objective function with respect to the state an control variables, i.e.\ $\p_u J$ and $\p_p J$.
 \end{enumerate}
 
 \section{Evaluating objective functions and their directional derivatives}
@@ -3460,8 +3460,10 @@ d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\hat
 \]
 
 
+\section{Gradients of objective functions with respect to field variables}
 
 
+Add that if 
 
 \section{Gradients of objective functions with respect to control variables}
 
@@ -3623,8 +3625,6 @@ But if we solve for $b$ and use $p_t h$ as a constraint, calculated as
 $a-\p_x (uh)$ we now have $b$ explicitly both in the mistfit term $I$
 and in the regularisation term $R$, so $\p_b J$ has now this
 additional $I$ term.
-
-
 
 \section{Inverting for $\log p$}
 To lessen the chances of a strictly positive parameter $p$ becoming

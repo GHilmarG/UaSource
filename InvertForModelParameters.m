@@ -70,7 +70,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if CtrlVar.Inverse.InvertForField=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        %deltaStep=1;
+        %deltaStep=10;
     end
     
   

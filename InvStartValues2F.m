@@ -36,7 +36,7 @@ if  contains(CtrlVar.Inverse.InvertForField,'b')
     F.bmin=Priors.bmin;
     F.bmax=Priors.bmax;
     
-    I=F.GF.node>0.5; % only change b and B where grounded
+    I=F.GF.node>0.01; % only change b and B where grounded
     F.B(I)=F.b(I);   % now change B where grounded
     F.h=F.s-F.b;
     
