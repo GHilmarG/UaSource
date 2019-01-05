@@ -77,6 +77,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
     
+    
+    
+    
 else
     
     

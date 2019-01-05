@@ -96,6 +96,7 @@ for Iint=1:MUA.nip
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
     HeHint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
+    deltaHint=DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);
     dint = HeHint.*(Sint-bint);  % draft
     
     
@@ -149,24 +150,27 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-        t1=-F.g*((rhoint.*hint-F.rhow*dint).*Deriv(:,1,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdx).*uAdjointint*ca ...
+        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*Deriv(:,1,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdx).*uAdjointint ...
             -rhoint.*F.g.*fun(Inod).*sa.*uAdjointint;
-        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*HeHint.*fun(Inod)).*dlxdx;
+        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*fun(Inod)).*dlxdx;
         
-        t3=fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
-        t4=fun(Inod).*etaint.*2.*exy.*dlxdy;
-        t5=dtaubxdh.*uAdjointint.*fun(Inod);
+        t3=-fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
+        t4=-fun(Inod).*etaint.*2.*exy.*dlxdy;
+        t5=-dtaubxdh.*uAdjointint.*fun(Inod);
+       
         
         Fx=(t1+t2).*detJw;
         Tx=(t3+t4+t5).*detJw;
         
         
-        t1=-F.g* ((rhoint.*hint-F.rhow*dint).*Deriv(:,2,Inod)-(rhoint.*fun(Inod)+F.rhow*HeHint.*fun(Inod)).*dbdy).*vAdjointint *ca; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
-        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*HeHint.*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        t1=-ca*F.g* ((rhoint.*hint-F.rhow*dint).*Deriv(:,2,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*fun(Inod)  ).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
         
-        t3=fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
-        t4=fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        t3=-fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+        t4=-fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+        t5=-dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        
+        
         
         Fy=(t1+t2).*detJw;
         Ty=(t3+t4+t5).*detJw;

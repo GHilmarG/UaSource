@@ -367,7 +367,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
     iRange=find(~isnan(dJdpTest));
-    fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
+    fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(Ib)-dJdp(Ib))/norm(dJdp(Ib)))
     
     %%
     

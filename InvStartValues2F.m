@@ -27,7 +27,7 @@ if  contains(CtrlVar.Inverse.InvertForField,'b')
     
     if isempty(InvStartValues.b)
         
-        fprintf('InvStartValues.b can not be left empty when inverting for b.\n')
+        fprintf('InvStartValues.b can not be left empty when inverting for b or B.\n')
         error('InvStartValues2F:InvStartValues.b')
         
     end
@@ -36,10 +36,15 @@ if  contains(CtrlVar.Inverse.InvertForField,'b')
     F.bmin=Priors.bmin;
     F.bmax=Priors.bmax;
     
-    I=F.GF.node>0.01; % only change b and B where grounded
-    F.B(I)=F.b(I);   % now change B where grounded
-    F.h=F.s-F.b;
     
+    F.B=F.GF.node.*F.b+(1-F.GF.node).*F.B ;
+    F.h=F.s-F.b;
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
+    
+    F.bInit=F.b;
+    F.BInit=F.B;
+    F.GFInit.node=F.GF.node ;
+
 end
 
 if  contains(CtrlVar.Inverse.InvertForField,'C')

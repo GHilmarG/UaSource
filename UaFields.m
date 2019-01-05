@@ -23,11 +23,12 @@ classdef UaFields
         b=[];
         bmin=[];
         bmax=[];
+        bInit=[]
         
         h=[];
         S=[];
         B=[];
-    
+        BInit=[];
         
         AGlen=[];
         AGlenmin=[];
@@ -68,6 +69,8 @@ classdef UaFields
         alpha=[];
         
         GF=[];
+        GFInit=[];
+        
     end
     
 end
