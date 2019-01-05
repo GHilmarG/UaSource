@@ -80,11 +80,11 @@ switch  CtrlVar.Inverse.InvertForField
                 
             case 4
                 
-                F.h=F.s-F.b;
-                F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
-                hf=F.rhow*(F.S-F.B)./F.rho ;
-                F.GF.node = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);
-                F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
+                 F.h=F.s-F.b;
+                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ; % this is needed 
+%                 hf=F.rhow*(F.S-F.B)./F.rho ;
+%                 F.GF.node = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);
+%                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
         end
         
         
