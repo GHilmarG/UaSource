@@ -16,6 +16,11 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
+F.hInit=F.h;
+F.BInit=F.B; 
+F.bInit=F.b; 
+
 F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 
 % p is the vector of the control variables, currenty p=[A,b,C]

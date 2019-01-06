@@ -1,4 +1,4 @@
-function dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr)
+function dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp)
 
 %
 % nodal-based gradients
@@ -37,6 +37,9 @@ snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+dhdpnod=reshape(dhdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dbdpnod=reshape(dbdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -84,6 +87,8 @@ for Iint=1:MUA.nip
     Bint=Bnod*fun;
     Sint=Snod*fun;
     Hint=Sint-Bint;
+    dhdpint=dhdpnod*fun;
+    dbdpint=dbdpnod*fun;
     
     
     AGlenInt=AGlennod*fun;
@@ -143,32 +148,58 @@ for Iint=1:MUA.nip
     exx=dudx;
     eyy=dvdy;
     
+    
+    
     %
+    %  dh/db= d(s-b)/db = ds/db - db/db = ds/db -1 = 
+    %
+    % Using: s= (1-rhow/rho) b + rhow S/rho   for h<h_f
+    %
+    % I assume that s is independent of b where grounded, i.e. ds/db = 0,
+    % on the other hand I can not assume that s is independnt of b where afloat because
+    % that will violiate the floating condition.
+    %
+    % Therfore:  ds/db =  (1-Heint) (1-rhow/rho)
+%     %
+%     % dh/db = (1-Heint) (1-rhow/rho) -1
+%     if contains(lower(CtrlVar.Inverse.InvertFor),'-B-')
+%         % only change B, i.e. dhdb=dhdB*Heing
+%         dhdbint= -Heint;
+%     else
+%         
+%         dhdbint= (1-Heint).*(1-F.rhow./rhoint)-1 ;
+%     end
+%     %    dhdb=-1;
+    
+    
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,dudx,dvdy,exy);
     
     
     for Inod=1:MUA.nod
         
-        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*Deriv(:,1,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdx).*uAdjointint ...
-            -rhoint.*F.g.*fun(Inod).*sa.*uAdjointint;
-        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*fun(Inod)).*dlxdx;
         
-        t3=-fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
-        t4=-fun(Inod).*etaint.*2.*exy.*dlxdy;
-        t5=-dtaubxdh.*uAdjointint.*fun(Inod);
-       
+        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,1,Inod)+(rhoint.*dhdpint.*fun(Inod)-F.rhow*HeHint.*dhdpint.*fun(Inod)).*dbdx).*uAdjointint ...
+            +rhoint.*F.g.*dhdpint.*fun(Inod).*sa.*uAdjointint;
+        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*dhdpint.*fun(Inod)).*dlxdx;
+        
+        t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
+        t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
+        t5=dhdpint.*dtaubxdh.*uAdjointint.*fun(Inod);
+        
         
         Fx=(t1+t2).*detJw;
         Tx=(t3+t4+t5).*detJw;
         
         
-        t1=-ca*F.g* ((rhoint.*hint-F.rhow*dint).*Deriv(:,2,Inod)-(rhoint.*fun(Inod)-F.rhow*HeHint.*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
-        t2=ca*F.g.*(-rhoint.*hint.*fun(Inod)+F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*fun(Inod)  ).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,2,Inod)+(rhoint.*dhdpint.*fun(Inod)-F.rhow*HeHint.*dhdpint.*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         
-        t3=-fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
-        t4=-fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=-dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        
+        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(HeHint+deltaHint.*(Sint-bint)).*dhdpint.*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        
+        t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+        t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+        t5=dhdpint.*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
         
         
         
@@ -193,7 +224,7 @@ for Iint=1:MUA.nip
         for Inod=1:MUA.nod
             
             dbI=dhdtresint...
-                .*(dudx.*fun(Inod)+uint.*Deriv(:,1,Inod)+dvdy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
+                .*dbdpint.*(dudx.*fun(Inod)+uint.*Deriv(:,1,Inod)+dvdy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
                 .*detJw./dhdtErrint/Area ;
             T(:,Inod)=T(:,Inod)+dbI ;
             

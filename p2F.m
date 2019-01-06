@@ -26,9 +26,9 @@ switch  CtrlVar.Inverse.InvertForField
         bOld=F.b;    
         BOld=F.B;
 
-        if contains(lower(CtrlVar.Inverse.InvertFor),'-B-')
+        if contains(CtrlVar.Inverse.InvertFor,'-B-')
             
-            F.b=F.GF.node.*p+(1-F.GF.node).*F.b ;
+            F.b=F.GF.node.*p+(1-F.GF.node).*F.bInit ;
             
         else
             
@@ -36,7 +36,7 @@ switch  CtrlVar.Inverse.InvertForField
             
         end
         
-        Ver=4 ;
+        Ver=3 ;
         
         switch Ver
             
@@ -73,22 +73,50 @@ switch  CtrlVar.Inverse.InvertForField
                 
                 
             case 3
-                % [----------- This produces almost correct results too
+                % [----------- This produces correct results with -B-
                 
-                F.h=F.s-F.b;
-                F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
+                
+                F.B=F.GF.node.*F.b+(1-F.GF.node).*F.BInit ;
+                F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+                [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow,F.GF);
                 
             case 4
                 
-                 F.h=F.s-F.b;
-                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ; % this is needed 
-%                 hf=F.rhow*(F.S-F.B)./F.rho ;
-%                 F.GF.node = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);
-%                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
+                F.h=F.s-F.b;
+                F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ; % this is needed
+                %                 hf=F.rhow*(F.S-F.B)./F.rho ;
+                %                 F.GF.node = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);
+                %                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
+                
+            case 5
+                
+                % Here the idea is to think of s independent of b where grounded
+                % but dependent on b where afloat
+                %
+                %
+                F.s=F.GF.node.*F.s+(1-F.GF.node).*((1-F.rhow./F.rho).*F.b+F.rhow.*F.S./F.rho);
+                F.h=F.s-F.b;
+                % F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ; % this is needed
+                hf=F.rhow*(F.S-F.B)./F.rho ;
+                F.GF.node = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);
+                F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ;
+                
+            case 6
+                
+                %F.h=F.s-F.b;
+                
+                F.B=F.GF.node.*F.b+(1-F.GF.node).*F.B ; % this is needed
+                
+                F.s=F.GF.node.*F.s+(1-F.GF.node).*((1-F.rhow./F.rho).*F.b+F.rhow.*F.S./F.rho);
+                
+                F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*(F.s-F.b) ;
+                
+                [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+                
         end
         
         
-        % In the assembly I do not use F.b! only s and h 
+        % In the assembly I do not use F.b! only s and h
         % I recalculate at He and deltas
         % dbdx=dsdx-dhdx
         

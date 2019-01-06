@@ -173,7 +173,8 @@ where $\He$ is the Heaviside function, defined as
 \]
 
 
-The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat), is needed frequently and we define $\G$ as
+The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat),
+is needed frequently and we define $\G$ as
 \[
 \G=\He(h-h_f)
 \]
@@ -746,10 +747,12 @@ and also
 
 At the grounding line we have:
 \begin{align*}
-h&=h_f\\
+h&=h_f\,\
 d&=H.\\
 \end{align*}
-where $h_f$ is defined by (\ref{eq:float})
+where $h_f$ is defined by (\ref{eq:float}).
+
+
 \section{Expressing geometrical variables in terms of ice thickness}
 
 It is advantageous to be able to express geometrical variables such as $s$, $b$, and $d$ in terms of ice
@@ -782,7 +785,7 @@ hand if $H<0$ then $\He(H)=0$ but so is $\He(h_f-h)$ because if $H=S-B<0$ then
 $h_f=\frac{\rho_o}{\rho}(S-B) < 0$ and since $h$ is always positive we have
 $\He(h_f-h)=0$, i.e.\
 \[
-\He(H) \He(h_f-h)=\He(h_f-h)
+\He(H) \He(h_f-h)=\He(h_f-h),
 \]
 and $d$ can be therefore be written as
 \begin{equation}
@@ -796,11 +799,25 @@ d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H^{+} .
 \end{equation}
 using
 \[
-H^{+}:= \He(H) \, H
+H^{+}:= \He(H) \, H. 
 \]
 
 
-
+If we think of $S$, $B$, and $h$ as independent variables, $s$ and $b$ are given by
+\begin{align}
+  s & = \G (B+h) + (1-\G) \left ((1-\rho_o/\rho) b +\rho_o S/\rho \right ),\\
+    & = \G (B+h) + (1-\G) \left (b+ \frac{\rho_o}{\rho} (S-b) \right ),\\
+  b & = \G B + (1-\G) ( S - \rho h /\rho_o),
+\end{align}
+valid both over the grounded and the floating sections.
+where again the grounding mask $\G$ is defined as
+\[
+\G:=\He(h-h_f) ,
+\]
+with
+\[
+h_f:=\rho_o (S-B) /\rho .
+\]
 
 
 \section{Stress boundary conditions at an ice front}

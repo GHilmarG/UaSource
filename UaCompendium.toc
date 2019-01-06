@@ -15,7 +15,7 @@
 \contentsline {section}{\numberline {1.9}Expressing geometrical variables in terms of ice thickness}{9}
 \contentsline {section}{\numberline {1.10}Stress boundary conditions at an ice front}{9}
 \contentsline {subsection}{\numberline {1.10.1}Floating}{10}
-\contentsline {subsection}{\numberline {1.10.2}Grounded}{10}
+\contentsline {subsection}{\numberline {1.10.2}Grounded}{11}
 \contentsline {section}{\numberline {1.11}Boundary condition at a glacier terminus as a natural boundary condition}{11}
 \contentsline {section}{\numberline {1.12}SSTREAM in 1HD}{12}
 \contentsline {chapter}{\numberline {2}Finite-element implementation}{13}

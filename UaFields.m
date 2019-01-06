@@ -26,6 +26,7 @@ classdef UaFields
         bInit=[]
         
         h=[];
+        hInit=[]; 
         S=[];
         B=[];
         BInit=[];

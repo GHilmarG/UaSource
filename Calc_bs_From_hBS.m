@@ -1,7 +1,7 @@
-function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
+function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow,GF)
 
 nargoutchk(4,4)
-narginchk(7,7)
+narginchk(7,8)
 
 if ~ isstruct(CtrlVar)
    error('Calc_bs_From_hBSL:InputError','Incorrect inputs.')
@@ -31,14 +31,15 @@ if CtrlVar.ResetThicknessToMinThickness
     
     h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
     %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
-    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+%    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
 end
 
 
-% Step 1:  
-hf=rhow*(S-B)./rho ;
-
-GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+% Step 1:
+if nargin==7
+    hf=rhow*(S-B)./rho ;
+    GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 

@@ -9,7 +9,7 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
-
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
 [F.C,F.m]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m);

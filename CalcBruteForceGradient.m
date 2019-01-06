@@ -56,7 +56,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         
     case 'fourth-order'
         
-        parfor k=1:numel(iRange)
+        for k=1:numel(iRange)
             I=iRange(k);
             
             p1=p0;
