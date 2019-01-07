@@ -372,9 +372,13 @@ if CtrlVar.Inverse.CalcGradI
                     case 'integral'
                         
                         if contains(CtrlVar.Inverse.InvertFor,'-B-')
-                            dhdp=-GF.node;
-                            dbdp=GF.node;
-                            dBdp=GF.node;
+
+                            dBdp= F.GF.node;
+                            %dBdp= zeros(MUA.Nnodes,1)+1;
+                            dhdp=-F.GF.node;
+                            dbdp= F.GF.node; % +F.rho.*(1-F.GF.node).*F.GF.node/F.rhow ; (including the second term makes not difference)
+                            
+
                         else
                             dhdp=-1+zeros(MUA.Nnodes,1); 
                             dbdp=1+zeros(MUA.Nnodes,1); 

@@ -183,7 +183,7 @@ for Iint=1:MUA.nip
         
         t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,1,Inod)+(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdx).*uAdjointint ...
             +rhoint.*F.g.*dhdpint.*fun(Inod).*sa.*uAdjointint;
-        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint-deltaHint.*(Sint-bint)).*dBdpint.*fun(Inod)).*dlxdx;
+        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;

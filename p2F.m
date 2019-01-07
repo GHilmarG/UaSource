@@ -18,12 +18,30 @@ switch  CtrlVar.Inverse.InvertForField
     case 'B'
         
         
-        F.B=p;
+        F.B=p.*F.GF.node ; 
         
-        F.b=F.GF.node.*F.B+(1-F.GF.node).*F.bInit ;
-        F.h=F.s-F.b;
-        %F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+        F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;   % h = s - b 
         
+        bfloat=F.S - F.rho.*F.h /F.rhow;
+        
+        F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
+        F.s=F.b+F.h;
+        
+%         dB/dp = GF.node
+%         dh/dp = -GF.node 
+%         db/dp = GF.node + (1-GF.node) (0 - rho dhdp/rhow)
+%               = GF.node + (1-GF.node) (0 -- rho GF.node/rhow)
+%               = GF.node + (1-GF.node) (+ rho GF.node/rhow)
+%               = GF.node + rho (1-GF.node) GF.node/ rhow
+              
+        
+        
+%         
+%         F.b=F.GF.node .*p + (1-F.GF.node).*F.bInit ;  % only changing b where grounded
+%         F.h=F.s-F.b;
+%         %F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+%         
+        % This call will cause b to change for a shift B
         [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         
         
