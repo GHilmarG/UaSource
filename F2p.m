@@ -48,11 +48,21 @@ elseif contains(lower(CtrlVar.Inverse.InvertFor),'-c-')
     
 end
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+if contains(CtrlVar.Inverse.InvertFor,'-b-')
     
     pb=F.b;
     lbb=F.bmin+zeros(size(pb));
     ubb=F.bmax+zeros(size(pb));
+    
+end
+
+
+
+if contains(CtrlVar.Inverse.InvertFor,'-B-')
+    
+    pb=F.B;
+    lbb=F.Bmin+zeros(size(pb));
+    ubb=F.Bmax+zeros(size(pb));
     
 end
 

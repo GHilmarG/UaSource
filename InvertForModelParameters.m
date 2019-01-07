@@ -20,6 +20,7 @@ end
 F.hInit=F.h;
 F.BInit=F.B; 
 F.bInit=F.b; 
+F.sInit=F.s; 
 
 F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 
@@ -73,7 +74,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
     
-    if CtrlVar.Inverse.InvertForField=="b"  % Must modify
+    if lower(CtrlVar.Inverse.InvertForField)=="b"  % Must modify
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
         %deltaStep=10;
     end

@@ -136,7 +136,7 @@ if CtrlVar.InverseRun
         
     end
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),'Aglen')
         
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
@@ -153,7 +153,7 @@ if CtrlVar.InverseRun
  
     
     if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c","b"])
-        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``AGlen`` and/or ``C`` \n')
+        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``Aglen`` and/or ``C`` \n')
         error('Invalid inputs.')
     end
     
@@ -217,45 +217,14 @@ switch lower(CtrlVar.Inverse.InvertFor)
     case 'logc'
         CtrlVar.Inverse.InvertFor='-logC-';
     case 'logaglen'
-        CtrlVar.Inverse.InvertFor='-logAGlen-';
+        CtrlVar.Inverse.InvertFor='-logAglen-';
     case 'logaglenlogc'
-        CtrlVar.Inverse.InvertFor='-logAGlen-logC-';
+        CtrlVar.Inverse.InvertFor='-logAglen-logC-';
 end
 
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='AbC';
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c') && ~contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='AC';
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='Ab';
-    
-elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c') && ~contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='A';
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='bC';
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c') && ~contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='C';
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField='b';
-    
-elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c') && ~contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
-    
-    CtrlVar.Inverse.InvertForField=[];
-    
-end
+CtrlVar.Inverse.InvertForField=sort(replace(replace(replace(char(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A')) ; 
+
 
 if CtrlVar.InverseRun && isempty(CtrlVar.Inverse.InvertForField)
     

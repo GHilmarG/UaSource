@@ -14,32 +14,37 @@ switch  CtrlVar.Inverse.InvertForField
             F.AGlen=p(1:NA);
         end
         
+        
+    case 'B'
+        
+        
+        F.B=p;
+        
+        F.b=F.GF.node.*F.B+(1-F.GF.node).*F.bInit ;
+        F.h=F.s-F.b;
+        %F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+        
+        [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+        
+        
+        
     case 'b'
         
-        
-        %F.b=F.GFInit.node.*p+(1-F.GFInit.node).*F.bInit ;
-        %F.B=F.GFInit.node.*p+(1-F.GFInit.node).*F.BInit ;
-        
-        %F.b=F.GF.node.*p+(1-F.GF.node).*F.bInit ;
-        %F.B=F.GF.node.*p+(1-F.GF.node).*F.BInit ;
-        
-        bOld=F.b;    
-        BOld=F.B;
-
-        if contains(CtrlVar.Inverse.InvertFor,'-B-')
-            
-            F.b=F.GF.node.*p+(1-F.GF.node).*F.bInit ;
-            
-        else
-            
-            F.b=p;
-            
-        end
-        
-        Ver=3 ;
-        
+        Ver='B' ;
         switch Ver
             
+            case 'B'
+                
+                % [----------- This produces correct results with -B-
+                F.B=p; 
+
+                F.b=F.GF.node.*F.B+(1-F.GF.node).*F.bInit ;
+                F.h=F.s-F.b;
+                %F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+
+                [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+                
+                
             case 1
                 
                 % [----------- This produces almost correct results:
@@ -49,6 +54,7 @@ switch  CtrlVar.Inverse.InvertForField
                 F.B=F.GF.node.*F.b+(1-F.GF.node).*BOld ; 
                 F.s=F.b+F.h;
                 % ------------]
+                
             case 2
 
                 

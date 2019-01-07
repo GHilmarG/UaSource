@@ -4,7 +4,13 @@ classdef PriorProbabilityDistribution
         
         s=[];
         S=[];
+        
         B=[];
+        Bmax=[];
+        Bmin=[];
+        CovB=[];
+        
+        
         rho=[];
         rhow=[];
         m=[];

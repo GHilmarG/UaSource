@@ -374,11 +374,12 @@ if CtrlVar.Inverse.CalcGradI
                         if contains(CtrlVar.Inverse.InvertFor,'-B-')
                             dhdp=-GF.node;
                             dbdp=GF.node;
+                            dBdp=GF.node;
                         else
                             dhdp=-1+zeros(MUA.Nnodes,1); 
                             dbdp=1+zeros(MUA.Nnodes,1); 
                         end
-                        dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp);
+                        dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
 
                 end
             end
@@ -426,7 +427,7 @@ if CtrlVar.Inverse.CalcGradI
         
         case 'A'
             dIdp=dIdAGlen;
-        case 'b'
+        case {'b','B'}
             dIdp=dIdb;
         case 'C'
             dIdp=dIdC;

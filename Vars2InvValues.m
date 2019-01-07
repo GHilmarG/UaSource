@@ -75,7 +75,7 @@ if ~isempty(dJdpTest)
             
             InvValues.dJdAGlenTest=dJdpTest;
             
-        case 'b'
+        case {'b','B'}
             
             InvValues.dJdbTest=dJdpTest;
             

@@ -1,9 +1,9 @@
 function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep)
 
 
+CPUstart=tic;
 
-
-fprintf(' Calculating gradients using brute-force method. \n')
+fprintf(' Calculating gradients using brute-force method...')
 
 
 J0=func(p0);
@@ -56,7 +56,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         
     case 'fourth-order'
         
-        for k=1:numel(iRange)
+        parfor k=1:numel(iRange)
             I=iRange(k);
             
             p1=p0;
@@ -88,7 +88,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         error('CalcBruteForceGradient:CSD','complex step differentiation not possible')
         
         
-        for k=1:numel(iRange)
+        parfor k=1:numel(iRange)
             
             I=iRange(k);
             p1=p0;
@@ -108,6 +108,9 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         error('which case')
 end
 
+
+CPUend=toc(CPUstart); 
+fprintf(' ...done in %f sec.\n',CPUend)
 % %%
 % calculates d kv/ d b using the complex number method
 % using the fact that df/dx=Im(f(x+i dx))/dx

@@ -36,16 +36,24 @@ if  contains(CtrlVar.Inverse.InvertForField,'b')
     F.bmin=Priors.bmin;
     F.bmax=Priors.bmax;
     
-    
-    F.B=F.GF.node.*F.b+(1-F.GF.node).*F.B ;
-    F.h=F.s-F.b;
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-    
-    F.bInit=F.b;
-    F.BInit=F.B;
-    F.GFInit.node=F.GF.node ;
-
 end
+
+if  contains(CtrlVar.Inverse.InvertForField,'B')
+    
+    if isempty(InvStartValues.B)
+        
+        fprintf('InvStartValues.B can not be left empty when inverting for b or B.\n')
+        error('InvStartValues2F:InvStartValues.b')
+        
+    end
+    
+    F.B=InvStartValues.B ;
+    F.Bmin=Priors.Bmin;
+    F.Bmax=Priors.Bmax;
+    
+end
+
+
 
 if  contains(CtrlVar.Inverse.InvertForField,'C')
     
