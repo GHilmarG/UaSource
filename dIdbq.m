@@ -38,13 +38,13 @@ bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-dhdpnod=reshape(dhdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dbdpnod=reshape(dbdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dhdpnod=reshape(dhdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dBdpnod=reshape(dBdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -88,9 +88,7 @@ for Iint=1:MUA.nip
     Bint=Bnod*fun;
     Sint=Snod*fun;
     Hint=Sint-Bint;
-    dhdpint=dhdpnod*fun;
-    dbdpint=dbdpnod*fun;
-    dBdpint=dBdpnod*fun;
+    
     
     
     AGlenInt=AGlennod*fun;
@@ -99,40 +97,48 @@ for Iint=1:MUA.nip
     vAdjointint=vAdjointnod*fun;
     
     hfint=F.rhow*Hint./rhoint;
+
     deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
     HeHint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
     deltaHint=DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);
-    dint = HeHint.*(Sint-bint);  % draft
+    %dint = HeHint.*(Sint-bint);  % draft
+    dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
+    
+         dhdpint=dhdpnod*fun;
+         dbdpint=dbdpnod*fun;
+         dBdpint=dBdpnod*fun;
+    
+    % only correct for B !!  +gera+
+    % dhdpint= -Heint ;
+    % dbdpint= Heint ;
+    % dBdpint=1 ;
     
     
-    dudx=zeros(MUA.Nele,1);     dvdx=zeros(MUA.Nele,1);     dudy=zeros(MUA.Nele,1);     dvdy=zeros(MUA.Nele,1);
     dlxdx=zeros(MUA.Nele,1);    dlydx=zeros(MUA.Nele,1);    dlxdy=zeros(MUA.Nele,1);    dlydy=zeros(MUA.Nele,1);
     dsdx=zeros(MUA.Nele,1);     dsdy=zeros(MUA.Nele,1);
-    dbdx=zeros(MUA.Nele,1);     dbdy=zeros(MUA.Nele,1);
+    %dbdx=zeros(MUA.Nele,1);     dbdy=zeros(MUA.Nele,1);
     dhdx=zeros(MUA.Nele,1);     dhdy=zeros(MUA.Nele,1);
-    drhodx=zeros(MUA.Nele,1);   drhody=zeros(MUA.Nele,1);
     
+    exx=zeros(MUA.Nele,1);
+    eyy=zeros(MUA.Nele,1);
+    exy=zeros(MUA.Nele,1);
+    
+    ddbdpdx=zeros(MUA.Nele,1);
+    ddbdpdy=zeros(MUA.Nele,1);
+    ddhdpdx=zeros(MUA.Nele,1);
+    ddhdpdy=zeros(MUA.Nele,1);
+
     for Inod=1:MUA.nod
         
-        dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
-        dudy=dudy+Deriv(:,2,Inod).*unod(:,Inod);
-        
-        dvdx=dvdx+Deriv(:,1,Inod).*vnod(:,Inod);
-        dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-        
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
-        dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
-        
-        dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
-        dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
-        
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
+        dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-        
-        drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
-        drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
+        exx=exx+Deriv(:,1,Inod).*unod(:,Inod);
+        eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
+        exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
         
         
         dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
@@ -141,19 +147,23 @@ for Iint=1:MUA.nip
         dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
         dlydy=dlydy+Deriv(:,2,Inod).*vAdjointnod(:,Inod);
         
+        ddbdpdx=ddbdpdx+Deriv(:,1,Inod).*dbdpnod(:,Inod);
+        ddbdpdy=ddbdpdy+Deriv(:,2,Inod).*dbdpnod(:,Inod);
+
+        ddhdpdx=ddhdpdx+Deriv(:,1,Inod).*dhdpnod(:,Inod);
+        ddhdpdy=ddhdpdy+Deriv(:,2,Inod).*dhdpnod(:,Inod);
+
     end
     
+    dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
     detJw=detJ*weights(Iint);
     
-    exy=(dudy+dvdx)/2;
-    exx=dudx;
-    eyy=dvdy;
     
     
     
     %
-    %  dh/db= d(s-b)/db = ds/db - db/db = ds/db -1 = 
+    %  dh/db= d(s-b)/db = ds/db - db/db = ds/db -1 =
     %
     % Using: s= (1-rhow/rho) b + rhow S/rho   for h<h_f
     %
@@ -162,46 +172,51 @@ for Iint=1:MUA.nip
     % that will violiate the floating condition.
     %
     % Therfore:  ds/db =  (1-Heint) (1-rhow/rho)
-%     %
-%     % dh/db = (1-Heint) (1-rhow/rho) -1
-%     if contains(lower(CtrlVar.Inverse.InvertFor),'-B-')
-%         % only change B, i.e. dhdb=dhdB*Heing
-%         dhdbint= -Heint;
-%     else
-%         
-%         dhdbint= (1-Heint).*(1-F.rhow./rhoint)-1 ;
-%     end
-%     %    dhdb=-1;
+    %     %
+    %     % dh/db = (1-Heint) (1-rhow/rho) -1
+    %     if contains(lower(CtrlVar.Inverse.InvertFor),'-B-')
+    %         % only change B, i.e. dhdb=dhdB*Heing
+    %         dhdbint= -Heint;
+    %     else
+    %
+    %         dhdbint= (1-Heint).*(1-F.rhow./rhoint)-1 ;
+    %     end
+    %     %    dhdb=-1;
     
     
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
-    etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,dudx,dvdy,exy);
+    etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     
     
     for Inod=1:MUA.nod
         
+        % deltaHint=0;  % makes not differentce
         
-        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,1,Inod)+(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdx).*uAdjointint ...
+        %t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,1,Inod)+(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdx).*uAdjointint ...
+        %    +rhoint.*F.g.*dhdpint.*fun(Inod).*sa.*uAdjointint;
+        
+        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*(ddbdpdx.*fun(Inod)+dbdpint.*Deriv(:,1,Inod)) +(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdx).*uAdjointint ...
             +rhoint.*F.g.*dhdpint.*fun(Inod).*sa.*uAdjointint;
+        
         t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
-        t5=dhdpint.*dtaubxdh.*uAdjointint.*fun(Inod);
+        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
         
         
         Fx=(t1+t2).*detJw;
         Tx=(t3+t4+t5).*detJw;
         
         
-        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*dbdpint.*Deriv(:,2,Inod)+(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*(ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))+(rhoint.*dhdpint.*fun(Inod)+F.rhow*HeHint.*dbdpint.*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         
         
         t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=dhdpint.*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
         
         
         
@@ -226,7 +241,7 @@ for Iint=1:MUA.nip
         for Inod=1:MUA.nod
             
             dbI=-dhdtresint...
-                .*dhdpint.*(dudx.*fun(Inod)+uint.*Deriv(:,1,Inod)+dvdy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
+                .*dhdpint.*(exx.*fun(Inod)+uint.*Deriv(:,1,Inod)+eyy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
                 .*detJw./dhdtErrint/Area ;
             T(:,Inod)=T(:,Inod)+dbI ;
             

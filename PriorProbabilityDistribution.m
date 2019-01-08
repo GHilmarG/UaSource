@@ -57,6 +57,9 @@ classdef PriorProbabilityDistribution
             
             obj.Regularize.b.gs=[];
             obj.Regularize.b.ga=[];
+            
+            obj.Regularize.B.gs=[];
+            obj.Regularize.B.ga=[];
         end
     end
     

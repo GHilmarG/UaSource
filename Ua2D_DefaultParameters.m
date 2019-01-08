@@ -620,6 +620,10 @@ CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
 CtrlVar.Inverse.Regularize.b.gs=1;
 CtrlVar.Inverse.Regularize.b.ga=1;
 
+CtrlVar.Inverse.Regularize.B.gs=1;
+CtrlVar.Inverse.Regularize.B.ga=1;
+
+
 CtrlVar.Inverse.Regularize.C.gs=1; 
 CtrlVar.Inverse.Regularize.C.ga=1;
 CtrlVar.Inverse.Regularize.logC.ga=1;

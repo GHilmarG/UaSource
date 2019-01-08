@@ -1,3 +1,4 @@
+
 classdef InversionValues
     
     properties
@@ -25,6 +26,7 @@ classdef InversionValues
         dJdC=[];
         dJdAGlen=[];
         dJdb=[]; 
+        dJdB=[]; 
         
         dIdp=[];
         dIdC=[];
@@ -40,11 +42,13 @@ classdef InversionValues
         dJdCTest=[];
         dJdAGlenTest=[];
         dJdbTest=[]; 
+        dJdBTest=[]; 
         
         dIdpTest=[];
         dIdCTest=[];
         dIdAGlenTest=[];
         dIdbTest=[]; 
+        dIdBTest=[]; 
     
         
     end

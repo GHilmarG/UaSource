@@ -162,6 +162,31 @@ end
 
 
 
+if contains(CtrlVar.Inverse.InvertFor,'B')
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
+    title('InvFinalValues.B') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.B);
+    title('Bstart') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-InvStartValues.B);
+    title('InvFinalValues.B-Bstart') ; cbar=colorbar; title(cbar, '(m)');
+    hold on
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    
+    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B) ; title('F.s, F.b and F.B')
+end
+
+
 
 
 
@@ -363,11 +388,31 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
             InvFinalValues.dJdb(I)-InvFinalValues.dJdbTest(I),...
             InvFinalValues.dJdb(I)/InvFinalValues.dJdbTest(I))
     end
+    
+    IB=find(~isnan(InvFinalValues.dJdBTest)) ;
+    
+    fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
+    
+    fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest \n')
+    
+    for ii=1:numel(IB)
+        I=IB(ii);
+        fprintf('%i %15g %15g  %15g  %15g \n',I,...
+            InvFinalValues.dJdB(I),...
+            InvFinalValues.dJdBTest(I),...
+            InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I),...
+            InvFinalValues.dJdB(I)/InvFinalValues.dJdBTest(I))
+    end
+    
+    
+    
+    
+    
     fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
     
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
     iRange=find(~isnan(dJdpTest));
-    fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(Ib)-dJdp(Ib))/norm(dJdp(Ib)))
+    fprintf('Norm test: ||dJdpTest-dJdp||/||dJdp||= %g \n ',norm(dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
     
     %%
     
@@ -480,6 +525,42 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     
     
+       
+    if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
+        
+        IFigAGlen=figure('Name','Inversion B','NumberTitle','off');
+        
+        
+        
+        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title('dJdB Adjoint gradient')
+        
+        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdBTest) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title('dJdB Brute force gradient')
+        
+        
+        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB-InvFinalValues.dJdBTest) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title('Difference between adjoint and brute force derivatives')
+        
+        subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB./InvFinalValues.dJdB) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA);
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        title('Ratio between adjoint and brute force derivatives')
+        
+        IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
+        %%
+    end
+    
     
     %%
 else
@@ -499,6 +580,12 @@ else
     if ~isempty(InvFinalValues.dJdb)
         IFigGradientsb=figure('Name','dJdb Gradients','NumberTitle','off');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdb) ; title('dJdb')
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    end
+    
+    if ~isempty(InvFinalValues.dJdB)
+        IFigGradientsb=figure('Name','dJdB Gradients','NumberTitle','off');
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ; title('dJdB')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     

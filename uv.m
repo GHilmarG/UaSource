@@ -24,15 +24,6 @@ if CtrlVar.TestForRealValues
 end
 
 
-dhError=norm(F.s-F.b-F.h)/sqrt(numel(F.s)); 
-
-if dhError>100*eps
-    fprintf('uv: h found to be different from s-b, with mean norm(h-(s-b))=%g .\n',dhError)
-    fprintf('uv: h replaced by h=s-b. \n')
-    F.h=F.s-F.b;
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-end
-
 if any(F.h<0)
     
     indh0=find(F.h<0);

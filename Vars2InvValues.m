@@ -12,12 +12,15 @@ if contains(CtrlVar.Inverse.InvertForField,'A')
     
 end
 
-if contains(CtrlVar.Inverse.InvertForField,'b')
+if contains(lower(CtrlVar.Inverse.InvertForField),'b')
     
     InvValues.b=F.b;
     InvValues.B=F.B;
+
     
 end
+
+
 
 
 if contains(CtrlVar.Inverse.InvertForField,'C')
@@ -49,6 +52,7 @@ InvValues.dRdp=JGHouts.dRdp;
 InvValues.dJdAGlen=JGHouts.MisfitOuts.dIdAGlen+JGHouts.RegOuts.dRdAGlen;
 InvValues.dJdC=JGHouts.MisfitOuts.dIdC+JGHouts.RegOuts.dRdC;
 InvValues.dJdb=JGHouts.MisfitOuts.dIdb+JGHouts.RegOuts.dRdb;
+InvValues.dJdB=JGHouts.MisfitOuts.dIdB+JGHouts.RegOuts.dRdB;
 
 %% These are of less interest, but can be added
 %InvFinalValues.dIdAGlen=JGHouts.MisfitOuts.dIdAGlen;
@@ -75,9 +79,13 @@ if ~isempty(dJdpTest)
             
             InvValues.dJdAGlenTest=dJdpTest;
             
-        case {'b','B'}
+        case 'b'
             
             InvValues.dJdbTest=dJdpTest;
+            
+        case 'B'
+            
+            InvValues.dJdBTest=dJdpTest;
             
         case 'C'
             

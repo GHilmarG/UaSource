@@ -8,6 +8,8 @@ fprintf(' Calculating gradients using brute-force method...')
 
 J0=func(p0);
 
+deltaStep=deltaStep+p0*0; % force to be a vector
+
 % Testing gradient using brute force method
 
 % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*norm(p0);
@@ -23,9 +25,9 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
-            p1(I)=p1(I)+deltaStep;
+            p1(I)=p1(I)+deltastep(I);
             J1=func(p1);
-            dJtemp(k)=(J1-J0)/deltaStep;
+            dJtemp(k)=(J1-J0)/deltastep(I);
             
         end
         
@@ -40,13 +42,13 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             I=iRange(k);
             p1=p0;
             pm1=p0;
-            p1(I)=p1(I)+deltaStep;
+            p1(I)=p1(I)+deltastep(I);
             J1=func(p1);
             
-            pm1(I)=pm1(I)-deltaStep;
+            pm1(I)=pm1(I)-deltastep(I);
             Jm1=func(pm1);
             
-            dJtemp(k)=(J1-Jm1)/deltaStep/2;
+            dJtemp(k)=(J1-Jm1)/deltastep(I)/2;
         end
         
         for k=1:numel(iRange)
@@ -63,17 +65,18 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             pm1=p0;
             p2=p0;
             pm2=p0;
-            p1(I)=p1(I)+deltaStep;
-            p2(I)=p2(I)+2*deltaStep;
-            pm1(I)=pm1(I)-deltaStep;
-            pm2(I)=pm2(I)-2*deltaStep;
+            p1(I)=p1(I)+deltaStep(I);
+            p2(I)=p2(I)+2*deltaStep(I);
+            pm1(I)=pm1(I)-deltaStep(I);
+            pm2(I)=pm2(I)-2*deltaStep(I);
             
             J1=func(p1);
             J2=func(p2);
             Jm1=func(pm1);
             Jm2=func(pm2);
             
-            dJtemp(k)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep;
+            dJtemp(k)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep(I);
+            %dJ(I)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep(I);  % not allowed in parfor
         end
         
         for k=1:numel(iRange)
@@ -92,9 +95,9 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             
             I=iRange(k);
             p1=p0;
-            p1(I)=p1(I)+1i*deltaStep;
+            p1(I)=p1(I)+1i*deltastep(I);
             J1=func(p1);
-            dJtemp(k)=imag(J1)/deltaStep;
+            dJtemp(k)=imag(J1)/deltastep(I);
             
         end
         
