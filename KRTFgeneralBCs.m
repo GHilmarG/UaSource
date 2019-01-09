@@ -127,6 +127,7 @@ Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 ca=cos(F.alpha); sa=sin(F.alpha);
 
@@ -216,7 +217,8 @@ for Iint=1:MUA.nip
     rhoint=rhonod*fun;
     dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
 
-    hfint=F.rhow*Hint./rhoint;
+    hfint=hfnod*fun;
+    %hfint=F.rhow*Hint./rhoint;
     
 
     deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
@@ -345,7 +347,7 @@ for Iint=1:MUA.nip
         end
         
         t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
 
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
@@ -354,7 +356,7 @@ for Iint=1:MUA.nip
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
         
-        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
         t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
         
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);

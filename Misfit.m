@@ -247,6 +247,7 @@ if CtrlVar.Inverse.CalcGradI
             %       [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
             %
             %
+            % [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
             %% Step 2:  Solve adjoint equation, i.e.   dfuv l = -dJduv
             % fprintf(' Solve ajoint problem \n ')
             % I need to impose boundary conditions on lx and ly
@@ -392,7 +393,7 @@ if CtrlVar.Inverse.CalcGradI
                             %  p= B ; 
                             
                             dBdp=  1+zeros(MUA.Nnodes,1); 
-                            dbdp=  F.GF.node; 
+                            dbdp=  F.GF.node - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow; 
                             dhdp= -F.GF.node; 
                             
                             dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
@@ -401,9 +402,8 @@ if CtrlVar.Inverse.CalcGradI
                             
                             dBdp= F.GF.node;
                             dhdp= -1+zeros(MUA.Nnodes,1);
-                      
-                            
                             dbdp= F.GF.node + (1-F.GF.node).*F.rho/F.rhow ; 
+                         
                             
                             
                             dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);

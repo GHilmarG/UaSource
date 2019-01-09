@@ -36,7 +36,7 @@ end
 
 
 % Step 1:
-if nargin==7
+if nargin<=8
     hf=rhow*(S-B)./rho ;
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
 end

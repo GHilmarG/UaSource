@@ -20,22 +20,19 @@ switch  CtrlVar.Inverse.InvertForField
         % tested and works
         % express geometrical variables in terms of p
         
-        %F.B=p.*F.GF.node+(1-F.GF.node).*F.BInit;
-        
         F.B=p ; 
         F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;   % h = s - b
-        
-        %F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
-        %F.h= F.h.*(1-F.GF.node)  + F.GF.node.* (F.s - p)  ;   % h = s - b
-        
-        
-        
+
         %         bfloat=F.S - F.rho.*F.h /F.rhow;
 %         
 %         F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
-%         F.s=F.b+F.h;  % s should in principle not have changed
-        
-        % norm(F.s-F.sInit)
+%            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*F.h /F.rhow) 
+%            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*(F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p))  ;  
+          F.b=F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*( F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)   )./F.rhow);
+          
+          % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
+          % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
+          % db/dp = GF + (1-GF) rho GF/rhow
         
         %         dB/dp = 1
         %         dh/dp = -GF.node
