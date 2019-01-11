@@ -689,7 +689,7 @@ fprintf(CtrlVar.fidlog,' Wall-clock time : %s (hh:mm:ss) \n',RunInfo.CPU.WallTim
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
-fclose(RunInfo.File.fid);
+
 
 SayGoodbye(CtrlVar)
 
