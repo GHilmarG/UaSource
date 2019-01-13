@@ -157,7 +157,7 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 I=full(dhdtres'*MUA.M*dhdtres)/2/Area;
                 
                 
-                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr,dhdp);
+                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr);
                 dIhdu=dIhduv(1:MUA.Nnodes)/Area;
                 dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
                 dIduv=[dIhdu(:);dIhdv(:)];
@@ -168,12 +168,13 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 dIdv=(MUA.M*vsres)./vErr/Area;
                 %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
                 
-                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr,dhdp);
+                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr);
                 dIhdu=dIhduv(1:MUA.Nnodes)/Area;
                 dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
                 
                 I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres+dhdtres'*MUA.M*dhdtres)/2/Area;
                 dIduv=[dIdu(:)+dIhdu(:);dIdv(:)+dIhdv(:)];
+                
             otherwise
                 
                 fprintf('The case %s for the variable CtrlVar.Inverse.Measurements not recognized.\n',CtrlVar.Inverse.Measurements)
@@ -199,7 +200,7 @@ MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
 
-%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C).
+%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C or B).
 %
 % This is a bit tricky because I=I(u(p))
 %

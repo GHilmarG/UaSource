@@ -521,15 +521,15 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % Note #1: Some parameter combinations can be inconsistent. For example inverting
 % for A only and applying regularization on A and C, i.e.
 %
-%   CtrlVar.Inverse.InvertFor='-logAGlen-' ;
-%   CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-'
+%   CtrlVar.Inverse.InvertFor='-logA-' ;
+%   CtrlVar.Inverse.Regularize.Field='-logA-logC-'
 %
 % is considered inconsistent (although in principle possible.) Also using the
 % `FixPoint' gradient calculation, which only works for C inversion, and
 % inverting for both A and C, i.e. 
 %
 %   CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
-%   CtrlVar.Inverse.InvertFor='-logAGlen-logC-' ; % {'-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+%   CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-AGlen-','-logA-','-logA-logC-'}
 %
 % is inconsistent. Ua tries to spot these input parameter mistakes and correct
 % for them, but it is better to try to keep all inputs consistent.
@@ -537,13 +537,13 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % Note #2: It is possible to invert for any combination of log(A) or A  and log(C)
 % or C. So for example one can invert for log(A) and C by setting 
 %
-%   CtrlVar.Inverse.InvertFor='-logAGlen-C-' ;
+%   CtrlVar.Inverse.InvertFor='-logA-C-' ;
 %
 % Also one can invert for log(C) and log(A) and regularize A and C by setting
 %
 %
-%   CtrlVar.Inverse.InvertFor='-logAGlen-logC-' ;
-%   CtrlVar.Inverse.Regularize.Field='-AGlen-C-'
+%   CtrlVar.Inverse.InvertFor='-logA-logC-' ;
+%   CtrlVar.Inverse.Regularize.Field='-A-C-'
 %
 %
 % To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:
@@ -567,13 +567,17 @@ CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
-    
-CtrlVar.Inverse.Measurements='-uv-' ;   % {'-uv-,'-uv-dhdt-','-dhdt-'}
-
+%    
+% Inversion can be done using mesurements of:
+% 
+% * horizontal velocites (uv)
+% * rate of thickness change (dh/dt).
+% 
+CtrlVar.Inverse.Measurements='-uv-' ;  % {'-uv-,'-uv-dhdt-','-dhdt-'}
 
 % It is usually better to invert for log(A) and log(C) rather than A and C.
 % The default is to invert for log(A) and log(C) simultaneously.
-CtrlVar.Inverse.InvertFor='-logAGlen-logC-' ; % {'-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 
 % The gradient of the objective function is calculated using the adjoint method.
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
@@ -599,11 +603,11 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 %
 %   CtrlVar.Inverse.Regularize.Field 
 %
-% to either '-C-','-logC-','-AGlen-','-logAGlen-',or '-logAGlen-logC-'
+% to either '-C-','-logC-','-AGlen-','-logA-',or '-logA-logC-'
 %
 % Default is Tikhonov regularization on log(A) and log(C)
 %
-CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+CtrlVar.Inverse.Regularize.Field='-logA-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 
 % [ -- Parameters specific to Tikhonov regularization. See the above definition
@@ -1534,6 +1538,8 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
+CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.isTest=false;
 
 

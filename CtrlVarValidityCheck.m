@@ -209,28 +209,34 @@ if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
     
 end
 
-switch lower(CtrlVar.Inverse.InvertFor)
-    case 'c'
-        CtrlVar.Inverse.InvertFor='-C-';
-    case 'aglen'
-        CtrlVar.Inverse.InvertFor='-Aglen-';
-    case 'logc'
-        CtrlVar.Inverse.InvertFor='-logC-';
-    case 'logaglen'
-        CtrlVar.Inverse.InvertFor='-logAglen-';
-    case 'logaglenlogc'
-        CtrlVar.Inverse.InvertFor='-logAglen-logC-';
-end
-
-
-CtrlVar.Inverse.InvertForField=sort(replace(replace(replace(char(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A')) ; 
-
-
-if CtrlVar.InverseRun && isempty(CtrlVar.Inverse.InvertForField)
+if CtrlVar.InverseRun
     
-    fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
-    fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
-    error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
+    switch lower(CtrlVar.Inverse.InvertFor)
+        case 'c'
+            CtrlVar.Inverse.InvertFor='-C-';
+        case {'aglen','-a-'}
+            CtrlVar.Inverse.InvertFor='-AGlen-';
+        case {'logc','-logc-'}
+            CtrlVar.Inverse.InvertFor='-logC-';
+        case {'logaglen','-loga-','-logaglen-'}
+            CtrlVar.Inverse.InvertFor='-logAGlen-';
+        case {'logaglenlogc','-loga-logc-','-logc-loga-','logclogaglen','-logaglen-logc-','-logc-logaglen-'}
+            CtrlVar.Inverse.InvertFor='-logAGlen-logC-';
+        otherwise
+            fprintf('The variable CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+            fprintf('             CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+            error(' CtrlVar invalied ')
+    end
+    
+    CtrlVar.Inverse.InvertForField=sort(replace(replace(replace(char(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A')) ;
+
+    if isempty(CtrlVar.Inverse.InvertForField)
+        
+        fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+        fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+        error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
+        
+    end
     
 end
 

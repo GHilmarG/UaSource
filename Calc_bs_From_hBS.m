@@ -30,7 +30,7 @@ end
 if CtrlVar.ResetThicknessToMinThickness
     
     h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-    %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
+    fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
 %    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
 end
 

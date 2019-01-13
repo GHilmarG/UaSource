@@ -14,6 +14,7 @@ if CtrlVar.doInverseStep
     end
     
     fprintf('\tCtrlVar.Inverse.InvertFor=''%s''\n',CtrlVar.Inverse.InvertFor)
+    fprintf('\tCtrlVar.Inverse.Measurements=''%s''\n',CtrlVar.Inverse.Measurements)
     fprintf('\tCtrlVar.Inverse.Regularize.Field=''%s''\n',CtrlVar.Inverse.Regularize.Field)
     fprintf('\tCtrlVar.Inverse.DataMisfit.GradientCalculation=''%s''\n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
     

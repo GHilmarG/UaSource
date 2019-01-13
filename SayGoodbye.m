@@ -1,4 +1,4 @@
-function SayGoodbye(CtrlVar)
+function SayGoodbye(CtrlVar,RunInfo)
 
 fclose(RunInfo.File.fid);
 

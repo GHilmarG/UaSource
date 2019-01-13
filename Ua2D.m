@@ -256,7 +256,7 @@ if CtrlVar.doInverseStep   % -inverse
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
     UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
-    SayGoodbye(CtrlVar);
+    SayGoodbye(CtrlVar,RunInfo);
     return  % This is the end of the (inverse) run
     
 end
@@ -691,7 +691,7 @@ if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
 
 
-SayGoodbye(CtrlVar)
+SayGoodbye(CtrlVar,RunInfo)
 
 
 end

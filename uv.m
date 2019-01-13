@@ -83,7 +83,7 @@ switch lower(CtrlVar.FlowApproximation)
     case 'ssheet'
         
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' start SSHEET diagnostic. \n') ;  end
-        [F.b,F.s,F.h]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+        [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
         
         [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
         l.ubvb=[] ; Kuv=[] ; Ruv=[];

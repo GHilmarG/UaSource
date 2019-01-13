@@ -315,7 +315,15 @@ end
 figure
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
-QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated velocities') ;
+QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated horizontal velocities') ;
+hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+
+[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F); 
+figure
+PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
+hold on
+PlotMeshScalarVariable(CtrlVar,MUA,dhdt)
+title('Calculated dhdt (assuming plug flow)') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 %%  % Difference in speed
