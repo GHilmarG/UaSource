@@ -12,6 +12,7 @@ neqx=MUA.Nnodes ;
 
 dhdtresnod=reshape(dhdtres(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
@@ -39,6 +40,7 @@ for Iint=1:MUA.nip
     
     dhdtresint=dhdtresnod*fun;
     dhdtErrint=dhdtErrnod*fun;
+   
     hint=hnod*fun;
     
     dhdx=zeros(MUA.Nele,1);

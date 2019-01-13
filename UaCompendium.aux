@@ -44,42 +44,43 @@
 \@writefile{toc}{\contentsline {section}{\numberline {1.6}Ocean drag term}{7}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.7}Flow law}{8}}
 \newlabel{eq:GlenTau}{{1.18}{8}}
+\newlabel{eq:etaint3}{{1.21}{8}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.8}Floating relationships}{8}}
-\newlabel{eq:float}{{1.21}{8}}
-\newlabel{eq:hs1}{{1.22}{8}}
-\newlabel{eq:bh1}{{1.23}{8}}
-\newlabel{eq:sb2}{{1.24}{8}}
-\newlabel{eq:resi}{{1.26}{8}}
+\newlabel{eq:float}{{1.22}{8}}
+\newlabel{eq:hs1}{{1.23}{8}}
+\newlabel{eq:bh1}{{1.24}{8}}
+\newlabel{eq:sb2}{{1.25}{8}}
+\newlabel{eq:resi}{{1.27}{8}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.9}Expressing geometrical variables in terms of ice thickness}{9}}
-\newlabel{eq:sh}{{1.27}{9}}
-\newlabel{eq:bh}{{1.28}{9}}
-\newlabel{eq:dp}{{1.29}{9}}
-\newlabel{eq:dp2}{{1.30}{9}}
-\newlabel{eq:dp3}{{1.31}{9}}
+\newlabel{eq:sh}{{1.28}{9}}
+\newlabel{eq:bh}{{1.29}{9}}
+\newlabel{eq:dp}{{1.31}{9}}
+\newlabel{eq:dp2}{{1.32}{9}}
+\newlabel{eq:dp3}{{1.33}{9}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.10}Stress boundary conditions at an ice front}{9}}
 \newlabel{sec:bccalving}{{1.10}{9}}
-\newlabel{eq:bc1x}{{1.32}{9}}
-\newlabel{eq:bc1y}{{1.33}{9}}
-\newlabel{eq:bcgfx}{{1.34}{10}}
-\newlabel{eq:bcgfy}{{1.35}{10}}
-\newlabel{eq:BCCF}{{1.36}{10}}
+\newlabel{eq:bc1x}{{1.37}{10}}
+\newlabel{eq:bc1y}{{1.38}{10}}
+\newlabel{eq:bcgfx}{{1.39}{10}}
+\newlabel{eq:bcgfy}{{1.40}{10}}
+\newlabel{eq:BCCF}{{1.41}{10}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.10.1}Floating}{10}}
-\newlabel{eq:bgfxfloat}{{1.37}{10}}
-\newlabel{eq:bgfyfloat}{{1.38}{10}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.10.2}Grounded}{10}}
-\newlabel{eq:bcgfxgrounded}{{1.41}{10}}
-\newlabel{eq:bcgfygrounded}{{1.42}{10}}
-\@writefile{toc}{\contentsline {section}{\numberline {1.11}Boundary condition at a glacier terminus as a natural boundary condition}{10}}
-\newlabel{eq:stressx2}{{1.43}{11}}
-\newlabel{eq:stressy2}{{1.44}{11}}
-\newlabel{eq:gencase}{{1.45}{11}}
-\newlabel{eq:stressx3}{{1.46}{11}}
-\newlabel{eq:stressy3}{{1.47}{11}}
-\newlabel{eq:vel3x}{{1.48}{12}}
-\newlabel{eq:vel3y}{{1.49}{12}}
+\newlabel{eq:bgfxfloat}{{1.42}{10}}
+\newlabel{eq:bgfyfloat}{{1.43}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.10.2}Grounded}{11}}
+\newlabel{eq:bcgfxgrounded}{{1.46}{11}}
+\newlabel{eq:bcgfygrounded}{{1.47}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {1.11}Boundary condition at a glacier terminus as a natural boundary condition}{11}}
+\newlabel{eq:stressx2}{{1.48}{11}}
+\newlabel{eq:stressy2}{{1.49}{11}}
+\newlabel{eq:gencase}{{1.50}{11}}
+\newlabel{eq:stressx3}{{1.51}{12}}
+\newlabel{eq:stressy3}{{1.52}{12}}
+\newlabel{eq:vel3x}{{1.53}{12}}
+\newlabel{eq:vel3y}{{1.54}{12}}
 \@writefile{toc}{\contentsline {section}{\numberline {1.12}SSTREAM in 1HD}{12}}
-\newlabel{eq:SSTREAM1D}{{1.50}{12}}
-\newlabel{eq:SSTREAM1d3}{{1.51}{12}}
+\newlabel{eq:SSTREAM1D}{{1.55}{12}}
+\newlabel{eq:SSTREAM1d3}{{1.56}{12}}
 \@writefile{toc}{\contentsline {chapter}{\numberline {2}Finite-element implementation}{13}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
@@ -181,17 +182,21 @@
 \@writefile{toc}{\contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{44}}
 \newlabel{sec:gradev}{{5.5}{44}}
 \newlabel{eq:I1}{{5.15}{44}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.6}Gradients of objective functions with respect to model parameters}{46}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Gradient calculation in 1HD with respect to $C$}{46}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}Gradient calculation in 1HD with respect to $A$}{47}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Gradients of objective functions with respect to field variables}{46}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Gradients of objective functions with respect to control variables}{46}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Gradient calculation in 1HD with respect to $C$}{46}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Gradient calculation in 1HD with respect to $A$}{47}}
 \newlabel{eq:dder2}{{5.16}{47}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.7}Inverting for $\qopname  \relax o{log}p$}{47}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.8}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{48}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.9}Adjoint equations (Bayesian case with constraints on vertical velocity)}{48}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.10}Prognostic equations are formally self-adjoint}{49}}
-\newlabel{eq:A1x}{{5.17}{49}}
-\newlabel{eq:A1y}{{5.18}{49}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.11}Covariance kernels}{51}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Gradient calculation in 1HD with respect to $b$}{47}}
+\newlabel{eq:dder2}{{5.17}{47}}
+\newlabel{eq:SSTREAM1d6}{{5.18}{47}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.8}Inverting for $\qopname  \relax o{log}p$}{48}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.9}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{49}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.10}Adjoint equations (Bayesian case with constraints on vertical velocity)}{49}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.11}Prognostic equations are formally self-adjoint}{50}}
+\newlabel{eq:A1x}{{5.19}{50}}
+\newlabel{eq:A1y}{{5.20}{50}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.12}Covariance kernels}{52}}
 \@writefile{toc}{\contentsline {chapter}{\numberline {6}Further technical implementation details}{53}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
@@ -558,3 +563,13 @@
 \newlabel{eq:Mnablaf}{{C.2}{136}}
 \bibstyle{apalike}
 \bibdata{glacier}
+\bibcite{Baral:1999}{{1}{1999}{{Baral}}{{}}}
+\bibcite{Glen1955}{{2}{1955}{{Glen}}{{}}}
+\bibcite{Goldsby&Kohlstedt:2001}{{3}{2001}{{Goldsby and Kohlstedt}}{{}}}
+\bibcite{MAcAyeal1989}{{4}{1989}{{MacAyeal}}{{}}}
+\bibcite{Morland:1984}{{5}{1984}{{Morland}}{{}}}
+\bibcite{MuszynskiBrichfield:1987}{{6}{1987}{{Muszynski and Birchfield}}{{}}}
+\bibcite{Schoof:2006a}{{7}{2006}{{Schoof}}{{}}}
+\bibcite{Steinemann:1954}{{8}{1954}{{Steinemann}}{{}}}
+\bibcite{Steinemann1958a}{{9}{1958a}{{Steinemann}}{{}}}
+\bibcite{Steinemann1958b}{{10}{1958b}{{Steinemann}}{{}}}

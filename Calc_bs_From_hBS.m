@@ -1,19 +1,21 @@
-function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
+function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow,GF)
 
 nargoutchk(4,4)
-narginchk(7,7)
+narginchk(7,8)
 
 if ~ isstruct(CtrlVar)
    error('Calc_bs_From_hBSL:InputError','Incorrect inputs.')
 end
 
 %% Calculates b, s, and h, consistent with the floating condition.
-% [b,s,h,GF]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar)
-% calculates b and s from h, S and B and the densities rho and rhow
+% 
+%    [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
+%
 %
 % Note: h is only modified if on input h is smaller than CtrlVar.ThickMin,
 %       and CtrlVar.ResetThicknessToMinThickness is true.
 %
+%   MUA is only needed for plotting purposes, can be left empty.
 %
 % Step 1: where grounded, b is set equal to B
 %         where afloat,   b is calculated from h, rhow and rhow, using the
@@ -28,15 +30,16 @@ end
 if CtrlVar.ResetThicknessToMinThickness
     
     h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-    %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
-    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+    fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
+%    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
 end
 
 
-% Step 1:  
-hf=rhow*(S-B)./rho ;
-
-GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+% Step 1:
+if nargin<=8
+    hf=rhow*(S-B)./rho ;
+    GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
+end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
@@ -51,7 +54,7 @@ I=b<B ;
 
 if any(I)
     
-    if CtrlVar.Report_if_b_less_than_B
+    if CtrlVar.Report_if_b_less_than_B  && ~isempty(MUA)
         fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
         
         if CtrlVar.doplots==1

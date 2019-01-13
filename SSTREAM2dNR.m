@@ -116,6 +116,11 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     %
     
     
+    if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+        CtrlVar.TestForRealValues=false;
+    end
+    
+    
     if CtrlVar.TestForRealValues
         if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
         if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end

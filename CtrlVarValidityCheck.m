@@ -55,7 +55,14 @@ if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and dia
     CtrlVar.doDiagnostic=0  ;
     CtrlVar.doPrognostic=0 ;
     CtrlVar.AdaptMesh=0;
+    CtrlVar.MUA.MassMatrix=true;
+    CtrlVar.MUA.StiffnessMatrix=true;
 end
+
+
+
+
+
 
 if CtrlVar.doplots==0 ; CtrlVar.PlotMesh=0; end
 
@@ -129,7 +136,7 @@ if CtrlVar.InverseRun
         
     end
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),'Aglen')
         
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
@@ -145,8 +152,8 @@ if CtrlVar.InverseRun
     
  
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c"])
-        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``AGlen`` and/or ``C`` \n')
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c","b"])
+        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``Aglen`` and/or ``C`` \n')
         error('Invalid inputs.')
     end
     
@@ -201,6 +208,43 @@ if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     
 end
+
+if CtrlVar.InverseRun
+    
+    switch lower(CtrlVar.Inverse.InvertFor)
+        case 'c'
+            CtrlVar.Inverse.InvertFor='-C-';
+        case {'aglen','-a-'}
+            CtrlVar.Inverse.InvertFor='-AGlen-';
+        case {'logc','-logc-'}
+            CtrlVar.Inverse.InvertFor='-logC-';
+        case {'logaglen','-loga-','-logaglen-'}
+            CtrlVar.Inverse.InvertFor='-logAGlen-';
+        case {'logaglenlogc','-loga-logc-','-logc-loga-','logclogaglen','-logaglen-logc-','-logc-logaglen-'}
+            CtrlVar.Inverse.InvertFor='-logAGlen-logC-';
+        otherwise
+            fprintf('The variable CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+            fprintf('             CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+            error(' CtrlVar invalied ')
+    end
+    
+    CtrlVar.Inverse.InvertForField=sort(replace(replace(replace(char(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A')) ;
+
+    if isempty(CtrlVar.Inverse.InvertForField)
+        
+        fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+        fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+        error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
+        
+    end
+    
+end
+
+
+
+
+
+
 
 
 

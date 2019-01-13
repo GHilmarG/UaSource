@@ -11,9 +11,9 @@ RegOuts=[];
 
 
 %%
-% I start by defining dpX, gsX and gaX, where X is either C or A and  
+% I start by defining dpX, gsX and gaX, where X is either C or A and
 %  dpX=X-X_{Prior}
-%  gsX and gaX are the slope and amplitude regularization pre-factors 
+%  gsX and gaX are the slope and amplitude regularization pre-factors
 %
 
 % C
@@ -27,11 +27,11 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'c')
         pPriorCovC=Priors.CovC;
         gsC=CtrlVar.Inverse.Regularize.logC.gs;
         gaC=CtrlVar.Inverse.Regularize.logC.ga;
-            
+        
         if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
             dCfactor=1;
         else
-            dCfactor=1./F.C/log(10); % d (dpC)/dC= 1/(log(10) C)    
+            dCfactor=1./F.C/log(10); % d (dpC)/dC= 1/(log(10) C)
         end
         
     else
@@ -98,6 +98,51 @@ else
     
 end
 
+% b
+if contains(CtrlVar.Inverse.InvertFor,'-b-')
+    
+    isb=1;
+    dpb=F.b-Priors.b;
+    pPriorCovb=Priors.Covb;
+    gsb=CtrlVar.Inverse.Regularize.b.gs;
+    gab=CtrlVar.Inverse.Regularize.b.ga;
+    dbfactor=1;
+    
+else
+    
+    isb=0;
+    dpb=0;
+    dbfactor=0;
+    pPriorCovb=1;
+    gsb=0;
+    gab=0;
+    
+end
+
+
+% b
+if contains(CtrlVar.Inverse.InvertFor,'-B-')
+    
+    isB=1;
+    dpB=F.B-Priors.B;
+    pPriorCovB=Priors.CovB;
+    gsB=CtrlVar.Inverse.Regularize.B.gs;
+    gaB=CtrlVar.Inverse.Regularize.B.ga;
+    dBfactor=1;
+    
+else
+    
+    isB=0;
+    dpB=0;
+    dBfactor=0;
+    pPriorCovB=1;
+    gsB=0;
+    gaB=0;
+    
+end
+
+
+
 if ~(CtrlVar.AGlenisElementBased   &&  CtrlVar.CisElementBased)
     if ~isfield(MUA,'M')
         M=MassMatrix2D1dof(MUA);
@@ -148,14 +193,43 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         
     end
     
+    if isb
+        npb=numel(dpb);
+        temp=pPriorCovb\dpb;
+        Rb=dpb'*temp/(2*npb)   ;
+        dRdb=temp/npb;
+        %ddRdd=inv(Priors.CovC)/2/N;
+        ddRCddpb=[];
+    else
+        Rb=0;
+        dRdb=[];
+        
+    end
     
-    R=RAGlen+RC;
-    dRdp=[dRdAGlen;dRdC];
+    
+    if isB
+        npB=numel(dpB);
+        temp=pPriorCovB\dpB;
+        RB=dpB'*temp/(2*npB)   ;
+        dRdB=temp/npB;
+        %ddRdd=inv(Priors.CovC)/2/N;
+        ddRCddpB=[];
+    else
+        RB=0;
+        dRdB=[];
+        
+    end
+    
+    
+    
+    
+    R=RAGlen+Rb+RC;
+    dRdp=[dRdAGlen;dRdb;dRdC];
     
     
     
 else  % Tikhonov regularization
-
+    
     
     
     if isA
@@ -198,8 +272,34 @@ else  % Tikhonov regularization
         dRdC=[];
     end
     
-    R=RAGlen+RC;
-    dRdp=[dRdAGlen;dRdC];
+    
+    if isb   %  b
+        
+        Nb=(gsb.^2.*(Dxx+Dyy)+gab.^2.*M)/Area;
+        Rb=dpb'*Nb*dpb/2;
+        dRdb=(Nb*dpb).*dbfactor;
+        
+    else
+        Rb=0;
+        dRdb=[];
+    end
+    
+    
+    
+    if isB   %  B
+        
+        NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+        RB=dpB'*NB*dpB/2;
+        dRdB=(NB*dpB).*dBfactor;
+        
+    else
+        RB=0;
+        dRdB=[];
+    end
+    
+    
+    R=RAGlen+Rb+RB+RC;
+    dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
     ddRddp=[];
     
     
@@ -214,12 +314,18 @@ ddRddp=CtrlVar.Inverse.Regularize.Multiplier*ddRddp;
 RegOuts.R=R;
 RegOuts.dRdp=dRdp;
 RegOuts.ddRddp=ddRddp;
-RegOuts.RC=RC;
+
+
 RegOuts.RAGlen=RAGlen;
-RegOuts.dRdC=dRdC;
 RegOuts.dRdAGlen=dRdAGlen;
 
+RegOuts.RC=RC;
+RegOuts.dRdC=dRdC;
 
+RegOuts.Rb=Rb;
+RegOuts.dRdb=dRdb;
 
+RegOuts.RB=RB;
+RegOuts.dRdB=dRdB;
 
 

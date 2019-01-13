@@ -231,7 +231,7 @@ if CtrlVar.doInverseStep   % -inverse
         
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
     [UserVar,F,l,InvFinalValues,RunInfo]=...
-        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+        InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
@@ -256,7 +256,7 @@ if CtrlVar.doInverseStep   % -inverse
     fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
     UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
-    SayGoodbye(CtrlVar);
+    SayGoodbye(CtrlVar,RunInfo);
     return  % This is the end of the (inverse) run
     
 end
@@ -689,9 +689,9 @@ fprintf(CtrlVar.fidlog,' Wall-clock time : %s (hh:mm:ss) \n',RunInfo.CPU.WallTim
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
-fclose(RunInfo.File.fid);
 
-SayGoodbye(CtrlVar)
+
+SayGoodbye(CtrlVar,RunInfo)
 
 
 end

@@ -173,7 +173,8 @@ where $\He$ is the Heaviside function, defined as
 \]
 
 
-The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat), is needed frequently and we define $\G$ as
+The function $\He(h-h_f)$ (equal to one if grounded, zero if afloat),
+is needed frequently and we define $\G$ as
 \[
 \G=\He(h-h_f)
 \]
@@ -514,8 +515,10 @@ or as
 \bm{t}_b  = \G \bm{f}(\bm{v}_b)\\
 \]
 where
-$\G$ is the grounding parameter defined by Eq.~(\ref{eq:Gdef})
-
+$\G$ is the grounding mask defined as
+ \[
+\G:=\He(h-h_f)
+\]
 
 Different formulations are
 \begin{align}
@@ -709,9 +712,10 @@ then $\eta$ is the effective viscosity given by
 \eta=\frac{1}{2} A^{-1/n} \,\dot{\epsilon}^{(1-n)/n} 
 \]
 or
-\[ 
+\begin{equation}
 \eta= \frac{1}{2} A^{-1/n} \, ((\p_{x} u)^2 + (\p_{y} v)^2 + \p_{x} u \,\p_{y} v + (\p_{x} v + \p_{y} u)^2/4)^{(1-n)/2n}
-\]
+  \label{eq:etaint3}
+\end{equation}
 
 \section{Floating relationships}
 Where the ice is afloat, we have
@@ -743,14 +747,16 @@ and also
 
 At the grounding line we have:
 \begin{align*}
-h&=h_f\\
+h&=h_f\,\
 d&=H.\\
 \end{align*}
-where $h_f$ is defined by (\ref{eq:float})
+where $h_f$ is defined by (\ref{eq:float}).
+
+
 \section{Expressing geometrical variables in terms of ice thickness}
 
 It is advantageous to be able to express geometrical variables such as $s$, $b$, and $d$ in terms of ice
-thickness $h$.  
+thickness $h$.
 
 It is easy to see that
 \begin{align}
@@ -758,10 +764,11 @@ s&= \He(h-h_f) \; (h+ B) + \He(h_f-h) \; (S+(1-\rho/\rho_o)\; h ) ,\label{eq:sh}
 b&=\He(h-h_f) \; B + \He(h_f-h) \; (S-\rho h/\rho_o), \label{eq:bh}
 \end{align}
 and that
-\begin{equation}
-d= \He(H) \, [ \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H ] ,
+\begin{align}
+  d  :=&\He(H) (S-b)  \\
+     =&\He(H) \, [ \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H ] ,
 \label{eq:dp}
-\end{equation}
+\end{align}
 i.e.\ 
 \[
 d=\begin{cases} 
@@ -778,7 +785,7 @@ hand if $H<0$ then $\He(H)=0$ but so is $\He(h_f-h)$ because if $H=S-B<0$ then
 $h_f=\frac{\rho_o}{\rho}(S-B) < 0$ and since $h$ is always positive we have
 $\He(h_f-h)=0$, i.e.\
 \[
-\He(H) \He(h_f-h)=\He(h_f-h)
+\He(H) \He(h_f-h)=\He(h_f-h),
 \]
 and $d$ can be therefore be written as
 \begin{equation}
@@ -792,11 +799,25 @@ d=  \He(h_f-h) \rho h/\rho_o + \He(h-h_f) H^{+} .
 \end{equation}
 using
 \[
-H^{+}:= \He(H) \, H
+H^{+}:= \He(H) \, H. 
 \]
 
 
-
+If we think of $S$, $B$, and $h$ as independent variables, $s$ and $b$ are given by
+\begin{align}
+  s & = \G (B+h) + (1-\G) \left ((1-\rho_o/\rho) b +\rho_o S/\rho \right ),\\
+    & = \G (B+h) + (1-\G) \left (b+ \frac{\rho_o}{\rho} (S-b) \right ),\\
+  b & = \G B + (1-\G) ( S - \rho h /\rho_o),
+\end{align}
+valid both over the grounded and the floating sections.
+where again the grounding mask $\G$ is defined as
+\[
+\G:=\He(h-h_f) ,
+\]
+with
+\[
+h_f:=\rho_o (S-B) /\rho .
+\]
 
 
 \section{Stress boundary conditions at an ice front}
@@ -958,7 +979,7 @@ and hence
 \[
  \He(h-h_f) d=  \He(h-h_f) H^{+} ,
 \]
-in an integrated sense.
+again in an integrated sense (i.e. when evaluated under an integral).
 
 The basal drag terms are also zero where the ice is afloat and the
 system can therefore be written as
@@ -1012,7 +1033,7 @@ Inserting Glen's flow law we get
 \end{equation}
 and if we can assume that $u>0$ and $\p_x u>0$  then the SSTREAM equation is
 \begin{equation}
-2 \p_x \left ( A^{-1/n} \, h \, (\p_x u)^{1/n}   \right ) - \He(h-h_f) C^{-1/m} u^{1/m} = \rho g h \p_x s + \frac{1}{2} g h \p_x \rho 
+2 \p_x \left ( A^{-1/n} \, h \, (\p_x u)^{1/n}   \right ) - \He(h-h_f) C^{-1/m} u^{1/m} = \rho g h \p_x s + \frac{1}{2} g h^2 \p_x \rho 
 \label{eq:SSTREAM1d3}
 \end{equation}
 Eq.~(\ref{eq:SSTREAM1d3}) is a fairly common way of writing down the SSTREAM/SSA equation in 1HD.
@@ -2935,8 +2956,8 @@ control variable to distinguish it from any other model parameters.
 \begin{center}
 \begin{tabular}{cl}
 \hline
-$F(u(p),p)=0$ & forward model \\
-$p$ & control variables \\
+$F(u(p),p)=0$ & forward model (state equation) \\
+$p$ & control variable (design variable) \\
 $p_{\mathrm{prior}}$  & a priori estimates of model parameters\\
 $u_{\mathrm{meas}}$ & estimates of the state variable (measurements) \\  
 $J$ & objective function ($J=I+R$)\\
@@ -3309,8 +3330,9 @@ this often involves some manipulations of the $< \lambda , F >$ term
 in Eq.~(\ref{eq:L1}).
  \end{enumerate}
 
- Usually only the regularisation term is an explicit function of the
- control variable, i.e.
+
+Usually only the regularisation term is an explicit function of the
+control variable, i.e.
 \[
  J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
 \]
@@ -3318,6 +3340,9 @@ and therefore
 \[
   \p_p J=  \p_p R 
 \]
+
+
+
 
 The adjoint variable $\lambda$ is the gradient of the objective
 function with respect to the state variable $u$
@@ -3328,9 +3353,8 @@ function with respect to the state variable $u$
 
 In the adjoint method we need to calculate a number of derivatives. These are:
 \begin{enumerate}
-\item The derivative of the forward model with respect to the state variable, i.e $\p_u F $
-\item The derivative of the objective function with respect to the state variable, i.e.\ $\p_u J$
-\item The derivative of the forward model with respect to the control variable, i.e.\ $\p_p F$.
+\item The derivative of the forward model with respect to the state and control variables, i.e $\p_u F and $\p_p F$$
+\item The derivative of the objective function with respect to the state an control variables, i.e.\ $\p_u J$ and $\p_p J$.
 \end{enumerate}
 
 \section{Evaluating objective functions and their directional derivatives}
@@ -3455,15 +3479,30 @@ d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\hat
 \]
 
 
+\section{Gradients of objective functions with respect to field variables}
+
+
+Add that if 
+
+\section{Gradients of objective functions with respect to control variables}
 
 
 
-\section{Gradients of objective functions with respect to model parameters}
+In the following we assume that all variables involved, such as $A$, $C$, $b$ and $\lambda$ are represented in the same basis. i.e.
+\begin{align*}
+          C & = A_p \, \phi_p(x,y) \\ 
+          A & = A_p \, \phi_p(x,y) \\ 
+          b & = b_p \, \phi_p(x,y) \\ 
+    \lambda & =\lambda_q \, \phi_q(x,y)
+\end{align*}
+
+
 
 \subsection{Gradient calculation in 1HD with respect to $C$}
 
 As an example we consider the calculation of the gradient of the
-objective function $J$ with respect to slipperiness.
+objective function $J$ with respect to slipperiness. The only term of
+the momentum equations containing $C$ is the basal drag term
 \[
 \bm{t}_b   = \He(h-h_f) \; C^{-1/m} | \bm{v}_b|^{1/m-1} \, \bm{v}_b 
 \]
@@ -3499,21 +3538,15 @@ Focusing on the second term
 where we have omitted writing the boundary term assuming that
 $\lambda$ is set to zero along the boundary (or periodic boundary
 conditions applied for periodic domains.)
-
-If both $A$ and $\lambda$ are expanded in the same way. i.e.
-\begin{align*} 
-        A & = A_P \, \phi_p(x,y) \\ 
- \lambda & =\lambda_q \, \phi_q(x,y)
-\end{align*}
-then
+Hence
 \begin{align*}
-  (\p F \/p A)^{\ast} \lambda &= <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \delta A, \p_x \lambda> \\
+  (\p_A F )^{\ast} \lambda &= <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \delta A, \p_x \lambda> \\
             &=    <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p, \lambda_q \p_x \phi_q> \\
             &=    <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p, \p_x \phi_q>  \lambda_q \\
 \end{align*}
 or
  \[
- (\p F /\p A)^{\ast} \lambda = \bm{K} \bm{\lambda}
+ (\p_A F )^{\ast} \lambda = \bm{K} \bm{\lambda}
 \]
 where
 \[
@@ -3521,15 +3554,99 @@ K= (\p F /\p A)^{\ast}
 \]
 is
 \[
-K_{pq}=<  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p, \lambda_q \p_x \phi_q>  \lambda_q \\
+K_{pq}=<  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p,  \p_x \phi_q>  \lambda_q \\
 \]
 however it is more efficient to calculate this matrix-vector product
 directly without ever forming the matrix as
 \[
   \bm{K} \bm{\lambda}= <  \frac{2}{n}  A^{-1/n-1} \, h \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p, \p_x \lambda> \\
 \]
+
+
+
+\subsection{Gradient calculation in 1HD with respect to $b$}
+
+
+The directional derivative can be calculated (see Eq.~\ref{eq:dder}) as
+\begin{equation}
+j'(b)= \p J(u(p),p)/ \p b + (\p F / \p b)^\ast  \lambda
+\label{eq:dder2}
+\end{equation}
+
+Simplifying the notation a bit and just considering the grounded ice situation the $x$ term of the SSA equation is 
+\begin{equation}
+F=2 \p_x \left ( A^{-1/n} \, h \,  | \p_x u|^{(1-n)/n}   \p_x u   \right ) - \He(h-h_f) C^{-1/m} |u|^{1/m-1 } u - \rho g h \p_x s - \frac{1}{2} g h^2 \p_x \rho =0
+\label{eq:SSTREAM1d6}
+\end{equation}
+where $h=s-b$.
+
+Considering initially the first term of Eq.~(\ref{eq:SSTREAM1d6})
+\begin{align*}
+  (\p_b F )^\ast  \lambda & = <\p_b  \left ( 2 \p_x ( A^{-1/n} \, h \, | \p_x u|^{(1-n)/n}   \p_x u ) \right ) , \lambda>\\
+                             & = - <  2 \p_b \left ( A^{-1/n} \, (s-b) \, | \p_x u|^{(1-n)/n}   \p_x u \right ) , \p_x \lambda>\\
+  & = < 2  A^{-1/n} \, | \p_x u|^{(1-n)/n}   \p_x u \, \delta b, \p_x \lambda>
+\end{align*}
+or
+\[
+  [(\p_b F )^\ast  \lambda ]_p =  <  2  A^{-1/n} \, | \p_x u|^{(1-n)/n}   \p_x u \, \phi_p, \p_x \phi_q> \lambda_q
+\]
+where we again have omitted writing the boundary term assuming that
+$\lambda$ is set to zero along the boundary (or periodic boundary
+conditions applied for periodic domains.). Using Eq.~(\ref{eq:etaint3}) 
+\[
+\eta= \frac{1}{2} A^{-1/n} \, |\p_{x} u|^{(1-n)/n}
+\]
+leads to
+\[
+  [(\p_b F )^\ast  \lambda ]_p =  <  4 \eta  \p_x u \, \phi_p, \p_x \phi_q> \lambda_q
+\]
+
+
+
+Second term of Eq.~(\ref{eq:SSTREAM1d6}) leads to
+\[
+  [(\p_b F )^\ast  \lambda]_p =   < \delta(h-h_f)   \, C^{-1/m} |u|^{1/m-1} u \, \phi_p, \phi_q > \lambda_q
+\]
+(Note: I've ignored here the fact that where the ice is grounded and
+$b=B$, $h_f=\rho_o H /\rho=\rho_o (S-B) /\rho =\rho_o (S-b) /\rho$ is
+a function of $b$)
+
+
+More generally one can write this as
+
+\[
+    [(\p_b F )^\ast  \lambda]_p =   < (\p_b \tbx)  \phi_p, \phi_q > \lambda_q
+\]
+
+
+
+And the last two terms of Eq.~(\ref{eq:SSTREAM1d6}) give
+\begin{align*}
+  (\p_b F )^\ast  \lambda & =   - < \p_b \left (\rho g h \p_x s + \frac{1}{2} g h^2 \p_x \rho \right ), \lambda >  \\
+                         & =    < (\rho g  \p_x s + g h \p_x \rho ) \, \phi, \lambda >  \\
+\end{align*}
+or
+\[
+[ (\p_b F )^\ast  \lambda]_p  =      < (\rho g  \p_x s + g h \p_x \rho ) \, \phi_p , \phi_q >  \lambda_q
+\]
+
+
+Usually only the regularisation term is an explicit function of the
+control variable, i.e.
+\[
+ J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
+\]
+and therefore
+\[
+  \p_p J=  \p_p R 
+\]
+But if we solve for $b$ and use $p_t h$ as a constraint, calculated as
+$a-\p_x (uh)$ we now have $b$ explicitly both in the mistfit term $I$
+and in the regularisation term $R$, so $\p_b J$ has now this
+additional $I$ term.
+
 \section{Inverting for $\log p$}
-To avoid issues with a strictly positive parameter $p$ becoming
+To lessen the chances of a strictly positive parameter $p$ becoming
 negative in the course of the inversion we can make a change of
 variables writing
 \[
@@ -3545,7 +3662,14 @@ We have
                         & = \frac{\p J}{\p p}  \ln(10)  \, 10^{\gamma} \\
                         & = \ln(10) \; p \frac{\p J}{\p p}
 \end{align*}
-showing that the change of variables causes a rescaling of the gradient,
+showing that the change of variables causes a rescaling of the
+gradient, making the gradient go to zero as $p \to 0$. However, for a
+finite step size this rescaling of the gradient alone does not
+guarantee that $p$ will not become negative (and $\log p$ complex) during
+the optimization. In \Ua one therefore also enforces the positivity
+(non complex) constraint when inverting for $\log p$ of a strickly
+positive parameter.
+
 
 
 \section{The form of the adjoint equations for Bayesian approach using Gaussian statistics}
@@ -3732,17 +3856,20 @@ the $\delta$ fields follow from above
 
 \section{Covariance kernels}
 
+
 \[
 F(f)= \int \int f(x) \, \kappa(x,x') \, f(x') \;dx \; dx' 
 \]
 where $\kappa$ is the covariance kernel.
 
-Multipole expansion.  Isotropic, stationary, and translation
-invariance
+
+
+Assuming isotropic, stationary, and translation invariance, i.e.
+
 \[
 \kappa(x,x')=\kappa(|x-x'|)
 \]
-
+a multipole expansion of an exponentially decaying covariance is on the form
 \[e^{-|x-x_i|^2/4T}=\sum_{n_1,n_2=0}^{\infty} \Theta_{n1 n_2} (x-c) ...
 \]
 
