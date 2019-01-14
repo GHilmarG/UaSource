@@ -559,6 +559,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 
+
+
 CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
@@ -567,30 +569,37 @@ CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
-%    
+
+%%
+%
 % Inversion can be done using mesurements of:
 % 
 % * horizontal velocites (uv)
 % * rate of thickness change (dh/dt).
 % 
+% To select which types of surface measurements to use in the inversion set: 
 CtrlVar.Inverse.Measurements='-uv-' ;  % {'-uv-,'-uv-dhdt-','-dhdt-'}
 
+%%
 % It is usually better to invert for log(A) and log(C) rather than A and C.
 % The default is to invert for log(A) and log(C) simultaneously.
+%
+% To select which types of fields to invert for set: 
 CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 
+%%
 % The gradient of the objective function is calculated using the adjoint method.
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
-
+%%
 % The gradient of the objective function can be pre-multiplied with the inverse
 % of the mass matrix. This creates a `mesh independent' gradient. This has both
 % advantages and disadvantages. The best initial approach is presumably to use
 % 'I', and then to try out 'M' for comparison.
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
-
+%%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
 %
@@ -609,7 +618,7 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
 %
 CtrlVar.Inverse.Regularize.Field='-logA-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
-
+%%
 % [ -- Parameters specific to Tikhonov regularization. See the above definition
 % of the regularization term R in the case of Tikhonov regularization. The
 % values of these parameters can be expected to be highly problem dependent. By
@@ -635,13 +644,14 @@ CtrlVar.Inverse.Regularize.logC.gs=1e10 ;
 
 %  -]
 
+%%
 % I and R are multiplied by these following DataMisit and Regularisation
 % multipliers. This is a convening shortcut of getting rid of either the misfit
 % (I) or the regularization term (R) in the objective function (J) altogether.
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 
-
+%%
 % [----------  The following parameters are only relevant if using the
 % UaOptimization i.e. only if
 % CtrlVar.Inverse.MinimisationMethod='UaOptimization'; 
@@ -665,6 +675,7 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 % end, UaOptimization parameters
 % ------------]
 
+%%
 % [------  The following parameters are only relevant if using the MatlabOptimisation option 
 % i.e. only if CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
 %
@@ -760,14 +771,17 @@ end
 % end, MatlabOptimisation parameters.
 % ------------]
 
+%%
 % Some less-often used parameters related to inversion:
 CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration,
+%%
 % >=2 for additional info on backtracking,
 % >=100 for further info and plots
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
 % CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 
+%%
 % [ ------------- Testing the adjoint gradients
 % The derivatives obtained with the adjoint method can be
 % compared with those obtained from brute force finite difference calculations.
@@ -775,11 +789,13 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
 % of the directional derivative of the objective function.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
+%%
 % The brute-force gradient can be calculated using first-order forward
 % differences, second-order central differences, or fourth-order central
 % differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
+%%
 % if left empty, values are calculated for every node/element within the mesh.
 % If set to for example [1,10,45] values are calculated for these three
 % nodes/elements.
@@ -843,7 +859,14 @@ CtrlVar.WriteRunInfoFile=1;       % True to get a .txt file with some basic info
 % There are various ways of meshing the computational domain.
 %
 % In almost all cases the simplest option tends to be to define the outlines of
-% the computational domain in Ua2D_InitialUserInput.
+% the computational domain in 
+%
+%   Ua2D_InitialUserInput 
+%
+%
+% by setting the variable
+%
+%   MeshBoundaryCoordinates 
 %
 % Currently two external mesh generators can be called direclty from Úa:
 %
