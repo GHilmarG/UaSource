@@ -6290,7 +6290,7 @@ u=C \tau +\frac{K \sinh \kappa x}{\kappa \cosh \kappa l}.
 
 \begin{figure}
 \centerline{\includegraphics[width=12cm]{ProblemGeometry.jpg}}
-\caption{Geometrical variables: Glacier surface ($s$)), glacier bed ($b$), ocean surface ($S$), ocean floor ($B$), 
+\caption{Geometrical variables: Glacier surface ($s$), glacier bed ($b$), ocean surface ($S$), ocean floor ($B$), 
 glacier thickness ($h=s-b$)), ocean depth ($H=S-B$), glacier draft ($d=S-b$), glacier freeboard ($f=s-S$). 
 \label{fig:PG2}}
 \end{figure}
@@ -6424,9 +6424,15 @@ $\p_x (h_f -h) \ge 0$.  Therefore the grounding line must advance
 whenever $\p_t h > 0$ .
 
 
-One issue with using (\ref{eq:glkin1}) is that the gradient in
-thickness $h$ is typically discontinuous across the grounding
-line.
+One possible issue with using (\ref{eq:glkin1}) might arise if the
+gradient in thickness ($\p_x h$) were discontinuous across the
+grounding line. However, the boundary conditions dictate that $\p_x u$
+approaches the same value at the grounding line from both upstream and
+downstream directions. Furthermore, if $h$ is continues across the
+grounding line, then mass conservation dictates that $\p_x h$ is also
+continuous. So using (\ref{eq:glkin1}) is justified, and it in fact
+provides a good internal check on the accuracy of calculated
+grounding-line migration rates.
 
 
 \section{Geometrical grounding-line migration}
