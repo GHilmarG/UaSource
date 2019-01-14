@@ -763,7 +763,7 @@ if license('test','Optimization_Toolbox')
         'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','cg');
+        'SubproblemAlgorithm','factorization');
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end

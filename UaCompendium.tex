@@ -24,7 +24,6 @@
 
 \usepackage{varioref}
 
-
 \newcommand{\He}{\mathcal{H}}
 \newcommand{\G}{\mathcal{G}}
 \newcommand{\p}{\partial}
@@ -409,9 +408,9 @@ The kinematic boundary conditions at the upper and lower surface are written as
 
 The mass balance distributions, $a_b$ and $a_s$, are in the units of
 meters of water equivalent per time. Note the sign convention for
-$a_s$ and $a_b$ used in (\ref{eq:ks}) and (\ref{eq:kb}). Mass flux into
+$a_s$ and $a_b$ used in (\ref{eq:ks}) and (\ref{eq:kb}). {\em Mass flux into
 the ice is defined positive irrespective over which surface it takes
-place. Surface accumulation is positive, melting always negative.
+place. Surface accumulation is positive, melting always negative.}
 
 The horizontal ice flux is defined as 
 \[
@@ -555,7 +554,7 @@ stress to the power $m$. It can be useful to think of $C$ as the ratio
 C= \frac{C_v}{C_{\tau}^m}
 \]
 where $C_v$ has the dimensions of velocity and $C_{\tau}$ the
-dimentions of stress.  We can then write (\ref{eq:slida}) and
+dimensions of stress.  We can then write (\ref{eq:slida}) and
 (\ref{eq:slidb}) as
 \begin{align}
   \bm{t}_b   & = \G \; C_{\tau} \left ( \frac{| \bm{v}_b|}{C_v} \right )^{1/m} \, \frac{\bm{v}_b}{| \bm{v}_b | } \label{eq:slida1} \\
@@ -621,7 +620,7 @@ determined from other consideration (such as mass conservation).
 
 Considering the opposite limit where $m \to 0$, we see from Eq.~(\ref{eq:slida1})
 that now it is the basal shear traction that becomes infinitely
-sensitive to basal velocity, or conversily, the basal velocity becomes
+sensitive to basal velocity, or conversely, the basal velocity becomes
 in this limit independent of basal shear traction. Inserting $m=0$ into Eq.~(\ref{eq:slidb}) gives
 \[
   \bm{v}_b    =  C_v  \, \frac{\bm{t}_b}{| \bm{t}_b|}   \quad \text{for}   \quad m \to 0.
@@ -803,7 +802,7 @@ H^{+}:= \He(H) \, H.
 \]
 
 
-If we think of $S$, $B$, and $h$ as independent variables, $s$ and $b$ are given by
+If we think of $S$, $B$, and $h$ as independent variables, then $s$ and $b$ are given by
 \begin{align}
   s & = \G (B+h) + (1-\G) \left ((1-\rho_o/\rho) b +\rho_o S/\rho \right ),\\
     & = \G (B+h) + (1-\G) \left (b+ \frac{\rho_o}{\rho} (S-b) \right ),\\
@@ -1135,7 +1134,7 @@ The vertically integrated form of the mass conservation equation
 used in \Ua is Eq.~(\ref{eq:qUa}). 
 
 
-\subsection{$\Theta$ method or the `generalized trapezoidal rule'}
+\subsection{$\Theta$ method or the `generalised trapezoidal rule'}
 
 In the $\Theta$ method the left-hand side is approximated by the 
 discrete first-order derivative $\Delta h/\Delta t=(h_1-h_0)/(t_1-t_0)$
@@ -1483,7 +1482,7 @@ are the same as obtained using definition (\ref{eq:UaSUPG}).
 
 
 
-Summarizing
+Summarising
 \begin{align*}
   \tau_1 :=& \frac{l}{2 \, |\bm{v}|} \, \kappa  \\
   =& \frac{l}{2 \, |\bm{v}|} \,  ( \coth \xi - \frac{1}{\xi} )  \\
@@ -2918,33 +2917,33 @@ it can be done without having to solve (\ref{eq:KLL}) again.)
 \chapter{Inverse modelling}
 
 Currently it is possible in \Ua to invert for $A$ and/or $C$, using
-measurments of horizontal surface velocities $(u_s,v_s)$ and rates of
+measurements of horizontal surface velocities $(u_s,v_s)$ and rates of
 thickness changes ($\p_t h$).
 
-We denote the model parameters and the state variable by $p$ and $u$,
-respectively. The 'state variable' is any variable calculated by the
+We denote the control and the state variables by $p$ and $q$,
+respectively. The 'state variable' ($q$) is any variable calculated by the
 model, such as velocity, rates of elevation change, etc. The 'control'
-variable is any model input variable requred by the model to calculate
-the state variables (e.g.\ $A$ and $C$,  $b$ and $s$, etc.). 
+variable ($p$) is any model input variable required by the model to calculate
+the state variables (e.g.\ $A$ and $C$,  $B$, etc.). 
 
 We write the forward model as
 \[
-F(u(p),p)=0
+F(q(p),p)=0
 \]
-where $p$ are model parameters and $u$ the state variable.
+where $p$ are model parameters and $q$ the state variable.
 
-A 'forward calculation' consists in finding $u$ such that the above
-equation is fullfilled for some given $p$. Roughly speaking, an
+A 'forward calculation' consists in finding $q$ such that the above
+equation is fulfilled for some given $p$. Roughly speaking, an
 'inverse problem' is the opposite problem of finding $p$ given
-$u$. However, when solving an inverse problem one generally also puts
-some constraintes on $p$.
+$q$. However, when solving an inverse problem one generally also puts
+some constraints on $p$.
 
 
 We consider
 the problem of minimising an objective function $J$ with respect to
 $p$. Typically the objective function $J$ can be thought of as a sum of two terms
 \[
- J(u(p),p)=I(u(p))+R(p)
+ J(q(p),p)=I(q(p))+R(p)
 \] 
 where $I$ is a misfit term and $R$ a regularisation term. 
 
@@ -2956,20 +2955,25 @@ control variable to distinguish it from any other model parameters.
 \begin{center}
 \begin{tabular}{cl}
 \hline
-$F(u(p),p)=0$ & forward model (state equation) \\
-$p$ & control variable (design variable) \\
-$p_{\mathrm{prior}}$  & a priori estimates of model parameters\\
-$u_{\mathrm{meas}}$ & estimates of the state variable (measurements) \\  
+$F(q(p),p)=0$ & forward model (state equation) \\
+$p$ & control variable (design variable), e.g.\ $A$, $C$, $B$ \\
+$q$ & state variable, e.g.\ $u$, $v$, $p_t h$\\
+$p_{\mathrm{prior}}  \text{ and } \tilde{p}$   & {\it a priori} estimates of model parameters\\
+$q_{\mathrm{meas}} \text{ and } \tilde{q}$ & estimates of the state variable (measurements) \\  
 $J$ & objective function ($J=I+R$)\\
 $R$ & regularisation term\\
 $I$ & misfit term\\
-$u$ & state variable\\
+${\cal L} = I + R + <\lambda \mid F(q(p),p) > $ & Lagrangian or the 'extended' objective function. \\
 $K$ & covariance matrix \\
+
 \hline
+
 \end{tabular}
 \end{center}
 \end{table}
 
+
+<\lambda \mid F(q(p),p) >
 
 \section{Objective functions}
 
@@ -2990,9 +2994,9 @@ I =\frac{1}{2} \int  (f(x)/e(x))^2\; dx
 \end{equation}
 where $e(x)=1/\sqrt{c}$ are the data errors. 
 
-If $\tilde{u}$ denotes estimates of $u$ then a typical misfit term might be on the form
+If $\tilde{q}$ denotes estimates of $q$ then a typical misfit term might be on the form
 \[
-I= \frac{1}{2 \cal{A}} \| u-\tilde{u} \|^2 = \frac{1}{2A} \int  ((u-\tilde{u})/e_u)^2 \, dA
+I= \frac{1}{2 \cal{A}} \| q-\tilde{q} \|^2 = \frac{1}{2A} \int  ((q-\tilde{q})/e_u)^2 \, dA
 \]
 where $e_u$ are measurement errors.
 
@@ -3001,10 +3005,10 @@ $I(f)$ and is a measure of the distance between the system state and
 the a prior. In a discrete form the misfit term could, for example, be
 written as
 \[
-R=(\bm{p}-\hat{\bm{p}})^T \bm{K}^{-1}  (\bm{p}-\hat{\bm{p}}) 
+R=(\bm{p}-\tilde{\bm{p}})^T \bm{K}^{-1}  (\bm{p}-\tilde{\bm{p}}) 
 \]
 where $\bm{K}$ is a covariance matrix, $\bm{p}$ the model parameters,
-and $\hat{\bm{p}}$ the a prior estimates of those model
+and $\tilde{\bm{p}}$ the a prior estimates of those model
 parameters. Apart from often having only a very limited knowledge of
 the covariance matrix $\bm{K}$, problems with this formulation can,
 for example, arise if the inverse of $\bm{K}$ is not sparse. Practical
@@ -3020,11 +3024,11 @@ As a regularisation term we consider
 where $L$ is a differential operator related to the inverse of the
 a prior covariance for $p$. For example using the Helmholtz equation leads to
 \begin{equation}
-R=  \frac{\gamma_1^2}{2\cal{A}} \int \left (  \left ( \nabla( p - \hat{p}) \right )^2 + \gamma_2^2 \, (p-\hat{p})^2 \right ) \, dA
+R=  \frac{\gamma_1^2}{2\cal{A}} \int \left (  \left ( \nabla( p - \tilde{p}) \right )^2 + \gamma_2^2 \, (p-\tilde{p})^2 \right ) \, dA
 \label{eq:HR}
 \end{equation}
 where $p$ are the model parameters  for which we are inverting for (system state, model
-parameters) and $\hat{p}$ the prior. The corresponding covariance kernel is
+parameters) and $\tilde{p}$ the prior. The corresponding covariance kernel is
 the real part of
 \begin{equation}
 g(r)= \frac{i}{2 \pi \gamma_1^2} H^{(1)}_0 (i \gamma_2 |r|)
@@ -3085,7 +3089,7 @@ with the corresponding directional derivative with respect to $u$ and $v$ given 
 \[
 \delta_{uv} I_{\dot{h}}= \frac{1}{{\cal A}} \int \left ((\dot{h}-\dot{h}_{\mathrm{meas}})/\dot{h}^2_{\mathrm{error}} \right )  \left ( \p_x ( h \delta u) + \p_y ( h \delta v) \right ) \, dx \, dy
 \]
-which, like the cost functin itself, is dimentionless.
+which, like the cost function itself, is dimensionless.
 
 
 \section{Regularisation in \Ua}
@@ -3096,7 +3100,7 @@ Tikhonov regularisation.
 
 Using the Bayesian motivated approach, the regularisation term has the form
 \begin{equation}
-R=(\bm{p}-\hat{\bm{p}})^T \bm{K}^{-1}_{pp} (\bm{p}-\hat{\bm{p}})
+R=(\bm{p}-\tilde{\bm{p}})^T \bm{K}^{-1}_{pp} (\bm{p}-\tilde{\bm{p}})
 \label{eq:BR}
 \end{equation}
 where $\bm{K}$ is the a priori covariance. The Bayesian approach has a
@@ -3105,7 +3109,7 @@ covariance matrix $\bm{K}$ which can be impractical for large problems.
 
 Alternatively, one can use Tikhonov regularisation where
 \begin{equation}
-R=  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2   \left ( \nabla( p - \hat{p}) \right )^2 + \gamma_a^2 \, (p-\hat{p})^2 \right ) \, dA
+R=  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2   \left ( \nabla( p - \tilde{p}) \right )^2 + \gamma_a^2 \, (p-\tilde{p})^2 \right ) \, dA
 \label{eq:TR}
 \end{equation}
 with the $s$ and $a$ subscripts being mnemonics for slope and
@@ -3127,8 +3131,8 @@ p$. If done with respect to the logarithm of $p$, the Tikhonov
 regularisation term has the form
 
 \begin{align}
-R & =  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2   \left ( \nabla \left ( \log_{10}(p) - \log_{10}(\hat{p}) \right ) \right )^2 + \gamma_a^2 \, \left (\log_{10}(p)-\log_{10}(\hat{p}) \right )^2 \right ) \, dA \nonumber \\
-  & =  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2  \left ( \nabla   \log_{10}(p/\hat{p}) \right )^2   + \gamma_a^2 \,  \log_{10}^2(p/\hat{p})  \right ) \, dA 
+R & =  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2   \left ( \nabla \left ( \log_{10}(p) - \log_{10}(\tilde{p}) \right ) \right )^2 + \gamma_a^2 \, \left (\log_{10}(p)-\log_{10}(\tilde{p}) \right )^2 \right ) \, dA \nonumber \\
+  & =  \frac{1}{2\cal{A}} \int \left ( \gamma_s^2  \left ( \nabla   \log_{10}(p/\tilde{p}) \right )^2   + \gamma_a^2 \,  \log_{10}^2(p/\tilde{p})  \right ) \, dA 
 \label{eq:TRlog1}
 \end{align}
 Now $\gamma_a$ is dimensionless and the dimension of $\gamma_s$ is length, i.e. 
@@ -3144,8 +3148,8 @@ Now $\gamma_a$ is dimensionless and the dimension of $\gamma_s$ is length, i.e.
 The Tikhonov is a commonly used and a practical approach. As shown in
 section (\ref{sec:gradev}) the Tikhonov approach leads to
 \begin{align}
-R  &= \frac{1}{2} (\bm{p}-\hat{\bm{p}})^T \left ( \gamma_a^2 \bm{M}  +  \gamma_s^2 (\bm{D}_x + \bm{D}_y) \right ) \, ( \bm{p}-\hat{\bm{p}}) \\
-   &= \frac{1}{2} (\bm{p}-\hat{\bm{p}})^T \bm{K}^{-1}_{pp} \, ( \bm{p}-\hat{\bm{p}})
+R  &= \frac{1}{2} (\bm{p}-\tilde{\bm{p}})^T \left ( \gamma_a^2 \bm{M}  +  \gamma_s^2 (\bm{D}_x + \bm{D}_y) \right ) \, ( \bm{p}-\tilde{\bm{p}}) \\
+   &= \frac{1}{2} (\bm{p}-\tilde{\bm{p}})^T \bm{K}^{-1}_{pp} \, ( \bm{p}-\tilde{\bm{p}})
 \end{align}
 where
 \begin{equation}
@@ -3161,7 +3165,7 @@ can show that for $\gamma_a=0$ and $\gamma_s\neq 0$, $\bm{K}$ as
 defined by Eq.~(\ref{eq:KTC}) is not a covariance matrix.  
 
 
-\section{Calculation of the gradient of the objective function with the adjoint method}
+\section{The adjoint method}
 
 
 The adjoint method is a simple trick to speed up the calculation of
@@ -3169,11 +3173,11 @@ gradients of the objective function with respect to the control variables.
 
 Assume I want to solve the minimisation problem
 \[
-\min_{p \in P, u \in U } J(u(p)) 
+\min_{p \in P, q \in U } J(q(p)) 
 \]
 subject to forward model
 \[     
-F(u(p),p)=0.
+F(q(p),p)=0.
 \]
 The objective function is
 \[
@@ -3193,13 +3197,13 @@ to the (distributed) control parameter $p$.
 
 
 
-We define the Lagrange function 
+We define the Lagrange function, or the 'extended' objective function, $\cal L$ as 
 \[
 {\cal L}= U \times V \times W^\ast \to \mathbb{R} 
 \]
 as
 \begin{equation} 
-{\cal L}(u(p),p,\lambda)=J(u(p),p)+<\lambda \mid F(u(p),p) >_{W^\ast ,W}
+{\cal L}(q(p),p,\lambda)=J(q(p),p)+<\lambda \mid F(q(p),p) >_{W^\ast ,W}
 \label{eq:L1}
 \end{equation}
 The adjoint variable $\lambda$ is in the dual of the image space $\mathbb{W}$.
@@ -3208,7 +3212,7 @@ Equation (\ref{eq:L1}) provides no constraints on the adjoint variable $\lambda$
 second term is always equal to zero for any value of $p$. 
 Therefore
 \[
-{\cal L}(u(p),p,\lambda)=J(u(p),p)
+{\cal L}(q(p),p,\lambda)=J(q(p),p)
 \]
 and
 \[
@@ -3216,55 +3220,55 @@ D {\cal L}(p)[\phi] = D J(p)[\phi] =  <\nabla_p {\cal L}  \mid \phi >
 \]
 Also note that 
 \[
-d_p F= \p_p F + \p_u F \, d_p u =0  .
+d_p F= \p_p F + \p_q F \, d_p q =0  .
 \]
 
 
 Introducing
 \[
-j(u)=J(u(p),p)= {\cal L}(u(p),p,\lambda)
+j(u)=J(q(p),p)= {\cal L}(q(p),p,\lambda)
 \]
 we have
 \begin{equation}
-j'(p)= (\p u / \p p )^\ast \p {\cal L}(u(p),p,\lambda)/\p u + \p {\cal L}(u(p),p,\lambda)/ \p p
+j'(p)= (\p q / \p p )^\ast \p {\cal L}(q(p),p,\lambda)/\p q + \p {\cal L}(q(p),p,\lambda)/ \p p
 \label{eq:dj1}
 \end{equation}
 Now we chose $\lambda$ such that 
 \[
-\p {\cal L}(u(p),p,\lambda)/ \p u=0
+\p {\cal L}(q(p),p,\lambda)/ \p q=0
 \]
 Hence $\lambda$ must be a solution to
 \[
-\p J(u(p),p) / \p u + (\p F/\p u)^\ast \lambda=0
+\p J(q(p),p) / \p q + (\p F/\p q)^\ast \lambda=0
 \]
 and then the direction derivative $j'(p)$ is
 \begin{equation}
-j'(p)= \p J(u(p),p)/ \p p + (\p F / \p p)^\ast  \lambda
+j'(p)= \p J(q(p),p)/ \p p + (\p F / \p p)^\ast  \lambda
 \label{eq:dder}
 \end{equation}
 
 Eq.~(\ref{eq:dj1}) can also be written as
 \[
-< j'(p), \phi>_{P^\ast, P}= < \p_u {\cal L} , \p_p u \,  \phi >_{U^\ast , U}  + < \p_p {\cal L} , \phi>_{P^\ast,P}  
+< j'(p), \phi>_{P^\ast, P}= < \p_u {\cal L} , \p_p q \,  \phi >_{U^\ast , U}  + < \p_p {\cal L} , \phi>_{P^\ast,P}  
 \]
 and the directional derivative is then 
 \[
-<\p_u {\cal L}, \p_p u \, \phi>_{U^\ast, U}=0
+<\p_u {\cal L}, \p_p q \, \phi>_{U^\ast, U}=0
 \]
 for all $\phi$.
 
 Another approach: Differentiating Eq.~(\ref{eq:L1}) with respect to the control variable $p$ we obtain
 \begin{align*}
   D J(p)[\phi] = D {\cal L}(p)[\phi]  
-   & = < \p_u J \mid d_p u \; \phi > + < \p_p  J, \phi >  + < \lambda  \mid \p_u F \, d_p u \; \phi > + < \lambda  \mid \p_p F \; \phi > + < d_p \lambda \mid F > \\
-  & = < \p_u J \mid d_p u \; \phi >   + < (\p_u F)^\ast\lambda  \mid  d_p u \; \phi > + < \lambda  \mid \p_p F \; \phi > + < \p_p  J, \phi > \\
-  & = < \p_u J +( \p_u F)^\ast\lambda \mid d_p u \; \phi >   + < \lambda  \mid \p_p F \; \phi > + < \p_p  J, \phi >
+   & = < \p_q J \mid d_p q \; \phi > + < \p_p  J, \phi >  + < \lambda  \mid \p_q F \, d_p q \; \phi > + < \lambda  \mid \p_p F \; \phi > + < d_p \lambda \mid F > \\
+  & = < \p_q J \mid d_p q \; \phi >   + < (\p_q F)^\ast\lambda  \mid  d_p q \; \phi > + < \lambda  \mid \p_p F \; \phi > + < \p_p  J, \phi > \\
+  & = < \p_q J +( \p_q F)^\ast\lambda \mid d_p q \; \phi >   + < \lambda  \mid \p_p F \; \phi > + < \p_p  J, \phi >
 \end{align*}
 
 
 We now use the freedom that $\lambda$ has not been specified and now determine $\lambda$ by specifying
 \[
-  < \p_u J +( \p_u F)^\ast\lambda \mid \phi >  =0
+  < \p_q J +( \p_q F)^\ast\lambda \mid \phi >  =0
   \]
 and therefore 
 \begin{equation}
@@ -3279,34 +3283,34 @@ gradient of object function $J$ with respect to $p$:
 \begin{enumerate}
 \item Solve the state equation, i.e.\ the forward problem 
 \[ 
-<F(u(p),p)| \phi >_{W^\ast , W} = 0 
+<F(q(p),p)| \phi >_{W^\ast , W} = 0 
 \]
- for the state variable $u$. 
+ for the state variable $q$. 
   
 This, in  general, is a non-linear problem that can be solved iterativly using the Newton-Raphson system, i.e. 
 \[
- < \p_u F \, \Delta u \mid \phi > = - <F(u) \mid \phi> 
+ < \p_q F \, \Delta q \mid \phi > = - <F(q(p),p) \mid \phi> 
 \]
 and can be written in discrete form as
 \[
- \bm{K} \bm{\Delta u} = \bm{b}
+ \bm{K} \bm{\Delta q} = \bm{b}
 \]
 where
-\[ [\bm{K}]_{pq} = < \p_{u_p} F , \phi_q > \]
+\[ [\bm{K}]_{pq} = < \p_{q_p} F \mid \phi_q > \]
 and
-\[ [\bm{b}]_q= - < F(u) , \phi_q > \] 
+\[ [\bm{b}]_q= - < F(q(p),p) \mid \phi_q > \] 
 
-\item Solve the adjoint problem for $< \p_u J +( \p_u F)^\ast\lambda \mid \phi >  =0$ for $\lambda \in W^\ast$, i.e.
+\item Solve the adjoint problem for $< \p_q J +( \p_q F)^\ast\lambda \mid \phi >  =0$ for $\lambda \in W^\ast$, i.e.
 \[
-  <( \p_u F)^\ast\lambda \mid \phi >_{U^\ast , U}  = - < \p_u J \mid \phi >_{U^\ast , U} 
+  <( \p_q F)^\ast\lambda \mid \phi >_{U^\ast , U}  = - < \p_q J \mid \phi >_{U^\ast , U} 
 \]
 for the adjoint variable $\lambda$. If the forward tangential model
-($\p_u F$) is self adjoint, this involves solving
+($\p_q F$) is self adjoint, this involves solving
 \[
  \bm{K} \bm{\lambda} = \bm{b}
 \]
 
-\item Calculate the directional derivative of $J$ as 
+\item Calculate the directional derivative of $j$ as 
 \[ 
  <j'(p),\phi>_{P^\ast,P} = < (\p_p F)^\ast \lambda  + \p_p J \mid  \phi >_{P^\ast,P} 
 \]
@@ -3334,7 +3338,7 @@ in Eq.~(\ref{eq:L1}).
 Usually only the regularisation term is an explicit function of the
 control variable, i.e.
 \[
- J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
+ J(F(p,q(p),p)=I(F(p,q(p)))+R(p)
 \]
 and therefore
 \[
@@ -3345,17 +3349,29 @@ and therefore
 
 
 The adjoint variable $\lambda$ is the gradient of the objective
-function with respect to the state variable $u$
+function with respect to the state variable $q$
 \[
-\lambda= \nabla_u J
+\lambda= \nabla_q J
 \] 
 
 
 In the adjoint method we need to calculate a number of derivatives. These are:
 \begin{enumerate}
-\item The derivative of the forward model with respect to the state and control variables, i.e $\p_u F and $\p_p F$$
-\item The derivative of the objective function with respect to the state an control variables, i.e.\ $\p_u J$ and $\p_p J$.
+\item The derivative of the forward model with respect to the state and control variables, i.e $\p_q F$ and $\p_p F$.
+\item The derivative of the objective function with respect to the state and control variables, i.e.\ $\p_q J$ and $\p_p J$.
 \end{enumerate}
+
+\subsection{Summarising the adjoint approach}
+
+Summarising, and using a somewhat inexact notation, we can calculate
+the directional derivative $d_p J$ of the objective function $J$ with respect
+to the control parameters $p$, as follows:
+
+\begin{align}
+  \p_q F \, \Delta q & = -F(q) \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0  \\
+  \p_q F^{*} \lambda & = \p_q J \\
+  d_p J &= \p_p F^{*} \lambda + \p_p J
+\end{align}
 
 \section{Evaluating objective functions and their directional derivatives}
 \label{sec:gradev}
@@ -3469,20 +3485,15 @@ And the regularisation term (\ref{eq:HR}) can be evaluated similarly as
 
 \begin{align*}
 R 
-&= \frac{\gamma_1^2}{2\cal{A}} \int \left (  \left ( \nabla( p - \hat{p}) \right )^2 + \gamma_2^2 \, (p-\hat{p})^2 \right ) \, dA \\
-&= \frac{\gamma_1^2}{2\cal{A}} \left (  (\bm{p}-\hat{\bm{p}})^T \bm{D} \; (\bm{p} - \hat{\bm{p}}) + \gamma_2^2 (\bm{p}-\hat{\bm{p}})^T \bm{M} (\bm{p} - \hat{\bm{p}}) \right )\\
-&= \frac{\gamma_1^2}{2\cal{A}} \left (  (\bm{p}-\hat{\bm{p}})^T (\bm{D} + \gamma_2^2 \bm{M}) (\bm{p} - \hat{\bm{p}}) \right )
+&= \frac{\gamma_1^2}{2\cal{A}} \int \left (  \left ( \nabla( p - \tilde{p}) \right )^2 + \gamma_2^2 \, (p-\tilde{p})^2 \right ) \, dA \\
+&= \frac{\gamma_1^2}{2\cal{A}} \left (  (\bm{p}-\tilde{\bm{p}})^T \bm{D} \; (\bm{p} - \tilde{\bm{p}}) + \gamma_2^2 (\bm{p}-\tilde{\bm{p}})^T \bm{M} (\bm{p} - \tilde{\bm{p}}) \right )\\
+&= \frac{\gamma_1^2}{2\cal{A}} \left (  (\bm{p}-\tilde{\bm{p}})^T (\bm{D} + \gamma_2^2 \bm{M}) (\bm{p} - \tilde{\bm{p}}) \right )
 \end{align*}
 and the directional derivative is
 \[
-d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\hat{\bm{p}})
+d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\tilde{\bm{p}})
 \]
 
-
-\section{Gradients of objective functions with respect to field variables}
-
-
-Add that if 
 
 \section{Gradients of objective functions with respect to control variables}
 
@@ -3526,7 +3537,7 @@ $\bm{v}$.
 
 The directional derivative can be calculated (see Eq.~\ref{eq:dder}) as
 \begin{equation}
-j'(A)= \p J(u(p),p)/ \p A + (\p F / \p A)^\ast  \lambda
+j'(A)= \p J(q(p),p)/ \p A + (\p F / \p A)^\ast  \lambda
 \label{eq:dder2}
 \end{equation}
 Focusing on the second term
@@ -3569,7 +3580,7 @@ directly without ever forming the matrix as
 
 The directional derivative can be calculated (see Eq.~\ref{eq:dder}) as
 \begin{equation}
-j'(b)= \p J(u(p),p)/ \p b + (\p F / \p b)^\ast  \lambda
+j'(b)= \p J(q(p),p)/ \p b + (\p F / \p b)^\ast  \lambda
 \label{eq:dder2}
 \end{equation}
 
@@ -3634,7 +3645,7 @@ or
 Usually only the regularisation term is an explicit function of the
 control variable, i.e.
 \[
- J(F(p,u(p),p)=I(F(p,u(p)))+R(p)
+ J(F(p,q(p),p)=I(F(p,q(p)))+R(p)
 \]
 and therefore
 \[
@@ -3666,8 +3677,8 @@ showing that the change of variables causes a rescaling of the
 gradient, making the gradient go to zero as $p \to 0$. However, for a
 finite step size this rescaling of the gradient alone does not
 guarantee that $p$ will not become negative (and $\log p$ complex) during
-the optimization. In \Ua one therefore also enforces the positivity
-(non complex) constraint when inverting for $\log p$ of a strickly
+the optimisation. In \Ua one therefore also enforces the positivity
+(non complex) constraint when inverting for $\log p$ of a strictly
 positive parameter.
 
 
@@ -3677,23 +3688,23 @@ positive parameter.
 We anticipate using a Bayesian approach assuming Gaussian statistics
 and therefore that the cost function might be on the form
 \begin{align*}
-  \min_{p} I(u(p))
-  &= < u -\hat{u} \mid K_u^{-1} \mid u -\hat{u} > + < p -\hat{p} \mid K_P^{-1} \mid p -\hat{p} >  \\
-  &= < K_u^{-T/2}  (u -\hat{u}) \mid K_u^{-1/2} ( u -\hat{u} )> + < K_p^{-T/2}  (p -\hat{p}) \mid K_p^{-1/2} ( p -\hat{p} )>\\
+  \min_{p} I(q(p))
+  &= < q -\tilde{q} \mid K_q^{-1} \mid q -\tilde{q} > + < p -\tilde{p} \mid K_P^{-1} \mid p -\tilde{p} >  \\
+  &= < K_q^{-T/2}  (q -\tilde{q}) \mid K_q^{-1/2} ( q -\tilde{q} )> + < K_p^{-T/2}  (p -\tilde{p}) \mid K_p^{-1/2} ( p -\tilde{p} )>\\
 \end{align*}
 where $K$ is a covariance matrix (and therefore positive definite).
 
-Therefore
+Repeating the calculations required in the adjoint approach for this particular case,
 \begin{align*}
   d_p I=d_p \cal{L}
-  &=  <K_u^{-1/2} (u-\hat{u} ) \mid d_p u > +  <\lambda \mid \p_u F d_p u + \p_p F > + < \p_p \lambda \mid F >\\
-  &=  <K_u^{-1/2} (u-\hat{u} ) \mid d_p u > +  <\lambda \mid \p_u F d_p u + \p_p F > \\
-  &= < K_u^{-1/2} (u-\hat{u} ) + \lambda (\p_u r)^\ast \mid d_p u > + <\lambda \mid  \p_p F > 
+  &=  <K_q^{-1/2} (q-\tilde{q} ) \mid d_p q > +  <\lambda \mid \p_q F d_p q + \p_p F > + < \p_p \lambda \mid F >\\
+  &=  <K_q^{-1/2} (q-\tilde{q} ) \mid d_p q > +  <\lambda \mid \p_q F d_p q + \p_p F > \\
+  &= < K_q^{-1/2} (q-\tilde{q} ) + \lambda (\p_q r)^\ast \mid d_p q > + <\lambda \mid  \p_p F > 
 \end{align*}
-where we have omitted the $ < p -\hat{p} \mid K_P^{-1} \mid p -\hat{p} > $ term for the time being.
+where we have omitted the $ < p -\tilde{p} \mid K_P^{-1} \mid p -\tilde{p} > $ term for the time being.
 We now use the flexibility of $\lambda$ not having been specified and require that
 \[
- < K_u^{-1/2} (u-\hat{u} ) + \lambda (\p_u r)^\ast \mid \delta p >  =0 
+ < K_q^{-1/2} (q-\tilde{q} ) + \lambda (\p_q F)^\ast \mid \delta p >  =0 
 \]
 and therefore
 \[
@@ -3701,17 +3712,20 @@ d_p I = < \lambda \mid \p_p F >
 \]
 For a cost function on the form
 \[
-\min_{p} I(u(p)) = < u -\hat{u} \mid K_u^{-1} \mid u -\hat{u} > + < p -\hat{p} \mid K_P^{-1} \mid p -\hat{p} >  \\
+\min_{p} I(q(p)) = < q -\tilde{q} \mid K_q^{-1} \mid u -\tilde{u} > + < p -\tilde{p} \mid K_P^{-1} \mid p -\tilde{p} >  \\
 \]
 we would arrive at 
 \[
-d_p I = < \lambda \mid \p_p F > + <K_p^{-1/2} (p-\hat{p} ) \mid \delta p > 
+d_p I = < \lambda \mid \p_p F > + <K_p^{-1/2} (p-\tilde{p} ) \mid \delta p > 
 \]
-One might as why we don't just calculate the cost gradient as
+One might ask why we don't just calculate the cost gradient as
 \[
-d_p =  <K_u^{-1/2} (u-\hat{u} ) \mid d_p u > 
+d_p =  <K_q^{-1/2} (q-\tilde{q} ) \mid d_p u > 
 \]
-But this would require calculating  $d_p u$ which is a pain in the neck.
+But this would require calculating $\p_p q$ which is a pain in the
+neck and requires $N$ solutions for the forward problem, where $N+1$
+is the number of discrete control parameters. Using the adjoint method
+we only need to solve the forward problem twice.
 
 
 \section{Adjoint equations (Bayesian case with constraints on vertical velocity)}
@@ -3727,7 +3741,7 @@ As a misfit function we use
 \[ I=I_u+I_v+I_o ,\]
 where each term has the form
 \[
-I_u=<C^{-1/2}_{uu} u-\hat(u) , C^{-1/2}_{uu} u-\hat(u) >
+I_u=<C^{-1/2}_{uu} u-\tilde(u) , C^{-1/2}_{uu} u-\tilde(u) >
 \]
 with $C^{-1/2}_{uu}$ being an error covariance matrix.
 
@@ -3748,7 +3762,7 @@ the diagnostic equations, and where $p$ stands for some control variable
 (distributed model parameter) such as the basal slipperiness $C$ or
 the rate factor $A$. We therefore consider the extended cost function
 \[
-J(u,v,w,\lambda,\mu,p)=I(u,v,w)+F(p)+<\lambda\mid F(u(p),v(p),p)>+<\mu\mid w-f(u,v,h,b)>
+J(u,v,w,\lambda,\mu,p)=I(u,v,w)+F(p)+<\lambda\mid F(q(p),v(p),p)>+<\mu\mid w-f(u,v,h,b)>
 \]
 where $\lambda$ and $\mu$ are Lagrange multipliers.
 
@@ -3760,7 +3774,7 @@ The directional derivatives of $J$ are
 
 \[ \delta J(\lambda,\delta \lambda) = \delta_{\lambda} J =<\delta \lambda,F(u,v,p)> \]
 \[ J(\mu,\delta \mu) =<\delta \mu, w-f(u,v,h,b)> \]
-\[ J(u,\delta u)=<C^{-1/2}_{uu} (u-\hat{u},C^{-1/2} \delta u > + < \lambda, \nabla_u r \, \delta u>-<\mu , \nabla_u f \, \delta u> \]
+\[ J(u,\delta u)=<C^{-1/2}_{uu} (u-\tilde{u},C^{-1/2} \delta u > + < \lambda, \nabla_u r \, \delta u>-<\mu , \nabla_u f \, \delta u> \]
 
 
 \section{Prognostic equations are formally self-adjoint}
@@ -3849,7 +3863,7 @@ where $U=(\delta u,\delta v)^T$ and $\bm{L}$ is the operator acting on $U$ as gi
   -\oint_{\Gamma} ( &h \eta ( 4 \p_x \lambda + 2 \p_y \mu )  n_x +   h \eta (\p_y \lambda + \p_x \mu) n_y ) \delta u \,d\Gamma \nonumber \\
   -\oint_{\Gamma} ( &h \eta ( 4 \p_y \mu + 2 \p_y \lambda )  n_y +   h \eta (\p_x \mu + \p_y \lambda)  n_x ) \delta v \, d\Gamma \nonumber 
 \end{align*}
-Once the forward model has been solved the velocity field fulfills given
+Once the forward model has been solved the velocity field fulfils given
 the BCs to a high degree of accuracy.  The boundary conditions on
 the $\delta$ fields follow from above
 
@@ -5828,7 +5842,7 @@ Using the floating condition one can show that
 \[
 \p_x s (b-S) = \p_x b \, (s-S),
 \]
-and therefore that (\ref{eq:sxz2}) fulfills the lower boundary condition also.
+and therefore that (\ref{eq:sxz2}) fulfils the lower boundary condition also.
 
 
 \begin{figure}
@@ -5844,7 +5858,7 @@ and therefore that (\ref{eq:sxz2}) fulfills the lower boundary condition also.
   ice shelf. Horizontal Cauchy stresses are positive at the surface
   and negative below $z=d/2$ where $d$ is the is ice shelf
   draft. Horizontal and vertical deviatoric stresses are independent
-  of depth, and horizontal deviatoric stresses positive while veritcal
+  of depth, and horizontal deviatoric stresses positive while vertical
   deviatoric stresses are negative. Parameters:
   $\rho=910 \, \mathrm{kg\, m^{-3}}$,
   $\rho_o=1030 \, \mathrm{kg \, m^{-3}}$, $h= 100 \, \mathrm{m}$.}
@@ -5906,7 +5920,7 @@ The ocean pressure, $p_o$ is
 \[
  p_o=  \rho_o (S-z)
 \]
-for $z<S$, and therfore
+for $z<S$, and therefore
 \[
  \sigma_{xx}+p_o= \rho g (s/2-z) + \rho_o z
 \]
@@ -6140,14 +6154,14 @@ Over the floating section $\tbx=\tby=0$.  We assume
 \p_y \txx&=0, \\
 \p_y s &= \p_y h =0, \\
 \end{align*}
-and ignore longitudinal streaching in the momemntum balance,
+and ignore longitudinal stretching in the momentum balance,
 hence Eqs.~(\ref{eq:stressx2b}) and (\ref{eq:stressy2b}) become
 \begin{align} 
 \p_y  ( h \txy)   &= \varrho g h \p_x h, \label{eq:stressx2c}\\
 \p_x ( h \txy )  &= 0.  \label{eq:stressy2c}
 \end{align}
 
-We integrate (\ref{eq:stressx2c}) with respect to $y$ from the center-line $y=0$ to the
+We integrate (\ref{eq:stressx2c}) with respect to $y$ from the centre-line $y=0$ to the
 left-hand margin $y=w$, where the total width of the ice shelf is $2w$, i.e.
 
 \[
@@ -6283,7 +6297,7 @@ glacier thickness ($h=s-b$)), ocean depth ($H=S-B$), glacier draft ($d=S-b$), gl
 
 
 Here some basic aspects of grounding-line dynamics are
-summarized. This is all well-known stuff from the literature.
+summarised. This is all well-known stuff from the literature.
 
 \section{Ice-Shelf Buttressing}
 
@@ -6514,7 +6528,7 @@ cycle.
 
 Such an asymmetrical grounding line migration takes place if,
 for example, the upper surface gradient ($\p_x s$) is constant across
-the grounding line. In that case the thickenss gradient cannot be
+the grounding line. In that case the thickness gradient cannot be
 equal on both sides of $x=\xgl$ as well.  There is then a break in
 thickness gradient at $x=\xgl$ given by
 \[
@@ -6524,8 +6538,8 @@ thickness gradient at $x=\xgl$ given by
 \]
 (There is no need to use the superscripts $+/-$ with $\p_x s$ and
 $\p_x B$ in the above equation because here we are assuming that those
-derivatives are continous across the grounding line.)  When this
-expresson for the break in thickness gradient is inserted in
+derivatives are continuous across the grounding line.)  When this
+expression for the break in thickness gradient is inserted in
 (\ref{eq:dLtide}) we find that the migration distance $\Delta L^{-}$
 at a low tide (when $S=\bar{S}-\Delta L$), is given by
 \[
@@ -6592,7 +6606,7 @@ Boundary conditions at the grounding line where $x=\xgl$ are
 \p_x u &= A (\varrho g h/4)^n  \label{eq:We3} \\
      h&=\rho_o H /\rho . \label{eq:fc}
 \end{align}
-Note that boundary condition (\ref{eq:We3}) can be rearanged as
+Note that boundary condition (\ref{eq:We3}) can be rearranged as
 \[
 2 A^{-1/n} (\p_x u)^n = \frac{1}{2} \varrho g h
 \]
@@ -6608,7 +6622,7 @@ obtain
 \label{eq:ghp}
 \end{equation}
 where the brackets are used to indicate that we are here simply
-comparing sizes of terms, and where we have writtin $ h \p_x h = \frac{1}{2} \p_x h^2 $
+comparing sizes of terms, and where we have written $ h \p_x h = \frac{1}{2} \p_x h^2 $
 
 Since $\varrho \approx \rho/10$ is it
 clear that the first term on the left-hand side of (\ref{eq:ghp}) is
@@ -6717,7 +6731,7 @@ as a function of thickness alone.
 \section{Balance between terms on both side of the grounding line}
 
 %\setcounter{equation}{0}
-(What follows is basically a slighly different framing of the argument in
+(What follows is basically a slightly different framing of the argument in
 section \ref{sec:FGL} used to show that the basal shear traction will
 balance the driving stress upstream of the grounding line, provided
 $\p_x s \approx \p_x h$.)
@@ -6819,7 +6833,7 @@ gives
 %\subsection{Local analysis (argument by Victor Tsai)}
 
 
-Summarizing the scaled momentum equations are
+Summarising the scaled momentum equations are
 \begin{align}
 4 \epsilon \, \p_x \left (h |\p_x u|^{(1-n)/n} \, \p_x u \right ) - |u|^{(1-m)/m} u & = h \, \p_x s \quad \text{for} \quad x<\xgl \label{eq:velscaled2}\\
 |\p_x u|^{(1-n)/n} \, \p_x u&= \frac{\delta h}{8 \epsilon} \quad \text{at} \quad x=\xgl \label{eq:bc1scaledb}
@@ -6874,7 +6888,7 @@ and when inserted into
 \end{equation}
 we arrive, which is the right balance.
 
-Summarizing, if $h$ and $b$ are related
+Summarising, if $h$ and $b$ are related
 through the floating condition, the balance is always between the
 first lhs term and the rhs, but  the balance is between the second rhs
 term and the lhs if
@@ -7777,7 +7791,7 @@ where
 
 
 \subsection{Tensor of resisting stresses}
-In most modeling work the coordinate system is not tilted. For
+In most modelling work the coordinate system is not tilted. For
 $\alpha=0$ the vertically integrated form of the momentum equation in
 $x$ and $y$ directions is
 \begin{align}
@@ -8125,7 +8139,7 @@ it follows that
 Eq.~(\ref{eq:bcr}) is a boundary condition for the resistive stress
 tensor valid along a floating calving front.  Within an ice shelf, and along
 the grounding line, the resistive stress tensor will in general not
-fulfill this condition.
+fulfil this condition.
 
 
 We can define ice-shelf buttressing as the impact of the ice shelf on
@@ -8163,8 +8177,8 @@ the grounding line and $\mgl^T \cdot \ngl=0$.
 
 If we want to non-dimentionalise expressions (\ref{eq:Bn}) and
 (\ref{eq:Bt}) then we can do so in a number of different ways. We
-could for example normalize with the vertically integrated ocean
-pressure $|\tO|=\frac{1}{2} \rho_w g d^2$, or we could normalize using
+could for example normalise with the vertically integrated ocean
+pressure $|\tO|=\frac{1}{2} \rho_w g d^2$, or we could normalise using
 the magnitude of vertically integrated resistive stresses at a calving front, i.e.\ $h
 |\bm{R} \normalc|=\frac{1}{2} \varrho g h^2$. In ice shelves, and along
 grounding lines, horizontal deviatoric stresses are typically on the
@@ -8181,7 +8195,7 @@ and
   K_T&=\frac{\mgl^T \cdot ( \bm{t}_o - \tgl )}{h \normalc^T \cdot \bm{R} \normalc} \\
      &=\frac{2 \mgl^T \cdot \bm{R} \, \ngl }{\varrho g h} ,
 \end{align}
-which agrees with Gudmundsson 2013.\footnote{If we normalize with the
+which agrees with Gudmundsson 2013.\footnote{If we normalise with the
   (absolute value) of the vertically integrated ocean pressure
 \[
 T_N^{'}=\frac{\frac{1}{2} \varrho g h^2 - h \normalc^T \bm{R} \, \normalc}
@@ -8343,7 +8357,7 @@ Hence, to second order
 
 
 
-\chapter{Pertubation solutions of the SSTREAM/SSA}
+\chapter{Perturbation solutions of the SSTREAM/SSA}
 
 \section{Problem definition}
 We perform a small-amplitude perturbation analysis of the shallow ice
@@ -8486,7 +8500,7 @@ The Fourier transformed mass-conservation equation is
 -\I k \, \Delta u + \p_z  \Delta w =0.
 \label{eq:Masskl}
 \end{equation}
-The Fourier-Lapalce transformed linearized kinematic boundary
+The Fourier-Laplace transformed linearised kinematic boundary
 condition at the upper boundary (Eq.~(\ref{eq:kcs})) is
 \begin{equation}
 -\I k \bar{u} \,\Delta s +r \, \Delta s - \Delta s(t=0) -\Delta w =0,
@@ -8575,7 +8589,7 @@ semicircle in the left hand plane. We find that
 \end{equation}
 This transfer function describes the relation between surface and
 bedrock geometry, where $\Delta s(k,l,t)= \T_{sb}(k,l,t) \Delta
-b(k,l)$. Transfer functions giving the pertubations in velocity can be
+b(k,l)$. Transfer functions giving the perturbation in velocity can be
 calculated in the same manner.
 
 
@@ -8928,9 +8942,9 @@ We then find that the first-order field equations are
 4 \eta \bar{h} \p^2_{xx} \Delta u  -\gamma \Delta u 
 =\rho g \bar{h} \cos \alpha \p_x \Delta s - \rho g \sin \alpha \Delta h,
 \end{equation}
-and these can be solved using standart Fourier and Laplace
+and these can be solved using standard Fourier and Laplace
 transformation methods as done above for the case of bedrock
-pertubations.
+perturbation.
 
 
 \part{Appendices}
