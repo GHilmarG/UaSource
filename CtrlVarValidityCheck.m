@@ -228,7 +228,7 @@ if CtrlVar.InverseRun
             error(' CtrlVar invalied ')
     end
     
-    CtrlVar.Inverse.InvertForField=sort(replace(replace(replace(char(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A')) ;
+    CtrlVar.Inverse.InvertForField=sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A'))) ;
 
     if isempty(CtrlVar.Inverse.InvertForField)
         

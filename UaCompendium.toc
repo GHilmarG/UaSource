@@ -3,144 +3,146 @@
 \contentsline {part}{I\hspace {1em}\textsl {\'Ua}\tmspace +\thinmuskip {.1667em}Stuff}{1}
 \contentsline {chapter}{\numberline {1}Equations of ice flow}{3}
 \contentsline {section}{\numberline {1.1}Shallow Ice Stream Approximation (SSTREAM/SSA)}{3}
-\contentsline {section}{\numberline {1.2}Shallow Ice Shelf (SSHELF/SSA)}{3}
+\contentsline {section}{\numberline {1.2}Shallow Ice Shelf (SSHELF/SSA)}{4}
 \contentsline {section}{\numberline {1.3}Shallow Ice Sheet (SSHEET/SIA)}{4}
-\contentsline {section}{\numberline {1.4}Equation of mass conservation}{4}
-\contentsline {subsubsection}{Vertical velocities}{5}
-\contentsline {section}{\numberline {1.5}Sliding law}{5}
-\contentsline {subsection}{\numberline {1.5.1}Weertman sliding law limits}{6}
-\contentsline {section}{\numberline {1.6}Ocean drag term}{7}
+\contentsline {section}{\numberline {1.4}Equation of mass conservation}{5}
+\contentsline {subsubsection}{Vertical velocities}{6}
+\contentsline {section}{\numberline {1.5}Sliding law}{6}
+\contentsline {subsection}{\numberline {1.5.1}Weertman sliding law limits}{7}
+\contentsline {section}{\numberline {1.6}Ocean drag term}{8}
 \contentsline {section}{\numberline {1.7}Flow law}{8}
-\contentsline {section}{\numberline {1.8}Floating relationships}{8}
+\contentsline {section}{\numberline {1.8}Floating relationships}{9}
 \contentsline {section}{\numberline {1.9}Expressing geometrical variables in terms of ice thickness}{9}
-\contentsline {section}{\numberline {1.10}Stress boundary conditions at an ice front}{9}
-\contentsline {subsection}{\numberline {1.10.1}Floating}{10}
+\contentsline {section}{\numberline {1.10}Stress boundary conditions at an ice front}{10}
+\contentsline {subsection}{\numberline {1.10.1}Floating}{11}
 \contentsline {subsection}{\numberline {1.10.2}Grounded}{11}
 \contentsline {section}{\numberline {1.11}Boundary condition at a glacier terminus as a natural boundary condition}{11}
-\contentsline {section}{\numberline {1.12}SSTREAM in 1HD}{12}
-\contentsline {chapter}{\numberline {2}Finite-element implementation}{13}
-\contentsline {section}{\numberline {2.1}FE formulation of the diagnostic equations}{13}
-\contentsline {section}{\numberline {2.2}FE formulation of the prognostic equations}{14}
-\contentsline {subsection}{\numberline {2.2.1}Mass flux equation}{14}
-\contentsline {subsection}{\numberline {2.2.2}$\Theta $ method or the `generalised trapezoidal rule'}{14}
-\contentsline {subsection}{\numberline {2.2.3}Third order implicit Taylor Galerkin (TG3)}{14}
-\contentsline {subsubsection}{Third-order Taylor-Galerkin (TG3) for SSHEET/SSA}{15}
-\contentsline {subsubsection}{TG3 for SSTREAM/SSA}{15}
-\contentsline {section}{\numberline {2.3}Consistent Streamline-Upwind Petrov-Galerkin (SUPG)}{16}
-\contentsline {section}{\numberline {2.4}SIA-motivated diffusion}{20}
-\contentsline {section}{\numberline {2.5}Connection between third order Taylor-Galerkin (TG3) and streamline-upwind Petrov-Galerkin (SUPG)}{20}
-\contentsline {section}{\numberline {2.6}Implementing fully-implicit}{21}
-\contentsline {subsection}{\numberline {2.6.1}First-order fully implicit}{21}
-\contentsline {subsection}{\numberline {2.6.2}Fully implicit SSTREAM time integration with the $\Theta $ method}{22}
-\contentsline {subsubsection}{Third-order Taylor-Galerkin fully implicit}{24}
-\contentsline {subsection}{\numberline {2.6.3}Semi-implicit: $uv$ explicit, and $h$ implicit}{25}
-\contentsline {section}{\numberline {2.7}Transient implicit SSHEET/SIA with the $\Theta $ method}{26}
-\contentsline {subsection}{\numberline {2.7.1}SSHEET with no-flux natural boundary condition}{27}
-\contentsline {subsection}{\numberline {2.7.2}Transient SSHEET/SIA with a free-flux natural boundary condition}{28}
-\contentsline {section}{\numberline {2.8}Method of characteristics}{29}
-\contentsline {section}{\numberline {2.9}Taylor-Galerkin}{30}
-\contentsline {section}{\numberline {2.10}Third order implicit Taylor Galerkin (1HD)}{31}
-\contentsline {chapter}{\numberline {3}Constraints}{33}
-\contentsline {section}{\numberline {3.1}Linear system with multi-linear constraints}{33}
-\contentsline {section}{\numberline {3.2}Non-linear system with non-linear constraints}{33}
-\contentsline {section}{\numberline {3.3}FE formulation of the Newton-Raphson method with multi-linear constraints}{34}
-\contentsline {section}{\numberline {3.4}Thickness-positivity constraint}{35}
-\contentsline {subsection}{\numberline {3.4.1}Thickness barrier}{35}
-\contentsline {chapter}{\numberline {4}Solving the non-linear system}{37}
-\contentsline {section}{\numberline {4.1}Convergence criteria}{37}
-\contentsline {section}{\numberline {4.2}Line search}{37}
-\contentsline {chapter}{\numberline {5}Inverse modelling}{39}
-\contentsline {section}{\numberline {5.1}Objective functions}{39}
-\contentsline {section}{\numberline {5.2}Misfit functions in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{40}
-\contentsline {section}{\numberline {5.3}Regularisation in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{41}
-\contentsline {section}{\numberline {5.4}The adjoint method}{42}
-\contentsline {subsection}{\numberline {5.4.1}Summarising the adjoint approach}{44}
-\contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{44}
-\contentsline {section}{\numberline {5.6}Gradients of objective functions with respect to control variables}{46}
-\contentsline {subsection}{\numberline {5.6.1}Gradient calculation in 1HD with respect to $C$}{46}
-\contentsline {subsection}{\numberline {5.6.2}Gradient calculation in 1HD with respect to $A$}{47}
-\contentsline {subsection}{\numberline {5.6.3}Gradient calculation in 1HD with respect to $b$}{47}
-\contentsline {section}{\numberline {5.7}Inverting for $\qopname \relax o{log}p$}{48}
-\contentsline {section}{\numberline {5.8}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{49}
-\contentsline {section}{\numberline {5.9}Adjoint equations (Bayesian case with constraints on vertical velocity)}{50}
-\contentsline {section}{\numberline {5.10}Prognostic equations are formally self-adjoint}{50}
-\contentsline {section}{\numberline {5.11}Covariance kernels}{52}
-\contentsline {chapter}{\numberline {6}Further technical implementation details}{53}
-\contentsline {section}{\numberline {6.1}Only the (fully) floating condition as a natural boundary condition}{53}
-\contentsline {subsection}{\numberline {6.1.1}Remark}{53}
-\contentsline {subsection}{\numberline {6.1.2}FE formulation}{54}
-\contentsline {subsubsection}{$x$ direction}{54}
-\contentsline {subsubsection}{$y$ direction}{54}
-\contentsline {subsection}{\numberline {6.1.3}2HD FE diagnostic equation written in terms of $h$ (suitable for fully coupled approach)}{55}
-\contentsline {section}{\numberline {6.2}Element integrals}{55}
-\contentsline {section}{\numberline {6.3}Edge integrals}{57}
-\contentsline {subsection}{\numberline {6.3.1}Edge 12}{57}
-\contentsline {subsection}{\numberline {6.3.2}Edge $23$}{58}
-\contentsline {subsection}{\numberline {6.3.3}Edge $32$}{58}
-\contentsline {section}{\numberline {6.4}Various directional derivatives}{59}
-\contentsline {subsection}{\numberline {6.4.1}Directional derivative of draft with respect to ice thickness}{59}
-\contentsline {subsection}{\numberline {6.4.2}Linearisation of the 2HD forward problem needed for the adjoint method}{60}
-\contentsline {section}{\numberline {6.5}FE formulation and linearisation for the 1HD Problem}{61}
-\contentsline {subsection}{\numberline {6.5.1}Field equations and boundary conditions (1HD)}{61}
-\contentsline {section}{\numberline {6.6}Linearisation of field equations (1HD)}{61}
-\contentsline {subsection}{\numberline {6.6.1}Newton Rapson}{62}
-\contentsline {subsection}{\numberline {6.6.2}Connection to Picard iteration}{64}
-\contentsline {section}{\numberline {6.7}Linearisation in 2HD}{65}
-\contentsline {subsection}{\numberline {6.7.1}Drag-term linearisation (2HD)}{65}
-\contentsline {subsubsection}{Ocean drag term}{66}
-\contentsline {subsection}{\numberline {6.7.2}Flow law linearisation (2HD)}{66}
-\contentsline {subsection}{\numberline {6.7.3}Field-equation linearisation}{68}
-\contentsline {section}{\numberline {6.8}Weak form}{70}
-\contentsline {subsubsection}{$x$ direction}{70}
-\contentsline {subsubsection}{$y$ direction}{71}
-\contentsline {subsubsection}{Ice shelf}{71}
-\contentsline {section}{\numberline {6.9}Thoughts about ice shelf von Neumann BC}{72}
-\contentsline {subsection}{\numberline {6.9.1}1d case}{72}
-\contentsline {part}{II\hspace {1em}Glacier mechanics}{73}
-\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{77}
-\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{78}
-\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{79}
-\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{80}
-\contentsline {section}{\numberline {7.4}Shear stress}{81}
-\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{82}
-\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{84}
-\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{87}
-\contentsline {section}{\numberline {8.1}Problem definition:}{87}
-\contentsline {section}{\numberline {8.2}Solution:}{87}
-\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{89}
-\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{89}
-\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{89}
-\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{91}
-\contentsline {section}{\numberline {9.4}Flux at the grounding line}{92}
-\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{94}
-\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{95}
-\contentsline {section}{\numberline {9.7}Grounding-line instability}{96}
-\contentsline {chapter}{\numberline {10}Shallow Ice Stream Approximation (SSTREAM/SSA)}{97}
-\contentsline {section}{\numberline {10.1}Field equations and boundary conditions}{97}
-\contentsline {section}{\numberline {10.2}Shallow Ice Stream Scalings}{98}
-\contentsline {subsection}{\numberline {10.2.1}Definition of scales}{98}
-\contentsline {subsection}{\numberline {10.2.2}Scaling the equations}{99}
-\contentsline {subsubsection}{Sliding law}{100}
-\contentsline {subsubsection}{Flow law}{102}
-\contentsline {subsubsection}{Slip ratio}{104}
-\contentsline {subsubsection}{Implications of different balances for the slip ratio}{104}
-\contentsline {section}{\numberline {10.3}The SSTREAM (zeroth-order) equations}{105}
-\contentsline {subsection}{\numberline {10.3.1}Boundary conditions}{105}
-\contentsline {subsection}{\numberline {10.3.2}Field equations}{105}
-\contentsline {subsection}{\numberline {10.3.3}Vertical integration}{106}
-\contentsline {subsection}{\numberline {10.3.4}Tensor of resisting stresses}{107}
-\contentsline {subsection}{\numberline {10.3.5}Weertman sliding law}{107}
-\contentsline {section}{\numberline {10.4}The shallow ice shelf approximation (SSHELF)}{108}
-\contentsline {subsection}{\numberline {10.4.1}Boundary conditions at the calving front}{109}
-\contentsline {subsection}{\numberline {10.4.2}Ice Shelf Buttressing}{111}
-\contentsline {section}{\numberline {10.5}Scaling the sliding law}{113}
-\contentsline {chapter}{\numberline {11}Perturbation solutions of the SSTREAM/SSA}{115}
-\contentsline {section}{\numberline {11.1}Problem definition}{115}
-\contentsline {subsection}{\numberline {11.1.1}Bedrock perturbations}{115}
-\contentsline {subsection}{\numberline {11.1.2}Slipperiness perturbations}{124}
-\contentsline {part}{III\hspace {1em}Appendices}{129}
-\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{131}
-\contentsline {section}{\numberline {A.1}grounded part}{131}
-\contentsline {section}{\numberline {A.2}floating part}{132}
-\contentsline {chapter}{\numberline {B}Integral theorem}{133}
-\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{135}
+\contentsline {section}{\numberline {1.12}SSTREAM in 1HD}{13}
+\contentsline {chapter}{\numberline {2}Finite-element implementation}{15}
+\contentsline {section}{\numberline {2.1}FE formulation of the diagnostic equations}{15}
+\contentsline {section}{\numberline {2.2}FE formulation of the prognostic equations}{16}
+\contentsline {subsection}{\numberline {2.2.1}Mass flux equation}{16}
+\contentsline {subsection}{\numberline {2.2.2}$\Theta $ method or the `generalised trapezoidal rule'}{16}
+\contentsline {subsection}{\numberline {2.2.3}Third order implicit Taylor Galerkin (TG3)}{16}
+\contentsline {subsubsection}{Third-order Taylor-Galerkin (TG3) for SSHEET/SSA}{17}
+\contentsline {subsubsection}{TG3 for SSTREAM/SSA}{17}
+\contentsline {section}{\numberline {2.3}Consistent Streamline-Upwind Petrov-Galerkin (SUPG)}{18}
+\contentsline {section}{\numberline {2.4}SIA-motivated diffusion}{22}
+\contentsline {section}{\numberline {2.5}Connection between third order Taylor-Galerkin (TG3) and streamline-upwind Petrov-Galerkin (SUPG)}{22}
+\contentsline {section}{\numberline {2.6}Implementing fully-implicit}{23}
+\contentsline {subsection}{\numberline {2.6.1}First-order fully implicit}{23}
+\contentsline {subsection}{\numberline {2.6.2}Fully implicit SSTREAM time integration with the $\Theta $ method}{24}
+\contentsline {subsubsection}{Third-order Taylor-Galerkin fully implicit}{26}
+\contentsline {subsection}{\numberline {2.6.3}Semi-implicit: $uv$ explicit, and $h$ implicit}{27}
+\contentsline {section}{\numberline {2.7}Transient implicit SSHEET/SIA with the $\Theta $ method}{28}
+\contentsline {subsection}{\numberline {2.7.1}SSHEET with no-flux natural boundary condition}{29}
+\contentsline {subsection}{\numberline {2.7.2}Transient SSHEET/SIA with a free-flux natural boundary condition}{30}
+\contentsline {section}{\numberline {2.8}Method of characteristics}{31}
+\contentsline {section}{\numberline {2.9}Taylor-Galerkin}{32}
+\contentsline {section}{\numberline {2.10}Third order implicit Taylor Galerkin (1HD)}{33}
+\contentsline {chapter}{\numberline {3}Constraints}{35}
+\contentsline {section}{\numberline {3.1}Linear system with multi-linear constraints}{35}
+\contentsline {section}{\numberline {3.2}Non-linear system with non-linear constraints}{35}
+\contentsline {section}{\numberline {3.3}FE formulation of the Newton-Raphson method with multi-linear constraints}{36}
+\contentsline {section}{\numberline {3.4}Thickness-positivity constraint}{37}
+\contentsline {subsection}{\numberline {3.4.1}Thickness barrier}{37}
+\contentsline {chapter}{\numberline {4}Solving the non-linear system}{39}
+\contentsline {section}{\numberline {4.1}Convergence criteria}{39}
+\contentsline {section}{\numberline {4.2}Line search}{39}
+\contentsline {chapter}{\numberline {5}Inverse modelling}{41}
+\contentsline {section}{\numberline {5.1}Objective functions}{41}
+\contentsline {section}{\numberline {5.2}Misfit functions in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{42}
+\contentsline {section}{\numberline {5.3}Regularisation in \textsl {\'Ua}\tmspace +\thinmuskip {.1667em}}{43}
+\contentsline {section}{\numberline {5.4}The adjoint method}{44}
+\contentsline {subsection}{\numberline {5.4.1}Summarising the adjoint approach}{46}
+\contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{46}
+\contentsline {section}{\numberline {5.6}Simple example of a gradient calculation of an objective funcion}{48}
+\contentsline {section}{\numberline {5.7}Gradients of objective functions with respect to control variables}{49}
+\contentsline {subsection}{\numberline {5.7.1}Gradient calculation in 1HD with respect to $C$}{49}
+\contentsline {subsection}{\numberline {5.7.2}Gradient calculation in 1HD with respect to $A$}{50}
+\contentsline {subsection}{\numberline {5.7.3}Gradient calculation in 1HD with respect to $b$}{50}
+\contentsline {section}{\numberline {5.8}Using $\partial _t h$}{51}
+\contentsline {section}{\numberline {5.9}Inverting for $\qopname \relax o{log}p$}{51}
+\contentsline {section}{\numberline {5.10}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{52}
+\contentsline {section}{\numberline {5.11}Adjoint equations (Bayesian case with constraints on vertical velocity)}{52}
+\contentsline {section}{\numberline {5.12}Prognostic equations are formally self-adjoint}{53}
+\contentsline {section}{\numberline {5.13}Covariance kernels}{55}
+\contentsline {chapter}{\numberline {6}Further technical implementation details}{57}
+\contentsline {section}{\numberline {6.1}Only the (fully) floating condition as a natural boundary condition}{57}
+\contentsline {subsection}{\numberline {6.1.1}Remark}{57}
+\contentsline {subsection}{\numberline {6.1.2}FE formulation}{58}
+\contentsline {subsubsection}{$x$ direction}{58}
+\contentsline {subsubsection}{$y$ direction}{58}
+\contentsline {subsection}{\numberline {6.1.3}2HD FE diagnostic equation written in terms of $h$ (suitable for fully coupled approach)}{59}
+\contentsline {section}{\numberline {6.2}Element integrals}{59}
+\contentsline {section}{\numberline {6.3}Edge integrals}{61}
+\contentsline {subsection}{\numberline {6.3.1}Edge 12}{61}
+\contentsline {subsection}{\numberline {6.3.2}Edge $23$}{62}
+\contentsline {subsection}{\numberline {6.3.3}Edge $32$}{62}
+\contentsline {section}{\numberline {6.4}Various directional derivatives}{63}
+\contentsline {subsection}{\numberline {6.4.1}Directional derivative of draft with respect to ice thickness}{63}
+\contentsline {subsection}{\numberline {6.4.2}Linearisation of the 2HD forward problem needed for the adjoint method}{64}
+\contentsline {section}{\numberline {6.5}FE formulation and linearisation for the 1HD Problem}{65}
+\contentsline {subsection}{\numberline {6.5.1}Field equations and boundary conditions (1HD)}{65}
+\contentsline {section}{\numberline {6.6}Linearisation of field equations (1HD)}{65}
+\contentsline {subsection}{\numberline {6.6.1}Newton Rapson}{66}
+\contentsline {subsection}{\numberline {6.6.2}Connection to Picard iteration}{68}
+\contentsline {section}{\numberline {6.7}Linearisation in 2HD}{69}
+\contentsline {subsection}{\numberline {6.7.1}Drag-term linearisation (2HD)}{69}
+\contentsline {subsubsection}{Ocean drag term}{70}
+\contentsline {subsection}{\numberline {6.7.2}Flow law linearisation (2HD)}{70}
+\contentsline {subsection}{\numberline {6.7.3}Field-equation linearisation}{72}
+\contentsline {section}{\numberline {6.8}Weak form}{74}
+\contentsline {subsubsection}{$x$ direction}{74}
+\contentsline {subsubsection}{$y$ direction}{75}
+\contentsline {subsubsection}{Ice shelf}{75}
+\contentsline {section}{\numberline {6.9}Thoughts about ice shelf von Neumann BC}{76}
+\contentsline {subsection}{\numberline {6.9.1}1d case}{76}
+\contentsline {part}{II\hspace {1em}Glacier mechanics}{77}
+\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{81}
+\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{82}
+\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{83}
+\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{84}
+\contentsline {section}{\numberline {7.4}Shear stress}{85}
+\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{86}
+\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{88}
+\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{91}
+\contentsline {section}{\numberline {8.1}Problem definition:}{91}
+\contentsline {section}{\numberline {8.2}Solution:}{91}
+\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{93}
+\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{93}
+\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{93}
+\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{95}
+\contentsline {section}{\numberline {9.4}Flux at the grounding line}{96}
+\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{98}
+\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{99}
+\contentsline {section}{\numberline {9.7}Grounding-line instability}{100}
+\contentsline {chapter}{\numberline {10}Shallow Ice Stream Approximation (SSTREAM/SSA)}{101}
+\contentsline {section}{\numberline {10.1}Field equations and boundary conditions}{101}
+\contentsline {section}{\numberline {10.2}Shallow Ice Stream Scalings}{102}
+\contentsline {subsection}{\numberline {10.2.1}Definition of scales}{102}
+\contentsline {subsection}{\numberline {10.2.2}Scaling the equations}{103}
+\contentsline {subsubsection}{Sliding law}{104}
+\contentsline {subsubsection}{Flow law}{106}
+\contentsline {subsubsection}{Slip ratio}{108}
+\contentsline {subsubsection}{Implications of different balances for the slip ratio}{108}
+\contentsline {section}{\numberline {10.3}The SSTREAM (zeroth-order) equations}{109}
+\contentsline {subsection}{\numberline {10.3.1}Boundary conditions}{109}
+\contentsline {subsection}{\numberline {10.3.2}Field equations}{109}
+\contentsline {subsection}{\numberline {10.3.3}Vertical integration}{110}
+\contentsline {subsection}{\numberline {10.3.4}Tensor of resisting stresses}{111}
+\contentsline {subsection}{\numberline {10.3.5}Weertman sliding law}{111}
+\contentsline {section}{\numberline {10.4}The shallow ice shelf approximation (SSHELF)}{112}
+\contentsline {subsection}{\numberline {10.4.1}Boundary conditions at the calving front}{113}
+\contentsline {subsection}{\numberline {10.4.2}Ice Shelf Buttressing}{115}
+\contentsline {section}{\numberline {10.5}Scaling the sliding law}{117}
+\contentsline {chapter}{\numberline {11}Perturbation solutions of the SSTREAM/SSA}{119}
+\contentsline {section}{\numberline {11.1}Problem definition}{119}
+\contentsline {subsection}{\numberline {11.1.1}Bedrock perturbations}{119}
+\contentsline {subsection}{\numberline {11.1.2}Slipperiness perturbations}{128}
+\contentsline {part}{III\hspace {1em}Appendices}{133}
+\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{135}
+\contentsline {section}{\numberline {A.1}grounded part}{135}
+\contentsline {section}{\numberline {A.2}floating part}{136}
+\contentsline {chapter}{\numberline {B}Integral theorem}{137}
+\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{139}
