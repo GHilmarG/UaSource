@@ -1,7 +1,7 @@
-function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow,GF)
+function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
 
 nargoutchk(4,4)
-narginchk(7,8)
+narginchk(7,7)
 
 if ~ isstruct(CtrlVar)
    error('Calc_bs_From_hBSL:InputError','Incorrect inputs.')
@@ -36,10 +36,10 @@ end
 
 
 % Step 1:
-if nargin<=8
+%if nargin<=8
     hf=rhow*(S-B)./rho ;
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
-end
+%end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
