@@ -306,6 +306,13 @@ else  % Tikhonov regularization
     
 end
 
+
+
+
+
+
+
+
 R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
 ddRddp=CtrlVar.Inverse.Regularize.Multiplier*ddRddp;

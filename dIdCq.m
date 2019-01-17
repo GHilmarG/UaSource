@@ -78,9 +78,9 @@ switch CtrlVar.Inverse.AdjointGradientPreMultiplier
             figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; title('dIdC Mesh Dependend')
         end
         
-        dIdCnorm=norm(dIdC);
+        %dIdCnorm=norm(dIdC);
         dIdC=MUA.M\dIdC;
-        dIdC=dIdC*dIdCnorm/norm(dIdC);
+        %dIdC=dIdC*dIdCnorm/norm(dIdC);
         
         
         if CtrlVar.Inverse.InfoLevel>=10
