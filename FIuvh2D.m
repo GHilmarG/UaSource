@@ -87,10 +87,13 @@ else
             end
         end
         
-        % II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
-        % F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
+         II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
+         F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
         % However, I concluded (17 Dec, 2018) that it was better not to do this, as this can significantly inctrease the number of NR iterations.
         % Better to do this only if the iteration does not converge.
+        % And then again on 17 Jan, 2019, it was found that it's better to keep this, as not doing so was found to have adverse effects on
+        % NR convergence rate. The reason for this is a bit unclear. This happened in after remeshing step and that may play a role. Anyhow,
+        % decided to revert back to previous tried-and-tested approach. 
         
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;
         

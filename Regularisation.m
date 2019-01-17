@@ -297,7 +297,8 @@ else  % Tikhonov regularization
         dRdB=[];
     end
     
-    
+    [dRdAGlen,dRdb,dRdB,dRdC]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dRdAGlen,dRdb,dRdB,dRdC); 
+        
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
     ddRddp=[];
@@ -306,7 +307,12 @@ else  % Tikhonov regularization
     
 end
 
+    
 
+         
+
+
+    
 
 
 

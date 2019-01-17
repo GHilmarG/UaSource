@@ -273,35 +273,7 @@ for Inod=1:MUA.nod
     dIdb=dIdb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-
-
-switch CtrlVar.Inverse.AdjointGradientPreMultiplier
-    
-    case 'M'
-        
-        if ~isfield(MUA,'M')
-            MUA.M=MassMatrix2D1dof(MUA);
-        end
-        
-        if CtrlVar.Inverse.InfoLevel>=1000
-            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdb) ; title('dIdb Mesh Dependend')
-        end
-        
-        %dIdbnorm=norm(dIdb);
-        dIdb=MUA.M\dIdb;
-        %dIdb=dIdb*dIdbnorm/norm(dIdb);
-        
-        
-        if CtrlVar.Inverse.InfoLevel>=10
-            fprintf('Making dIdb mesh independent by premultiplying with the inverse of the mass matrix.\n')
-        end
-        
-        if CtrlVar.Inverse.InfoLevel>=1000
-            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdb) ; title('dIdb Mesh Independend')
-        end
-end
-
-
+dIdb=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dIdb);
 
 end
 
