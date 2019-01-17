@@ -331,7 +331,7 @@ and also
 \begin{equation}
 g(\rho h -\rho_o d) \p_x b  =  \G \, g(\rho h -\rho_o H^{+}) \p_x B .
 \end{equation}
-We can therfore also write the field equations as 
+We can therefore also write the field equations as 
 \begin{equation}
 \nabla_{xy} \cdot (h \, \bm{R}) - \bm{t}_{bh} = \frac{g}{2} \nabla_{xy}  ( \rho h^2 - \rho_0 d^2)   + g (\rho h - \rho_o d) \nabla_{xy} b,
 \label{eq:FEao4}
@@ -586,7 +586,7 @@ and $\bm{t}_b$ is the tangential component of the basal traction
 \bm{t}_b = -\bm{T} (\bm{\sigma}  \normal) . 
 \]
 We refer to $\bm{t}_b$ as {\em basal shear traction}.  Note that the
-shear tractions is, in general, not equal to basal shear stress.
+shear traction is, in general, not equal to basal shear stress.
 
 Since
 \[
@@ -3323,9 +3323,9 @@ and therefore
   D J(p)[\phi] = < (\p_p F)^\ast \lambda  + \p_p J \mid  \phi >,
   \label{eq:idder}
 \end{equation}
-which is identical to (\ref{eq:dder}) which we dervied earlier using a
+which is identical to (\ref{eq:dder}) which we derived earlier using a
 somewhat different approach.\footnote{Apparently the 'adjoint' method
-  gets its name from the fact that the resulting expressoin of the
+  gets its name from the fact that the resulting expression of the
   derivative of the cost function involves an adjoint of an
   operator. The adjoint involved is the adjoint of the directional
   derivative of the forward model $F$ with respect to the control
@@ -3411,12 +3411,15 @@ function with respect to the state variable $q$
 
 In the adjoint method we need to calculate a number of derivatives. These are:
 \begin{enumerate}
-\item The directional derivative of the forward model with respect to the state and control variables, i.e $\p_q F$ and $\p_p F$.
-\item The directional derivative of the objective function with respect to the state and control variables, i.e.\ $\p_q J$ and $\p_p J$.
+\item The directional derivative of the forward model with respect to
+  the state and control variables, i.e $\p_q F$ and $\p_p F$.
+\item The directional derivative of the objective function with
+  respect to the state and control variables, i.e.\ $\p_q J$ and $\p_p
+  J$.
 \end{enumerate}
 
 \subsection{Summarising the adjoint approach}
-
+\label{sec:adjointsum}
 Summarising, and using a somewhat inexact notation, we can calculate
 the directional derivative $d_p J$ of the objective function $J$ with respect
 to the control parameters $p$, as follows:
@@ -3427,6 +3430,13 @@ to the control parameters $p$, as follows:
   d_p J &= \p_p F^{*} \lambda + \p_p J
 \end{align}
 
+A bit more precise notation is:
+
+\begin{align}
+   < \delta_q F \mid \Delta q > & = -<F(q) \mid \delta_q> \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0  \\
+  <\delta_q F^{*} \mid \lambda > & = \delta_q J \\
+  \delta_p J &= < \p_p F^{*} \mid \lambda > + \delta_p J
+\end{align}
 
 
 
@@ -3551,7 +3561,7 @@ and the directional derivative is
 d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\tilde{\bm{p}})
 \]
 
-\section{Simple example of a gradient calculation of an objective funcion}
+\section{Simple example of a gradient calculation of an objective function}
 
 Consider, as an illustration, the problem of inverting for ice
 thickness $h$ using rates of elevation as observations. Here the
@@ -3574,10 +3584,10 @@ where the first term is the misfit term and the second one the regularisation te
  \]
 where $\dot{h}$ is the unknown,  although using FE we would solve this as
 \begin{align*}
-  F &= \int \left (\dot{h}  - \left ( a - \p_x ( u h ) \right ) \right ) \, \phi_j \; dA  \\
+  0=<F | \phi_j > &= \int \left (\dot{h}  - \left ( a - \p_x ( u h ) \right ) \right ) \, \phi_j \; dA  \\
     &= \int \left (\dot{h}_i \phi_i  - \left ( a - \p_x ( u  h ) \right ) \right ) \, \phi_j \; dA , \\
 \end{align*}
-or
+for each $j$, or
 \[
  \int \dot{h}_i \phi_i  \phi_j \; dA = \int \left ( a - \p_x ( u  h ) \right ) \, \phi_j \; dA , \\
 \]
@@ -3590,17 +3600,184 @@ where
   [\bm{M}]_{ij}&= \int \phi_i \phi_j \; dA \\
   [\bm{b}]_j&= \int \left ( a - \p_x ( u  h ) \right ) \, \phi_j \; dA  .\\
 \end{align}
+and therefore in discrete form the forward model 
+\[
+\bm{F}= 0.
+\]
+with
+\[
+\bm{F}= \bm{M} \dot{\bm{h}} - \bm{b} .
+\]
+We also find that using FE approach that
+\[
+    J = \frac{1}{2 \mathcal{A}} (\bm{\dot{h}}-\bm{\tilde{\dot{h}}})^T \bm{M}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}}) + \frac{1}{2\mathcal{A}} (\bm{h}-\bm{\tilde{h}})^T \bm{M}  (\bm{h}-\bm{\tilde{h}})
+\]
 
 
 The task at hand is to calculate the directional derivative (see Appendix \ref{sec:dder}) of the
-object funcion $J$ with respect to the control variable $h$, i.e.\
+object function $J$ with respect to the control variable $h$, i.e.\
 \[
-\delta_h J = D J(h)[\delta h]= \lim_{\epsilon \to 0} \frac{d}{d \epsilon} J(h+\epsilon \delta h)
+\delta_h J = D J(h)[\delta h]= \lim_{\epsilon \to 0} \frac{d}{d \epsilon} J(h+\epsilon \, \delta h)
 \]
 
 
 
 
+\subsection{Direct approach}
+Since the forward model is so simple we can just take the derivative
+directly by inserting the forward model $F$ into the objective
+function $J$, leading to
+\begin{equation}
+\delta_h J = \frac{1}{\mathcal{A}} \int \left (\dot{h} -
+\tilde{\dot{h}} \right ) \, \p_x (u \,\delta h) \; dA +
+\frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \delta h \; dA ,
+\label{eq:djH}
+\end{equation}
+so that was easy.
+
+One can now ask the question what this directional derivative looks
+like in a FE setting. Assuming that all variables are expanded in the
+same FE basis, i.e.\ $f=f_i \phi_i$ where $f$ is any of  $u$, $h$, $\dot{h}$ and also
+\[
+\delta_h J = (\delta_h J)_i \phi_i
+\]
+we would solve for the coefficients $(\delta_h J)_i$ in the expansion
+$\delta_h J = (\delta_h J)_i \phi_i$ in the usual FE manner by requiring
+\[
+ < (\delta_h J)_i \phi_i- \delta_h J  | \phi_j> =0 ,
+ \]
+ for all $j$ values, and therefore\footnote{There appears to be some confusion in the literature
+  regarding this point and sometimes (often, practically always)
+  the expression given for the directional derivative is something like
+\[
+(\delta_h J)_j    = \frac{1}{\mathcal{A}} \int \left (\dot{h} - \tilde{\dot{h}} \right ) \,   (\p_x u \; \phi_j + u \, \p_x \phi_j) \; dA + \frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \phi_j \; dA  ,
+\quad \text{(wrong!)}
+\]
+and in fact inversion can be successfully done using this
+derivative. However, this `derivative' will be intimately related to the
+the structure of the FE approximation used, both the basis and the
+discretisation. This expression for the `derivative' is simply an
+example of a FE assembly. It does note represent the values of the
+coefficients of the derivative in the FE basis. The correct expression is Eq.~(\ref{eq:dJFE}). }
+\begin{equation}
+\int (\delta_h J)_i \, \phi_i \, \phi_j\, dA = \frac{1}{\mathcal{A}}
+\int \left (\dot{h} - \tilde{\dot{h}} \right ) \, (\p_x u \; \phi_j +
+u \, \p_x \phi_j) \; dA + \frac{1}{\mathcal{A}} \int \left ( h -
+\tilde{h} \right ) \, \phi_j \; dA .
+\label{eq:dJFE}
+\end{equation}
+Hence, the directional derivative vector, formed by ordering the
+coefficients $(\delta_h J)_i$ according to nodal numbers, is
+\[
+\bm{\delta_h J} = \bm{M}^{-1} \bm{k} ,
+\]
+where
+\[
+[\bm{k}]_j = \frac{1}{\mathcal{A}} \int \left (\dot{h} - \tilde{\dot{h}} \right ) \,  (\p_x u \; \phi_j + u \, \p_x \phi_j) \; dA + \frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \phi_j \; dA .
+\]
+
+
+\subsection{Adjoint approach}
+For those who like to make things complicated and suffer there is
+always the round-about-way of arriving at simple answers.
+
+We follow the recipe provided in section~\ref{sec:adjointsum}.
+
+\subsubsection{First, solve the forward model:}
+First we calculate
+\[
+\p_q F \, \Delta q  = -F(q) \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0,  \\
+\]
+which in this particular case is for $q=\dot{h}$ is
+\[
+ 1 \; \Delta \dot{h} = - \dot{h}_0 + a - \p_x (u h_0),
+\]
+since $\p_{\dot{h}} F = 1 $, or
+\[
+ h_1 = \Delta \dot{h} + \dot{h}_0 = a - \p_x (u h_o),
+\]
+since this is a linear forward model the NR iteration converges in first iteration.
+
+\subsubsection{Secondly, solve the adjoint problem:}
+The adjoint problem is
+\[
+\p_{\dot{h}} F^{*} \lambda  = \p_{\dot{h}} J ,
+\]
+or
+\[
+1^{*} \lambda = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \delta \dot{h} \; dA.
+\]
+We can ask what the $1$ actually stands for in this context, and the
+answer is that this is the unity operator in the relevant basis,
+i.e.\ the inner product between the unit vectors spanning the space,
+or the Gramian matrix. In the FE context were the basis functions are
+$\phi_i$ this matrix is the mass matrix $[\bm{M}]_{ij}= < \phi_i \mid \phi_j > $.
+
+
+To see this more clearly let us calculate the directional derivative
+from the FE formulation of the forward problem while realising that
+$\p_{\dot{h}}^* \lambda$ represents an inner product, i.e.\ we need to evaluate
+\begin{align*}
+  < \delta_{\dot{h}} F \mid \lambda > &= \int  \delta_{\dot{h}} \left (\dot{h}  - \left ( a - \p_x ( u  h ) \right ) \right ) \, \lambda \; dA  \\
+  &= \int \phi_i  \, \lambda \; dA  \\
+  &= \int \phi_i  \, \phi_j \lambda_j \; dA  \\
+  &= [\bm{M}]_{ij} \lambda_j , \\
+\end{align*}
+showing that the expression $ 1 \lambda$ is in FE context given by
+$\bm{M} \bm{\lambda}$. Also note that the term $\p_{\dot{h}} J$ is in
+fact a directional derivative and, again in FE context, reads
+\[
+\delta_{\dot{h}} = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA .
+\]
+Hence, the adjoint problem is
+\[
+\bm{M} \bm{\lambda} = \bm{l}} ,
+\]
+where
+\[
+[\bm{l}]_j= \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA .
+\]
+The vector $\bm{l}$ is
+\begin{align*}
+  \bm{l} & = \frac{1}{\mathcal{A}} \int \left (\dot{h}_i-\tilde{\dot{h}_i} \right ) \phi_i \phi_j \; dA\\
+  & =   \left (\dot{h}_i-\tilde{\dot{h}}_i \right ) \frac{1}{\mathcal{A}} \int \phi_i \phi_j \; dA\\
+  & = \frac{1}{\mathcal{A}} \bm{M} (\bm{\dot{h}} - \bm{\tilde{\dot{h}}}) ,
+\end{align*}
+and the adjoint equations therefore simply $\bm{\lambda} = \frac{1}{\mathcal{A}}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}})$.
+
+We can also arrive at the adjoint equation directly from the discrete form of the
+equations, as derived above, where the forward model and the object function are given by
+\begin{align*}
+\bm{F} & = \bm{M} \dot{\bm{h}} - \bm{b} , \\
+    J & = \frac{1}{2 \mathcal{A}} (\bm{\dot{h}}-\bm{\tilde{\dot{h}}})^T \bm{M}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}}) + \frac{1}{2\mathcal{A}} (\bm{h}-\bm{\tilde{h}})^T \bm{M}  (\bm{h}-\bm{\tilde{h}}).
+\end{align*}
+It follows that $ \p_{\dot{h}} \bm{F} = \bm{M} $
+and $\p_{\dot{h}} J = \frac{1}{\mathcal{A}} \bm{M}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}})$ and the adjoint equation is
+\[
+\bm{M} \bm{\lambda} = \frac{1}{\mathcal{A}} \bm{M}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}}),
+\]
+and we again arrive at
+\[
+\bm{\lambda} = \frac{1}{\mathcal{A}}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}}).
+\]
+
+\subsubsection{Thirdly, evaluate the directional derivative:}
+The directional derivative is the given by
+\[
+d_{h} J = \p_{h} F^{*} \lambda + \p_{h} J .
+\]
+We are now suffering from the fact that the notation in
+section~\ref{sec:adjointsum} is a bit relaxed. Since $F$ is an
+operator we need to remember that the first term on the right-hand
+side is an inner product and we need to evaluate
+\[
+\delta_{h} J = < \delta_{h} F^{*} \mid \lambda > + \, \delta_{h} J .
+\]
+where the $\delta$ symbols indicates that these are directional derivative. This leads to
+\[
+  \delta_p J = \frac{1}{\mathcal{A}} \int \left ( \dot{h}-\tilde{\dot{h}} \right ) \p_x (u \, \delta h)  \; dA     + \frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \delta h \; dA ,
+\]
+which is same as (\ref{eq:djH}).
 
 \section{Gradients of objective functions with respect to control variables}
 
@@ -3758,7 +3935,7 @@ and therefore
   \p_p J=  \p_p R 
 \]
 But if we solve for $b$ and use $p_t h$ as a constraint, calculated as
-$a-\p_x (uh)$ we now have $b$ explicitly both in the mistfit term $I$
+$a-\p_x (uh)$ we now have $b$ explicitly both in the misfit term $I$
 and in the regularisation term $R$, so $\p_b J$ has now this
 additional $I$ term.
 

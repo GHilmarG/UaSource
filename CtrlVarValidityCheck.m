@@ -136,20 +136,21 @@ if CtrlVar.InverseRun
         
     end
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),'Aglen')
+    % Don't regularize A if not inverting for A, so
+    if ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
         
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
         
     end
     
+    % Don't regularize C if not inverting for C
     if ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
         
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logc','');
         CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'c','');
         
     end
-    
  
     
     if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c","b"])

@@ -186,390 +186,398 @@
 \newlabel{eq:dder}{{5.13}{45}}
 \newlabel{eq:idder}{{5.14}{45}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.4.1}Summarising the adjoint approach}{46}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{46}}
-\newlabel{sec:gradev}{{5.5}{46}}
-\newlabel{eq:I1}{{5.18}{47}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.6}Simple example of a gradient calculation of an objective funcion}{48}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.7}Gradients of objective functions with respect to control variables}{49}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Gradient calculation in 1HD with respect to $C$}{49}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Gradient calculation in 1HD with respect to $A$}{50}}
-\newlabel{eq:dder2}{{5.25}{50}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Gradient calculation in 1HD with respect to $b$}{50}}
-\newlabel{eq:dder2}{{5.26}{50}}
-\newlabel{eq:SSTREAM1d6}{{5.27}{50}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.8}Using $\partial _t h$}{51}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.9}Inverting for $\qopname  \relax o{log}p$}{51}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.10}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{52}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.11}Adjoint equations (Bayesian case with constraints on vertical velocity)}{52}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.12}Prognostic equations are formally self-adjoint}{53}}
-\newlabel{eq:A1x}{{5.28}{53}}
-\newlabel{eq:A1y}{{5.29}{53}}
-\@writefile{toc}{\contentsline {section}{\numberline {5.13}Covariance kernels}{55}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {6}Further technical implementation details}{57}}
+\newlabel{sec:adjointsum}{{5.4.1}{46}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}Evaluating objective functions and their directional derivatives}{47}}
+\newlabel{sec:gradev}{{5.5}{47}}
+\newlabel{eq:I1}{{5.21}{47}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Simple example of a gradient calculation of an objective function}{48}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}Direct approach}{49}}
+\newlabel{eq:djH}{{5.28}{49}}
+\newlabel{eq:dJFE}{{5.29}{50}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}Adjoint approach}{50}}
+\@writefile{toc}{\contentsline {subsubsection}{First, solve the forward model:}{50}}
+\@writefile{toc}{\contentsline {subsubsection}{Secondly, solve the adjoint problem:}{50}}
+\@writefile{toc}{\contentsline {subsubsection}{Thirdly, evaluate the directional derivative:}{51}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}Gradients of objective functions with respect to control variables}{52}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Gradient calculation in 1HD with respect to $C$}{52}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Gradient calculation in 1HD with respect to $A$}{52}}
+\newlabel{eq:dder2}{{5.30}{52}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Gradient calculation in 1HD with respect to $b$}{53}}
+\newlabel{eq:dder2}{{5.31}{53}}
+\newlabel{eq:SSTREAM1d6}{{5.32}{53}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.8}Using $\partial _t h$}{54}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.9}Inverting for $\qopname  \relax o{log}p$}{54}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.10}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{54}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.11}Adjoint equations (Bayesian case with constraints on vertical velocity)}{55}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.12}Prognostic equations are formally self-adjoint}{55}}
+\newlabel{eq:A1x}{{5.33}{55}}
+\newlabel{eq:A1y}{{5.34}{55}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.13}Covariance kernels}{57}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {6}Further technical implementation details}{59}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {6.1}Only the (fully) floating condition as a natural boundary condition}{57}}
-\newlabel{eq:sdot}{{6.1}{57}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Remark}{57}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}FE formulation}{58}}
-\@writefile{toc}{\contentsline {subsubsection}{$x$ direction}{58}}
-\@writefile{toc}{\contentsline {subsubsection}{$y$ direction}{58}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}2HD FE diagnostic equation written in terms of $h$ (suitable for fully coupled approach)}{59}}
-\newlabel{eq:sdoth}{{6.4}{59}}
-\newlabel{eq:rph2d}{{6.5}{59}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.2}Element integrals}{59}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.3}Edge integrals}{61}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.1}Edge 12}{61}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.2}Edge $23$}{62}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.3}Edge $32$}{62}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.4}Various directional derivatives}{63}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.1}Directional derivative of draft with respect to ice thickness}{63}}
-\newlabel{eq:Dhd}{{6.6}{63}}
-\newlabel{eq:ddr}{{6.7}{63}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.2}Linearisation of the 2HD forward problem needed for the adjoint method}{64}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.5}FE formulation and linearisation for the 1HD Problem}{65}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.1}Field equations and boundary conditions (1HD)}{65}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.6}Linearisation of field equations (1HD)}{65}}
-\newlabel{eq:4px}{{6.10}{65}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.1}Newton Rapson}{66}}
-\newlabel{eq:fouree}{{6.13}{66}}
-\newlabel{eq:foure}{{6.14}{66}}
-\newlabel{eq:pthp}{{6.16}{67}}
-\newlabel{eq:rph}{{6.17}{67}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.2}Connection to Picard iteration}{68}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.7}Linearisation in 2HD}{69}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.1}Drag-term linearisation (2HD)}{69}}
-\@writefile{toc}{\contentsline {subsubsection}{Ocean drag term}{70}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.2}Flow law linearisation (2HD)}{70}}
-\newlabel{eq:deuv}{{6.30}{72}}
-\newlabel{eq:dddd}{{6.31}{72}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.3}Field-equation linearisation}{72}}
-\newlabel{eq:4hDe}{{6.34}{73}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.8}Weak form}{74}}
-\@writefile{toc}{\contentsline {subsubsection}{$x$ direction}{74}}
-\@writefile{toc}{\contentsline {subsubsection}{$y$ direction}{75}}
-\@writefile{toc}{\contentsline {subsubsection}{Ice shelf}{75}}
-\@writefile{toc}{\contentsline {section}{\numberline {6.9}Thoughts about ice shelf von Neumann BC}{76}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.9.1}1d case}{76}}
-\newlabel{eq:bc1d}{{6.40}{76}}
-\@writefile{toc}{\contentsline {part}{II\hspace  {1em}Glacier mechanics}{77}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{81}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.1}Only the (fully) floating condition as a natural boundary condition}{59}}
+\newlabel{eq:sdot}{{6.1}{59}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.1}Remark}{59}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.2}FE formulation}{60}}
+\@writefile{toc}{\contentsline {subsubsection}{$x$ direction}{60}}
+\@writefile{toc}{\contentsline {subsubsection}{$y$ direction}{60}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1.3}2HD FE diagnostic equation written in terms of $h$ (suitable for fully coupled approach)}{61}}
+\newlabel{eq:sdoth}{{6.4}{61}}
+\newlabel{eq:rph2d}{{6.5}{61}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.2}Element integrals}{61}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.3}Edge integrals}{63}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.1}Edge 12}{63}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.2}Edge $23$}{64}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3.3}Edge $32$}{64}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.4}Various directional derivatives}{65}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.1}Directional derivative of draft with respect to ice thickness}{65}}
+\newlabel{eq:Dhd}{{6.6}{65}}
+\newlabel{eq:ddr}{{6.7}{65}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4.2}Linearisation of the 2HD forward problem needed for the adjoint method}{66}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.5}FE formulation and linearisation for the 1HD Problem}{67}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5.1}Field equations and boundary conditions (1HD)}{67}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.6}Linearisation of field equations (1HD)}{67}}
+\newlabel{eq:4px}{{6.10}{67}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.1}Newton Rapson}{68}}
+\newlabel{eq:fouree}{{6.13}{68}}
+\newlabel{eq:foure}{{6.14}{68}}
+\newlabel{eq:pthp}{{6.16}{69}}
+\newlabel{eq:rph}{{6.17}{69}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6.2}Connection to Picard iteration}{70}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.7}Linearisation in 2HD}{71}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.1}Drag-term linearisation (2HD)}{71}}
+\@writefile{toc}{\contentsline {subsubsection}{Ocean drag term}{72}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.2}Flow law linearisation (2HD)}{72}}
+\newlabel{eq:deuv}{{6.30}{74}}
+\newlabel{eq:dddd}{{6.31}{74}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7.3}Field-equation linearisation}{74}}
+\newlabel{eq:4hDe}{{6.34}{75}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.8}Weak form}{76}}
+\@writefile{toc}{\contentsline {subsubsection}{$x$ direction}{76}}
+\@writefile{toc}{\contentsline {subsubsection}{$y$ direction}{77}}
+\@writefile{toc}{\contentsline {subsubsection}{Ice shelf}{77}}
+\@writefile{toc}{\contentsline {section}{\numberline {6.9}Thoughts about ice shelf von Neumann BC}{78}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.9.1}1d case}{78}}
+\newlabel{eq:bc1d}{{6.40}{78}}
+\@writefile{toc}{\contentsline {part}{II\hspace  {1em}Glacier mechanics}{79}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {7}An ice shelf in one horizontal dimension (1HD).}{83}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{eq:szz}{{7.1}{81}}
-\newlabel{eq:hs1b}{{7.2}{81}}
-\newlabel{eq:bh1b}{{7.3}{81}}
-\newlabel{eq:sb2b}{{7.4}{81}}
-\newlabel{eq:f2}{{7.5}{81}}
-\newlabel{eq:mbic1}{{7.6}{81}}
-\newlabel{eq:1dstressf}{{7.7}{81}}
-\newlabel{eq:1dstressfb}{{7.8}{81}}
-\newlabel{eq:feq2}{{7.9}{82}}
-\newlabel{eq:ssasxx}{{7.10}{82}}
-\newlabel{eq:p2}{{7.11}{82}}
-\newlabel{eq:sxx2}{{7.12}{82}}
-\newlabel{eq:AGlen}{{7.13}{82}}
-\newlabel{eq:taueff}{{7.14}{82}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{82}}
-\newlabel{eq:pshelf}{{7.16}{82}}
-\newlabel{eq:2ht}{{7.18}{83}}
-\newlabel{eq:bcstress1}{{7.19}{83}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{83}}
-\newlabel{eq:bcstressu2}{{7.20}{83}}
-\newlabel{eq:bcstressu}{{7.21}{83}}
-\newlabel{eq:bcstressu3}{{7.22}{84}}
-\newlabel{eq:bcstressu4}{{7.23}{84}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{84}}
-\newlabel{eq:exx1HDf}{{7.25}{84}}
-\newlabel{eq:exx1HD}{{7.26}{84}}
-\newlabel{eq:sxx4}{{7.27}{84}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.4}Shear stress}{85}}
-\newlabel{eq:txz1}{{7.29}{85}}
-\newlabel{eq:txzs}{{7.30}{85}}
-\newlabel{eq:txzb}{{7.31}{85}}
-\newlabel{eq:sxz2}{{7.32}{85}}
-\newlabel{eq:sxz3}{{7.33}{85}}
-\newlabel{eq:shelfstresses}{{7.34}{85}}
-\newlabel{eq:shelfdevstresses}{{7.35}{85}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7.1}{\ignorespaces Left: Stresses within a one-dimensional ice shelf. Horizontal Cauchy stresses are positive at the surface and negative below $z=d/2$ where $d$ is the is ice shelf draft. Horizontal and vertical deviatoric stresses are independent of depth, and horizontal deviatoric stresses positive while vertical deviatoric stresses are negative. Parameters: $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg\tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $h= 100 \tmspace  +\thinmuskip {.1667em} \mathrm  {m}$.\relax }}{86}}
-\newlabel{fig:stresses}{{7.1}{86}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{86}}
-\newlabel{eq:exx1HDb}{{7.36}{86}}
-\newlabel{eq:pq}{{7.37}{86}}
-\newlabel{eq:uhq}{{7.38}{86}}
-\newlabel{eq:uuh}{{7.39}{86}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7.2}{\ignorespaces Analytical ice shelf profile. The left hand figure is for an accumulation of $a=0.3\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$, while the figure on the right was made for $a=-1\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$. All other parameters are the same in both cases. Parameters: $A=1.14 \times 10^{-9}\tmspace  +\thinmuskip {.1667em}\mathrm  {kPa^{-3} a^{-1}}$, $n=3$, $h_{gl}=2000\tmspace  +\thinmuskip {.1667em}\mathrm  {m}$, $u_{gl}=300\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$, $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$. The value for $A$ corresponds to an ice temperature of about -10 degrees Celsius.\relax }}{87}}
-\newlabel{fig:alp}{{7.2}{87}}
-\newlabel{eq:gxh}{{7.41}{87}}
-\newlabel{eq:gxh3}{{7.42}{87}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7.3}{\ignorespaces  Steady-state ice shelf thickness as a function of englacial temperature and surface accumulation. Parameters: $n=3$, $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$.\relax }}{88}}
-\newlabel{fig:ssiceshelf}{{7.3}{88}}
-\@writefile{toc}{\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{88}}
-\newlabel{eq:stressx2b}{{7.45}{89}}
-\newlabel{eq:stressy2b}{{7.46}{89}}
-\newlabel{eq:stressx2c}{{7.47}{89}}
-\newlabel{eq:stressy2c}{{7.48}{89}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{91}}
+\newlabel{eq:szz}{{7.1}{83}}
+\newlabel{eq:hs1b}{{7.2}{83}}
+\newlabel{eq:bh1b}{{7.3}{83}}
+\newlabel{eq:sb2b}{{7.4}{83}}
+\newlabel{eq:f2}{{7.5}{83}}
+\newlabel{eq:mbic1}{{7.6}{83}}
+\newlabel{eq:1dstressf}{{7.7}{83}}
+\newlabel{eq:1dstressfb}{{7.8}{83}}
+\newlabel{eq:feq2}{{7.9}{84}}
+\newlabel{eq:ssasxx}{{7.10}{84}}
+\newlabel{eq:p2}{{7.11}{84}}
+\newlabel{eq:sxx2}{{7.12}{84}}
+\newlabel{eq:AGlen}{{7.13}{84}}
+\newlabel{eq:taueff}{{7.14}{84}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.1}Boundary condition at the calving front}{84}}
+\newlabel{eq:pshelf}{{7.16}{84}}
+\newlabel{eq:2ht}{{7.18}{85}}
+\newlabel{eq:bcstress1}{{7.19}{85}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.2}The SSA as an expression of horizontal force balance.}{85}}
+\newlabel{eq:bcstressu2}{{7.20}{85}}
+\newlabel{eq:bcstressu}{{7.21}{85}}
+\newlabel{eq:bcstressu3}{{7.22}{86}}
+\newlabel{eq:bcstressu4}{{7.23}{86}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.3}Stresses and strains within a one-dimensional plane-strain ice shelf}{86}}
+\newlabel{eq:exx1HDf}{{7.25}{86}}
+\newlabel{eq:exx1HD}{{7.26}{86}}
+\newlabel{eq:sxx4}{{7.27}{86}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.4}Shear stress}{87}}
+\newlabel{eq:txz1}{{7.29}{87}}
+\newlabel{eq:txzs}{{7.30}{87}}
+\newlabel{eq:txzb}{{7.31}{87}}
+\newlabel{eq:sxz2}{{7.32}{87}}
+\newlabel{eq:sxz3}{{7.33}{87}}
+\newlabel{eq:shelfstresses}{{7.34}{87}}
+\newlabel{eq:shelfdevstresses}{{7.35}{87}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7.1}{\ignorespaces Left: Stresses within a one-dimensional ice shelf. Horizontal Cauchy stresses are positive at the surface and negative below $z=d/2$ where $d$ is the is ice shelf draft. Horizontal and vertical deviatoric stresses are independent of depth, and horizontal deviatoric stresses positive while vertical deviatoric stresses are negative. Parameters: $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg\tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $h= 100 \tmspace  +\thinmuskip {.1667em} \mathrm  {m}$.\relax }}{88}}
+\newlabel{fig:stresses}{{7.1}{88}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.5}Steady-state geometry of a 1HD plane-strain ice sheet}{88}}
+\newlabel{eq:exx1HDb}{{7.36}{88}}
+\newlabel{eq:pq}{{7.37}{88}}
+\newlabel{eq:uhq}{{7.38}{88}}
+\newlabel{eq:uuh}{{7.39}{88}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7.2}{\ignorespaces Analytical ice shelf profile. The left hand figure is for an accumulation of $a=0.3\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$, while the figure on the right was made for $a=-1\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$. All other parameters are the same in both cases. Parameters: $A=1.14 \times 10^{-9}\tmspace  +\thinmuskip {.1667em}\mathrm  {kPa^{-3} a^{-1}}$, $n=3$, $h_{gl}=2000\tmspace  +\thinmuskip {.1667em}\mathrm  {m}$, $u_{gl}=300\tmspace  +\thinmuskip {.1667em}\mathrm  {m\tmspace  +\thinmuskip {.1667em}a^{-1}}$, $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$. The value for $A$ corresponds to an ice temperature of about -10 degrees Celsius.\relax }}{89}}
+\newlabel{fig:alp}{{7.2}{89}}
+\newlabel{eq:gxh}{{7.41}{89}}
+\newlabel{eq:gxh3}{{7.42}{89}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7.3}{\ignorespaces  Steady-state ice shelf thickness as a function of englacial temperature and surface accumulation. Parameters: $n=3$, $\rho =910 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$, $\rho _o=1030 \tmspace  +\thinmuskip {.1667em} \mathrm  {kg \tmspace  +\thinmuskip {.1667em} m^{-3}}$.\relax }}{90}}
+\newlabel{fig:ssiceshelf}{{7.3}{90}}
+\@writefile{toc}{\contentsline {section}{\numberline {7.6}Side-drag dominated ice shelf}{90}}
+\newlabel{eq:stressx2b}{{7.45}{91}}
+\newlabel{eq:stressy2b}{{7.46}{91}}
+\newlabel{eq:stressx2c}{{7.47}{91}}
+\newlabel{eq:stressy2c}{{7.48}{91}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {8}Simple 1d solution for an icestream}{93}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {8.1}Problem definition:}{91}}
-\newlabel{eq:bc1}{{8.1}{91}}
-\newlabel{eq:bc2}{{8.2}{91}}
-\@writefile{toc}{\contentsline {section}{\numberline {8.2}Solution:}{91}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{93}}
+\@writefile{toc}{\contentsline {section}{\numberline {8.1}Problem definition:}{93}}
+\newlabel{eq:bc1}{{8.1}{93}}
+\newlabel{eq:bc2}{{8.2}{93}}
+\@writefile{toc}{\contentsline {section}{\numberline {8.2}Solution:}{93}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {9}Grounding-line dynamics}{95}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{93}}
-\newlabel{eq:Butt}{{9.2}{93}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{93}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9.1}{\ignorespaces Geometrical variables: Glacier surface ($s$), glacier bed ($b$), ocean surface ($S$), ocean floor ($B$), glacier thickness ($h=s-b$)), ocean depth ($H=S-B$), glacier draft ($d=S-b$), glacier freeboard ($f=s-S$). \relax }}{94}}
-\newlabel{fig:PG2}{{9.1}{94}}
-\newlabel{eq:dgl}{{9.3}{94}}
-\newlabel{eq:dhdt}{{9.4}{94}}
-\newlabel{eq:dHdt}{{9.5}{94}}
-\newlabel{eq:glkin1}{{9.6}{94}}
-\newlabel{eq:glkin3}{{9.7}{94}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{95}}
-\newlabel{eq:mean}{{9.8}{95}}
-\newlabel{eq:dLtide}{{9.9}{95}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9.2}{\ignorespaces Example of grounding line migration in response to tidal forcing using the hydrostatic assumption. The curves were calculated using the flow model \'Ua which is a vertically integrated flow model that calculates grounding line positions using the hydrostatic assumption. The red curve was calculated for a constant surface slope of $ds/dx=-0.001$ and blue curve for a constant thickness gradient of $dh/dx=-0.001$. In both cases the bedrock gradient as $dB/dx=-0.01$. The tidal amplitude was 2 m and the tidal period 1 d. To suppress the effects of ice flow the flow parameters were set to values that made the ice effectively rigid and basal sliding was enforced to be close to zero. \relax }}{96}}
-\newlabel{fig:dLTide}{{9.2}{96}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.4}Flux at the grounding line}{96}}
-\newlabel{sec:FGL}{{9.4}{96}}
-\newlabel{eq:fu}{{9.10}{96}}
-\newlabel{eq:fs}{{9.11}{97}}
-\newlabel{eq:We3}{{9.12}{97}}
-\newlabel{eq:fc}{{9.13}{97}}
-\newlabel{eq:ghp}{{9.14}{97}}
-\newlabel{eq:ghp2}{{9.15}{97}}
-\newlabel{eq:ghp2b}{{9.16}{97}}
-\newlabel{eq:uch}{{9.17}{97}}
-\newlabel{eq:ass}{{9.18}{97}}
-\newlabel{eq:ahu}{{9.19}{97}}
-\newlabel{eq:ahA}{{9.20}{97}}
-\newlabel{eq:uch2}{{9.21}{97}}
-\newlabel{eq:Schoofhq}{{9.22}{98}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{98}}
-\newlabel{eq:velssa}{{9.23}{98}}
-\newlabel{eq:bc1b}{{9.24}{98}}
-\newlabel{eq:bc2b}{{9.25}{98}}
-\newlabel{eq:velssa2}{{9.5}{98}}
-\newlabel{eq:velssa3}{{9.5}{98}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{99}}
-\newlabel{eq:vel}{{9.1}{99}}
-\newlabel{eq:stress}{{9.2}{99}}
-\newlabel{eq:bc1c}{{9.3}{99}}
-\newlabel{eq:bc2c}{{9.4}{99}}
-\newlabel{eq:velscaled}{{9.7}{99}}
-\newlabel{eq:bc1scaled}{{9.8}{99}}
-\newlabel{eq:velscaled2}{{9.9}{99}}
-\newlabel{eq:bc1scaledb}{{9.10}{99}}
-\newlabel{eq:sc3}{{9.11}{99}}
-\newlabel{eq:sc4}{{9.12}{99}}
-\newlabel{eq:sc40}{{9.13}{100}}
-\@writefile{toc}{\contentsline {section}{\numberline {9.7}Grounding-line instability}{100}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.1}Ice-Shelf Buttressing}{95}}
+\newlabel{eq:Butt}{{9.2}{95}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.2}Kinematic expression for GL migration }{95}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9.1}{\ignorespaces Geometrical variables: Glacier surface ($s$), glacier bed ($b$), ocean surface ($S$), ocean floor ($B$), glacier thickness ($h=s-b$)), ocean depth ($H=S-B$), glacier draft ($d=S-b$), glacier freeboard ($f=s-S$). \relax }}{96}}
+\newlabel{fig:PG2}{{9.1}{96}}
+\newlabel{eq:dgl}{{9.3}{96}}
+\newlabel{eq:dhdt}{{9.4}{96}}
+\newlabel{eq:dHdt}{{9.5}{96}}
+\newlabel{eq:glkin1}{{9.6}{96}}
+\newlabel{eq:glkin3}{{9.7}{96}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.3}Geometrical grounding-line migration}{97}}
+\newlabel{eq:mean}{{9.8}{97}}
+\newlabel{eq:dLtide}{{9.9}{97}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9.2}{\ignorespaces Example of grounding line migration in response to tidal forcing using the hydrostatic assumption. The curves were calculated using the flow model \'Ua which is a vertically integrated flow model that calculates grounding line positions using the hydrostatic assumption. The red curve was calculated for a constant surface slope of $ds/dx=-0.001$ and blue curve for a constant thickness gradient of $dh/dx=-0.001$. In both cases the bedrock gradient as $dB/dx=-0.01$. The tidal amplitude was 2 m and the tidal period 1 d. To suppress the effects of ice flow the flow parameters were set to values that made the ice effectively rigid and basal sliding was enforced to be close to zero. \relax }}{98}}
+\newlabel{fig:dLTide}{{9.2}{98}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.4}Flux at the grounding line}{98}}
+\newlabel{sec:FGL}{{9.4}{98}}
+\newlabel{eq:fu}{{9.10}{98}}
+\newlabel{eq:fs}{{9.11}{99}}
+\newlabel{eq:We3}{{9.12}{99}}
+\newlabel{eq:fc}{{9.13}{99}}
+\newlabel{eq:ghp}{{9.14}{99}}
+\newlabel{eq:ghp2}{{9.15}{99}}
+\newlabel{eq:ghp2b}{{9.16}{99}}
+\newlabel{eq:uch}{{9.17}{99}}
+\newlabel{eq:ass}{{9.18}{99}}
+\newlabel{eq:ahu}{{9.19}{99}}
+\newlabel{eq:ahA}{{9.20}{99}}
+\newlabel{eq:uch2}{{9.21}{99}}
+\newlabel{eq:Schoofhq}{{9.22}{100}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.5}Balance between terms on both side of the grounding line}{100}}
+\newlabel{eq:velssa}{{9.23}{100}}
+\newlabel{eq:bc1b}{{9.24}{100}}
+\newlabel{eq:bc2b}{{9.25}{100}}
+\newlabel{eq:velssa2}{{9.5}{100}}
+\newlabel{eq:velssa3}{{9.5}{100}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.6}GL scalings (Schoof)}{101}}
+\newlabel{eq:vel}{{9.1}{101}}
+\newlabel{eq:stress}{{9.2}{101}}
+\newlabel{eq:bc1c}{{9.3}{101}}
+\newlabel{eq:bc2c}{{9.4}{101}}
+\newlabel{eq:velscaled}{{9.7}{101}}
+\newlabel{eq:bc1scaled}{{9.8}{101}}
+\newlabel{eq:velscaled2}{{9.9}{101}}
+\newlabel{eq:bc1scaledb}{{9.10}{101}}
+\newlabel{eq:sc3}{{9.11}{101}}
+\newlabel{eq:sc4}{{9.12}{101}}
+\newlabel{eq:sc40}{{9.13}{102}}
+\@writefile{toc}{\contentsline {section}{\numberline {9.7}Grounding-line instability}{102}}
 \citation{Steinemann:1954,Steinemann1958a,Steinemann1958b,Glen1955}
 \citation{Goldsby&Kohlstedt:2001}
-\@writefile{toc}{\contentsline {chapter}{\numberline {10}Shallow Ice Stream Approximation (SSTREAM/SSA)}{101}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {10}Shallow Ice Stream Approximation (SSTREAM/SSA)}{103}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {10.1}Field equations and boundary conditions}{101}}
-\newlabel{eq:kinsurf}{{10.4}{101}}
-\newlabel{eq:Glen1}{{10.5}{101}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.1}Field equations and boundary conditions}{103}}
+\newlabel{eq:kinsurf}{{10.4}{103}}
+\newlabel{eq:Glen1}{{10.5}{103}}
 \citation{MAcAyeal1989}
 \citation{Morland:1984,MuszynskiBrichfield:1987,MAcAyeal1989,Baral:1999,Schoof:2006a}
-\@writefile{lof}{\contentsline {figure}{\numberline {10.1}{\ignorespaces \bf  Problem geometry. \relax }}{102}}
-\newlabel{fig:PG}{{10.1}{102}}
-\newlabel{eq:slidlaw}{{10.6}{102}}
-\@writefile{toc}{\contentsline {section}{\numberline {10.2}Shallow Ice Stream Scalings}{102}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.1}Definition of scales}{102}}
-\newlabel{eq:scaleu}{{10.7}{103}}
-\newlabel{eq:ubscaled}{{10.8}{103}}
-\newlabel{eq:scal}{{10.9}{103}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.2}Scaling the equations}{103}}
-\newlabel{eq:s1}{{10.10}{104}}
-\newlabel{eq:s2}{{10.11}{104}}
-\newlabel{eq:s3}{{10.12}{104}}
-\newlabel{eq:stressscale}{{10.13}{104}}
-\newlabel{eq:ss1}{{10.14}{104}}
-\newlabel{eq:ss2}{{10.15}{104}}
-\newlabel{eq:ss3}{{10.16}{104}}
-\@writefile{toc}{\contentsline {subsubsection}{Sliding law}{104}}
-\newlabel{eq:slidu}{{10.17}{104}}
-\newlabel{eq:tbx}{{10.18}{104}}
-\newlabel{eq:tby}{{10.19}{104}}
-\newlabel{eq:tbz}{{10.20}{104}}
-\newlabel{eq:tbs}{{10.21}{105}}
-\newlabel{eq:vscaled}{{10.22}{105}}
-\newlabel{eq:usb}{{10.23}{105}}
-\newlabel{eq:scalec}{{10.24}{105}}
-\newlabel{eq:csigma}{{10.25}{105}}
-\newlabel{eq:cons}{{10.26}{105}}
-\@writefile{toc}{\contentsline {subsubsection}{Flow law}{106}}
-\newlabel{eq:taueff}{{10.28}{106}}
-\newlabel{eq:tst}{{10.29}{106}}
-\newlabel{eq:exxs}{{10.30}{106}}
-\newlabel{eq:Ascale}{{10.31}{106}}
-\newlabel{eq:e}{{10.32}{107}}
-\@writefile{toc}{\contentsline {subsubsection}{Slip ratio}{108}}
-\newlabel{eq:udscale}{{10.34}{108}}
-\newlabel{eq:gamma}{{10.36}{108}}
-\@writefile{toc}{\contentsline {subsubsection}{Implications of different balances for the slip ratio}{108}}
-\@writefile{toc}{\contentsline {section}{\numberline {10.3}The SSTREAM (zeroth-order) equations}{109}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.1}Boundary conditions}{109}}
-\newlabel{eq:bcs1}{{10.37}{109}}
-\newlabel{eq:bcs2}{{10.38}{109}}
-\newlabel{eq:bcs3}{{10.39}{109}}
-\newlabel{eq:bcb1}{{10.40}{109}}
-\newlabel{eq:bcb2}{{10.41}{109}}
-\newlabel{eq:tb2x}{{10.42}{109}}
-\newlabel{eq:tb2y}{{10.43}{109}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.2}Field equations}{109}}
-\newlabel{eq:smx}{{10.44}{109}}
-\newlabel{eq:smy}{{10.45}{109}}
-\newlabel{eq:smz}{{10.46}{109}}
-\newlabel{eq:mx}{{10.47}{109}}
-\newlabel{eq:my}{{10.48}{109}}
-\newlabel{eq:mz}{{10.49}{109}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.3}Vertical integration}{110}}
-\newlabel{eq:szz1}{{10.50}{110}}
-\newlabel{eq:szz}{{10.51}{110}}
-\newlabel{eq:txxrel}{{10.52}{110}}
-\newlabel{eq:alm}{{10.53}{110}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.4}Tensor of resisting stresses}{111}}
-\newlabel{eq:FEao}{{10.60}{111}}
-\newlabel{eq:defSigmah}{{10.61}{111}}
-\newlabel{eq:defSigmah2}{{10.64}{111}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.5}Weertman sliding law}{111}}
-\newlabel{eq:bctx}{{10.65}{111}}
-\newlabel{eq:bcty}{{10.66}{111}}
-\@writefile{toc}{\contentsline {section}{\numberline {10.4}The shallow ice shelf approximation (SSHELF)}{112}}
-\newlabel{eq:ttx}{{10.71}{112}}
-\newlabel{eq:tty}{{10.72}{112}}
-\newlabel{eq:up}{{10.75}{112}}
-\newlabel{eq:do}{{10.78}{112}}
-\newlabel{eq:szzshelf}{{10.79}{112}}
-\newlabel{eq:hs1}{{10.80}{112}}
-\newlabel{eq:bh1}{{10.81}{112}}
-\newlabel{eq:sb2}{{10.82}{112}}
-\@writefile{lot}{\contentsline {table}{\numberline {10.1}{\ignorespaces  List of main geometrical variables. ($\mathcal  {H}(x)$ is the Heaviside step function.)\relax }}{113}}
-\newlabel{tab:geo}{{10.1}{113}}
-\newlabel{eq:resi}{{10.84}{113}}
-\newlabel{eq:fl}{{10.85}{113}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.4.1}Boundary conditions at the calving front}{113}}
-\newlabel{sec:bccalving}{{10.4.1}{113}}
-\newlabel{eq:normalh}{{10.90}{113}}
-\newlabel{eq:bc1x}{{10.91}{113}}
-\newlabel{eq:bc1y}{{10.92}{114}}
-\newlabel{eq:bcgfx}{{10.93}{114}}
-\newlabel{eq:bcgfy}{{10.94}{114}}
-\newlabel{eq:BCCF}{{10.95}{114}}
-\newlabel{eq:normalc}{{10.96}{114}}
-\newlabel{eq:bgfxfloat}{{10.97}{114}}
-\newlabel{eq:bgfyfloat}{{10.98}{114}}
-\newlabel{eq:BCCFfloat}{{10.99}{114}}
-\newlabel{eq:bcgfxgrounded}{{10.100}{114}}
-\newlabel{eq:bcgfygrounded}{{10.101}{114}}
-\newlabel{eq:BCCFgrounded}{{10.102}{115}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.4.2}Ice Shelf Buttressing}{115}}
-\newlabel{eq:bsc}{{10.105}{115}}
-\newlabel{eq:sh}{{10.106}{115}}
-\newlabel{eq:bcr}{{10.107}{115}}
-\newlabel{eq:Bn}{{10.112}{116}}
-\newlabel{eq:Bt}{{10.115}{116}}
-\@writefile{toc}{\contentsline {section}{\numberline {10.5}Scaling the sliding law}{117}}
-\newlabel{eq:n}{{10.121}{117}}
-\newlabel{eq:sn}{{10.122}{117}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {11}Perturbation solutions of the SSTREAM/SSA}{119}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10.1}{\ignorespaces \bf  Problem geometry. \relax }}{104}}
+\newlabel{fig:PG}{{10.1}{104}}
+\newlabel{eq:slidlaw}{{10.6}{104}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.2}Shallow Ice Stream Scalings}{104}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.1}Definition of scales}{104}}
+\newlabel{eq:scaleu}{{10.7}{105}}
+\newlabel{eq:ubscaled}{{10.8}{105}}
+\newlabel{eq:scal}{{10.9}{105}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2.2}Scaling the equations}{105}}
+\newlabel{eq:s1}{{10.10}{106}}
+\newlabel{eq:s2}{{10.11}{106}}
+\newlabel{eq:s3}{{10.12}{106}}
+\newlabel{eq:stressscale}{{10.13}{106}}
+\newlabel{eq:ss1}{{10.14}{106}}
+\newlabel{eq:ss2}{{10.15}{106}}
+\newlabel{eq:ss3}{{10.16}{106}}
+\@writefile{toc}{\contentsline {subsubsection}{Sliding law}{106}}
+\newlabel{eq:slidu}{{10.17}{106}}
+\newlabel{eq:tbx}{{10.18}{106}}
+\newlabel{eq:tby}{{10.19}{106}}
+\newlabel{eq:tbz}{{10.20}{106}}
+\newlabel{eq:tbs}{{10.21}{107}}
+\newlabel{eq:vscaled}{{10.22}{107}}
+\newlabel{eq:usb}{{10.23}{107}}
+\newlabel{eq:scalec}{{10.24}{107}}
+\newlabel{eq:csigma}{{10.25}{107}}
+\newlabel{eq:cons}{{10.26}{107}}
+\@writefile{toc}{\contentsline {subsubsection}{Flow law}{108}}
+\newlabel{eq:taueff}{{10.28}{108}}
+\newlabel{eq:tst}{{10.29}{108}}
+\newlabel{eq:exxs}{{10.30}{108}}
+\newlabel{eq:Ascale}{{10.31}{108}}
+\newlabel{eq:e}{{10.32}{109}}
+\@writefile{toc}{\contentsline {subsubsection}{Slip ratio}{110}}
+\newlabel{eq:udscale}{{10.34}{110}}
+\newlabel{eq:gamma}{{10.36}{110}}
+\@writefile{toc}{\contentsline {subsubsection}{Implications of different balances for the slip ratio}{110}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.3}The SSTREAM (zeroth-order) equations}{111}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.1}Boundary conditions}{111}}
+\newlabel{eq:bcs1}{{10.37}{111}}
+\newlabel{eq:bcs2}{{10.38}{111}}
+\newlabel{eq:bcs3}{{10.39}{111}}
+\newlabel{eq:bcb1}{{10.40}{111}}
+\newlabel{eq:bcb2}{{10.41}{111}}
+\newlabel{eq:tb2x}{{10.42}{111}}
+\newlabel{eq:tb2y}{{10.43}{111}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.2}Field equations}{111}}
+\newlabel{eq:smx}{{10.44}{111}}
+\newlabel{eq:smy}{{10.45}{111}}
+\newlabel{eq:smz}{{10.46}{111}}
+\newlabel{eq:mx}{{10.47}{111}}
+\newlabel{eq:my}{{10.48}{111}}
+\newlabel{eq:mz}{{10.49}{111}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.3}Vertical integration}{112}}
+\newlabel{eq:szz1}{{10.50}{112}}
+\newlabel{eq:szz}{{10.51}{112}}
+\newlabel{eq:txxrel}{{10.52}{112}}
+\newlabel{eq:alm}{{10.53}{112}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.4}Tensor of resisting stresses}{113}}
+\newlabel{eq:FEao}{{10.60}{113}}
+\newlabel{eq:defSigmah}{{10.61}{113}}
+\newlabel{eq:defSigmah2}{{10.64}{113}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3.5}Weertman sliding law}{113}}
+\newlabel{eq:bctx}{{10.65}{113}}
+\newlabel{eq:bcty}{{10.66}{113}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.4}The shallow ice shelf approximation (SSHELF)}{114}}
+\newlabel{eq:ttx}{{10.71}{114}}
+\newlabel{eq:tty}{{10.72}{114}}
+\newlabel{eq:up}{{10.75}{114}}
+\newlabel{eq:do}{{10.78}{114}}
+\newlabel{eq:szzshelf}{{10.79}{114}}
+\newlabel{eq:hs1}{{10.80}{114}}
+\newlabel{eq:bh1}{{10.81}{114}}
+\newlabel{eq:sb2}{{10.82}{114}}
+\@writefile{lot}{\contentsline {table}{\numberline {10.1}{\ignorespaces  List of main geometrical variables. ($\mathcal  {H}(x)$ is the Heaviside step function.)\relax }}{115}}
+\newlabel{tab:geo}{{10.1}{115}}
+\newlabel{eq:resi}{{10.84}{115}}
+\newlabel{eq:fl}{{10.85}{115}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.4.1}Boundary conditions at the calving front}{115}}
+\newlabel{sec:bccalving}{{10.4.1}{115}}
+\newlabel{eq:normalh}{{10.90}{115}}
+\newlabel{eq:bc1x}{{10.91}{115}}
+\newlabel{eq:bc1y}{{10.92}{116}}
+\newlabel{eq:bcgfx}{{10.93}{116}}
+\newlabel{eq:bcgfy}{{10.94}{116}}
+\newlabel{eq:BCCF}{{10.95}{116}}
+\newlabel{eq:normalc}{{10.96}{116}}
+\newlabel{eq:bgfxfloat}{{10.97}{116}}
+\newlabel{eq:bgfyfloat}{{10.98}{116}}
+\newlabel{eq:BCCFfloat}{{10.99}{116}}
+\newlabel{eq:bcgfxgrounded}{{10.100}{116}}
+\newlabel{eq:bcgfygrounded}{{10.101}{116}}
+\newlabel{eq:BCCFgrounded}{{10.102}{117}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.4.2}Ice Shelf Buttressing}{117}}
+\newlabel{eq:bsc}{{10.105}{117}}
+\newlabel{eq:sh}{{10.106}{117}}
+\newlabel{eq:bcr}{{10.107}{117}}
+\newlabel{eq:Bn}{{10.112}{118}}
+\newlabel{eq:Bt}{{10.115}{118}}
+\@writefile{toc}{\contentsline {section}{\numberline {10.5}Scaling the sliding law}{119}}
+\newlabel{eq:n}{{10.121}{119}}
+\newlabel{eq:sn}{{10.122}{119}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {11}Perturbation solutions of the SSTREAM/SSA}{121}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\@writefile{toc}{\contentsline {section}{\numberline {11.1}Problem definition}{119}}
-\newlabel{eq:Mcx}{{11.1}{119}}
-\newlabel{eq:slidlaw}{{11.2}{119}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {11.1.1}Bedrock perturbations}{119}}
-\newlabel{eq:zeroth}{{11.3}{119}}
-\newlabel{eq:Mcx1}{{11.4}{119}}
-\newlabel{eq:kcs}{{11.7}{120}}
-\newlabel{eq:kcb}{{11.8}{120}}
-\newlabel{eq:Four}{{11.9}{120}}
-\newlabel{eq:Mcx1kl}{{11.11}{120}}
-\newlabel{eq:Masskl}{{11.12}{120}}
-\newlabel{eq:flbcs}{{11.13}{120}}
-\newlabel{eq:flbcb}{{11.14}{120}}
-\newlabel{eq:ukt}{{11.15}{120}}
-\newlabel{eq:wkt}{{11.16}{121}}
-\newlabel{eq:dwz}{{11.17}{121}}
-\newlabel{eq:tsbr}{{11.18}{121}}
-\newlabel{eq:p}{{11.19}{121}}
-\newlabel{eq:sistp}{{11.20}{121}}
-\newlabel{eq:sistd}{{11.21}{121}}
-\newlabel{eq:sisTsb}{{11.24}{121}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.1}{\ignorespaces The phase speed ($|\mathbf  {v}_p|$) as a function of wavelength for $\theta {=}0$. The dashed-dotted curve is based on the shallow-ice-sheet (SSHEET) approximation, the dashed one is based on the shallow-ice-stream (SSTREAM) approximation, and the solid one is a full-system (FS) solution. The surface slope is $\alpha {=}0.005$ and slip ratio $\mathaccentV {bar}016{C}{=}30$ and $n=m=1$. The unit on the $y$ axis is the mean surface velocity of the full-system solution ($\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}31$). \relax }}{122}}
-\newlabel{fig:Vp}{{11.1}{122}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.2}{\ignorespaces The $x$ component of the group velocity ($u_g$) as a function of wavelength for $\theta {=}0$. Values of mean surface slope and slip ratio are 0.005 and 30, respectively, and $m=n=1$. \relax }}{122}}
-\newlabel{fig:Ug}{{11.2}{122}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.3}{\ignorespaces The phase speed ($|\mathbf  {v}_p|$) of the full-system solution as a function of wavelength $\lambda $ and orientation $\theta $ of the sinusoidal perturbations with respect to mean flow direction. The mean surface slope is $\alpha {=}0.002$ and the slip ratio is $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$. The plot has been normalised with the non-dimensional surface velocity $\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}101$ of the full-system solution. \relax }}{122}}
-\newlabel{fig:FS_Vp}{{11.3}{122}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.4}{\ignorespaces The shallow-ice-stream phase speed as a function of wavelength $\lambda $ and orientation $\theta $. As in Fig.\nobreakspace  {}11.3\hbox {}a the mean surface slope is $\alpha {=}0.002$ and the slip ratio is $\mathaccentV {bar}016{C}{=}100$, $n=m=1$, and the plot has been normalised with the non-dimensional surface velocity $\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}101$ of the full-system solution. \relax }}{122}}
-\newlabel{fig:SSTREAM_Vp}{{11.4}{122}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.5}{\ignorespaces The relaxation time scale ($t_r$) as a function of wavelength $\lambda $. The wavelength is given in units of mean ice thickness ($\mathaccentV {bar}016{h}$) and $t_r$ is given in years. The mean surface slope is $\alpha {=}0.002$, the slip ratio is $\mathaccentV {bar}016{C}{=}999$, and $n=m=1$. For these values $t_r$ is on the order of 10 years for a fairly wide range of wavelengths. Lowering the slip ratio will reduce the value of $t_r$. It follows that ice streams will react to sudden changes in basal properties or surface profile by a characteristic time scale of a few years. \relax }}{123}}
-\newlabel{fig:tr}{{11.5}{123}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.6}{\ignorespaces Steady-state response of surface topography ($\Delta s$) to a perturbation in bed topography ($\Delta b)$. The surface slope is 0.002, the mean slip ratio $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$. Transfer functions based on the shallow-ice-stream approximation (dashed line, Eq.\nobreakspace  {}11.24\hbox {}), the shallow-ice-sheet approximation (dotted line, and a full system solution (solid line) are shown. \relax }}{123}}
-\newlabel{fig:Tsbl_ss}{{11.6}{123}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.7}{\ignorespaces Transient surface topography response to a sinusoidal perturbation in bed topography applied at $t{=}0$. Shown are the amplitude ratios between surface and bed topography ($|T_{sb}|$) as a function of wavelength for $\alpha {=}0.002$, $\theta {=}0$, $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$ for $t{=}0.001$ (red), $t{=}0.01$ (blue), and $t{=}10$ (green). \relax }}{124}}
-\newlabel{fig:Tsbtrans}{{11.7}{124}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.8}{\ignorespaces {\bf  (a)} The SSTREAM amplitude ratio ($|T_{sb}|$) between surface and bed topography (Eq.\nobreakspace  {}11.24\hbox {}). Surface slope is 0.002, the slip ratio $\mathaccentV {bar}016{C}{=}99$, and $n=m=1$. $\lambda $ is the wavelength of the sinusoidal bed topography perturbation and $\theta $ is the angle with respect to the x axis, with $\theta {=}0$ and $\theta {=}90$ corresponding to transverse and longitudinal undulations in bed topography, respectively. \relax }}{124}}
-\newlabel{fig:SISA_Tsb_kl_ss_100_0k002}{{11.8}{124}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.8}{\ignorespaces {\bf  (b)} The FS amplitude ratio between surface and bed topography ($|T_{sb}|$). The shape of the same transfer function for the same set of parameters based on the SSTREAM approximation is shown in Fig.\nobreakspace  {}11.8\hbox {}a. \relax }}{125}}
-\newlabel{fig:Tsbkl_ss_100_0k002}{{11.8}{125}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.9}{\ignorespaces {\bf  (a)} The steady-state amplitude ratio ($|T_{ub}|$) between longitudinal surface velocity ($\Delta u$) and bed topography ($\Delta b$) in the shallow-ice-stream approximation. Surface slope is 0.002, the slip ratio is $99$, and $n=m=1$. \relax }}{126}}
-\newlabel{fig:SISA_Tub_kl_ss_100_0k002}{{11.9}{126}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.9}{\ignorespaces {\bf  (b)} The steady-state amplitude ratio ($|T_{ub}|$) between longitudinal surface velocity ($\Delta u$) and bed topography ($\Delta b$). The shape of the same transfer function for the same set of parameters, but based on the shallow-ice-stream approximation, is shown in Fig.\nobreakspace  {}11.9\hbox {}a. \relax }}{126}}
-\newlabel{fig:Tub_kl_ss_100_0k002}{{11.9}{126}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.10}{\ignorespaces {\bf  (a)} The steady-state amplitude ratio ($|T_{vb}|$) between transverse velocity ($\Delta v$) and bed topography ($\Delta b$) in the shallow-ice-stream approximation. Surface slope is 0.002, the slip ratio is $99$ and $n=m=1$. \relax }}{127}}
-\newlabel{fig:SISA_Tvb_kl_ss_100_0k002}{{11.10}{127}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.10}{\ignorespaces {\bf  (b)} The steady-state amplitude ratio ($|T_{vb}|$ between transverse velocity ($\Delta v$) and bed topography ($\Delta b$). The shape of the same transfer function for the same set of parameters, but based on the shallow-ice-stream approximation, is shown in Fig.\nobreakspace  {}11.10\hbox {}a. \relax }}{127}}
-\newlabel{fig:Tvb_kl_ss_100_0k002}{{11.10}{127}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.11}{\ignorespaces Steady-state response of surface topography to a perturbation in bed topography for linear and non-linear sliding. All curves are for linear medium ($n{=}1$). The solid lines are calculated for linear sliding ($m{=}1$) and the dashed lines for non-linear sliding ($m{=}3$). The red lines are SSHEET solutions, the blue ones are SSTREAM solutions, and the black line is a FS solution which is only available for $m{=}1$. Mean surface slope is 0.002 and slip ratio is equal to 100. \relax }}{128}}
-\newlabel{fig:Tsbm}{{11.11}{128}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {11.1.2}Slipperiness perturbations}{128}}
-\newlabel{eq:ksc}{{11.29}{128}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.12}{\ignorespaces Steady-state response of surface topography to a basal slipperiness perturbation. Shown are FS (solid line), SSTREAM (circles), and SSHEET (crosses) transfer amplitudes for both $\mathaccentV {bar}016{C}{=}1$ and $\mathaccentV {bar}016{C}{=}10$. In the plot the SSTREAM curves for $\mathaccentV {bar}016{C}{=}1$ and $\mathaccentV {bar}016{C}{=}10$ are too similar to be distinguished. The surface slope is 0.002. \relax }}{129}}
-\newlabel{fig:Tsc}{{11.12}{129}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.13}{\ignorespaces Steady-state response of surface longitudinal ($u$), transverse ($v$), and vertical ($w$) velocity components to a basal slipperiness perturbation. The surface slope is 0.002 and the slip ratio $\mathaccentV {bar}016{C}{=}10$. The $T_{uc}$ and $T_{wc}$ amplitudes are calculated for slipperiness perturbations aligned transversely to the flow direction ($\theta {=}0$). For $T_{vc}$, $\theta {=}45$ degrees. Of the two y axis the scale to the left is for the horizontal velocity components ($T_{uc}$ and $T_{wc}$), and the one to the right is the scale for $T_{uc}$. \relax }}{129}}
-\newlabel{fig:TucTvcC10}{{11.13}{129}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.14}{\ignorespaces Steady-state response of the surface longitudinal ($\Delta u$) velocity component to a basal slipperiness perturbation in the shallow-ice-stream approximation. The surface slope is 0.002 and the slip ratio $\mathaccentV {bar}016{C}{=}99$. \relax }}{130}}
-\newlabel{fig:SISATuc}{{11.14}{130}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.15}{\ignorespaces {\bf  (a)} Surface topography response to a flow over a Gaussian-shaped bedrock disturbance as given by a FS (lower half of figure) and a SSTREAM solution (upper half of figure). The mean flow direction is from left to right. Surface slope is 3 degrees and mean basal velocity equal to mean deformational velocity ($\mathaccentV {bar}016{C}{=}1$). The spatial unit is one mean ice thickness ($\mathaccentV {bar}016{h}$). The Gaussian-shaped bedrock disturbance has a width of 10 $\mathaccentV {bar}016{h}$ and it's amplitude is 0.1 $\mathaccentV {bar}016{h}$. The problem definition is symmetrical about the x axis ($y{=}0$) and any deviations in the figure from this symmetry are due to differences in the FS and the SSTREAM solutions. \relax }}{130}}
-\newlabel{fig:GaussTopo}{{11.15}{130}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11.15}{\ignorespaces {\bf  (b)} Response in surface velocity to a Gaussian-shaped bedrock perturbation. All parameters are equal to those in Fig.\nobreakspace  {}11.15\hbox {}a. The contour lines give horizontal speed and the vectors the horizontal velocities. The velocity unit is mean-deformational velocity ($\mathaccentV {bar}016{u}_d$). The slip ratio is equal to one, and the mean surface velocity is $2 \mathaccentV {bar}016{u}_d$. The upper half of the figure is the SSTREAM solution and the lower half the corresponding FS solution. \relax }}{131}}
-\newlabel{fig:GaussVel}{{11.15}{131}}
-\@writefile{toc}{\contentsline {part}{III\hspace  {1em}Appendices}{133}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{135}}
+\@writefile{toc}{\contentsline {section}{\numberline {11.1}Problem definition}{121}}
+\newlabel{eq:Mcx}{{11.1}{121}}
+\newlabel{eq:slidlaw}{{11.2}{121}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.1.1}Bedrock perturbations}{121}}
+\newlabel{eq:zeroth}{{11.3}{121}}
+\newlabel{eq:Mcx1}{{11.4}{121}}
+\newlabel{eq:kcs}{{11.7}{122}}
+\newlabel{eq:kcb}{{11.8}{122}}
+\newlabel{eq:Four}{{11.9}{122}}
+\newlabel{eq:Mcx1kl}{{11.11}{122}}
+\newlabel{eq:Masskl}{{11.12}{122}}
+\newlabel{eq:flbcs}{{11.13}{122}}
+\newlabel{eq:flbcb}{{11.14}{122}}
+\newlabel{eq:ukt}{{11.15}{122}}
+\newlabel{eq:wkt}{{11.16}{123}}
+\newlabel{eq:dwz}{{11.17}{123}}
+\newlabel{eq:tsbr}{{11.18}{123}}
+\newlabel{eq:p}{{11.19}{123}}
+\newlabel{eq:sistp}{{11.20}{123}}
+\newlabel{eq:sistd}{{11.21}{123}}
+\newlabel{eq:sisTsb}{{11.24}{123}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.1}{\ignorespaces The phase speed ($|\mathbf  {v}_p|$) as a function of wavelength for $\theta {=}0$. The dashed-dotted curve is based on the shallow-ice-sheet (SSHEET) approximation, the dashed one is based on the shallow-ice-stream (SSTREAM) approximation, and the solid one is a full-system (FS) solution. The surface slope is $\alpha {=}0.005$ and slip ratio $\mathaccentV {bar}016{C}{=}30$ and $n=m=1$. The unit on the $y$ axis is the mean surface velocity of the full-system solution ($\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}31$). \relax }}{124}}
+\newlabel{fig:Vp}{{11.1}{124}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.2}{\ignorespaces The $x$ component of the group velocity ($u_g$) as a function of wavelength for $\theta {=}0$. Values of mean surface slope and slip ratio are 0.005 and 30, respectively, and $m=n=1$. \relax }}{124}}
+\newlabel{fig:Ug}{{11.2}{124}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.3}{\ignorespaces The phase speed ($|\mathbf  {v}_p|$) of the full-system solution as a function of wavelength $\lambda $ and orientation $\theta $ of the sinusoidal perturbations with respect to mean flow direction. The mean surface slope is $\alpha {=}0.002$ and the slip ratio is $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$. The plot has been normalised with the non-dimensional surface velocity $\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}101$ of the full-system solution. \relax }}{124}}
+\newlabel{fig:FS_Vp}{{11.3}{124}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.4}{\ignorespaces The shallow-ice-stream phase speed as a function of wavelength $\lambda $ and orientation $\theta $. As in Fig.\nobreakspace  {}11.3\hbox {}a the mean surface slope is $\alpha {=}0.002$ and the slip ratio is $\mathaccentV {bar}016{C}{=}100$, $n=m=1$, and the plot has been normalised with the non-dimensional surface velocity $\mathaccentV {bar}016{u}{=}\mathaccentV {bar}016{C}{+}1{=}101$ of the full-system solution. \relax }}{124}}
+\newlabel{fig:SSTREAM_Vp}{{11.4}{124}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.5}{\ignorespaces The relaxation time scale ($t_r$) as a function of wavelength $\lambda $. The wavelength is given in units of mean ice thickness ($\mathaccentV {bar}016{h}$) and $t_r$ is given in years. The mean surface slope is $\alpha {=}0.002$, the slip ratio is $\mathaccentV {bar}016{C}{=}999$, and $n=m=1$. For these values $t_r$ is on the order of 10 years for a fairly wide range of wavelengths. Lowering the slip ratio will reduce the value of $t_r$. It follows that ice streams will react to sudden changes in basal properties or surface profile by a characteristic time scale of a few years. \relax }}{125}}
+\newlabel{fig:tr}{{11.5}{125}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.6}{\ignorespaces Steady-state response of surface topography ($\Delta s$) to a perturbation in bed topography ($\Delta b)$. The surface slope is 0.002, the mean slip ratio $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$. Transfer functions based on the shallow-ice-stream approximation (dashed line, Eq.\nobreakspace  {}11.24\hbox {}), the shallow-ice-sheet approximation (dotted line, and a full system solution (solid line) are shown. \relax }}{125}}
+\newlabel{fig:Tsbl_ss}{{11.6}{125}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.7}{\ignorespaces Transient surface topography response to a sinusoidal perturbation in bed topography applied at $t{=}0$. Shown are the amplitude ratios between surface and bed topography ($|T_{sb}|$) as a function of wavelength for $\alpha {=}0.002$, $\theta {=}0$, $\mathaccentV {bar}016{C}{=}100$, and $n=m=1$ for $t{=}0.001$ (red), $t{=}0.01$ (blue), and $t{=}10$ (green). \relax }}{126}}
+\newlabel{fig:Tsbtrans}{{11.7}{126}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.8}{\ignorespaces {\bf  (a)} The SSTREAM amplitude ratio ($|T_{sb}|$) between surface and bed topography (Eq.\nobreakspace  {}11.24\hbox {}). Surface slope is 0.002, the slip ratio $\mathaccentV {bar}016{C}{=}99$, and $n=m=1$. $\lambda $ is the wavelength of the sinusoidal bed topography perturbation and $\theta $ is the angle with respect to the x axis, with $\theta {=}0$ and $\theta {=}90$ corresponding to transverse and longitudinal undulations in bed topography, respectively. \relax }}{126}}
+\newlabel{fig:SISA_Tsb_kl_ss_100_0k002}{{11.8}{126}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.8}{\ignorespaces {\bf  (b)} The FS amplitude ratio between surface and bed topography ($|T_{sb}|$). The shape of the same transfer function for the same set of parameters based on the SSTREAM approximation is shown in Fig.\nobreakspace  {}11.8\hbox {}a. \relax }}{127}}
+\newlabel{fig:Tsbkl_ss_100_0k002}{{11.8}{127}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.9}{\ignorespaces {\bf  (a)} The steady-state amplitude ratio ($|T_{ub}|$) between longitudinal surface velocity ($\Delta u$) and bed topography ($\Delta b$) in the shallow-ice-stream approximation. Surface slope is 0.002, the slip ratio is $99$, and $n=m=1$. \relax }}{128}}
+\newlabel{fig:SISA_Tub_kl_ss_100_0k002}{{11.9}{128}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.9}{\ignorespaces {\bf  (b)} The steady-state amplitude ratio ($|T_{ub}|$) between longitudinal surface velocity ($\Delta u$) and bed topography ($\Delta b$). The shape of the same transfer function for the same set of parameters, but based on the shallow-ice-stream approximation, is shown in Fig.\nobreakspace  {}11.9\hbox {}a. \relax }}{128}}
+\newlabel{fig:Tub_kl_ss_100_0k002}{{11.9}{128}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.10}{\ignorespaces {\bf  (a)} The steady-state amplitude ratio ($|T_{vb}|$) between transverse velocity ($\Delta v$) and bed topography ($\Delta b$) in the shallow-ice-stream approximation. Surface slope is 0.002, the slip ratio is $99$ and $n=m=1$. \relax }}{129}}
+\newlabel{fig:SISA_Tvb_kl_ss_100_0k002}{{11.10}{129}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.10}{\ignorespaces {\bf  (b)} The steady-state amplitude ratio ($|T_{vb}|$ between transverse velocity ($\Delta v$) and bed topography ($\Delta b$). The shape of the same transfer function for the same set of parameters, but based on the shallow-ice-stream approximation, is shown in Fig.\nobreakspace  {}11.10\hbox {}a. \relax }}{129}}
+\newlabel{fig:Tvb_kl_ss_100_0k002}{{11.10}{129}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.11}{\ignorespaces Steady-state response of surface topography to a perturbation in bed topography for linear and non-linear sliding. All curves are for linear medium ($n{=}1$). The solid lines are calculated for linear sliding ($m{=}1$) and the dashed lines for non-linear sliding ($m{=}3$). The red lines are SSHEET solutions, the blue ones are SSTREAM solutions, and the black line is a FS solution which is only available for $m{=}1$. Mean surface slope is 0.002 and slip ratio is equal to 100. \relax }}{130}}
+\newlabel{fig:Tsbm}{{11.11}{130}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.1.2}Slipperiness perturbations}{130}}
+\newlabel{eq:ksc}{{11.29}{130}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.12}{\ignorespaces Steady-state response of surface topography to a basal slipperiness perturbation. Shown are FS (solid line), SSTREAM (circles), and SSHEET (crosses) transfer amplitudes for both $\mathaccentV {bar}016{C}{=}1$ and $\mathaccentV {bar}016{C}{=}10$. In the plot the SSTREAM curves for $\mathaccentV {bar}016{C}{=}1$ and $\mathaccentV {bar}016{C}{=}10$ are too similar to be distinguished. The surface slope is 0.002. \relax }}{131}}
+\newlabel{fig:Tsc}{{11.12}{131}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.13}{\ignorespaces Steady-state response of surface longitudinal ($u$), transverse ($v$), and vertical ($w$) velocity components to a basal slipperiness perturbation. The surface slope is 0.002 and the slip ratio $\mathaccentV {bar}016{C}{=}10$. The $T_{uc}$ and $T_{wc}$ amplitudes are calculated for slipperiness perturbations aligned transversely to the flow direction ($\theta {=}0$). For $T_{vc}$, $\theta {=}45$ degrees. Of the two y axis the scale to the left is for the horizontal velocity components ($T_{uc}$ and $T_{wc}$), and the one to the right is the scale for $T_{uc}$. \relax }}{131}}
+\newlabel{fig:TucTvcC10}{{11.13}{131}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.14}{\ignorespaces Steady-state response of the surface longitudinal ($\Delta u$) velocity component to a basal slipperiness perturbation in the shallow-ice-stream approximation. The surface slope is 0.002 and the slip ratio $\mathaccentV {bar}016{C}{=}99$. \relax }}{132}}
+\newlabel{fig:SISATuc}{{11.14}{132}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.15}{\ignorespaces {\bf  (a)} Surface topography response to a flow over a Gaussian-shaped bedrock disturbance as given by a FS (lower half of figure) and a SSTREAM solution (upper half of figure). The mean flow direction is from left to right. Surface slope is 3 degrees and mean basal velocity equal to mean deformational velocity ($\mathaccentV {bar}016{C}{=}1$). The spatial unit is one mean ice thickness ($\mathaccentV {bar}016{h}$). The Gaussian-shaped bedrock disturbance has a width of 10 $\mathaccentV {bar}016{h}$ and it's amplitude is 0.1 $\mathaccentV {bar}016{h}$. The problem definition is symmetrical about the x axis ($y{=}0$) and any deviations in the figure from this symmetry are due to differences in the FS and the SSTREAM solutions. \relax }}{132}}
+\newlabel{fig:GaussTopo}{{11.15}{132}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11.15}{\ignorespaces {\bf  (b)} Response in surface velocity to a Gaussian-shaped bedrock perturbation. All parameters are equal to those in Fig.\nobreakspace  {}11.15\hbox {}a. The contour lines give horizontal speed and the vectors the horizontal velocities. The velocity unit is mean-deformational velocity ($\mathaccentV {bar}016{u}_d$). The slip ratio is equal to one, and the mean surface velocity is $2 \mathaccentV {bar}016{u}_d$. The upper half of the figure is the SSTREAM solution and the lower half the corresponding FS solution. \relax }}{133}}
+\newlabel{fig:GaussVel}{{11.15}{133}}
+\@writefile{toc}{\contentsline {part}{III\hspace  {1em}Appendices}{135}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {A}Calculating vertical surface velocity}{137}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{eq:pts}{{A.1}{135}}
-\newlabel{eq:ptb}{{A.2}{135}}
-\newlabel{eq:conc}{{A.3}{135}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.1}grounded part}{135}}
-\newlabel{eq:wsg}{{A.4}{135}}
-\newlabel{eq:sb}{{A.5}{135}}
-\newlabel{eq:wsgrounded}{{A.6}{135}}
-\@writefile{toc}{\contentsline {section}{\numberline {A.2}floating part}{136}}
-\newlabel{eq:wsfloating}{{A.7}{136}}
-\newlabel{eq:wsfloating2}{{A.8}{136}}
-\newlabel{eq:pts2}{{A.9}{136}}
-\newlabel{eq:pts3}{{A.10}{136}}
-\newlabel{eq:wsfloating3}{{A.11}{136}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {B}Integral theorem}{137}}
+\newlabel{eq:pts}{{A.1}{137}}
+\newlabel{eq:ptb}{{A.2}{137}}
+\newlabel{eq:conc}{{A.3}{137}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.1}grounded part}{137}}
+\newlabel{eq:wsg}{{A.4}{137}}
+\newlabel{eq:sb}{{A.5}{137}}
+\newlabel{eq:wsgrounded}{{A.6}{137}}
+\@writefile{toc}{\contentsline {section}{\numberline {A.2}floating part}{138}}
+\newlabel{eq:wsfloating}{{A.7}{138}}
+\newlabel{eq:wsfloating2}{{A.8}{138}}
+\newlabel{eq:pts2}{{A.9}{138}}
+\newlabel{eq:pts3}{{A.10}{138}}
+\newlabel{eq:wsfloating3}{{A.11}{138}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {B}Integral theorem}{139}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{eq:fgg}{{B.3}{137}}
-\@writefile{toc}{\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{139}}
+\newlabel{eq:fgg}{{B.3}{139}}
+\@writefile{toc}{\contentsline {chapter}{\numberline {C}Definition of gradients in terms of directional derivatives and inner products}{141}}
 \@writefile{lof}{\addvspace {10\p@ }}
 \@writefile{lot}{\addvspace {10\p@ }}
-\newlabel{sec:dder}{{C}{139}}
-\newlabel{eq:Mnablaf}{{C.2}{140}}
+\newlabel{sec:dder}{{C}{141}}
+\newlabel{eq:Mnablaf}{{C.2}{142}}
 \bibstyle{apalike}
 \bibdata{glacier}
 \bibcite{Baral:1999}{{1}{1999}{{Baral}}{{}}}
