@@ -763,7 +763,7 @@ if license('test','Optimization_Toolbox')
         'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','factorization');  % gc
+        'SubproblemAlgorithm','factorization');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end

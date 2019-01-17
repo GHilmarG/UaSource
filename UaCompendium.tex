@@ -3639,11 +3639,14 @@ One can now ask the question what this directional derivative looks
 like in a FE setting. Assuming that all variables are expanded in the
 same FE basis, i.e.\ $f=f_i \phi_i$ where $f$ is any of  $u$, $h$, $\dot{h}$ and also
 \[
-\delta J = (\delta_h J)_i \phi_i
+\delta_h J = (\delta_h J)_i \phi_i
 \]
 we would solve for the coefficients $(\delta_h J)_i$ in the expansion
-$\delta_h J = (\delta_h J)_i \phi_i$ in the usual FE manner by
-writing\footnote{There appears to be some confusion in the literature
+$\delta_h J = (\delta_h J)_i \phi_i$ in the usual FE manner by requiring
+\[
+ < (\delta_h J)_i \phi_i- \delta_h J  | \phi_j> =0 ,
+ \]
+ for all $j$ values, and therefore\footnote{There appears to be some confusion in the literature
   regarding this point and sometimes (often, practically always)
   the expression given for the directional derivative is something like
 \[
@@ -3683,26 +3686,26 @@ We follow the recipe provided in section~\ref{sec:adjointsum}.
 \subsubsection{First, solve the forward model:}
 First we calculate
 \[
-\p_q F \, \Delta q  = -F(q) \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0  \\
+\p_q F \, \Delta q  = -F(q) \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0,  \\
 \]
 which in this particular case is for $q=\dot{h}$ is
 \[
- 1 \; \Delta \dot{h} = - \dot{h}_0 + a - \p_x (u h_0)
+ 1 \; \Delta \dot{h} = - \dot{h}_0 + a - \p_x (u h_0),
 \]
 since $\p_{\dot{h}} F = 1 $, or
 \[
- h_1 = \Delta \dot{h} + \dot{h}_0 = a - \p_x (u h_o)
+ h_1 = \Delta \dot{h} + \dot{h}_0 = a - \p_x (u h_o),
 \]
 since this is a linear forward model the NR iteration converges in first iteration.
 
 \subsubsection{Secondly, solve the adjoint problem:}
 The adjoint problem is
 \[
-\p_{\dot{h}} F^{*} \lambda  = \p_{\dot{h}} J 
+\p_{\dot{h}} F^{*} \lambda  = \p_{\dot{h}} J ,
 \]
 or
 \[
-1^{*} \lambda = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \delta \dot{h} \; dA
+1^{*} \lambda = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \delta \dot{h} \; dA.
 \]
 We can ask what the $1$ actually stands for in this context, and the
 answer is that this is the unity operator in the relevant basis,
@@ -3715,30 +3718,30 @@ To see this more clearly let us calculate the directional derivative
 from the FE formulation of the forward problem while realising that
 $\p_{\dot{h}}^* \lambda$ represents an inner product, i.e.\ we need to evaluate
 \begin{align*}
-  < \delta_{\dot{h}} F \mid \lambda > &= \int  \delta_{\dot{h}} \left (\dot{h}  - \left ( a - \p_x ( u  h ) \right ) \right ) \, \lambda \; dA , \\
-  &= \int \phi_i  \, \lambda \; dA , \\
-  &= \int \phi_i  \, \phi_j \lambda_j \; dA , \\
-  &= [\bm{M}]_{ij} \lambda_j \\
+  < \delta_{\dot{h}} F \mid \lambda > &= \int  \delta_{\dot{h}} \left (\dot{h}  - \left ( a - \p_x ( u  h ) \right ) \right ) \, \lambda \; dA  \\
+  &= \int \phi_i  \, \lambda \; dA  \\
+  &= \int \phi_i  \, \phi_j \lambda_j \; dA  \\
+  &= [\bm{M}]_{ij} \lambda_j , \\
 \end{align*}
 showing that the expression $ 1 \lambda$ is in FE context given by
-$\bm{M} \bm{\lambda}$. Also note that the term $\p_{\dot{h}} J$ is a
-directional derivative and, again in FE context, reads
+$\bm{M} \bm{\lambda}$. Also note that the term $\p_{\dot{h}} J$ is in
+fact a directional derivative and, again in FE context, reads
 \[
-\delta_{\dot{h}} = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA
+\delta_{\dot{h}} = \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA .
 \]
 Hence, the adjoint problem is
 \[
-\bm{M} \bm{\lambda} = \bm{l}}
+\bm{M} \bm{\lambda} = \bm{l}} ,
 \]
 where
 \[
-[\bm{l}]_j= \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA
+[\bm{l}]_j= \frac{1}{\mathcal{A}} \int \left (\dot{h}-\tilde{\dot{h}} \right ) \phi_j \; dA .
 \]
 The vector $\bm{l}$ is
 \begin{align*}
   \bm{l} & = \frac{1}{\mathcal{A}} \int \left (\dot{h}_i-\tilde{\dot{h}_i} \right ) \phi_i \phi_j \; dA\\
   & =   \left (\dot{h}_i-\tilde{\dot{h}}_i \right ) \frac{1}{\mathcal{A}} \int \phi_i \phi_j \; dA\\
-  & = \frac{1}{\mathcal{A}} \bm{M} (\bm{\dot{h}} - \bm{\tilde{\dot{h}}}) 
+  & = \frac{1}{\mathcal{A}} \bm{M} (\bm{\dot{h}} - \bm{\tilde{\dot{h}}}) ,
 \end{align*}
 and the adjoint equations therefore simply $\bm{\lambda} = \frac{1}{\mathcal{A}}  (\bm{\dot{h}}-\bm{\tilde{\dot{h}}})$.
 
