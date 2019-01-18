@@ -60,8 +60,8 @@
 \contentsline {subsection}{\numberline {5.6.1}Direct approach}{49}
 \contentsline {subsection}{\numberline {5.6.2}Adjoint approach}{50}
 \contentsline {subsubsection}{First, solve the forward model:}{50}
-\contentsline {subsubsection}{Secondly, solve the adjoint problem:}{50}
-\contentsline {subsubsection}{Thirdly, evaluate the directional derivative:}{51}
+\contentsline {subsubsection}{Secondly, solve the adjoint problem:}{51}
+\contentsline {subsubsection}{Thirdly, evaluate the directional derivative:}{52}
 \contentsline {section}{\numberline {5.7}Gradients of objective functions with respect to control variables}{52}
 \contentsline {subsection}{\numberline {5.7.1}Gradient calculation in 1HD with respect to $C$}{52}
 \contentsline {subsection}{\numberline {5.7.2}Gradient calculation in 1HD with respect to $A$}{52}
@@ -70,8 +70,8 @@
 \contentsline {section}{\numberline {5.9}Inverting for $\qopname \relax o{log}p$}{54}
 \contentsline {section}{\numberline {5.10}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{54}
 \contentsline {section}{\numberline {5.11}Adjoint equations (Bayesian case with constraints on vertical velocity)}{55}
-\contentsline {section}{\numberline {5.12}Prognostic equations are formally self-adjoint}{55}
-\contentsline {section}{\numberline {5.13}Covariance kernels}{57}
+\contentsline {section}{\numberline {5.12}Prognostic equations are formally self-adjoint}{56}
+\contentsline {section}{\numberline {5.13}Covariance kernels}{58}
 \contentsline {chapter}{\numberline {6}Further technical implementation details}{59}
 \contentsline {section}{\numberline {6.1}Only the (fully) floating condition as a natural boundary condition}{59}
 \contentsline {subsection}{\numberline {6.1.1}Remark}{59}

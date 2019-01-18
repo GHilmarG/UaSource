@@ -1,4 +1,7 @@
-function [p,plb,pub]=F2p(CtrlVar,F)
+function [p,plb,pub]=F2p(CtrlVar,MUA,F)
+
+
+narginchk(3,3)
 
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for,
@@ -57,7 +60,6 @@ if contains(CtrlVar.Inverse.InvertFor,'-b-')
 end
 
 
-
 if contains(CtrlVar.Inverse.InvertFor,'-B-')
     
     pb=F.B;
@@ -66,6 +68,11 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     
 end
 
+
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=='M'
+    pA=MUA.L\pA;
+    pC=MUA.L\pC;
+end
 
 p=[pA;pb;pC];
 plb=[lbA;lbb;lbC];

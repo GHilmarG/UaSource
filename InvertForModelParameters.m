@@ -27,7 +27,7 @@ F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
-[p0,plb,pub]=F2p(CtrlVar,F); 
+[p0,plb,pub]=F2p(CtrlVar,MUA,F); 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
 [J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -111,7 +111,7 @@ else
             error('what case? ')
     end
  
-    F=p2F(CtrlVar,p,F); 
+    F=p2F(CtrlVar,MUA,p,F); 
     [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
   

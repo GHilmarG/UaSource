@@ -1,8 +1,18 @@
-function F=p2F(CtrlVar,p,F)
+function F=p2F(CtrlVar,MUA,p,F)
+
+narginchk(4,4)
 
 NA=numel(F.AGlen);
 Nb=numel(F.b);
 NC=numel(F.C);
+
+
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=='M'
+    p(1:NA)=MUA.L*p(1:NA);
+    p(NA+1:end)=MUA.L*p(NA+1:end);
+end
+
+
 
 switch  CtrlVar.Inverse.InvertForField
     
@@ -68,6 +78,7 @@ switch  CtrlVar.Inverse.InvertForField
         else
             F.C=p;
         end
+    
         
     case 'Ab'
         
@@ -143,6 +154,8 @@ switch  CtrlVar.Inverse.InvertForField
         
         error('p2F: which case?')
 end
+
+
 
 
 end

@@ -3425,17 +3425,15 @@ the directional derivative $d_p J$ of the objective function $J$ with respect
 to the control parameters $p$, as follows:
 
 \begin{align}
-  \p_q F \, \Delta q & = -F(q) \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0  \\
+  F(q(p),p)&=0 \\
   \p_q F^{*} \lambda & = \p_q J \\
   d_p J &= \p_p F^{*} \lambda + \p_p J
 \end{align}
 
-A bit more precise notation is:
-
+A bit more precise notation for the adjoint problem and the calculation of the derivaive is
 \begin{align}
-   < \delta_q F \mid \Delta q > & = -<F(q) \mid \delta_q> \quad \text{ with } q \to q +\Delta q \text{ and } \Delta q \to 0  \\
   <\delta_q F^{*} \mid \lambda > & = \delta_q J \\
-  \delta_p J &= < \p_p F^{*} \mid \lambda > + \delta_p J
+  \delta_p J &= < \delta_p F^{*} \mid \lambda > + \delta_p J
 \end{align}
 
 
@@ -3564,9 +3562,10 @@ d_{\bm{p}} R =\frac{\gamma_1^2}{\cal{A}} (\bm{D}+\gamma_2^2 \bm{M}) (\bm{p}-\til
 \section{Simple example of a gradient calculation of an objective function}
 
 Consider, as an illustration, the problem of inverting for ice
-thickness $h$ using rates of elevation as observations. Here the
-control variable is $h$ and the field variable $\dot{h}$. We have
-measurements $\tilde{\dot{h}}$ and an a priori estimate $\tilde{h}$.
+thickness ($h$) using rates of thickness change ($\dot{h}$) as
+observations. Here the control variable is $h$ and the field variable
+$\dot{h}$. We have measurements $\tilde{\dot{h}}$ and an a priori
+estimate $\tilde{h}$.
 
 
 Hence, we have
@@ -3630,16 +3629,23 @@ function $J$, leading to
 \begin{equation}
 \delta_h J = \frac{1}{\mathcal{A}} \int \left (\dot{h} -
 \tilde{\dot{h}} \right ) \, \p_x (u \,\delta h) \; dA +
-\frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \delta h \; dA ,
+\frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \delta h \; dA .
 \label{eq:djH}
 \end{equation}
-so that was easy.
+This is our directional derivative and one can now do an inversion for
+$h$ using this derivative.
 
-One can now ask the question what this directional derivative looks
-like in a FE setting. Assuming that all variables are expanded in the
-same FE basis, i.e.\ $f=f_i \phi_i$ where $f$ is any of  $u$, $h$, $\dot{h}$ and also
+Note that this derivative is with respect to the perturbation in the
+nodal values, i.e.\ $\delta h = \phi$, so this derivative is
+intimately related to the FE basis.
+
+There is the separate, but related and a quite important question as
+to what the coefficients of the directional derivative are in a given
+FE setting. Assuming that all variables are expanded in the same FE
+basis, i.e.\ $f=f_i \phi_i$ where $f$ is any of $u$, $h$, $\dot{h}$
+and also
 \[
-\delta_h J = (\delta_h J)_i \phi_i
+\delta_h J = (\delta_h J)_i \, \delta h_i = (\delta_h J)_i \, \phi_i
 \]
 we would solve for the coefficients $(\delta_h J)_i$ in the expansion
 $\delta_h J = (\delta_h J)_i \phi_i$ in the usual FE manner by requiring
@@ -3657,7 +3663,7 @@ and in fact inversion can be successfully done using this
 derivative. However, this `derivative' will be intimately related to the
 the structure of the FE approximation used, both the basis and the
 discretisation. This expression for the `derivative' is simply an
-example of a FE assembly. It does note represent the values of the
+example of a FE assembly, and it does not represent the values of the
 coefficients of the derivative in the FE basis. The correct expression is Eq.~(\ref{eq:dJFE}). }
 \begin{equation}
 \int (\delta_h J)_i \, \phi_i \, \phi_j\, dA = \frac{1}{\mathcal{A}}
@@ -3698,6 +3704,11 @@ since $\p_{\dot{h}} F = 1 $, or
 \]
 since this is a linear forward model the NR iteration converges in first iteration.
 
+Of course, as explained above, the FE formulation of the problem leads to
+\[
+\bm{M} \, \bm{ \Delta \dot{h}} = - ( \bm{M} \, \bm{\dot{h}} - \bm{b}) 
+\]
+so here $1=|\phi><\phi|=\bm{M}$.
 \subsubsection{Secondly, solve the adjoint problem:}
 The adjoint problem is
 \[
@@ -3711,7 +3722,7 @@ We can ask what the $1$ actually stands for in this context, and the
 answer is that this is the unity operator in the relevant basis,
 i.e.\ the inner product between the unit vectors spanning the space,
 or the Gramian matrix. In the FE context were the basis functions are
-$\phi_i$ this matrix is the mass matrix $[\bm{M}]_{ij}= < \phi_i \mid \phi_j > $.
+$\phi_i$ this matrix is the mass matrix $[\bm{M}]_{ij}= \mid \phi_i  >< \phi_j \mid $.
 
 
 To see this more clearly let us calculate the directional derivative
