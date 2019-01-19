@@ -6,10 +6,16 @@ NA=numel(F.AGlen);
 Nb=numel(F.b);
 NC=numel(F.C);
 
-
+%   
+%   p = log(f)   <=> f=10^p
+%    
+%   or 
+%
+%   f=M^{1/2) p 
+%
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=='M'
-    p(1:NA)=MUA.L*p(1:NA);
-    p(NA+1:end)=MUA.L*p(NA+1:end);
+    p(1:NA)=MUA.M\p(1:NA);
+    p(NA+1:end)=MUA.M\p(NA+1:end);
 end
 
 

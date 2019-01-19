@@ -213,10 +213,12 @@ end
 if CtrlVar.InverseRun
     
     switch lower(CtrlVar.Inverse.InvertFor)
-        case 'c'
+        case {'c','-c-'}
             CtrlVar.Inverse.InvertFor='-C-';
         case {'aglen','-a-'}
             CtrlVar.Inverse.InvertFor='-AGlen-';
+        case {'aglenc','caglen','-aglen-c-','-c-aglen-','ac','ca','-a-c-','-c-a-'}
+            CtrlVar.Inverse.InvertFor='-AGlen-C-';
         case {'logc','-logc-'}
             CtrlVar.Inverse.InvertFor='-logC-';
         case {'logaglen','-loga-','-logaglen-'}
@@ -230,7 +232,7 @@ if CtrlVar.InverseRun
     end
     
     CtrlVar.Inverse.InvertForField=sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A'))) ;
-
+    
     if isempty(CtrlVar.Inverse.InvertForField)
         
         fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')

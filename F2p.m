@@ -70,8 +70,8 @@ end
 
 
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=='M'
-    pA=MUA.L\pA;
-    pC=MUA.L\pC;
+    pA=MUA.M*pA;
+    pC=MUA.M*pC;
 end
 
 p=[pA;pb;pC];
