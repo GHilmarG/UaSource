@@ -179,7 +179,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
         fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
         save SSTREAM2dNRDump
-        
+        break
     end
     
     %% If requested, plot residual as function of steplength

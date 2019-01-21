@@ -322,7 +322,7 @@ hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 figure
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
-PlotMeshScalarVariable(CtrlVar,MUA,dhdt)
+PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
 title('Calculated dhdt (assuming plug flow)') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 

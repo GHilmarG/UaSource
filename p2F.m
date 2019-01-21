@@ -6,16 +6,17 @@ NA=numel(F.AGlen);
 Nb=numel(F.b);
 NC=numel(F.C);
 
-%   
+%
 %   p = log(f)   <=> f=10^p
-%    
-%   or 
 %
-%   f=M^{1/2) p 
+%   or
 %
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=='M'
-    p(1:NA)=MUA.M\p(1:NA);
-    p(NA+1:end)=MUA.M\p(NA+1:end);
+%   f=M^{1/2) p
+%
+if CtrlVar.Inverse.pPreMultiplier=="M"
+    Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+    p(1:NA)=Area*(MUA.M\p(1:NA));
+    p(NA+1:end)=Area*(MUA.M\p(NA+1:end));
 end
 
 
@@ -36,19 +37,19 @@ switch  CtrlVar.Inverse.InvertForField
         % tested and works
         % express geometrical variables in terms of p
         
-        F.B=p ; 
+        F.B=p ;
         F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;   % h = s - b
-
+        
         %         bfloat=F.S - F.rho.*F.h /F.rhow;
-%         
-%         F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
-%            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*F.h /F.rhow) 
-%            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*(F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p))  ;  
-          F.b=F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*( F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)   )./F.rhow);
-          
-          % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
-          % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
-          % db/dp = GF + (1-GF) rho GF/rhow
+        %
+        %         F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
+        %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*F.h /F.rhow)
+        %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*(F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p))  ;
+        F.b=F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*( F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)   )./F.rhow);
+        
+        % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
+        % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
+        % db/dp = GF + (1-GF) rho GF/rhow
         
         %         dB/dp = 1
         %         dh/dp = -GF.node
@@ -60,7 +61,7 @@ switch  CtrlVar.Inverse.InvertForField
         
         [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
         
-         % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
+        % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
         
     case 'b'
         
@@ -84,7 +85,7 @@ switch  CtrlVar.Inverse.InvertForField
         else
             F.C=p;
         end
-    
+        
         
     case 'Ab'
         

@@ -23,6 +23,7 @@ end
 F=p2F(CtrlVar,MUA,p,F); 
 
 [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+
 [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,Priors,Meas,BCsAdjoint,RunInfo) ;
 [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
 
@@ -40,6 +41,8 @@ else
     ubP=[];
     vbP=[];
     I=NaN;
+    R=NaN ;
+    dJdp=p*0+NaN; 
     MisfitOuts.I=NaN;
 end
 

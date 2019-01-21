@@ -1,4 +1,4 @@
-function  [p,RunInfo]=UaOptimisation(CtrlVar,func,p,plb,pub,RunInfo)
+function  [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)
@@ -6,6 +6,9 @@ function  [p,RunInfo]=UaOptimisation(CtrlVar,func,p,plb,pub,RunInfo)
 %  Func is func evaluated as a function of stepsize gamma in the direction of
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
+
+narginchk(8,8)
+nargoutchk(3,3)
 
 if isempty(CtrlVar)
     
@@ -29,7 +32,7 @@ p=kk_proj(p,pub,plb);
 
 [J0,dJdp,Hess,fOuts]=func(p);
 dJdp=dJdp(:);
-GradNorm=norm(dJdp);
+GradNorm=norm(dJdp)/sqrt(numel(dJdp));
 RunInfo.Inverse.ConjGradUpdate=0;
 
 if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1
@@ -98,7 +101,7 @@ fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |gra
 
 Func=@(gamma) func(p-gamma*dJdp);
 J1=Func(gamma);
-
+nFuncEval=1;
 
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
@@ -109,30 +112,33 @@ CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevel;
 
 It0=RunInfo.Inverse.Iterations(end);
 
-fprintf('\n   It         J           I          R         |grad|      gamma   #cgUpdate\n')
+fprintf('\n   It   #fEval      J           I          R         |grad|      gamma   #cgUpdate\n')
 %fprintf('123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\n')
 
-fprintf('%5i  %10g  %10g  %10g  %10g  %10g  %5i\n',It0,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
+fprintf('%5i  %5i %10g  %10g  %10g  %10g  %10g  %5i\n',It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
 CtrlVar.GradientUpgradeMethod=CtrlVar.Inverse.GradientUpgradeMethod;
 
 iBackTry=0;
 
 for It=1:CtrlVar.Inverse.Iterations
     
-    
+    CtrlVar.BackTrackExtrapolationRatio=10;
+    CtrlVar.NewtonAcceptRatio=0.90;
     [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
-    
+    nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
     
     if ~BackTrackingInfoVector.converged
         
         fprintf(' Line search has stagnated. \n')
-        fprintf(' Try resetting step size to 1 and using direction of steepest decent. \n')
-        gamma=1;
+        fprintf(' Try resetting step size and using direction of steepest decent. \n')
+        slope0=-dJdp'*dJdp; gamma=-0.01*J0/slope0 ;  % modification on 20 Jan, 2019. Resetting gamma
         dJdpModified=dJdp;
         RunInfo.Inverse.ConjGradUpdate=0;
         Func=@(gamma) func(p-gamma*dJdpModified);
-        J1=Func(gamma); 
+        J1=Func(gamma);
+        
         [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+        nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
         
         if ~BackTrackingInfoVector.converged
             fprintf(' Resetting step size to 1 and using steepest decent did not help, now breaking out.\n')
@@ -140,7 +146,7 @@ for It=1:CtrlVar.Inverse.Iterations
         end
         
     end
-%         
+    %
 %     if BackTrackingInfoVector.converged
 %         iBackTry=0;   % After returning from a successful backtracking, update p
 %         p=p-gamma*dJdpModified;
@@ -162,14 +168,15 @@ for It=1:CtrlVar.Inverse.Iterations
     p=kk_proj(p,pub,plb);
     dJdpLast=dJdp;
     % Get new directional derivative
-    [J0,dJdp,Hess,fOuts]=func(p);   % here J0 and JgammaNew must be (almost) equal
-    
-    GradNorm=norm(dJdp);
+    [J0,dJdp,Hess,fOuts]=func(p);       
+    nFuncEval=nFuncEval+1; % here J0 and JgammaNew must be (almost) equal
+
+    GradNorm=norm(dJdp)/sqrt(numel(dJdp));
     
     % update search direction.
   
     
-    fprintf('%5i  %10g  %10g  %10g  %10g  %10g  %5i\n',It+It0,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
+    fprintf('%5i  %5i %10g  %10g  %10g  %10g  %10g  %5i\n',It+It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
     
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J0];
@@ -190,14 +197,19 @@ for It=1:CtrlVar.Inverse.Iterations
     end
     
     [dJdpModified,RunInfo]=NextGradient(dJdp,dJdpLast,dJdpModified,CtrlVar,RunInfo);
-        
-      
+    
+    
     
     
     Func=@(gamma) func(p-gamma*dJdpModified);
-    %J0=F(0);  This is not needed because I've calculated J0 as I determined the new gradient.
-    J1=Func(gamma); % start with previous gamma
+    % J0=F(0);  This is not needed because I've calculated J0 as I determined the new gradient.
     
+    J1=Func(gamma);
+    
+    if isnan(J1)
+        slope0=-dJdp'*dJdp; gamma=-0.01*J0/slope0 ;  % modification on 20 Jan, 2019. Resetting gamma
+        J1=Func(gamma);
+    end
     
     
 end

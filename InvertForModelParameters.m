@@ -31,7 +31,7 @@ F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
 [J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-
+CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
@@ -41,7 +41,7 @@ func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoin
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
 dJdpTest=[];
-CtrlVar.Inverse.ResetPersistentVariables=0;
+
 %%
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
@@ -80,10 +80,10 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         
     end
     
-  
     
+    CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
-    
+    CtrlVar.Inverse.pPreMultiplier="I";
     
     
     
@@ -96,8 +96,9 @@ else
         
         case 'UaOptimization'
             
-            [p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
-
+            %[p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
+            [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p0,plb,pub);
+            
         case 'MatlabOptimization'
             
             clear fminconOutputFunction fminconHessianFcn fminuncOutfun
