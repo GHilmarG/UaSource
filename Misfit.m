@@ -211,27 +211,26 @@ if CtrlVar.Inverse.CalcGradI
         
         case {'fixpoint','fixpointc','-fixpoint-','-fixpointc-'}
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+            switch CtrlVar.Inverse.InvertForField
                 
-                if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
-                    
-                    fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
-                    fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
-                    fprintf(' Fixpoint evaluation of data misfit gradient only possibly when solving for slipperiness alone. \n')
-                    error('Fixpoint evaluation of data misfit gradient not implemented for AGlen or logAGlen inversion. ')
-                    
-                else
+                case 'C'
                     
                     dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,GF,F.ub,F.vb,Meas.us,Meas.vs);
                     np=numel(dIdp); ddIddp=sparse(np,np);
                     
-                end
-                
-            else
-                
-                error('Fixpoint evaluation of data misfit gradient not implemented for AGlen or logAGlen inversion')
-                
-                
+                case 'B'
+       
+                    
+                    dIdB=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
+                    np=numel(dIdp); ddIddp=sparse(np,np);
+                    
+                otherwise
+                    
+                    fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
+                    fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
+                    fprintf(' Fixpoint inversion only possible for C and B inversion. \n')
+                    error('Misfit:IncorrectInputParameterCombination','Fixpoint inversion only possible for C and B inversion')
+                    
             end
             
             

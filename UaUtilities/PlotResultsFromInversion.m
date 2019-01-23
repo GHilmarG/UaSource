@@ -613,7 +613,7 @@ else
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
             hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
             tFig1.Units='normalized';
-            tFig1.Position=[0.5 0.51 0.5 0.4];
+            tFig1.Position=[0.5 0.5 0.5 0.4];
             
             if  ~CtrlVar.CisElementBased
                 tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
@@ -650,7 +650,7 @@ else
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; title('Retrieved AGlen')
             hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
             tFig1.Units='normalized';
-            tFig1.Position=[0.5 0.51 0.5 0.4];
+            tFig1.Position=[0.5 0.5 0.5 0.4];
             
             if  ~CtrlVar.AGlenisElementBased
                 tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
@@ -673,10 +673,53 @@ else
                 colorbar('south')
                 
                 tFig2.Units='normalized';
-                tFig2.Position=[0.1 0.2 0.8 0.5];
+                tFig2.Position=[0.2 0.2 0.8 0.5];
             end
         end
     end
+    
+       
+    if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+        
+        if ~isempty(Priors.Trueb)
+            tFig1=figure('Name','True and estimated b','NumberTitle','off');
+            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.Trueb) ; title('True b')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b) ; title('Retrieved b')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            tFig1.Units='normalized';
+            tFig1.Position=[0.5 0.51 0.5 0.4];
+            
+            if  ~CtrlVar.AGlenisElementBased
+                tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
+                
+                
+                subplot(1,3,1)
+                tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.b);
+                xlabel('x') ; ylabel('y') ; title('Inverted b')
+                colorbar('south')
+                
+                subplot(1,3,2)
+                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.Trueb);
+                xlabel('x') ; ylabel('y') ; title('True b')
+                colorbar('south')
+                
+                subplot(1,3,3)
+                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.b-Priors.Trueb);
+                xlabel('x') ; ylabel('y') ; 
+                title('b: Estimated-True')
+                colorbar('south')
+                
+                tFig2.Units='normalized';
+                tFig2.Position=[0.3 0.2 0.8 0.5];
+            end
+        end
+    end
+    
+    
+    
+    
+    
     
     
     %%

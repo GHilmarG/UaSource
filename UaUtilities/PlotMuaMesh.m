@@ -4,7 +4,7 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
 %   PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
-% The only essential input is MUA, the others are optional.
+% The only essential input is MUA, the other input variables are optional.
 %
 % varargin is passed onto PlotFEmsh and then onto triplot.
 %
@@ -20,7 +20,7 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %   figure ; PlotMuaMesh(CtrlVar,MUA,1:10000)
 %
-% Plot every 10th element in black and the nodes of those elements in black and do not plot the MeshBoundaryCoordinates
+% Plot every 10th element in black and the nodes of those elements in red and do not plot the MeshBoundaryCoordinates
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %   CtrlVar.PlotNodes=1; CtrlVar.NodeColor='r';
@@ -67,9 +67,18 @@ if ~isfield(CtrlVar,'WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo')
 end
 
 if nargin<3  || isempty(ElementList)
-    
     ElementList=1:MUA.Nele;
 end
+
+if ischar(ElementList) && nargin==3
+    % silently ignore the fact that the user clearly did not read the comments and 
+    % has given a character as third argument. Assume that he/she wanted
+    % to specify some plotting options passed on to PlotFEmesh.
+    varargin{1}=ElementList;
+    ElementList=1:MUA.Nele;
+end
+
+
 
 PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
 

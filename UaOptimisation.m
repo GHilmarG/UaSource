@@ -103,6 +103,17 @@ Func=@(gamma) func(p-gamma*dJdp);
 J1=Func(gamma);
 nFuncEval=1;
 
+
+if isnan(J1)
+    slope0=-dJdp'*dJdp; gamma=-0.01*J0/slope0 ;  % modification on 23 Jan, 2019. Resetting gamma
+    J1=Func(gamma);
+    nFuncEval=nFuncEval+1;
+end
+
+
+
+
+
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
 CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSeachSteps;

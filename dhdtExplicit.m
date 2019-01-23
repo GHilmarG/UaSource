@@ -90,38 +90,14 @@ if ~isfield(MUA,'M')
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-%dhdt=MUA.M\rh;
-%dhdt=full(dhdt);
-
-
 [hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
 
-CtrlVar.SymmSolver='AugmentedLagrangian';
+%CtrlVar.SymmSolver='AugmentedLagrangian';
 x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
     
-[dhdt,dhdtlambda]=solveKApe(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
+[dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
 dhdt=full(dhdt);    
+ 
     
-%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt) ; title('dhdt') 
-%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt2) ; title('dhdt2') 
-%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt2-dhdt) ; title('dhdt2-dthdt') 
-%  
-%     
-    
-    
-    
-    
- 
- 
- 
- 
- 
- 
- 
- 
-%%
-
-
-
 
 end

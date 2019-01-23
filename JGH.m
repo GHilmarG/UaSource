@@ -1,8 +1,8 @@
-function [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+function [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 % Calculates objective function, gradient (accurate), Hessian (guessed)
 
-narginchk(12,12)
+narginchk(14,14)
 
 
 persistent ubP vbP
@@ -17,6 +17,10 @@ if ~isempty(ubP)
     F.vb=vbP;
 end
 
+
+if CtrlVar.Inverse.MinimisationMethod=="UaOptimization"
+     p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox used a bit more sophisticaed approach (I hope). 
+end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)
 
