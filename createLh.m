@@ -24,7 +24,7 @@ b=zeros(Nconstrains,1);
 II=1; JJ=1;
 
 % h ties
-for I=1:numel(htiedA) ;
+for I=1:numel(htiedA) 
     ia(II)=JJ ; ib(II)=htiedA(I) ; xval(II)=1; II=II+1;
     ia(II)=JJ ; ib(II)=htiedB(I) ; xval(II)=-1; II=II+1;
     b(JJ)=0;  JJ=JJ+1;

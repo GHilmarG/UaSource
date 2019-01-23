@@ -24,6 +24,10 @@ F.sInit=F.s;
 
 F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
 
+if CtrlVar.Inverse.TestAdjoint.isTrue
+    CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
+end
+
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
@@ -46,7 +50,7 @@ dJdpTest=[];
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     
-    
+   
     % Get the gradient using the adjoint method
     [J,dJdp,Hessian,JGHouts]=func(p0);
     
@@ -81,7 +85,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     end
     
     
-    CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
+    
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
     CtrlVar.Inverse.pPreMultiplier="I";
     

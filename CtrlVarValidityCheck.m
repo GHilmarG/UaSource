@@ -217,6 +217,12 @@ if CtrlVar.InverseRun
             CtrlVar.Inverse.InvertFor='-C-';
         case {'aglen','-a-'}
             CtrlVar.Inverse.InvertFor='-AGlen-';
+        case {'b','-b-'}
+            if contains(CtrlVar.Inverse.InvertFor,'B')
+                CtrlVar.Inverse.InvertFor='-B-';
+            elseif contains(CtrlVar.Inverse.InvertFor,'b')
+                CtrlVar.Inverse.InvertFor='-b-';
+            end
         case {'aglenc','caglen','-aglen-c-','-c-aglen-','ac','ca','-a-c-','-c-a-'}
             CtrlVar.Inverse.InvertFor='-AGlen-C-';
         case {'logc','-logc-'}

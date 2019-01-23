@@ -60,6 +60,7 @@ mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
+TdJdh=zeros(MUA.Nele,MUA.nod);
 
 hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
@@ -133,7 +134,7 @@ for Iint=1:MUA.nip
     ddbdpdy=zeros(MUA.Nele,1);
     ddhdpdx=zeros(MUA.Nele,1);
     ddhdpdy=zeros(MUA.Nele,1);
-
+    
     for Inod=1:MUA.nod
         
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
@@ -141,7 +142,7 @@ for Iint=1:MUA.nip
         
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-
+        
         dhfdx=dhfdx+Deriv(:,1,Inod).*hfnod(:,Inod);
         dhfdy=dhfdy+Deriv(:,2,Inod).*hfnod(:,Inod);
         
@@ -158,10 +159,10 @@ for Iint=1:MUA.nip
         
         ddbdpdx=ddbdpdx+Deriv(:,1,Inod).*dbdpnod(:,Inod);
         ddbdpdy=ddbdpdy+Deriv(:,2,Inod).*dbdpnod(:,Inod);
-
+        
         ddhdpdx=ddhdpdx+Deriv(:,1,Inod).*dhdpnod(:,Inod);
         ddhdpdy=ddhdpdy+Deriv(:,2,Inod).*dhdpnod(:,Inod);
-
+        
     end
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
@@ -196,55 +197,55 @@ for Iint=1:MUA.nip
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     
-    
-    for Inod=1:MUA.nod
-        
-    %dtaubxdh=0; 
-    %dtaubydh=0; 
-    
-        test1x=1;  test1y=1;    
-        
-%          dbdpint=Heint; 
-%          ddbdpdx=deltaint.*(dhdx-dhfdx); 
-%          ddbdpdy=deltaint.*(dhdy-dhfdy); 
-        
-        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*(test1x*ddbdpdx.*fun(Inod)+dbdpint.*Deriv(:,1,Inod)) +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*(Sint-bint)).*fun(Inod)).*dbdx).*uAdjointint ...
-            +rhoint.*F.g.*sa.*dhdpint.*fun(Inod).*uAdjointint;
-        
-        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
-        
-        t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
-        t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
-        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
-        %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
-        
-        Fx=(t1+t2).*detJw;
-        Tx=(t3+t4+t5).*detJw;
-        
-        
-     
-        
-        t1=-F.g*ca*((rhoint.*hint-F.rhow*dint).*(test1y*ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))+(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
-        
-        
-        t2=F.g*ca*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
-        
-        t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
-        t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
-        %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
-        
-        
-        
-        Fy=(t1+t2).*detJw;
-        Ty=(t3+t4+t5).*detJw;
-        
-        
-        T(:,Inod)=T(:,Inod)-Tx+Fx-Ty+Fy;   % opposite sign to K because of the Newton sign
+    if contains(CtrlVar.Inverse.Measurements,'-uv-')
+        for Inod=1:MUA.nod
+            
+            %dtaubxdh=0;
+            %dtaubydh=0;
+            
+            test1x=1;  test1y=1;
+            
+            %          dbdpint=Heint;
+            %          ddbdpdx=deltaint.*(dhdx-dhfdx);
+            %          ddbdpdy=deltaint.*(dhdy-dhfdy);
+            
+            t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*(test1x*ddbdpdx.*fun(Inod)+dbdpint.*Deriv(:,1,Inod)) +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*(Sint-bint)).*fun(Inod)).*dbdx).*uAdjointint ...
+                +rhoint.*F.g.*sa.*dhdpint.*fun(Inod).*uAdjointint;
+            
+            t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
+            
+            t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
+            t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
+            t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
+            %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
+            
+            Fx=(t1+t2).*detJw;
+            Tx=(t3+t4+t5).*detJw;
+            
+            
+            
+            
+            t1=-F.g*ca*((rhoint.*hint-F.rhow*dint).*(test1y*ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))+(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+            
+            
+            t2=F.g*ca*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+            
+            t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+            t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+            t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+            %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+            
+            
+            
+            Fy=(t1+t2).*detJw;
+            Ty=(t3+t4+t5).*detJw;
+            
+            
+            T(:,Inod)=T(:,Inod)-Tx+Fx-Ty+Fy;   % opposite sign to K because of the Newton sign
+            
+        end
         
     end
-    
-    
     
     % If dh/dt=d(s-b)/dt are measurments, and the control parameter p=b
     % then dJ/db=dI/db + dR/db,
@@ -259,7 +260,7 @@ for Iint=1:MUA.nip
             dbI=-dhdtresint...
                 .*dhdpint.*(exx.*fun(Inod)+uint.*Deriv(:,1,Inod)+eyy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
                 .*detJw./dhdtErrint/Area ;
-            T(:,Inod)=T(:,Inod)+dbI ;
+            TdJdh(:,Inod)=TdJdh(:,Inod)+dbI ;
             
         end
         
@@ -267,13 +268,23 @@ for Iint=1:MUA.nip
     
 end
 
-dIdb=zeros(MUA.Nnodes,1);
+% p_h F lambda + p_h J
+
+dFdhlambda=zeros(MUA.Nnodes,1);
+dJdh=zeros(MUA.Nnodes,1);
+%
+
 
 for Inod=1:MUA.nod
-    dIdb=dIdb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dJdh=dJdh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TdJdh(:,Inod),MUA.Nnodes,1);
+    dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-dIdb=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dIdb);
+[dJdh,dFdhlambda]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dJdh,dFdhlambda);
+
+dIdb=dJdh+dFdhlambda;   % this should really be called DJdb
+
+
 
 end
 

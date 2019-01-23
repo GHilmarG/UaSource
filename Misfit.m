@@ -94,7 +94,7 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
     end
     
     
-    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F);
+    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
     
     %         if isempty(find(Meas.dhdtCov,1))
     %         ad gera

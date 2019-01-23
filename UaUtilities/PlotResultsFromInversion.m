@@ -260,17 +260,17 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 if ~isempty(Meas.dhdt)
     
-    [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F);
+    [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
      
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot);
-    PlotMeshScalarVariable(CtrlVar,MUA,(dhdt-Meas.dhdt)./dhdtError);
+    PlotMeshScalarVariable(CtrlVar,MUA,dhdt-Meas.dhdt);
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    title('((dhdt-Meas.dhdt)/dhdtError)') ;
+    title('dhdt-Meas.dhdt') ;
     
 end
 
@@ -318,7 +318,7 @@ hold on
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated horizontal velocities') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
-[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F); 
+[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs); 
 figure
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on

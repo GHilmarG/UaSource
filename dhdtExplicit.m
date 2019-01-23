@@ -1,5 +1,5 @@
 
-function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
+function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) 
 %%
 % Calculates dh/dt from flux divergence as
 %
@@ -14,6 +14,14 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
 % see also : ProjectFintOntoNodes
 %
 %
+
+narginchk(5,5)
+
+if nargin<5
+    BCs=[];
+end
+
+
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -82,7 +90,38 @@ if ~isfield(MUA,'M')
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-dhdt=MUA.M\rh;
-dhdt=full(dhdt);
+%dhdt=MUA.M\rh;
+%dhdt=full(dhdt);
+
+
+[hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
+
+CtrlVar.SymmSolver='AugmentedLagrangian';
+x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
+    
+[dhdt,dhdtlambda]=solveKApe(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
+dhdt=full(dhdt);    
+    
+%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt) ; title('dhdt') 
+%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt2) ; title('dhdt2') 
+%  figure ; PlotMeshScalarVariable(CtrlVar,MUA,dhdt2-dhdt) ; title('dhdt2-dthdt') 
+%  
+%     
+    
+    
+    
+    
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+%%
+
+
+
 
 end
