@@ -2,8 +2,12 @@ classdef PriorProbabilityDistribution
     
     properties
         
-        s=[];
-        S=[];
+       
+
+        b=[];
+        Covb=[];
+        bmax=[];
+        bmin=[];
         
         B=[];
         Bmax=[];
@@ -25,12 +29,6 @@ classdef PriorProbabilityDistribution
         CovC=[];
         Cmax=[];
         Cmin=[];
-        
-        b=[];
-        Covb=[];
-        bmax=[];
-        bmin=[];
-        
         
         TrueC=[];
         TrueAGlen=[];

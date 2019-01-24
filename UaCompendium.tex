@@ -442,7 +442,7 @@ is a vertically integrated expression of mass
 conservation.
 
 
-We will now derive Eq.~(\ref{eq:qUa1}) using the the local form of the
+We will now derive Eq.~(\ref{eq:qUa1}) using thelocal form of the
 mass-conservation equation and the kinematic boundary conditions at
 the upper and lower surfaces. The local form of the mass-conservation equation is
 \begin{equation}
@@ -2967,9 +2967,6 @@ it can be done without having to solve (\ref{eq:KLL}) again.)
 
 \chapter{Inverse modelling}
 
-Currently it is possible in \Ua to invert for $A$ and/or $C$, using
-measurements of horizontal surface velocities $(u_s,v_s)$ and rates of
-thickness changes ($\p_t h$).
 
 We denote the control and the state variables by $p$ and $q$,
 respectively. The 'state variable' ($q$) is any variable calculated by the
@@ -3017,6 +3014,51 @@ $I$ & misfit term\\
 $\mathcal{L} = I + R + <\lambda \mid F(q(p),p) > $ & Lagrangian or the 'extended' objective function. \\
 $K$ & covariance matrix \\
 $\mathcal{A}= \int dA$   & domain area \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Inversion in \Ua}
+
+Currently in \Ua it is possible to invert for $A$ and/or $C$, and bed
+geometry ($B$) using measurements of horizontal surface velocities
+$(u_s,v_s)$ and/or rates of thickness changes ($\p_t h$). One can
+invert jointly for $A$ and $C$ or any combination there off such as
+$\log A$ and $\log C$. But currently joint inversion with $B$ are not
+implemented. When inverting for $A$ and $C$, regularization can be
+applied on $A$, $C$ or $\log A$ and $\log C$. All combinations are
+possible, so one can, for example, invert for $\log A$ and $C$ with
+regularization applied on $A$ and $\log C$, if one so prefers. Typical
+use involves inverting for $\log A$ and $\log C$ simultaneously with
+regularization applied on $\log A$ and $\log C$. When inverting for
+$B$, regularisation is applied on $B$. Note that regularization is
+always applied on the difference between $p$ and its prior
+$\tilde{p}$, i.e.\ on $p-\tilde{p}$.  In addition, strickt limits can
+put on the range of the control parameter $p$. One can, for
+example, but strickt upper and lower limits on $B$ at each location.
+
+One can invert for $A$ and $C$ either over nodes or over
+elements. Typically inversion is done over nodes. Inversion for $B$ is
+done over nodes only.
+
+The forward model is the SSTREAM momentum equation. Note that if one
+includes $\dot{h}$ as measurements, in effect, the mass balance
+equation is used as well. It is a question of viewpoint if the forward
+model then includes the mass conservation in addition to the
+conservation of momentum, or just the momentum equation with the mass
+conservation used to calculate $\dot{h}$ as a part of the evaluation
+of the cost function. Both viewpoints are mathematically equivalent.
+
+\begin{table}[t]
+\caption{\label{tab:UaInv} List of variables}
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+Control variables ($p$) & regularisation &  mesurements ($\tilde{q}$) & forward model $F$ \\
+\hline
+$A$, $C$, $\log A$ , $\log C$   & $A$, $C$, $\log A$ , $\log C$   &  $u_s$, $v_s$, $\dot{h}$   &  SSTREAM (SSA) \\
+$b$, $B$                        & $b$, $B$                        &  $u_s$, $v_s$, $\dot{h}$   &  SSTREAM (SSA) \\ 
 \hline
 \end{tabular}
 \end{center}
@@ -3421,8 +3463,8 @@ In the adjoint method we need to calculate a number of derivatives. These are:
 \subsection{Summarising the adjoint approach}
 \label{sec:adjointsum}
 Summarising, and using a somewhat inexact notation, we can calculate
-the directional derivative $d_p J$ of the objective function $J$ with respect
-to the control parameters $p$, as follows:
+the (total) directional derivative $d_p J$ of the objective function
+$J$ with respect to the control parameters $p$, as follows:
 
 \begin{align}
   F(q(p),p)&=0 \\
@@ -3433,7 +3475,7 @@ to the control parameters $p$, as follows:
 A bit more precise notation for the adjoint problem and the calculation of the derivaive is
 \begin{align}
   <\delta_q F^{*} \mid \lambda > & = \delta_q J \\
-  \delta_p J &= < \delta_p F^{*} \mid \lambda > + \delta_p J
+  d_p J &= < \delta_p F^{*} \mid \lambda > + \delta_p J
 \end{align}
 
 
@@ -3632,8 +3674,8 @@ function $J$, leading to
 \frac{1}{\mathcal{A}} \int \left ( h - \tilde{h} \right ) \, \delta h \; dA .
 \label{eq:djH}
 \end{equation}
-This is our directional derivative and one can now do an inversion for
-$h$ using this derivative.
+This is the desired directional derivative and one can now do an
+inversion for $h$ using this derivative.
 
 Note that this derivative is with respect to the perturbation in the
 nodal values, i.e.\ $\delta h = \phi$, so this derivative is
@@ -3661,7 +3703,7 @@ $\delta_h J = (\delta_h J)_i \phi_i$ in the usual FE manner by requiring
 \]
 and in fact inversion can be successfully done using this
 derivative. However, this `derivative' will be intimately related to the
-the structure of the FE approximation used, both the basis and the
+structure of the FE approximation used, both the basis and the
 discretisation. This expression for the `derivative' is simply an
 example of a FE assembly, and it does not represent the values of the
 coefficients of the derivative in the FE basis. The correct expression is Eq.~(\ref{eq:dJFE}). }
@@ -3742,7 +3784,7 @@ fact a directional derivative and, again in FE context, reads
 \]
 Hence, the adjoint problem is
 \[
-\bm{M} \bm{\lambda} = \bm{l}} ,
+\bm{M} \bm{\lambda} = \bm{l} ,
 \]
 where
 \[
@@ -3977,6 +4019,56 @@ guarantee that $p$ will not become negative (and $\log p$ complex) during
 the optimisation. In \Ua one therefore also enforces the positivity
 (non complex) constraint when inverting for $\log p$ of a strictly
 positive parameter.
+
+\section{Simplified gradients using a {\em fixpoint} approach.}
+
+Experience has shown that it is sometimes usefull to start an inverse
+iteration sequence with some ad-hoc estimation of the inverted field,
+or some crude initial gradients. Such an approach can, for example, be
+used to create a rough estimate of the inverted field directly from
+measurments.
+
+In \Ua the resulting gradients are referred to as {\em fixpoint
+  gradients}. The argument for using these ad-hoc approaches, instead
+of the correctly calculated gradients by the adjoint method, is that
+they have shown to provide useful starting points for an inversion and
+to speed up the initial steps of an inverse iteration.
+
+Consider an inversion of $B$ and let's estimate what $B=s-h$ might look
+like if we ignore horizontal stress transmission, i.e.
+\[
+u_s \approx C \tau^m ,
+\]
+with
+\[
+\tau \approx \rho g h \p_x s .
+\]
+A rough initial estimate $h_0$ for $h$ might be
+\[
+ h_0  = \frac{u}{C (\rho g \p_x s)^m} .
+\]
+This clearly has plenty of potential to go hopelessly wrong, but might
+be OK as a rough initial estimate. A more robust approach would be to
+approximate the gradient of the cost function
+\[
+J= \frac{1}{2} | u - \tilde{u} | + \frac{1}{2} | h -\tilde{h} | ,
+\]
+giving
+\[
+\delta_h J = (u-\tilde{u}) \frac{C m}{h} \tau^m + (h-\tilde{h}) ,
+\]
+where for notational simplicity we have assumed $| f | = f^2 $. This
+is a much more robust approach as here $J$ is recalculated using the
+forward model and the (incorrect) gradient is used in a robust
+line-search step. This approach guarantees that the formally specified
+misfit function is actually being minimized. At worst using this
+approach the iteration will stagnate, in which case one simply
+switches to the (correct) adjoint gradient.
+
+A similar approach can be used to estimate $\delta_C J$, and using the
+$C$ fixpoint gradient in \Ua for the first 1 or 2 iterations often results
+quite dramatic reductions in the cost function. 
+
 
 
 
@@ -7634,7 +7726,7 @@ or
 u^*_b= c \,\de^{m} [\sigma]^{m} [u]^{-1} \, |\bm{t}_b^*|^{m-1} \, t_{bx}^*  .
 \label{eq:usb}
 \end{equation}
-If we want the the sliding velocity to be balanced by the basal shear stress, terms on both side of
+If we want the sliding velocity to be balanced by the basal shear stress, terms on both side of
 Eq.~(\ref{eq:usb}) must be of same order, hence
 \[
 c \,\de^{m} [\sigma]^{m} [u]^{-1}=O(1) .

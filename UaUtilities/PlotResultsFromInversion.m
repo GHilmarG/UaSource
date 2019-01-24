@@ -156,8 +156,9 @@ if contains(CtrlVar.Inverse.InvertFor,'b')
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
-    
-    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B) ; title('F.s, F.b and F.B')
+    %[TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
+    AspectRatio=1;
+    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,[],[],AspectRatio) ; title('F.s, F.b and F.B')
 end
 
 
@@ -182,8 +183,9 @@ if contains(CtrlVar.Inverse.InvertFor,'B')
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
+    AspectRatio=1;
+    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,[],[],AspectRatio) ; title('F.s, F.b and F.B')
     
-    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B) ; title('F.s, F.b and F.B')
 end
 
 
@@ -691,27 +693,52 @@ else
             tFig1.Position=[0.5 0.51 0.5 0.4];
             
             if  ~CtrlVar.AGlenisElementBased
-                tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
+                tFig2=figure('Name','Difference between true and estimated b','NumberTitle','off');
                 
                 
                 subplot(1,3,1)
                 tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.b);
-                xlabel('x') ; ylabel('y') ; title('Inverted b')
+                xlabel('x') ; ylabel('y') ; title("Inverted: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
                 
                 subplot(1,3,2)
                 PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.Trueb);
-                xlabel('x') ; ylabel('y') ; title('True b')
+                xlabel('x') ; ylabel('y') ; title("True: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
                 
                 subplot(1,3,3)
                 PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.b-Priors.Trueb);
-                xlabel('x') ; ylabel('y') ; 
-                title('b: Estimated-True')
+                xlabel('x') ; ylabel('y') ;
+                title("Estimated-True: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
                 
                 tFig2.Units='normalized';
                 tFig2.Position=[0.3 0.2 0.8 0.5];
+                
+                tFigTh=figure('Name','Difference between true and estimated h','NumberTitle','off');
+                
+                subplot(1,3,1)
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.b);
+                xlabel('x') ; ylabel('y') ; title("Inverted: h")
+                colorbar('off')
+                colorbar('south')
+                
+                subplot(1,3,2)
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.Trueb)  ; % this may need to be adjusted
+                xlabel('x') ; ylabel('y') ; title("True: h")
+                colorbar('off')
+                colorbar('south')
+                
+                subplot(1,3,3)
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.b)-(F.s-Priors.Trueb));
+                xlabel('x') ; ylabel('y') ;
+                title("Inverted-True: h ")
+                colorbar('off')
+                colorbar('south')
+                
+                tFigTh.Units='normalized';
+                
+                tFigTh.Position=[0.1 0.4 0.8 0.5];
             end
         end
     end
