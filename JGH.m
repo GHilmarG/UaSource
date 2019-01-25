@@ -24,7 +24,7 @@ end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)
 
-F=p2F(CtrlVar,MUA,p,F); 
+F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
 
 [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 

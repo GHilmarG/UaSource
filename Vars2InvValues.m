@@ -12,11 +12,10 @@ if contains(CtrlVar.Inverse.InvertForField,'A')
     
 end
 
-if contains(lower(CtrlVar.Inverse.InvertForField),'b')
+if contains(lower(CtrlVar.Inverse.InvertForField),'B')
     
     InvValues.b=F.b;
     InvValues.B=F.B;
-
     
 end
 
@@ -78,10 +77,7 @@ if ~isempty(dJdpTest)
         case 'A'
             
             InvValues.dJdAGlenTest=dJdpTest;
-            
-        case 'b'
-            
-            InvValues.dJdbTest=dJdpTest;
+
             
         case 'B'
             
@@ -101,13 +97,13 @@ if ~isempty(dJdpTest)
             InvValues.dJdAGlenTest=dJdpTest(1:NA);
             InvValues.dJdCTest=dJdpTest(NA+1:end);
             
-        case 'bC'
+        case 'BC'
             
             
             InvValues.dJdbTest=dJdpTest(1:Nb);
             InvValues.dJdCTest=dJdpTest(Nb+1:end);
             
-        case 'AbC'
+        case 'ABC'
             
             
             InvValues.dJdAGlenTest=dJdpTest(1:NA);

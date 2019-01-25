@@ -53,6 +53,7 @@ end
 
 if contains(CtrlVar.Inverse.InvertFor,'-b-')
     
+    error('fdsa')
     pb=F.b;
     lbb=F.bmin+zeros(size(pb));
     ubb=F.bmax+zeros(size(pb));

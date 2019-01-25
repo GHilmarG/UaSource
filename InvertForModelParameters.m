@@ -16,13 +16,10 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-F.hInit=F.h;
-F.BInit=F.B; 
-F.bInit=F.b; 
-F.sInit=F.s; 
 
-F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
+F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
@@ -116,7 +113,7 @@ else
             error('what case? ')
     end
  
-    F=p2F(CtrlVar,MUA,p,F); 
+    F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
     [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
   

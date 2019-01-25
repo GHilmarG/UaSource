@@ -19,7 +19,10 @@ function [TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,View
 % CtrlVar.ThicknessCutOffForPlotting  :  Ice only plotted as ice if thickness greater than this.
 %
 % Examples:
+%  
 %  Plot_sbB(CtrlVar,MUA,s,b,B);
+%
+%  Plot_sbB(CtrlVar,MUA,Meas.s,Priors.Trueb,Priors.B,[],[],[],[],[],[1 0 0],[0 1 0],[0 0 1]) ;
 %
 %
 % Note: TRI and DT are now calculated more efficiently and there is no longer

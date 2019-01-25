@@ -393,8 +393,9 @@ if CtrlVar.Inverse.CalcGradI
                             %  p= B ; 
                             
                             dBdp=  1+zeros(MUA.Nnodes,1); 
-                            dbdp=  F.GF.node - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow; 
-                            dhdp= -F.GF.node; 
+                            %dBdp=  F.GF.node ; % 
+                            dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow; 
+                            dhdp= -F.GF.node ; 
                             
                             dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
                             

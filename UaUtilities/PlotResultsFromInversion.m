@@ -681,13 +681,13 @@ else
     end
     
        
-    if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+    if contains(CtrlVar.Inverse.InvertFor,'-B-')
         
-        if ~isempty(Priors.Trueb)
-            tFig1=figure('Name','True and estimated b','NumberTitle','off');
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.Trueb) ; title('True b')
+        if ~isempty(Priors.TrueB)
+            tFig1=figure('Name','True and estimated B','NumberTitle','off');
+            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB) ; title('True B')
             hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b) ; title('Retrieved b')
+            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B) ; title('Retrieved B')
             hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.51 0.5 0.4];
@@ -697,17 +697,20 @@ else
                 
                 
                 subplot(1,3,1)
-                tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.b);
+                tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.B);
+                %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ; title("Inverted: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
                 
                 subplot(1,3,2)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.Trueb);
+                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueB);
+                %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ; title("True: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
                 
                 subplot(1,3,3)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.b-Priors.Trueb);
+                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.B-Priors.TrueB);
+                %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ;
                 title("Estimated-True: "+CtrlVar.Inverse.InvertFor)
                 colorbar('south')
@@ -718,19 +721,22 @@ else
                 tFigTh=figure('Name','Difference between true and estimated h','NumberTitle','off');
                 
                 subplot(1,3,1)
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.b);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.B);
+                hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ; title("Inverted: h")
                 colorbar('off')
                 colorbar('south')
                 
                 subplot(1,3,2)
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.Trueb)  ; % this may need to be adjusted
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.TrueB)  ; % this may need to be adjusted
+                hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ; title("True: h")
                 colorbar('off')
                 colorbar('south')
                 
                 subplot(1,3,3)
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.b)-(F.s-Priors.Trueb));
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.B)-(F.s-Priors.TrueB));
+                hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
                 xlabel('x') ; ylabel('y') ;
                 title("Inverted-True: h ")
                 colorbar('off')

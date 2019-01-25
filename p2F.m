@@ -1,6 +1,6 @@
-function F=p2F(CtrlVar,MUA,p,F)
+function F=p2F(CtrlVar,MUA,p,F,Meas,Priors)
 
-narginchk(4,4)
+narginchk(6,6)
 
 NA=numel(F.AGlen);
 Nb=numel(F.b);
@@ -63,7 +63,7 @@ end
 
 if isb
     F.h=F.s-p(Ib1:Ib2) ;
-    F.B=p.*F.GF.node+(1-F.GF.node).*F.BInit;
+    F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
     
     
     %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
@@ -76,19 +76,84 @@ end
 
 if isB
     
-    % tested and works
-    % express geometrical variables in terms of p
+    % tested and works express geometrical variables in terms of p
+    
+    % here the control variable is B so I need to express all other variables in
+    % terms of B this includes changing the thickness.
+    %
+    % The idea is to use s as given by measurements,i.e. s=Meas.s This gives b over
+    % the floating areas from flotation argument using GF, and with it h and B Over
+    % the grounded areas, again use s=Meas.s, and set b=B. However, this raises the
+    % possibility that:
+    %   1) As b is modified over the floating areas we get b<B in places. 2) As B is
+    %   modified over the grounding areas, some areas go afloat.
+    % 
+    % This is a difficult one, but I assume Meas.s is know quite accuratly so
+    % whatever is done, keep s=Meas.s. Also do not change B as it is given by p.
+    %
+    % So I must calculate b from s over the floating areas, and set b=B over the
+    % grounded areas. However, this might cause b to be below B (b<B) for two
+    % separate reasons: 1) Calculating b from the floating condition might results
+    % in b<B. And changes in B below the GL (regularisation effects) may also give
+    % rise to b<B.
+    %
+    % Solution:
+    %
+    %   1) Initially keeping GF, set b=B over grounded
+    %      areas. But note that this will violate the GF mask if B is lowered as
+    %      areas around the GL go afloat. If B is raised where grounded then locally
+    %      GF does not change.
+    %
+    %   2) set b=max(b,B). Because of step 1, this will not change b any further
+    %   over the grounded areas. This will also not change b over the floating areas
+    %   provided B does not change there. But B may change over the grounded areas
+    %   due to regularisation, and therefore this step is required. Therefore, b may
+    %   be shifted upwards over the areas previously afloat and this will cause new
+    %   areas to become grounded.
+    %      
+    %   3) set h=s-b
+    %
+    %   4) to ensure consistency with floating condition, recalculate GF from S and
+    %   B for the new h.  Then recalculate b from Meas.s where afloat acording to
+    %   the new GF, and then finally set again h=s-b.
+    % 
+    %   If B  is lowered over (previously) grounded areas, and therefore b as well, causing
+    %   grounded areas to go afloat based on the new increased thickness h=Meas.s-b,
+    %   then the recalculation of b in step 4 will only raise b, and hence not give
+    %   rise to b<B situations. 
+    %
+    %   If B is lowered over previously floating areas, GF is not affected and there
+    %   are no changes to b in step 4.
+    %
+    %   If B is shifted upwards over previously grounded areas, then GF 
+    %   also does not change and there is no change in b in step 4. 
+    %
+    %   If B is shifted upwards over previous floating areas, causing possible
+    %   grounding, then the recalculation of GF in step 4 ensures that b is only
+    %   recalculated over areas previously afloat.
+    %
+    
+    G=F.GF.node ; 
     
     F.B=p(IB1:IB2) ;
-    F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;   % h = s - b
+    %F.B=G.*p(IB1:IB2)+(1-G).*Priors.B;
+    
+    F.s=Meas.s ;
+    
+    F.b=G.*F.B + (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ; 
+    F.b=max(F.b,F.B) ; 
+    F.h=F.s-F.b;
+    %CtrlVar.Report_if_b_less_than_B=1; 
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow) ; 
+
     
     %         bfloat=F.S - F.rho.*F.h /F.rhow;
     %
     %         F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
     %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*F.h /F.rhow)
     %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*(F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p))  ;
-    F.b=F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*( F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)   )./F.rhow);
-    
+    %F.b=G.*p + (1-G) .* (F.S - F.rho.*( F.hInit.*(1-G)  + G.* (F.sInit - p)   )./F.rhow);
+    % F.h= F.h.*(1-G)  + G.* (Meas.s - p)  ;   % h = s - b    
     % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
     % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
     % db/dp = GF + (1-GF) rho GF/rhow
@@ -101,7 +166,7 @@ if isB
     %               = GF.node + rho (1-GF.node) GF.node/ rhow
     %
     
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
+    % [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
     
     % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
     
