@@ -16,7 +16,13 @@ if contains(lower(CtrlVar.Inverse.InvertForField),'B')
     
     InvValues.b=F.b;
     InvValues.B=F.B;
+    InvValues.h=F.h;
+    InvValues.S=F.S;
+    InvValues.rho=F.rho;
+    InvValues.rhow=F.rhow;
     
+    % This should be consistent with:
+    %[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 end
 
 

@@ -44,21 +44,15 @@ if    contains(CtrlVar.Inverse.InvertForField,'B')
     F.Bmin=Priors.Bmin;
     F.Bmax=Priors.Bmax;
     
+       
+    F.b=InvStartValues.b ;
+    F.s=InvStartValues.s ;
+    F.h=InvStartValues.h ; 
+    F.S=InvStartValues.S ; 
+    F.rho=InvStartValues.rho;
+    F.rhow=InvStartValues.rhow;
+ 
     
-    
-    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed, this of course
-    % may not be possible over the floating areas, consider calculating F.b over the floating areas
-    % from F.s using the floating relationship.
-    
-    F.b=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF);
-    
-    % However, this now creates the possibility that b<B in places downstream of the groundign line.
-    % What to do?
-    % Either: Modify the floating mask by keeping h fixed and recalculating s, b, B, and GF.
-    %         First modify B so that B<b everywhere, then recalcuate s, b, B and GF
-    
-    F.B=min(F.b,F.B); 
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.s-F.b,F.S,F.B,F.rho,F.rhow);
 end
 
 

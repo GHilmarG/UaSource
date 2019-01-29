@@ -170,7 +170,14 @@ if isB
     
     % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
     
+       
+    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed, this of course
+    % may not be possible over the floating areas, consider calculating F.b over the floating areas
+    % from F.s using the floating relationship.
     
+    F.b=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); % better have this in JGH
+    
+        
 end
 
 if isC
