@@ -64,13 +64,13 @@
 \contentsline {subsubsection}{Secondly, solve the adjoint problem:}{51}
 \contentsline {subsubsection}{Thirdly, evaluate the directional derivative:}{52}
 \contentsline {section}{\numberline {5.8}Gradients of objective functions with respect to control variables}{52}
-\contentsline {subsection}{\numberline {5.8.1}Gradient calculation in 1HD with respect to $C$}{52}
+\contentsline {subsection}{\numberline {5.8.1}Gradient calculation in 1HD with respect to $C$}{53}
 \contentsline {subsection}{\numberline {5.8.2}Gradient calculation in 1HD with respect to $A$}{53}
-\contentsline {subsection}{\numberline {5.8.3}Gradient calculation in 1HD with respect to $b$}{53}
-\contentsline {section}{\numberline {5.9}Using $\partial _t h$}{54}
-\contentsline {section}{\numberline {5.10}Inverting for $\qopname \relax o{log}p$}{54}
+\contentsline {subsection}{\numberline {5.8.3}Gradient calculation in 1HD with respect to $b$}{54}
+\contentsline {section}{\numberline {5.9}Using $\partial _t h$}{55}
+\contentsline {section}{\numberline {5.10}Inverting for $\qopname \relax o{log}p$}{55}
 \contentsline {section}{\numberline {5.11}Simplified gradients using a {\em fixpoint} approach.}{55}
-\contentsline {section}{\numberline {5.12}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{55}
+\contentsline {section}{\numberline {5.12}The form of the adjoint equations for Bayesian approach using Gaussian statistics}{56}
 \contentsline {section}{\numberline {5.13}Adjoint equations (Bayesian case with constraints on vertical velocity)}{56}
 \contentsline {section}{\numberline {5.14}Prognostic equations are formally self-adjoint}{57}
 \contentsline {section}{\numberline {5.15}Covariance kernels}{59}

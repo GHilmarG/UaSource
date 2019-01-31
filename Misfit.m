@@ -113,17 +113,6 @@ end
 % This is straigtforward as the misfit term is an explicit function of u
 % and v.
 
-switch  CtrlVar.Inverse.InvertForField
-    
-    case 'B'
-        
-        dhdp=-F.GF.node;
-        
-    case 'b'
-        dhdp=-1+zeros(MUA.Nnodes,1);
-    otherwise
-        dhdp=[];
-end
 
 switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
     
@@ -377,7 +366,7 @@ if CtrlVar.Inverse.CalcGradI
             end
             
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+            if contains(CtrlVar.Inverse.InvertFor,'-B-')
                 
                 switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
                     
@@ -388,27 +377,18 @@ if CtrlVar.Inverse.CalcGradI
                         
                     case 'integral'
                         
-                        if contains(CtrlVar.Inverse.InvertFor,'-B-')
-                            
-                            %  p= B ; 
-                            
-                            dBdp=  1+zeros(MUA.Nnodes,1); 
-                            %dBdp=  F.GF.node ; % 
-                            dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow; 
-                            dhdp= -F.GF.node ; 
-                            
-                            dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
-                            
-                        else
-                            
-                            dBdp= F.GF.node;
-                            dhdp= -1+zeros(MUA.Nnodes,1);
-                            dbdp= F.GF.node + (1-F.GF.node).*F.rho/F.rhow ; 
-                         
-                            
-                            
-                            dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
-                        end
+                        
+                        
+                        %  p= B ;
+                        
+                        dBdp=  1+zeros(MUA.Nnodes,1);
+                        %dBdp=  F.GF.node ; %
+                        dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
+                        dhdp= -F.GF.node ;
+                        
+                        dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
+                        dIdB=dIdB.*F.GF.node ;
+                        
                         
                         
                 end

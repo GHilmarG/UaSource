@@ -1,4 +1,9 @@
-function [b,GF]=Calc_b_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
+function [b,h,GF]=Calc_b_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
+
+
+narginchk(7,9)
+nargoutchk(3,3)
+
 
 %% Calculates b from s, B, S and rho and rhow.
 %
@@ -26,6 +31,7 @@ function [b,GF]=Calc_b_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
 %%
 
 %% get a rough and a reasonable initial estimate for b
+
 hf=rhow*(S-B)./rho ;
 if nargin< 9  || isempty(b0)
     
@@ -41,10 +47,12 @@ end
 %%
 
 b=b0;
+h=s-b;
+
 % iteration
 ItMax=30 ; tol=100*eps ;  Err=100*tol ; I=0 ;
 ErrVector=zeros(ItMax,1)+NaN ;
-h=s-b;
+
 while I< ItMax && Err > tol
     I=I+1;
     
@@ -63,13 +71,15 @@ while I< ItMax && Err > tol
     ErrLast=Err;
     Err=sum(F1.^2)/2 ;
     
-    fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),Err,Err/ErrLast)
+    %fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),Err,Err/ErrLast)
     
     ErrVector(I)=Err ;
     
 end
 
-figure ; semilogy([1:30],ErrVector,'-or')
+GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+
+% figure ; semilogy([1:30],ErrVector,'-or')
 
 
 if I==ItMax   % if the NR iteration above, taking a blind NR step does not work, just
@@ -86,14 +96,13 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     
     func=@(b) bFunc(b,CtrlVar,s,B,S,rho,rhow) ;
     b  = fminunc(func,b0,options) ;
-    
+    h=s-b;
+    GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 end
 %%
 
 
-hf=rhow*(S-B)./rho ;
-h=s-B ;  % for the purpose of the floating mask, set b = B
-GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
+
 
 
 

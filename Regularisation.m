@@ -100,7 +100,7 @@ end
 
 % b
 if contains(CtrlVar.Inverse.InvertFor,'-b-')
-    
+    error('fdsa')
     isb=1;
     dpb=F.b-Priors.b;
     pPriorCovb=Priors.Covb;
@@ -200,6 +200,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         dRdb=temp/npb;
         %ddRdd=inv(Priors.CovC)/2/N;
         ddRCddpb=[];
+        error('fdsa')
     else
         Rb=0;
         dRdb=[];
@@ -278,7 +279,7 @@ else  % Tikhonov regularization
         Nb=(gsb.^2.*(Dxx+Dyy)+gab.^2.*M)/Area;
         Rb=dpb'*Nb*dpb/2;
         dRdb=(Nb*dpb).*dbfactor;
-        
+        error('fdsa')
     else
         Rb=0;
         dRdb=[];

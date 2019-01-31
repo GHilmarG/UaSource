@@ -61,18 +61,19 @@ if isA
     end
 end
 
-if isb
-    F.h=F.s-p(Ib1:Ib2) ;
-    F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
-    
-    
-    %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
-    %  dbfloat/dp= F.rho./F.rhow
-    %
-    % F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
-    
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-end
+ if isb
+     error('fdsa')
+%     F.h=F.s-p(Ib1:Ib2) ;
+%     F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
+%     
+%     
+%     %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
+%     %  dbfloat/dp= F.rho./F.rhow
+%     %
+%     % F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+%     
+%     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
+ end
 
 if isB
     
@@ -133,18 +134,26 @@ if isB
     %   recalculated over areas previously afloat.
     %
     
-    G=F.GF.node ; 
-    
+        
     F.B=p(IB1:IB2) ;
-    %F.B=G.*p(IB1:IB2)+(1-G).*Priors.B;
     
-    F.s=Meas.s ;
+    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed, 
+    % therefore calculate F.b over the floating areas from F.s using the floating relationship.
     
-    F.b=G.*F.B + (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ; 
-    F.b=max(F.b,F.B) ; 
-    F.h=F.s-F.b;
-    %CtrlVar.Report_if_b_less_than_B=1; 
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow) ; 
+    [F.b,F.h,F.GF]=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); %
+    
+%     if any(F.b < F.B )
+%         I=F.b<F.B; 
+%         warning('p2F:bltB','b < B !!! (%g)\n', min(F.b(I)-F.B(I)))
+%     end
+    
+    
+    
+    % F.b=G.*F.B + (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ; 
+    % F.b=max(F.b,F.B) ; 
+    % F.h=F.s-F.b;
+    % CtrlVar.Report_if_b_less_than_B=1; 
+    % [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow) ; 
 
     
     %         bfloat=F.S - F.rho.*F.h /F.rhow;
@@ -171,11 +180,7 @@ if isB
     % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
     
        
-    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed, this of course
-    % may not be possible over the floating areas, consider calculating F.b over the floating areas
-    % from F.s using the floating relationship.
-    
-    F.b=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); % better have this in JGH
+ 
     
         
 end

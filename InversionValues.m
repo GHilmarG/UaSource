@@ -3,13 +3,12 @@ classdef InversionValues
     
     properties
         
-
+        
         m=[];
         n=[];
         C=[];
         AGlen=[];
-        b=[];
-        B=[] ; 
+        B=[];
         
         SearchStepSize=[];
         uAdjoint=[];
