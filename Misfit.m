@@ -145,11 +145,16 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
                 %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
                 I=full(dhdtres'*MUA.M*dhdtres)/2/Area;
                 
-                
+                % There is a contribution to the right-hand side of the adjoint equation
+                % \p F_{uv} / \p_{uv} = \p_u J
+                %
                 [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr);
                 dIhdu=dIhduv(1:MUA.Nnodes)/Area;
                 dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
                 dIduv=[dIhdu(:);dIhdv(:)];
+                
+                [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
+                 I=Jhdot ; dIduv=[duJhdot;dvJhdot] ; 
                 
             case {'-uv-dhdt-','-dhdt-uv-'}
                 
@@ -386,8 +391,17 @@ if CtrlVar.Inverse.CalcGradI
                         dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
                         dhdp= -F.GF.node ;
                         
-                        dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
-                        dIdB=dIdB.*F.GF.node ;
+                        % dIdB= dhF^* \lambda + dhJ
+                        % if only -dhdt- meas and no regularisation 
+                        % then dJdB=dh/db*dhJhdot
+                        
+                        dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
+                        dIdB=dBFuvLambda+dhdp.*dhJhdot; 
+                        
+                        
+                        %dIdB=dhdp.*dhJhdot;
+                        
+                        
                         
                         
                         

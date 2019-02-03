@@ -19,15 +19,15 @@ dJtemp=dJ;
 
 switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
     
-    case {'forward','first-order'}
+    case {'forward-first-order'}
         
         
         parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
-            p1(I)=p1(I)+deltastep(I);
+            p1(I)=p1(I)+deltaStep(I);
             J1=func(p1);
-            dJtemp(k)=(J1-J0)/deltastep(I);
+            dJtemp(k)=(J1-J0)/deltaStep(I);
             
         end
         
@@ -35,20 +35,20 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             dJ(iRange(k))=dJtemp(k);
         end
         
-    case {'central','second-order'}
+    case {'central-second-order'}
         
         
         parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             pm1=p0;
-            p1(I)=p1(I)+deltastep(I);
+            p1(I)=p1(I)+deltaStep(I);
             J1=func(p1);
             
-            pm1(I)=pm1(I)-deltastep(I);
+            pm1(I)=pm1(I)-deltaStep(I);
             Jm1=func(pm1);
             
-            dJtemp(k)=(J1-Jm1)/deltastep(I)/2;
+            dJtemp(k)=(J1-Jm1)/deltaStep(I)/2;
         end
         
         for k=1:numel(iRange)
@@ -56,7 +56,28 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         end
         
         
-    case 'fourth-order'
+    case {'forward-second-order'}
+        
+        parfor k=1:numel(iRange)
+            I=iRange(k);
+            pp1=p0;
+            pp2=p0;
+         
+            
+            pp1(I)=pp1(I)+deltaStep(I);
+            Jp1=func(pp1);
+            
+            pp2(I)=pp2(I)+2*deltaStep(I);
+            Jp2=func(pp2);
+            
+            dJtemp(k)=(-3*J0+4*Jp1-Jp2)/deltaStep(I)/2;
+        end
+        
+        for k=1:numel(iRange)
+            dJ(iRange(k))=dJtemp(k);
+        end
+        
+    case 'central-fourth-order'
         
         parfor k=1:numel(iRange)
             I=iRange(k);
@@ -95,9 +116,9 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             
             I=iRange(k);
             p1=p0;
-            p1(I)=p1(I)+1i*deltastep(I);
+            p1(I)=p1(I)+1i*deltaStep(I);
             J1=func(p1);
-            dJtemp(k)=imag(J1)/deltastep(I);
+            dJtemp(k)=imag(J1)/deltaStep(I);
             
         end
         
@@ -107,7 +128,13 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         
     otherwise
         
-        fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value. \n')
+        fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value.\n')
+        fprintf(' Currently: CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=%s \n',CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
+        fprintf(' Possible values are : \n ')
+        fprintf(' \t \t forward-first-order \n')
+        fprintf(' \t \t forward-second-order \n')
+        fprintf(' \t \t central-second-order \n')
+        fprintf(' \t \t central-forth-order \n')
         error('which case')
 end
 

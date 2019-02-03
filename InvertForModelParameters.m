@@ -76,8 +76,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
     
     if CtrlVar.Inverse.InvertForField=="B"  
-        %deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
+        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
+        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
+        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
         
     end
     
