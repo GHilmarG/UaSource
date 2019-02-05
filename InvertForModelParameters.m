@@ -67,7 +67,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-
+    
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
@@ -75,20 +75,17 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
     
-    if CtrlVar.Inverse.InvertForField=="B"  
+    if CtrlVar.Inverse.InvertForField=="B"
         % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
         % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
         deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
         
     end
     
-    
-    
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
+
+    
     CtrlVar.Inverse.pPreMultiplier="I";
-    
-    
-    
 else
     
     

@@ -52,7 +52,7 @@ InvValues.dRdp=JGHouts.dRdp;
 
 InvValues.dJdAGlen=JGHouts.MisfitOuts.dIdAGlen+JGHouts.RegOuts.dRdAGlen;
 InvValues.dJdC=JGHouts.MisfitOuts.dIdC+JGHouts.RegOuts.dRdC;
-InvValues.dJdb=JGHouts.MisfitOuts.dIdb+JGHouts.RegOuts.dRdb;
+InvValues.dJdB=NaN; % 
 InvValues.dJdB=JGHouts.MisfitOuts.dIdB+JGHouts.RegOuts.dRdB;
 
 %% These are of less interest, but can be added
@@ -69,7 +69,7 @@ InvValues.SearchStepSize=RunInfo.Inverse.StepSize(end);
 if ~isempty(dJdpTest)
     
     InvValues.dJdAGlenTest=[];
-    InvValues.dJdbTest=[];
+    InvValues.dJdBTest=[];
     InvValues.dJdCTest=[];
     
     InvValues.dJdpTest=dJdpTest;
@@ -88,11 +88,7 @@ if ~isempty(dJdpTest)
         case 'C'
             
             InvValues.dJdCTest=dJdpTest;
-            
-        case 'Ab'
-            
-            InvValues.dJdAGlenTest=dJdpTest(1:NA);
-            InvValues.dJdbTest=dJdpTest(NA+1:end);
+  
             
         case 'AC'
             
@@ -102,14 +98,14 @@ if ~isempty(dJdpTest)
         case 'BC'
             
             
-            InvValues.dJdbTest=dJdpTest(1:Nb);
+            InvValues.dJdBTest=dJdpTest(1:Nb);
             InvValues.dJdCTest=dJdpTest(Nb+1:end);
             
         case 'ABC'
             
             
             InvValues.dJdAGlenTest=dJdpTest(1:NA);
-            InvValues.dJdbTest=dJdpTest(NA+1:NA+Nb);
+            InvValues.dJdBTest=dJdpTest(NA+1:NA+Nb);
             InvValues.dJdCTest=dJdpTest(NA+Nb+1:end);
             
             

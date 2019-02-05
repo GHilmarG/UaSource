@@ -219,7 +219,7 @@ for Iint=1:MUA.nip
         %dtaubxdh=0;
         %dtaubydh=0;
         
-        test1x=1;  test1y=1;
+        test1x=1;   test1y=1;
         test2x=1;   test2y=1 ;
         test3x=1;   test3y=1 ;
         

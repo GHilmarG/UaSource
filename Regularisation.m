@@ -1,4 +1,4 @@
-function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo)
+function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 RegOuts=[];

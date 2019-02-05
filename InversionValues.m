@@ -9,6 +9,7 @@ classdef InversionValues
         C=[];
         AGlen=[];
         B=[];
+        h=[] ;  % Only use this for storing variables 
         
         SearchStepSize=[];
         uAdjoint=[];

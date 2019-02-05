@@ -13,6 +13,7 @@ InvStartValues=InversionValues;
 
 [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+InvStartValues.h=F.s-F.b; % this is only used for plotting purposes, do not allow user to set these values
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
