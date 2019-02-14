@@ -39,7 +39,7 @@ function [J,dJdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 
 
-
+persistent GLgeo GLnodes GLele
 
 Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 
@@ -394,10 +394,22 @@ if CtrlVar.Inverse.CalcGradI
                         % then dJdB=dh/db*dhJhdot
                         
                         dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
+                        dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                        %dBFuvLambda=dBFuvLambda2; 
+                        
+                        
                         
                 end
                 dBJ=dhdp.*dhJhdot;
                 DBJ=dBFuvLambda+dBJ;
+                
+                if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
+                    [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+                    DBJ(~F.GF.NodesUpstreamOfGroundingLines)=0;
+                end
+                
+
+                
             end
             
             
@@ -411,7 +423,11 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     
-    % Hessians
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
+% [I,L,U,C] = isoutlier(DBJ,'gesd'); factor=1 ; DBJ(DBJ>(factor*U))=factor*U ; DBJ(DBJ<(L/factor))=L/factor ; 
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
+    
+% Hessians
     
     switch lower(CtrlVar.Inverse.InvertFor)
         
@@ -480,7 +496,6 @@ if nargout>3
     MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAJ;
     MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBJ;
 end
-
 
 end
 

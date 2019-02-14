@@ -126,6 +126,11 @@ end
 
 if CtrlVar.InverseRun
     
+%     if ~contains(CtrlVar.Inverse.InvertFor,"Bupstream")
+%         replace(string(CtrlVar.Inverse.InvertFor),"Bupstream","B")
+%         CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL=true ;
+%     end
+%     
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,'fixpoint')
         
         % if fixpoint, then only c inversion is possible

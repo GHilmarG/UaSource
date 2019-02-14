@@ -1,5 +1,9 @@
 function F=p2F(CtrlVar,MUA,p,F,Meas,Priors)
 
+persistent GLgeo GLnodes GLele
+
+
+
 narginchk(6,6)
 
 NA=numel(F.AGlen);
@@ -134,52 +138,20 @@ if isB
     %   recalculated over areas previously afloat.
     %
     
-        
+    
     F.B=p(IB1:IB2) ;
     
-    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed, 
+    %F.B=F.GF.node.*p(IB1:IB2)+(1-F.GF.node).*Priors.B ;
+    if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
+        [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+        F.B(~F.GF.NodesUpstreamOfGroundingLines)=Priors.B(~F.GF.NodesUpstreamOfGroundingLines) ;
+    end
+    
+    F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed,
     % therefore calculate F.b over the floating areas from F.s using the floating relationship.
     
     [F.b,F.h,F.GF]=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); %
     
-%     if any(F.b < F.B )
-%         I=F.b<F.B; 
-%         warning('p2F:bltB','b < B !!! (%g)\n', min(F.b(I)-F.B(I)))
-%     end
-    
-    
-    
-    % F.b=G.*F.B + (1-G).*(F.rho.*F.s-F.rhow.*F.S)./(F.rho-F.rhow) ; 
-    % F.b=max(F.b,F.B) ; 
-    % F.h=F.s-F.b;
-    % CtrlVar.Report_if_b_less_than_B=1; 
-    % [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow) ; 
-
-    
-    %         bfloat=F.S - F.rho.*F.h /F.rhow;
-    %
-    %         F.b=F.GF.node.*p + (1-F.GF.node) .* bfloat ;
-    %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*F.h /F.rhow)
-    %            =F.GF.node.*p + (1-F.GF.node) .* (F.S - F.rho.*(F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p))  ;
-    %F.b=G.*p + (1-G) .* (F.S - F.rho.*( F.hInit.*(1-G)  + G.* (F.sInit - p)   )./F.rhow);
-    % F.h= F.h.*(1-G)  + G.* (Meas.s - p)  ;   % h = s - b    
-    % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
-    % b = GF  p + (1-GF) (S-rho (h0 (1-GF) + GF (s0-p) /rhow)
-    % db/dp = GF + (1-GF) rho GF/rhow
-    
-    %         dB/dp = 1
-    %         dh/dp = -GF.node
-    %         db/dp = GF.node + (1-GF.node) (0 - rho dhdp/rhow)
-    %               = GF.node + (1-GF.node) (0 -- rho GF.node/rhow)
-    %               = GF.node + (1-GF.node) (+ rho GF.node/rhow)
-    %               = GF.node + rho (1-GF.node) GF.node/ rhow
-    %
-    
-    % [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-    
-    % F.h= F.hInit.*(1-F.GF.node)  + F.GF.node.* (F.sInit - p)  ;  % because GF has changed
-    
-       
  
     
         
