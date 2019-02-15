@@ -26,6 +26,8 @@ end
 
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
 
+if CtrlVar.Inverse
+
 [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
