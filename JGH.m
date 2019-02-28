@@ -26,7 +26,7 @@ end
 
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
 
-if CtrlVar.Inverse
+
 
 [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
