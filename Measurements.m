@@ -2,18 +2,18 @@ classdef Measurements
     
     properties
         
-        %s=[];
-        %b=[];
+        s=[];
         us=[];
         vs=[];
         ws=[];
         dhdt=[] ;
-        %sCov=[];
-        %bCov=[];
+
+        sCov=[];
         usCov=[];
         vsCov=[];
         wsCov=[];
         dhdtCov=[];
+
     end
     
 end

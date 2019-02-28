@@ -55,7 +55,8 @@ IterationMax=CtrlVar.ALSIterationMax;
 % (LDL if symmetric, LU otherwise) and each additional iteration is cheap
 
 
-[m,n]=size(B);
+%[m,n]=size(B);
+n=size(A,1) ; m=size(B,1);
 x0=zeros(n,1);
 
 

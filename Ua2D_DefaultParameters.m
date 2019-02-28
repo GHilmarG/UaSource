@@ -599,6 +599,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 % 'I', and then to try out 'M' for comparison.
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
+CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change. 
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
@@ -763,7 +764,7 @@ if license('test','Optimization_Toolbox')
         'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','factorization');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
+        'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end

@@ -2,7 +2,8 @@ function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %%
 %
 %  Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
-% calculates the integral of the product of the nodal variable
+%
+%  calculates the integral of the product of the nodal variable
 %  varargin over each of the elements of the FE mesh.
 %
 %

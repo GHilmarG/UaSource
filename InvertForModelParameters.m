@@ -16,37 +16,40 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
-F.hInit=F.h;
-F.BInit=F.B; 
-F.bInit=F.b; 
-F.sInit=F.s; 
 
-F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors) ;
+F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
+
+ [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
+
+if CtrlVar.Inverse.TestAdjoint.isTrue
+    CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
+end
 
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
-[p0,plb,pub]=F2p(CtrlVar,F); 
+[p0,plb,pub]=F2p(CtrlVar,MUA,F); 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
-[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-
+[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
 CtrlVar.WriteRunInfoFile=0;
-func=@(p) JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
 dJdpTest=[];
-CtrlVar.Inverse.ResetPersistentVariables=0;
+
 %%
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     
-    
+   
     % Get the gradient using the adjoint method
     [J,dJdp,Hessian,JGHouts]=func(p0);
     
@@ -66,7 +69,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-
+    
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
@@ -74,19 +77,20 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
     
-    if lower(CtrlVar.Inverse.InvertForField)=="b"  
-        %deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
+    if CtrlVar.Inverse.InvertForField=="B"
+        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
+        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
+        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
         
     end
     
-  
-    
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
+
+    filename=CtrlVar.Experiment+"BruteForceGradient";
+    fprintf('BruteForceGradient save in the file : %s \n',filename)
+    save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange','deltaStep')
     
-    
-    
-    
+    CtrlVar.Inverse.pPreMultiplier="I";
 else
     
     
@@ -96,8 +100,9 @@ else
         
         case 'UaOptimization'
             
-            [p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
-
+            %[p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
+            [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p0,plb,pub);
+            
         case 'MatlabOptimization'
             
             clear fminconOutputFunction fminconHessianFcn fminuncOutfun
@@ -111,8 +116,8 @@ else
             error('what case? ')
     end
  
-    F=p2F(CtrlVar,p,F); 
-    [J,dJdp,Hessian,JGHouts,F]=JGH(p,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
+    [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
   
     

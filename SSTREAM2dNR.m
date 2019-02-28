@@ -18,10 +18,11 @@ elseif numel(l.ubvb)~=numel(cuv)
     l.ubvb=zeros(numel(cuv),1) ;
 end
 
+
 if any(isnan(F.C)) ; save TestSave ; error( ' C nan ') ; end
 if any(isnan(F.AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
 if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
-if any(isnan(F.h)) ; save TestSave error( ' h nan ') ; end
+if any(isnan(F.h)) ; save TestSave  ; error( ' h nan ') ; end
 if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
 if any(isnan(F.vb)) ; save TestSave ; error( ' vb nan ') ; end
 if any(isnan(l.ubvb)) ; save TestSave ; error( ' ubvbLambda nan ') ; end
@@ -179,7 +180,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
         fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
         save SSTREAM2dNRDump
-        
+        break
     end
     
     %% If requested, plot residual as function of steplength

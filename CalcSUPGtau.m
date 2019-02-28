@@ -40,13 +40,13 @@ tau2=1./(1./taut+1./taus);
 
 switch CtrlVar.Tracer.SUPG.tau
     
-    case 'tau1'
+    case 'tau1'   %  typical textbook recomendation for spatially constant (and non-zero) speed for linear advection equation
         tau=tau1;
-    case 'tau2'
+    case 'tau2'   %  inversly weighted average of spatial and temporal tau
         tau=tau2;
-    case 'taus'   % 'spatial' definition 
+    case 'taus'   % 'spatial' definition, independent of time step
         tau=taus;
-    case 'taut'  % 'temporal' definition
+    case 'taut'   % 'temporal' definition, indepenent of speed
         tau=taut;
     otherwise
         error('in CalcSUPGtau case not found')

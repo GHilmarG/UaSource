@@ -1,4 +1,6 @@
-function F=InvStartValues2F(CtrlVar,F,InvStartValues,Priors)
+function F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas)
+
+narginchk(6,6)
 
 if  contains(CtrlVar.Inverse.InvertForField,'A')
     
@@ -23,22 +25,13 @@ if  contains(CtrlVar.Inverse.InvertForField,'A')
     
 end
 
-if  contains(CtrlVar.Inverse.InvertForField,'b')
-    
-    if isempty(InvStartValues.b)
-        
-        fprintf('InvStartValues.b can not be left empty when inverting for b or B.\n')
-        error('InvStartValues2F:InvStartValues.b')
-        
-    end
-    
-    F.b=InvStartValues.b ;
-    F.bmin=Priors.bmin;
-    F.bmax=Priors.bmax;
+if  contains(CtrlVar.Inverse.InvertForField,'b') 
+    error('sfdaf')
     
 end
 
-if  contains(CtrlVar.Inverse.InvertForField,'B')
+if    contains(CtrlVar.Inverse.InvertForField,'B')
+    
     
     if isempty(InvStartValues.B)
         
@@ -51,6 +44,22 @@ if  contains(CtrlVar.Inverse.InvertForField,'B')
     F.Bmin=Priors.Bmin;
     F.Bmax=Priors.Bmax;
     
+    % F.b=InvStartValues.b ;
+    fprintf(' Note:  In a B inversion, the upper ice surface (s) is set equal to Meas.s .\n')
+    fprintf('        The user must ensure that Meas.s is consistent with floatation. \n')
+    fprintf('        The lower surface (b) and the grounding-line will initially be calculated using Meas.s.\n') 
+    F.s=Meas.s ;
+    
+    % First calculate b from s, B and S given rho and rhow.
+    [F.b,F.h,F.GF]=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); 
+    % Now again calculate b, s from h, S and B to ensure full consistency with 
+    % the rest of the code.  This might results in s changing and being different
+    % from Meas.s
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow) ;
+    sDiff=norm(F.s-Meas.s);
+    fprintf(' After having calculated b from s, and then again s from h=s-h using floation we find norm(F.s-Meas.s)=%g \n',sDiff)
+    fprintf(' Now we set Meas.s=F.s using the new F.s calculated from floation.\n')
+    Meas.s=F.s ; % 
 end
 
 

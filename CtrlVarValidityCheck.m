@@ -126,6 +126,11 @@ end
 
 if CtrlVar.InverseRun
     
+%     if ~contains(CtrlVar.Inverse.InvertFor,"Bupstream")
+%         replace(string(CtrlVar.Inverse.InvertFor),"Bupstream","B")
+%         CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL=true ;
+%     end
+%     
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,'fixpoint')
         
         % if fixpoint, then only c inversion is possible
@@ -213,10 +218,18 @@ end
 if CtrlVar.InverseRun
     
     switch lower(CtrlVar.Inverse.InvertFor)
-        case 'c'
+        case {'c','-c-'}
             CtrlVar.Inverse.InvertFor='-C-';
         case {'aglen','-a-'}
             CtrlVar.Inverse.InvertFor='-AGlen-';
+        case {'b','-b-'}
+            if contains(CtrlVar.Inverse.InvertFor,'B')
+                CtrlVar.Inverse.InvertFor='-B-';
+            elseif contains(CtrlVar.Inverse.InvertFor,'b')
+                CtrlVar.Inverse.InvertFor='-b-';
+            end
+        case {'aglenc','caglen','-aglen-c-','-c-aglen-','ac','ca','-a-c-','-c-a-'}
+            CtrlVar.Inverse.InvertFor='-AGlen-C-';
         case {'logc','-logc-'}
             CtrlVar.Inverse.InvertFor='-logC-';
         case {'logaglen','-loga-','-logaglen-'}
@@ -230,7 +243,7 @@ if CtrlVar.InverseRun
     end
     
     CtrlVar.Inverse.InvertForField=sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A'))) ;
-
+    
     if isempty(CtrlVar.Inverse.InvertForField)
         
         fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')

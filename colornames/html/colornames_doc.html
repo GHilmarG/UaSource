@@ -1,0 +1,265 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>COLORNAMES Examples</title><meta name="generator" content="MATLAB 7.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-08-21"><meta name="DC.source" content="colornames_doc.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>COLORNAMES Examples</h1><!--introduction--><p>The function <a href="https://www.mathworks.com/matlabcentral/fileexchange/48155"><tt>COLORNAMES</tt></a> matches the input RGB values or color names to the closest colors from the selected palette. <tt>COLORNAMES</tt> returns the same outputs whether matching names or RGB:</p><pre>[names,RGB] = colornames(palette,RGB)
+[names,RGB] = colornames(palette,names)</pre><p>This document shows some examples of using <tt>COLORNAMES</tt> to match RGB values or color names. The bonus functions are also explained in this document, together with examples.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">List of Palettes</a></li><li><a href="#2">Return the Color Names and RGB Values for One Palette</a></li><li><a href="#3">Match Color Names</a></li><li><a href="#4">Match Index Number</a></li><li><a href="#5">Match Initial Letter</a></li><li><a href="#6">Match RGB</a></li><li><a href="#7">Match RGB, Selecting the Color Difference Metric</a></li><li><a href="#8">View the Color Difference Metrics in a Figure</a></li><li><a href="#9">View the Palette Colors in 2D</a></li><li><a href="#10">View the Palette Colors in 3D</a></li><li><a href="#11">Unmatched Color Name Suggestions</a></li></ul></div><h2>List of Palettes<a name="1"></a></h2><p>Palettes of named colors have been defined by various different groups, often intended for very different purposes. <tt>COLORNAMES</tt> includes a wide selection of common color palettes. A list of the supported palettes is returned by calling <tt>COLORNAMES</tt> with no input arguments:</p><pre class="codeinput">palettes = colornames()
+</pre><pre class="codeoutput">palettes = 
+    'Alphabet'
+    'AmstradCPC'
+    'AppleII'
+    'Bang'
+    'BSC381'
+    'CGA'
+    'Crayola'
+    'CSS'
+    'dvips'
+    'Foster'
+    'HTML4'
+    'ISCC'
+    'Kelly'
+    'MacBeth'
+    'MATLAB'
+    'Natural'
+    'R'
+    'RAL'
+    'Resene'
+    'Resistor'
+    'SVG'
+    'Wikipedia'
+    'Wolfram'
+    'X11'
+    'xcolor'
+    'xkcd'
+</pre><h2>Return the Color Names and RGB Values for One Palette<a name="2"></a></h2><p>Simply call <tt>COLORNAMES</tt> with the name of the required palette:</p><pre class="codeinput">[clr,rgb] = colornames(<span class="string">'MATLAB'</span>)
+</pre><pre class="codeoutput">clr = 
+    'Black'
+    'Blue'
+    'Cyan'
+    'Green'
+    'Magenta'
+    'Red'
+    'White'
+    'Yellow'
+rgb =
+     0     0     0
+     0     0     1
+     0     1     1
+     0     1     0
+     1     0     1
+     1     0     0
+     1     1     1
+     1     1     0
+</pre><h2>Match Color Names<a name="3"></a></h2><p>Each input name is matched to a color name from the requested palette: an input name that does not match any of the color names will throw an error. The matching is very flexible though, as COLORNAMES usually makes a match regardless of spaces between words and character case, although for some palettes space characters may be significant. Note that CamelCase always signifies separate words (words all in one case are considered one word).</p><p>The color names are input as char row vectors, and may supplied either within one cell array, or as separate input arguments:</p><pre class="codeinput">[clr,rgb] = colornames(<span class="string">'xkcd'</span>,{<span class="string">'red'</span>,<span class="string">'green'</span>,<span class="string">'blue'</span>})
+[clr,rgb] = colornames(<span class="string">'xkcd'</span>,<span class="string">'eggshell'</span>,<span class="string">'eggShell'</span>)
+</pre><pre class="codeoutput">clr = 
+    'Red'
+    'Green'
+    'Blue'
+rgb =
+      0.89804            0            0
+     0.082353       0.6902      0.10196
+     0.011765      0.26275      0.87451
+clr = 
+    'Eggshell'
+    'Egg Shell'
+rgb =
+            1            1      0.83137
+            1      0.98824      0.76863
+</pre><h2>Match Index Number<a name="4"></a></h2><p>Palettes with a leading index number may be matched by just the number, or just the name, or both together:</p><pre class="codeinput">colornames(<span class="string">'CGA'</span>,<span class="string">'9'</span>,<span class="string">'LightBlue'</span>,<span class="string">'9LightBlue'</span>)
+</pre><pre class="codeoutput">ans = 
+    '9 Light Blue'
+    '9 Light Blue'
+    '9 Light Blue'
+</pre><h2>Match Initial Letter<a name="5"></a></h2><p>Palettes Alphabet, MATLAB, and Natural also match the initial letter to the color name (except for 'Black' which is matched by 'k'):</p><pre class="codeinput">colornames(<span class="string">'MATLAB'</span>,<span class="string">'c'</span>,<span class="string">'m'</span>,<span class="string">'y'</span>,<span class="string">'k'</span>)
+</pre><pre class="codeoutput">ans = 
+    'Cyan'
+    'Magenta'
+    'Yellow'
+    'Black'
+</pre><h2>Match RGB<a name="6"></a></h2><p>Each input RGB triple is matched to the closest RGB triple from the requested palette:</p><pre class="codeinput">[clr,rgb] = colornames(<span class="string">'HTML4'</span>, [0,0.5,1;1,0.5,0])
+</pre><pre class="codeoutput">clr = 
+    'Blue'
+    'Red'
+rgb =
+     0     0     1
+     1     0     0
+</pre><h2>Match RGB, Selecting the Color Difference Metric<a name="7"></a></h2><p>Input RGB values are matched using one of several standard, well defined <a href="https://en.wikipedia.org/wiki/Color_difference">color difference</a> metrics known as <img src="colornames_doc_eq77210.png" alt="$\Delta E$"> or <i>deltaE</i>. The default color difference is "CIE94", which provides good matching for most palettes and colors. Other deltaE calculations can be selected by using the third input argument:</p><pre class="codeinput">rgb = [0,0.5,1];
+colornames(<span class="string">'HTML4'</span>,rgb,<span class="string">'CIEDE2000'</span>)
+colornames(<span class="string">'HTML4'</span>,rgb,<span class="string">'CIE94'</span>) <span class="comment">% default</span>
+colornames(<span class="string">'HTML4'</span>,rgb,<span class="string">'CIE76'</span>) <span class="comment">% aka "Lab"</span>
+colornames(<span class="string">'HTML4'</span>,rgb,<span class="string">'CMCl:c'</span>)
+colornames(<span class="string">'HTML4'</span>,rgb,<span class="string">'RGB'</span>)
+</pre><pre class="codeoutput">ans = 
+    'Gray'
+ans = 
+    'Blue'
+ans = 
+    'Navy'
+ans = 
+    'Fuchsia'
+ans = 
+    'Teal'
+</pre><h2>View the Color Difference Metrics in a Figure<a name="8"></a></h2><p>The helper function <tt>COLORNAMES_DELTAE</tt> demonstrates how the different deltaE metrics match the input RGB to the palette colors. Simply select the palette, provide an Nx3 colormap and all deltaE metrics are listed, with the matched colors displayed in the columns below:</p><pre class="codeinput">colornames_deltaE(<span class="string">'HTML4'</span>,jet(16))
+</pre><img vspace="5" hspace="5" src="colornames_doc_01.png" alt=""> <h2>View the Palette Colors in 2D<a name="9"></a></h2><p>The helper function <tt>COLORNAMES_VIEW</tt> plots the palettes in a figure. Drop-down menus select the palette, and also how the colors are sorted. Click on any color to view its hex RGB value (may be approximate).</p><pre class="codeinput">colornames_view(<span class="string">'dvips'</span>,<span class="string">'Lab'</span>)
+</pre><img vspace="5" hspace="5" src="colornames_doc_02.png" alt=""> <h2>View the Palette Colors in 3D<a name="10"></a></h2><p>The helper function <tt>COLORNAMES_CUBE</tt> plots the palettes in a figure. The <a href="http://www.mathworks.com/help/matlab/creating_plots/data-cursor-displaying-data-values-interactively.html">data cursor</a> can be used to view the color names, by clicking on the nodes. Drop-down menus select the palette, and the color space of the colorcube:</p><pre class="codeinput">colornames_cube(<span class="string">'CSS'</span>,<span class="string">'Lab'</span>)
+</pre><img vspace="5" hspace="5" src="colornames_doc_03.png" alt=""> <h2>Unmatched Color Name Suggestions<a name="11"></a></h2><p>If the input color name cannot be matched then <tt>COLORNAMES</tt> will throw an error, and displays color names that are similar to the input string/s:</p><pre class="codeinput">colornames(<span class="string">'CSS'</span>, <span class="string">'bleu'</span>, <span class="string">'blanc'</span>, <span class="string">'rouge'</span>)
+</pre><pre class="codeoutput">Error using ==&gt; colornames&gt;cnNoMatch at 293
+The palette 'CSS' does not support these colors: 'bleu', 'blanc', 'rouge'.
+
+Palette color names that are similar to the input names:
+bleu          -&gt; 'Blue', 'Black', 'Peru', 'Plum', 'Red', 'Aqua', 'Beige', 'Bisque'.
+blanc         -&gt; 'Black', 'Blue', 'Cyan', 'Tan', 'Beige', 'Brown', 'Gray', 'Khaki'.
+rouge         -&gt; 'Azure', 'Beige', 'Blue', 'Orange', 'Aqua', 'Brown', 'Coral', 'Gold'.
+
+Call COLORNAMES('CSS') to list all color names for that palette,
+or COLORNAMES_VIEW('CSS') to view the palette in a 2D list,
+or COLORNAMES_CUBE('CSS') to view the palette in a 3D cube.
+
+Error in ==&gt; colornames at 240
+	cnNoMatch(pal,clr,arg(idn==0))
+
+Error in ==&gt; colornames_doc at 78
+colornames('CSS', 'bleu', 'blanc', 'rouge')</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.11<br></p></div><!--
+##### SOURCE BEGIN #####
+%% COLORNAMES Examples
+% The function <https://www.mathworks.com/matlabcentral/fileexchange/48155
+% |COLORNAMES|> matches the input RGB values or color names to the
+% closest colors from the selected palette. |COLORNAMES| returns the
+% same outputs whether matching names or RGB:
+%
+%  [names,RGB] = colornames(palette,RGB)
+%  [names,RGB] = colornames(palette,names)
+%
+% This document shows some examples of using |COLORNAMES| to match
+% RGB values or color names. The bonus functions are also explained in this
+% document, together with examples.
+%% List of Palettes
+% Palettes of named colors have been defined by various different groups,
+% often intended for very different purposes. |COLORNAMES| includes a wide
+% selection of common color palettes. A list of the supported palettes is
+% returned by calling |COLORNAMES| with no input arguments:
+palettes = colornames()
+%% Return the Color Names and RGB Values for One Palette
+% Simply call |COLORNAMES| with the name of the required palette:
+[clr,rgb] = colornames('MATLAB')
+%% Match Color Names
+% Each input name is matched to a color name from the requested palette: an
+% input name that does not match any of the color names will throw an error.
+% The matching is very flexible though, as COLORNAMES usually makes a match
+% regardless of spaces between words and character case, although for some
+% palettes space characters may be significant. Note that CamelCase always
+% signifies separate words (words all in one case are considered one word).
+%
+% The color names are input as char row vectors, and may supplied either
+% within one cell array, or as separate input arguments:
+[clr,rgb] = colornames('xkcd',{'red','green','blue'})
+[clr,rgb] = colornames('xkcd','eggshell','eggShell')
+%% Match Index Number
+% Palettes with a leading index number may be matched by just the number,
+% or just the name, or both together:
+colornames('CGA','9','LightBlue','9LightBlue')
+%% Match Initial Letter
+% Palettes Alphabet, MATLAB, and Natural also match the initial letter to
+% the color name (except for 'Black' which is matched by 'k'):
+colornames('MATLAB','c','m','y','k')
+%% Match RGB
+% Each input RGB triple is matched to the closest RGB triple from the
+% requested palette:
+[clr,rgb] = colornames('HTML4', [0,0.5,1;1,0.5,0])
+%% Match RGB, Selecting the Color Difference Metric
+% Input RGB values are matched using one of several standard, well defined
+% <https://en.wikipedia.org/wiki/Color_difference color difference>
+% metrics known as $\Delta E$ or _deltaE_. The default color difference is
+% "CIE94", which provides good matching for most palettes and colors. Other
+% deltaE calculations can be selected by using the third input argument:
+rgb = [0,0.5,1];
+colornames('HTML4',rgb,'CIEDE2000')
+colornames('HTML4',rgb,'CIE94') % default
+colornames('HTML4',rgb,'CIE76') % aka "Lab"
+colornames('HTML4',rgb,'CMCl:c')
+colornames('HTML4',rgb,'RGB')
+%% View the Color Difference Metrics in a Figure
+% The helper function |COLORNAMES_DELTAE| demonstrates how the different
+% deltaE metrics match the input RGB to the palette colors. Simply
+% select the palette, provide an Nx3 colormap and all deltaE metrics
+% are listed, with the matched colors displayed in the columns below:
+colornames_deltaE('HTML4',jet(16))
+%% View the Palette Colors in 2D
+% The helper function |COLORNAMES_VIEW| plots the palettes in a figure.
+% Drop-down menus select the palette, and also how the colors are sorted.
+% Click on any color to view its hex RGB value (may be approximate).
+colornames_view('dvips','Lab')
+%% View the Palette Colors in 3D
+% The helper function |COLORNAMES_CUBE| plots the palettes in a figure.
+% The <http://www.mathworks.com/help/matlab/creating_plots/data-cursor-displaying-data-values-interactively.html
+% data cursor> can be used to view the color names, by clicking on the nodes.
+% Drop-down menus select the palette, and the color space of the colorcube:
+colornames_cube('CSS','Lab')
+%% Unmatched Color Name Suggestions
+% If the input color name cannot be matched then |COLORNAMES| will throw an
+% error, and displays color names that are similar to the input string/s:
+colornames('CSS', 'bleu', 'blanc', 'rouge')
+##### SOURCE END #####
+--></body></html>

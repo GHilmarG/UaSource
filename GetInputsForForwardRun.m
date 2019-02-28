@@ -1,5 +1,5 @@
 function  [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo)
-
+          
 narginchk(3,3) 
 nargoutchk(6,6)
 

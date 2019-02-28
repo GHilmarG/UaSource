@@ -9,7 +9,7 @@ if nargin==0
     UserVar=[];
 end
 
-SetUaPath() %% set path
+% SetUaPath() %% set path  (consider deleting, no longer used) 
 
 if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
     
@@ -241,14 +241,15 @@ if CtrlVar.doInverseStep   % -inverse
     
     [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
-    if CtrlVar.doplots
-         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
-    end
     
     if CtrlVar.Inverse.WriteRestartFile
         
         WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues);
         
+    end
+    
+    if CtrlVar.doplots
+        PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
     CtrlVar.UaOutputsInfostring='End of Inverse Run';

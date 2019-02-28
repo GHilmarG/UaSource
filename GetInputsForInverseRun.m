@@ -13,6 +13,7 @@ InvStartValues=InversionValues;
 
 [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+InvStartValues.h=F.s-F.b; % this is only used for plotting purposes, do not allow user to set these values
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
@@ -45,26 +46,26 @@ if isempty(Priors.AGlenmax)
     Priors.AGlenmax=CtrlVar.AGlenmax;
 end
 
-if isempty(Priors.AGlenmin) 
+if isempty(Priors.AGlenmin)
     Priors.AGlenmin=CtrlVar.AGlenmin;
 end
 
-if isempty(Priors.Cmax) 
+if isempty(Priors.Cmax)
     Priors.Cmax=CtrlVar.Cmax;
 end
 
 
-if isempty(Priors.Cmin) 
+if isempty(Priors.Cmin)
     Priors.Cmin=CtrlVar.Cmin;
 end
 
-if isempty(Priors.bmax) 
-    Priors.bmax=1e10;
+if isempty(Priors.Bmax)
+    Priors.Bmax=Meas.s-CtrlVar.ThickMin;
 end
 
 
-if isempty(Priors.bmin) 
-    Priors.bmin=-1e10;
+if isempty(Priors.Bmin)
+    Priors.Bmin=-1e10;
 end
 
 end

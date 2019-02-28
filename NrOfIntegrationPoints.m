@@ -3,7 +3,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     %  [nip,niph,BoundaryEdge]=NrOfIntegrationPoints(CtrlVar)
     %  defines nr of integration points for diagnostic (nip) and prognostic (nihp) equations
     %
-    % Possible Nr of integration points: 1,3,4,6,7,12,16
+    % Possible Nr of integration points: 1,3,4,6,7,9,12,13,16,19,28,37
     %
     % very important for the h and the implicit uvh cases to have one higher order of integration!!!!
     % nip must be above lin/quadradic for correct results! Why?

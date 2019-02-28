@@ -1,10 +1,8 @@
-function dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp)
+function dFdhlambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp)
 
 %
-% nodal-based gradients
+% This function should be called something like dhFuhLamba
 %
-
-[Areas,xEle,yEle,Area]=TriAreaFE(MUA.coordinates,MUA.connectivity);  % add areas a N to MUA
 
 ndim=2;
 
@@ -24,13 +22,6 @@ end
 
 ca=cos(F.alpha); sa=sin(F.alpha);
 
-if ~isempty(dhdtres)
-    dhdtresnod=reshape(dhdtres(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
-else
-    dhdtresnod=0;
-    dhdtErrnod=0;
-end
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -41,7 +32,6 @@ Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dbdpnod=reshape(dbdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dhdpnod=reshape(dhdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dBdpnod=reshape(dBdp(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
 
 
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -61,11 +51,15 @@ mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
+
 hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    %der=shape_der(Iint,ndim,MUA.nod,points);
+    
+    
     detJ=MUA.DetJ(:,Iint);
     Deriv=MUA.Deriv(:,:,:,Iint);
     
@@ -74,9 +68,7 @@ for Iint=1:MUA.nip
     
     hint=hnod*fun;
     bint=bnod*fun;
-    %sint=snod*fun;
-    dhdtresint=dhdtresnod*fun;
-    dhdtErrint=dhdtErrnod*fun;
+   
     
     uint=unod*fun;
     vint=vnod*fun;
@@ -114,9 +106,9 @@ for Iint=1:MUA.nip
     dBdpint=dBdpnod*fun;
     
     % only correct for B !!  +gera+
-    % dhdpint= -Heint ;
-    % dbdpint= Heint ;
-    % dBdpint=1 ;
+    dhdpint= -Heint ;
+    dbdpint= Heint ;
+    dBdpint=1 ;
     
     
     dlxdx=zeros(MUA.Nele,1);    dlydx=zeros(MUA.Nele,1);    dlxdy=zeros(MUA.Nele,1);    dlydy=zeros(MUA.Nele,1);
@@ -133,7 +125,7 @@ for Iint=1:MUA.nip
     ddbdpdy=zeros(MUA.Nele,1);
     ddhdpdx=zeros(MUA.Nele,1);
     ddhdpdy=zeros(MUA.Nele,1);
-
+    
     for Inod=1:MUA.nod
         
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
@@ -141,7 +133,7 @@ for Iint=1:MUA.nip
         
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-
+        
         dhfdx=dhfdx+Deriv(:,1,Inod).*hfnod(:,Inod);
         dhfdy=dhfdy+Deriv(:,2,Inod).*hfnod(:,Inod);
         
@@ -158,10 +150,10 @@ for Iint=1:MUA.nip
         
         ddbdpdx=ddbdpdx+Deriv(:,1,Inod).*dbdpnod(:,Inod);
         ddbdpdy=ddbdpdy+Deriv(:,2,Inod).*dbdpnod(:,Inod);
-
+        
         ddhdpdx=ddhdpdx+Deriv(:,1,Inod).*dhdpnod(:,Inod);
         ddhdpdy=ddhdpdy+Deriv(:,2,Inod).*dhdpnod(:,Inod);
-
+        
     end
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
@@ -183,7 +175,7 @@ for Iint=1:MUA.nip
     % Therfore:  ds/db =  (1-Heint) (1-rhow/rho)
     %     %
     %     % dh/db = (1-Heint) (1-rhow/rho) -1
-    %     if contains(lower(CtrlVar.Inverse.InvertFor),'-B-')
+    %     if contains(CtrlVar.Inverse.InvertFor,'-B-')
     %         % only change B, i.e. dhdb=dhdB*Heing
     %         dhdbint= -Heint;
     %     else
@@ -199,40 +191,98 @@ for Iint=1:MUA.nip
     
     for Inod=1:MUA.nod
         
-    %dtaubxdh=0; 
-    %dtaubydh=0; 
-    
-        test1x=1;  test1y=1;    
         
-%          dbdpint=Heint; 
-%          ddbdpdx=deltaint.*(dhdx-dhfdx); 
-%          ddbdpdy=deltaint.*(dhdy-dhfdy); 
+        % uvMatrixAssembly:
+        %
+        %         t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        %         t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        %
+        %         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
+        %         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
+        %         t5=taux.*fun(Inod); % beta2int.*uint.*fun(Inod);  % basal friction, Weertman, u
+        %
+        %         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
+        %         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
+        %
+        %         t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
+        %         t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        %
+        %         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
+        %         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
+        %         t5=tauy.*fun(Inod);                       % beta2int.*vint.*fun(Inod); % basal friction, Weertman, v
+        %
+        %         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
+        %         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
+        %
+        %
         
-        t1=-ca*F.g*((rhoint.*hint-F.rhow*dint).*(test1x*ddbdpdx.*fun(Inod)+dbdpint.*Deriv(:,1,Inod)) +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*(Sint-bint)).*fun(Inod)).*dbdx).*uAdjointint ...
+        %dtaubxdh=0;
+        %dtaubydh=0;
+
+        %          dbdpint=Heint;
+        %          ddbdpdx=deltaint.*(dhdx-dhfdx);
+        %          ddbdpdy=deltaint.*(dhdy-dhfdy);
+        
+        
+        % Note: db/dx  needs to be perturbed with respect to B (i.e. p)
+        %  b = G B  + (1-G) ... (not funcion of B)
+        % d (delta b)/dx = d (delta (G B) ) / dx
+        %                = d (deltaG  B) ) / dx + d (G delta B) / dx
+        %                =     ?                + dG/dx delta B + G d(delta B) /dx
+        %                =     ?                + dG/dx phi + G d(phi)/dx
+        %                =     ?                + dG/dx fun + G deriv
+        %                =     ?                + delta(h-h_f) d(h-h_f)/dx     fun + G deriv
+        %
+        % if db/dB = db/dp = G then  set G=dbdp
+        %
+        %   t1=-ca*F.g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        %t1=   (-ca*F.g* (rhoint.*hint-F.rhow*dint)   .*(ddbdpdx.*fun(Inod)+dbdpint.*Deriv(:,1,Inod)) ...  %der(1,Inod)
+        %       -ca*F.g*(rhoint.*dhdpint+F.rhow*HeHint.*dBdpint).*dbdx  .*fun(Inod) ...
+        %    + rhoint.*F.g.*sa.*dhdpint.*fun(Inod)                                ).*uAdjointint;
+        
+        %         t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        test1=1;
+        test2=1; 
+        
+        t1=-ca*F.g*...
+            (...
+              (rhoint.*hint-F.rhow*dint).*(test1*deltaint.*(dhdx-dhfdx).*fun(Inod)+ dbdpint.*Deriv(:,1,Inod))...
+              +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdx...
+              ).*uAdjointint ...
             +rhoint.*F.g.*sa.*dhdpint.*fun(Inod).*uAdjointint;
         
-        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
+        %         t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        
+        % t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        t2=ca*F.g.*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlxdx;
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*exx+2*eyy).*dlxdx;
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlxdy;
         t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
-        %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubxdh.*uAdjointint.*fun(Inod);
+        t5=0;
         
         Fx=(t1+t2).*detJw;
         Tx=(t3+t4+t5).*detJw;
         
         
-     
+        %         t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
+        %t1=   (-ca*F.g* (rhoint.*hint-F.rhow*dint)   .*(ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))...
+        %    -ca*F.g*(rhoint.*dhdpint+F.rhow*HeHint.*dBdpint).*dbdy  .*fun(Inod) ...
+        %                                                                       ).*vAdjointint;
         
-        t1=-F.g*ca*((rhoint.*hint-F.rhow*dint).*(test1y*ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))+(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy).*vAdjointint; % t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
+        %         t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
+        t1=-F.g*ca*...
+            (  (rhoint.*hint-F.rhow*dint).*(test1*deltaint.*(dhdy-dhfdy).*fun(Inod)+dbdpint.*Deriv(:,2,Inod))...
+            +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy)...
+            .*vAdjointint;
         
-        
-        t2=F.g*ca*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        t2=F.g*ca*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; 
         
         t3=dhdpint.*fun(Inod).*etaint.*(4*eyy+2*exx).*dlydy; % t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=dhdpint.*fun(Inod).*etaint.*2.*exy.*dlydx ; % t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
         t5=(dhdpint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
-        %t5=(-Heint+F.rhow*dBdpint./rhoint) .*dtaubydh.*vAdjointint.*fun(Inod);   % 5=tauy.*fun(Inod);
+        t5=0; 
         
         
         
@@ -246,62 +296,16 @@ for Iint=1:MUA.nip
     
     
     
-    % If dh/dt=d(s-b)/dt are measurments, and the control parameter p=b
-    % then dJ/db=dI/db + dR/db,
-    % has contributions from dI/db and dR/db
-    % rather than just the R term otherwise often is the
-    % case for control variables.
-    %
-    % calcualte: dI/db
-    if contains(CtrlVar.Inverse.Measurements,'-dhdt-')
-        for Inod=1:MUA.nod
-            
-            dbI=-dhdtresint...
-                .*dhdpint.*(exx.*fun(Inod)+uint.*Deriv(:,1,Inod)+eyy.*fun(Inod)+vint.*Deriv(:,2,Inod))...
-                .*detJw./dhdtErrint/Area ;
-            T(:,Inod)=T(:,Inod)+dbI ;
-            
-        end
-        
-    end
-    
 end
 
-dIdb=zeros(MUA.Nnodes,1);
+dFdhlambda=zeros(MUA.Nnodes,1);
+
 
 for Inod=1:MUA.nod
-    dIdb=dIdb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-
-
-switch CtrlVar.Inverse.AdjointGradientPreMultiplier
-    
-    case 'M'
-        
-        if ~isfield(MUA,'M')
-            MUA.M=MassMatrix2D1dof(MUA);
-        end
-        
-        if CtrlVar.Inverse.InfoLevel>=1000
-            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdb) ; title('dIdb Mesh Dependend')
-        end
-        
-        dIdbnorm=norm(dIdb);
-        dIdb=MUA.M\dIdb;
-        dIdb=dIdb*dIdbnorm/norm(dIdb);
-        
-        
-        if CtrlVar.Inverse.InfoLevel>=10
-            fprintf('Making dIdb mesh independent by premultiplying with the inverse of the mass matrix.\n')
-        end
-        
-        if CtrlVar.Inverse.InfoLevel>=1000
-            figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdb) ; title('dIdb Mesh Independend')
-        end
-end
-
-
+dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dFdhlambda);
 
 end
 

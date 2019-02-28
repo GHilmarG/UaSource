@@ -1,4 +1,4 @@
-function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo)
+function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 RegOuts=[];
@@ -100,7 +100,7 @@ end
 
 % b
 if contains(CtrlVar.Inverse.InvertFor,'-b-')
-    
+    error('fdsa')
     isb=1;
     dpb=F.b-Priors.b;
     pPriorCovb=Priors.Covb;
@@ -200,6 +200,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         dRdb=temp/npb;
         %ddRdd=inv(Priors.CovC)/2/N;
         ddRCddpb=[];
+        error('fdsa')
     else
         Rb=0;
         dRdb=[];
@@ -278,7 +279,7 @@ else  % Tikhonov regularization
         Nb=(gsb.^2.*(Dxx+Dyy)+gab.^2.*M)/Area;
         Rb=dpb'*Nb*dpb/2;
         dRdb=(Nb*dpb).*dbfactor;
-        
+        error('fdsa')
     else
         Rb=0;
         dRdb=[];
@@ -297,7 +298,8 @@ else  % Tikhonov regularization
         dRdB=[];
     end
     
-    
+    [dRdAGlen,dRdb,dRdB,dRdC]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dRdAGlen,dRdb,dRdB,dRdC); 
+        
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
     ddRddp=[];
@@ -305,6 +307,7 @@ else  % Tikhonov regularization
     
     
 end
+
 
 R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;

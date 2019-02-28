@@ -21,7 +21,7 @@ classdef BoundaryConditions
         ubvbFixedNormalNode=[];
         ubvbFixedNormalValue=[];
         
-        % deformational
+        % deformational velocity, only used when solving SIA or hybrid
         udFixedNode=[];
         udFixedValue=[];
         vdFixedNode=[];
@@ -35,15 +35,27 @@ classdef BoundaryConditions
         udvdFixedNormalNode=[];
         udvdFixedNormalValue=[];
         
-        % thickness
+        % thickness  - only used if solving for thickness, for example in a uvh step
         hFixedNode=[];
         hFixedValue=[];
         hTiedNodeA=[];
         hTiedNodeB=[];
-        
+
+        % positive thickness constraints - these are introduced automatically, do not prescribe direclty
         hPosNode=[];
         hPosValue=[];
          
+        
+        % rate of thickness change - only used when using calculating dh/dt in combination with the ajoint methods
+        %                            for example when using measurements of dh/dt in an inversion 
+        dhdtFixedNode=[];
+        dhdtFixedValue=[];
+        dhdtTiedNodeA=[];
+        dhdtTiedNodeB=[];
+         
+        
+        
+        
     end
  
 end

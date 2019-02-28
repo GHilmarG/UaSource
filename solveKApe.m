@@ -10,7 +10,8 @@ narginchk(7,7)
 % where A is n times n, C is m times m , B is m times n.
 % A does not have to be symmetrical
 
-[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
+[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; 
+[nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 
 if nA~=mA
     fprintf(' A must be square ')

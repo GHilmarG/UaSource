@@ -1,4 +1,4 @@
-function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
+function [J,dJdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
 %
@@ -16,25 +16,52 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,GF,Priors
 %
 %   As explained in Ua compendium the misfit term, I, can be written as
 %
-%       2 I=d M d + d (Dx +Dy) d
-%
+%       2 I=d M d + d (Dx +Dy) d%
 %  where d=d_measured-d_calculated
 %
 %
+%  Notation:
+%  J = Juv   + Jdot    + JA    +   JB   + JC
+%
+%  I need:
+%
+%       duvJ  =   duvJuv   + duvJdot    (i.e. any J terms that are function of uv)
+%       dCJC
+%       dBJB
+%       dAJA
+%
+%
+%   Adjoint Eqs:  duvFuv lambda = duvJ
+%
+%       DAJ     = dAFuv lambda + dAJ
+%       DBJ     = dBFuv lambda + dBJ
+%       DCJ     = dCFuv lambda + dCJ
+%
+
+
+persistent GLgeo GLnodes GLele
+
 Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
 
-dIdC=[];
-dIdAGlen=[];
-dIdb=[];
-dIdB=[];
-dIdp=[] ;
+dAFuvLambda=[];
+dBFuvLambda=[];
+dCFuvLambda=[];
+
+DAJ=[];
+DBJ=[];
+DCJ=[];
+
+dJdp=[] ;
 ddIddp=sparse(1,1);
+
+
+
+
 
 us=F.ub+F.ud ;
 vs=F.vb+F.vd ;
-dhdtres=[];
-dhdtErr=[];
 
+%% Do some test on inputs, check if error covariance matrices are correctly defined
 % calculate residual terms, i.e. difference between meas and calc values.
 if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
     
@@ -68,15 +95,10 @@ if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
     end
 end
 
+%% Data misfit terms and derivatives
 if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
     
-    %%
-    % CtrlVar.Tracer.SUPG.Use=1; CtrlVar.Tracer.SUPG.tau='tau2';
-    % CtrlVar.dt=1e-6;
-    % [UserVar,hnew,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,CtrlVar.dt,F.h,F.ub,F.vb,F.as+F.ab,F.ub,F.vb,F.as+F.ab,0,BCs);
-    % [hnew,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F.h,F.ub,F.vb,F.dubdt,F.dvbdt,F.as+F.ab,F.as*0,F.ub,F.vb,F.as+F.ab,F.as*0,F.dubdt,F.dvbdt);
-    % [F.h hnew c1 c1-hnew]
-    % F.dhdt=(hnew-F.h)/CtrlVar.dt;
+    
     
     if isempty(Meas.dhdt)
         fprintf('Meas.dhdt is empty! \n')
@@ -93,17 +115,9 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
         error('Misfit:dhdt','Meas.dhdt is empty.')
     end
     
+    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
     
-    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F);
-    
-    %         if isempty(find(Meas.dhdtCov,1))
-    %         ad gera
-    %         end
-    
-    if isdiag(Meas.dhdtCov)
-        dhdtErr=sqrt(spdiags(Meas.dhdtCov));
-        dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr;
-    else
+    if ~isdiag(Meas.dhdtCov)
         error('Misfit:Cov','Data covariance matrices must be diagonal')
     end
     
@@ -113,27 +127,23 @@ end
 % This is straigtforward as the misfit term is an explicit function of u
 % and v.
 
-switch  CtrlVar.Inverse.InvertForField
-    
-    case 'B'
-        
-        dhdp=-F.GF.node;
-        
-    case 'b'
-        dhdp=-1+zeros(MUA.Nnodes,1);
-    otherwise
-        dhdp=[];
-end
+Juv=0 ; Jhdot=0 ;
+duJdu=zeros(MUA.Nnodes,1) ;
+dvJdv=zeros(MUA.Nnodes,1) ;
+
+duJhdot=zeros(MUA.Nnodes,1);
+dvJhdot=zeros(MUA.Nnodes,1);
+dhJhdot=zeros(MUA.Nnodes,1) ;
 
 switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
     
     case 'uvdiscrete'  % this is here for comparision and testing, do not use, it's wrong!
         
         N=numel(us);
-        I=full(usres'*usres+vsres'*vsres)/2/N;
-        dIdu=usres./uErr/N;
-        dIdv=vsres./vErr/N;
-        dIduv=[dIdu(:);dIdv(:)];
+        Juv=full(usres'*usres+vsres'*vsres)/2/N;
+        duJdu=usres./uErr/N;
+        dvJdv=vsres./vErr/N;
+        
         
     case 'integral' % always evaluate the continuous approximation
         
@@ -141,61 +151,38 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
             MUA.M=MassMatrix2D1dof(MUA);
         end
         
-        switch CtrlVar.Inverse.Measurements
+        if contains(CtrlVar.Inverse.Measurements,'-uv-')
             
-            case '-uv-'
-                
-                dIdu=(MUA.M*usres)./uErr/Area;
-                dIdv=(MUA.M*vsres)./vErr/Area;
-                
-                I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
-                dIduv=[dIdu(:);dIdv(:)];
-                
-            case '-dhdt-'
-                
-                %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
-                I=full(dhdtres'*MUA.M*dhdtres)/2/Area;
-                
-                
-                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr);
-                dIhdu=dIhduv(1:MUA.Nnodes)/Area;
-                dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
-                dIduv=[dIhdu(:);dIhdv(:)];
-                
-            case {'-uv-dhdt-','-dhdt-uv-'}
-                
-                dIdu=(MUA.M*usres)./uErr/Area;
-                dIdv=(MUA.M*vsres)./vErr/Area;
-                %dIdhdt=(MUA.M*dhdtres)./dhdtErr/Area;
-                
-                [UserVar,dIhduv]=dIhdotduv(UserVar,CtrlVar,MUA,F,dhdtres,dhdtErr);
-                dIhdu=dIhduv(1:MUA.Nnodes)/Area;
-                dIhdv=dIhduv(MUA.Nnodes+1:end)/Area;
-                
-                I=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres+dhdtres'*MUA.M*dhdtres)/2/Area;
-                dIduv=[dIdu(:)+dIhdu(:);dIdv(:)+dIhdv(:)];
-                
-            otherwise
-                
-                fprintf('The case %s for the variable CtrlVar.Inverse.Measurements not recognized.\n',CtrlVar.Inverse.Measurements)
-                error(' Redefine CtrlVar.Inverse.Measurements ')
-                
+            duJdu=(MUA.M*usres)./uErr/Area;
+            dvJdv=(MUA.M*vsres)./vErr/Area;
+            Juv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+            
         end
         
         
-        if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
-            CtrlVar.TestForRealValues=false;
+        if contains(CtrlVar.Inverse.Measurements,'-dhdt-')
+            
+            [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
+            
         end
         
-        if ~isreal(dIduv)  && CtrlVar.TestForRealValues
-            save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
-        end
         
-    otherwise
-        error(' what case? ' )
+        
 end
 
-MisfitOuts.dIduv=dIduv;
+J=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
+duvJduv=[duJdu(:)+duJhdot(:);dvJdv(:)+dvJhdot(:)];
+
+if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+    CtrlVar.TestForRealValues=false;
+end
+
+if ~isreal(duvJduv)  && CtrlVar.TestForRealValues
+    save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
+end
+
+
+MisfitOuts.dIduv=duvJduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
@@ -211,27 +198,30 @@ if CtrlVar.Inverse.CalcGradI
         
         case {'fixpoint','fixpointc','-fixpoint-','-fixpointc-'}
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+            switch CtrlVar.Inverse.InvertForField
                 
-                if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+                case 'C'
+                    
+                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
+                    np=numel(dJdp); ddIddp=sparse(np,np);
+                    dCJ=0 ;
+                    DCJ=dCFuvLambda+dCJ;
+                    
+                case 'B'
+                    
+                    
+                    dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
+                    np=numel(dJdp); ddIddp=sparse(np,np);
+                    dBJ=0;
+                    DBJ=dBFuvLambda+dBJ;
+                    
+                otherwise
                     
                     fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
                     fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
-                    fprintf(' Fixpoint evaluation of data misfit gradient only possibly when solving for slipperiness alone. \n')
-                    error('Fixpoint evaluation of data misfit gradient not implemented for AGlen or logAGlen inversion. ')
+                    fprintf(' Fixpoint inversion only possible for C and B inversion. \n')
+                    error('Misfit:IncorrectInputParameterCombination','Fixpoint inversion only possible for C and B inversion')
                     
-                else
-                    
-                    dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,GF,F.ub,F.vb,Meas.us,Meas.vs);
-                    np=numel(dIdp); ddIddp=sparse(np,np);
-                    
-                end
-                
-            else
-                
-                error('Fixpoint evaluation of data misfit gradient not implemented for AGlen or logAGlen inversion')
-                
-                
             end
             
             
@@ -269,9 +259,8 @@ if CtrlVar.Inverse.CalcGradI
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
             
-            dJduAdjoint=dIduv(:); % because the regularization term does not depend on u or v
-            
-            [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,dJduAdjoint,LAdjointrhs,[],lAdjoint,CtrlVar);
+            duvJ=duvJduv;     % Because this is the only J terms that depents on UV
+            [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
             if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
@@ -290,17 +279,17 @@ if CtrlVar.Inverse.CalcGradI
             
             if CtrlVar.Inverse.InfoLevel>=1000 && CtrlVar.doplots
                 
-                GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+                GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar);
                 tri=MUA.connectivity;
                 
                 figure
                 hold off
                 subplot(2,2,1)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,dIduv(1:length(F.ub)),CtrlVar);  title('dIdu')
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title('dIdu')
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,2)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,dIduv(1+length(F.ub):end),CtrlVar);  title('dIdv')
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1+length(F.ub):end),CtrlVar);  title('dIdv')
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,3)
@@ -331,28 +320,30 @@ if CtrlVar.Inverse.CalcGradI
                             Cnode=C;
                         end
                         
-                        dIdC = -(1/m)*GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*uAdjoint+v.*vAdjoint);
+                        dCFuvLambda = -(1/m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*uAdjoint+v.*vAdjoint);
                         
                         if contains(lower(CtrlVar.Inverse.InvertFor),'-logc-')
-                            dIdC=log(10)*Cnode.*dIdp;
+                            dCFuvLambda=log(10)*Cnode.*dCFuvLambda;
                         end
                         
                         if CtrlVar.CisElementBased
-                            dIdC=Nodes2EleMean(MUA.connectivity,dIdC);
+                            dCFuvLambda=Nodes2EleMean(MUA.connectivity,dCFuvLambda);
                         end
                         
-                        np=numel(dIdp);
+                        np=numel(dCFuvLambda);
                         ddIddp=sparse(np,np);
                         
                     case 'integral'
                         
                         if CtrlVar.CisElementBased
-                            dIdC=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,GF);
-                            np=numel(dIdp); ddIddp=sparse(ones(np,1),1:np,1:np);
+                            dCFuvLambda=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                            np=numel(dCD); ddIddp=sparse(ones(np,1),1:np,1:np);
                         else
-                            dIdC=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,GF);
+                            dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end
                 end
+                dCJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DCJ=dCFuvLambda+dCJ;
             end
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
@@ -368,17 +359,19 @@ if CtrlVar.Inverse.CalcGradI
                         
                         if CtrlVar.AGlenisElementBased
                             
-                            dIdAGlen=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,GF);
-                            np=numel(dIdp); ddIddp=sparse(ones(np,1),1:np,1:np);
+                            dAFuvLambda=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                            np=numel(dJdp); ddIddp=sparse(ones(np,1),1:np,1:np);
                             
                         else
-                            dIdAGlen=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,GF);
+                            dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end
                 end
+                dAJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DAJ=dAFuvLambda+dAJ;
             end
             
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'-b-')
+            if contains(CtrlVar.Inverse.InvertFor,'-B-')
                 
                 switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
                     
@@ -389,29 +382,34 @@ if CtrlVar.Inverse.CalcGradI
                         
                     case 'integral'
                         
-                        if contains(CtrlVar.Inverse.InvertFor,'-B-')
-                            
-                            %  p= B ; 
-                            
-                            dBdp=  1+zeros(MUA.Nnodes,1); 
-                            dbdp=  F.GF.node - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow; 
-                            dhdp= -F.GF.node; 
-                            
-                            dIdB=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
-                            
-                        else
-                            
-                            dBdp= F.GF.node;
-                            dhdp= -1+zeros(MUA.Nnodes,1);
-                            dbdp= F.GF.node + (1-F.GF.node).*F.rho/F.rhow ; 
-                         
-                            
-                            
-                            dIdb=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdtres,dhdtErr,dhdp,dbdp,dBdp);
-                        end
+                        %  p= B ;
+                        
+                        dBdp=  1+zeros(MUA.Nnodes,1);
+                        %dBdp=  F.GF.node ; %
+                        dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
+                        dhdp= -F.GF.node ;
+                        
+                        % dIdB= dhF^* \lambda + dhJ
+                        % if only -dhdt- meas and no regularisation
+                        % then dJdB=dh/db*dhJhdot
+                        
+                        dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
+                        dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                        %dBFuvLambda=dBFuvLambda2; 
+                        
                         
                         
                 end
+                dBJ=dhdp.*dhJhdot;
+                DBJ=dBFuvLambda+dBJ;
+                
+                if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
+                    [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+                    DBJ(~F.GF.NodesUpstreamOfGroundingLines)=0;
+                end
+                
+
+                
             end
             
             
@@ -425,7 +423,11 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     
-    % Hessians
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
+% [I,L,U,C] = isoutlier(DBJ,'gesd'); factor=1 ; DBJ(DBJ>(factor*U))=factor*U ; DBJ(DBJ<(L/factor))=L/factor ; 
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
+    
+% Hessians
     
     switch lower(CtrlVar.Inverse.InvertFor)
         
@@ -443,10 +445,10 @@ if CtrlVar.Inverse.CalcGradI
         
         
         case {'0','O'}
-            np=numel(dIdp);
+            np=numel(dJdp);
             ddIddp=sparse(np,np);
         case {'1','I'}
-            np=numel(dIdp);
+            np=numel(dJdp);
             ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
         case 'M'
             ddIddp=Hscale*MUA.M;
@@ -456,71 +458,44 @@ if CtrlVar.Inverse.CalcGradI
     switch CtrlVar.Inverse.InvertForField
         
         case 'A'
-            dIdp=dIdAGlen;
+            dJdp=DAJ;
         case 'b'
-            dIdp=dIdb;
+            error('fdsa')
         case 'B'
-            dIdp=dIdB;
+            dJdp=DBJ;
         case 'C'
-            dIdp=dIdC;
-        case 'Ab'
-            dIdp=[dIdAGlen;dIdb];
+            dJdp=DCJ;
         case 'AC'
-            dIdp=[dIdAGlen;dIdC];
-        case 'bC'
-            dIdp=[dIdb;dIdC];
-        case 'AbC'
-            dIdp=[dIdAGlen;dIdb;dIdC];
-            
+            dJdp=[DAJ;DCJ];
         otherwise
             
-            dIdp=0;
             error('sdfsa')
             
     end
     
-    %     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    %
-    %         dIdp=[dIdAGlen;dIdC];
-    %
-    %     elseif contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    %
-    %         dIdp=dIdAGlen;
-    %
-    %     elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    %
-    %         dIdp=dIdC;
-    %
-    %     elseif ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen') && contains(lower(CtrlVar.Inverse.InvertFor),'c')
-    %
-    %     end
     
 else
     
-    dIdp=0;
+    dJdp=0;
     
 end
 
-I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
+J=CtrlVar.Inverse.DataMisfit.Multiplier*J;
 
 if nargout>1
     
-    dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
+    dJdp=CtrlVar.Inverse.DataMisfit.Multiplier*dJdp;
     ddIddp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIddp;
     
 end
 
 
 if nargout>3
-    MisfitOuts.I=I;
-    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*dIdC;
-    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*dIdAGlen;
-    MisfitOuts.dIdb=CtrlVar.Inverse.DataMisfit.Multiplier*dIdb;
-    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*dIdB;
+    MisfitOuts.I=J;
+    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCJ;
+    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAJ;
+    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBJ;
 end
-
-
-
 
 end
 
