@@ -9,7 +9,7 @@ if nargin==0
     UserVar=[];
 end
 
-% SetUaPath() %% set path  (consider deleting, no longer used) 
+SetUaPath() %% set path  (consider deleting, no longer used) 
 
 if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
     
