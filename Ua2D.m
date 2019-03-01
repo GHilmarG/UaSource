@@ -66,7 +66,6 @@ clear PlotFEmesh
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
 
-
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
 [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
