@@ -2,19 +2,19 @@ function isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors)
 
 isCorrectDimensions=1;
 
-
-if isempty(Priors.n)
-    
-    error(' Priors.n is empty.')
-    
-end
-
-
-if isempty(Priors.m)
-    
-    error(' Priors.m is empty.')
-    
-end
+% 
+% if isempty(Priors.n)
+%     
+%     error(' Priors.n is empty.')
+%     
+% end
+% 
+% 
+% if isempty(Priors.m)
+%     
+%     error(' Priors.m is empty.')
+%     
+% end
 
 if isempty(Priors.C)
     

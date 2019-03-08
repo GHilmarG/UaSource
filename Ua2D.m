@@ -50,15 +50,15 @@ clear Mesh2dEleSizeFunction
 clear multiWaitbar
 clear NewConjugatedGrad
 % also those potentially defined in user input files
-clear DefineSlipperyDistribution
-clear DefineAGlenDistribution
-clear DefineGeometry
-clear DefineInputsForInverseRun
-clear DefineDensities
-clear DefineDesiredEleSize
-clear DefineBoundaryConditions
-clear DefineMassBalance
-clear UaOutputs
+% clear DefineSlipperyDistribution
+% clear DefineAGlenDistribution
+% clear DefineGeometry
+% clear DefineInputsForInverseRun
+% clear DefineDensities
+% clear DefineDesiredEleSize
+% clear DefineBoundaryConditions
+% clear DefineMassBalance
+% clear UaOutputs
 % Ua utilities
 clear PlotMeshScalarVariable 
 clear PlotFEmesh

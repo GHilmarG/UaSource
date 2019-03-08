@@ -1,17 +1,14 @@
-function [uMeas,vMeas,Err]=L8Velocities(CtrlVar,x,y)
+function [uMeas,vMeas,Err]=L8Velocities(UserVar,CtrlVar,x,y)
 
+narginchk(4,4)
 
 persistent  FGu FGv FGerror
 
 if isempty(FGu)
     
     locdir=pwd;
-    
-    
-    AntarcticGlobalDataSets=getenv('AntarcticGlobalDataSets');
-    
-    cd(AntarcticGlobalDataSets)
-    cd MatlabInterpolants
+
+    cd(UserVar.MatlabInterpolants.Folder)
     fprintf('Loading L8-2015 velocity interpolants ')
     load('L8-2015-GriddedInterpolants-1000m.mat','FGu','FGv','FGerror')
     fprintf('done\n')
