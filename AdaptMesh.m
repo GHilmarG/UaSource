@@ -7,7 +7,6 @@ persistent AdaptMeshTime
 
 narginchk(9,9)
 nargoutchk(6,6)
-
 MUAnew=MUAold;
 Fnew=Fold;
 BCsNew=BCsOld;
@@ -72,7 +71,7 @@ RunInfo.MeshAdapt.isChanged=false;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
-    fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold)
+    fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold);
 end
 
 
@@ -267,7 +266,7 @@ end
 
 if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('After remeshing: ') ;
-    PrintInfoAboutElementsSizes(CtrlVar,MUAnew)
+    PrintInfoAboutElementsSizes(CtrlVar,MUAnew) ; 
 end
 
 

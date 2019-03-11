@@ -96,10 +96,11 @@ end
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
-    title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    CtrlVar.PlotNodes=0 ; PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
+    title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
     title('log10(Astart)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
@@ -118,10 +119,11 @@ end
 if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
-    title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    CtrlVar.PlotNodes=0 ; PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
+    title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
     title('log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
@@ -237,7 +239,34 @@ if ~exist('GLgeo','var')
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
 end
 
+%%
+FigSpeedMisfit=figure;
+speedMeas=sqrt(Meas.us.^2+Meas.us.^2);
+speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
+ErrSpeed=sqrt(usError.^2+vsError.^2); 
 
+subplot(2,2,1)
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(speedMeas)) ; title('log10(measured speed)') 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+cAxisMeas=caxis; 
+
+subplot(2,2,2)
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(speedCalc)) ; title('log10(calculated speed)') 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+caxis(cAxisMeas);
+
+subplot(2,2,3)
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(ErrSpeed)) ; title('log10(Meas error in speed)') 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+
+subplot(2,2,4)
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(speedMeas-speedCalc)./ErrSpeed) ; title('speed residuals: (meas-calc)/error') 
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+%%
 figure
 Kplot=0;
 
@@ -254,10 +283,8 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 Kplot=Kplot+1;    
 subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ;
-hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ;
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 if ~isempty(Meas.dhdt)
