@@ -33,6 +33,36 @@ InvStartValues=InvFinalValues;
 %[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);
 %[Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
 
+
+if isempty(Priors.AGlenmax) 
+    Priors.AGlenmax=CtrlVar.AGlenmax;
+end
+
+if isempty(Priors.AGlenmin)
+    Priors.AGlenmin=CtrlVar.AGlenmin;
+end
+
+if isempty(Priors.Cmax)
+    Priors.Cmax=CtrlVar.Cmax;
+end
+
+
+if isempty(Priors.Cmin)
+    Priors.Cmin=CtrlVar.Cmin;
+end
+
+if isempty(Priors.Bmax)
+    Priors.Bmax=Meas.s-CtrlVar.ThickMin;
+end
+
+
+if isempty(Priors.Bmin)
+    Priors.Bmin=-1e10;
+end
+
+
+
+
 isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors);
 
 
