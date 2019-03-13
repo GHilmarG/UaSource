@@ -128,13 +128,13 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     % after this adjustment
     
     
-    if CtrlVar.WriteDumpFile && CtrlVar.WriteDumpFileTimeInterval>0
-        temp=dtOut;
-        dtOut=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.WriteDumpFileTimeInterval);
-        if abs(temp-dtOut)>100*eps
-            fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate output file requirements and set to %-g \n ',dtOut);
-        end
-    end
+%     if CtrlVar.WriteDumpFile && CtrlVar.WriteDumpFileTimeInterval>0
+%         temp=dtOut;
+%         dtOut=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.WriteDumpFileTimeInterval);
+%         if abs(temp-dtOut)>100*eps
+%             fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate output file requirements and set to %-g \n ',dtOut);
+%         end
+%     end
     
     %
     if CtrlVar.UaOutputsDt>0
