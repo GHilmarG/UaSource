@@ -611,11 +611,11 @@ CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change.
 %
 %   CtrlVar.Inverse.Regularize.Field 
 %
-% to either '-C-','-logC-','-AGlen-','-logA-',or '-logA-logC-'
+% to either '-C-','-logC-','-AGlen-','-logAGlen-',or '-logAGlen-logC-'
 %
 % Default is Tikhonov regularization on log(A) and log(C)
 %
-CtrlVar.Inverse.Regularize.Field='-logA-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
+CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %%
 % [ -- Parameters specific to Tikhonov regularization. See the above definition
@@ -624,19 +624,19 @@ CtrlVar.Inverse.Regularize.Field='-logA-logC-' ; % {'-cov-','-C-','-logC-','-AGl
 % default regularization is switched on, but can the switched off by setting the
 % gs and the ga parameters to zero.
 
-CtrlVar.Inverse.Regularize.AGlen.gs=1;
-CtrlVar.Inverse.Regularize.AGlen.ga=1;
-CtrlVar.Inverse.Regularize.logAGlen.ga=1;
-CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
+CtrlVar.Inverse.Regularize.AGlen.gs=[];
+CtrlVar.Inverse.Regularize.AGlen.ga=[];
+CtrlVar.Inverse.Regularize.logAGlen.ga=[];
+CtrlVar.Inverse.Regularize.logAGlen.gs=[] ;
 
-CtrlVar.Inverse.Regularize.C.gs=1; 
-CtrlVar.Inverse.Regularize.C.ga=1;
-CtrlVar.Inverse.Regularize.logC.ga=1;
-CtrlVar.Inverse.Regularize.logC.gs=1 ; 
+CtrlVar.Inverse.Regularize.C.gs=[]; 
+CtrlVar.Inverse.Regularize.C.ga=[];
+CtrlVar.Inverse.Regularize.logC.ga=[];
+CtrlVar.Inverse.Regularize.logC.gs=[] ; 
 
 
-CtrlVar.Inverse.Regularize.B.gs=1;  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
-CtrlVar.Inverse.Regularize.B.ga=1;
+CtrlVar.Inverse.Regularize.B.gs=[];  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
+CtrlVar.Inverse.Regularize.B.ga=[];
  %  -]
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%
