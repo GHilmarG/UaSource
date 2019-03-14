@@ -9,7 +9,8 @@ if nargin==0
     UserVar=[];
 end
 
-% SetUaPath() %% set path  (consider deleting, no longer used) 
+
+SetUaPath() %% 
 
 if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
     
@@ -48,23 +49,12 @@ clear MeshAdvanceRetreat
 clear Mesh2dEleSizeFunction
 clear multiWaitbar
 clear NewConjugatedGrad
-% also those potentially defined in user input files
-clear DefineSlipperyDistribution
-clear DefineAGlenDistribution
-clear DefineGeometry
-clear DefineInputsForInverseRun
-clear DefineDensities
-clear DefineDesiredEleSize
-clear DefineBoundaryConditions
-clear DefineMassBalance
-clear UaOutputs
 % Ua utilities
 clear PlotMeshScalarVariable 
 clear PlotFEmesh
 
 %% Define default values
 CtrlVar=Ua2D_DefaultParameters();
-
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts

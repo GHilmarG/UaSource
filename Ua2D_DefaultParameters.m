@@ -450,7 +450,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % name of logfile is  $Experiment.log
 
 
-%% Inversion 
+
+%% Inversion
 % 
 % Inversion can currently be done for A and C. 
 % 
@@ -558,9 +559,6 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 
 
-
-
-
 CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
@@ -631,20 +629,16 @@ CtrlVar.Inverse.Regularize.AGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.ga=1;
 CtrlVar.Inverse.Regularize.logAGlen.gs=1 ;
 
-CtrlVar.Inverse.Regularize.b.gs=1;
-CtrlVar.Inverse.Regularize.b.ga=1;
-
-CtrlVar.Inverse.Regularize.B.gs=1;
-CtrlVar.Inverse.Regularize.B.ga=1;
-
-
 CtrlVar.Inverse.Regularize.C.gs=1; 
 CtrlVar.Inverse.Regularize.C.ga=1;
 CtrlVar.Inverse.Regularize.logC.ga=1;
-CtrlVar.Inverse.Regularize.logC.gs=1e10 ; 
+CtrlVar.Inverse.Regularize.logC.gs=1 ; 
 
-%  -]
 
+CtrlVar.Inverse.Regularize.B.gs=1;  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
+CtrlVar.Inverse.Regularize.B.ga=1;
+ %  -]
+CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%
 % I and R are multiplied by these following DataMisit and Regularisation
 % multipliers. This is a convening shortcut of getting rid of either the misfit
@@ -782,32 +776,32 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 % consider setting:
 % CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 
-%%
-% [ ------------- Testing the adjoint gradients
+%% Comparing adjoint gradients with finite-difference gradients
+% 
 % The derivatives obtained with the adjoint method can be
 % compared with those obtained from brute force finite difference calculations.
 % Only do this for small problems!
 CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
 % of the directional derivative of the objective function.
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
-%%
+%
 % The brute-force gradient can be calculated using first-order forward
 % differences, second-order central differences, or fourth-order central
 % differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
-%%
+%
 % if left empty, values are calculated for every node/element within the mesh.
 % If set to for example [1,10,45] values are calculated for these three
 % nodes/elements.
 % end, testing adjoint parameters.
-% -------------------]
+%% Inverse testing parameters (do not change)
 
 CtrlVar.Inverse.DataMisfit.HessianEstimate='0'; % {'0','I','MassMatrix'} Do not use, just for testing.
 CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
 CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
 CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
-CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
+
 
 
 

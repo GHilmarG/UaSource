@@ -27,12 +27,41 @@ InvStartValues=InvFinalValues;
 
 
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
-[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
-
 [InvStartValues.C,InvStartValues.m]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m);
-[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);
 
-[Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
+%[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
+%[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);
+%[Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
+
+
+if isempty(Priors.AGlenmax) 
+    Priors.AGlenmax=CtrlVar.AGlenmax;
+end
+
+if isempty(Priors.AGlenmin)
+    Priors.AGlenmin=CtrlVar.AGlenmin;
+end
+
+if isempty(Priors.Cmax)
+    Priors.Cmax=CtrlVar.Cmax;
+end
+
+
+if isempty(Priors.Cmin)
+    Priors.Cmin=CtrlVar.Cmin;
+end
+
+if isempty(Priors.Bmax)
+    Priors.Bmax=Meas.s-CtrlVar.ThickMin;
+end
+
+
+if isempty(Priors.Bmin)
+    Priors.Bmin=-1e10;
+end
+
+
+
 
 isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors);
 

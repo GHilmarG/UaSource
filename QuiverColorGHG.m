@@ -18,7 +18,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                                colored will be some fraction of the
 %                                                max speed based on the value of
 %                                              Par.QuiverColorPowRange
-% Par.RelativeVelArrowSize                   : scaling factor for arrow size, default value is 1
+%                   : scaling factor for arrow size, default value is 1
 % Par.VelArrowColorSteps                     : number of coloring steps, default is 20
 % Par.VelColorBarTitle                       : default value is '(m a^{-1})' ;
 % Par.PlotXYscale                            : default value is 1

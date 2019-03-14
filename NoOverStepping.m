@@ -1,8 +1,19 @@
 function dtOut=NoOverStepping(CtrlVar,time,dtIn,Dt)
 %
 %
-%  Dt is a time interval and time+dtOut should not exceed this limit
+%  On intput Dt is the maximum time step, while dtIn is the current time step
 %
+% To ensure the dtOut is not larger than Dt one could simpy set
+%  
+%   dtOut=min(dtIn,Dt)
+%
+%  However, I also would like dtOut to be some simple fraction on Dt
+%
+%  I do this by defining a LimitTime as 
+%
+%   LimitTime=Dt*ceil(time/Dt)
+%
+%  and then I ensure that on return time+dtOut does not exceed this limit time. 
 %
 
 dtOut=round(dtIn,14); % round to 10 significant digits.
@@ -11,8 +22,8 @@ dtOut=round(dtIn,14); % round to 10 significant digits.
 LimitTime=Dt*ceil(time/Dt);  % time that should not be overstepped.
                              % LimitTime is always >= time
                              
-% If LimitTime is equal to time, then advance LimitTime by Dt
-if abs(LimitTime-time) < CtrlVar.dtmin;
+% If LimitTime is effectivly equal to time, then advance LimitTime by Dt
+if abs(LimitTime-time) < CtrlVar.dtmin
     LimitTime=time+Dt;
 end
 
@@ -20,8 +31,8 @@ if (time+dtOut)> LimitTime  % if needed, redefine time step so that the LimitTim
     dtOut=LimitTime-time;   % (always strickly positive)
 end
 
-% Check if for the time step dtOut, the remaining time interval towards LimitTime is 
-% a small fraction of this time step. If so, then extend the time step all the way to LimitTime
+% Finally, check if the remaining time interval towards LimitTime is 
+% a small fraction of dtOut. If so, then extend the time step all the way to LimitTime
 
 RemainingDt=LimitTime-(time+dtOut);
 

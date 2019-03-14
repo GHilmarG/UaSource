@@ -2,7 +2,7 @@ function [Ruv,Kuv,Tint,Fext]=uvAssemblySPMD(CtrlVar,MUA,F)
 
 
 if isempty(CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
-    poolobj = gcp('nocreate');
+    poolobj = gcp;
     CtrlVar.Parallel.uvAssembly.spmd.nWorkers=poolobj.NumWorkers;
 end
 

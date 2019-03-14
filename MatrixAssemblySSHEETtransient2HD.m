@@ -47,7 +47,7 @@ t1=zeros(MUA.Nele,MUA.nod); f1=zeros(MUA.Nele,MUA.nod);
 % vector over all elements for each integartion point
 
 if CtrlVar.Parallel.uvhAssembly.parfor.isOn
-    poolobj = gcp('nocreate');
+    poolobj = gcp;
     Mworkers=poolobj.NumWorkers;
 else
     Mworkers=1;

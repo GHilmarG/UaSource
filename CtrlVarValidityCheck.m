@@ -115,7 +115,7 @@ end
 %% adapt
 
 if isfield(CtrlVar,'AdaptMeshIterations')
-
+    
     fprintf('Note: CtrlVar.AdaptMeshIterations is no longer used.\n')
     fprintf('Use   CtrlVar.AdaptMeshMaxIterations instead.\n')
     error('Ua:CtrlVarValidyCheck','The field CtrlVar.AdaptMeshIterations is no longer used. Replace with CtrlVar.AdaptMeshMaxIterations')
@@ -125,50 +125,72 @@ end
 %% inverse
 
 if CtrlVar.InverseRun
+   
+    % First make sure that CtrlVar.Inverse.InvertFor and CtrlVar.Inverse.Regularize.Field
+    % only contain some combinations of '-C-','-logC-','-AGlen-','-logAGlen-' and
+    % '-B-' 
+    %
+    % 
     
-%     if ~contains(CtrlVar.Inverse.InvertFor,"Bupstream")
-%         replace(string(CtrlVar.Inverse.InvertFor),"Bupstream","B")
-%         CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL=true ;
-%     end
-%     
+    [CtrlVar.Inverse.InvertFor,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.InvertFor);
+    
+    if ~status
+        fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
+        fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
+        error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
+    end
+    
+    
+    
+    [CtrlVar.Inverse.Regularize.Field,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.Regularize.Field);
+    
+    if ~status
+        fprintf(' CtrlVar.Inverse.Regularize.Field does not appear to have a valid value.\n')
+        fprintf(' CtrlVar.Inverse.Regularize.Field=%s \n',CtrlVar.Inverse.Regularize.Field);
+        error('CtrlVarValidityCheck:CtrlVar.Inverse.Regularize.Field')
+    end
+    
     if strcmpi(CtrlVar.Inverse.DataMisfit.GradientCalculation,'fixpoint')
         
         % if fixpoint, then only c inversion is possible
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
-        CtrlVar.Inverse.InvertFor=replace(lower(CtrlVar.Inverse.InvertFor),'logaglen','');
-        CtrlVar.Inverse.InvertFor=replace(lower(CtrlVar.Inverse.InvertFor),'aglen','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'logAGlen','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'Aglen','');
+        CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,'logAGlen','');
+        CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,'AGlen','');
+        
+      
         
     end
     
     % Don't regularize A if not inverting for A, so
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+    if ~contains(CtrlVar.Inverse.InvertFor,'AGlen')
         
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logaglen','');
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'aglen','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'-logAGlen-','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'-AGlen-','');
+        
         
     end
     
     % Don't regularize C if not inverting for C
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),'c')
+    if ~contains(CtrlVar.Inverse.InvertFor,'C')
         
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'logc','');
-        CtrlVar.Inverse.Regularize.Field=replace(lower(CtrlVar.Inverse.Regularize.Field),'c','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'-logC-','');
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'-C-','');
+        
         
     end
- 
     
-    if ~contains(lower(CtrlVar.Inverse.InvertFor),["aglen","c","b"])
-        fprintf('the string CtrlVar.Inverse.InvertFor must contain ``Aglen`` and/or ``C`` \n')
-        error('Invalid inputs.')
-    end
+    CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,'--','-');
+    CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,'--','-');
     
     if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),["fixpoint","adjoint"])
         fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
         error('Invalid inputs.')
     end
     
-    
+    % create a string with letters indicating which fields are being inverted for
+    % e.g 'ABC' if inverting for AGlen, B and C.
+    CtrlVar.Inverse.InvertForField=sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A'))) ;
 end
 
 
@@ -214,49 +236,6 @@ if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     
 end
-
-if CtrlVar.InverseRun
-    
-    switch lower(CtrlVar.Inverse.InvertFor)
-        case {'c','-c-'}
-            CtrlVar.Inverse.InvertFor='-C-';
-        case {'aglen','-a-'}
-            CtrlVar.Inverse.InvertFor='-AGlen-';
-        case {'b','-b-'}
-            if contains(CtrlVar.Inverse.InvertFor,'B')
-                CtrlVar.Inverse.InvertFor='-B-';
-            elseif contains(CtrlVar.Inverse.InvertFor,'b')
-                CtrlVar.Inverse.InvertFor='-b-';
-            end
-        case {'aglenc','caglen','-aglen-c-','-c-aglen-','ac','ca','-a-c-','-c-a-'}
-            CtrlVar.Inverse.InvertFor='-AGlen-C-';
-        case {'logc','-logc-'}
-            CtrlVar.Inverse.InvertFor='-logC-';
-        case {'logaglen','-loga-','-logaglen-'}
-            CtrlVar.Inverse.InvertFor='-logAGlen-';
-        case {'logaglenlogc','-loga-logc-','-logc-loga-','logclogaglen','-logaglen-logc-','-logc-logaglen-'}
-            CtrlVar.Inverse.InvertFor='-logAGlen-logC-';
-        otherwise
-            fprintf('The variable CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
-            fprintf('             CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
-            error(' CtrlVar invalied ')
-    end
-    
-    CtrlVar.Inverse.InvertForField=sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),'log','') ,'-',''),'AGlen','A'))) ;
-    
-    if isempty(CtrlVar.Inverse.InvertForField)
-        
-        fprintf(' CtrlVar.Inverse.InvertFor does not appear to have a valid value.\n')
-        fprintf(' CtrlVar.Inverse.InvertFor=%s \n',CtrlVar.Inverse.InvertFor)
-        error('CtrlVarValidityCheck:CtrlVar.Inverse.InvertForInvalid')
-        
-    end
-    
-end
-
-
-
-
 
 
 

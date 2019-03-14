@@ -9,6 +9,13 @@ function SetRegionalPlotAxis(Region)
 %
 
 switch lower(Region)
+    
+    case 'antarctica'
+    
+    case 'bruntstancomb'
+        
+       axis([-800 -470 1350 1635])
+    
     case 'pig'
         
         axis([-1680 -1540 -380 -140])
@@ -20,7 +27,7 @@ switch lower(Region)
         
     case 'thwaitesiceshelf'
         
-        axis([-1620 -1500 -520 -400])
+        axis([-1700 -1450 -620 -380])
         
     case 'pig-twg-shelves'
         
