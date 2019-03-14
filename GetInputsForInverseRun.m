@@ -2,7 +2,7 @@ function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInv
 
 %[UserVar,InvStartValues,Priors,Meas,BCsAdjoint]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF,g,alpha,ub,vb,ud,vd,l)
 
-narginchk(7,7) 
+narginchk(7,7)
 nargoutchk(6,6)
 
 
@@ -42,7 +42,7 @@ if isempty(InvStartValues.C) ; save TestSave ; error('GetInputsForInverseRun:emp
 if isempty(InvStartValues.n) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.n is empty') ; end
 if isempty(InvStartValues.m) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.m is empty') ; end
 
-if isempty(Priors.AGlenmax) 
+if isempty(Priors.AGlenmax)
     Priors.AGlenmax=CtrlVar.AGlenmax;
 end
 
@@ -67,6 +67,71 @@ end
 if isempty(Priors.Bmin)
     Priors.Bmin=-1e10;
 end
+
+%%
+isE=false ; 
+switch CtrlVar.Inverse.Regularize.Field
+    case '-logAGlen-logC-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.logAGlen.gs) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
+        
+        
+        
+    case '-logAGlen-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.logAGlen.gs);
+        
+    case '-logC-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
+        
+    case '-AGlen-C-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.AGlen.gs) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+        
+        
+    case '-AGlen-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.AGlen.gs);
+        
+    case '-C-'
+        
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+end
+
+
+if isE
+    
+    fprintf(' Input Error: Some or all Tikhonov regularisation parameters not defined! \n')
+    fprintf(' The Tikhonov regularisation parameters are: \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.gs \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.logC.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.logC.gs \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.gs \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.C.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.C.gs \n')
+    
+    error(' Some or all Tikhonov regularisation parameters not defined. \n')
+end
+
 
 end
 
