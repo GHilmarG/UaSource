@@ -225,9 +225,14 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         %input('press return to continue')
     end
     
-    D=mean(sqrt(F.ub.*F.ub+F.vb.*F.vb));
-    diffDu=full(max(abs(gamma*dub))+max(abs(gamma*dvb)))/D; % sum of max change in du and dv normalized by mean speed
+    
+    
+    Du=gamma*dub ; Dv=gamma*dvb; diffDu=norm([Du;Dv])/norm([F.ub;F.vb]) ;                           % relative norm of changes in velocities
+    %D=mean(sqrt(F.ub.*F.ub+F.vb.*F.vb)); ; diffDu=full(max(abs(gamma*dub))+max(abs(gamma*dvb)))/D; % sum of max change in du and dv normalized by mean speed
     diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
+    
+    
+    
     diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
     diffVector(iteration+1)=r;
     
