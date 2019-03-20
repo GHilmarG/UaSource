@@ -210,6 +210,16 @@ else
     end
 end
 
+if CtrlVar.TestForRealValues
+    
+    if ~isreal(x) && CtrlVar.IgnoreComplexPart
+        x=real(x);
+    end
+    
+    if ~isreal(y) && CtrlVar.IgnoreComplexPart
+        y=real(y) ;
+    end
+    
 end
 
 % 		%[ Schur complement reduction

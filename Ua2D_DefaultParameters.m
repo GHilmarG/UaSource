@@ -91,6 +91,10 @@ CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
 %
 %%
 CtrlVar.TestForRealValues=1;
+
+CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical system,
+                              % numerical errors cause the solution to no longer be real.
+                              % In that case, set to true to simply ignor complex part.
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
@@ -269,8 +273,8 @@ CtrlVar.AGlenmax=1e10;
 % then be large despite the BCs being exactly fulfilled.)
 %
 CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=1e-2;     % tolerance for change in (normalized) speed
-CtrlVar.dh=1e-2;     % tolerance for change in (normalized) thickness
+CtrlVar.du=0.1;      % tolerance for change in (normalized) speed
+CtrlVar.dh=0.1;      % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 CtrlVar.Residual.uvh='uvh';

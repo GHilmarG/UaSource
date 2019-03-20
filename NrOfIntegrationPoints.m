@@ -59,7 +59,10 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             %nip=6 ; niph=6;
             % nip=7 ; niph=7;  
             
-            nip=9 ; niph=9;  % changed from 7 to 9 as default 19, August, 2018
+            %nip=9 ; niph=9;   % changed from 7 to 9 as default 19, August, 2018
+            nip=12 ; niph=12;  % and then changed from 9 to 12 on 18 March, 2019. The reason for this increar, ie form 9 to 12 was that a few situations where found were 
+                               % nip=9 was not sufficient for full
+                               % convergence in a uv inversion. 
             
             
             
