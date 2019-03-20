@@ -91,6 +91,10 @@ CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
 %
 %%
 CtrlVar.TestForRealValues=1;
+
+CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical system,
+                              % numerical errors cause the solution to no longer be real.
+                              % In that case, set to true to simply ignor complex part.
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements

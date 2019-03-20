@@ -165,7 +165,12 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     %% update variables
     h=h+gamma*dh ; lambdah=lambdah+gamma*dlambdah;
     
+    temp=CtrlVar.ResetThicknessToMinThickness;
+    if ~CtrlVar.ResetThicknessInNonLinLoop
+        CtrlVar.ResetThicknessToMinThickness=0;
+    end
     [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
+    CtrlVar.ResetThicknessToMinThickness=temp;
     %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
     
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
