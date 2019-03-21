@@ -988,8 +988,9 @@ CtrlVar.Mesh2d.opts.siz1 = 1.333;
 CtrlVar.Mesh2d.opts.siz2 = 1.3;
 CtrlVar.Mesh2d.opts.disp = 10;
 
-CtrlVar.Mesh2dInputFormat= 1;  % {1,2}   1 is simple and identical to the CtrlVar.GmshInputFormat=1
-                               % 2 used the input format of mesh2d itself and if using this option one must
+CtrlVar.Mesh2dInputFormat= 1;  % {1,2}   
+                               % 1 is simple and identical to the CtrlVar.GmshInputFormat=1
+                               % 2 uses the input format of mesh2d itself and if using this option one must
                                % also define the 'edge' and 'part' input fields. In this case the
                                % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
 CtrlVar.Mesh2d.edge=[];

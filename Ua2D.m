@@ -124,6 +124,10 @@ if CtrlVar.InverseRun %  inverse run
         
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
+        if CtrlVar.OnlyMeshDomainAndThenStop
+            return
+        end
+        
         % now get the additional variables specific to an inverse run
         [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=GetInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
