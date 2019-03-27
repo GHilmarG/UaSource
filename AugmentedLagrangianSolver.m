@@ -1,7 +1,5 @@
 function [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar)
 
-%save TestSave
-%error('asdf')
 
 isUpperLeftBlockMatrixSymmetrical=issymmetric(A);
 
@@ -181,6 +179,14 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     x0=x;
     y0=y;
     
+    if xDiff<eps && yDiff< eps 
+        % sometimes the solution no longer changes
+        % this could be a real issue, but it might also numerical resolution issue
+        % I here force the normalized residuals tolerance to be no smaller than 1e-8, which seems a
+        % very save assumption. 
+        CtrlVar.LinSolveTol=max([CtrlVar.LinSolveTol ; 1e-8]) ; 
+        break
+    end
     
 end
 
@@ -205,9 +211,18 @@ end
 
 if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
     res1=norm(A*x+B'*y-f)/norm(f);
-    res2=norm(B*x-g)/norm(g);
+    
+    ng=norm(g);
+    if ng>0
+        res2=norm(B*x-g)/norm(g);
+    else
+        res2=norm(B*x-g);
+    end
     fprintf(CtrlVar.fidlog,' relative residuals=%-g \t absolute residuals=%-g \t first equation %-g \t second equation %-g \n',resRelative,resAbsolute,res1,res2);
     warning('ALS:MaxIterationReached','Augmented Lagrangian Solver did not fully converge to prescribed tolerance of %-g \n',CtrlVar.LinSolveTol)
+    
+    % save TestSave
+    
 end
 
 if CtrlVar.InfoLevelLinSolve>=10
@@ -226,10 +241,19 @@ if CtrlVar.InfoLevelLinSolve>=10
             I,InfoVector(I,1),InfoVector(I,2),InfoVector(I,3),InfoVector(I,4),InfoVector(I,5))
     end
     fprintf(' --------------------------------------------------------------------------------------------------------------------------------------------------------\n ')
-    iRange=1:Iteration;  figure ; semilogy(iRange,InfoVector(iRange,1),'o-r'); xlabel(' Iteration '); ylabel('Relative change in x and y')
-    hold on ; semilogy(iRange,InfoVector(iRange,2),'+-g'); xlabel(' Iteration ');
-    legend('|x-x0|/|x|','|y-y0|/|y|') ; title(' Augmented-Lagrangian linear solver ([A B'' ; B 0] [x;y] =[f;g])')
+    iRange=1:Iteration;  
+    figure ; 
+    semilogy(iRange,InfoVector(iRange,1),'+-r'); 
+    hold on ; 
+    semilogy(iRange,InfoVector(iRange,2),'+-g'); 
+    semilogy(iRange,InfoVector(iRange,3),'o-k'); 
+    semilogy(iRange,InfoVector(iRange,4),'o-m'); 
+    semilogy(iRange,InfoVector(iRange,5),'o-c'); 
+    legend('|x-x0|/|x|','|y-y0|/|y|','|[A B'' ; B 0]*sol-[f;g]|/|[f;g]|','|A*x+B''*y-f|/|f|','|B*x-g|/|g|') ; 
+    title(' Augmented-Lagrangian linear solver ([A B'' ; B 0] [x;y] =[f;g])')
+    xlabel(' Iteration '); ylabel(' ')
     input(' to continue press return ')   
+
 end
 
 

@@ -1,7 +1,7 @@
 function WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues)
 
 
-fprintf(CtrlVar.fidlog,'Saving adjoint restart file: %s \n ',CtrlVar.Inverse.NameOfRestartOutputFile);
+fprintf(CtrlVar.fidlog,'Saving inverse-run restart file: %s \n ',CtrlVar.Inverse.NameOfRestartOutputFile);
 
 CtrlVarInRestartFile=CtrlVar;
 UserVarInRestartFile=UserVar;
