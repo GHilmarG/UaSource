@@ -60,7 +60,7 @@ if isempty(Priors.Cmin)
 end
 
 if isempty(Priors.Bmax)
-    Priors.Bmax=Meas.s-CtrlVar.ThickMin;
+    Priors.Bmax=F.s-CtrlVar.ThickMin;
 end
 
 

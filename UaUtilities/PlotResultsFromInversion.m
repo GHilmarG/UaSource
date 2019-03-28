@@ -56,7 +56,7 @@ if ~isempty(Meas.dhdt)
     PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    title('dhdt Meas on numerical grid') ;
+    title('dh/dt Meas on numerical grid') ;
 end
 
 usError=sqrt(spdiags(Meas.usCov));
@@ -86,7 +86,7 @@ if ~isempty(Meas.dhdt)
     PlotMeshScalarVariable(CtrlVar,MUA,dhdtError) ; hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    title('dhdt error on numerical grid') ;
+    title('dh/dt error on numerical grid') ;
     
 end
 
@@ -299,7 +299,7 @@ if ~isempty(Meas.dhdt)
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    title('dhdt-Meas.dhdt') ;
+    title('dh/dt-Meas.dhdt') ;
     
 end
 
@@ -330,7 +330,7 @@ if ~isempty(Meas.dhdt)
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
-    title('(dhdt modelled)') ;
+    title('(dh/dt modelled)') ;
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
@@ -352,7 +352,7 @@ figure
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
-title('Calculated dhdt (assuming plug flow)') ;
+title('Calculated dh/dt (assuming plug flow)') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 %%  % Difference in speed
@@ -669,17 +669,20 @@ else
                 
                 subplot(1,3,1)
                 tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.AGlen);
-                xlabel('x') ; ylabel('y') ; title('Inverted AGlen')
+                SetLabels("km","km","m");
+                title('Inverted AGlen')
                 colorbar('southoutside')
                 
                 subplot(1,3,2)
                 PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueAGlen);
-                xlabel('x') ; ylabel('y') ; title('True AGlen')
+                SetLabels("km","km","m");
+                title('True AGlen')
                 colorbar('southoutside')
                 
                 subplot(1,3,3)
                 PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.AGlen-Priors.TrueAGlen);
-                xlabel('x') ; ylabel('y') ; title('True AGlen')
+                SetLabels("km","km","m");
+                title('True AGlen')
                 title('AGlen: True-Estimated')
                 colorbar('southoutside')
                 
@@ -710,25 +713,28 @@ else
             subplot(2,2,1)
             tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvStartValues.B);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ; title("Inv. start field: "+CtrlVar.Inverse.InvertFor)
+            SetLabels(CtrlVar,"km","km","m");
+            title("Inv. start field: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,2)
             tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.B);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ; title("Inverted: "+CtrlVar.Inverse.InvertFor)
+            SetLabels(CtrlVar,"km","km","m");
+            title("Inverted: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,3)
             PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueB);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ; title("True: "+CtrlVar.Inverse.InvertFor)
+            SetLabels(CtrlVar,"km","km","m");
+            title("True: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,4)
             PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.B-Priors.TrueB);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ;
+            SetLabels(CtrlVar,"km","km","m");
             title("Estimated-True: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
@@ -740,21 +746,23 @@ else
             subplot(1,3,1)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.B);
             hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ; title("Inverted: h")
+            SetLabels(CtrlVar,"km","km","m");
+            title("Inverted: h")
             colorbar('off')
             colorbar('southoutside')
             
             subplot(1,3,2)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.TrueB)  ; % this may need to be adjusted
             hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ; title("True: h")
+            SetLabels(CtrlVar,"km","km","m");
+            title("True: h")
             colorbar('off')
             colorbar('southoutside')
             
             subplot(1,3,3)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.B)-(F.s-Priors.TrueB));
             hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-            xlabel('x') ; ylabel('y') ;
+           SetLabels(CtrlVar,"km","km","m");
             title("Inverted-True: h ")
             colorbar('off')
             colorbar('southoutside')
