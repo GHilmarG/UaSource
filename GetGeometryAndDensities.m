@@ -33,7 +33,7 @@ if ~(FieldsToBeDefined=="")
         case 6
             [UserVar,sTemp,bTemp,STemp,BTemp,F.alpha]=DefineGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,FieldsToBeDefined,F);
         otherwise
-            errors('DefineGeometry must have either 5 or 6 inputs arguments.')
+            error('DefineGeometry must have either 5 or 6 inputs arguments.')
     end
     
     % some error checks
