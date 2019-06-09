@@ -315,12 +315,12 @@ if CtrlVar.Inverse.CalcGradI
                         
                         if CtrlVar.CisElementBased
                             M = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-                            Cnode=M*C;
+                            Cnode=M*F.C;
                         else
-                            Cnode=C;
+                            Cnode=F.C;
                         end
                         
-                        dCFuvLambda = -(1/m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1/m-1).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1/m-1).*(u.*uAdjoint+v.*vAdjoint);
+                        dCFuvLambda = -(1./F.m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1./F.m-1).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1).*(F.ub.*uAdjoint+F.vb.*vAdjoint);
                         
                         if contains(lower(CtrlVar.Inverse.InvertFor),'-logc-')
                             dCFuvLambda=log(10)*Cnode.*dCFuvLambda;
@@ -337,7 +337,7 @@ if CtrlVar.Inverse.CalcGradI
                         
                         if CtrlVar.CisElementBased
                             dCFuvLambda=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                            np=numel(dCD); ddIddp=sparse(ones(np,1),1:np,1:np);
+                            np=numel(F.C); ddIddp=sparse(ones(np,1),1:np,1:np);
                         else
                             dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end

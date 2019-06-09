@@ -68,10 +68,10 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             
             
         case 10 % minimum of 7 needed for a linear problem
-            %nip=7;
-            %nip=7; niph=12;
-            nip=12 ; niph=12; 
-            %nip=16; niph=16;
+            % nip=7;
+            % nip=7; niph=12;
+            % nip=12 ; niph=12; 
+             nip=16; niph=16;
             
             
         otherwise

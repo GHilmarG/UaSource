@@ -19,6 +19,7 @@ CtrlVar=Ua2D_DefaultParameters(); %
 % three lines are required in the Ua2D_InitialUserInput.m
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
+CtrlVar.MeshSize=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 % Now generate mesh (When using Úa this is done internally, no such call
@@ -38,6 +39,7 @@ UserVar=[];
 % Ua2D_InitialUserInput.m
 L=5e3 ; H=1e3;
 CtrlVar.MeshSizeMax=H/5;
+CtrlVar.MeshSize=CtrlVar.MeshSizeMax;
 CtrlVar.MeshSizeMin=CtrlVar.MeshSizeMax/5;
 MeshBoundaryCoordinates=[0 0 ; 0 H ; L H ; L 0];
 % If we want to use periodic boundary conditions then we must make sure that the
@@ -134,7 +136,7 @@ drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
 %% Example:  house without a window
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ] ;
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates); figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
@@ -144,7 +146,7 @@ drawnow
 %
 % when creating holes within a mesh, separate boundaries by NaN NaN
 %
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...       % Outer boundary (clockwise orientation)
                NaN NaN ;  0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary (anticlockwise orientation)
                NaN NaN ; -0.1 -0.5 ; -0.1 0 ; -0.8 0 ; -0.8 -0.5 ];         % another innner boundary (anticlockwise orientation)
@@ -156,7 +158,7 @@ drawnow
 %
 % When generating separate meshed domains, label each domain with a number.
 % The label is the specified by putting `Label NaN' ahead of the corresponding boundary
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; 
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...                                                     % boundary of mesh 1
                          2 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; -1.7 -0.5 ; -1.7 -1 ; -1.8 -1 ; -1.8 -0.5 ];       % boundary of mesh 2
@@ -167,7 +169,7 @@ drawnow
 %% Example: A house with windows and a tree :-)
 % When generating several separate meshed domains with holes, make sure
 % to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...      % outer boundary of mesh 1 (clockwise)
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...                              % a hole within mesh 1     (anticlockwise)
@@ -177,7 +179,9 @@ MeshBoundaryCoordinates=[1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...   
 drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: Mesh with several holes and islands
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSize=0.1;
+CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
 MeshBoundaryCoordinates=...
     [1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...     % outer boundary of mesh 1
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary of mesh 1
@@ -212,7 +216,9 @@ drawnow
 %
 CtrlVar=Ua2D_DefaultParameters(); 
 CtrlVar.MeshSizeMax=1e3; 
+CtrlVar.MeshSize=1e3;
 CtrlVar.MeshSizeMin=0.1e3;
+
 
 a=0.1e3; % horizontal radius
 b=5e3; % vertical radius
@@ -246,7 +252,7 @@ drawnow
 % Since here the same line belongs to more then one mesh we need to specify
 % the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface
 
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
 UserVar=[];
@@ -267,7 +273,7 @@ drawnow
 %% Example: two separate meshes in contact
 
 
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
 CtrlVar.MeshGenerator='gmsh';  % this option only works with gmsh...
 %CtrlVar.MeshGenerator='mesh2d';  
 UserVar=[];
@@ -284,7 +290,8 @@ drawnow
 
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
-CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.GmshInputFormat=1;
+CtrlVar=Ua2D_DefaultParameters(); CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.GmshInputFormat=1;
 UserVar=[];
 MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
                          2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
@@ -359,7 +366,8 @@ UserVar=[];
 MeshBoundaryCoordinates=[];
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.GmshInputFormat=2;
-CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3;
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.TriNodes=3;
 
 CtrlVar.Gmsh.Points=[0 0 ;...  
                      0 0.5 ; ...
@@ -419,6 +427,7 @@ i2a=I(2)+1 ; i2b=size(MeshBoundaryCoordinates,1);
 
 CtrlVar=Ua2D_DefaultParameters(); 
 CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=5e3; 
 CtrlVar.MeshSizeMin=1e3; 
@@ -534,16 +543,51 @@ figure ;  PlotFEmesh(MUA.coordinates,MUA.connectivity)
 hold on ; PlotGmshGeometryDefinition(CtrlVar);
 drawnow
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
-%% Example of running gmsh directly for a given input file
 
-status=system([getenv('GmshHomeDirectory'),'\gmsh.exe GmshFile.geo -2 -v 5']);
-Gmsh=load_gmshGHG('GmshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
-TRI=Gmsh.TRIANGLES(1:Gmsh.nbTriangles,1:3);
-xy=Gmsh.POS(1:Gmsh.nbNod,1:2);
-figure
-triplot(TRI,xy(:,1),xy(:,2)) ; axis equal
-drawnow
-%hold on
-%plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
+
+
+% %% Example of running gmsh directly for a given input file
+% 
+% status=system([getenv('GmshHomeDirectory'),'\gmsh.exe GmshFile.geo -2 -v 5']);
+% Gmsh=load_gmshGHG('GmshFile.msh'); % the .msh is a gmsh output file. This file must have be generated previously 
+% TRI=Gmsh.TRIANGLES(1:Gmsh.nbTriangles,1:3);
+% xy=Gmsh.POS(1:Gmsh.nbNod,1:2);
+% figure
+% triplot(TRI,xy(:,1),xy(:,2)) ; axis equal
+% drawnow
+% %hold on
+% %plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'-or','LineWidth',2)
+% 
+% %%
 
 %%
+
+figure(1)
+hold off
+I = imread('Ua.png'); BW = imbinarize(I); imshow(BW);
+[B,L] = bwboundaries(BW,'holes');
+imshow(label2rgb(L, @jet, [.5 .5 .5]))
+hold on
+for k = 1:5  % length(B)
+   boundary = B{k};
+   plot(boundary(:,2), boundary(:,1), 'w', 'LineWidth', 2)
+end
+
+N=3;
+MeshBoundaryCoordinates=[1 NaN ;  B{1}(1:N:end,:) ; 1 NaN ; B{2}(1:N:end,:) ; 1 NaN ; B{3}(1:N:end,:) ; 1 NaN ; B{4}(1:N:end,:) ; 1 NaN ; B{14}(1:N:end,:) ; 1 NaN ; B{17}(1:N:end,:) ; 1 NaN ; B{18}(1:N:end,:)];
+
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=false; 
+CtrlVar.MeshSizeMin=10; 
+[UserVar,MUA]=genmesh2d([],CtrlVar,MeshBoundaryCoordinates); 
+
+
+x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
+MUA.coordinates(:,1)=y ; MUA.coordinates(:,2)=x;
+figure ; PlotMuaMesh(CtrlVar,MUA,'k') ; axis ij off ; title(' ')
+
+
+
+
+
+

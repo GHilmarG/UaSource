@@ -86,7 +86,7 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % hand this over the matlab opt.
     % Why not do so right away? Because the above options is based on
     % my experience always faster if it converges (fminunc is very reluctant to take
-    % lare steps, and apparantly does not take a full NR step...?!)
+    % large steps, and apparantly does not take a full NR step...?!)
     
     options = optimoptions('fminunc','Algorithm','trust-region',...
         'SpecifyObjectiveGradient',true,'HessianFcn','objective',...
