@@ -196,7 +196,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 
                 fig.Children(2).XLim=fig.Children(1).XLim;
                 fig.Children(2).YLim=fig.Children(1).YLim;
-                
+                sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
                 
             end
             
@@ -231,7 +231,7 @@ if CtrlVar.ManuallyDeactivateElements
     [UserVar,ElementsToBeDeactivated]=...
         DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
     
-    if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
+    if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
         
         FigureName="Elements to be deactivated (red)";  Position=[];
         fig=FindOrCreateFigure(FigureName,Position);
@@ -284,7 +284,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
     axis tight
 
-    
+     sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
 end
 
 

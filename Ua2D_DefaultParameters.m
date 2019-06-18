@@ -437,10 +437,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 % are both true.
 %
-%   0  : no information on adaptive meshing printed.
-% >=5  : plots on desired element sizes and elements to be subdivided or
-%        coarsened
-% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%   0   : no information on adaptive meshing printed.
+% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
