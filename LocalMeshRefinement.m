@@ -3,6 +3,7 @@ function [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToB
 persistent wasRefine
 
 
+
 % Local mesh refinement by subdividing selected triangular elements into four elements
 % MUAnew=LocalMeshRefinement(CtrlVar,MUAold,ElementsToBeRefined)
 %
@@ -28,6 +29,8 @@ persistent wasRefine
 
 
 narginchk(5,5)
+
+MUAnew=MUAold;
 
 % Make sure that lists are logical
 if ~islogical(ElementsToBeRefined)
@@ -157,7 +160,9 @@ switch CtrlVar.MeshRefinementMethod
             
         else
             fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
-            MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates,mesh);
+            MUAnew.RefineMesh=mesh;
+            MUAnew=UpdateMUA(CtrlVar,MUAnew);
+            %MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates,mesh);
             
         end
         %%

@@ -4,7 +4,7 @@ fig=findobj(0,'name',FigureName);
 
 if isempty(fig)
     fig=figure('name',FigureName);
-    if nargin==2
+    if nargin>1 && ~isempty(Position) 
         fig.Position=Position;
     end
 else
