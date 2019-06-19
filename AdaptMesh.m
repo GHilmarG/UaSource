@@ -226,6 +226,32 @@ if CtrlVar.ManuallyDeactivateElements
         fprintf('Manual deactivation of elements.\n');
     end
     
+    % I need to have saved the original mesh if I want to be able to reactivate
+    % regions. If the newest-vertex-biscetion local mesh-refinement option is being
+    % used, then I can use MUA.RefineMesh for this purpose. However, if no such
+    % local mesh refinement is used, I need to create this structure here.
+    
+    if  ~isfield(MUAnew,'RefineMesh')  ||  isempty(MUAnew.RefineMesh)
+        mesh = genMesh(MUAnew.connectivity, MUAnew.coordinates);
+        mesh.bd=[];
+        mesh = genBisectionMesh(mesh);
+        mesh = SelectRefinementEdge(mesh);
+        if MUAold.nod~=3
+            mesh.TR=triangulation(mesh.elements,mesh.coordinates);
+        end
+        MUAnew.RefineMesh=mesh;
+    end
+    
+    
+    % If the user wants to manually deactivate elements, I must
+    % re-introduce the full mesh at each mesh refinement stage to
+    % allow for the re-activation of regions previously were deactivated
+    %
+    if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
+        MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
+        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+    end
+    
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
     
     [UserVar,ElementsToBeDeactivated]=...
