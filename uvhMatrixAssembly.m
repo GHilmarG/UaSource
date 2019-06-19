@@ -395,7 +395,7 @@ end
 if CtrlVar.IncludeTG3uvhBoundaryTerm && CtrlVar.TG3
     %[Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(CtrlVar,MUA,h0,h,u0,v0,u,v,as0+ab0,as1+ab1,dt);
     %[K,rh]=BoundaryIntegralFullyImplicitTG3(coordinates,connectivity,Boundary,h0,h1,u0,v0,u1,v1,a0,a1,dt,CtrlVar)
-    [Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(MUA.coordinates,MUA.connectivity,MUA.Boundary,h0,h,u0,v0,u,v,as0+ab0,as1+ab1,dt,CtrlVar);
+    [Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(MUA.coordinates,MUA.connectivity,MUA.Boundary,F0.h,F1.h,F0.ub,F0.vb,F1.ub,F1.uv,F0.as+F0.ab,F1.as+F1.ab,CtrlVar.dt,CtrlVar);
     R=R+Rtest;
     if ~Ronly
         K=K+Ktest;

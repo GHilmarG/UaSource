@@ -2,3 +2,6 @@
 *.exe
 *.sh
 *Tag
+*.txt
+resources/
+

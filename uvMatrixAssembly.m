@@ -448,10 +448,10 @@ if ~Ronly
     
     % Boundary contribution
     
-    if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
-        [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
-        Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
-    end
+%     if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
+%         [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
+%         Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
+%     end
 end
 
 

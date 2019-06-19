@@ -43,6 +43,7 @@
                 <tocitem target="CalcNodalStrainRates.html">Calculate nodal strain rates</tocitem>
                 <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
+                <tocitem target="TracerConservationEquation.html">Tracer Conservation Equation</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

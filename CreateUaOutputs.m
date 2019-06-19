@@ -20,7 +20,7 @@ switch N
     
     case 0
         
-        UaOutputs(UserVar,CtrlVar,MUA,BCs,UaVars,l,GF);
+        UaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,F.GF);
         
     case 1
         

@@ -81,7 +81,7 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
             
             
             if CtrlVar.Inverse.InfoLevel>=1000
-                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Dependend')
+                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdAGlendata) ; title('dIdA Mesh Dependend')
             end
             % make mesh independent by dividing with element areas
             dIdAGlendataNorm=norm(dIdAGlendata);
@@ -90,7 +90,7 @@ function dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,lx,ly,s,b,h,S,B,ub,vb,ud,vd,AGlen
             
             
             if CtrlVar.Inverse.InfoLevel>=1000
-                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdA) ; title('dIdA Mesh Independend')
+                figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdAGlendata) ; title('dIdA Mesh Independend')
             end
             
     end

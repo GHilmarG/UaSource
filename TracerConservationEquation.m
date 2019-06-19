@@ -1,14 +1,15 @@
 function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
 
 %%
-% Solves the tracer conservation equation for the trace c on the form:
+% Solves the tracer conservation equation for the tracer c on the form:
+% 
+% $$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$
+% 
+% The natural boundary condition is 
 %
-%  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a
+% $$\nabla c \cdot \hat{u} = 0 $$
 %
-%
-% (Note: dc/dt is here the local time derivative, ie not the material derivative)
-%
-% The natural boundary condition is (grad c) \cdot \norm = 0, ie free outflow condition 
+% ie,  the free outflow condition 
 %
 
 

@@ -26,7 +26,7 @@ if CtrlVar.GmshInputFormat==2
     
 else
     
-    fprint('PlotGmshGeometryDefinition: Not using input format 2 to gmsh')
+    fprintf('PlotGmshGeometryDefinition: Not using input format 2 to gmsh')
     
 end
 

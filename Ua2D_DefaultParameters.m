@@ -164,6 +164,11 @@ CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrow
                                                   
 CtrlVar.PlotSUPGparameter=0;                                                   
 CtrlVar.PlotPosition=[100 100 1000 1000];
+CtrlVar.Plot.Units.xDistance="m" ; 
+CtrlVar.Plot.Units.yDistance="m" ; 
+CtrlVar.Plot.Units.zDistance="m" ; 
+CtrlVar.Plot.Units.Time="yr" ; 
+CtrlVar.Plot.Units.Stress="kPa" ; 
 
 %% Plotting mesh
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
@@ -363,12 +368,12 @@ CtrlVar.SymmSolver='Auto';   %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
-CtrlVar.LinSolveTol=1e-10;  % Residual when solving linear system.
+CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
                             % If the standard Matlab backslash algorithm is used, default Matlab values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
                             % the relative residual is defined in standard way as: 
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
-                            % A value of 1e-10 is arguably an overly small number, in many cases 1e-6 would be considered acceptable
+                            % A value of 1e-8 is arguably alread a relativily small number, in many cases 1e-6 would be considered acceptable
 CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider seeting to true if memory an issue                            
 
 %% Internal variables related to matrix assembly
@@ -384,8 +389,8 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
                    % The default values are: 
                    % nip=6 and niph=6 for linear elements (three node elements)
-                   % nip=7 and niph=7 for quadratic elements (six node elements)
-                   % nip=12 and niph=12 for cubic elements (ten node elements)
+                   % nip=12 and niph=12 for quadratic elements (six node elements)
+                   % nip=16 and niph=16 for cubic elements (ten node elements)
                    % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
 %% Level of information given during a run
@@ -432,10 +437,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 % are both true.
 %
-%   0  : no information on adaptive meshing printed.
-% >=5  : plots on desired element sizes and elements to be subdivided or
-%        coarsened
-% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%   0   : no information on adaptive meshing printed.
+% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
