@@ -55,11 +55,20 @@ nRefine=numel(find(ElementsToBeRefined));
 nCoarsen=numel(find(ElementsToBeCoarsened));
 
 
-if nRefine==0 && nCoarsen==0
+
+
+if nRefine <CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan  && nCoarsen < CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
+    
     MUAnew=MUAold;
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
-        fprintf('LocalMeshRefinement: No elements to be refined or coarsened.\n')
+        if nRefine==0 && nCoarsen==0
+            fprintf('LocalMeshRefinement: No elements to be refined or coarsened.\n')
+        else
+            fprintf('LocalMeshRefinement: The numbers of elements to be refined (%i) or coarsened (%i) are both less than CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan (%i) \n',...
+                nRefine,nCoarsen,CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+            fprintf('                     Hence, no local mesh refinement is done.\n')
+        end
     end
     
     return
@@ -134,7 +143,12 @@ switch CtrlVar.MeshRefinementMethod
             else
                 meshElementsToBeRefined=ElementsToBeRefined;
             end
-            mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
+            
+
+                
+                mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
+                
+
         else
             RunInfo.MeshAdapt.Method='Bisection Coarsening';
             fprintf(' Coarsening %i elements \n',nCoarsen)
@@ -160,9 +174,18 @@ switch CtrlVar.MeshRefinementMethod
             
         else
             fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
-            MUAnew.RefineMesh=mesh;
-            MUAnew=UpdateMUA(CtrlVar,MUAnew);
-            %MUAnew=CreateMUA(CtrlVar,MUAold.connectivity,MUAold.coordinates,mesh);
+            
+            if CtrlVar.ManuallyDeactivateElements && ~(size(mesh.elements,1)==MUAnew.Nele && size(mesh.coordinates,1)==MUAnew.Nnodes)
+                % If the user wants to manually deactivate elements, I must 
+                % re-introduce the full mesh at each mesh refinement stage to
+                % allow for the re-activation of regions previously were deactivated 
+                %
+                MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
+            else
+                MUAnew.RefineMesh=mesh;
+                MUAnew=UpdateMUA(CtrlVar,MUAnew);
+            end
+            
             
         end
         %%
