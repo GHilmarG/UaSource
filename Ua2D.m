@@ -527,12 +527,12 @@ while 1
                     end
                     
                     
-                    fprintf(CtrlVar.fidlog,' =====>>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/10);
+                    fprintf(CtrlVar.fidlog,' =====>>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence);
                     fprintf(CtrlVar.fidlog,'             Also resetting field and Lagrange variables. \n');
                     fprintf(CtrlVar.fidlog,'             Starting values for velocities at end of time step set by StartVelocity.m \n');
                     fprintf(CtrlVar.fidlog,'             Starting for s, b and h at end of time step set equal to values at beginning of time step. \n');
                     
-                    CtrlVar.dt=CtrlVar.dt/10;
+                    CtrlVar.dt=CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
                     F.s=F0.s ; F.b=F0.b ; F.h=F0.h;
                     l.ubvb=l.ubvb*0; l.h=l.h*0;
                     F=StartVelocity(CtrlVar,MUA,BCs,F);
