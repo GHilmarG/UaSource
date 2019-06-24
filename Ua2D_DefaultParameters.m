@@ -1469,6 +1469,7 @@ CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be mo
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
