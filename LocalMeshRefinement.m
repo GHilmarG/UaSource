@@ -144,11 +144,8 @@ switch CtrlVar.MeshRefinementMethod
                 meshElementsToBeRefined=ElementsToBeRefined;
             end
             
-
-                
-                mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
-                
-
+            mesh = bisectionRefine2D(mesh,meshElementsToBeRefined);
+            
         else
             RunInfo.MeshAdapt.Method='Bisection Coarsening';
             fprintf(' Coarsening %i elements \n',nCoarsen)
@@ -167,25 +164,44 @@ switch CtrlVar.MeshRefinementMethod
         
         isMeshChanged= ~(Na==Nb && Ea==Eb) ;
         
-        if isMeshChanged
+        isMeshChangedSufficiently=abs(Eb-Ea) > CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan ;
+        
+        
+        
+        if isMeshChangedSufficiently
             fprintf('In local mesh-refinement step the change in the number of elements and nodes was %i and %i, respectivily  (#R/#C)=(%i/%i). \n',...
                 Eb-Ea,Nb-Na,nRefine,nCoarsen)
             MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
             
         else
-            fprintf('Mesh unchanged in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
             
-            if CtrlVar.ManuallyDeactivateElements && ~(size(mesh.elements,1)==MUAnew.Nele && size(mesh.coordinates,1)==MUAnew.Nnodes)
-                % If the user wants to manually deactivate elements, I must 
-                % re-introduce the full mesh at each mesh refinement stage to
-                % allow for the re-activation of regions previously were deactivated 
-                %
-                MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
-            else
-                MUAnew.RefineMesh=mesh;
-                MUAnew=UpdateMUA(CtrlVar,MUAnew);
+            if CtrlVar.InfoLevelAdaptiveMeshing>=10
+                
+                if isRefine
+                    fprintf('LocalMeshRefinement: The change in numbers of elements during refinement (%i) is less than CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan (%i) \n',...
+                        Eb-Ea,CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+                    fprintf('                     Hence, this local mesh refinement is discarded and the mesh is not updated.\n')
+                else
+                    fprintf('LocalMeshRefinement: The change in numbers of elements during coarsening (%i) is less than CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan (%i) \n',...
+                        Eb-Ea,CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
+                    fprintf('                     Hence, this local mesh coarsening is discarded and the mesh is not updated.\n')
+                end
+                
             end
             
+            fprintf('Mesh not changed in local mesh-refinement step (#R/#C)=(%i/%i). \n',nRefine,nCoarsen)
+            
+            if CtrlVar.ManuallyDeactivateElements && ~(size(mesh.elements,1)==MUAnew.Nele && size(mesh.coordinates,1)==MUAnew.Nnodes)
+                % If the user wants to manually deactivate elements, I must
+                % re-introduce the full mesh at each mesh refinement stage to
+                % allow for the re-activation of regions previously deactivated
+                %
+                fprintf('LocalMeshRefinement: Because CtrlVar.ManuallyDeactivateElements is set to true, the initial mesh is now reintroduced. \n')
+                fprintf('                     MUA is now again the mesh at start of run. \n')
+                MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
+            else
+                MUAnew=MUAold;
+            end
             
         end
         %%
