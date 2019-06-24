@@ -104,11 +104,8 @@ end
 
 % eliminate elements
 if numel(find(iDeactivatedElements))>0
-    [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,MUA_Background.coordinates,MUA_Background.connectivity);
-    clear MUA
-    MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
-    clear connectivity coordinates
-    MUAnew=UpdateMUA(CtrlVar,MUAnew);
+    %[coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,MUA_Background.coordinates,MUA_Background.connectivity);
+    MUAnew=DeactivateMUAelements(CtrlVar,MUA_Background,iDeactivatedElements);
     fprintf(CtrlVar.fidlog,'Change in the number of elements : %+i \n ',MUAnew.Nele-MUAold.Nele);
 else
     MUAnew=MUAold;
