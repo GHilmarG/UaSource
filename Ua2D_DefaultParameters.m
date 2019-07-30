@@ -43,6 +43,8 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
                                           % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
                                           % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
                                           % not the total accumulated number of forward run steps.
+                                          
+CtrlVar.UseUserDefinedRunStopCriterion=false ;  
                               
 %% Ice flow approximation
 CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
