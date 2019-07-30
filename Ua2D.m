@@ -95,7 +95,7 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 %%  Now initial information about the run has been defined
 % write out some basic information about the type of run selected
 PrintRunInfo(CtrlVar);
-RunInfo.Message(1)="Start of Run";
+RunInfo.Message="Start of Run";
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 if CtrlVar.Restart
     RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
@@ -110,7 +110,7 @@ if CtrlVar.InverseRun %  inverse run
     if CtrlVar.Restart %  inverse restart run
         
         
-        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for an inverse restart run";
+        RunInfo.Message="Getting inputs for an inverse restart run";
         CtrlVar.RunInfoMessage=RunInfo.Message(end);
         [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
             GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo);
@@ -118,8 +118,8 @@ if CtrlVar.InverseRun %  inverse run
     else % New inverse run
         
         
-        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new inverse run";
-        CtrlVar.RunInfoMessage=RunInfo.Message(end);
+        RunInfo.Message="Getting inputs for a new inverse run";
+        CtrlVar.RunInfoMessage=RunInfo.Message;
         % First get the usual input for a forward run
         
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
@@ -138,8 +138,8 @@ else
     if CtrlVar.Restart %  forward restart run
         
         
-        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a forward restart run";
-        CtrlVar.RunInfoMessage=RunInfo.Message(end);
+        RunInfo.Message="Getting inputs for a forward restart run";
+        CtrlVar.RunInfoMessage=RunInfo.Message;
         [UserVar,CtrlVarInRestartFile,MUA,BCs,F,l,RunInfo]=GetInputsForForwardRestartRun(UserVar,CtrlVar,RunInfo);
         
         
@@ -155,8 +155,8 @@ else
     else % New forward run (ie not a restart)
         
         
-        RunInfo.Message(numel(RunInfo.Message)+1)="Getting inputs for a new forward run";
-        CtrlVar.RunInfoMessage=RunInfo.Message(end);
+        RunInfo.Message="Getting inputs for a new forward run";
+        CtrlVar.RunInfoMessage=RunInfo.Message;
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
         
         if CtrlVar.OnlyMeshDomainAndThenStop
@@ -168,7 +168,7 @@ end
 
 
 %% RunInfo initialisation
-RunInfo.Message(1)="Start of Run";
+RunInfo.Message="Start of Run";
 
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 
@@ -191,8 +191,8 @@ end
 %  consistent with the floating condition for a given ice tickness h, rho and
 %  rhow.
 if ~isfield(RunInfo,'Message') ; RunInfo.Message=[] ; end
-RunInfo.Message(numel(RunInfo.Message)+1)="All initial inputs now defined.";  % this is a string, will only work correclty post Matlab 2017b.
-CtrlVar.RunInfoMessage=RunInfo.Message(end);
+RunInfo.Message="All initial inputs now defined.";  % this is a string, will only work correclty post Matlab 2017b.
+CtrlVar.RunInfoMessage=RunInfo.Message;
 
 
 F.h=F.s-F.b;
@@ -213,8 +213,8 @@ F.h=F.s-F.b;
 if CtrlVar.doInverseStep   % -inverse
     
     
-    RunInfo.Message(numel(RunInfo.Message)+1)="Start of inverse run.";
-    CtrlVar.RunInfoMessage=RunInfo.Message(end);
+    RunInfo.Message="Start of inverse run.";
+    CtrlVar.RunInfoMessage=RunInfo.Message;
     
     CtrlVar.UaOutputsInfostring='Start of inverse run';
     CtrlVar.UaOutputsCounter=1;
@@ -288,19 +288,20 @@ end
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
 
-RunInfo.Message(numel(RunInfo.Message)+1)="Run Step Loop.";
-CtrlVar.RunInfoMessage=RunInfo.Message(end);
+RunInfo.Message="Run Step Loop.";
+CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.Forward.IterationsTotal=0; 
 %%  RunStep Loop
 while 1
     
     RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
     
+    %% check run-step stop criteria
     if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
-       
-        fprintf('Exiting time loop because total number of steps reached. \n')
- %       fprintf('CtrlVar.CurrentRunStepNumber=%i \n',CtrlVar.CurrentRunStepNumber)
- %       fprintf('CtrlVar.CurrentRunStepNumber0=%i\n',CtrlVar.CurrentRunStepNumber0)
+        
+        fprintf('Exiting run-step loop because total number of steps reached. \n')
+        %       fprintf('CtrlVar.CurrentRunStepNumber=%i \n',CtrlVar.CurrentRunStepNumber)
+        %       fprintf('CtrlVar.CurrentRunStepNumber0=%i\n',CtrlVar.CurrentRunStepNumber0)
         break
     end
     
@@ -310,12 +311,29 @@ while 1
     end
     
     if CtrlVar.TimeDependentRun && CtrlVar.dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
-        fprintf('Exiting time loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
-        TempFile=CtrlVar.Experiment+"-UaDumpTimeStepTooSmall.mat"; 
-        fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ; 
+        fprintf('Exiting run-step loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
+        TempFile=CtrlVar.Experiment+"-UaDumpTimeStepTooSmall.mat";
+        fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ;
         save(TempFile,'-v7.3')
         break
     end
+    
+    
+    
+    if CtrlVar.UseUserDefinedRunStopCriterion
+        
+        [UserVar,isStop]=DefineRunStopCriterion(UserVar,RunInfo,CtrlVar,MUA,BCs,F) ;
+        
+        if isStop
+            
+            fprintf('Exiting run-step loop based on the user defined run stop criteria as specified in DefineRunStopCriteria.m \n')
+            
+            break
+        end
+        
+    end
+    
+    %%
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
@@ -422,8 +440,8 @@ while 1
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
         
-        RunInfo.Message(numel(RunInfo.Message)+1)="Diagnostic step. Solving for velocities.";
-        CtrlVar.RunInfoMessage=RunInfo.Message(end);
+        RunInfo.Message="Diagnostic step. Solving for velocities.";
+        CtrlVar.RunInfoMessage=RunInfo.Message;
         
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         
@@ -438,8 +456,8 @@ while 1
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
             
-            RunInfo.Message(numel(RunInfo.Message)+1)="Time dependent step. Solving implicitly for velocities and thickness.";
-            CtrlVar.RunInfoMessage=RunInfo.Message(end);
+            RunInfo.Message="Time dependent step. Solving implicitly for velocities and thickness.";
+            CtrlVar.RunInfoMessage=RunInfo.Message;
             
             
             fprintf(...
@@ -572,8 +590,8 @@ while 1
         elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
             
-            RunInfo.Message(numel(RunInfo.Message)+1)="Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
-            CtrlVar.RunInfoMessage=RunInfo.Message(end);
+            RunInfo.Message="Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
+            CtrlVar.RunInfoMessage=RunInfo.Message;
             
             if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+CtrlVar.dt);end
             
@@ -645,8 +663,8 @@ while 1
 end
 
 RunInfo.CPU.Total=duration(0,0,cputime);
-RunInfo.Message(numel(RunInfo.Message)+1)="Calculations done. Creating outputs. ";
-CtrlVar.RunInfoMessage=RunInfo.Message(end);
+RunInfo.Message="Calculations done. Creating outputs. ";
+CtrlVar.RunInfoMessage=RunInfo.Message;
 
 if CtrlVar.PlotWaitBar
     multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);

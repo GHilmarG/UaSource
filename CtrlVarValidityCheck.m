@@ -130,7 +130,7 @@ if CtrlVar.InverseRun
     % only contain some combinations of '-C-','-logC-','-AGlen-','-logAGlen-' and
     % '-B-' 
     %
-    % 
+    % for example : '-A-C-'  -> '-AGlen-C-' 
     
     [CtrlVar.Inverse.InvertFor,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.InvertFor);
     
