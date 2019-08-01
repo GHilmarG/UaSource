@@ -175,7 +175,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 
                 FigureName='Adapt Mesh: before and after'; Position=[100,100,1000,1000] ;
                 fig=FindOrCreateFigure(FigureName,Position);
-                                
+                clf(fig);              
                 subplot(2,1,1)
                 hold off
                 

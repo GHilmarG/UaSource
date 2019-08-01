@@ -7,12 +7,12 @@ nargoutchk(6,6)
 dt=CtrlVar.dt;
 
 RunInfo.Forward.ActiveSetConverged=1;
-RunInfo.Forward.IterationsTotal=0; 
+RunInfo.Forward.IterationsTotal=0;
 
 if ~CtrlVar.ThicknessConstraints
     
     
-    [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1); 
+    [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
     
     CtrlVar.NumberOfActiveThicknessConstraints=0;
     
@@ -44,12 +44,12 @@ else
     ActiveSetReset=0; VariablesReset=0;  % keep this out here, only set once, whereas ReduceTimeStep is reset in each active-set iteration.
     iCounter=1;
     %hfixednodeposNew=[];
-    if CtrlVar.ThicknessConstraintsInfoLevel>=10 
+    if CtrlVar.ThicknessConstraintsInfoLevel>=10
         fprintf(CtrlVar.fidlog,'  Enforcing min thickness of %-g using active-set method \n',CtrlVar.ThickMin);
     end
     
     if min(F1.h) > 1.1*CtrlVar.ThickMin
-        if CtrlVar.ThicknessConstraintsInfoLevel>=10 
+        if CtrlVar.ThicknessConstraintsInfoLevel>=10
             fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F0.h),CtrlVar.ThickMin);
         end
         BCs1.hPosNode=[] ; BCs1.hPosValue=[];
@@ -64,7 +64,7 @@ else
         BCs1.hPosNode=Active ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
         F1.ub(BCs1.hPosNode)=0 ; F1.vb(BCs1.hPosNode)=0; F1.h(BCs1.hPosNode)=CtrlVar.ThickMin; % now set estimates of velocities at hPosNode to zero
         if numel(BCs1.hPosNode)>0
-            if CtrlVar.ThicknessConstraintsInfoLevel>=1 
+            if CtrlVar.ThicknessConstraintsInfoLevel>=1
                 fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h0  \n', numel(BCs1.hPosNode));
             end
         end
@@ -81,19 +81,19 @@ else
         it=it+1;
         isActiveSetModified=0;
         
-        if CtrlVar.ThicknessConstraintsInfoLevel>=1 
+        if CtrlVar.ThicknessConstraintsInfoLevel>=1
             if numel(BCs1.hPosNode)>0 || CtrlVar.ThicknessConstraintsInfoLevel>=10
                 fprintf(CtrlVar.fidlog,' Number of active thickness constraints is %-i \n',numel(BCs1.hPosNode));
             end
         end
         
-         II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
-         F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
+        II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
+        F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
         % However, I concluded (17 Dec, 2018) that it was better not to do this, as this can significantly inctrease the number of NR iterations.
         % Better to do this only if the iteration does not converge.
         % And then again on 17 Jan, 2019, it was found that it's better to keep this, as not doing so was found to have adverse effects on
         % NR convergence rate. The reason for this is a bit unclear. This happened in after remeshing step and that may play a role. Anyhow,
-        % decided to revert back to previous tried-and-tested approach. 
+        % decided to revert back to previous tried-and-tested approach.
         
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;
         
@@ -101,7 +101,7 @@ else
         uvhIt=0; ReduceTimeStep=0;% needed in inner loop
         while uvhIt<=2  % I have a possible inner iteration here because
             
-             uvhIt=uvhIt+1;
+            uvhIt=uvhIt+1;
             % if uvh2D does not converge fully, it is usually best to just update the
             % active set on the partially converged solution
             
@@ -120,7 +120,7 @@ else
             end
             
             
-            [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1); 
+            [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
             nlIt(iCounter)=RunInfo.Forward.Iterations;  iCounter=iCounter+1;
             RunInfo.Forward.Iterations=mean(nlIt,'omitnan');
             
@@ -131,8 +131,22 @@ else
             
             hLambda=l1.h;
             %lambdahpos=hLambda(numel(BCs1.hFixedNode)+1:end);  % if I always put the hPos constraints at end of all other h constraints
-            lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  if I always put the hPos constraints at end of all other h constraints
+            lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
             % then this will work
+            
+            %%  testing: remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
+            % actually most likely only need to do this if numel(hPosNode)>0 
+            MLC=BCs2MLC(MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
+            if ~isfield(MUA,'M')
+                MUA.M=MassMatrix2D1dof(MUA);
+            end
+            lh=MUA.M\Reactions.h ;
+            % lambdahposTest=lh(BCs1.hFixedNode);
+            lambdahposTest=lh(BCs1.hPosNode);
+            lambdahpos=lambdahposTest;
+            %%
+            
+            
             if numel(lambdahpos) ~= numel(BCs1.hPosNode)
                 save TestSave ; error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
             end
@@ -169,9 +183,9 @@ else
                 
                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
-               
+                
                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
-
+                
             elseif ~ReduceTimeStep
                 
                 ReduceTimeStep=1;
@@ -196,7 +210,7 @@ else
             
             
             
-           
+            
         end
         
         
@@ -204,7 +218,7 @@ else
         % keep track of the number of non-lin iteration in each update
         
         
-        if CtrlVar.ThicknessConstraintsInfoLevel>=10 
+        if CtrlVar.ThicknessConstraintsInfoLevel>=10
             [~,I]=sort(lambdahpos);  % print out fixed nodes in the order of increasing lambda values
             fprintf(CtrlVar.fidlog,'            Nodes fixed: ')   ;
             fprintf(CtrlVar.fidlog,' \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \n \t \t \t \t \t \t',BCs1.hPosNode(I));
@@ -241,17 +255,18 @@ else
             % immediately and to introduce a 1% threshold value
             
             lambdahposThreshold=CtrlVar.ThicknessConstraintsLambdaPosThreshold;
-%             
-%             if it>4 && CtrlVar.ThicknessConstraintsLambdaPosThreshold==0
-%                 
-%                 lambdahposThreshold=-mean(lambdahpos(lambdahpos<0))/100;
-%                 if isnan(lambdahposThreshold) ; lambdahposThreshold=0 ; end
-%                 if CtrlVar.ThicknessConstraintsInfoLevel>=1 ;
-%                     fprintf(CtrlVar.fidlog,' Introducing a min threshold of  %-g for  inactivating thickness constraints. \n',lambdahposThreshold);
-%                 end
-%             end
+            %
+            %             if it>4 && CtrlVar.ThicknessConstraintsLambdaPosThreshold==0
+            %
+            %                 lambdahposThreshold=-mean(lambdahpos(lambdahpos<0))/100;
+            %                 if isnan(lambdahposThreshold) ; lambdahposThreshold=0 ; end
+            %                 if CtrlVar.ThicknessConstraintsInfoLevel>=1 ;
+            %                     fprintf(CtrlVar.fidlog,' Introducing a min threshold of  %-g for  inactivating thickness constraints. \n',lambdahposThreshold);
+            %                 end
+            %             end
             
-            
+       
+            %%
             I=lambdahpos>lambdahposThreshold  ;  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be inactivated
             NewInActiveConstraints=find(I);
             iNewInActiveConstraints=numel(NewInActiveConstraints);
@@ -279,7 +294,7 @@ else
         iNewActiveConstraints=numel(NewActive);
         
         if iNewActiveConstraints> CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints
-            if CtrlVar.ThicknessConstraintsInfoLevel>=1 
+            if CtrlVar.ThicknessConstraintsInfoLevel>=1
                 fprintf(CtrlVar.fidlog,' Number of new active thickness constraints %-i larger then max number or newly added constraints %-i \n ',...
                     iNewActiveConstraints,CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
                 fprintf(CtrlVar.fidlog,' Only the smallest %-i thickness values are constrained \n',CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
@@ -291,7 +306,7 @@ else
         end
         
         if iNewActiveConstraints>0
-            if CtrlVar.ThicknessConstraintsInfoLevel>=1 
+            if CtrlVar.ThicknessConstraintsInfoLevel>=1
                 fprintf(CtrlVar.fidlog,' %i new active constraints \n',iNewActiveConstraints);
             end
             isActiveSetModified=1;
@@ -318,7 +333,7 @@ else
             end
         end
         
-        if CtrlVar.ThicknessConstraintsInfoLevel>=1 
+        if CtrlVar.ThicknessConstraintsInfoLevel>=1
             if iNewInActiveConstraints> 0 || iNewActiveConstraints> 0
                 fprintf(CtrlVar.fidlog,' Updating thickness constraints: inactivated: %-i,  activated: %-i, total number of thickness constrains: %-i \n',...
                     iNewInActiveConstraints,iNewActiveConstraints,numel(BCs1.hPosNode));
@@ -372,15 +387,15 @@ else
         % If violated by less than 1e-10, I reset those to CtrlVar.ThickMin
         
         I=find(F1.h<CtrlVar.ThickMin) ;
-        if max(F1.h(I))>(CtrlVar.ThickMin-1e-10) 
+        if max(F1.h(I))>(CtrlVar.ThickMin-1e-10)
             F1.h(I)=CtrlVar.ThickMin;
-            if CtrlVar.ThicknessConstraintsInfoLevel>=10 
+            if CtrlVar.ThicknessConstraintsInfoLevel>=10
                 fprintf('Resetting to limit\n')
             end
         end
     end
     
-    if any(F1.h<CtrlVar.ThickMin) 
+    if any(F1.h<CtrlVar.ThickMin)
         save TestSave ;
         warning('some h1 <ThickMin on return from FIuvh2D. min(h1)=%-g',max(F1.h)) ;
         I=find(F1.h<CtrlVar.ThickMin) ;

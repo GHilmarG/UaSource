@@ -17,7 +17,7 @@ function Reactions=CalculateReactions(MLC,l)
 %   PlotReactions(CtrlVar,MUA,Reactions);
 %
 % Reactions are defined for all the nodes, but for nodes where no BCs have been applied, 
-% they will automatically be equal to zero. However, in the special case where no (non-natural) 
+% they will automatically be equal to zero. However, in the special case where no essential 
 % BCs are applied, reactions are returned as an empty matrix.
 % 
 %

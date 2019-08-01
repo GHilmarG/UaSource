@@ -10,7 +10,7 @@ if isempty(fig)
 else
     fig=figure(fig);
     Position=fig.Position;
-    clf(fig)
+    % clf(fig)
     fig.Position=Position;
     hold off
 end
