@@ -1059,6 +1059,10 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                             % the calculation is not stopped. (In many cases there is no need to wait for
                                             % full convergence of the active-set method for each time step.)
                                             % if set to 0, then the active set is updated once and then proceed to next time step.
+                                            
+CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
+                                            % Limit the number of such cycles and exist loop.
+                                            
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; %
