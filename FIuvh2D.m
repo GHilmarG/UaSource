@@ -148,17 +148,19 @@ else
             
             %%  testing: remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
             % actually most likely only need to do this if numel(hPosNode)>0
-            if numel(BCs1.hPosNode) >0
-                MLC=BCs2MLC(MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
-                if ~isfield(MUA,'M')
-                    MUA.M=MassMatrix2D1dof(MUA);
+            if CtrlVar.RedefineReactions
+                if numel(BCs1.hPosNode) >0
+                    MLC=BCs2MLC(MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
+                    if ~isfield(MUA,'M')
+                        MUA.M=MassMatrix2D1dof(MUA);
+                    end
+                    lh=MUA.M\Reactions.h ;
+                    % lambdahposTest=lh(BCs1.hFixedNode);
+                    lambdahposTest=lh(BCs1.hPosNode);
+                    lambdahpos=lambdahposTest;
+                else
+                    lambdahpos=[];
                 end
-                lh=MUA.M\Reactions.h ;
-                % lambdahposTest=lh(BCs1.hFixedNode);
-                lambdahposTest=lh(BCs1.hPosNode);
-                lambdahpos=lambdahposTest;
-            else
-                lambdahpos=[];
             end
             %%
             
