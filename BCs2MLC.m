@@ -1,10 +1,12 @@
-function MLC=BCs2MLC(MUA,BCs)
+function MLC=BCs2MLC(CtrlVar,MUA,BCs)
+
+narginchk(3,3)
 
 %
 % this only works if MUA has not changed either, if MUA has changed, but BCs
 % have not, this will results in an error!
 % persistent LastMLC LastBCs
-% 
+%
 % if isequal(BCs,LastBCs)
 %     MLC=LastMLC;
 %     return
@@ -22,7 +24,7 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB) ; save TestSave ; error(' nu
 % get rid of duplicate boundary conditions and just ignore extra BCs
 [ubFixedNodet,itemp]=unique(BCs.ubFixedNode) ; BCs.ubFixedValue=BCs.ubFixedValue(itemp);
 [vbFixedNodet,itemp]=unique(BCs.vbFixedNode) ; BCs.vbFixedValue=BCs.vbFixedValue(itemp);
-% 
+%
 % if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicate Dirichlet BCs for u') ; end
 % if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicate Dirichlet BCs for v') ; end
 
@@ -39,11 +41,44 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 [hL,hRhs]=createLh(MUA.Nnodes,[BCs.hFixedNode;BCs.hPosNode],[BCs.hFixedValue;BCs.hPosValue],BCs.hTiedNodeA,BCs.hTiedNodeB);
 
 
+if CtrlVar.lFEbasis
+    
+    if ~isfield(MUA,'M')
+        MUA.M=MassMatrix2D1dof(MUA);
+    end
+    % L -> M L
+    if numel(ubvbL)>0
+        ubvbL=ubvbL*[MUA.M ; MUA.M] ;
+    end
+    
+    if numel(udvdL)>0
+        udvdL=udvdL*[MUA.M ; MUA.M] ;
+    end
+    
+    if numel(hL)>0
+        hL=hL*MUA.M  ;
+    end
+    
+    if numel(ubvbRhs)>0
+        ubvbRhs=MUA.M*ubvbRhs ;
+    end
+    
+    if numel(udvdRhs)>0
+        udvdRhs=MUA.M*udvdRhs ;
+    end
+    
+    if numel(hRhs)>0
+        hRhs=MUA.M*hRhs ;
+    end
+    
+end
+
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
-MLC.hL=hL; MLC.hRhs=hRhs; 
+MLC.hL=hL; MLC.hRhs=hRhs;
 
 %LastBCs=BCs ; LastMLC=MLC;
+
 
 
 end

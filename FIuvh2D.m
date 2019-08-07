@@ -150,7 +150,7 @@ else
             % actually most likely only need to do this if numel(hPosNode)>0
             if CtrlVar.RedefineReactions
                 if numel(BCs1.hPosNode) >0
-                    MLC=BCs2MLC(MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
+                    MLC=BCs2MLC(CtrlVar,MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
                     if ~isfield(MUA,'M')
                         MUA.M=MassMatrix2D1dof(MUA);
                     end

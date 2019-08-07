@@ -56,8 +56,8 @@ CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryCon
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
                                                    % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
                                                    % the boundary conditions are updated through a call to DefineBoundaryConditions.m
-CtrlVar.BCsWeights=1;  % testing parameter, do not change
-
+CtrlVar.BCsWeights=1;     % test parameter, do not change
+CtrlVar.lFEbasis=false ;  % test parameter, do not change
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
@@ -188,7 +188,7 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 
 
 %% Numerical variables related to transient runs
-% In general there should be no need to ever change these values except for testing purposes
+% In general there should be no need to ever change these values except for test purposes
 %
 % Transient runs can be done either (fully) implicitly, or semi-implicitly
 % In a (fully) implicit approach, the time-integration is done implicitly with respect to both velocities and thickness.

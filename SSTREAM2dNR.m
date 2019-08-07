@@ -7,7 +7,7 @@ narginchk(7,7)
 tStart=tic;
 RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
 
-MLC=BCs2MLC(MUA,BCs);
+MLC=BCs2MLC(CtrlVar,MUA,BCs);
 L=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 

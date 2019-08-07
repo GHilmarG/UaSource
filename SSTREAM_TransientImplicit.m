@@ -105,7 +105,7 @@ end
 
 
 %% assemble global Lagrange constraint matrix
-MLC=BCs2MLC(MUA,BCs1);
+MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 Luv=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 Lh=MLC.hL;
