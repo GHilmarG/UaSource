@@ -43,32 +43,37 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 if CtrlVar.lFEbasis
     
-    if ~isfield(MUA,'M')
-        MUA.M=MassMatrix2D1dof(MUA);
-    end
+    %
+    % L M L' L
+    %
+    % L -> L M L' L 
+    % c -> L M L' c
+
+    
+    Mblock=MassMatrixBlockDiagonal2D(MUA);
     % L -> M L
     if numel(ubvbL)>0
-        ubvbL=ubvbL*[MUA.M ; MUA.M] ;
+        ubvbL=(ubvbL*Mblock*ubvbL')*ubvbL ; 
     end
     
     if numel(udvdL)>0
-        udvdL=udvdL*[MUA.M ; MUA.M] ;
+        udvdL=(udvdL*Mblock*udvdL')*udvdL ; 
     end
     
     if numel(hL)>0
-        hL=hL*MUA.M  ;
+        hL=(hL*MUA.M*hL')*hL  ;
     end
     
     if numel(ubvbRhs)>0
-        ubvbRhs=MUA.M*ubvbRhs ;
+        ubvbRhs=(ubvbL*Mblock*ubvbL')*ubvbRhs ;
     end
     
     if numel(udvdRhs)>0
-        udvdRhs=MUA.M*udvdRhs ;
+        udvdRhs=(udvdL*Mblock*udvdL')*udvdRhs ;
     end
     
     if numel(hRhs)>0
-        hRhs=MUA.M*hRhs ;
+        hRhs=(hL*MUA.M*hL')*hRhs ;
     end
     
 end

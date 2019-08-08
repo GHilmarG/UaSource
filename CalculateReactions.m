@@ -1,5 +1,9 @@
 function Reactions=CalculateReactions(MLC,l)
 
+%%
+%
+%   Reactions=CalculateReactions(MLC,l)
+% 
 % calculates nodal reactions
 % Reactions=CalculateReactions(MLC,l)
 % 
@@ -13,7 +17,7 @@ function Reactions=CalculateReactions(MLC,l)
 %   Example: 
 %   To calculate and plot reactions from within UaOutputs
 %   MLC=BCs2MLC(MUA,BCs) ; 
-%   Reactions=CalculateReactions(MLC,l)
+%   Reactions=CalculateReactions(CtrlVar,MLC,l)
 %   PlotReactions(CtrlVar,MUA,Reactions);
 %
 % Reactions are defined for all the nodes, but for nodes where no BCs have been applied, 
