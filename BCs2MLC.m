@@ -41,43 +41,6 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 [hL,hRhs]=createLh(MUA.Nnodes,[BCs.hFixedNode;BCs.hPosNode],[BCs.hFixedValue;BCs.hPosValue],BCs.hTiedNodeA,BCs.hTiedNodeB);
 
 
-if CtrlVar.lFEbasis
-    
-    %
-    % L M L' L
-    %
-    % L -> L M L' L 
-    % c -> L M L' c
-
-    
-    Mblock=MassMatrixBlockDiagonal2D(MUA);
-    % L -> M L
-    if numel(ubvbL)>0
-        ubvbL=(ubvbL*Mblock*ubvbL')*ubvbL ; 
-    end
-    
-    if numel(udvdL)>0
-        udvdL=(udvdL*Mblock*udvdL')*udvdL ; 
-    end
-    
-    if numel(hL)>0
-        hL=(hL*MUA.M*hL')*hL  ;
-    end
-    
-    if numel(ubvbRhs)>0
-        ubvbRhs=(ubvbL*Mblock*ubvbL')*ubvbRhs ;
-    end
-    
-    if numel(udvdRhs)>0
-        udvdRhs=(udvdL*Mblock*udvdL')*udvdRhs ;
-    end
-    
-    if numel(hRhs)>0
-        hRhs=(hL*MUA.M*hL')*hRhs ;
-    end
-    
-end
-
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
 MLC.hL=hL; MLC.hRhs=hRhs;

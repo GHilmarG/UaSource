@@ -57,7 +57,7 @@ CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryCon
                                                    % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
                                                    % the boundary conditions are updated through a call to DefineBoundaryConditions.m
 CtrlVar.BCsWeights=1;     % test parameter, do not change
-CtrlVar.lFEbasis=false ;  % test parameter, do not change
+CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
