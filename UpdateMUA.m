@@ -103,9 +103,15 @@ if MeshHasChanged
     end
     
     
-    if CtrlVar.MUA.MassMatrix
+    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
         MUA.M=MassMatrix2D1dof(MUA);
     end
+    
+    if CtrlVar.MUA.DecomposeMassMatrix
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+    end
+    
+    
     
     if CtrlVar.MUA.StiffnessMatrix
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
@@ -154,9 +160,15 @@ if CtrlVar.CalcMUA_Derivatives
 end
 
 
-if  CtrlVar.MUA.MassMatrix && ~isfield(MUA,'M')
+if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) && ~isfield(MUA,'M')
     MUA.M=MassMatrix2D1dof(MUA);
 end
+
+
+if CtrlVar.MUA.DecomposeMassMatrix  && ~isfield(MUA,'dM')
+    MUA.dM=decomposition(MUA.M,'chol','upper') ;
+end
+
 
 if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);

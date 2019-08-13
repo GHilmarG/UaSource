@@ -1,5 +1,6 @@
 function Reactions=CalculateReactions(CtrlVar,MUA,BCs,l)
 
+% save TestSaveCalculateReactions
 narginchk(4,4)
 
 %%
@@ -34,8 +35,10 @@ if ~CtrlVar.LinFEbasis
     if ~isfield(MUA,'M')
         MUA.M=MassMatrix2D1dof(MUA);
     end
-    
-    Mblock=MassMatrixBlockDiagonal2D(MUA);
+     if ~isfield(MUA,'dM')
+        MUA.dM=decomposition(MUA.M);
+    end
+   
 end
 
 if ~isempty(l.ubvb)
@@ -43,7 +46,7 @@ if ~isempty(l.ubvb)
         Reactions.ubvb=MLC.ubvbL'*l.ubvb;
     else
         luv=MLC.ubvbL'*l.ubvb;
-        Reactions.ubvb=MUA.M\(luv(1:MUA.Nnodes)+luv(MUA.Nnodes+1:end)); 
+        Reactions.ubvb=MUA.dM\(luv(1:MUA.Nnodes)+luv(MUA.Nnodes+1:end)); 
     end
 else
     Reactions.ubvb=[];
@@ -53,7 +56,8 @@ if ~isempty(l.udvd)
     if CtrlVar.LinFEbasis
         Reactions.udvd=MLC.udvdL'*l.udvd;
     else
-        Reactions.udvd=Mblock\MLC.udvdL'*l.udvd;
+        luv=MLC.udvdL'*l.udvd;
+        Reactions.udvd=MUA.dM\(luv(1:MUA.Nnodes)+luv(MUA.Nnodes+1:end)); 
     end
 else
     Reactions.udvd=[];
@@ -63,7 +67,7 @@ if ~isempty(l.h)
     if CtrlVar.LinFEbasis
         Reactions.h=MLC.hL'*l.h;
     else
-        Reactions.h=MUA.M\MLC.hL'*l.h;
+        Reactions.h=MUA.dM\(MLC.hL'*l.h);
     end
 else
     Reactions.h=[];

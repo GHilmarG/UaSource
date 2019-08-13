@@ -106,8 +106,29 @@ switch CtrlVar.AsymmSolver
 %  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
 %  [B   0 ] [y]  [g]      
 %
-% -> A x + B' y = f -> y = B'\(f-A x)
-%   B'*B=1 then
+%  Assume: A is n x n
+%          B is p x n  with p<=n, and of rank p
+%
+% Then B*B' is p x p and full rank, and therfore inv(B'*B) does exist.
+% Furthermore consider the special, but in this context not uncommon, case
+% where B*B'=eye(p,p)
+%
+%  (1) A x + B' y = f
+%  (2)        B x = g
+%   where B'*B=1 then
+%
+%   (1) -> B' y   = (f-A x)
+%       -> B B' y = B (f-A x)
+%       ->      y = B (f-A x)
+%    (2)    A x + B' y = f
+%       ->  A x = f - B' y
+%       ->  A x = f - B' B (f-A x)                  correct
+%       ->  A x - B' B A x = f - B' B f
+%       ->  (eye(n,n) - B' B ) A x = ( eye(n,n) - B' B  ) f
+%           Q=(eye(n,n) - B' B )  kills off the first p equations
+% add B x =g as B'*B = B'*g
+%       -> Q*A*x + B'*B*x = Q *f + B'*g
+%       -> x= (Q*A+ B'*B) \ (Q *f + B'*g)
 %   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
 %
 

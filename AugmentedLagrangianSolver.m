@@ -32,7 +32,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 %                         y_{i+1}=g y_i + iW B x_{i+1}
 %  where iW is `small' but not too small.
 % 
-%  I find that the following modifed version of the Uzawa methods converges very quickly:
+%  I find that the following modified version of the Uzawa methods converges very quickly:
 %
 %  Define T= [A B']
 %            [B iW]
@@ -81,7 +81,7 @@ elseif luvector
     
     if isdistributed(T)
         T=full(T);                 % can only be done for full martices 
-        [L,U,p] = lu(T,'vector');  % aparantly this can be used in a parallel mode, but used in non-parallel this is very slow!
+        [L,U,p] = lu(T,'vector');  % apparently this can be used in a parallel mode, but used in non-parallel this is very slow!
         % sol=U\(L(p,:)\fg) ;
     else
         [L,U,p,q,R] = lu(T,'vector');  % this can not be used in a parallel mode
