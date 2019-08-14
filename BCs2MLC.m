@@ -47,6 +47,11 @@ MLC.hL=hL; MLC.hRhs=hRhs;
 
 %LastBCs=BCs ; LastMLC=MLC;
 
+%% scale L
+
+[MLC.ubvbL,MLC.ubvbRhs,isLLubvb]=ScaleL(CtrlVar,MLC.ubvbL,MLC.ubvbRhs) ; 
+[MLC.udvdL,MLC.udvdRhs,isLLudvd]=ScaleL(CtrlVar,MLC.udvdL,MLC.udvdRhs) ; 
+[MLC.hL,MLC.hRhs,isLLh]=ScaleL(CtrlVar,MLC.hL,MLC.hRhs) ; 
 
 
 end

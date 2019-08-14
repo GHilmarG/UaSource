@@ -10,7 +10,7 @@ narginchk(7,7)
 % where A is n times n, C is m times m , B is m times n.
 % A does not have to be symmetrical
 
-[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; 
+[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;
 [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 
 if nA~=mA
@@ -45,7 +45,7 @@ end
 
 n=size(A,1) ; m=size(B,1);
 
-% 
+%
 % if isempty(B) || numel(B)==0
 %     CtrlVar.AsymmSolver='Bempty';
 % elseif all(full(sum(B~=0,2))==1)
@@ -57,19 +57,19 @@ if isequal(lower(CtrlVar.AsymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
         CtrlVar.AsymmSolver='Bempty';
-%    elseif all(full(sum(B~=0,2))==1)
-%        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-%        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+        %    elseif all(full(sum(B~=0,2))==1)
+        %        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+        %        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
     else
         CtrlVar.AsymmSolver='AugmentedLagrangian';
-        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g; 
+        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g;
     end
     
 end
 
 
 
-tSolve=tic; 
+tSolve=tic;
 
 switch CtrlVar.AsymmSolver
     case 'Bempty'
@@ -88,10 +88,18 @@ switch CtrlVar.AsymmSolver
         
         if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
         
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); 
+        %%
+        
+        Q=speye(nA,nA)-B'*B;
+        Atilde=Q*A+B'*B;
+        xTest=Atilde\(Q*f+B'*g) ;
+        yTest=B*(f-A*x);
+        %%
+        
+        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1));
         iConstrainedDOF=iConstrainedDOF(:);
         
-        iFreeDOF=setdiff(1:n,iConstrainedDOF); 
+        iFreeDOF=setdiff(1:n,iConstrainedDOF);
         iFreeDOF=iFreeDOF(:);
         
         
@@ -101,37 +109,37 @@ switch CtrlVar.AsymmSolver
         
         x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
         y=B'\(f-A*x);
-
-%
-%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
-%  [B   0 ] [y]  [g]      
-%
-%  Assume: A is n x n
-%          B is p x n  with p<=n, and of rank p
-%
-% Then B*B' is p x p and full rank, and therfore inv(B'*B) does exist.
-% Furthermore consider the special, but in this context not uncommon, case
-% where B*B'=eye(p,p)
-%
-%  (1) A x + B' y = f
-%  (2)        B x = g
-%   where B'*B=1 then
-%
-%   (1) -> B' y   = (f-A x)
-%       -> B B' y = B (f-A x)
-%       ->      y = B (f-A x)
-%    (2)    A x + B' y = f
-%       ->  A x = f - B' y
-%       ->  A x = f - B' B (f-A x)                  correct
-%       ->  A x - B' B A x = f - B' B f
-%       ->  (eye(n,n) - B' B ) A x = ( eye(n,n) - B' B  ) f
-%           Q=(eye(n,n) - B' B )  kills off the first p equations
-% add B x =g as B'*B = B'*g
-%       -> Q*A*x + B'*B*x = Q *f + B'*g
-%       -> x= (Q*A+ B'*B) \ (Q *f + B'*g)
-%   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
-%
-
+        
+        %
+        %  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
+        %  [B   0 ] [y]  [g]
+        %
+        %  Assume: A is n x n
+        %          B is p x n  with p<=n, and of rank p
+        %
+        % Then B*B' is p x p and full rank, and therfore inv(B'*B) does exist.
+        % Furthermore consider the special, but in this context not uncommon, case
+        % where B*B'=eye(p,p)
+        %
+        %  (1) A x + B' y = f
+        %  (2)        B x = g
+        %   where B'*B=1 then
+        %
+        %   (1) -> B' y   = (f-A x)
+        %       -> B B' y = B (f-A x)
+        %       ->      y = B (f-A x)
+        %    (2)    A x + B' y = f
+        %       ->  A x = f - B' y
+        %       ->  A x = f - B' B (f-A x)                  correct
+        %       ->  A x - B' B A x = f - B' B f
+        %       ->  (eye(n,n) - B' B ) A x = ( eye(n,n) - B' B  ) f
+        %           Q=(eye(n,n) - B' B )  kills off the first p equations
+        % add B x =g as B'*B = B'*g
+        %       -> Q*A*x + B'*B*x = Q *f + B'*g
+        %       -> x= (Q*A+ B'*B) \ (Q *f + B'*g)
+        %   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
+        %
+        
     case 'AugmentedLagrangian'
         
         
@@ -200,9 +208,9 @@ tSolve=toc(tSolve);
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
         n+m,n,m,tSolve,CtrlVar.AsymmSolver)
-    if CtrlVar.InfoLevelCPU 
+    if CtrlVar.InfoLevelCPU
         fprintf(CtrlVar.fidlog,' in %-g sec. \n',tSolve) ;
-    end 
+    end
 end
 
 %% Testing
