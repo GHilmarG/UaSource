@@ -105,18 +105,22 @@ end
 
 
 %% assemble global Lagrange constraint matrix
-MLC=BCs2MLC(MUA,BCs1);
-Luv=MLC.ubvbL;
-cuv=MLC.ubvbRhs;
-Lh=MLC.hL;
-ch=MLC.hRhs;
+MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 
-if numel(l1.ubvb)~=numel(cuv) ; l1.ubvb=zeros(numel(cuv),1) ; end
-if numel(l1.h)~=numel(ch) ; l1.h=zeros(numel(ch),1) ; end
+% Luv=MLC.ubvbL;
+% cuv=MLC.ubvbRhs;
+% Lh=MLC.hL;
+% ch=MLC.hRhs;
+
+if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
+if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
 nlubvb=numel(l1.ubvb) ; 
 
 
-[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+%[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+[L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+
+
 dl=luvh*0;
 
 
@@ -355,14 +359,14 @@ while true
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
     CtrlVar.ResetThicknessToMinThickness=temp;
     
-    if~isempty(Lh)
-        BCsNormh=norm(ch-Lh*F1.h);
+    if~isempty(MLC.hL)
+        BCsNormh=norm(MLC.hRhs-MLC.hL*F1.h);
     else
         BCsNormh=0;
     end
     
-    if~isempty(Luv)
-        BCsNormuv=norm(cuv-Luv*[F1.ub;F1.vb]);
+    if ~isempty(MLC.ubvbL)
+        BCsNormuv=norm(MLC.ubvbRhs-MLC.ubvbL*[F1.ub;F1.vb]);
     else
         BCsNormuv=0;
     end

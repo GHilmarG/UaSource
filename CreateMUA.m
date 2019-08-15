@@ -58,8 +58,12 @@ else
     MUA.TR=[];
 end
 
-if CtrlVar.MUA.MassMatrix
+if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
     MUA.M=MassMatrix2D1dof(MUA);
+end
+
+if CtrlVar.MUA.DecomposeMassMatrix
+    MUA.dM=decomposition(MUA.M,'chol','upper') ;  
 end
 
 

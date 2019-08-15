@@ -1,5 +1,8 @@
 function [UserVar,RunInfo,F1,l1,BCs1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
+% save TestSave
+% load TestSave ; CtrlVar.LinFEbasis=false ; [UserVar,RunInfo,F1,l1,BCs1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
+
 
 narginchk(9,9)
 nargoutchk(6,6)
@@ -146,18 +149,16 @@ else
             lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
             % then this will work
             
-            %%  testing: remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
+            %%  Mapping ino 'physical' nodal basis if required
+            % remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
             % actually most likely only need to do this if numel(hPosNode)>0
-            if CtrlVar.RedefineReactions
+            % If the L matrix was not in the FE basis, I simply calculate the reactions.
+            % The Reactions are calculated correctly irrespectivly of how the  
+            %
+            if ~CtrlVar.LinFEbasis
                 if numel(BCs1.hPosNode) >0
-                    MLC=BCs2MLC(MUA,BCs1) ; Reactions=CalculateReactions(MLC,l1);
-                    if ~isfield(MUA,'M')
-                        MUA.M=MassMatrix2D1dof(MUA);
-                    end
-                    lh=MUA.M\Reactions.h ;
-                    % lambdahposTest=lh(BCs1.hFixedNode);
-                    lambdahposTest=lh(BCs1.hPosNode);
-                    lambdahpos=lambdahposTest;
+                    Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+                    lambdahpos=Reactions.h(BCs1.hPosNode); 
                 else
                     lambdahpos=[];
                 end
