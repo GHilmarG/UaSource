@@ -5,6 +5,9 @@ function  [coordinates,connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeac
 % Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly
 % Elements and nodes are renumbered
 
+error(' do not use, use DeactivateMUAelements instead')
+
+
 if ~any(ElementsToBeDeactivated)
     return
 end
@@ -21,5 +24,10 @@ if CtrlVar.sweep
     [coordinates,connectivity] = NodalSweep(coordinates,connectivity,CtrlVar.SweepAngle);
     [coordinates,connectivity] = ElementSweep(coordinates,connectivity,CtrlVar.SweepAngle);
 end
+
+
+
+
+
 
 end

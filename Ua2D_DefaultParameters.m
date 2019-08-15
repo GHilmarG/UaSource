@@ -43,6 +43,8 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
                                           % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
                                           % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
                                           % not the total accumulated number of forward run steps.
+                                          
+CtrlVar.UseUserDefinedRunStopCriterion=false ;  
                               
 %% Ice flow approximation
 CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
@@ -437,10 +439,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 % are both true.
 %
-%   0  : no information on adaptive meshing printed.
-% >=5  : plots on desired element sizes and elements to be subdivided or
-%        coarsened
-% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%   0   : no information on adaptive meshing printed.
+% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
@@ -1470,6 +1471,7 @@ CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be mo
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for

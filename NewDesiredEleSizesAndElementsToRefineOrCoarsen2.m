@@ -312,7 +312,7 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')
 
 
-if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5
+if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
     
     xyRange=range(MUA.coordinates);
     
@@ -328,16 +328,10 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         
-        fig=findobj(0,'name','Global mesh refinement');
-        
-        if isempty(fig)
-            fig=figure('name','Global mesh refinement');
-            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
-        else
-            figure(fig)
-            hold off
-        end
-        
+        FigureName="Global mesh refinement"; 
+        Position=[1100,100,xFigWidth,yFigWidth] ;
+        fig=FindOrCreateFigure(FigureName,Position) ;
+                
         subplot(1,2,1,'replace')
         hold off
         PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
@@ -353,16 +347,10 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
         
-        fig=findobj(0,'name','Local mesh refinement');
-        
-        if isempty(fig)
-            fig=figure('name','Local mesh refinement');
-            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
-        else
-            fig=figure(fig);
-            hold off
-        end
-        
+        FigureName="Local mesh refinement"; 
+        Position=[1100,100,xFigWidth,yFigWidth] ;
+        fig=FindOrCreateFigure(FigureName,Position) ;
+
         CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
         
         PlotMuaMesh(CtrlVar,MUA,[],'k');

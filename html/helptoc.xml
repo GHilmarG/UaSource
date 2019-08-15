@@ -17,6 +17,7 @@
             <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
             <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
             <tocitem target="DefineElementsToDeactivate.html">Manual deactivation of elements </tocitem>
+            <tocitem target="DefineRunStopCriterion.html">Define run-stop criterion for a forward time-independent and time-dependent runs</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="UaOutputs.html">Output </tocitem>
