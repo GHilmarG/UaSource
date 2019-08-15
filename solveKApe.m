@@ -87,58 +87,22 @@ switch CtrlVar.AsymmSolver
     case 'EliminateBCsSolveSystemDirectly'
         
         if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
-        
-        %%
+% 
+%         Test=sum(sum(B*B'-speye(p,p)));  % this is too slow!
+%         if Test>100*eps
+%             fprintf('EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case!')
+%             fprintf(' sum(sum(B*BT-speye(p,p)))=%g \n',Test)
+%             fprintf(' Change the value of CtrlVar.AsymmSolver\n') 
+%             error('solveKApe:EliminateBCsSolveSystemDirectly','EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case')
+%         end
         
         Q=speye(nA,nA)-B'*B;
         Atilde=Q*A+B'*B;
-        xTest=Atilde\(Q*f+B'*g) ;
-        yTest=B*(f-A*x);
-        %%
-        
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1));
-        iConstrainedDOF=iConstrainedDOF(:);
-        
-        iFreeDOF=setdiff(1:n,iConstrainedDOF);
-        iFreeDOF=iFreeDOF(:);
-        
-        
-        AA=A; ff=f;
-        AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
-        sol=AA\ff;
-        
-        x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
-        y=B'\(f-A*x);
-        
-        %
-        %  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
-        %  [B   0 ] [y]  [g]
-        %
-        %  Assume: A is n x n
-        %          B is p x n  with p<=n, and of rank p
-        %
-        % Then B*B' is p x p and full rank, and therfore inv(B'*B) does exist.
-        % Furthermore consider the special, but in this context not uncommon, case
-        % where B*B'=eye(p,p)
-        %
-        %  (1) A x + B' y = f
-        %  (2)        B x = g
-        %   where B'*B=1 then
-        %
-        %   (1) -> B' y   = (f-A x)
-        %       -> B B' y = B (f-A x)
-        %       ->      y = B (f-A x)
-        %    (2)    A x + B' y = f
-        %       ->  A x = f - B' y
-        %       ->  A x = f - B' B (f-A x)                  correct
-        %       ->  A x - B' B A x = f - B' B f
-        %       ->  (eye(n,n) - B' B ) A x = ( eye(n,n) - B' B  ) f
-        %           Q=(eye(n,n) - B' B )  kills off the first p equations
-        % add B x =g as B'*B = B'*g
-        %       -> Q*A*x + B'*B*x = Q *f + B'*g
-        %       -> x= (Q*A+ B'*B) \ (Q *f + B'*g)
-        %   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
-        %
+        btilde=(Q*f+B'*g) ;
+        dAtilde=factorize(Atilde);
+        x=dAtilde\btilde;
+        y=B*(f-A*x);
+                
         
     case 'AugmentedLagrangian'
         

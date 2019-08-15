@@ -46,7 +46,9 @@ if ~isempty(l.ubvb)
         Reactions.ubvb=MLC.ubvbL'*l.ubvb;
     else
         luv=MLC.ubvbL'*l.ubvb;
-        Reactions.ubvb=MUA.dM\(luv(1:MUA.Nnodes)+luv(MUA.Nnodes+1:end)); 
+        Rx=MUA.dM\luv(1:MUA.Nnodes);
+        Ry=MUA.dM\luv(MUA.Nnodes+1:end); 
+        Reactions.ubvb=[Rx;Ry];
     end
 else
     Reactions.ubvb=[];
@@ -57,7 +59,9 @@ if ~isempty(l.udvd)
         Reactions.udvd=MLC.udvdL'*l.udvd;
     else
         luv=MLC.udvdL'*l.udvd;
-        Reactions.udvd=MUA.dM\(luv(1:MUA.Nnodes)+luv(MUA.Nnodes+1:end)); 
+        Reactions.udvd(1:MUA.Nnodes)=MUA.dM\luv(1:MUA.Nnodes);
+        Reactions.udvd(MUA.Nnodes+1:end)=MUA.dM\luv(MUA.Nnodes+1:end);
+
     end
 else
     Reactions.udvd=[];
