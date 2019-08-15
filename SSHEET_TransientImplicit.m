@@ -36,7 +36,7 @@ if any(h0<0) ; warning('MATLAB:uvh2DSSHEET',' thickness negative ') ; end
 
 tStart=tic;
 
-MLC=BCs2MLC(MUA,BCs);
+MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Lh=MLC.hL ; ch=MLC.hRhs ;
 
 if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
