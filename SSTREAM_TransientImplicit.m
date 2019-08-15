@@ -105,18 +105,22 @@ end
 
 
 %% assemble global Lagrange constraint matrix
-MLC=BCs2MLC(MUA,BCs1);
-Luv=MLC.ubvbL;
-cuv=MLC.ubvbRhs;
-Lh=MLC.hL;
-ch=MLC.hRhs;
+MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 
-if numel(l1.ubvb)~=numel(cuv) ; l1.ubvb=zeros(numel(cuv),1) ; end
-if numel(l1.h)~=numel(ch) ; l1.h=zeros(numel(ch),1) ; end
+% Luv=MLC.ubvbL;
+% cuv=MLC.ubvbRhs;
+% Lh=MLC.hL;
+% ch=MLC.hRhs;
+
+if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
+if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
 nlubvb=numel(l1.ubvb) ; 
 
 
-[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+%[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+[L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+
+
 dl=luvh*0;
 
 
@@ -315,10 +319,17 @@ while true
     
     
     %% calculate statistics on change in speed, thickness and Lagrange parameters
-    D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
-    diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-    diffDh=full(max(abs(dh))/mean(abs(F1.h)));            % max change in thickness divided by mean thickness
-    diffDlambda=max(abs(dl))/mean(abs(luvh));
+    % D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
+    % diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
+    
+    diffDu=norm([dub;dvb])/(norm([F1.ub;F1.vb])+CtrlVar.SpeedZero) ; 
+    
+    % diffDh=full(max(abs(dh))/mean(abs(F1.h)));  % max change in thickness divided by mean thickness
+    diffDh=norm(dh)/sqrt(MUA.Nnodes); 
+    
+    % diffDlambda=max(abs(dl))/mean(abs(luvh));
+    diffDlambda=norm(dl)/(norm(luvh)+eps);
+    
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
     
@@ -348,14 +359,14 @@ while true
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
     CtrlVar.ResetThicknessToMinThickness=temp;
     
-    if~isempty(Lh)
-        BCsNormh=norm(ch-Lh*F1.h);
+    if~isempty(MLC.hL)
+        BCsNormh=norm(MLC.hRhs-MLC.hL*F1.h);
     else
         BCsNormh=0;
     end
     
-    if~isempty(Luv)
-        BCsNormuv=norm(cuv-Luv*[F1.ub;F1.vb]);
+    if ~isempty(MLC.ubvbL)
+        BCsNormuv=norm(MLC.ubvbRhs-MLC.ubvbL*[F1.ub;F1.vb]);
     else
         BCsNormuv=0;
     end

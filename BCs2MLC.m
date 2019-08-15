@@ -1,10 +1,12 @@
-function MLC=BCs2MLC(MUA,BCs)
+function MLC=BCs2MLC(CtrlVar,MUA,BCs)
+
+narginchk(3,3)
 
 %
 % this only works if MUA has not changed either, if MUA has changed, but BCs
 % have not, this will results in an error!
 % persistent LastMLC LastBCs
-% 
+%
 % if isequal(BCs,LastBCs)
 %     MLC=LastMLC;
 %     return
@@ -22,7 +24,7 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB) ; save TestSave ; error(' nu
 % get rid of duplicate boundary conditions and just ignore extra BCs
 [ubFixedNodet,itemp]=unique(BCs.ubFixedNode) ; BCs.ubFixedValue=BCs.ubFixedValue(itemp);
 [vbFixedNodet,itemp]=unique(BCs.vbFixedNode) ; BCs.vbFixedValue=BCs.vbFixedValue(itemp);
-% 
+%
 % if numel(ubFixedNodet) ~= numel(BCs.ubFixedNode)  ; disp(' Duplicate Dirichlet BCs for u') ; end
 % if numel(vbFixedNodet) ~= numel(BCs.vbFixedNode)  ; disp(' Duplicate Dirichlet BCs for v') ; end
 
@@ -41,9 +43,15 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
-MLC.hL=hL; MLC.hRhs=hRhs; 
+MLC.hL=hL; MLC.hRhs=hRhs;
 
 %LastBCs=BCs ; LastMLC=MLC;
+
+%% scale L
+
+[MLC.ubvbL,MLC.ubvbRhs,isLLubvb]=ScaleL(CtrlVar,MLC.ubvbL,MLC.ubvbRhs) ; 
+[MLC.udvdL,MLC.udvdRhs,isLLudvd]=ScaleL(CtrlVar,MLC.udvdL,MLC.udvdRhs) ; 
+[MLC.hL,MLC.hRhs,isLLh]=ScaleL(CtrlVar,MLC.hL,MLC.hRhs) ; 
 
 
 end

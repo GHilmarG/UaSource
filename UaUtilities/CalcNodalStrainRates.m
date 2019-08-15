@@ -5,7 +5,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 %  
 % Calculates horizontal strain rates given horizontal velocities. 
 %
-%   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,u,v)
+%    [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
 %
 % Returns nodal values.
 %
@@ -23,7 +23,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 %
 %   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
 %   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
-%   [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [exx,eyy,exy]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
 %   [X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
 %   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
 %   figure

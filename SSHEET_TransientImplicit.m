@@ -49,15 +49,25 @@ r=1e10; diffVector=zeros(CtrlVar.NRitmax,1) ; diffDh=1e10; diffDlambda=1e10;
 
 while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) &&  iteration <= CtrlVar.NRitmax && ~Stagnated)  || iteration < CtrlVar.NRitmin
     
+    
+    if (r> CtrlVar.NLtol) &&  (diffDh <  1e-6)
+        fprintf(' (r> CtrlVar.NLtol) &&  (diffDh <  1e-6) ') 
+    end
+    
     iteration=iteration+1;
     
     %fprintf('It:%-i numel(dlambdah)=%-i \t numel(lambdah)=%-i \n ',iteration,numel(dlambdah),numel(lambdah))
     
-    [R,K,F]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt);
+    [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt);
     
-    if iteration==1 ; F0=F ; end  % F0 is used as a normalisation factor when calculating the residual,
-    % do not change this normalisation factor in the course of the iteration
-    
+    if iteration==1
+        F0=F ;  % There is a potential issue here which is that F0 is zero if the accumulation
+                % and grad q is everywhere zero. However, if this happens dh/dt will also automatically be
+                % zero. 
+                % F0 is used as a normalisation factor when calculating the residual,
+                % do not change this normalisation factor in the course of the iteration
+    end
+
     gamma=0;
     
     if ~isempty(Lh)
@@ -145,9 +155,27 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
     end
     
     
-    %% calculate statistics on change in speed, thickness and Lagrange parameters
+   
     
-    diffDh=gamma*full(max(abs(dh))/max(abs(h0)));            % max change in thickness divided by mean thickness
+    %% update variables
+    h=h+gamma*dh ; lambdah=lambdah+gamma*dlambdah;
+    
+    temp=CtrlVar.ResetThicknessToMinThickness;
+    if ~CtrlVar.ResetThicknessInNonLinLoop
+        CtrlVar.ResetThicknessToMinThickness=0;
+    end
+    [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
+    CtrlVar.ResetThicknessToMinThickness=temp;
+    %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
+    
+    
+     %% calculate statistics on change in speed, thickness and Lagrange parameters
+    
+    isThickPos=h>=CtrlVar.ThickMin; 
+    diffDh=norm(dh(isThickPos))/norm(h(isThickPos))  ;       % norm in change of the solution during this iteration, where thick positive.
+    
+    % diffDh=gamma*full(max(abs(dh))/max(abs(h0)));            % max change in thickness divided by mean thickness
+    
     diffDlambda=gamma*full(max(abs(dlambdah))/max(abs(lambdah)));
     if~isempty(Lh)
         BCsNorm=norm(ch-Lh*h);
@@ -162,17 +190,8 @@ while ((r> CtrlVar.NLtol || diffDh> CtrlVar.dh  || diffDlambda > CtrlVar.dl) && 
         diffDlambda=0;
     end
     
-    %% update variables
-    h=h+gamma*dh ; lambdah=lambdah+gamma*dlambdah;
     
-    temp=CtrlVar.ResetThicknessToMinThickness;
-    if ~CtrlVar.ResetThicknessInNonLinLoop
-        CtrlVar.ResetThicknessToMinThickness=0;
-    end
-    [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
-    CtrlVar.ResetThicknessToMinThickness=temp;
-    %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
-    
+    %% plot and print info
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
         PlotForceResidualVectors('h-only',R,Lh,lambdah,MUA.coordinates,CtrlVar) ; axis equal tight
     end

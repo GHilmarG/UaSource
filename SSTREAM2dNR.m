@@ -7,9 +7,11 @@ narginchk(7,7)
 tStart=tic;
 RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
 
-MLC=BCs2MLC(MUA,BCs);
-L=MLC.ubvbL;
-cuv=MLC.ubvbRhs;
+% MLC=BCs2MLC(CtrlVar,MUA,BCs);
+% L=MLC.ubvbL;
+% cuv=MLC.ubvbRhs;
+
+[L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
 
 if isempty(cuv)
@@ -227,7 +229,8 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     
     
     
-    Du=gamma*dub ; Dv=gamma*dvb; diffDu=norm([Du;Dv])/norm([F.ub;F.vb]) ;                           % relative norm of changes in velocities
+    Du=gamma*dub ; Dv=gamma*dvb; 
+    diffDu=norm([Du;Dv])/(norm([F.ub;F.vb])+eps); % relative norm of changes in velocities 
     %D=mean(sqrt(F.ub.*F.ub+F.vb.*F.vb)); ; diffDu=full(max(abs(gamma*dub))+max(abs(gamma*dvb)))/D; % sum of max change in du and dv normalized by mean speed
     diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
     

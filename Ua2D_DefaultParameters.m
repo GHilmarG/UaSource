@@ -43,6 +43,8 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
                                           % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
                                           % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
                                           % not the total accumulated number of forward run steps.
+                                          
+CtrlVar.UseUserDefinedRunStopCriterion=false ;  
                               
 %% Ice flow approximation
 CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
@@ -54,8 +56,8 @@ CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryCon
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
                                                    % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
                                                    % the boundary conditions are updated through a call to DefineBoundaryConditions.m
-CtrlVar.BCsWeights=1;  % testing parameter, do not change
-
+CtrlVar.BCsWeights=1;     % test parameter, do not change
+CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
@@ -186,7 +188,7 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 
 
 %% Numerical variables related to transient runs
-% In general there should be no need to ever change these values except for testing purposes
+% In general there should be no need to ever change these values except for test purposes
 %
 % Transient runs can be done either (fully) implicitly, or semi-implicitly
 % In a (fully) implicit approach, the time-integration is done implicitly with respect to both velocities and thickness.
@@ -437,10 +439,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 % are both true.
 %
-%   0  : no information on adaptive meshing printed.
-% >=5  : plots on desired element sizes and elements to be subdivided or
-%        coarsened
-% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%   0   : no information on adaptive meshing printed.
+% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
@@ -1021,8 +1022,9 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % MeshBoundaryCoordinatates).
 
 %% Options related to the Ua mesh structure variable MUA
-CtrlVar.MUA.MassMatrix=false;       % true if the mass matrix is to be computed and stored as a part of MUA
-CtrlVar.MUA.StiffnessMatrix=false;  % true if the stiffness matrices is to be computed and stored as a part of MUA
+CtrlVar.MUA.MassMatrix=false ;       % true if the mass matrix is to be computed and stored as a part of MUA
+CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
+CtrlVar.MUA.DecomposeMassMatrix=false ;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1058,6 +1060,10 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                             % the calculation is not stopped. (In many cases there is no need to wait for
                                             % full convergence of the active-set method for each time step.)
                                             % if set to 0, then the active set is updated once and then proceed to next time step.
+                                            
+CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
+                                            % Limit the number of such cycles and exist loop.
+                                            
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; %
@@ -1470,6 +1476,7 @@ CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be mo
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
