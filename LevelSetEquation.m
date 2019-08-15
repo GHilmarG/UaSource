@@ -1,4 +1,4 @@
-function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
+function [UserVar,c1,lambda]=LevelSetEquation(UserVar,CtrlVar,MUA,F,phi0,SF)
 
 %%
 % Solves the tracer conservation equation for the tracer c on the form:
@@ -13,6 +13,13 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 %
 
 
+%   < f | N + M >  
+
+dx=phi0*Dxx*phiy
+dy=;phi0*Dyy*phiy
+Normphie=vecnorm([dx(:) dy(:)],2,2)
+
+
 MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
 L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
 
@@ -23,7 +30,4 @@ c1=full(c1);
 
 
 end
-
-
-
 

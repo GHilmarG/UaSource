@@ -14,6 +14,8 @@ if isempty(Rbcs) ; Rbcs=0 ; end
 rfields=Rfields'*Rfields;
 rbcs=Rbcs'*Rbcs;
 
+Fext0=Fext0+eps;
+
 %r=full(real((rfields+rbcs)/(Fext0'*Fext0)));
 r=full(real(rfields/(Fext0'*Fext0)));  % August 2017. Decided to include only the uvh fields in the residual. 
                                        % After all the BCs are linear and are always fullfilled exactly.

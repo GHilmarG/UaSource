@@ -7,7 +7,7 @@ function [h1,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da
 
 
 
-MLC=BCs2MLC(MUA,BCs);
+MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Lh=MLC.hL ; Lhrhs=MLC.hRhs ;
 
 if numel(l.h)==numel(Lhrhs)

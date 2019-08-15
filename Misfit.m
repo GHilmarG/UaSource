@@ -254,7 +254,7 @@ if CtrlVar.Inverse.CalcGradI
             
             
             
-            MLC_Adjoint=BCs2MLC(MUA,BCsAdjoint);
+            MLC_Adjoint=BCs2MLC(CtrlVar,MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;

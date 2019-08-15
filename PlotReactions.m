@@ -1,5 +1,6 @@
 function FigureObject=PlotReactions(CtrlVar,MUA,Reactions,FigureObject)
 
+
 persistent FigReactions
 
 if nargin==4
@@ -32,6 +33,7 @@ if numel(Reactions.ubvb)>0
     end
     PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ; 
     QuiverColorGHG(x,y,Reactions.ubvb(1:MUA.Nnodes),Reactions.ubvb(MUA.Nnodes+1:end),CtrlVar);
+    title('uv Reactions') ; 
 end
 
 if numel(Reactions.h)>0
@@ -47,10 +49,11 @@ if numel(Reactions.h)>0
     
     I=Reactions.h>0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,Reactions.h(I),'b','d','filled')
     I=Reactions.h<0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,-Reactions.h(I),'r','c','filled')
-
+    title('h Reactions') ; 
 end
 
-title('Reactions') ; xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel); 
+
+xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel); 
 
 FigureObject=FigReactions;
 
