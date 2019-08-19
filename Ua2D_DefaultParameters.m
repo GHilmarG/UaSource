@@ -625,6 +625,18 @@ CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change.
 %
 % Default is Tikhonov regularization on log(A) and log(C)
 %
+
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" 
+%
+% If using Bayesian inverse methodology the covariance matrix of the priors MUST
+% be defined, and it can be dense (although computationally doing so might slow
+% the run considerably.)
+%
+% If using Tikhonov inverse methodology the covariance matrix of the priors CAN
+% be defined, but must be diagonal.
+%
+
+
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %%

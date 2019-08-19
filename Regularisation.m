@@ -162,7 +162,7 @@ end
 
 %% Now dpX, gsX and gaX have all be defined
 
-
+% Now defining R, dRdp, ddRddp 
 if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regularization
     
     % R= (C-C_prior)' CC^{-1} (C-C_prior)  / (2N)
