@@ -32,16 +32,17 @@ if ng~=nB
     error('error in solveKApe')
 end
 
-if nx0~=nA
-    fprintf('x0 must have same number of elements as there are rows in A\n')
-    error('error in solveKApe')
+if ~isempty(B)
+    if nx0~=nA
+        fprintf('x0 must have same number of elements as there are rows in A\n')
+        error('error in solveKApe')
+    end
+    
+    if ny0~=nB
+        fprintf('y0 must have same number of elements as there are rows in B\n')
+        error('error in solveKApe')
+    end
 end
-
-if ny0~=nB
-    fprintf('y0 must have same number of elements as there are rows in B\n')
-    error('error in solveKApe')
-end
-
 
 n=size(A,1) ; m=size(B,1);
 

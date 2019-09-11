@@ -7,7 +7,7 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 % 
 % The natural boundary condition is 
 %
-% $$\nabla c \cdot \hat{u} = 0 $$
+% $$\nabla c \cdot \hat{n} = 0 $$
 %
 % ie,  the free outflow condition 
 %
