@@ -1,8 +1,7 @@
-function [r,nu,kappa,sigma2]=Matern(sigma,alpha,rho,dimention,distance)
+function [r,nu,kappa,sigma]=Matern(alpha,rho,dimention,distance)
 
 %%
 %
-%   sigma    :   marginal variance
 %   alpha    :   alpha/2 is the exponent in the fractional Helmholtz eqaution 
 %    rho     :   distance where correlation falls to 0.1
 %  dimention : spatial dimention
@@ -10,6 +9,7 @@ function [r,nu,kappa,sigma2]=Matern(sigma,alpha,rho,dimention,distance)
 %
 % alpha=nu+d/2
 % nu=alpha-d/2
+% sigma    :   marginal variance
 %
 % for d=2 (two spatial dimentions) a
 % nu=2-1=1
@@ -31,11 +31,11 @@ function [r,nu,kappa,sigma2]=Matern(sigma,alpha,rho,dimention,distance)
 nu=alpha-dimention/2;  % ie nu=1 for alpha=2 and dimention=2
 kappa=sqrt(8*nu)/rho;
 
-sigma2=gamma(nu) /  ( gamma(nu+dimention/2)*(4*pi)^(dimention/2)*kappa^(2*nu));
+sigma=gamma(nu) /  ( gamma(nu+dimention/2)*(4*pi)^(dimention/2)*kappa^(2*nu));
 
 x=kappa * distance ;
 
-r = sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) ;
+r = sigma * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) ;
 
 end
 

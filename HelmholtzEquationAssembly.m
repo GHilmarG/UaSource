@@ -1,20 +1,25 @@
 
 
-function [UserVar,Matrix,rh]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c)
+function [UserVar,Matrix,rh]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
 
 %
 %  $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y)$$
 %
+
+narginchk(7,7)
+
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 a=a+zeros(MUA.Nnodes,1);
 b=b+zeros(MUA.Nnodes,1);
 c=c+zeros(MUA.Nnodes,1);
+d=d+zeros(MUA.Nnodes,1);
 
 anod=reshape(a(MUA.connectivity,1),MUA.Nele,MUA.nod);
 bnod=reshape(b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 cnod=reshape(c(MUA.connectivity,1),MUA.Nele,MUA.nod);
+dnod=reshape(d(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -45,6 +50,16 @@ for Iint=1:MUA.nip
     bint=bnod*fun;
     cint=cnod*fun;
     
+    dddx=zeros(MUA.Nele,1); 
+    dddy=zeros(MUA.Nele,1);
+    
+    for Inod=1:MUA.nod
+        
+        dddx=dddx+Deriv(:,1,Inod).*dnod(:,Inod);
+        dddy=dddy+Deriv(:,2,Inod).*dnod(:,Inod);
+                
+    end
+    
     
     detJw=detJ*weights(Iint);
     
@@ -67,7 +82,10 @@ for Iint=1:MUA.nip
             
         end
         
-        ElementRHS(:,Inod)=ElementRHS(:,Inod)+cint.*fun(Inod).*detJw;
+        ElementRHS(:,Inod)=ElementRHS(:,Inod)+...
+            cint.*fun(Inod).*detJw + ...
+            dddx.*Deriv(:,1,Inod).*detJw + ...
+            dddy.*Deriv(:,2,Inod).*detJw ;
         
     end
 end
