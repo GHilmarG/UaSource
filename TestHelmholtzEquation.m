@@ -10,7 +10,7 @@ UserVar=[];
 % Create mesh
 CtrlVar=Ua2D_DefaultParameters(); %
 CtrlVar.MUA.MassMatrix=1;
-CtrlVar.TriNodes=6;
+CtrlVar.TriNodes=3;
 
 
 xmin=-10e3; xmax=10e3 ; ymin=-10e3 ; ymax=10e3; ds=0.25e3; 
