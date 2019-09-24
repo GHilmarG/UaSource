@@ -141,22 +141,27 @@ switch Test
         % I must be M because I need to evaluate an intergral \int f I f = f M f
         %
         %
-        % dRdf=HE * (f-fPrior)  + S M*(f-fData)  ;
-        % dRdf=0 -> 0 =HE * (f-fPrior) + S M*(f-fData)  ;
+        % dRdf=HE * (f-fPrior)  + S M*(f-fData)  ; dRdf=0 -> 0 =HE * (f-fPrior) + S
+        % M*(f-fData)  ;
         %              (HE + S M ) f = HE fPrior + S M fData
-        %                          f = (HE+ S M) \ ( HE fPrior + S M fData) 
+        %                          f = (HE+ S M) \ ( HE fPrior + S M fData)
         %
-
+        % Here the prior is set equal to the noise-free data.  And then some noise is
+        % added to the data
+        %
+        %
         fData=DiracDelta(1/1000,x,-1000)+DiracDelta(1/1000,x,1000);
         fData=fData/max(fData);
-        fPrior=cos(x*2*pi/5e3)/2+cos(x*2*pi/1e3)/4 ;
-        fPrior=fData ; 
+        fData=x*0+1;
+        I=x>0;
+        fPrior=x*0; 
+        fPrior(I)=fData(I) ; 
         err=0.1 ; fData=fData+err*randn(numel(x),1);
         
         
         alpha=2 ;
-        rho=1e+3;
-        MScale=1;
+        rho=1e+4;
+        
         dimention=2;
         distance=linspace(100*eps,(xmax-xmin)/4,100) ;
         [CovMatern,nu,kappa,sigma2]=Matern(alpha,rho,dimention,distance);
@@ -169,19 +174,19 @@ switch Test
         d=NaN;
         
         
-        
+        MScale=sigma2*1e3; 
+        MScale=1;
         a=a*MScale; b=b*MScale; % have to figure out how to affect the variance
         [UserVar,f,lambda,HE,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d);
-        err=err+x*0+1e6;
+        err=err+x*0;
         %I=x>0  ; err(I)=1e2;
          
         
-        Sigma=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./err.^2) ;
+        PrecisionNoise=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./err.^2) ; % this is the precision of the noise
+        PrecisionPrior=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./(err.^2/1e6)) ; % this is the precision of the noise
         M=MUA.M; 
-        % f=(M + HE + Sigma*M)\ ((HE + Sigma*M) *fPrior) ;
-        % f = ( HE   + Sigma* M) \ (Sigma^2 * M * fPrior ) ;
-       
-        f = (HE+ Sigma* M) \ ( HE * fPrior + Sigma* M * fData) ; 
+
+        f = ( PrecisionPrior*HE+ PrecisionNoise* M) \ ( PrecisionPrior* HE * fPrior + PrecisionNoise* M * fData) ; 
         
         figure ; plot(x/1000,fData,'.g') ; hold on ; plot(x/1000,f,'or') ; hold on ; plot(x/1000,fPrior,'.b') ;  
         legend('data','f','prior')
