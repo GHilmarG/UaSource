@@ -124,9 +124,9 @@ switch Test
         d=NaN;
         
         [UserVar,f,lambda,HE,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d);
-        err=x*0+1;
-        I=x>0 ; err(I)=1e-6;
-        Sigma=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./err.^2) ;
+        errNoise=x*0+1;
+        I=x>0 ; errNoise(I)=1e-6;
+        Sigma=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./errNoise.^2) ;
         f=(MUA.M+Sigma*HE)\ (Sigma*HE*fPrior);
         
         figure ; plot(x/1000,f,'.r') ; hold on ; plot(x/1000,fPrior,'.b') ;  plot(x/1000,x*0,'.g') ;
@@ -141,8 +141,8 @@ switch Test
         % I must be M because I need to evaluate an intergral \int f I f = f M f
         %
         %
-        % dRdf=HE * (f-fPrior)  + S M*(f-fData)  ; dRdf=0 -> 0 =HE * (f-fPrior) + S
-        % M*(f-fData)  ;
+        % dRdf=HE * (f-fPrior)  + S M*(f-fData)  ; 
+        % dRdf=0 -> 0 = HE * (f-fPrior) + S M*(f-fData)  ;
         %              (HE + S M ) f = HE fPrior + S M fData
         %                          f = (HE+ S M) \ ( HE fPrior + S M fData)
         %
@@ -153,11 +153,18 @@ switch Test
         fData=DiracDelta(1/1000,x,-1000)+DiracDelta(1/1000,x,1000);
         fData=fData/max(fData);
         fData=x*0+1;
-        I=x>0;
-        fPrior=x*0; 
-        fPrior(I)=fData(I) ; 
-        err=0.1 ; fData=fData+err*randn(numel(x),1);
         
+        % an example using discontinous prior
+        I=x>0; fPrior=x*0; fPrior(I)=fData(I) ; 
+        
+        % an example using discontinous prior
+        fPrior=2*atan(x/1e3)/pi ; % continuous prior
+        
+        errNoise=0.1 ; fData=fData+errNoise*randn(numel(x),1);
+        errPrior=x*0+0.01 ;  I=x<-5e3 ; errPrior(I)=errPrior(I)*1000; 
+        
+        PrecisionNoise=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./errNoise.^2) ; % this is the precision of the noise
+        PrecisionPrior=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./(errPrior.^2)) ; % this is the precision of the Prior
         
         alpha=2 ;
         rho=1e+4;
@@ -174,22 +181,26 @@ switch Test
         d=NaN;
         
         
-        MScale=sigma2*1e3; 
-        MScale=1;
+        MScale=sigma2; 
+     
         a=a*MScale; b=b*MScale; % have to figure out how to affect the variance
         [UserVar,f,lambda,HE,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d);
-        err=err+x*0;
+        errNoise=errNoise+x*0;
         %I=x>0  ; err(I)=1e2;
          
         
-        PrecisionNoise=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./err.^2) ; % this is the precision of the noise
-        PrecisionPrior=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./(err.^2/1e6)) ; % this is the precision of the noise
+   
+        
         M=MUA.M; 
 
         f = ( PrecisionPrior*HE+ PrecisionNoise* M) \ ( PrecisionPrior* HE * fPrior + PrecisionNoise* M * fData) ; 
         
-        figure ; plot(x/1000,fData,'.g') ; hold on ; plot(x/1000,f,'or') ; hold on ; plot(x/1000,fPrior,'.b') ;  
-        legend('data','f','prior')
+        figure ; plot(x/1000,fData,'.g') ; hold on ; plot(x/1000,f,'or') ; 
+        plot(x/1000,fPrior,'.b') ;  
+        plot(x/1000,f-fPrior,'.k')
+        legend('data','f','prior','f-fPrior')
+        xlabel('x (km)')
+        title(' f = (PP HE + PN M ) \\ (PP HE fPrior + PN N fData)')
         fprintf(' norm(f-fData)=%f \t \t  norm(f-fPrior)=%f \n ',norm(f-fData),norm(f-fPrior))
         fprintf(' all gott. \n')
 end
