@@ -69,11 +69,15 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     % The problme is that this creates infinitly large beta^2
     % and to avoid this I introduce a minimum speed of 1 m/a
     
+
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         dIdC=log(10)*C.*dIdC;
     end
     
+    % if C is close to limits and gradient is pushing it further towards the limits,
+    % set gradient to zero
+    dIdC(C>0.9*CtrlVar.Cmax & dIdC<0)=0; dIdC(C<0.1*CtrlVar.Cmin & dIdC>0)=0;
     
     if CtrlVar.CisElementBased
         dIdC=dIdC.*GF.ele;

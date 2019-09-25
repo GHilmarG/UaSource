@@ -32,7 +32,7 @@ p=kk_proj(p,pub,plb);
 
 [J0,dJdp,Hess,fOuts]=func(p);
 dJdp=dJdp(:);
-GradNorm=norm(dJdp)/sqrt(numel(dJdp));
+GradNorm=norm(dJdp);
 RunInfo.Inverse.ConjGradUpdate=0;
 
 if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1
@@ -63,13 +63,13 @@ end
 % If CtrlVar.Inverse.InitialLineSearchStepSize is defined use that
 %
 
-if norm(dJdp)<eps
-   
-    fprintf('Norm of the gradient of the objective function is less than eps. \n')
-    fprintf('No further inverse iterations needed/possible. \n')
-    return
-    
-end
+% if norm(dJdp)<eps
+%    
+%     fprintf('Norm of the gradient of the objective function is less than eps. \n')
+%     fprintf('No further inverse iterations needed/possible. \n')
+%     return
+%     
+% end
 
 % determine initial search direction and initial step size for line-search.
 if ~(isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0)
