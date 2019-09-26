@@ -69,7 +69,7 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     % The problme is that this creates infinitly large beta^2
     % and to avoid this I introduce a minimum speed of 1 m/a
     
-
+    dIdC=dIdC/norm(C)^2; % get the right dimentions
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         dIdC=log(10)*C.*dIdC;

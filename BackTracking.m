@@ -40,7 +40,7 @@ else
 end
 
 
-if fb<target
+if fb<target 
     
     gamma=b; fgamma=fb; Iteration=0; fc=NaN; fmin=fb ; gmin=b ; c=NaN ;
     InfoVector(1:2,1)=[0 ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ;
@@ -83,6 +83,7 @@ ExtrapolationRatio=2.5;
 MinXfrac=1e-10*b; % exit if change in x as a fraction of initial interval smaller than this
 MaxFuncSame=3; % exit if minimum of func did not change during MaxFuncSame iterations
 BacktrackingGammaMin=1e-20;
+
 
 
 if isfield(CtrlVar,'BackTrackBeta')
@@ -296,7 +297,7 @@ if  Extrapolation>0
 end
 
 fLastReduction=1;
-while fgamma>target || fLastReduction < 0.5
+while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
     Iteration=Iteration+1;
     
     
@@ -356,11 +357,12 @@ while fgamma>target || fLastReduction < 0.5
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
             % general backtracking step
-            %  a+0.05 (b-a)  < gamma < a+ 0.95 (b-a)
-            if gamma > (a+0.95*(b-a))
-                gamma=a+0.95*(b-a) ;
-            elseif gamma < (a+0.05*(b-a)) 
-                gamma=a+0.05*(b-a);
+            %  a+0.25 (b-a)  < gamma < a+ 0.95 (b-a)
+            
+            if gamma > (a+CtrlVar.BackTrackGuardUpper*(b-a))
+                gamma=a+CtrlVar.BackTrackGuardUpper*(b-a) ;
+            elseif gamma < (a+CtrlVar.BackTrackGuardLower*(b-a)) 
+                gamma=a+CtrlVar.BackTrackGuardLower*(b-a);
             end
             
             

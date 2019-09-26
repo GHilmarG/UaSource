@@ -346,7 +346,19 @@ CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size 
 CtrlVar.BackTrackMinXfrac=1e-10 ;         % exit backtracking if pos. of minimum is changing by less than this fraction of initial step 
 CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evaluations of cost function resulted in no further decrease of cost function
     
+% Limit stepsize based on quadradic/cubic interpolation to these lower/upper
+% limits withing the current lower/upper range.
+CtrlVar.BackTrackGuardLower=0.25;
+CtrlVar.BackTrackGuardUpper=0.95;
 
+% Backtracking continues even if target has been reached if last reduction in
+% ratio is smaller than:
+CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
+% The ratio is CurrentValue/LastValue, so smaller ratio means greater reduction.                  
+% Note: The inital target is CtrlVar.NewtonAcceptRatio, and
+% after that target=f(0)+CtrlVar.BackTrackBeta slope step 
+% CurrentValue/InitalValue < CtrlVar.NewtonAcceptRatio
+% unless some other exit critera are reached. 
 
 %% Lin equation solver parameters
 %
