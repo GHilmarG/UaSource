@@ -122,7 +122,7 @@ CtrlVar.BackTrackGuardUpper=0.95;
 % Backtracking continues even if target has been reached if last reduction in
 % ratio is smaller than:
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
-CtrlVar.NewtonAcceptRatio=0.10;
+CtrlVar.NewtonAcceptRatio=0.5;
 CtrlVar.BackTrackExtrapolationRatio=10;
 %%
 

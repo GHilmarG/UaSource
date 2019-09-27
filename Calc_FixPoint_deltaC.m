@@ -66,18 +66,23 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     % Remark: when speedEleMeas=0 then  dIdC=-(speedEleMeas-speedEle)./(speedEle./C)=1/C , irrespectivly of how close speedEle is to zero.
     % This will drive C further and further towards zero with every iteration.
     % in some sense this is correct, because only for C stricly equal to 0 is speedEle=0
-    % The problme is that this creates infinitly large beta^2
+    % The problem is that this creates infinitly large beta^2
     % and to avoid this I introduce a minimum speed of 1 m/a
     
-    dIdC=dIdC/norm(C)^2; % get the right dimentions
+    
+    % if C is close to limits and gradient is pushing it further towards the limits,
+    % set gradient to zero
+    dIdC(C>0.9*CtrlVar.Cmax & dIdC<0)=0; dIdC(C<0.1*CtrlVar.Cmin & dIdC>0)=0;
+    
+    
+    
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
         dIdC=log(10)*C.*dIdC;
     end
     
-    % if C is close to limits and gradient is pushing it further towards the limits,
-    % set gradient to zero
-    dIdC(C>0.9*CtrlVar.Cmax & dIdC<0)=0; dIdC(C<0.1*CtrlVar.Cmin & dIdC>0)=0;
+    dIdC=dIdC/norm(dIdC) ; % Just normalize thsi gradient to ensure step size are numerically reasonable
+                            
     
     if CtrlVar.CisElementBased
         dIdC=dIdC.*GF.ele;
