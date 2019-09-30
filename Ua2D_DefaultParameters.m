@@ -247,7 +247,7 @@ CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %
 switch lower(CtrlVar.FlowApproximation)
     case 'sstream'
-        CtrlVar.Cmin=1e-6;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=1e-20;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
     otherwise
         CtrlVar.Cmin=0;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
 end
@@ -346,7 +346,19 @@ CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size 
 CtrlVar.BackTrackMinXfrac=1e-10 ;         % exit backtracking if pos. of minimum is changing by less than this fraction of initial step 
 CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evaluations of cost function resulted in no further decrease of cost function
     
+% Limit stepsize based on quadradic/cubic interpolation to these lower/upper
+% limits withing the current lower/upper range.
+CtrlVar.BackTrackGuardLower=0.25;
+CtrlVar.BackTrackGuardUpper=0.95;
 
+% Backtracking continues even if target has been reached if last reduction in
+% ratio is smaller than:
+CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
+% The ratio is CurrentValue/LastValue, so smaller ratio means greater reduction.                  
+% Note: The inital target is CtrlVar.NewtonAcceptRatio, and
+% after that target=f(0)+CtrlVar.BackTrackBeta slope step 
+% CurrentValue/InitalValue < CtrlVar.NewtonAcceptRatio
+% unless some other exit critera are reached. 
 
 %% Lin equation solver parameters
 %
@@ -625,6 +637,18 @@ CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change.
 %
 % Default is Tikhonov regularization on log(A) and log(C)
 %
+
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" 
+%
+% If using Bayesian inverse methodology the covariance matrix of the priors MUST
+% be defined, and it can be dense (although computationally doing so might slow
+% the run considerably.)
+%
+% If using Tikhonov inverse methodology the covariance matrix of the priors CAN
+% be defined, but must be diagonal.
+%
+
+
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %%

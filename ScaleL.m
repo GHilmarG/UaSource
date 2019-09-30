@@ -1,6 +1,6 @@
 function [L,c,isLLunity]=ScaleL(CtrlVar,L,c,test)
 
-
+%%
 %
 % Scales L so that L*L'=1
 %
@@ -13,7 +13,7 @@ function [L,c,isLLunity]=ScaleL(CtrlVar,L,c,test)
 % L*L=ones(p,p), where p is the number of lines in L, i.e. the number of
 % constraints.
 %
-
+%%
 
 isLLunity=[];
 

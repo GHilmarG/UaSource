@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>TracerConservationEquation</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-08"><meta name="DC.source" content="TracerConservationEquation.m"><style type="text/css">
+      --><title>CalcVAF</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-27"><meta name="DC.source" content="CalcVAF.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,46 +66,63 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
-</pre><p>Solves the tracer conservation equation for the tracer c on the form:</p><p><img src="TracerConservationEquation_eq07961470304519667092.png" alt="$$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$" style="width:208px;height:11px;"></p><p>The natural boundary condition is</p><p><img src="TracerConservationEquation_eq15363923600149654030.png" alt="$$\nabla c \cdot \hat{u} = 0 $$" style="width:46px;height:8px;"></p><p>ie,  the free outflow condition</p><pre class="codeinput">MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
-L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
+</pre><p>Calculates volume above flotation, and optionally ice volume and grounded area</p><p>GF is only needed to calculate volume and grounded area.</p><pre class="codeinput">narginchk(7,8)
+nargoutchk(1,3)
 
-[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
+hf=(S-B).*rhow./rho ;       <span class="comment">% if h&gt; hf, then ice is grounded  (but note that hf is negative for B&gt;S)</span>
+hf(hf&lt;0)=0;                 <span class="comment">% this is the positive flotation thickness</span>
 
-[c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
-c1=full(c1);
+VAF.node=(h-hf).*GF.node ;  <span class="comment">% thickness above flotation over grounded nodes</span>
+<span class="comment">% VAF.node=(h-hf).*heaviside(h-hf)</span>
+
+VAF.ele=FEintegrate2D([],MUA,VAF.node);
+VAF.Total=sum(VAF.ele);
+
+
+<span class="keyword">if</span> nargout&gt;1
+    IceVolume.Ele=FEintegrate2D([],MUA,h);
+    IceVolume.Total=sum(IceVolume.Ele);
+
+    GroundedArea.Ele=FEintegrate2D([],MUA,GF.node);
+    GroundedArea.Total=sum(GroundedArea.Ele);
+<span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
+function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
 
 %%
-% Solves the tracer conservation equation for the tracer c on the form:
-% 
-% $$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$
-% 
-% The natural boundary condition is 
+% Calculates volume above flotation, and optionally ice volume and grounded area
 %
-% $$\nabla c \cdot \hat{u} = 0 $$
+% GF is only needed to calculate volume and grounded area. 
 %
-% ie,  the free outflow condition 
 %
+%%
+
+narginchk(7,8)
+nargoutchk(1,3)
+
+hf=(S-B).*rhow./rho ;       % if h> hf, then ice is grounded  (but note that hf is negative for B>S)
+hf(hf<0)=0;                 % this is the positive flotation thickness 
+
+VAF.node=(h-hf).*GF.node ;  % thickness above flotation over grounded nodes
+% VAF.node=(h-hf).*heaviside(h-hf) 
+
+VAF.ele=FEintegrate2D([],MUA,VAF.node);
+VAF.Total=sum(VAF.ele);
 
 
-MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
-L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
-
-[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
-
-[c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
-c1=full(c1);
-
-
+if nargout>1
+    IceVolume.Ele=FEintegrate2D([],MUA,h);
+    IceVolume.Total=sum(IceVolume.Ele);
+    
+    GroundedArea.Ele=FEintegrate2D([],MUA,GF.node);
+    GroundedArea.Total=sum(GroundedArea.Ele);
 end
 
 
 
-
-
+end
 ##### SOURCE END #####
 --></body></html>

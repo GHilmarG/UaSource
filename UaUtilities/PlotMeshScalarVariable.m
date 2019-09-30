@@ -45,7 +45,7 @@ end
 
 if N==MUA.Nnodes && M==1   % nodal variable
     
-    if isempty(NodTri)
+    if isempty(NodTri) || isempty(Nnodes) 
         NodTri=MUA.connectivity;
     elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod 
         NodTri=MUA.connectivity;
@@ -55,7 +55,7 @@ if N==MUA.Nnodes && M==1   % nodal variable
     
 elseif N==MUA.Nele && M==1 % element variable
     
-    if isempty(EleTri) 
+    if isempty(EleTri) || isempty(Nele) 
         EleTri=MUA.connectivity;
     elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         EleTri=MUA.connectivity;

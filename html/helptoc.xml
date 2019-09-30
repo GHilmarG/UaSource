@@ -45,7 +45,10 @@
                 <tocitem target="CalcNodalStrainRates.html">Calculate nodal strain rates</tocitem>
                 <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
+                <tocitem target="CalcVAF.html">Calculate ice volume above flotation (VAF), ice volume and grounded area </tocitem>
                 <tocitem target="TracerConservationEquation.html">Tracer Conservation Equation</tocitem>
+                <tocitem target="Matern.html">Matern covariance</tocitem>
+                <tocitem target="CGuesstimate.html">C Guesstimation</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>
