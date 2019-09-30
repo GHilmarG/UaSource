@@ -22,7 +22,7 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 [dsdx,dsdy]=ProjectFintOntoNodes(MUA,dsdx,dsdy);
 
 if ~isfield(CtrlVar,'SurfaceSlopeMin')
-    CtrlVar.SurfaceSlopeMin=1e-2;
+    CtrlVar.SurfaceSlopeMin=1e-4;
 end
 
 
