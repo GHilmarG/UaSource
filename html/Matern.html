@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Matern</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-24"><meta name="DC.source" content="Matern.m"><style type="text/css">
+      --><title>Matern</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-08"><meta name="DC.source" content="Matern.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
-</pre><pre>[r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)</pre><p>Calculates the Matern covariance defined as</p><p><img src="Matern_eq06721525827523923377.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa(x))^{\nu} K_{\nu}(\kappa x)$$" style="width:198px;height:37px;"></p><p>Inputs:</p><pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
+</pre><pre>[r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)</pre><p>Calculates the Matern covariance defined as</p><p><img src="Matern_eq14597247104527507706.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$" style="width:188px;height:37px;"></p><p>Inputs:</p><pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
   rho     :   distance where correlation falls to 0.1
   d       :   spatial dimention</pre><pre>  sigma2  :   marginal variance, (optional input)
  DoPlots  :   plots of realisations if set to true (optional input)</pre><p>Outputs:</p><pre>     nu              :   nu=alpha-d/2;
@@ -140,7 +140,7 @@ function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma
 %
 % Calculates the Matern covariance defined as
 %
-% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa(x))^{\nu} K_{\nu}(\kappa x)$$
+% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$
 %
 % Inputs:
 %

@@ -5,7 +5,7 @@ function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma
 %
 % Calculates the Matern covariance defined as
 %
-% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa(x))^{\nu} K_{\nu}(\kappa x)$$
+% $$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$
 %
 % Inputs:
 %
