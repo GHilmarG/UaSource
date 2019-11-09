@@ -11,6 +11,12 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 %
 % Only used in combination with adaptive meshing.
 %
+% You need to set 
+%
+%   CtrlVar.AdaptMesh=1;  
+%
+% in Ua2D_InitialUserinput for this m-file to be called.
+%
 % Allows user to set:
 % 
 % * EleSizeDesired when using global mesh refinement

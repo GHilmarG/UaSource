@@ -17,20 +17,20 @@ TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh
 
 
 %% Global remeshing
-switch lower(CtrlVar.MeshGenerator)
-    case 'mesh2d'
-        CtrlVar.MeshSize=zeros(length(xNod),3);
-        CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
-        
-    case 'gmsh'
-        
-        GmshBackgroundScalarField.xy=[xNod(:) yNod];
-        GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
-        GmshBackgroundScalarField.TRI=TRIxy0;
-        
-    otherwise
-        error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
-end
+% switch lower(CtrlVar.MeshGenerator)
+%     case 'mesh2d'
+%         CtrlVar.MeshSize=zeros(length(xNod),3);
+%         CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
+%         
+%     case 'gmsh'
+%         
+%         GmshBackgroundScalarField.xy=[xNod(:) yNod];
+%         GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
+%         GmshBackgroundScalarField.TRI=TRIxy0;
+%         
+%     otherwise
+%         error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
+% end
 
 
 GmshBackgroundScalarField.xy=[xNod(:) yNod];
