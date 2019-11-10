@@ -10,7 +10,7 @@ if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
 elseif contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     
     
-    [UserVar,RunInfo,MUAnew]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUAold,xNod,yNod,EleSizeDesired);
+    [UserVar,RunInfo,MUAnew]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUAold,xNod,yNod,EleSizeDesired,F);
     
 else
     fprintf('Incorrect value for CtrlVar.MeshRefinementMethod (%s) \n',CtrlVar.MeshRefinementMethod)

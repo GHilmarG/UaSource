@@ -1,26 +1,29 @@
-function HH=Mesh2dEleSizeFunction(pp,CtrlVar,GmshBackgroundScalarField)
+function Mesh2dEleSize=Mesh2dEleSizeFunction(pp,CtrlVar,UserVar,EleSizeScalarField,F)
 
-persistent F
+persistent FEleSize
 
-if isempty(GmshBackgroundScalarField)
+
+
+
+if isempty(EleSizeScalarField)
     
-    HH=zeros(size(pp,1),1)+CtrlVar.MeshSize;
+    Mesh2dEleSize=zeros(size(pp,1),1)+CtrlVar.MeshSize;
     
 else
     
     
     
-    x=GmshBackgroundScalarField.xy(:,1);
-    y=GmshBackgroundScalarField.xy(:,2);
-    v=GmshBackgroundScalarField.EleSize;
+    x=EleSizeScalarField.xy(:,1);
+    y=EleSizeScalarField.xy(:,2);
+    v=EleSizeScalarField.EleSize;
     
-    if isempty(F) ||  ~isequal(v,F.Values)
+    if isempty(FEleSize) ||  ~isequal(v,FEleSize.Values)
         
-        F = scatteredInterpolant(x,y,v);
+        FEleSize = scatteredInterpolant(x,y,v);
 
     end
 
-    HH=F(pp(:,1),pp(:,2));
+    Mesh2dEleSize=FEleSize(pp(:,1),pp(:,2));
     
     
 end

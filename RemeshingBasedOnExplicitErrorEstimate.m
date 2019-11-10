@@ -52,9 +52,9 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
             CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
         case 'gmsh'
             
-            GmshBackgroundScalarField.xy=[xNod(:) yNod];
-            GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-            GmshBackgroundScalarField.TRI=TRIxy0;
+            EleSizeScalarField.xy=[xNod(:) yNod];
+            EleSizeScalarField.EleSize=EleSizeDesired(:) ;
+            EleSizeScalarField.TRI=TRIxy0;
             
         otherwise
             error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
@@ -65,7 +65,7 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
         [MeshBoundaryCooWithGLcoo,edge,face,xGLmesh,yGLmesh]=glLineEdgesFaces(GF,MUA.coordinates,MUA.connectivity,MeshBoundaryCoordinates,CtrlVar);
         [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
     else
-        [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+        [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],EleSizeScalarField);
     end
     
     %figure ; PlotFEmesh(coordinates,connectivity,CtrlVar);
@@ -119,9 +119,9 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
                 CtrlVar.MeshSize=zeros(length(xNod),3);
                 CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
             case 'gmsh'
-                GmshBackgroundScalarField.xy=[xNod(:) yNod(:)] ;
-                GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-                GmshBackgroundScalarField.TRI=TRIxy0 ;
+                EleSizeScalarField.xy=[xNod(:) yNod(:)] ;
+                EleSizeScalarField.EleSize=EleSizeDesired(:) ;
+                EleSizeScalarField.TRI=TRIxy0 ;
                 
                 if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
             otherwise
@@ -139,7 +139,7 @@ elseif   contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
         if CtrlVar.GLmeshing==1
             [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
         else
-            [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+            [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates,[],[],EleSizeScalarField);
         end
         
         if CtrlVar.InfoLevelAdaptiveMeshing>=1

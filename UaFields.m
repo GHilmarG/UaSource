@@ -3,6 +3,8 @@ classdef UaFields
   
     properties
         
+        x=[];
+        y=[];
         
         ub=[];
         vb=[];

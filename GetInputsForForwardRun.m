@@ -4,6 +4,7 @@ narginchk(3,3)
 nargoutchk(6,6)
 
 F=UaFields;
+EleSizeScalarField=[]; 
 
 if CtrlVar.ReadInitialMesh==1
     
@@ -31,7 +32,7 @@ if CtrlVar.ReadInitialMesh==1
     
 else
    
-    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates);
+    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField);
     
     
     iIt=0;

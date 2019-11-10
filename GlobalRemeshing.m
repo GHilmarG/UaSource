@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,MUA]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUA,xNod,yNod,EleSizeDesired)
+function [UserVar,RunInfo,MUA]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUA,xNod,yNod,EleSizeDesired,F)
 
 
 
@@ -17,25 +17,12 @@ TRIxy0=TriFE(MUA.connectivity);  % this is the triangulation of the input FEmesh
 
 
 %% Global remeshing
-% switch lower(CtrlVar.MeshGenerator)
-%     case 'mesh2d'
-%         CtrlVar.MeshSize=zeros(length(xNod),3);
-%         CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
-%         
-%     case 'gmsh'
-%         
-%         GmshBackgroundScalarField.xy=[xNod(:) yNod];
-%         GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
-%         GmshBackgroundScalarField.TRI=TRIxy0;
-%         
-%     otherwise
-%         error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
-% end
 
 
-GmshBackgroundScalarField.xy=[xNod(:) yNod];
-GmshBackgroundScalarField.EleSize=EleSizeDesired(:);
-GmshBackgroundScalarField.TRI=TRIxy0;
+
+EleSizeScalarField.xy=[xNod(:) yNod];
+EleSizeScalarField.EleSize=EleSizeDesired(:);
+EleSizeScalarField.TRI=TRIxy0;
 
 
 %     if CtrlVar.GLmeshing==1
@@ -44,7 +31,7 @@ GmshBackgroundScalarField.TRI=TRIxy0;
 %         [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
 %     else
 
-[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField);
 
 %    end
 
@@ -99,9 +86,9 @@ while (MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements ||  MUA.Nele<EleFactorDo
     %            CtrlVar.MeshSize=zeros(length(xNod),3);
     %            CtrlVar.MeshSize(:,1)=xNod ; CtrlVar.MeshSize(:,2)=yNod; CtrlVar.MeshSize(:,3)=EleSizeDesired;
     %        case 'gmsh'
-    GmshBackgroundScalarField.xy=[xNod(:) yNod(:)] ;
-    GmshBackgroundScalarField.EleSize=EleSizeDesired(:) ;
-    GmshBackgroundScalarField.TRI=TRIxy0 ;
+    EleSizeScalarField.xy=[xNod(:) yNod(:)] ;
+    EleSizeScalarField.EleSize=EleSizeDesired(:) ;
+    EleSizeScalarField.TRI=TRIxy0 ;
     
     %            if any(isnan(EleSizeDesired)) ; error('fdsa') ; end
     %        otherwise
@@ -119,7 +106,7 @@ while (MUA.Nele>EleFactorUp*CtrlVar.MaxNumberOfElements ||  MUA.Nele<EleFactorDo
     %         if CtrlVar.GLmeshing==1
     %             [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCooWithGLcoo,edge,face);
     %         else
-    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,CtrlVar.MeshBoundaryCoordinates,[],[],GmshBackgroundScalarField);
+    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField);
     %end
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
