@@ -10,6 +10,8 @@ if nargin==0
 end
 
 
+
+
 SetUaPath() %% 
 
 if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
@@ -64,7 +66,16 @@ clear PlotMeshScalarVariable
 clear PlotFEmesh
 
 %% Define default values
-CtrlVar=Ua2D_DefaultParameters();
+
+if  nargin>=2
+    if isfield(varargin{1},"WhoAmI") && varargin{1}.WhoAmI=="Ua2D CtrlVar"
+        CtrlVar=varargin{1} ; 
+        varargin(1)=[]; 
+    else
+        CtrlVar=Ua2D_DefaultParameters();
+    end
+end
+
 
 %% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts

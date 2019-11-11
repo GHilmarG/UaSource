@@ -17,7 +17,8 @@ function CtrlVar=Ua2D_DefaultParameters
 
 
 %%
-
+CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
+%%
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
