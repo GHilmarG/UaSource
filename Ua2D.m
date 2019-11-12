@@ -65,26 +65,65 @@ clear UaOutputs
 clear PlotMeshScalarVariable 
 clear PlotFEmesh
 
-%% Define default values
+%% Define CtrlVar
 
-if  nargin>=2
-    if isfield(varargin{1},"WhoAmI") && varargin{1}.WhoAmI=="Ua2D CtrlVar"
-        CtrlVar=varargin{1} ; 
-        varargin(1)=[]; 
-    else
-        CtrlVar=Ua2D_DefaultParameters();
-    end
+% The user can define the fields of CtrlVar by:
+% 
+% 1) Specifying the fields of CtlrVar in Ua2D_InitialUserInput.m
+% 2) By handing over CtrlVar as a second argument to Ua
+%
+% If the user uses both of these options (the most typical situation) 
+% then any fields defined on input to Ua take precedence.
+%
+% So for example, if Ua is called using the call
+%
+%   CtrlVar.dt=1; 
+%   CtrlVar.WhoAmI="Ua2D CtrlVar" ; % This field must always be defined
+%   Ua(UserVar,CtrlVar)
+%
+%   and within the Ua2D_InitialUserInput.m there is a line:
+% 
+%  CtrlVar.dt=10; 
+%
+%
+% Then the value used for CtrlVar.dt is the one given as input to Ua, i.e. CtrlVar.dt=1
+%
+%
+
+
+% get the Ua default values for the CtlrVar
+CtrlVar=Ua2D_DefaultParameters();
+
+if nargin> 2 && isfield(varargin{1},"WhoAmI") && varargin{1}.WhoAmI=="Ua2D CtrlVar"
+    CtrlVarOnInput=varargin{1} ;
+    varargin(1)=[];
+else
+    CtrlVarOnInput=[];
 end
 
-
-%% Get user-defined parameter values
+% Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
-[UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
+if nargin("Ua2D_InitialUserInput.m")>2
+    [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
+else
+    [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
+end
 
-
-%%
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
+
+% check if the second input argument is a Ua CtrlVar
+% if so, then make a temporary copy of this variable
+if  ~isempty(CtrlVarOnInput)
+    % now overwrite the changes to CtrlVar in Ua2D_InitialUserInput using the fields
+    % of the input CtrlVarOnInput.
+    fprintf("\n ===== The fields of CtrlVar given as input to Ua replace corresponding fields of CtrlVar defined in Ua2D_InitialUserInput.m \n")
+    if ~isempty(CtrlVarOnInput)
+        for fn = fieldnames(CtrlVarOnInput)'
+            CtrlVar.(fn{1}) = CtrlVarOnInput.(fn{1});
+        end
+    end
+end
 
 
 %%

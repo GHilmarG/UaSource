@@ -2,6 +2,12 @@ function CtrlVar=CtrlVarValidityCheck(CtrlVar)
 
 %  Performs some basic validity checks on CtrlVar
 
+
+fn = fieldnames(CtrlVar.MustBe);
+for I=1:numel(fn)
+    CheckUaCtrlVarFields(CtrlVar,fn{I})
+end
+
 %% is user still using doDiagnosti/doPrognostic, set TimeDependentRun accordingly
 if isfield(CtrlVar,'doDiagnostic')
     if CtrlVar.doDiagnostic
@@ -121,6 +127,10 @@ if isfield(CtrlVar,'AdaptMeshIterations')
     error('Ua:CtrlVarValidyCheck','The field CtrlVar.AdaptMeshIterations is no longer used. Replace with CtrlVar.AdaptMeshMaxIterations')
     
 end
+
+
+
+
 
 %% inverse
 
