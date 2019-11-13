@@ -1,4 +1,4 @@
-function UserVar=Ua(UserVar,varargin)
+function UserVar=Ua(UserVar,CtlrVar,varargin)
 
 
 %% Úa
@@ -213,10 +213,17 @@ function UserVar=Ua(UserVar,varargin)
 
 
 if nargin==0
-    UserVar=[];
+    UserVar=[]; CtrlVar=[];
+elseif nargin==1
+    CtrlVar=[];
+else
+    if ~isempty(CtlrVar) ||  ~isstruct(CtlrVar)
+        error('Ua:InputError','Second argument to Ua must be either empty or a structure. ')
+    end
 end
 
-UserVar=Ua2D(UserVar,varargin{:});
+
+UserVar=Ua2D(UserVar,CtrlVar,varargin{:});
 
 
 end

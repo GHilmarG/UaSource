@@ -1,4 +1,4 @@
-function UserVar=Ua2D(UserVar,varargin)
+function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
 %% Driver for the 2HD Úa model
 % 
@@ -6,7 +6,10 @@ function UserVar=Ua2D(UserVar,varargin)
 
 
 if nargin==0
-    UserVar=[];
+    UserVar=[]; 
+    CtrlVarOnInput=[];
+elseif nargin==1
+    CtrlVarOnInput=[];
 end
 
 
@@ -93,13 +96,6 @@ clear PlotFEmesh
 
 % get the Ua default values for the CtlrVar
 CtrlVar=Ua2D_DefaultParameters();
-
-if nargin> 2 && isfield(varargin{1},"WhoAmI") && varargin{1}.WhoAmI=="Ua2D CtrlVar"
-    CtrlVarOnInput=varargin{1} ;
-    varargin(1)=[];
-else
-    CtrlVarOnInput=[];
-end
 
 % Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
