@@ -1,4 +1,5 @@
-function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = BasalDrag(CtrlVar,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma)
+function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
+        BasalDrag(CtrlVar,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g)
 
 
 %%
@@ -43,24 +44,63 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 
 beta2i=(C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 
-He=He+CtrlVar.HeZero ; % Regularisation 
 
-taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
-taubyi=He.*beta2i.*vb;
-
-
-% Dbeta2i is zero for m=1. 
+% Dbeta2i is zero for m=1.
 Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
+He=He+CtrlVar.HeZero ; % Regularisation
 
-dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
-dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+switch CtrlVar.SlidingLaw
+    
+    
+    
+    case {"Weertman","tauPower"}
+        
+        
+        
+        taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
+        taubyi=He.*beta2i.*vb;
 
-dtaubxdvi=He.*(Dbeta2i.*ub.*vb);
-dtaubydui=dtaubxdvi;
-
-dtaubxdhi=delta.*beta2i.*ub ;
-dtaubydhi=delta.*beta2i.*vb ;
-
+        
+        % Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
+        
+        dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
+        dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+        
+        dtaubxdvi=He.*Dbeta2i.*ub.*vb;
+        dtaubydui=dtaubxdvi;
+        
+        dtaubxdhi=delta.*beta2i.*ub ;
+        dtaubydhi=delta.*beta2i.*vb ;
+        
+    case {"Budd","tauPowerNperfectPower"}
+     
+        hf=rhow.*H./rho;
+        Dh=h-hf; Dh(Dh<eps)=0; 
+        N=He.*rho.*g.*Dh ;
+        qm=q./m;
+        Nqm=N.^(qm) ; 
+        
+        taubxi=Nqm.*beta2i.*ub ; 
+        taubyi=Nqm.*beta2i.*vb ; 
+        
+        dtaubxdui=Nqm.*(beta2i+Dbeta2i.*ub.*ub);
+        dtaubydvi=Nqm.*(beta2i+Dbeta2i.*vb.*vb);
+        
+        dtaubxdvi=Nqm.*Dbeta2i.*ub.*vb;
+        dtaubydui= dtaubxdvi ;
+        
+        E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
+        
+        dtaubxdhi=  E.*ub;
+        dtaubydhi=  E.*vb;
+        %dtaubxdhi=Nqm.*qm.*beta2i.*ub./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*ub ;
+        %dtaubydhi=Nqm.*qm.*beta2i.*vb./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*vb ;
+        
+        
+    otherwise
+        
+        error("BasalDrag:CaseNotFound","what sliding law?")
+end
 
 
 %% Sea ice drag term : ocean

@@ -49,6 +49,8 @@ classdef UaFields
         rho=[];
         rhow=[];
         
+        q=[]; 
+        
         Co=[];
         mo=[]
         Ca=[];
