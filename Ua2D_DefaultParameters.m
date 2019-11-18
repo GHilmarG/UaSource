@@ -687,6 +687,9 @@ CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution 
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 
+
+%
+CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimization i.e. only if

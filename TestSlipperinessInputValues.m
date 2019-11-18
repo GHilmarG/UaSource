@@ -1,6 +1,10 @@
 
 function [C,m,q]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q)
 
+if nargin<5
+    q=[];
+end
+
 [nC,mC]=size(C);
 [nm,mm]=size(m);
 

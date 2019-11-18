@@ -1,6 +1,39 @@
 
 function CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput)
 
+%%
+%
+% Replaces structure fields in CtrlVar by those in CtrlVarOnInput
+%
+% Limitations:  Only up to three sub-structures are considered.
+%
+% Example:
+%
+%   CrlVar.a="a" ;
+%   CtrlVar.b="b" ;
+%   CtrlVar.c="c" ;
+% 
+%   CtrlVar.Field.a="a";
+%   CtrlVar.Field.b="b";
+%   CtrlVar.Field.c="c";
+% 
+%   CtrlVar.Field.Field.a="a";
+%   CtrlVar.Field.Field.b="b";
+% 
+%   CtrlVar.Field.Field.Field.a="a";  
+% 
+% 
+%   CtrlVarOnInput.a="A";
+%   CtrlVarOnInput.c="C";
+%   CtrlVarOnInput.Field.a="A";
+%   CtrlVarOnInput.Field.Field.b="B";
+% % CtrlVarOnInput.Field.Field.Field.a="A";  % this should generate an error
+%
+%   CtlrVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput); 
+%
+%%
+
+
 Fields0=fieldnames(CtrlVarOnInput);
 for I0 = 1:numel(Fields0)
     if isstruct(CtrlVarOnInput.(Fields0{I0}))

@@ -1,4 +1,10 @@
-function [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
+function [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F)
+
+narginchk(4,4)
+
+
+ % [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)  ; % old
+ % version
 
 %
 %    [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
@@ -18,22 +24,27 @@ function [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
 %
 %
 
-narginchk(7,7)
+
 
 if CtrlVar.CisElementBased
     % project onto nodes
     [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); 
     
-    C=M*C;
-    m=M*m;
+    F.C=M*F.C;
+    F.m=M*F.m;
     
 end
 
 
-beta2=(C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+% beta2=(F.C+CtrlVar.Czero).^(-1./F.m).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1) ;
+% 
+% tbx=F.GF.node.*beta2.*F.ub; 
+% tby=F.GF.node.*beta2.*F.vb;
+% tb=sqrt(tbx.^2+tby.^2);
 
-tbx=GF.node.*beta2.*ub; 
-tby=GF.node.*beta2.*vb;
+He=F.GF.node; delta=[] ; 
+[tbx,tby] = ...
+        BasalDrag(CtrlVar,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g);
 tb=sqrt(tbx.^2+tby.^2);
 
 

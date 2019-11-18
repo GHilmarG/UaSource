@@ -42,12 +42,45 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 %% Basal drag term : ice
 % this drag term is zero if the velocities are zero.
 
-beta2i=(C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+beta2i=(C+CtrlVar.Czero).^(-1./m).*U ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+
+%
+% 
+% 
 
 
 % Dbeta2i is zero for m=1.
 Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
 He=He+CtrlVar.HeZero ; % Regularisation
+
+if CtrlVar.Inverse.dFuvdClambda
+    
+    switch CtrlVar.SlidingLaw
+        case {"Weertman","tauPower"}
+            
+            % tau = He * (C+CtrlVar.Czero).^(-1./m)   * U
+            
+            dFuvdC =  He.*(1./m) .* (C+CtrlVar.Czero).^(-1./m-1) .*U;
+            
+        case {"Budd","tauPowerNperfectPower"}
+            
+            
+            % tau = Nqm * (C+CtrlVar.Czero).^(-1./m)   * U
+            
+            hf=rhow.*H./rho;
+            Dh=h-hf; Dh(Dh<eps)=0;
+            N=He.*rho.*g.*Dh ;
+            qm=q./m;
+            Nqm=N.^(qm) ;
+            
+            dFuvdC= Nqm.*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
+            
+    end
+    taubx=dFuvdC;
+    return
+end
+
 
 switch CtrlVar.SlidingLaw
     
@@ -59,43 +92,49 @@ switch CtrlVar.SlidingLaw
         
         taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
         taubyi=He.*beta2i.*vb;
-
+        
         
         % Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
         
-        dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
-        dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
-        
-        dtaubxdvi=He.*Dbeta2i.*ub.*vb;
-        dtaubydui=dtaubxdvi;
-        
-        dtaubxdhi=delta.*beta2i.*ub ;
-        dtaubydhi=delta.*beta2i.*vb ;
+        if nargout>2
+            dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
+            dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+            
+            dtaubxdvi=He.*Dbeta2i.*ub.*vb;
+            dtaubydui=dtaubxdvi;
+            
+            dtaubxdhi=delta.*beta2i.*ub ;
+            dtaubydhi=delta.*beta2i.*vb ;
+        end
         
     case {"Budd","tauPowerNperfectPower"}
-     
+        
         hf=rhow.*H./rho;
-        Dh=h-hf; Dh(Dh<eps)=0; 
+        Dh=h-hf; Dh(Dh<eps)=0;
         N=He.*rho.*g.*Dh ;
         qm=q./m;
         Nqm=N.^(qm) ; 
         
         taubxi=Nqm.*beta2i.*ub ; 
-        taubyi=Nqm.*beta2i.*vb ; 
+        taubyi=Nqm.*beta2i.*vb ;
         
-        dtaubxdui=Nqm.*(beta2i+Dbeta2i.*ub.*ub);
-        dtaubydvi=Nqm.*(beta2i+Dbeta2i.*vb.*vb);
-        
-        dtaubxdvi=Nqm.*Dbeta2i.*ub.*vb;
-        dtaubydui= dtaubxdvi ;
-        
-        E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
-        
-        dtaubxdhi=  E.*ub;
-        dtaubydhi=  E.*vb;
-        %dtaubxdhi=Nqm.*qm.*beta2i.*ub./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*ub ;
-        %dtaubydhi=Nqm.*qm.*beta2i.*vb./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*vb ;
-        
+        if nargout>2
+            
+            dtaubxdui=Nqm.*(beta2i+Dbeta2i.*ub.*ub);
+            dtaubydvi=Nqm.*(beta2i+Dbeta2i.*vb.*vb);
+            
+            dtaubxdvi=Nqm.*Dbeta2i.*ub.*vb;
+            dtaubydui= dtaubxdvi ;
+            
+            E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
+            
+            dtaubxdhi=  E.*ub;
+            dtaubydhi=  E.*vb;
+            %dtaubxdhi=Nqm.*qm.*beta2i.*ub./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*ub ;
+            %dtaubydhi=Nqm.*qm.*beta2i.*vb./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*vb ;
+      
+            
+        end
         
     otherwise
         
@@ -185,15 +224,17 @@ end
 taubx=taubxi+taubxo+taubxa ;
 tauby=taubyi+taubyo+taubya ;
 
-dtaubxdu=dtaubxdui+dtaubxduo+dtaubxdua;
-dtaubxdv=dtaubxdvi+dtaubxdvo+dtaubxdva;
-
-dtaubydu=dtaubydui+dtaubyduo+dtaubydua;
-dtaubydv=dtaubydvi+dtaubydvo+dtaubydva;
-
-dtaubxdh=dtaubxdhi+dtaubxdho+dtaubxdha;
-dtaubydh=dtaubydhi+dtaubydho+dtaubydha;
-
+if nargout>2
+    dtaubxdu=dtaubxdui+dtaubxduo+dtaubxdua;
+    dtaubxdv=dtaubxdvi+dtaubxdvo+dtaubxdva;
+    
+    dtaubydu=dtaubydui+dtaubyduo+dtaubydua;
+    dtaubydv=dtaubydvi+dtaubydvo+dtaubydva;
+    
+    dtaubxdh=dtaubxdhi+dtaubxdho+dtaubxdha;
+    dtaubydh=dtaubydhi+dtaubydho+dtaubydha;
+    
+end
 
 
 end
