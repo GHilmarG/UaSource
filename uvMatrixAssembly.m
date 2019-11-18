@@ -101,6 +101,10 @@ if ~CtrlVar.CisElementBased
     Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
     mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
+    if ~isempty(F.q)
+        qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    end
+    
     if CtrlVar.IncludeMelangeModelPhysics
         Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
         monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -172,6 +176,7 @@ for Iint=1:MUA.nip
         
         Cint=F.C;
         mint=F.m;
+        qint=F.q;
         if CtrlVar.IncludeMelangeModelPhysics
             Coint=F.Co;
             moint=F.mo;
@@ -183,6 +188,12 @@ for Iint=1:MUA.nip
         Cint=Cnod*fun;
         Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
         mint=mnod*fun;
+        
+        if ~isempty(F.q)
+            qint=qnod*fun;
+        else
+            qint=[];
+        end
         
         if CtrlVar.IncludeMelangeModelPhysics
             Coint=Conod*fun;
@@ -247,7 +258,8 @@ for Iint=1:MUA.nip
     
     
 
-    [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
+    [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
+        BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
     
     

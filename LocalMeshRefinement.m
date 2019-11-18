@@ -83,7 +83,7 @@ end
 
 switch CtrlVar.MeshRefinementMethod
     
-    case {'explicit:local:red-green','explicit:local'}
+    case {'explicit:local:red-green'}
         
         
         RunInfo.MeshAdapt.Method='Red-Green Refinement';

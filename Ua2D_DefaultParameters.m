@@ -17,7 +17,8 @@ function CtrlVar=Ua2D_DefaultParameters
 
 
 %%
-
+CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
+%%
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
@@ -47,10 +48,14 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
 CtrlVar.UseUserDefinedRunStopCriterion=false ;  
                               
 %% Ice flow approximation
-CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
+CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
 
+%% Sliding law
+CtrlVar.SlidingLaw="Weertman" ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -100,8 +105,8 @@ CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
-CtrlVar.TriNodes=6 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
-
+CtrlVar.TriNodes=3 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
+CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
@@ -582,6 +587,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
@@ -972,9 +979,9 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 %
 %
 %
-%CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
-CtrlVar.MeshGenerator='mesh2d';  % this is the deault option 
-
+%CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}
+CtrlVar.MeshGenerator="mesh2d";  % this is the deault option 
+CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"]; 
 %% Options related to the use of the gmsh external mesh generator
 
 
@@ -1262,9 +1269,10 @@ CtrlVar.RefineMeshOnStart=0;
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
-                                                   % 'explicit:local'
                                                    % 'explicit:local:red-green'
                                                    % 'explicit:local:newest vertex bisection';
+                                                   
+CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green"];
                                                    
 %  
 % `explicit:global' implies a global remeshing of the whole domain. This is a

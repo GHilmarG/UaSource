@@ -1,5 +1,5 @@
 
-function [C,m]=TestSlipperinessInputValues(CtrlVar,MUA,C,m)
+function [C,m,q]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q)
 
 [nC,mC]=size(C);
 [nm,mm]=size(m);
@@ -25,7 +25,17 @@ if numel(m)==1
     end
 end
 
-
+if ~isempty(q)
+    
+    if numel(q)==1
+        %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+        if  CtrlVar.CisElementBased
+            q=q+zeros(MUA.Nele,1);
+        else
+            q=q+zeros(MUA.Nnodes,1);
+        end
+    end
+end
 
 if CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly
     
