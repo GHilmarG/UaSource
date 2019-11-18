@@ -100,7 +100,8 @@ switch CtrlVar.AsymmSolver
         %         end
         
         % scale A
-        factor=1./sqrt(full(mean(abs(diag(A*A')))));
+        %factor=1./sqrt(full(mean(abs(diag(A*A')))));
+        factor=1./(full(mean(abs(diag(A))))); 
         A=factor*A ; f=factor*f ;  % this leaves x unaffected but y is scaled
         
         
