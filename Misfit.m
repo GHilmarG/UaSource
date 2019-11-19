@@ -54,7 +54,9 @@ DCJ=[];
 dIdp=[] ;
 ddIddp=sparse(1,1);
 
-
+MisfitOuts.dIduv=[];
+MisfitOuts.uAdjoint=[];
+MisfitOuts.vAdjoint=[];
 
 
 
@@ -187,6 +189,7 @@ MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
 
+
 %% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C or B).
 %
 % This is a bit tricky because I=I(u(p))
@@ -202,7 +205,8 @@ if CtrlVar.Inverse.CalcGradI
                 
                 case 'C'
                     
-                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
+                    %dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
+                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
                     np=numel(dIdp); ddIddp=sparse(np,np);
                     dCJ=0 ;
                     DCJ=dCFuvLambda+dCJ;
