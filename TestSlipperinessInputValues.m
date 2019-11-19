@@ -21,7 +21,7 @@ end
 
 
 if numel(m)==1
-    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+ 
     if  CtrlVar.CisElementBased
         m=m+zeros(MUA.Nele,1);
     else
@@ -32,7 +32,7 @@ end
 if ~isempty(q)
     
     if numel(q)==1
-        %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+  
         if  CtrlVar.CisElementBased
             q=q+zeros(MUA.Nele,1);
         else

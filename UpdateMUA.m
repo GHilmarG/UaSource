@@ -118,9 +118,9 @@ if MeshHasChanged
     end
     
     
-    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-        MUA.L=chol(MUA.M,'upper');
-    end
+   % if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+   %     MUA.L=chol(MUA.M,'upper');
+   % end
     
     
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
@@ -174,9 +174,9 @@ if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    MUA.L=chol(MUA.M,'upper');
-end
+% if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+%    MUA.L=chol(MUA.M,'upper');
+% end
 
 if ~isfield(MUA,'xEle')
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
