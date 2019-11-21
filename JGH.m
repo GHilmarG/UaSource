@@ -2,10 +2,19 @@ function [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,In
 
 % Calculates objective function, gradient (accurate), Hessian (guessed)
 
-narginchk(14,14)
-
-
 persistent ubP vbP
+
+narginchk(14,14)
+CtrlVar.nargoutJGH=nargout;
+
+if nargout==1
+    CtrlVar.Inverse.CalcGradI=false;
+    CtrlVar.Inverse.CalcGradR=false;
+else
+    CtrlVar.Inverse.CalcGradI=true;
+    CtrlVar.Inverse.CalcGradR=true;
+end
+
 
 if CtrlVar.Inverse.ResetPersistentVariables
     ubP=[];

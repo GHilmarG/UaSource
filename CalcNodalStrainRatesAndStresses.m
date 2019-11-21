@@ -1,4 +1,6 @@
-function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
+function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
+
+narginchk(4,4)
 
 %%
 % Calculates strains and devitoric stresses.
@@ -45,13 +47,13 @@ function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStress
 %%
 
 
-[tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF); % returns nodal values
-[etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n); % returns integration point values
+[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F); % returns nodal values
+[etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
 ndim=2; neq=MUA.Nnodes;
 
-bnod=reshape(b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-snod=reshape(s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 

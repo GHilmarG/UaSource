@@ -6,6 +6,7 @@ classdef InversionValues
         
         m=[];
         n=[];
+        q=[];
         C=[];
         AGlen=[];
         B=[];

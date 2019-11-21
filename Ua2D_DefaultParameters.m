@@ -687,6 +687,9 @@ CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution 
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 
+
+%
+CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimization i.e. only if
@@ -1651,7 +1654,8 @@ CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
-                                
+         
+CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
 
 

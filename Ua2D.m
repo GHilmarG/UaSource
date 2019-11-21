@@ -114,11 +114,9 @@ if  ~isempty(CtrlVarOnInput)
     % now overwrite the changes to CtrlVar in Ua2D_InitialUserInput using the fields
     % of the input CtrlVarOnInput.
     fprintf("\n ===== The fields of CtrlVar given as input to Ua replace corresponding fields of CtrlVar defined in Ua2D_InitialUserInput.m \n")
-    if ~isempty(CtrlVarOnInput)
-        for fn = fieldnames(CtrlVarOnInput)'
-            CtrlVar.(fn{1}) = CtrlVarOnInput.(fn{1});
-        end
-    end
+    
+    CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput);
+
 end
 
 

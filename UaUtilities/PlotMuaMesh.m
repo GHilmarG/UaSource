@@ -66,9 +66,11 @@ if ~isfield(CtrlVar,'WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo')
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 end
 
-if nargin<3  || isempty(ElementList)
+if nargin<3  
     ElementList=1:MUA.Nele;
 end
+
+
 
 if ischar(ElementList) && nargin==3
     % silently ignore the fact that the user clearly did not read the comments and 

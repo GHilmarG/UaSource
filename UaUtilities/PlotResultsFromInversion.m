@@ -196,7 +196,8 @@ end
 
 
 %%
-[tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,InvFinalValues.C,InvFinalValues.m,GF) ;
+F.C=InvFinalValues.C; % this should already have been updated internally in Ua
+[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
 figure
 PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
 title(' tb ') ; cbar=colorbar; title(cbar, '(kPa)');
