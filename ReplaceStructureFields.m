@@ -21,13 +21,18 @@ function CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput)
 %   CtrlVar.Field.Field.b="b";
 % 
 %   CtrlVar.Field.Field.Field.a="a";  
-% 
+%   CtrlVar.Field.Field.Field.a="b";
+%
+%   CtrlVar.Field.Field.Field.Field.a="a";
 % 
 %   CtrlVarOnInput.a="A";
 %   CtrlVarOnInput.c="C";
 %   CtrlVarOnInput.Field.a="A";
 %   CtrlVarOnInput.Field.Field.b="B";
-% % CtrlVarOnInput.Field.Field.Field.a="A";  % this should generate an error
+%   CtrlVarOnInput.Field.Field.Field.a="A";  
+%
+% % CtrlVarOnInput.Field.Field.Field.Field.a="A";  % this should generate an error
+%
 %
 %   CtlrVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput); 
 %
@@ -43,7 +48,15 @@ for I0 = 1:numel(Fields0)
                 Fields2=fieldnames(CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}));
                 for I2 = 1:numel(Fields2)
                     if isstruct(CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}).(Fields2{I2}))
-                        error('only two sub structures allowed')
+                        Fields3=fieldnames(CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}).(Fields2{I2}));
+                        for I3 = 1:numel(Fields3)
+                            if isstruct(CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}).(Fields2{I2}).(Fields3{I3}))
+                                error('only three sub structures allowed')
+                            else
+                                CtrlVar.(Fields0{I0}).(Fields1{I1}).(Fields2{I2}).(Fields3{I3})=CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}).(Fields2{I2}).(Fields3{I3});
+                            end
+                        end
+                        
                     else
                         CtrlVar.(Fields0{I0}).(Fields1{I1}).(Fields2{I2})=CtrlVarOnInput.(Fields0{I0}).(Fields1{I1}).(Fields2{I2});
                     end
