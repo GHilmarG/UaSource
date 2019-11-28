@@ -9,13 +9,14 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 % 
 % Calculate volume of ice:
 %
-%   Int=FEintegrate2D([],MUA,h); TotalIceVolume=sum(Int)
+%   Int=FEintegrate2D([],MUA,h); 
+%   TotalIceVolume=sum(Int)
 % 
 % Calculate grounded area:
 %
 %   Int=FEintegrate2D([],MUA,GF.node); GroundedArea=sum(Int);
 % 
-% 
+%% 
 
 ndim=2; 
 

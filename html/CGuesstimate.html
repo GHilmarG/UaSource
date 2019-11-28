@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CGuesstimate</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-27"><meta name="DC.source" content="CGuesstimate.m"><style type="text/css">
+      --><title>CGuesstimate</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-28"><meta name="DC.source" content="CGuesstimate.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,17 +68,14 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MUA,F,GF,Meas,CorrelationDistance)
 </pre><pre class="language-matlab">[UserVar,CGuess,DrivingStress]=CGuesstimate(UserVar,CtrlVar,MUA,F,GF,Meas,CorrelationDistance)
-</pre><p>Provides a rough estimate of C based on measured surface velocities and an estimate of driving stress.</p><p>Returns</p><pre class="language-matlab">C=speed/DrivingStress^m
-</pre><pre class="codeinput"><span class="comment">% Optionally, smooths estimate using Helmholtz smoothing for a given Matern correlation</span>
-<span class="comment">% distance.</span>
-<span class="comment">%</span>
-</pre><pre class="codeinput"><span class="comment">% Calc surface gradient</span>
+</pre><p>Provides a rough estimate of C based on measured surface velocities and an estimate of driving stress assuming Weertman sliding law. Can easily be modifed to include Budd or other Robin type BCs.</p><p>Returns</p><pre class="language-matlab">C=speed/DrivingStress^m
+</pre><p>Optionally, smooths estimate using Helmholtz smoothing for a given Matern correlation distance.</p><pre class="codeinput"><span class="comment">% Calc surface gradient</span>
 
 [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
 [dsdx,dsdy]=ProjectFintOntoNodes(MUA,dsdx,dsdy);
 
 <span class="keyword">if</span> ~isfield(CtrlVar,<span class="string">'SurfaceSlopeMin'</span>)
-    CtrlVar.SurfaceSlopeMin=1e-2;
+    CtrlVar.SurfaceSlopeMin=1e-4;
 <span class="keyword">end</span>
 
 
@@ -122,12 +119,13 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 %   [UserVar,CGuess,DrivingStress]=CGuesstimate(UserVar,CtrlVar,MUA,F,GF,Meas,CorrelationDistance)
 %
 % Provides a rough estimate of C based on measured surface velocities and
-% an estimate of driving stress.
+% an estimate of driving stress assuming Weertman sliding law. Can easily be
+% modifed to include Budd or other Robin type BCs. 
 %
 % Returns
 %
 %   C=speed/DrivingStress^m
-
+%
 % Optionally, smooths estimate using Helmholtz smoothing for a given Matern correlation
 % distance.
 %
@@ -139,7 +137,7 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 [dsdx,dsdy]=ProjectFintOntoNodes(MUA,dsdx,dsdy);
 
 if ~isfield(CtrlVar,'SurfaceSlopeMin')
-    CtrlVar.SurfaceSlopeMin=1e-2;
+    CtrlVar.SurfaceSlopeMin=1e-4;
 end
 
 

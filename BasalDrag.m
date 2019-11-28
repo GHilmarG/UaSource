@@ -1,5 +1,5 @@
 function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
-        BasalDrag(CtrlVar,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g)
+    BasalDrag(CtrlVar,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g)
 
 
 %%
@@ -19,7 +19,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 %   [ Delta tby ]         [Delta v]
 %                         [Delta h]
 %
-% where 
+% where
 %
 %  M = [ dtaubxdu   dtaubxdv   dtaubxdh ]
 %      [ dtaubydu   dtaubydv   dtaubydh ]
@@ -46,13 +46,19 @@ U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 beta2i=(C+CtrlVar.Czero).^(-1./m).*U ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 
 %
-% 
-% 
+%
+%
 
 
 % Dbeta2i is zero for m=1.
 Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
 He=He+CtrlVar.HeZero ; % Regularisation
+
+
+if ~isfield(CtrlVar,"SlidingLaw")
+    CtrlVar.SlidingLaw="tauPower";
+end
+
 
 if CtrlVar.Inverse.dFuvdClambda
     
@@ -113,9 +119,9 @@ switch CtrlVar.SlidingLaw
         Dh=h-hf; Dh(Dh<eps)=0;
         N=He.*rho.*g.*Dh ;
         qm=q./m;
-        Nqm=N.^(qm) ; 
+        Nqm=N.^(qm) ;
         
-        taubxi=Nqm.*beta2i.*ub ; 
+        taubxi=Nqm.*beta2i.*ub ;
         taubyi=Nqm.*beta2i.*vb ;
         
         if nargout>2
@@ -132,7 +138,7 @@ switch CtrlVar.SlidingLaw
             dtaubydhi=  E.*vb;
             %dtaubxdhi=Nqm.*qm.*beta2i.*ub./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*ub ;
             %dtaubydhi=Nqm.*qm.*beta2i.*vb./(Dh+eps)  + qm.*delta.*N.^(qm-1).*rho.*g.*Dh.*beta2i.*vb ;
-      
+            
             
         end
         
