@@ -18,7 +18,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
-        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','GF','l');
+        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','l');
         
         MUAold=MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
@@ -189,7 +189,7 @@ BCs=BoundaryConditions;
 
 if CtrlVar.IncludeMelangeModelPhysics
     fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')
-    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
 end
 
 
