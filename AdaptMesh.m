@@ -59,7 +59,7 @@ else
     isAdaptMeshRunStepInterval=false;
 end
 
-isAdaptMeshRunStepInterval && isAdaptMeshTime
+
 %%
 
 isMeshAdapt=CtrlVar.AdaptMesh  ...
