@@ -23,6 +23,17 @@ if nargin<5 || isempty(FieldsToBeDefined)
     FieldsToBeDefined='sbSB';
 end
 
+% Note: GF can not be calculated without knowing both the geometrical variables (s,b,S,B) returned by
+% DefineGeometry.m and the densities (rho, rhow) returned by DefineDensities.m 
+
+if ~isempty(F.GF)
+    
+    if ~isequal(numel(F.GF.node),MUA.Nnodes)
+        error('InternalUAerror: numel(F.GF.node) ~= MUA.Nnodes') 
+    end
+end
+
+
 if ~(FieldsToBeDefined=="")
     
     nArgs=nargin('DefineGeometry');

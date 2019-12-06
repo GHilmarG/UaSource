@@ -38,7 +38,7 @@ end
 bx=zeros(MUA.Nele,MUA.nod);
 by=zeros(MUA.Nele,MUA.nod);
 
-MLC=BCs2MLC(MUA,BCs); Ludvd=MLC.udvdL ; Ludvdrhs=MLC.udvdRhs;
+MLC=BCs2MLC(CtrlVar,MUA,BCs); Ludvd=MLC.udvdL ; Ludvdrhs=MLC.udvdRhs;
 
 % vector over all elements for each integration point
 for Iint=1:MUA.nip

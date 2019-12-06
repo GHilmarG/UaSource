@@ -3,6 +3,8 @@ classdef UaFields
   
     properties
         
+        x=[];
+        y=[];
         
         ub=[];
         vb=[];
@@ -46,6 +48,8 @@ classdef UaFields
         n=[];
         rho=[];
         rhow=[];
+        
+        q=[]; 
         
         Co=[];
         mo=[]

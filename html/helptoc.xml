@@ -17,6 +17,8 @@
             <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
             <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
             <tocitem target="DefineElementsToDeactivate.html">Manual deactivation of elements </tocitem>
+            <tocitem target="DefineRunStopCriterion.html">Define exit criterion from run-step loop for both a forward time-independent and time-dependent runs</tocitem>
+            <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="UaOutputs.html">Output </tocitem>
@@ -43,7 +45,11 @@
                 <tocitem target="CalcNodalStrainRates.html">Calculate nodal strain rates</tocitem>
                 <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
+                <tocitem target="CalcVAF.html">Calculate ice volume above flotation (VAF), ice volume and grounded area </tocitem>
                 <tocitem target="TracerConservationEquation.html">Tracer Conservation Equation</tocitem>
+                <tocitem target="Matern.html">Matern covariance</tocitem>
+                <tocitem target="CGuesstimate.html">C Guesstimation</tocitem>
+                <tocitem target="LakeOrOcean.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

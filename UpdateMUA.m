@@ -103,18 +103,24 @@ if MeshHasChanged
     end
     
     
-    if CtrlVar.MUA.MassMatrix
+    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
         MUA.M=MassMatrix2D1dof(MUA);
     end
+    
+    if CtrlVar.MUA.DecomposeMassMatrix
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+    end
+    
+    
     
     if CtrlVar.MUA.StiffnessMatrix
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
     end
     
     
-    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-        MUA.L=chol(MUA.M,'upper');
-    end
+   % if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+   %     MUA.L=chol(MUA.M,'upper');
+   % end
     
     
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
@@ -154,17 +160,23 @@ if CtrlVar.CalcMUA_Derivatives
 end
 
 
-if  CtrlVar.MUA.MassMatrix && ~isfield(MUA,'M')
+if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) && ~isfield(MUA,'M')
     MUA.M=MassMatrix2D1dof(MUA);
 end
+
+
+if CtrlVar.MUA.DecomposeMassMatrix  && ~isfield(MUA,'dM')
+    MUA.dM=decomposition(MUA.M,'chol','upper') ;
+end
+
 
 if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    MUA.L=chol(MUA.M,'upper');
-end
+% if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+%    MUA.L=chol(MUA.M,'upper');
+% end
 
 if ~isfield(MUA,'xEle')
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);

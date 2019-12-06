@@ -17,7 +17,8 @@ function CtrlVar=Ua2D_DefaultParameters
 
 
 %%
-
+CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
+%%
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
@@ -43,19 +44,25 @@ CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.
                                           % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
                                           % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
                                           % not the total accumulated number of forward run steps.
+                                          
+CtrlVar.UseUserDefinedRunStopCriterion=false ;  
                               
 %% Ice flow approximation
-CtrlVar.FlowApproximation='SSTREAM' ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
+CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
 
+%% Sliding law
+CtrlVar.SlidingLaw="Weertman" ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
                                                    % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
                                                    % the boundary conditions are updated through a call to DefineBoundaryConditions.m
-CtrlVar.BCsWeights=1;  % testing parameter, do not change
-
+CtrlVar.BCsWeights=1;     % test parameter, do not change
+CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
@@ -98,8 +105,8 @@ CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
-CtrlVar.TriNodes=6 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
-
+CtrlVar.TriNodes=3 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
+CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
@@ -186,7 +193,7 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 
 
 %% Numerical variables related to transient runs
-% In general there should be no need to ever change these values except for testing purposes
+% In general there should be no need to ever change these values except for test purposes
 %
 % Transient runs can be done either (fully) implicitly, or semi-implicitly
 % In a (fully) implicit approach, the time-integration is done implicitly with respect to both velocities and thickness.
@@ -245,7 +252,7 @@ CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %
 switch lower(CtrlVar.FlowApproximation)
     case 'sstream'
-        CtrlVar.Cmin=1e-6;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=1e-20;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
     otherwise
         CtrlVar.Cmin=0;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
 end
@@ -344,7 +351,19 @@ CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size 
 CtrlVar.BackTrackMinXfrac=1e-10 ;         % exit backtracking if pos. of minimum is changing by less than this fraction of initial step 
 CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evaluations of cost function resulted in no further decrease of cost function
     
+% Limit stepsize based on quadradic/cubic interpolation to these lower/upper
+% limits withing the current lower/upper range.
+CtrlVar.BackTrackGuardLower=0.25;
+CtrlVar.BackTrackGuardUpper=0.95;
 
+% Backtracking continues even if target has been reached if last reduction in
+% ratio is smaller than:
+CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
+% The ratio is CurrentValue/LastValue, so smaller ratio means greater reduction.                  
+% Note: The inital target is CtrlVar.NewtonAcceptRatio, and
+% after that target=f(0)+CtrlVar.BackTrackBeta slope step 
+% CurrentValue/InitalValue < CtrlVar.NewtonAcceptRatio
+% unless some other exit critera are reached. 
 
 %% Lin equation solver parameters
 %
@@ -437,10 +456,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 % are both true.
 %
-%   0  : no information on adaptive meshing printed.
-% >=5  : plots on desired element sizes and elements to be subdivided or
-%        coarsened
-% >=10 : Further plots on changes in mesh during an adapt mesh iteration produced. 
+%   0   : no information on adaptive meshing printed.
+% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
@@ -569,6 +587,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
@@ -586,6 +606,7 @@ CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 % 
 % To select which types of surface measurements to use in the inversion set: 
 CtrlVar.Inverse.Measurements='-uv-' ;  % {'-uv-,'-uv-dhdt-','-dhdt-'}
+
 
 %%
 % It is usually better to invert for log(A) and log(C) rather than A and C.
@@ -624,6 +645,18 @@ CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change.
 %
 % Default is Tikhonov regularization on log(A) and log(C)
 %
+
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" 
+%
+% If using Bayesian inverse methodology the covariance matrix of the priors MUST
+% be defined, and it can be dense (although computationally doing so might slow
+% the run considerably.)
+%
+% If using Tikhonov inverse methodology the covariance matrix of the priors CAN
+% be defined, but must be diagonal.
+%
+
+
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %%
@@ -655,6 +688,9 @@ CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution 
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
 CtrlVar.Inverse.Regularize.Multiplier=1;
 
+
+%
+CtrlVar.Inverse.dFuvdClambda=false;  % internal control variable, do not change
 %%
 % [----------  The following parameters are only relevant if using the
 % UaOptimization i.e. only if
@@ -947,9 +983,9 @@ CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no
 %
 %
 %
-%CtrlVar.MeshGenerator='gmsh';  % possible values: {mesh2d|gmsh}
-CtrlVar.MeshGenerator='mesh2d';  % this is the deault option 
-
+%CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}
+CtrlVar.MeshGenerator="mesh2d";  % this is the deault option 
+CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"]; 
 %% Options related to the use of the gmsh external mesh generator
 
 
@@ -1021,8 +1057,9 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % MeshBoundaryCoordinatates).
 
 %% Options related to the Ua mesh structure variable MUA
-CtrlVar.MUA.MassMatrix=false;       % true if the mass matrix is to be computed and stored as a part of MUA
-CtrlVar.MUA.StiffnessMatrix=false;  % true if the stiffness matrices is to be computed and stored as a part of MUA
+CtrlVar.MUA.MassMatrix=false ;       % true if the mass matrix is to be computed and stored as a part of MUA
+CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
+CtrlVar.MUA.DecomposeMassMatrix=false ;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1058,6 +1095,10 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                             % the calculation is not stopped. (In many cases there is no need to wait for
                                             % full convergence of the active-set method for each time step.)
                                             % if set to 0, then the active set is updated once and then proceed to next time step.
+                                            
+CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
+                                            % Limit the number of such cycles and exist loop.
+                                            
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; %
@@ -1232,9 +1273,10 @@ CtrlVar.RefineMeshOnStart=0;
 CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
-                                                   % 'explicit:local'
                                                    % 'explicit:local:red-green'
                                                    % 'explicit:local:newest vertex bisection';
+                                                   
+CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green"];
                                                    
 %  
 % `explicit:global' implies a global remeshing of the whole domain. This is a
@@ -1269,8 +1311,44 @@ CtrlVar.ManuallyDeactivateElements=0;
 %
 
 CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
-CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation 
-CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adaptation 
+
+
+% one can specify how often the mesh is adapted during a run by specifying:
+%   a) the number of run-steps, and
+%   b) the time intervale
+% between mesh adaptations.
+%
+CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation (zero value means this condition is always true)
+CtrlVar.AdaptMeshTimeInterval=0    ; % Time interval between between mesh adaptation (zero value means this condition is always true)
+%
+% Mesh adaptation is only done if BOTH are true. 
+%
+% Example: 
+%
+% Mesh adaptation every 5th runstep irrespectivly of time:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=5 ; CtrlVar.AdaptMeshTimeInterval=0  ;
+%  
+%   
+% Mesh adaptation every second year irrespectivly of runstep number:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=0 ; CtrlVar.AdaptMeshTimeInterval=2  ;
+%  
+%   
+% Mesh adaptation every runstep:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=0 ; CtrlVar.AdaptMeshTimeInterval=0  ;
+%  
+%   
+% Mesh adaptation done only if runstep is a multiple of 5 and time a multiple of 3
+%
+%      CtrlVar.AdaptMeshRunStepInterval=5 ; CtrlVar.AdaptMeshTimeInterval=3  ;
+%  
+% Note that this option is unlikely to be what you would ever want. Hence,
+% generally specify one of these options to be always true (by setting the
+% respectiv value to 0) so that the other option controls the adapt meshing
+% interval. 
+
 CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 
@@ -1470,6 +1548,7 @@ CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be mo
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
@@ -1612,7 +1691,8 @@ CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
-                                
+         
+CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
 
 

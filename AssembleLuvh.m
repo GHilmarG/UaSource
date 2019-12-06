@@ -1,6 +1,8 @@
 
-function [L,Lrhs,l]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,luv,lh,Nnodes)
+function [L,Lrhs,l]=AssembleLuvh(Luv,Lh,cuv,ch,luv,lh,Nnodes)
 	
+error('AssembleLuvh:obsolete','AssembleLuvh no longer used. Consider using AssembleLuvhSSTREAM.m instead')
+
 	% Luv  : #uv constrains x 2Nnodes
 	% Lh  : #h constrains x Nnodes
 	% L=[Luv 0]
@@ -13,16 +15,16 @@ function [L,Lrhs,l]=AssembleLuvh(Luv,Lh,Luvrhs,Lhrhs,luv,lh,Nnodes)
 	
 	if isempty(Lh) && ~isempty(Luv)
 		L=[Luv sparse(nu,Nnodes)] ; 
-		Lrhs=Luvrhs ;
+		Lrhs=cuv ;
 		l=luv;
 	elseif ~isempty(Lh) && isempty(Luv)
 		L=[sparse(nh,2*Nnodes) Lh] ; 
-		Lrhs=Lhrhs ;
+		Lrhs=ch ;
 		l=lh;
 	elseif ~isempty(Lh) && ~isempty(Luv)
        
 		L=[ Luv sparse(nu,Nnodes) ; sparse(nh,2*Nnodes) Lh];
-		Lrhs=[Luvrhs;Lhrhs];
+		Lrhs=[cuv;ch];
 		l=[luv;lh];
 	else
 		L=[] ; Lrhs=[] ; l=[];

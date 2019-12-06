@@ -1,4 +1,4 @@
-function [J,dJdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
+function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
 %
@@ -51,10 +51,12 @@ DAJ=[];
 DBJ=[];
 DCJ=[];
 
-dJdp=[] ;
+dIdp=[] ;
 ddIddp=sparse(1,1);
 
-
+MisfitOuts.dIduv=[];
+MisfitOuts.uAdjoint=[];
+MisfitOuts.vAdjoint=[];
 
 
 
@@ -170,7 +172,7 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
         
 end
 
-J=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
+I=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
 duvJduv=[duJdu(:)+duJhdot(:);dvJdv(:)+dvJhdot(:)];
 
 if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
@@ -185,6 +187,7 @@ end
 MisfitOuts.dIduv=duvJduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
+
 
 
 %% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C or B).
@@ -202,8 +205,9 @@ if CtrlVar.Inverse.CalcGradI
                 
                 case 'C'
                     
-                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
-                    np=numel(dJdp); ddIddp=sparse(np,np);
+                    %dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
+                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
+                    np=numel(dIdp); ddIddp=sparse(np,np);
                     dCJ=0 ;
                     DCJ=dCFuvLambda+dCJ;
                     
@@ -211,7 +215,7 @@ if CtrlVar.Inverse.CalcGradI
                     
                     
                     dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
-                    np=numel(dJdp); ddIddp=sparse(np,np);
+                    np=numel(dIdp); ddIddp=sparse(np,np);
                     dBJ=0;
                     DBJ=dBFuvLambda+dBJ;
                     
@@ -254,7 +258,7 @@ if CtrlVar.Inverse.CalcGradI
             
             
             
-            MLC_Adjoint=BCs2MLC(MUA,BCsAdjoint);
+            MLC_Adjoint=BCs2MLC(CtrlVar,MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
@@ -339,7 +343,9 @@ if CtrlVar.Inverse.CalcGradI
                             dCFuvLambda=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                             np=numel(F.C); ddIddp=sparse(ones(np,1),1:np,1:np);
                         else
-                            dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                            
+                             dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint);
+                            %dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end
                 end
                 dCJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
@@ -360,7 +366,7 @@ if CtrlVar.Inverse.CalcGradI
                         if CtrlVar.AGlenisElementBased
                             
                             dAFuvLambda=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                            np=numel(dJdp); ddIddp=sparse(ones(np,1),1:np,1:np);
+                            np=numel(dIdp); ddIddp=sparse(ones(np,1),1:np,1:np);
                             
                         else
                             dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
@@ -445,10 +451,10 @@ if CtrlVar.Inverse.CalcGradI
         
         
         case {'0','O'}
-            np=numel(dJdp);
+            np=numel(dIdp);
             ddIddp=sparse(np,np);
         case {'1','I'}
-            np=numel(dJdp);
+            np=numel(dIdp);
             ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
         case 'M'
             ddIddp=Hscale*MUA.M;
@@ -458,15 +464,15 @@ if CtrlVar.Inverse.CalcGradI
     switch CtrlVar.Inverse.InvertForField
         
         case 'A'
-            dJdp=DAJ;
+            dIdp=DAJ;
         case 'b'
             error('fdsa')
         case 'B'
-            dJdp=DBJ;
+            dIdp=DBJ;
         case 'C'
-            dJdp=DCJ;
+            dIdp=DCJ;
         case 'AC'
-            dJdp=[DAJ;DCJ];
+            dIdp=[DAJ;DCJ];
         otherwise
             
             error('sdfsa')
@@ -476,22 +482,22 @@ if CtrlVar.Inverse.CalcGradI
     
 else
     
-    dJdp=0;
+    dIdp=0;
     
 end
 
-J=CtrlVar.Inverse.DataMisfit.Multiplier*J;
+I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 
 if nargout>1
     
-    dJdp=CtrlVar.Inverse.DataMisfit.Multiplier*dJdp;
+    dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
     ddIddp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIddp;
     
 end
 
 
 if nargout>3
-    MisfitOuts.I=J;
+    MisfitOuts.I=I;
     MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCJ;
     MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAJ;
     MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBJ;

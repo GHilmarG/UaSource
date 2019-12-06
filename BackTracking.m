@@ -40,7 +40,7 @@ else
 end
 
 
-if fb<target
+if fb<target 
     
     gamma=b; fgamma=fb; Iteration=0; fc=NaN; fmin=fb ; gmin=b ; c=NaN ;
     InfoVector(1:2,1)=[0 ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ;
@@ -83,6 +83,7 @@ ExtrapolationRatio=2.5;
 MinXfrac=1e-10*b; % exit if change in x as a fraction of initial interval smaller than this
 MaxFuncSame=3; % exit if minimum of func did not change during MaxFuncSame iterations
 BacktrackingGammaMin=1e-20;
+
 
 
 if isfield(CtrlVar,'BackTrackBeta')
@@ -296,7 +297,7 @@ if  Extrapolation>0
 end
 
 fLastReduction=1;
-while fgamma>target || fLastReduction < 0.5
+while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
     Iteration=Iteration+1;
     
     
@@ -357,7 +358,14 @@ while fgamma>target || fLastReduction < 0.5
         else
             % general backtracking step
             %  a+0.25 (b-a)  < gamma < a+ 0.95 (b-a)
-            if gamma > (a+0.95*(b-a)) ; gamma=a+0.95*(b-a) ; elseif gamma < (a+0.25*(b-a)) ; gamma=a+0.25*(b-a); end
+            
+            if gamma > (a+CtrlVar.BackTrackGuardUpper*(b-a))
+                gamma=a+CtrlVar.BackTrackGuardUpper*(b-a) ;
+            elseif gamma < (a+CtrlVar.BackTrackGuardLower*(b-a)) 
+                gamma=a+CtrlVar.BackTrackGuardLower*(b-a);
+            end
+            
+            
             if Fargcollect
                 [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
                 nFuncEval=nFuncEval+1; 
@@ -380,7 +388,12 @@ while fgamma>target || fLastReduction < 0.5
     iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
     
     fLastReduction=fmin/fminOld;
-    if ~isequal(gmin,gminOld) ; xfrac=abs(gmin-gminOld); end
+    
+    if ~isequal(gmin,gminOld) 
+        xfrac=abs(gmin-gminOld); 
+        MinXfrac=gmin*1e-10 ; % I update this every time a new minimum is found
+        
+    end
     
     
     if fmin==fminOld
@@ -402,6 +415,17 @@ while fgamma>target || fLastReduction < 0.5
         target=fa+beta*slope0*b  ; % Armijo criteria
     end
     
+    %% Print info
+    
+    if CtrlVar.InfoLevelBackTrack>=2
+        fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
+            Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
+        fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
+    end
+    
+    
+    %% break criterion
+    
     if  iMinSame> MaxFuncSame && fmin < f0
         if CtrlVar.InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because no further reduction in function over last %-i iterations \n',MaxFuncSame)
@@ -416,7 +440,7 @@ while fgamma>target || fLastReduction < 0.5
         break
     end
     
-    if xfrac<MinXfrac
+    if xfrac<MinXfrac && fmin < f0
         if CtrlVar.InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because change in position of minimum %-g less than %-g of interval \n',xfrac,MinXfrac)
         end
@@ -437,12 +461,8 @@ while fgamma>target || fLastReduction < 0.5
         end
         break
     end
+    %%
     
-    if CtrlVar.InfoLevelBackTrack>=2
-        fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
-            Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
-        fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
-    end
     
 end
 

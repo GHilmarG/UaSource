@@ -19,6 +19,9 @@ end
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
+Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
+             % density and the new geometry has been interpolated onto the new mesh. 
+
 x=MUAnew.coordinates(:,1); y=MUAnew.coordinates(:,2);
 
 

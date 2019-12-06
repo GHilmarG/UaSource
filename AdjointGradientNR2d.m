@@ -46,7 +46,7 @@ end
 rhs=dIduv(:);
 
 
-MLC_Adjoint=BCs2MLC(MUA,BCsAdjoint);
+MLC_Adjoint=BCs2MLC(CtrlVar,MUA,BCsAdjoint);
 LAdjoint=MLC_Adjoint.ubvbL;
 LAdjointrhs=MLC_Adjoint.ubvbRhs;
 lambdaAdjoint=zeros(numel(LAdjointrhs),1) ;

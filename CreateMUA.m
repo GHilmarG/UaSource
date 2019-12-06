@@ -58,8 +58,12 @@ else
     MUA.TR=[];
 end
 
-if CtrlVar.MUA.MassMatrix
+if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
     MUA.M=MassMatrix2D1dof(MUA);
+end
+
+if CtrlVar.MUA.DecomposeMassMatrix
+    MUA.dM=decomposition(MUA.M,'chol','upper') ;  
 end
 
 
@@ -67,9 +71,9 @@ if CtrlVar.MUA.StiffnessMatrix
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    MUA.L=chol(MUA.M,'upper');
-end
+% if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+%    MUA.L=chol(MUA.M,'upper');
+% end
 
 [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
 
