@@ -607,6 +607,7 @@ CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 % To select which types of surface measurements to use in the inversion set: 
 CtrlVar.Inverse.Measurements='-uv-' ;  % {'-uv-,'-uv-dhdt-','-dhdt-'}
 
+
 %%
 % It is usually better to invert for log(A) and log(C) rather than A and C.
 % The default is to invert for log(A) and log(C) simultaneously.
@@ -1310,8 +1311,44 @@ CtrlVar.ManuallyDeactivateElements=0;
 %
 
 CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
-CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation 
-CtrlVar.AdaptMeshTimeInterval=0    ; % Time intervale between between mesh adaptation 
+
+
+% one can specify how often the mesh is adapted during a run by specifying:
+%   a) the number of run-steps, and
+%   b) the time intervale
+% between mesh adaptations.
+%
+CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation (zero value means this condition is always true)
+CtrlVar.AdaptMeshTimeInterval=0    ; % Time interval between between mesh adaptation (zero value means this condition is always true)
+%
+% Mesh adaptation is only done if BOTH are true. 
+%
+% Example: 
+%
+% Mesh adaptation every 5th runstep irrespectivly of time:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=5 ; CtrlVar.AdaptMeshTimeInterval=0  ;
+%  
+%   
+% Mesh adaptation every second year irrespectivly of runstep number:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=0 ; CtrlVar.AdaptMeshTimeInterval=2  ;
+%  
+%   
+% Mesh adaptation every runstep:
+%
+%      CtrlVar.AdaptMeshRunStepInterval=0 ; CtrlVar.AdaptMeshTimeInterval=0  ;
+%  
+%   
+% Mesh adaptation done only if runstep is a multiple of 5 and time a multiple of 3
+%
+%      CtrlVar.AdaptMeshRunStepInterval=5 ; CtrlVar.AdaptMeshTimeInterval=3  ;
+%  
+% Note that this option is unlikely to be what you would ever want. Hence,
+% generally specify one of these options to be always true (by setting the
+% respectiv value to 0) so that the other option controls the adapt meshing
+% interval. 
+
 CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;  
                                 

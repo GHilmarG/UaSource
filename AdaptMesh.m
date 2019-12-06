@@ -30,6 +30,8 @@ isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVa
 %     && CtrlVar.AdaptMeshRunStepInterval>0 && CtrlVar.CurrentRunStepNumber>1)) ...
 %     && ~isMeshAdvanceRetreat;
 
+%%
+
 
 if isempty(AdaptMeshTime)
     if CtrlVar.AdaptMeshTimeInterval>0
@@ -57,14 +59,18 @@ else
 end
 
 
+%%
+
 isMeshAdapt=CtrlVar.AdaptMesh  ...
     && (CtrlVar.AdaptMeshInitial || (isAdaptMeshRunStepInterval && isAdaptMeshTime)) ...
     && ~isMeshAdvanceRetreat;
 
 
+
 if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements
     return
 end
+
 
 
 JJ=0 ;

@@ -2,10 +2,10 @@ function [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F)
 
 narginchk(4,4)
 
-
  % [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)  ; % old
  % version
 
+%%
 %
 %    [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
 % 
@@ -22,7 +22,7 @@ narginchk(4,4)
 % nodes, whereas internally this is done at integration pointa. 
 %
 %
-%
+%%
 
 
 

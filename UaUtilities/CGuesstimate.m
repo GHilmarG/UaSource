@@ -5,12 +5,13 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 %   [UserVar,CGuess,DrivingStress]=CGuesstimate(UserVar,CtrlVar,MUA,F,GF,Meas,CorrelationDistance)
 %
 % Provides a rough estimate of C based on measured surface velocities and
-% an estimate of driving stress.
+% an estimate of driving stress assuming Weertman sliding law. Can easily be
+% modifed to include Budd or other Robin type BCs. 
 %
 % Returns
 %
 %   C=speed/DrivingStress^m
-
+%
 % Optionally, smooths estimate using Helmholtz smoothing for a given Matern correlation
 % distance.
 %

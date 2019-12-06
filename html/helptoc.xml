@@ -49,6 +49,7 @@
                 <tocitem target="TracerConservationEquation.html">Tracer Conservation Equation</tocitem>
                 <tocitem target="Matern.html">Matern covariance</tocitem>
                 <tocitem target="CGuesstimate.html">C Guesstimation</tocitem>
+                <tocitem target="LakeOrOcean.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>
