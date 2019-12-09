@@ -49,23 +49,24 @@ if contains(plots,'-plot-')
     figsWidth=1000 ; figHeights=300;
     GLgeo=[]; xGL=[] ; yGL=[];
     %%
-    fig100=figure(100) ;
-    fig100.Position=[50 50 figsWidth 3*figHeights];
+    
+    FindOrCreateFigure("FourPlots",[50 50 figsWidth 3*figHeights]) ;
+
     subplot(4,1,1)
-    PlotMeshScalarVariable(CtrlVar,MUA,h); title(sprintf('h at t=%g',time))
+    PlotMeshScalarVariable(CtrlVar,MUA,F.s); title(sprintf('s at t=%g',time))
     hold on    
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     %Plot_sbB(CtrlVar,MUA,s,b,B) ; title(sprintf('time=%g',time))
     
     
     subplot(4,1,2)
-    QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
+    QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb,CtrlVar);
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     hold off
     
     subplot(4,1,3)
-    PlotMeshScalarVariable(CtrlVar,MUA,dhdt);   title(sprintf('dhdt at t=%g',time))
+    PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);   title(sprintf('dhdt at t=%g',time))
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     

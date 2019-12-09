@@ -41,9 +41,24 @@ if CtrlVar.TimeDependentRun
         
     else
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
-        OutsideValue=0;
-        Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB'); 
+        OutsideValue=[];
+        
+        if CtrlVar.MapOldToNew.Surface
+            
+            CtrlVar.Calculate.Geometry="bh-FROM-sBS" ; %    {"bs-FROM-hBS" ; "hb-FROM-sBS" }
+            [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+            
+             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; %    {"bs-FROM-hBS" ; "hb-FROM-sBS" }
+             
+        else
+            
+            Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+            
+        end
+        
+        
         
         
         % I calculate s and b from h
@@ -88,11 +103,16 @@ BCsNew=BoundaryConditions;
 
 OutsideValues=[];
 
+%%
+
+
 [Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt,Fnew.duddt,Fnew.dvddt]=...
     MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValues,...
     Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt,Fold.duddt,Fold.dvddt);
 
 
+
+%%
 end
 
 

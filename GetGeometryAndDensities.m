@@ -141,6 +141,23 @@ end
 
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
+switch CtrlVar.Calculate.Geometry
+    
+    case "bs-FROM-hBS"
+        
+        [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+        
+    case "bh-FROM-sBS"
+        
+        [F.b,F.h,F.GF]=Calc_b_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF,F.b) ;
+        
+    otherwise
+        
+        error('which case')
+        
+end
+
+
 
 end
