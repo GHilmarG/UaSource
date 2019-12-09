@@ -49,10 +49,28 @@ if CtrlVar.TimeDependentRun
             [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
             [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
             
-             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; %    {"bs-FROM-hBS" ; "hb-FROM-sBS" }
-             
+            
+            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
+            FTest=Fold; FTest.GF=[]; 
+            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,FTest.h);
+            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
+            
+            
+            
+            FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);
+            subplot(2,2,1)
+            PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
+            subplot(2,2,2)
+            PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.s); title('s : bs-FROM-hBS')
+            subplot(2,2,3)
+            PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h) ; title('h : bh-FROM-sBS')
+            subplot(2,2,4)
+            PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.h); title('h : bs-FROM-hBS')
+            
+            
         else
             
+            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
             Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
             [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
             
