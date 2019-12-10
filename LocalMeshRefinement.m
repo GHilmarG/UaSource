@@ -31,7 +31,7 @@ persistent wasRefine
 narginchk(5,5)
 
 MUAnew=MUAold;
-
+MUAonInput=MUAold;
 % Make sure that lists are logical
 if ~islogical(ElementsToBeRefined)
     
@@ -200,7 +200,7 @@ switch CtrlVar.MeshRefinementMethod
                 fprintf('                     MUA is now again the mesh at start of run. \n')
                 MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
             else
-                MUAnew=MUAold;
+                MUAnew=MUAonInput;
             end
             
         end

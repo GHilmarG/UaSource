@@ -84,8 +84,7 @@ CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat';
 CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If left empty, no file is written
 
 CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection';
-%CtrlVar.MeshRefinementMethod='explicit:local';
-%CtrlVar.MeshRefinementMethod='explicit:global';
+%CtrlVar.MeshRefinementMethod='explicit:local:red-green';
 
 
 CtrlVar.LocalAdaptMeshSmoothingIterations=0;

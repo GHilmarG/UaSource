@@ -52,20 +52,31 @@ if CtrlVar.TimeDependentRun
             
             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
             FTest=Fold; FTest.GF=[]; 
-            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,FTest.h);
+            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
             [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
             
             
             
-            FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);
-            subplot(2,2,1)
-            PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
-            subplot(2,2,2)
-            PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.s); title('s : bs-FROM-hBS')
-            subplot(2,2,3)
-            PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h) ; title('h : bh-FROM-sBS')
-            subplot(2,2,4)
-            PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.h); title('h : bs-FROM-hBS')
+            FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
+            hold off
+            
+            subplot(3,4,1) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
+            hold on ; [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF);
+            subplot(3,4,2) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.b) ; title('b : bh-FROM-sBS')
+            subplot(3,4,3) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.B) ; title('B : bh-FROM-sBS')
+            subplot(3,4,4) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h) ; title('h : bh-FROM-sBS')
+            
+            
+            subplot(3,4,5) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.s); title('s : bs-FROM-hBS')
+            hold on ; [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,FTest.GF);
+            subplot(3,4,6) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.b); title('b : bs-FROM-hBS')
+            subplot(3,4,7) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.B); title('B : bs-FROM-hBS')
+            subplot(3,4,8) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.h); title('h : bs-FROM-hBS')
+            
+            subplot(3,4,9) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s-FTest.s); title('ds')
+            subplot(3,4,10) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.b-FTest.b); title('db')
+            subplot(3,4,11) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.B-FTest.B); title('dB')
+            subplot(3,4,12) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h-FTest.h); title('dh')
             
             
         else
