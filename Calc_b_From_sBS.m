@@ -79,7 +79,7 @@ end
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
-% figure ; semilogy([1:30],ErrVector,'-or')
+figure ; semilogy([1:30],ErrVector,'-or')
 
 
 if I==ItMax   % if the NR iteration above, taking a blind NR step does not work, just

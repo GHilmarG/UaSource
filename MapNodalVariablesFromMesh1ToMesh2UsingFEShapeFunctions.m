@@ -28,7 +28,7 @@ if nmap==0 % if the nodes are all in the same locations, map directly and exit
             varargout{iVar}=[];
         else
             varargout{iVar} = zeros(length(x2),1);
-            varargout{iVar}(same) = varargin{1}(IDsame(same));
+            varargout{iVar}(same) = varargin{iVar}(IDsame(same));
         end
     end
     return;
@@ -92,7 +92,7 @@ end
 
 %% step 3: get the shape functions at each new node
 
-Fnode = reshape(varargin{1}(MUA1.connectivity,1),MUA1.Nele,MUA1.nod);
+
 newvals = zeros(nmap,1);
 
 sfun = sr_shape_fun(B,CtrlVar.TriNodes);
@@ -104,14 +104,16 @@ for iVar=1:nVar
         varargout{iVar}=[];
     else
         
+        Fnode = reshape(varargin{iVar}(MUA1.connectivity,1),MUA1.Nele,MUA1.nod);
+        
         for ii = 1:nmap
             newvals(ii) = Fnode(ID(ii),:)*sfun(ii,:)';
         end
         
         temp = IDsame(~same);
-        newvals(Outside) = mean(varargin{1}(temp(Outside),:),2);
+        newvals(Outside) = mean(varargin{iVar}(temp(Outside),:),2);
         varargout{iVar} = zeros(length(x2),1);
-        varargout{iVar}(same) = varargin{1}(IDsame(same));
+        varargout{iVar}(same) = varargin{iVar}(IDsame(same));
         varargout{iVar}(~same) = newvals;
         
     end
