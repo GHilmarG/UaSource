@@ -43,19 +43,40 @@ if CtrlVar.TimeDependentRun
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
         OutsideValue=[];
         
-        if CtrlVar.MapOldToNew.Surface
+        switch CtrlVar.MapOldToNew.Transient.Geometry
             
-            CtrlVar.Calculate.Geometry="bh-FROM-sBS" ; %    {"bs-FROM-hBS" ; "hb-FROM-sBS" }
+            case "bh-FROM-sBS"
+                
+                [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+                % I don't really need to map b from old to new, but I use this later as an initial
+                % guess.
+                
+                
+            case "bs-FROM-hBS"
+                
+                Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+                
+        end
+        
+        CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+        
+        
+        if CtrlVar.MapOldToNew.Test
+            
+            % calculate geometry using both options
+            
+            OutsideValue=[];
             [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+            CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
             [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
             
-            
-            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
-            FTest=Fold; FTest.GF=[]; 
+            FTest=Fold; FTest.GF=[];
             FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
             [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
             
-            
+            % now plot
             
             FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
             hold off
@@ -78,22 +99,8 @@ if CtrlVar.TimeDependentRun
             subplot(3,4,11) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.B-FTest.B); title('dB')
             subplot(3,4,12) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h-FTest.h); title('dh')
             
-            
-        else
-            
-            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
-            Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
-            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
-            
         end
         
-        
-        
-        
-        % I calculate s and b from h
-        % [UserVar,~,~,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'SB');
-        % [UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
-        % [Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
     end
     
 else

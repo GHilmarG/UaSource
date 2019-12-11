@@ -1,7 +1,26 @@
 function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
 
+nVar=length(varargin) ;
+varargout=cell(nVar,1);
 
-if CtrlVar.TestMapOldNew
+switch CtrlVar.MapOldToNew.method
+    
+    
+    case "scatteredInterpolant"
+        
+        
+        [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUA1,x2,y2,OutsideValues,varargin{:}) ;
+        
+    case "FE form functions"
+        
+        [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUA1,x2,y2,varargin{:});
+end
+
+
+%% if testing
+
+if CtrlVar.MapOldToNew.Test
+    
     tMapOld=tic;
     
     nVar=length(varargin) ;

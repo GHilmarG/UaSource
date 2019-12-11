@@ -1691,11 +1691,15 @@ CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
-CtrlVar.TestMapOldNew=true;  % Internal variable, do not change         
+
+CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
+
+CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
+
+CtrlVar.MapOldToNew.Test=false; 
 CtrlVar.MapOldToNew.method="FE form functions" ; % {"FE form functions","scatteredInterpolant"}
 CtrlVar.MapOldToNew.Surface=true ; % in transient run the bedrock (B) is always
 
-CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; %    {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
