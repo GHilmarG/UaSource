@@ -1,5 +1,5 @@
 
-function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
 
 %%
 %
@@ -7,10 +7,6 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,G
 %   
 %
 %  Only CtrlVar and MUA are required input variables:
-%
-% Example:
-%
-%   [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,MUA)
 %
 % Example:
 %
@@ -41,6 +37,7 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,G
 %%
 OceanNodes=[];
 LakeNodes=[];
+OceanElements=[]; 
 
 
 if nargin<4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
@@ -81,6 +78,9 @@ if ~isempty(I)
     II=false(MUA.Nnodes,1);
     II(LakeNodes)=true;
     LakeNodes=II;
+    
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ; 
+    
     
     if CtrlVar.doplots && CtrlVar.PlotOceanLakeNodes
         

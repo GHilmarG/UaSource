@@ -1,7 +1,10 @@
 
 function I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 
-%I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
+%%
+%   I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
+%
+% NodeList must be an index variable, ie not a logical index
 %
 % Returns a logical list of elements containing one or more of the nodes in NodeList
 %
