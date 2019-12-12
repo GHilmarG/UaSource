@@ -1,7 +1,7 @@
-function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
+function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
 
 
-narginchk(7,9)
+narginchk(7,7)
 nargoutchk(1,3)
 
 
@@ -46,20 +46,19 @@ nargoutchk(1,3)
 %%
 
 % get a rough and a reasonable initial estimate for b if none is provided
-
+% The lower surface b is 
+%
+%
+%   b=max( B , (rhow S - rho s)/(rhow-rho) ) 
+%   where
+%
+%  h_f = rhow (S-B) / rho
+%
+%  b=s-h_f = 
 hf=rhow*(S-B)./rho ;
-if nargin< 9  || isempty(b0)
-    
-    if nargin < 8 || isempty(GF)
-        h=s-B ;  % for the purpose of calculating the floating mask, set b = B
-        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-    else
-        G=GF.node;
-    end
-    
-    b0 =  G.*B + (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-end
-%%
+
+
+b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; 
 
 b=b0;
 h=s-b;

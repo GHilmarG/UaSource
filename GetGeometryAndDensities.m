@@ -151,7 +151,7 @@ switch CtrlVar.Calculate.Geometry
     case "bh-FROM-sBS"
         
  
-        [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF,F.b) ;
+        [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow) ;
         
     otherwise
         
