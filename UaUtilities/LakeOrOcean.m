@@ -10,9 +10,9 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 %
 % Example:
 %
-%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile; 
+%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
 %   CtrlVar.doplots=1 ;  CtrlVar.PlotOceanLakeNodes=1;
-%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ; 
+%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ;
 %
 %
 %
@@ -24,15 +24,19 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 % at floating level are inside or outside of this boundary.
 %
 % May not always work, and anyhow I am not sure if one can always objectively
-% decide what is an ocean and what a lake. If, for example, enclosed parts of an
-% ice-rise go aflot, then this will not be detected as lake...
+% decide what is an ocean and what a lake.
+%
+% This approach will fail if in some circumstances. for example, enclosed parts
+% of an ice-rise go aflot, then this lake will not be identified as a lake and
+% classified as a part of the  ocean...
 %
 % Just use this m-file as a starting point towards defining lake/ocean nodes.
 %
 % Note: GLgeo calculated is slighly different from the usual way of doing this
 %       because here the grounding line needs to be closed.
 %
-% Returns a logical indexing (this was changed from indexing vectors on 20 Dec, 2018)
+% Returns a logical indexing (this was changed from indexing vectors on 20 Dec,
+% 2018)
 %
 %%
 OceanNodes=[];
