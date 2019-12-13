@@ -9,20 +9,20 @@
 %
 
 %% Parameters
-FileNameSubstring='UserOutputFile-prognostic-n3-m5-MatlabOptimization-Nod3-I-Adjoint-Cga1-Cgs1-Aga1-Ags1-0-0-logAGlenlogC';
-FileNameSubstring='UserOutputFile-prognostic-n3-m5-MeltRate-100-MatlabOptimization-Nod3-I-Adjoint-Cga1-Cgs1-Aga1-Ags1-0-0-logAGlenlogC';
 
+FileNameSubstring="-PIG-TWG-";
 
 PlotTimeInterval=1;                     % model time interval between creation of plots
 PlotTimeMax=1e10;
-PlotType='-mesh-';  %  specify the type of plot to create, see below, modify and expand as needed
-PlotType='-log10(BasalSpeed)-';
-PlotType='-dhdt-';
-PlotType='-ubvb-';
-PlotType='-h-';
-PlotType='-sbB-';
-PlotType='-MeltNodes-';
-PlotType='-ab-';
+PlotType="-mesh-";  %  specify the type of plot to create, see below, modify and expand as needed
+PlotType="-log10(BasalSpeed)-";
+PlotType="-h-";
+PlotType="-sbB-";
+PlotType="-MeltNodes-";
+PlotType="-ab-";
+PlotType="-dhdt-";
+PlotType="-ubvb-";
+
 
 PlotScreenPosition=[40 40 2300 1800]; % positon of figure on screen, adjust this to your own screen resolution
 PlotScreenPosition=[40 40 2000 1600]; %
@@ -36,7 +36,7 @@ CurDir=pwd;
 
 if CreateVideo
     
-    vidObj = VideoWriter(['VideoResultsFile',PlotType,'.mp4']);
+    vidObj = VideoWriter("VideoResultsFile"+PlotType);
     vidObj.FrameRate=2;
     %vidObj.FrameRate=1;   % frames per sec
     open(vidObj);
@@ -44,7 +44,7 @@ end
 
 % assume results files have been saved in a subdirectory named 'ResultsFiles' (modify as needed)
 cd ./ResultsFiles/
-list=dir(['*',FileNameSubstring,'*.mat']);   % get names of all .mat files containing a given substring
+list=dir("*"+FileNameSubstring+"*.mat");   % get names of all .mat files containing a given substring
 cd ..   ; % go back up into working directory
 
 
@@ -52,10 +52,11 @@ CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
 nFiles=length(list);
 iFile=1; iFrame=1;
 
+
 while iFile<=nFiles   % loop over files
     
     
-    time=str2double(list(iFile).name(1:10))/100;  % get the model time, assuming that the first 10 letters of filename are the model time*100
+    time=str2double(list(iFile).name(1:7))/100;  % get the model time, assuming that the first 7 letters of filename are the model time*100
     %time=str2double(list(iFile).name(1:4));
     if mod(time,PlotTimeInterval)==0 && time<=PlotTimeMax   % only do plots at given time intervals and up to a max time specifed
         
@@ -96,7 +97,7 @@ while iFile<=nFiles   % loop over files
                 PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
                 title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
                 
                 
                 
@@ -128,7 +129,7 @@ while iFile<=nFiles   % loop over files
                 QuiverColorGHG(x(1:N:end),y(1:N:end),F.ub(1:N:end),F.vb(1:N:end),CtrlVar);
                 CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                 title(sprintf('(ub,vb) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                 %%
                 if PlotMinThickLocations
@@ -157,7 +158,7 @@ while iFile<=nFiles   % loop over files
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                 
                 title(sprintf('log_{10}(Basal speed) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                 title(colorbar,'log_{10}(m/yr)')
@@ -193,14 +194,14 @@ while iFile<=nFiles   % loop over files
                 
                 %ax.NextPlot='replace';
                 
-                F.ab(GF.node>0.5)=NaN;
+                F.ab(F.GF.node>0.5)=NaN;
                 
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.ab,CtrlVar);
                 
                 hold on
                 
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                 hold on
                 PlotMuaBoundary(CtrlVar,MUA,'b')
                 hold on
@@ -228,7 +229,7 @@ while iFile<=nFiles   % loop over files
                 hold off
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.dhdt,CtrlVar);
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                 
                 title(sprintf('dhdt at t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                 title(colorbar,'(m)')
@@ -263,7 +264,7 @@ while iFile<=nFiles   % loop over files
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.h,CtrlVar);
                 hold on ;
                 
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'k');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                 title(sprintf('ice thickness at t=%-g (yr)',CtrlVar.time)) ;
                 title(colorbar,'(m)')
                 
@@ -288,7 +289,7 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 CtrlVar.PlotGLs=0;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'LineWidth',2);
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'LineWidth',2);
                 Fs=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),F.s,'natural');
                 zGL=Fs(xGL,yGL);
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
@@ -344,13 +345,13 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 CtrlVar.MeltNodesDefinition='Node-Wise';
-                [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele);
+                [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele);
                 PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
                 hold on
                 plot(x(MeltNodes)/CtrlVar.PlotXYscale,y(MeltNodes)/CtrlVar.PlotXYscale,'o',...
                     'MarkerSize',3,'MarkerFaceColor','g')
                 hold on
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
                 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel) ;
                 title(['Melt nodes: time=',num2str(CtrlVar.time)])
                 
