@@ -80,7 +80,7 @@ else
     Released=[] ; Activated=[];
     iCountCyclicActiveSet=0;  % counts the number the same set of nodes is activated and then deactivated
     
-    while true
+    while true   % active-set loop
         
         if ~isActiveSetModified
             fprintf(' Leaving active-set loop because active set did not change in last active-set iteration. \n')
@@ -394,9 +394,11 @@ else
                 fprintf(' Active-set is cyclical(#cycles=%i). \n',iCountCyclicActiveSet)
             end
             
-            % I now have a dilemma, since the set has become cyclical it is clear that if I
-            % deactivate the thickness at those nodes will become too small. A solution is
-            % simply not to deactivate and to add the deactivated nodes to the active set.
+            % I now have a dilemma, since the set has become cyclical it is
+            % clear that if I deactivate any new nodes the thickness at
+            % those nodes will become too small in the next active-set
+            % interation. A solution is simply not to deactivate and to add
+            % the deactivated nodes to the active set.
             
             if isActiveSetCyclical
                 BCs1.hPosNode=[BCs1.hPosNode;Released] ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;

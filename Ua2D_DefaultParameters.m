@@ -270,11 +270,11 @@ CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %
 switch lower(CtrlVar.FlowApproximation)
     case 'sstream'
-        CtrlVar.Cmin=1e-20;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=1e-20;       
     otherwise
-        CtrlVar.Cmin=0;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=0; 
 end
-CtrlVar.Cmax=1e10;
+CtrlVar.Cmax=1e50;
 CtrlVar.AGlenmin=100*eps;
 CtrlVar.AGlenmax=1e10;
 

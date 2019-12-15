@@ -10,18 +10,22 @@
 
 %% Parameters
 
-FileNameSubstring="-PIG-TWG-";
+
+FileNameSubstring="-PIG-TWG-Weertman";
+%FileNameSubstring="-PIG-TWG-Budd";
+
 
 PlotTimeInterval=1;                     % model time interval between creation of plots
 PlotTimeMax=1e10;
 PlotType="-mesh-";  %  specify the type of plot to create, see below, modify and expand as needed
-PlotType="-log10(BasalSpeed)-";
 PlotType="-h-";
 PlotType="-sbB-";
 PlotType="-MeltNodes-";
 PlotType="-ab-";
 PlotType="-dhdt-";
 PlotType="-ubvb-";
+PlotType="-log10(BasalSpeed)-";
+
 
 
 PlotScreenPosition=[40 40 2300 1800]; % positon of figure on screen, adjust this to your own screen resolution
@@ -36,9 +40,8 @@ CurDir=pwd;
 
 if CreateVideo
     
-    vidObj = VideoWriter("VideoResultsFile"+PlotType);
-    vidObj.FrameRate=2;
-    %vidObj.FrameRate=1;   % frames per sec
+    vidObj = VideoWriter("VideoResultsFile"+FileNameSubstring+PlotType);
+    vidObj.FrameRate=1;   % frames per sec
     open(vidObj);
 end
 
@@ -146,16 +149,10 @@ while iFile<=nFiles   % loop over files
             case '-log10(BasalSpeed)-'
                 %%
                 %us=ub+ud;  vs=vb+vd;
-                if ~exist('fab','var') || ~ishandle(fab)
-                    fab=figure;
-                else
-                    figure(fab)
-                end
-                if CreateVideo
-                    fab.Position=PlotScreenPosition;
-                end
+                figlogSpeed=FindOrCreateFigure('LogSpeed',PlotScreenPosition);
+                
                 SurfSpeed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
-                hold off
+               
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
