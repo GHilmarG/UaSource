@@ -1,7 +1,7 @@
-function F1=ExplicitEstimationForUaFields(CtrlVar,F1,F0,Fm1)
+function [ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(CtrlVar,F0,Fm1)
 
-nargoutchk(1,1)
-narginchk(4,4)
+nargoutchk(5,5)
+narginchk(3,3)
 
 
 % The returned F1 does not depend on any of the fields of F1.  I just give this
@@ -15,31 +15,35 @@ narginchk(4,4)
 
 if CtrlVar.DebugMode
     filename='Debug_Dumpfile_ExplicitEstimationForUaFields.mat';
-   fprintf('ExplicitEstimationForUaFields: Creating dumpfile %s \n',filename) 
+    fprintf('ExplicitEstimationForUaFields: Creating dumpfile %s \n',filename)
 end
 
 
+Itime=CtrlVar.CurrentRunStepNumber;
 
 if CtrlVar.CurrentRunStepNumber>=3
     
-    if  (numel(F0.dubdt)~=numel(Fm1.dubdt)) ...
+    if     (numel(F0.ub)~=numel(F0.dubdt)) ...
+        || (numel(F0.vb)~=numel(F0.dvbdt)) ...
+        || (numel(F0.ud)~=numel(F0.duddt)) ...
+        || (numel(F0.vd)~=numel(F0.dvddt)) 
+        
+        Itime=1;
+        
+    elseif      (numel(F0.dubdt)~=numel(Fm1.dubdt)) ...
             ||  (numel(F0.dvbdt)~=numel(Fm1.dvbdt)) ...
             ||  (numel(F0.dvbdt)~=numel(Fm1.dvbdt)) ...
             ||  (numel(F0.duddt)~=numel(Fm1.duddt)) ...
             ||  (numel(F0.dvddt)~=numel(Fm1.dvddt))
-        
-        Fm1.dhdt=F0.dhdt*0;
-        Fm1.dubdt=F0.dubdt*0 ; Fm1.dvbdt=F0.dvbdt*0;
-        Fm1.duddt=F0.duddt*0 ; Fm1.dvddt=F0.dvddt*0;
+        Itime=2 ;
     end
-    
-    CtrlVar.CurrentRunStepNumber=2;
     
 end
 
+% [F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=...
 % improve by checking which fields do need to be updated
-[F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=...
-    ExplicitEstimation(CtrlVar.dt,CtrlVar.dtRatio,CtrlVar.CurrentRunStepNumber,...
+[ub,vb,ud,vd,h]=...
+    ExplicitEstimation(CtrlVar.dt,CtrlVar.dtRatio,Itime,...
     F0.ub,F0.dubdt,Fm1.dubdt,...
     F0.vb,F0.dvbdt,Fm1.dvbdt,...
     F0.ud,F0.duddt,Fm1.duddt,...

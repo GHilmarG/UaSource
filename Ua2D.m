@@ -558,7 +558,9 @@ while 1
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-            F=ExplicitEstimationForUaFields(CtrlVar,F,F0,Fm1);
+            [F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(CtrlVar,F0,Fm1);
+            % This is not needed here because it is always done within uvh.m
+            % [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h

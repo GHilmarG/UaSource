@@ -141,6 +141,8 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             
             %  Determine new desired element sizes and identify elements for refinement
             %  or coarsening.
+            %  Note: F will be different on return if a new uv calculation
+            %  needs to be done 
             [UserVar,RunInfo,Fnew,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
                 NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,Fnew.GF,RuvNew,Lubvb);
             
