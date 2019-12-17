@@ -32,6 +32,7 @@
                 <tocitem target="PlotGroundingLines.html">Plot grounding lines</tocitem>
                 <tocitem target="PlotBoundaryConditions.html">Plot boundary conditions</tocitem>
                 <tocitem target="Plot_sbB.html">Plot upper and lower surfaces and bedrock </tocitem>
+                <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>

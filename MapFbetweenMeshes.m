@@ -41,15 +41,66 @@ if CtrlVar.TimeDependentRun
         
     else
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
-        OutsideValue=0;
-        Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB'); 
+        OutsideValue=[];
+        
+        switch CtrlVar.MapOldToNew.Transient.Geometry
+            
+            case "bh-FROM-sBS"
+                
+                [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+                % I don't really need to map b from old to new, but I use this later as an initial
+                % guess.
+                
+                
+            case "bs-FROM-hBS"
+                
+                Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+                
+        end
+        
+        CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
         
         
-        % I calculate s and b from h
-        % [UserVar,~,~,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'SB');
-        % [UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
-        % [Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
+        if CtrlVar.MapOldToNew.Test
+            
+            % calculate geometry using both options
+            
+            OutsideValue=[];
+            [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+            CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
+            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+            
+            FTest=Fold; FTest.GF=[];
+            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+            CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
+            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
+            
+            % now plot
+            
+            FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
+            hold off
+            
+            subplot(3,4,1) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
+            hold on ; [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF);
+            subplot(3,4,2) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.b) ; title('b : bh-FROM-sBS')
+            subplot(3,4,3) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.B) ; title('B : bh-FROM-sBS')
+            subplot(3,4,4) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h) ; title('h : bh-FROM-sBS')
+            
+            
+            subplot(3,4,5) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.s); title('s : bs-FROM-hBS')
+            hold on ; [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,FTest.GF);
+            subplot(3,4,6) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.b); title('b : bs-FROM-hBS')
+            subplot(3,4,7) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.B); title('B : bs-FROM-hBS')
+            subplot(3,4,8) ; PlotMeshScalarVariable(CtrlVar,MUAnew,FTest.h); title('h : bs-FROM-hBS')
+            
+            subplot(3,4,9) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s-FTest.s); title('ds')
+            subplot(3,4,10) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.b-FTest.b); title('db')
+            subplot(3,4,11) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.B-FTest.B); title('dB')
+            subplot(3,4,12) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.h-FTest.h); title('dh')
+            
+        end
+        
     end
     
 else
@@ -88,11 +139,16 @@ BCsNew=BoundaryConditions;
 
 OutsideValues=[];
 
+%%
+
+
 [Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt,Fnew.duddt,Fnew.dvddt]=...
     MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValues,...
     Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt,Fold.duddt,Fold.dvddt);
 
 
+
+%%
 end
 
 

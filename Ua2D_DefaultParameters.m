@@ -64,6 +64,24 @@ CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryCon
 CtrlVar.BCsWeights=1;     % test parameter, do not change
 CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %
+
+%% Ensuring flotation 
+%
+% Where the ice is afloat the upper and lower surfaces (s and b), the ocean
+% surface (S) and bedrock (B) and ice density (rho) and ocean density (rhow)
+% become interlinked.
+%
+% Generally, s and b are always calculated from h, B and S given rho and rhow.
+% This is done internally at various different stages. Note that s and b, as
+% returned by the user in DefineGeometry.m, will be changed to ensure flotation.
+% 
+% It is possible to change the default behaviour and calculate h and b from s, B
+% and S. 
+CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
+
+
+
+
 %% Manually updating geometry in the course of a run.
 % By default DefineGeometry is only called at the beginning of a run, and after
 % any mesh modifications such as re-meshing. 
@@ -252,11 +270,11 @@ CtrlVar.AdjointEpsZero=CtrlVar.EpsZero;
 %
 switch lower(CtrlVar.FlowApproximation)
     case 'sstream'
-        CtrlVar.Cmin=1e-20;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=1e-20;       
     otherwise
-        CtrlVar.Cmin=0;          % a reasonable lower estimate of C is u=C tau^m with min u=1 m/a and max tau=100 dPa => C=u/tau^m=1e-6
+        CtrlVar.Cmin=0; 
 end
-CtrlVar.Cmax=1e10;
+CtrlVar.Cmax=1e50;
 CtrlVar.AGlenmin=100*eps;
 CtrlVar.AGlenmax=1e10;
 
@@ -1691,7 +1709,42 @@ CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
-         
+
+
+%% Mapping variables from one FE mesh to another
+% Remeshing during a run requires variables to be mapped from the older mesh to
+% the new mesh. Both geometrical variables (s, b, S, B) and other calculated
+% quantaties such as ub, vb, dhdt, etc. need to be mapped.
+%
+% In a diagnostic run (time-independent run) geometrical variables are defined
+% by calls to 'DefineGeometry.m'
+%
+% In a transient run one can either:
+% 
+% 
+% # calculate s and b from h, B and S  (h is approximately conserved), or
+% # calculate h and b from s, B and S  (s is approximately unchanged).
+% 
+% Which option is used is determined by the variable:
+%
+CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
+%% 
+% When mapping variables using interpolation, either the matlab scattered
+% interpolant can be used, or the interpolation is done using the FE form
+% functions
+%
+
+CtrlVar.MapOldToNew.method="FE form functions" ; % {"FE form functions","scatteredInterpolant"}
+
+CtrlVar.MapOldToNew.Test=false;   %  
+
+
+
+
+
+
+%% Internal variables 
+
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
 

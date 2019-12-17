@@ -1,59 +1,73 @@
-function [b,h,GF]=Calc_b_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
+function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
 
 
-narginchk(7,9)
-nargoutchk(3,3)
+narginchk(7,7)
+nargoutchk(1,3)
 
 
-%% Calculates b from s, B, S and rho and rhow.
+%% 
+%
+% *Calculates b and h from s, B, S and rho and rhow.*
 %
 % GF and b0 are optional.
 %
 % GF and b0 are initial guesses for GF and b.
 %
-% Sets:
+% Sets 
 %
-%   b=B over grounded areas.
-%   b=(rho.*s-rhow.*S)./(rho-rhow)  over floating areas.
+% $b=B$
 %
+% over grounded areas, and 
 %
-%  This is a bit dangerous function to use. This will not conserve thickness over the floating areas!
+% $b=(\rho s-\rho_w S)/(\rho-\rho_w)$  
 %
+% over floating areas. 
 %
-% This may make sense to do if one has measurments of the surface elevation and independent estimates of
-% the grounding line, e.g. the floating mask.
+% On return $s=b+h$.
+%
+% Note: This will not conserve thickness.
 %
 % Because the floating mask depents on b through h, this is a non-linear
 % problem.
 %
-% This is solved using the NR method. Usually only one single NR iteration is
+% Solved using the NR method. Usually only one single NR iteration is
 % required.
+%
+%
+% GF and b0   : (optional) initial guess for GF and b0
+%
+% MUA         : also optional and not currently used.
+%
+% Example:
+%
+%       b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)
+%
+%
 %%
 
-%% get a rough and a reasonable initial estimate for b
-
+% get a rough and a reasonable initial estimate for b if none is provided
+% The lower surface b is 
+%
+%
+%   b=max( B , (rhow S - rho s)/(rhow-rho) ) 
+%   where
+%
+%  h_f = rhow (S-B) / rho
+%
+%  b=s-h_f = 
 hf=rhow*(S-B)./rho ;
-if nargin< 9  || isempty(b0)
-    
-    if nargin < 8 || isempty(GF)
-        h=s-B ;  % for the purpose of calculating the floating mask, set b = B
-        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-    else
-        G=GF.node;
-    end
-    
-    b0 =  G.*B + (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-end
-%%
+
+
+b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; 
 
 b=b0;
 h=s-b;
 
 % iteration
-ItMax=30 ; tol=100*eps ;  Err=100*tol ; I=0 ;
-ErrVector=zeros(ItMax,1)+NaN ;
+ItMax=30 ; tol=100*eps ;  J=Inf ; I=0 ;
+JVector=zeros(ItMax,1)+NaN ;
 
-while I< ItMax && Err > tol
+while I< ItMax && J > tol
     I=I+1;
     
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
@@ -68,18 +82,24 @@ while I< ItMax && Err > tol
     h=s-b ;
     
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-    ErrLast=Err;
-    Err=sum(F1.^2)/2 ;
     
-    %fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),Err,Err/ErrLast)
+    JLast=J ;
+    J=sum(F1.^2)/2 ;
+    if CtrlVar.MapOldToNew.Test
+        fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),J,J/JLast)
+    end
     
-    ErrVector(I)=Err ;
+    JVector(I)=J ;
     
 end
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
-% figure ; semilogy([1:30],ErrVector,'-or')
+if CtrlVar.MapOldToNew.Test
+    FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
+    semilogy([1:30],JVector,'-or')
+end
+
 
 
 if I==ItMax   % if the NR iteration above, taking a blind NR step does not work, just
