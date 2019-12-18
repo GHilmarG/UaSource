@@ -333,6 +333,8 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 ECN=100*speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
 % ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN  ( test)
 kappa=coth(ECN)-1./ECN;
+
+
 tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
