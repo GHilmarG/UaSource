@@ -330,13 +330,17 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %       dN/dX for u-> infty ,  dt-> infty
 %  1/3  dN/dX for L -> infty
 %
-ECN=100*speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
-% ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN  ( test)
-kappa=coth(ECN)-1./ECN;
 
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ; 
 
-tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
-tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
+% ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
+% kappa=coth(ECN)-1./ECN;
+
+% tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
+% tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
+
+tau0=CtrlVar.SUPG.beta0*tau;
+tau1=CtrlVar.SUPG.beta1*tau;
 
 f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
 SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));

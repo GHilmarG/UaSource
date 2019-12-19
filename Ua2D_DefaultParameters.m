@@ -233,7 +233,7 @@ CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit 
 
 CtrlVar.uvhTimeSteppingMethod='supg'; % 'theta'|'supg'
 
-CtrlVar.SUPG.beta0=0.5 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
+CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
 
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
@@ -309,6 +309,7 @@ CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables use
 
 CtrlVar.Residual.uvh='uvh';
 CtrlVar.uvhConvergenceCriteria='residuals and increments';
+CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %

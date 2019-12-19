@@ -13,6 +13,10 @@ narginchk(3,3)
 
 % if the mesh has changed over the last time step, then only derivatives of F0 will have been updated, and not those of Fm1.
 
+
+
+
+
 if CtrlVar.DebugMode
     filename='Debug_Dumpfile_ExplicitEstimationForUaFields.mat';
     fprintf('ExplicitEstimationForUaFields: Creating dumpfile %s \n',filename)
@@ -39,6 +43,8 @@ if CtrlVar.CurrentRunStepNumber>=3
     end
     
 end
+
+
 
 % [F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=...
 % improve by checking which fields do need to be updated
