@@ -13,6 +13,7 @@
 
 FileNameSubstring="-PIG-TWG-Weertman";
 %FileNameSubstring="-PIG-TWG-Budd";
+FileNameSubstring="-Initialisation";
 
 
 PlotTimeInterval=1;                     % model time interval between creation of plots
@@ -25,6 +26,7 @@ PlotType="-ab-";
 PlotType="-dhdt-";
 PlotType="-ubvb-";
 PlotType="-log10(BasalSpeed)-";
+PlotType="-VAF-";
 
 
 
@@ -54,7 +56,7 @@ cd ..   ; % go back up into working directory
 CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
 nFiles=length(list);
 iFile=1; iFrame=1;
-
+iCount=0;
 
 while iFile<=nFiles   % loop over files
     
@@ -152,7 +154,7 @@ while iFile<=nFiles   % loop over files
                 figlogSpeed=FindOrCreateFigure('LogSpeed',PlotScreenPosition);
                 
                 SurfSpeed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
-               
+                
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
@@ -164,6 +166,24 @@ while iFile<=nFiles   % loop over files
                 end
                 caxis([1 4])
                 %%
+                
+            case "-VAF-"
+                
+                
+                figlogSpeed=FindOrCreateFigure('VAF',PlotScreenPosition);
+                
+                [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+                
+                if iCount==0
+                    vaf=[];
+                end
+                
+                iCount=iCount+1;
+                vaf.value(iCount)=VAF.Total ;
+                vaf.time(iCount)=CtrlVar.time;
+                hold off
+                plot(vaf.time,vaf.value/1e9,'or')
+                xlabel(' time (yr)') ; ylabel(' VAF (Gt)')
                 
                 
             case '-ab-'
