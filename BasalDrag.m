@@ -66,21 +66,41 @@ if CtrlVar.Inverse.dFuvdClambda
         case {"Weertman","tauPower"}
             
             % tau = He * (C+CtrlVar.Czero).^(-1./m)   * U
-            
-            dFuvdC =  He.*(1./m) .* (C+CtrlVar.Czero).^(-1./m-1) .*U;
+            %  just take the derivative with respect to C
+            %
+            dFuvdC =  He.*    (1./m).*(C+CtrlVar.Czero).^(-1./m-1)   .*U;
             
         case {"Budd","tauPowerNperfectPower"}
             
             
-            % tau = Nqm * (C+CtrlVar.Czero).^(-1./m)   * U
+            %             % tau = Nqm * (C+CtrlVar.Czero).^(-1./m)   * U
+            %
+            %             hf=rhow.*H./rho;
+            %             Dh=h-hf; Dh(Dh<eps)=0;
+            %             N=He.*rho.*g.*Dh ;
+            %             qm=q./m;
+            %             Nqm=N.^(qm) ;
+            %
+            %             dFuvdC= Nqm.*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
+            
+            
+            %  just take the derivative with respect to C
+            %   tau = He.*Nqm.* beta2i
+            %       = He.*Nqm.* (C+CtrlVar.Czero).^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+            %
+             
+            
             
             hf=rhow.*H./rho;
-            Dh=h-hf; Dh(Dh<eps)=0;
-            N=He.*rho.*g.*Dh ;
+            hf(hf<eps)=0;
+            Dh=h-hf;
+            N=rho.*g.*Dh;
             qm=q./m;
             Nqm=N.^(qm) ;
+  
             
-            dFuvdC= Nqm.*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
+            dFuvdC= He.*Nqm  .*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
+            
             
     end
     taubx=dFuvdC;
@@ -115,24 +135,38 @@ switch CtrlVar.SlidingLaw
         
     case {"Budd","tauPowerNperfectPower"}
         
+        %         hf=rhow.*H./rho;
+        %         Dh=h-hf; Dh(Dh<eps)=0;
+        %         N=He.*rho.*g.*Dh ;
+        %         qm=q./m;
+        %         Nqm=N.^(qm) ;
+        %
+        %         taubxi=Nqm.*beta2i.*ub ;
+        %         taubyi=Nqm.*beta2i.*vb ;
+        %
+        
         hf=rhow.*H./rho;
-        Dh=h-hf; Dh(Dh<eps)=0;
-        N=He.*rho.*g.*Dh ;
+        hf(hf<eps)=0; 
+        Dh=h-hf; 
+        N=rho.*g.*Dh;
         qm=q./m;
         Nqm=N.^(qm) ;
         
-        taubxi=Nqm.*beta2i.*ub ;
-        taubyi=Nqm.*beta2i.*vb ;
+        T=He.* Nqm.*beta2i ; 
+        taubxi=T.*ub ;
+        taubyi=T.*vb ;
+        
         
         if nargout>2
             
-            dtaubxdui=Nqm.*(beta2i+Dbeta2i.*ub.*ub);
-            dtaubydvi=Nqm.*(beta2i+Dbeta2i.*vb.*vb);
+            dtaubxdui=He.*Nqm.*(beta2i+Dbeta2i.*ub.*ub);
+            dtaubydvi=He.*Nqm.*(beta2i+Dbeta2i.*vb.*vb);
             
-            dtaubxdvi=Nqm.*Dbeta2i.*ub.*vb;
+            dtaubxdvi=He.*Nqm.*Dbeta2i.*ub.*vb;
             dtaubydui= dtaubxdvi ;
             
-            E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
+            % E=qm.*N.^(qm-1).*rho.*g.*(delta.*Dh+He).*beta2i ;
+            E=delta.*T+He.*qm.*N.^(qm-1).*rho.*g.*beta2i ;
             
             dtaubxdhi=  E.*ub;
             dtaubydhi=  E.*vb;
