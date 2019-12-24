@@ -292,15 +292,8 @@ while true
         slope=-2*r0;
         
         FigName='uvh iteration: line-search';
-        fig=findobj(0,'name',FigName);
-        if isempty(fig)
-            fig=figure('name',FigName);
-            fig.Position=[10,10,600,600] ;
-        else
-            fig=figure(fig);
-            hold off
-        end
-        
+        Position=[10,10,500,300] ;
+        FindOrCreateFigure(FigName,Position);
         
         
         plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
@@ -442,17 +435,10 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
     
     FigName='NR uvh implicit';
-    fig=findobj(0,'name',FigName);
-    if isempty(fig)
-        fig=figure('name',FigName);
-        fig.Position=[10,10,800,800] ;
-    else
-        fig=figure(fig);
-        hold off
-    end
-    
-    
+    Position=[510,10,500,300] ;
+    FindOrCreateFigure(FigName,Position);
     semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR uvh implicit') ; xlabel('Iteration') ; ylabel('Residual')
+
 end
 
 if ~isempty(L)

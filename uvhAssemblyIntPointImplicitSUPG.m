@@ -1,11 +1,11 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(53,53)
+narginchk(54,54)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -68,6 +68,7 @@ if CtrlVar.CisElementBased
     Cint=Cnod;
     mint=mnod;
     qint=qnod;
+    mukint=muknod;
     
     if CtrlVar.IncludeMelangeModelPhysics
         Coint=Conod;
@@ -88,6 +89,13 @@ else
         qint=qnod*fun;
     else
         qint=[];
+    end
+    
+      
+    if ~isempty(muknod)
+        mukint=muknod*fun;
+    else
+        mukint=[];
     end
     
     if CtrlVar.IncludeMelangeModelPhysics
@@ -243,7 +251,7 @@ end
 
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
-BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g);
+BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
 
 
 % figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')

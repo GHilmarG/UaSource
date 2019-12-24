@@ -50,6 +50,7 @@ classdef UaFields
         rhow=[];
         
         q=[]; 
+        muk=[];
         
         Co=[];
         mo=[]

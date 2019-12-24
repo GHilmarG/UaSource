@@ -1,6 +1,7 @@
 function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
-    BasalDrag(CtrlVar,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g)
+    BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk)
 
+narginchk(24,24)
 
 %%
 % Returns basal drag and the directional derivatives of basal drag with respect to u,
@@ -41,6 +42,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 
 %% Basal drag term : ice
 % this drag term is zero if the velocities are zero.
+
 
 U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 beta2i=(C+CtrlVar.Czero).^(-1./m).*U ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
@@ -88,19 +90,29 @@ if CtrlVar.Inverse.dFuvdClambda
             %   tau = He.*Nqm.* beta2i
             %       = He.*Nqm.* (C+CtrlVar.Czero).^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
             %
-             
+            
             
             
             hf=rhow.*H./rho;
             hf(hf<eps)=0;
-            Dh=h-hf;
+            Dh=h-hf; Dh(Dh<eps)=0;
             N=rho.*g.*Dh;
             qm=q./m;
             Nqm=N.^(qm) ;
-  
+            
             
             dFuvdC= He.*Nqm  .*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
             
+            
+        case {"Tsai"}
+            
+            
+            fprintf("Inversion using Tsai sliding law not implemented. \n")
+            error("BasalDrag:InvalidCase","Inversion using Tsai sliding law not implemented.")
+            
+        otherwise
+            
+            error("BasalDrag:InvalidCase","Unknown case.")
             
     end
     taubx=dFuvdC;
@@ -147,7 +159,7 @@ switch CtrlVar.SlidingLaw
         
         hf=rhow.*H./rho;
         hf(hf<eps)=0; 
-        Dh=h-hf; 
+        Dh=h-hf; Dh(Dh<eps)=0;
         N=rho.*g.*Dh;
         qm=q./m;
         Nqm=N.^(qm) ;
@@ -175,6 +187,82 @@ switch CtrlVar.SlidingLaw
             
             
         end
+        
+    case {"Tsai"}
+        
+        
+        hf=rhow.*H./rho;
+        hf(hf<eps)=0;
+        Dh=h-hf;  Dh(Dh<eps)=0;
+        N=rho.*g.*Dh;
+
+        
+        %   Weertman
+        taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
+        taubyi=He.*beta2i.*vb;
+        
+        
+        TauWeertman=sqrt(taubxi.*taubxi+taubyi.*taubyi) ;
+        TauCoulomb=muk.*N ;  % muk rho g (h-hf)
+        
+        isCoulomb=TauCoulomb <  TauWeertman ;
+        % isCoulomb=true(numel(taubxi),1); 
+        
+        speed=sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2) ; 
+        
+        taubxiCoulomb=TauCoulomb.*ub./speed;
+        taubyiCoulomb=TauCoulomb.*vb./speed; 
+        
+        taubxi(isCoulomb)=taubxiCoulomb(isCoulomb) ; 
+        taubyi(isCoulomb)=taubyiCoulomb(isCoulomb) ; 
+        
+        
+        if nargout>2
+            
+            % Weertman
+            
+            dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
+            dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+            
+            dtaubxdvi=He.*Dbeta2i.*ub.*vb;
+            
+            
+            dtaubxdhi=delta.*beta2i.*ub ;
+            dtaubydhi=delta.*beta2i.*vb ;
+            
+            % Coulomb
+            % tx=muk rho g (h-hf)    u/speed
+            % tv=muk rho g (h-hf)    v/speed
+            
+            temp=speed.^3 ; % (ub.*ub+vb.*vb+CtrlVar.SpeedZero^2).^{3/2) ;
+            
+            dtaubxduiisCoulomb= TauCoulomb.*( 1./speed-ub.^2./temp) ;
+            dtaubydviisCoulomb= TauCoulomb.*(1./speed-vb.^2./temp );
+            dtaubxdviisCoulomb=-TauCoulomb.*ub.*vb./temp ;
+            
+            E=muk.*rho.*g./speed ; 
+            E(Dh<eps)=0; 
+            
+            % E=delta.*T+He.*qm.*N.^(qm-1).*rho.*g.*beta2i ;
+            
+            dtaubxdhiisCoulomb =  E.*ub;
+            dtaubydhiisCoulomb =  E.*vb;
+            
+            % and now replace where needed
+            dtaubxdui(isCoulomb)=dtaubxduiisCoulomb(isCoulomb);
+            dtaubydvi(isCoulomb)=dtaubydviisCoulomb(isCoulomb);
+            dtaubxdvi(isCoulomb)=dtaubxdviisCoulomb(isCoulomb);
+            
+            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulom
+            
+            dtaubxdhi(isCoulomb)=dtaubxdhiisCoulomb(isCoulomb);
+            dtaubydhi(isCoulomb)=dtaubydhiisCoulomb(isCoulomb);
+      
+            
+        end
+        
+        
+        
         
     otherwise
         

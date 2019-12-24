@@ -9,16 +9,9 @@ if ~isempty(L)
     R=R+L'*lambda;
 end
 
-FigName='Nodal force residuals';
-fig=findobj(0,'name',FigName);
-if isempty(fig)
-    fig=figure('name',FigName);
-    fig.Position=[610,20,600,600] ;
-else
-    fig=figure(fig);
-    hold off
-end
-
+FigName='Nodal force residuals' ;
+Position=[1010,20,500,300] ; 
+FindOrCreateFigure(FigName,Position);
 
 if ~contains(msg,'h-only')  % uvh residuals
     % uv-residuals
