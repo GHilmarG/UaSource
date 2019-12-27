@@ -33,6 +33,8 @@ else
     grhs=[];
 end
 
+% I=F1.h<=CtrlVar.ThickMin ; frhs([I;I;I])=0;
+
 [r,rl,ruv,rh]=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
 
 

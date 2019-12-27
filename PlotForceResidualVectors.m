@@ -17,7 +17,7 @@ if ~contains(msg,'h-only')  % uvh residuals
     % uv-residuals
     
     quiver(x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,R(1:Nnodes),R(Nnodes+1:2*Nnodes))
-    title('Nodal Force residuals (R+transpose(L) lambda)')
+    title("Nodal Force residuals (R+L^T \lambda)")
     
     % h residuals
     if contains(msg,'h')
@@ -32,7 +32,7 @@ else % h residuals only
     
     
     hold on
-    title('Nodal Force residuals (R+transpose(L) lambda)')
+    title('Nodal Force residuals (R+L^T \lambda)')
     
     PlotScale=0.1*max(abs(R))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
     xmax=max(x) ; xmin=min(x) ; ymax=max(y) ;ymin=min(y);
