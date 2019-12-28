@@ -136,9 +136,10 @@ CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should al
 CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnostic step, even if the step is a restart step.
                                  % Irrespective of the value of this variable, an initial diagnostic step is always performed at the beginning of a transient run if it is not a restart run.
                                  % An initial diagnostic step is therefore done at the beginning of a transient run if:
-                                 % 1) so asked by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
-                                 % 2) at the start of an implicit uvh transient run.
-                                 % Unless asked by the user, no initial diagnostic step is done at the beginning of a transient restart run.
+                                 % 1) so demanded by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
+                                 % 2) at always at the start of an implicit uvh transient run which is not a
+                                 %    restart run.
+                                 % Howere, unless demanded by the user, no initial diagnostic step is done at the beginning of a transient restart run.
 
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
