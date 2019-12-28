@@ -11,12 +11,14 @@ function DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring,PlotType,Pl
 % 3) loop over results files, read the results and create plots
 %
 %
-% Examples:
+% Example:
 %
 %   DataCollect=ReadPlotSequenceOfResultFiles("-Ice1r-","-collect-");
 %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ; ylabel(" VAF (Gt)")
 %   figure ; plot(DataCollect.time, DataCollect.GroundedArea/1e6,'-or'); xlabel("time (yr)") ; ylabel(" Grounded area (km^2)")
 %
+% 
+% Example:
 %
 %    Ice1r=ReadPlotSequenceOfResultFiles("-Ice1r-","-collect-");
 %    Ice1ra=ReadPlotSequenceOfResultFiles("-Ice1ra-","-collect-");
@@ -25,6 +27,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring,PlotType,Pl
 %    legend("Ice1r","ice1ra")
 %    xlabel("time (yr)") ; ylabel(" VAF (Gt)")
 %
+% Example:
 %
 %    Ice1r=ReadPlotSequenceOfResultFiles("-Ice1r-","-mesh-");
 %
@@ -132,7 +135,45 @@ while iFile<=nFiles   % loop over files
                 DataCollect.IceVolume(iCount)=IceVolume;
                 
                 
+                %%
                 
+            case "-mesh-speed-s-ab-"
+                
+                f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
+                
+                subplot(4,1,1)
+                PlotMuaMesh(CtrlVar,MUA);
+                title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                hold on ;
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                xlabel('x (km)') ; ylabel('y (km)') ;
+                axis equal tight 
+                hold off
+                
+                subplot(4,1,2)
+                speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%g',time))
+                %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                hold off
+                
+                subplot(4,1,3)
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);   title(sprintf('surface at t=%g',time))
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                
+                subplot(4,1,4)
+                PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%g',time))
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+                xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                hold off
+                
+                
+                %%
                 
                 
             case '-mesh-'
@@ -143,24 +184,18 @@ while iFile<=nFiles   % loop over files
                 title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+                hold off
                 
                 
+                
+                %%
                 
             case '-ubvb-'
                 % plotting horizontal velocities
                 %%
-                if ~exist('fubvb','var') || ~ishandle(fubvb)
-                    fubvb=figure;
-                else
-                    figure(fubvb)
-                end
                 
-                if CreateVideo
-                    fubvb.Position=PlotScreenPosition;
-                end
+                fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition);
                 
-                
-                hold off
                 N=1;
                 %speed=sqrt(ub.*ub+vb.*vb);
                 %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
