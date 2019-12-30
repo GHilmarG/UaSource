@@ -1,24 +1,29 @@
 
-function  I=MuaElementsContainingGivenNodes(CtlrVar,MUA,NodeList,EleList,AllOrAny)
+function  I=MuaElementsContainingGivenNodes(CtrlVar,MUA,NodeList,EleList,AllOrAny)
     
     
     
     
     %%
-    %   I=MuaElementsContainingGivenNodes(CtlrVar,MUA,NodeList,EleList,AllOrAny)
+    %   I=MuaElementsContainingGivenNodes(CtrlVar,MUA,NodeList,EleList,AllOrAny)
     %
-    % NodeList must be an index variable, ie not a logical index
+    % Finds elements in *MUA* containing nodes in *NodeList* .
     %
-    % Returns a logical list of elements containing either all of the nodes in
-    % NodeList or one or more of the nodes in NodeList
     %
-    % Optionally EleList can be specified, in which case the search is limited to the
-    % elements in the list.  If EleList is not specified, the search is over all elements in
-    % connectivity.
+    % *NodeList* must be an index variable (indexing with element position), ie not a logical index
     %
-    %  AllOrAny is a string variable and can be eitehr "all" or "any" depending
-    %  on if elemetns containing all the nodes or any of the nodes should be
-    %  found.
+    %
+    % On return *I* is a logical index list of elements containing either ALL of the nodes in
+    % *NodeList* or ANY (default) of the nodes in *NodeList*
+    %
+    % Optionally *EleList* can be specified, in which case the search is limited to the
+    % elements in that list.
+    %
+    % *EleList* must be a logical index 
+    %
+    % *AllOrAny* is a string variable and can be either "all" or "any" (default) depending
+    % on if elements containing all the nodes or any of the nodes should be
+    % found.
     %
     % Example: find elements containing one or more nodes with thickness
     % less that 10, and plot those over the mesh.
@@ -47,23 +52,18 @@ function  I=MuaElementsContainingGivenNodes(CtlrVar,MUA,NodeList,EleList,AllOrAn
     switch lower(AllOrAny)
         
         case "any"
-            
-            if nargin<4  || isempty(EleList)
-                I=any(ismember(MUA.connectivity,NodeList),2);
-            else
-                I=any(ismember(MUA.connectivity(EleList,:),NodeList),2);
-            end
+            I=any(ismember(MUA.connectivity,NodeList),2);
             
         case "all"
             
-            if nargin<4 || isempty(EleList)
-                I=all(ismember(MUA.connectivity,NodeList),2);
-            else
-                I=all(ismember(MUA.connectivity(EleList,:),NodeList),2);
-            end
+            I=all(ismember(MUA.connectivity,NodeList),2);
             
         otherwise
             error('sfad')
+    end
+    
+    if nargin >=4 && ~isempty(EleList)
+        I=I & EleList ;
     end
     
 end

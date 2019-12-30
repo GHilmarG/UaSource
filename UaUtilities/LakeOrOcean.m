@@ -85,7 +85,7 @@ if ~isempty(I)
     
     OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ; 
     
-    
+
     if CtrlVar.doplots && CtrlVar.PlotOceanLakeNodes
         
         figure
