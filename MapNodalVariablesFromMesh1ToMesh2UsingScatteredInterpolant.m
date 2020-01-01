@@ -138,7 +138,7 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
             p2=plot(x2(NodesOutside)/CtrlVar.PlotXYscale,y2(NodesOutside)/CtrlVar.PlotXYscale,'ob');
             p3=plot(x2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,y2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
             if ~isempty(p2) && ~isempty(p3)
-                legend([p2 p3],'Outside','Inside')'northeastoutside'
+                legend([p2 p3],'Outside','Inside','Location','northeastoutside')
             end
             axis tight
             hold off
