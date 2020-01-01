@@ -97,31 +97,33 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
         % shift  in two orhtonormal directions I'm garanteed not to be moving along
         % the edge itself.
         %
-        shift=1e-5;
-        IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)+shift y2(NodesOutside)+2*shift]) ;
-        
-        NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
-        %  Add those nodes to the right set
-        if ~isempty(NewInsideAndNotSameNodes)
-            NodesInsideAndNotSame=[NodesInsideAndNotSame;NewInsideAndNotSameNodes];
-            NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
-        end
-        
-        IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)-2*shift y2(NodesOutside)+shift]) ;
-        NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
-        %  Add those nodes to the right set
-        if ~isempty(NewInsideAndNotSameNodes)
-            NodesInsideAndNotSame=[NodesInsideAndNotSame;NewInsideAndNotSameNodes];
-            NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
-        end
-        
-        % And finally, are any of the outside nodes actually on the mesh boundary?
-        NodesOnBoundary = DistanceToLineSegment([x2(NodesOutside) y2(NodesOutside)],[MUA1.Boundary.x MUA1.Boundary.y],[],1000*eps);
-        
-        %  Add any ouside nodes on bounday to the set of inside nodes
-        if ~isempty(NodesOnBoundary)
-            NodesInsideAndNotSame=[NodesInsideAndNotSame;NodesOutside(NodesOnBoundary)];
-            NodesOutside(NodesOnBoundary)=[];
+        if ~isempty(NodesOutside)
+            shift=1e-5;
+            IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)+shift y2(NodesOutside)+2*shift]) ;
+            
+            NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
+            %  Add those nodes to the right set
+            if ~isempty(NewInsideAndNotSameNodes)
+                NodesInsideAndNotSame=[NodesInsideAndNotSame;NewInsideAndNotSameNodes];
+                NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
+            end
+            
+            IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)-2*shift y2(NodesOutside)+shift]) ;
+            NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
+            %  Add those nodes to the right set
+            if ~isempty(NewInsideAndNotSameNodes)
+                NodesInsideAndNotSame=[NodesInsideAndNotSame;NewInsideAndNotSameNodes];
+                NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
+            end
+            
+            % And finally, are any of the outside nodes actually on the mesh boundary?
+            NodesOnBoundary = DistanceToLineSegment([x2(NodesOutside) y2(NodesOutside)],[MUA1.Boundary.x MUA1.Boundary.y],[],1000*eps);
+            
+            %  Add any ouside nodes on bounday to the set of inside nodes
+            if ~isempty(NodesOnBoundary)
+                NodesInsideAndNotSame=[NodesInsideAndNotSame;NodesOutside(NodesOnBoundary)];
+                NodesOutside(NodesOnBoundary)=[];
+            end
         end
         
         fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
@@ -138,7 +140,7 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
             p2=plot(x2(NodesOutside)/CtrlVar.PlotXYscale,y2(NodesOutside)/CtrlVar.PlotXYscale,'ob');
             p3=plot(x2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,y2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
             if ~isempty(p2) && ~isempty(p3)
-                legend([p2 p3],'Outside','Inside')'northeastoutside'
+                legend([p2 p3],'Outside','Inside','Location','northeastoutside')
             end
             axis tight
             hold off
