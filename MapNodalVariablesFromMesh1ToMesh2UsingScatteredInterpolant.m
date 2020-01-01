@@ -126,19 +126,23 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
         
         fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
         
-        
-        FindOrCreateFigure("-Old and new nodes-");
-        tt=axis; 
-        hold off
-        PlotMuaMesh(CtrlVar,MUA1)
-        if ~isequal(tt,[0 1 0 1])
-            axis(tt)
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
+            FindOrCreateFigure("-Old and new nodes-");
+            tt=axis;
+            hold off
+            PlotMuaMesh(CtrlVar,MUA1)
+            if ~isequal(tt,[0 1 0 1])
+                axis(tt)
+            end
+            hold on
+            p2=plot(x2(NodesOutside)/CtrlVar.PlotXYscale,y2(NodesOutside)/CtrlVar.PlotXYscale,'ob');
+            p3=plot(x2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,y2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
+            if ~isempty(p2) && ~isempty(p3)
+                legend([p2 p3],'Outside','Inside')'northeastoutside'
+            end
+            axis tight
+            hold off
         end
-        hold on
-        plot(x2(NodesOutside)/CtrlVar.PlotXYscale,y2(NodesOutside)/CtrlVar.PlotXYscale,'ob')
-        plot(x2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,y2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or')
-        % legend('Mesh','Outside','Inside')
-        hold off
         
         F = scatteredInterpolant();
         F.Points=MUA1.coordinates;
