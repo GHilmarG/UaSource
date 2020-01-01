@@ -80,6 +80,11 @@ switch lower(CtrlVar.FlowApproximation)
         
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
+        if ~RunInfo.Forward.Converged
+            fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
+            F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
+            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+        end
         
     case 'ssheet'
         
