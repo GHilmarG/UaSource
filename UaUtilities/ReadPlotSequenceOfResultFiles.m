@@ -166,7 +166,7 @@ while iFile<=nFiles   % loop over files
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                 
                 subplot(4,1,4)
-                PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%g',time))
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%g',time))
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
