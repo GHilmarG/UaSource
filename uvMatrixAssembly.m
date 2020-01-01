@@ -57,8 +57,9 @@ if CtrlVar.TestForRealValues
     if ~isreal(F.C) ; save TestSave ; error('KRTF: C not real ') ; end
 end
 
-if any(isnan(F.ub)) ; save TestSave ; error('KRTF: u is nan ') ; end
-if any(isnan(F.vb)) ; save TestSave ; error('KRTF: v is nan ') ; end
+if any(isnan(F.ub)) ; save TestSave ; error('uvMatrixAssembly:NaN','NaN in F.ub. Variables saved in TestSave.mat') ; end
+if any(isnan(F.vb)) ; save TestSave ; error('uvMatrixAssembly:NaN','NaN in F.vb. Variables saved in TestSave.mat') ; end
+
 
 if CtrlVar.Picard
     Dvisk=0;

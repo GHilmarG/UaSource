@@ -164,12 +164,12 @@ while true
     
     if RunInfo.BackTrack.Converged==0
         if CtrlVar.InfoLevelNonLinIt>=1
-            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         
         if CtrlVar.WriteRunInfoFile
-            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         

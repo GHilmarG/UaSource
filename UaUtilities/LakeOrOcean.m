@@ -38,6 +38,11 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 % Returns a logical indexing (this was changed from indexing vectors on 20 Dec,
 % 2018)
 %
+%  
+% Note: An alternative starting point might be: 
+%
+%   IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
+%
 %%
 OceanNodes=[];
 LakeNodes=[];

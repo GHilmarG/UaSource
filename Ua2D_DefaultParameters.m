@@ -1736,7 +1736,7 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="FE form functions" ; % {"FE form functions","scatteredInterpolant"}
+CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant"}
 
 CtrlVar.MapOldToNew.Test=false;   %  
 

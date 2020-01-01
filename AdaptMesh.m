@@ -174,8 +174,13 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             nNewElements=MUAnew.Nele-NeleBefore;
             nNewNodes=MUAnew.Nnodes-NnodesBefore;
             
-            
-            [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+            OutsideValue.h=2*CtrlVar.ThickMin ;
+            OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
+            OutsideValue.b=OutsideValue.s-OutsideValue.h;
+            OutsideValue.ub=0;
+            OutsideValue.vb=0;
+            OutsideValue.dhdt=0;
+            [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
             
             
             %% Plots
@@ -183,7 +188,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 
                 FigureName='Adapt Mesh: before and after'; Position=[100,100,1000,1000] ;
                 fig=FindOrCreateFigure(FigureName,Position);
-                clf(fig);              
+                clf(fig);
                 subplot(2,1,1)
                 hold off
                 
@@ -210,12 +215,20 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             
         end
     end
-
-    % I now have done either MeshAdvanceRetreat or MeshAdapt, and I know update the
-    % old MUA to the new MUA ahead of any further possible mesh modifications. 
-    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
-    MUAnew=UpdateMUA(CtrlVar,MUAnew); 
-   
+    
+    MUAnew=UpdateMUA(CtrlVar,MUAnew);
+    
+    % I now have done either MeshAdvanceRetreat or MeshAdapt, and I now update the
+    % old MUA to the new MUA ahead of any further possible mesh modifications.
+    OutsideValue.h=2*CtrlVar.ThickMin ;
+    OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
+    OutsideValue.b=OutsideValue.s-OutsideValue.h;
+    OutsideValue.ub=0;
+    OutsideValue.vb=0;
+    
+    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    
+    
     
 end
 
@@ -281,9 +294,15 @@ if CtrlVar.ManuallyDeactivateElements
     %[MUAnew.coordinates,MUAnew.connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,MUAnew.coordinates,MUAnew.connectivity);
 
     %MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
+    CtrlVar.MapOldToNew.method="scatteredInterpolant"; CtrlVar.InitialDiagnosticStepAfterRemeshing=true ; % testing
+    % 
     
-    
-    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+    OutsideValue.h=CtrlVar.ThickMin ;
+    OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
+    OutsideValue.b=OutsideValue.s-OutsideValue.h;
+    OutsideValue.ub=0;
+    OutsideValue.vb=0;
+    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     
 end
 %%
