@@ -9,7 +9,7 @@ classdef UaRunInfo
         Message
         MeshAdapt
         File
-        
+        Mapping
         
     end
     
@@ -65,6 +65,13 @@ classdef UaRunInfo
             obj.MeshAdapt.Mesh.Nnodes=NaN;
             obj.MeshAdapt.Mesh.RunStepNumber=NaN;
             obj.MeshAdapt.Mesh.time=NaN;
+            
+            obj.Mapping.nNewNodes=NaN;
+            obj.Mapping.nOldNodes=NaN;
+            obj.Mapping.nIdenticalNodes=NaN;
+            obj.Mapping.nNotIdenticalNodes=NaN;
+            obj.Mapping.nNotIdenticalNodesOutside=NaN;
+            obj.Mapping.nNotIdenticalNodesInside=NaN;
             
             
         end

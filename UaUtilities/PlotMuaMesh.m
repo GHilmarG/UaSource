@@ -1,4 +1,4 @@
-function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
 %
@@ -7,6 +7,8 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 % The only essential input is MUA, the other input variables are optional.
 %
 % varargin is passed onto PlotFEmsh and then onto triplot.
+%
+% hTri is a handle to teh matlab triplot function
 %
 % *Examples:*
 %
@@ -82,7 +84,7 @@ end
 
 
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
+hTri=PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:}) ; 
 
 
 

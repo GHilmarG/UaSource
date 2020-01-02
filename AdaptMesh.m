@@ -86,6 +86,8 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold);
 end
 
+OutsideValue=DefineOutsideValues(UserVar,CtrlVar,MUAold,Fold);
+
 
 if isMeshAdvanceRetreat ||  isMeshAdapt
     
@@ -174,12 +176,8 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             nNewElements=MUAnew.Nele-NeleBefore;
             nNewNodes=MUAnew.Nnodes-NnodesBefore;
             
-            OutsideValue.h=2*CtrlVar.ThickMin ;
-            OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
-            OutsideValue.b=OutsideValue.s-OutsideValue.h;
-            OutsideValue.ub=0;
-            OutsideValue.vb=0;
-            OutsideValue.dhdt=0;
+
+                        
             [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
             
             
@@ -270,7 +268,8 @@ if CtrlVar.ManuallyDeactivateElements
     %
     if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
         MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
-        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+        OutsideValue=[];
+        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     end
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
@@ -283,9 +282,9 @@ if CtrlVar.ManuallyDeactivateElements
         FigureName="Elements to be deactivated (red)";  Position=[];
         fig=FindOrCreateFigure(FigureName,Position);
         
-        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,'r')
+        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,'r');
         hold on
-        PlotMuaMesh(CtrlVar,MUAnew,~ElementsToBeDeactivated,'k')
+        PlotMuaMesh(CtrlVar,MUAnew,~ElementsToBeDeactivated,'k');
         title('Elements to be deactivated in red')
     end
     

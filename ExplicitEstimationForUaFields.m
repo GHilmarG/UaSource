@@ -1,7 +1,7 @@
-function [ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(CtrlVar,F0,Fm1)
+function [ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(CtrlVar,MUA,F0,Fm1)
 
 nargoutchk(5,5)
-narginchk(3,3)
+narginchk(4,4)
 
 
 % The returned F1 does not depend on any of the fields of F1.  I just give this
@@ -12,9 +12,6 @@ narginchk(3,3)
 
 
 % if the mesh has changed over the last time step, then only derivatives of F0 will have been updated, and not those of Fm1.
-
-
-
 
 
 if CtrlVar.DebugMode
