@@ -91,7 +91,7 @@ if CtrlVar.TimeDependentRun
             
             % now plot
             
-            FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
+            FindOrCreateFigure("TestingMapping");
             hold off
             
             subplot(3,4,1) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')

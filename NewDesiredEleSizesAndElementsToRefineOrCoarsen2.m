@@ -329,8 +329,8 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         
         FigureName="Global mesh refinement"; 
-        Position=[1100,100,xFigWidth,yFigWidth] ;
-        fig=FindOrCreateFigure(FigureName,Position) ;
+        
+        fig=FindOrCreateFigure(FigureName) ;
                 
         subplot(1,2,1,'replace')
         hold off
@@ -348,8 +348,8 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
         
         FigureName="Local mesh refinement"; 
-        Position=[1100,100,xFigWidth,yFigWidth] ;
-        fig=FindOrCreateFigure(FigureName,Position) ;
+        
+        fig=FindOrCreateFigure(FigureName) ;
 
         CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
         

@@ -67,6 +67,7 @@ clear UaOutputs
 % Ua utilities
 clear PlotMeshScalarVariable 
 clear PlotFEmesh
+clear FindOrCreateFigure
 
 %% Define CtrlVar
 
