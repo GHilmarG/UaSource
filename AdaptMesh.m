@@ -358,14 +358,16 @@ end
 %   CtrlVar.InitialDiagnosticStepAfterRemeshing is true
 %   but also if mesh refinement method was not 'newest vertex bisection'
 %
-isMeshingLocalWithoutSmoothing=contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0;
+isMeshingLocalWithoutSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:local:red-green","IgnoreCase",true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0) ...
+    || contains(CtrlVar.MeshRefinementMethod,"local:newest vertex bisection","IgnoreCase",true);
+
 isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
-isRecalculateVelocities=isMeshChanged ||  isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ; 
+isRecalculateVelocities=isMeshChanged ||  isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
 
 if ~CtrlVar.AdaptMeshAndThenStop
     if isRecalculateVelocities
-            [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+        [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
     end
 end
 

@@ -42,7 +42,8 @@ function fig=FindOrCreateFigure(FigureName,Position)
             nx=mod(floor(nFigs/Ny),Nx) ;
             ny=mod(mod(nFigs,Nx*Ny),Ny);
             
-            fig.Position=[nx*figWidth ny*figHeight figWidth figHeight];
+            %fig.Position=[nx*figWidth ny*figHeight figWidth figHeight];
+            fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
             nFigs=nFigs+1;
         end
     else

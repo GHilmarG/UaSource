@@ -18,7 +18,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
-        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','l');
+        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','F','l');
         
         MUAold=MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
@@ -49,7 +49,7 @@ else
 end
 
 
-RunInfo=UaRunInfo;
+% RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
 

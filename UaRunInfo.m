@@ -40,7 +40,7 @@ classdef UaRunInfo
             obj.Forward.Residual=NaN;
             obj.Forward.time=NaN;
             obj.Forward.dt=NaN;
-            
+            obj.Forward.dtRestart=NaN;
             
             obj.Forward.ActiveSetConverged=NaN;
             
