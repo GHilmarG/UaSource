@@ -72,7 +72,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 EleSubset=GF.ElementsDownstreamOfGroundingLines &amp; (MUA.xEle&gt;xCutOff) ;
 hf=rhow*(S-B)./rho ; [MinFlotation,NodeSeed]=min((s-b)-hf);
 ElementsToBeDeactivated=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
-</pre><pre class="codeinput">    <span class="keyword">if</span> ~islogical(EleSubset)
+</pre><p>Node: Currenlty only works for 3-node elements, although this can easily be addressed using the same general idea.</p><pre class="codeinput">    <span class="keyword">if</span> ~islogical(EleSubset)
         error(<span class="string">'IEle:InvalidInput'</span>,<span class="string">'EleSubset must be a logical index'</span>)
     <span class="keyword">end</span>
 
@@ -83,6 +83,13 @@ ElementsToBeDeactivated=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
     <span class="keyword">if</span> nargin&lt; 5 || isempty(CreateFigure)
         CreateFigure=false;
     <span class="keyword">end</span>
+
+    <span class="keyword">if</span> CtrlVar.TriNodes~=3
+
+        error(<span class="string">"EleFlooding:UnsupportedElementType"</span>,<span class="string">"Currenlty only 3-node elements supported"</span>)
+
+    <span class="keyword">end</span>
+
 
     TRI=MUA.connectivity(EleSubset,:) ;
 
@@ -124,6 +131,9 @@ function IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset,CreateFigure)
     %   hf=rhow*(S-B)./rho ; [MinFlotation,NodeSeed]=min((s-b)-hf);
     %   ElementsToBeDeactivated=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
     %
+    % Node: Currenlty only works for 3-node elements, although this can easily be
+    % addressed using the same general idea.  
+    %
     %%
     
     if ~islogical(EleSubset)
@@ -137,6 +147,13 @@ function IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset,CreateFigure)
     if nargin< 5 || isempty(CreateFigure)
         CreateFigure=false;
     end
+    
+    if CtrlVar.TriNodes~=3
+    
+        error("EleFlooding:UnsupportedElementType","Currenlty only 3-node elements supported")
+    
+    end
+    
     
     TRI=MUA.connectivity(EleSubset,:) ;
     

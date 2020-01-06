@@ -17,6 +17,9 @@ function IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset,CreateFigure)
     %   hf=rhow*(S-B)./rho ; [MinFlotation,NodeSeed]=min((s-b)-hf);
     %   ElementsToBeDeactivated=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
     %
+    % Node: Currenlty only works for 3-node elements, although this can easily be
+    % addressed using the same general idea.  
+    %
     %%
     
     if ~islogical(EleSubset)
@@ -30,6 +33,13 @@ function IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset,CreateFigure)
     if nargin< 5 || isempty(CreateFigure)
         CreateFigure=false;
     end
+    
+    if CtrlVar.TriNodes~=3
+    
+        error("EleFlooding:UnsupportedElementType","Currenlty only 3-node elements supported")
+    
+    end
+    
     
     TRI=MUA.connectivity(EleSubset,:) ;
     
