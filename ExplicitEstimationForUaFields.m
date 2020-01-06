@@ -19,9 +19,9 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
         fprintf('ExplicitEstimationForUaFields: Creating dumpfile %s \n',filename)
     end
     
-    CtrlVar.ExplicitEstimation="-uv0Toh1Touv1-" ;
+ 
     
-    switch CtrlVar.ExplicitEstimation
+    switch CtrlVar.ExplicitEstimationMethod
         
         case "-dhdt-"
             

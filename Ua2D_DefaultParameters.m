@@ -261,7 +261,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimation="-dhdt-" ;  {"-Adams-Bashforth-","-dhdt-"
+CtrlVar.ExplicitEstimationMethod="-dhdt-" ; % {"-Adams-Bashforth-","-dhdt-"}
 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.

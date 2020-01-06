@@ -24,6 +24,7 @@ function hTri=PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
 persistent iCounter
 
 
+
 if nargin>3 && ~isempty(ElementList)
     connectivity=connectivity(ElementList,:);
     if islogical(ElementList)
