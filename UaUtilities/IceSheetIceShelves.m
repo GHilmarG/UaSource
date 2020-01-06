@@ -42,6 +42,9 @@ function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnode
 %
 %%
 
+narginchk(3,6)
+nargoutchk(1,4)
+
 GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
 if nargin<6 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)

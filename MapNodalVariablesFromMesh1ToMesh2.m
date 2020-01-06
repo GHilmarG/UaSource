@@ -1,8 +1,10 @@
 
-function varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
+function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin)
 
 nVar=length(varargin) ;
 varargout=cell(nVar,1);
+
+
 
 switch CtrlVar.MapOldToNew.method
     
@@ -10,11 +12,11 @@ switch CtrlVar.MapOldToNew.method
     case "scatteredInterpolant"
         
         
-        [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUA1,x2,y2,OutsideValues,varargin{:}) ;
+        [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin{:}) ;
         
     case "FE form functions"
         
-        [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUA1,x2,y2,varargin{:});
+        [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,RunInfo,MUAold,MUAnew,varargin{:});
 end
 
 
@@ -26,14 +28,14 @@ if CtrlVar.MapOldToNew.Test
     
     nVar=length(varargin) ;
     varargout=cell(nVar,1);
-    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUA1,x2,y2,OutsideValues,varargin{:}) ;
+    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUAold,MUAnew,OutsideValues,varargin{:}) ;
     tMapOld=toc(tMapOld);
     
     Test=varargout ;
     
     tMapNew=tic;
     varargout=cell(nVar,1);
-    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUA1,x2,y2,varargin{:});
+    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUAold,MUAnew,varargin{:});
     tMapNew=toc(tMapNew);
     
     fprintf(' tMapOld \t \t tMapNew \n %f \t \t %f \n ',tMapOld,tMapNew)

@@ -293,6 +293,8 @@ elseif r>CtrlVar.NLtol
     RunInfo.Forward.Converged=0;
     warning('uvSSTREAM:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
     save TestSaveNR
+    
+    
 else
     if CtrlVar.InfoLevel>0
         if CtrlVar.InfoLevelNonLinIt>0

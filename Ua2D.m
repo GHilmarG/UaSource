@@ -67,6 +67,7 @@ clear UaOutputs
 % Ua utilities
 clear PlotMeshScalarVariable 
 clear PlotFEmesh
+clear FindOrCreateFigure
 
 %% Define CtrlVar
 
@@ -392,7 +393,7 @@ while 1
     
     MUA=UpdateMUA(CtrlVar,MUA);
     
-    %% -adapt time step
+    %% -adapt time step   automated time stepping 
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,CtrlVar.time,CtrlVar.dt);
     end
@@ -412,32 +413,11 @@ while 1
         end
         
         if CtrlVar.doplots  && CtrlVar.PlotMesh
-            
-            FigMesh='Mesh';
-            fig=findobj(0,'name',FigMesh);
-            if isempty(fig)
-                fig=figure('name',FigMesh);
-                fig.Position=CtrlVar.PlotPosition;
-            else
-                fig=figure(fig);
-                hold off
-            end
- 
-            PlotMuaMesh(CtrlVar,MUA);
-            hold on ; 
-            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
-            
-            xymin=min(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ; 
-            xymax=max(CtrlVar.MeshBoundaryCoordinates)/CtrlVar.PlotXYscale ;
-            xlim([xymin(1) xymax(1)]) ; 
-            ylim([xymin(2) xymax(2)]); 
-            XYratio=(xymax(2)-xymin(2))/(xymax(1)-xymin(1)) ;
-            xl=fig.Position(1) ;  yd=fig.Position(2) ; width=fig.Position(3) ;  height=yd+width*XYratio;
-            fig.Position=[xl yd width height];
-            drawnow
+            figMesh=FindOrCreateFigure("Mesh");
+            clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r'); hold off
         end
 
-        
         
         if CtrlVar.AdaptMeshAndThenStop
             
@@ -457,7 +437,20 @@ while 1
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
+            hOld=F.h;
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
+            
+            % Was geometry manually changed by the user? If so then enforce a new uv
+            % solution
+            dh=norm(hOld-F.h)/sqrt(numel(hOld));
+            
+            if dh>1000*eps 
+                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                Fm1=F;
+                CtrlVar.ExplicitEstimation=false;
+            else
+                CtrlVar.ExplicitEstimation=true;
+            end
         else
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
         end
@@ -558,7 +551,10 @@ while 1
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-            F=ExplicitEstimationForUaFields(CtrlVar,F,F0,Fm1);
+            if CtrlVar.ExplicitEstimation
+                [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+            end
+            
             
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h

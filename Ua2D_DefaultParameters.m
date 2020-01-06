@@ -55,7 +55,7 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 
 %% Sliding law
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -136,9 +136,10 @@ CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should al
 CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnostic step, even if the step is a restart step.
                                  % Irrespective of the value of this variable, an initial diagnostic step is always performed at the beginning of a transient run if it is not a restart run.
                                  % An initial diagnostic step is therefore done at the beginning of a transient run if:
-                                 % 1) so asked by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
-                                 % 2) at the start of an implicit uvh transient run.
-                                 % Unless asked by the user, no initial diagnostic step is done at the beginning of a transient restart run.
+                                 % 1) so demanded by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
+                                 % 2) at always at the start of an implicit uvh transient run which is not a
+                                 %    restart run.
+                                 % Howere, unless demanded by the user, no initial diagnostic step is done at the beginning of a transient restart run.
 
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
@@ -233,7 +234,7 @@ CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit 
 
 CtrlVar.uvhTimeSteppingMethod='supg'; % 'theta'|'supg'
 
-CtrlVar.SUPG.beta0=0.5 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
+CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
 
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
@@ -248,8 +249,19 @@ CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerk
 CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     % keep zero (only used for testing)
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used for testing)
   
-
-
+%% Explicit estimation 
+%
+% In a transient run u, v and h can estimated explicity ahead of an implicit uvh
+% calculation.  If the explicit estimate is a good starting point, then the number of
+% non-linear uvh iterations is reduced. One can either use second-order Adams-Bashforth
+% method for a variable time step, or calculate dh/dt explicitly from flux convergence and
+% then set h1=h0+dt dh/dt.   Generally both method work fine and the Adams-Bashforth
+% method used to be the default approach. However, experience has shown that occasionally
+% the Adams-Bashforth extrapolation appears to give rise to a bad starting points for the
+% uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
+% the sense that one calculates dh/dt directly from the velocity field, rather than using
+% an estimate of dh/dt from the two previous solutions.
+CtrlVar.ExplicitEstimationMethod="-dhdt-" ; % {"-Adams-Bashforth-","-dhdt-"}
 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
@@ -309,6 +321,7 @@ CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables use
 
 CtrlVar.Residual.uvh='uvh';
 CtrlVar.uvhConvergenceCriteria='residuals and increments';
+CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -354,7 +367,7 @@ CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picar
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
-CtrlVar.LineSeachAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
+CtrlVar.LineSearchAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
@@ -723,7 +736,7 @@ CtrlVar.Inverse.GradientUpgradeMethod='ConjGrad' ; %{'SteepestDecent','ConjGrad'
 CtrlVar.Inverse.InitialLineSearchStepSize=[];
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-20; % minimum step size in backtracking
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-5; % minimum fractional step size relative to initial step size
-CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=50;
+CtrlVar.Inverse.MaximumNumberOfLineSearchSteps=50;
 CtrlVar.ConjugatedGradientsRestartThreshold=40 ; % degrees!
 CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % FR ;Fletcher-Reeves
@@ -1525,7 +1538,7 @@ CtrlVar.CisElementBased=0;
 CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 
 
-%% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)
+%% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step) (automated time stepping)
 % The adaptive-time-stepping algorithm is based on the idea of keeping the number of non-linear iterations
 % close to a certain target (CtrlVar.ATSTargetIterations).
 % This is a simple but highly effective method.  However, as the ATSA is not based on any kind of error estimates,
@@ -1564,15 +1577,15 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
-CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
-CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
+CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
-                                    
+CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
                                     
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.
@@ -1734,7 +1747,7 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="FE form functions" ; % {"FE form functions","scatteredInterpolant"}
+CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant"}
 
 CtrlVar.MapOldToNew.Test=false;   %  
 

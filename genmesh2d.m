@@ -73,15 +73,8 @@ MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 if  CtrlVar.doplots && CtrlVar.PlotMesh
     
-    FigName='Mesh';
-    fig=findobj(0,'name',FigName);
-    if isempty(fig)
-        fig=figure('name',FigName);
-        fig.Position=CtrlVar.PlotPosition;
-    else
-        fig=figure(fig);
-        hold off
-    end
+    fig=FindOrCreateFigure("Mesh");
+    clf(fig)
     PlotFEmesh(coordinates,connectivity,CtrlVar)
 end
 

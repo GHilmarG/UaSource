@@ -53,13 +53,20 @@ if any(isnan(F.dabdh))
     error(errorStruct)
 end
 
-
 if numel(F.as)==1
     F.as=F.as+zeros(MUA.Nnodes,1);
 end
 
 if numel(F.ab)==1
     F.ab=F.ab+zeros(MUA.Nnodes,1);
+end
+
+if numel(F.dasdh)==1
+    F.dasdh=F.dasdh+zeros(MUA.Nnodes,1);
+end
+
+if numel(F.dabdh)==1
+    F.dabdh=F.dabdh+zeros(MUA.Nnodes,1);
 end
 
 
@@ -74,6 +81,13 @@ if  MUA.Nnodes ~= numel(F.ab)
     error('DefineMassBalance returns incorrect dimensions ')
 end
 
+if ~iscolumn(F.ab)
+    error("GetMassBalance:abNotColumnVector","error: ab returned by DefineMassBalance not a column vector.")
+end
+
+if ~iscolumn(F.as)
+    error("GetMassBalance:abNotColumnVector","error: as returned by DefineMassBalance not a column vector.")
+end
 
 
 end

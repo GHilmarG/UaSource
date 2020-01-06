@@ -164,12 +164,12 @@ while true
     
     if RunInfo.BackTrack.Converged==0
         if CtrlVar.InfoLevelNonLinIt>=1
-            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         
         if CtrlVar.WriteRunInfoFile
-            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         
@@ -292,15 +292,8 @@ while true
         slope=-2*r0;
         
         FigName='uvh iteration: line-search';
-        fig=findobj(0,'name',FigName);
-        if isempty(fig)
-            fig=figure('name',FigName);
-            fig.Position=[10,10,600,600] ;
-        else
-            fig=figure(fig);
-            hold off
-        end
-        
+      
+        FindOrCreateFigure(FigName);
         
         
         plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
@@ -442,17 +435,10 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
     
     FigName='NR uvh implicit';
-    fig=findobj(0,'name',FigName);
-    if isempty(fig)
-        fig=figure('name',FigName);
-        fig.Position=[10,10,800,800] ;
-    else
-        fig=figure(fig);
-        hold off
-    end
     
-    
+    FindOrCreateFigure(FigName);
     semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR uvh implicit') ; xlabel('Iteration') ; ylabel('Residual')
+
 end
 
 if ~isempty(L)

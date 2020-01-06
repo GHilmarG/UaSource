@@ -1,6 +1,9 @@
 
-function I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
+function  I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 
+    
+    
+    
 %%
 %   I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 %
@@ -13,10 +16,15 @@ function I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 % connectivity.
 %
 % Example: find all elements containing one or more of the  nodes 1, 10 , 11
+%
+%
 %  I=AllElementsContainingGivenNodes(MUA.connectivity,[1 10 11]); 
-%  find(I)                % lists the element numbers
-%  MUA.connectivity(I,:)  % gives the connectivity of those elements
-%  figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,I) % plots the elements
+%  figure ; PlotMuaMesh(CtrlVar,MUA,[],'k') ;  hold on ; PlotMuaMesh(CtrlVar,MUA,I,'r') ;
+%
+%
+%
+%%
+
 
 if nargin<3
     I=any(ismember(connectivity,NodeList),2);

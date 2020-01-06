@@ -156,9 +156,10 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     
     if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
         fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
+        
     elseif luvector
         if isdistributed(T)
-             sol=U\(L(p,:)\fg) ; % not sure if correct, could not test because lu not yet implemented for distributed sparse matrices!
+            sol=U\(L(p,:)\fg) ; % not sure if correct, could not test because lu not yet implemented for distributed sparse matrices!
         else
             sol(q)=U\(L\(R(:,p)\fg)) ;
         end
@@ -168,6 +169,11 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
         else
             sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.
         end
+    end
+    
+    if any(isnan(sol))
+        save TestSave
+        error('AugmentedLagrangianSolver:NaN','NaN in sol. All variables writen to TestSave.mat')
     end
     
     x=sol(1:n) ; y=sol(n+1:end);

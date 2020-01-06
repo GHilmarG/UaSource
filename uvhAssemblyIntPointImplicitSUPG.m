@@ -1,11 +1,11 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(53,53)
+narginchk(54,54)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -68,6 +68,7 @@ if CtrlVar.CisElementBased
     Cint=Cnod;
     mint=mnod;
     qint=qnod;
+    mukint=muknod;
     
     if CtrlVar.IncludeMelangeModelPhysics
         Coint=Conod;
@@ -88,6 +89,13 @@ else
         qint=qnod*fun;
     else
         qint=[];
+    end
+    
+      
+    if ~isempty(muknod)
+        mukint=muknod*fun;
+    else
+        mukint=[];
     end
     
     if CtrlVar.IncludeMelangeModelPhysics
@@ -243,7 +251,7 @@ end
 
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
-BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g);
+BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
 
 
 % figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')
@@ -330,10 +338,17 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %       dN/dX for u-> infty ,  dt-> infty
 %  1/3  dN/dX for L -> infty
 %
-ECN=100*speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
-kappa=coth(ECN)-1./ECN;
-tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
-tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
+
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ; 
+
+% ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
+% kappa=coth(ECN)-1./ECN;
+
+% tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
+% tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
+
+tau0=CtrlVar.SUPG.beta0*tau;
+tau1=CtrlVar.SUPG.beta1*tau;
 
 f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
 SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));

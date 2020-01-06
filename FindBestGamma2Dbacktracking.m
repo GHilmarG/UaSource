@@ -48,7 +48,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
     % initially r=r1 , rb=r1 and gamma=1, gammab=1 
     
     %% possible initial extrapolation step
-    if r> target && r1 < r0  && CtrlVar.LineSeachAllowedToUseExtrapolation
+    if r> target && r1 < r0  && CtrlVar.LineSearchAllowedToUseExtrapolation
         ExtrapolationStep=true ;
         if CtrlVar.InfoLevelNonLinIt>=2
             fprintf(CtrlVar.fidlog,' Extrapolation flag set to true in line-search uv \n ');

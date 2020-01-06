@@ -3,7 +3,7 @@ function PlotBCs(CtrlVar,coordinates,connectivity,Boundary,...
         ufixednode,ufixedvalue,vfixednode,vfixedvalue,utiedA,utiedB,vtiedA,vtiedB,hfixednode,hfixedvalue,htiedA,htiedB,FixedNormalVelocityNode,FixedNormalVelocityValue)
     
  
-    
+   
     CtrlVar.PlotMesh=1;
  
     PlotFEmesh(coordinates,connectivity,CtrlVar); hold on

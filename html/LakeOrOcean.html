@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>LakeOrOcean</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-12-05"><meta name="DC.source" content="LakeOrOcean.m"><style type="text/css">
+      --><title>LakeOrOcean</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-12-30"><meta name="DC.source" content="LakeOrOcean.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,14 +66,15 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
 </pre><pre class="language-matlab">[OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
-</pre><pre>Only CtrlVar and MUA are required input variables:</pre><p>Example:</p><pre class="language-matlab">[OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,MUA)
-</pre><p>Example:</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span> ; CtrlVar=CtrlVarInRestartFile;
+</pre><pre>Only CtrlVar and MUA are required input variables:</pre><p>Example:</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span> ; CtrlVar=CtrlVarInRestartFile;
 CtrlVar.doplots=1 ;  CtrlVar.PlotOceanLakeNodes=1;
 [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ;
-</pre><p>Tries to determine which floating nodes are part of the ocean and which belong to subglacial lakes.</p><p>Uses GLgeometry to determine the longest grounding line and assumes that this grounding line represents the ocean boundary. Then determines if nodal point at floating level are inside or outside of this boundary.</p><p>May not always work, and anyhow I am not sure if one can always objectively decide what is an ocean and what a lake. If, for example, enclosed parts of an ice-rise go aflot, then this will not be detected as lake...</p><p>Just use this m-file as a starting point towards defining lake/ocean nodes.</p><p>Note: GLgeo calculated is slighly different from the usual way of doing this       because here the grounding line needs to be closed.</p><p>Returns a logical indexing (this was changed from indexing vectors on 20 Dec, 2018)</p><pre class="codeinput">OceanNodes=[];
+</pre><p>Tries to determine which floating nodes are part of the ocean and which belong to subglacial lakes.</p><p>Uses GLgeometry to determine the longest grounding line and assumes that this grounding line represents the ocean boundary. Then determines if nodal point at floating level are inside or outside of this boundary.</p><p>May not always work, and anyhow I am not sure if one can always objectively decide what is an ocean and what a lake.</p><p>This approach will fail if in some circumstances. for example, enclosed parts of an ice-rise go aflot, then this lake will not be identified as a lake and classified as a part of the  ocean...</p><p>Just use this m-file as a starting point towards defining lake/ocean nodes.</p><p>Note: GLgeo calculated is slighly different from the usual way of doing this       because here the grounding line needs to be closed.</p><p>Returns a logical indexing (this was changed from indexing vectors on 20 Dec, 2018)</p><p>Note: An alternative starting point might be:</p><pre class="language-matlab">IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
+</pre><pre class="codeinput">OceanNodes=[];
 LakeNodes=[];
+OceanElements=[];
 
 
 <span class="keyword">if</span> nargin&lt;4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
@@ -115,6 +116,9 @@ I=find(GF.NodesDownstreamOfGroundingLines);
     II(LakeNodes)=true;
     LakeNodes=II;
 
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ;
+
+
     <span class="keyword">if</span> CtrlVar.doplots &amp;&amp; CtrlVar.PlotOceanLakeNodes
 
         figure
@@ -142,7 +146,7 @@ I=find(GF.NodesDownstreamOfGroundingLines);
 </pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 
-function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
 
 %%
 %
@@ -153,13 +157,9 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,G
 %
 % Example:
 %
-%   [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,MUA)
-%
-% Example:
-%
-%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile; 
+%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
 %   CtrlVar.doplots=1 ;  CtrlVar.PlotOceanLakeNodes=1;
-%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ; 
+%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ;
 %
 %
 %
@@ -171,19 +171,29 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,G
 % at floating level are inside or outside of this boundary.
 %
 % May not always work, and anyhow I am not sure if one can always objectively
-% decide what is an ocean and what a lake. If, for example, enclosed parts of an
-% ice-rise go aflot, then this will not be detected as lake...
+% decide what is an ocean and what a lake.
+%
+% This approach will fail if in some circumstances. for example, enclosed parts
+% of an ice-rise go aflot, then this lake will not be identified as a lake and
+% classified as a part of the  ocean...
 %
 % Just use this m-file as a starting point towards defining lake/ocean nodes.
 %
 % Note: GLgeo calculated is slighly different from the usual way of doing this
 %       because here the grounding line needs to be closed.
 %
-% Returns a logical indexing (this was changed from indexing vectors on 20 Dec, 2018)
+% Returns a logical indexing (this was changed from indexing vectors on 20 Dec,
+% 2018)
+%
+%  
+% Note: An alternative starting point might be: 
+%
+%   IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
 %
 %%
 OceanNodes=[];
 LakeNodes=[];
+OceanElements=[]; 
 
 
 if nargin<4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
@@ -225,6 +235,9 @@ if ~isempty(I)
     II(LakeNodes)=true;
     LakeNodes=II;
     
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ; 
+    
+
     if CtrlVar.doplots && CtrlVar.PlotOceanLakeNodes
         
         figure

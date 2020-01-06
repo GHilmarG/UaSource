@@ -1,4 +1,4 @@
-function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
+function hTri=PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
  
 %
 % PlotFEmesh(coordinates,connectivity)
@@ -24,6 +24,7 @@ function PlotFEmesh(coordinates,connectivity,CtrlVar,ElementList,varargin)
 persistent iCounter
 
 
+
 if nargin>3 && ~isempty(ElementList)
     connectivity=connectivity(ElementList,:);
     if islogical(ElementList)
@@ -39,6 +40,7 @@ ElementNumbers=ElementNumbers(:);
 [Nele,nod]=size(connectivity);
 
 if Nele==0
+    hTri=[];
     return
 end
 
@@ -114,7 +116,7 @@ if numel(varargin)==1
    varargin={'color',varargin{1}};
 end
 
-triplot(TR,'color',CtrlVar.MeshColor,varargin{:}) ;
+hTri=triplot(TR,'color',CtrlVar.MeshColor,varargin{:}) ;
 hold on
 
 if nargin>3

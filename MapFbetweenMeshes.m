@@ -1,8 +1,8 @@
-function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold)
+function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue)
 
          
 
-narginchk(8,8)
+narginchk(9,9)
 nargoutchk(5,5)
 
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
@@ -41,20 +41,33 @@ if CtrlVar.TimeDependentRun
         
     else
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
-        OutsideValue=[];
+        
         
         switch CtrlVar.MapOldToNew.Transient.Geometry
             
             case "bh-FROM-sBS"
                 
-                [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+                
+                if ~isfield(OutsideValue,'s')
+                    OutsideValue.s=NaN;
+                end
+                if ~isfield(OutsideValue,'b')
+                    OutsideValue.b=NaN;
+                end
+                
+                [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,[OutsideValue.s OutsideValue.b],Fold.s,Fold.b);
                 % I don't really need to map b from old to new, but I use this later as an initial
                 % guess.
                 
                 
             case "bs-FROM-hBS"
                 
-                Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+                       
+                if ~isfield(OutsideValue,'h')
+                    OutsideValue.h=NaN;
+                end
+                
+                [RunInfo,Fnew.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue.h,Fold.h);
                 
         end
         
@@ -67,18 +80,18 @@ if CtrlVar.TimeDependentRun
             % calculate geometry using both options
             
             OutsideValue=[];
-            [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+            [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.s,Fold.b);
             CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
             [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
             
             FTest=Fold; FTest.GF=[];
-            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+            [RunInfo,FTest.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.h);
             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
             [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
             
             % now plot
             
-            FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
+            FindOrCreateFigure("TestingMapping");
             hold off
             
             subplot(3,4,1) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
@@ -137,16 +150,71 @@ BCsNew=BoundaryConditions;
 
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
-OutsideValues=[];
-
 %%
 
 
-[Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt,Fnew.duddt,Fnew.dvddt]=...
-    MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValues,...
-    Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt,Fold.duddt,Fold.dvddt);
+if ~isfield(OutsideValue,'ub')
+    OutsideValue.ub=NaN;
+end
+if ~isfield(OutsideValue,'vb')
+    OutsideValue.vb=NaN;
+end
+
+if ~isfield(OutsideValue,'ud')
+    OutsideValue.ud=NaN;
+end
+
+if ~isfield(OutsideValue,'vd')
+    OutsideValue.vd=NaN;
+end
+
+if ~isfield(OutsideValue,'dhdt')
+    OutsideValue.dhdt=NaN;
+end
 
 
+if ~isfield(OutsideValue,'dubdt')
+    OutsideValue.dubdt=NaN;
+end
+
+if ~isfield(OutsideValue,'dvbdt')
+    OutsideValue.dvbdt=NaN;
+end
+
+if ~isfield(OutsideValue,'duddt')
+    OutsideValue.duddt=NaN;
+end
+
+if ~isfield(OutsideValue,'dvddt')
+    OutsideValue.dvddt=NaN;
+end
+
+
+switch CtrlVar.FlowApproximation
+    
+    case "SSTREAM"
+        
+        
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
+            MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
+        
+        Fnew.duddt=zeros(MUAnew.Nnodes,1);
+        Fnew.dvddt=zeros(MUAnew.Nnodes,1);
+        
+    case "SSHEET"
+        
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt]=...
+            MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold,dvddt) ;
+        
+        Fnew.dubdt=zeros(MUAnew.Nnodes,1);
+        Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
+        
+        
+end
 
 %%
 end

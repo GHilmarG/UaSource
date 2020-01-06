@@ -13,6 +13,8 @@ classdef PriorProbabilityDistribution
         rhow=[];
         m=[];
         n=[];
+        q=[];
+        muk=[];
         
         AGlen=[];
         CovAGlen=[]

@@ -32,11 +32,19 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     %  -time step is adjusted so that time interval for making transient plots (CtrlVar.TransientPlotDt) is not skipped over
     %  -time step is not increased further than the target time step CtrlVar.ATStimeStepTarget
     %  -time step is adjusted so that total simulation time does not exceed CtrlVar.TotalTime
-    % 
+    %
     %
     %
     
-    persistent ItVector icount dtNotUserAdjusted dtOutLast
+    persistent ItVector icount dtNotUserAdjusted dtOutLast dtModifiedOutside
+    
+    if isempty(dtModifiedOutside)
+        dtModifiedOutside=false;
+    end
+    
+    if isempty(ItVector) ; ItVector=zeros(max(CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp),1)+1e10; end
+    if isempty(icount) ; icount=0 ; end
+    
     
     % potentially dt was previously adjusted for plotting/saving purposes
     % if so then dtNotUserAdjusted is the previous unmodified time step
@@ -47,18 +55,29 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             if ~isempty(dtNotUserAdjusted)   
                 dtIn=dtNotUserAdjusted ; 
             end
+        else
+            icount=0;
+            dtModifiedOutside=true;
         end
     end
     
     dtOut=dtIn ;
     
     
+    if dtModifiedOutside
+        
+        icount=icount+1;
+        if icount>10
+            dtModifiedOutside=false;
+            ItVector=ItVector*0+1e10; 
+            icount=0;
+        end
+        
+    
     %%
-    if CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations) 
+    elseif CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations) 
         
-        if isempty(ItVector) ; ItVector=zeros(max(CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp),1)+1e10; end
-        if isempty(icount) ; icount=0 ; end
-        
+   
         
         
         icount=icount+1;
@@ -120,6 +139,14 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             end
         end
     end
+    
+    if CtrlVar.ATSTdtRounding && CtrlVar.UaOutputsDt~=0
+        % rounding dt to within 10% of Dt
+        dtOut=CtrlVar.UaOutputsDt/round(CtrlVar.UaOutputsDt/dtOut,1,'significant') ; 
+    end
+    
+    RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modifications related to plot times and end times.
+                               % This is the dt to be used in further restart runs
     
     %% dtOut has now been set, but I need to see if the user wants outputs/plots at given time intervals and
     % if I am possibly overstepping one of those intervals.
@@ -187,13 +214,13 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     
     k=find(isnan(RunInfo.Forward.time),1);
     if isempty(k)
-       RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time*0+NaN];
-       RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt*0+NaN];
-       k=find(isnan(RunInfo.Forward.time),1);
+        RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time*0+NaN];
+        RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt*0+NaN];
+        k=find(isnan(RunInfo.Forward.time),1);
     end
+    
     RunInfo.Forward.time(k)=time;
     RunInfo.Forward.dt(k)=dtOut;
-    
     
     
     

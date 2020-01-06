@@ -115,7 +115,7 @@ end
 %% Backtracking parameter modifications
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
-CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSeachSteps;
+CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSearchSteps;
 CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevel;
 CtrlVar.BackTrackGuardLower=0.25;
 CtrlVar.BackTrackGuardUpper=0.95;
