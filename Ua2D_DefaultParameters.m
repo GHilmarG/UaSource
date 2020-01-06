@@ -249,8 +249,19 @@ CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerk
 CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     % keep zero (only used for testing)
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used for testing)
   
-
-
+%% Explicit estimation 
+%
+% In a transient run u, v and h can estimated explicity ahead of an implicit uvh
+% calculation.  If the explicit estimate is a good starting point, then the number of
+% non-linear uvh iterations is reduced. One can either use second-order Adams-Bashforth
+% method for a variable time step, or calculate dh/dt explicitly from flux convergence and
+% then set h1=h0+dt dh/dt.   Generally both method work fine and the Adams-Bashforth
+% method used to be the default approach. However, experience has shown that occasionally
+% the Adams-Bashforth extrapolation appears to give rise to a bad starting points for the
+% uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
+% the sense that one calculates dh/dt directly from the velocity field, rather than using
+% an estimate of dh/dt from the two previous solutions.
+CtrlVar.ExplicitEstimationMethod="-dhdt-" ; % {"-Adams-Bashforth-","-dhdt-"}
 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
@@ -1527,7 +1538,7 @@ CtrlVar.CisElementBased=0;
 CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 
 
-%% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step)
+%% Adaptive Time Stepping Algorithm (ATSA)   (adapt time step) (automated time stepping)
 % The adaptive-time-stepping algorithm is based on the idea of keeping the number of non-linear iterations
 % close to a certain target (CtrlVar.ATSTargetIterations).
 % This is a simple but highly effective method.  However, as the ATSA is not based on any kind of error estimates,
@@ -1566,15 +1577,15 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
 CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
-CtrlVar.ATStimeStepFactorUp=2 ;     % when time step is increased, it is increased by this factor
-CtrlVar.ATStimeStepFactorDown=10 ;  % when time step is decreased, it is decreased by this factor
+CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
+CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
 CtrlVar.ATSintervalUp=5 ;           %
 CtrlVar.ATSintervalDown=3 ;         %
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
-                                    
+CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
                                     
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.

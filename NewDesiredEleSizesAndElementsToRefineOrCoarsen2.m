@@ -161,15 +161,9 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
     if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
         
         FigName=['Explicit Mesh Refinement ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name];
-        fig=findobj(0,'name',FigName);
-        if isempty(fig)
-            fig=figure('name',FigName);
-            fig.Position=[200+20*Kfig,200,1600,600] ;
-            Kfig=Kfig+1;
-        else
-            figure(fig);
-            hold off
-        end
+        fig=FindOrCreateFigure(FigName);
+        clf(fig)
+      
         
         subplot(1,3,1) ; hold off
         %plot(ErrorProxy,EleSizeIndicator,'.r') ;
@@ -329,9 +323,9 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         
         FigureName="Global mesh refinement"; 
-        Position=[1100,100,xFigWidth,yFigWidth] ;
-        fig=FindOrCreateFigure(FigureName,Position) ;
-                
+        
+        fig=FindOrCreateFigure(FigureName) ;
+        clf(fig)
         subplot(1,2,1,'replace')
         hold off
         PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
@@ -348,9 +342,9 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
         
         FigureName="Local mesh refinement"; 
-        Position=[1100,100,xFigWidth,yFigWidth] ;
-        fig=FindOrCreateFigure(FigureName,Position) ;
-
+        
+        fig=FindOrCreateFigure(FigureName) ;
+        clf(fig)
         CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
         
         PlotMuaMesh(CtrlVar,MUA,[],'k');

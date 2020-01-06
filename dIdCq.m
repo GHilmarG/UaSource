@@ -76,7 +76,7 @@ for Iint=1:MUA.nip
     
    
     Ctemp= ...
-        BasalDrag(CtrlVar,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g);
+        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,[]);
     
     % Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.Czero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     

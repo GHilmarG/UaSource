@@ -55,7 +55,7 @@ if CtrlVar.TimeDependentRun
                     OutsideValue.b=NaN;
                 end
                 
-                [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,[OutsideValue.s OutsideValue.b],Fold.s,Fold.b);
+                [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,[OutsideValue.s OutsideValue.b],Fold.s,Fold.b);
                 % I don't really need to map b from old to new, but I use this later as an initial
                 % guess.
                 
@@ -67,7 +67,7 @@ if CtrlVar.TimeDependentRun
                     OutsideValue.h=NaN;
                 end
                 
-                Fnew.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue.h,Fold.h);
+                [RunInfo,Fnew.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue.h,Fold.h);
                 
         end
         
@@ -80,18 +80,18 @@ if CtrlVar.TimeDependentRun
             % calculate geometry using both options
             
             OutsideValue=[];
-            [Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.s,Fold.b);
+            [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.s,Fold.b);
             CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
             [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
             
             FTest=Fold; FTest.GF=[];
-            FTest.h=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,OutsideValue,Fold.h);
+            [RunInfo,FTest.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.h);
             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
             [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
             
             % now plot
             
-            FindOrCreateFigure("TestingMapping",[100 100 2000 1500]);
+            FindOrCreateFigure("TestingMapping");
             hold off
             
             subplot(3,4,1) ; PlotMeshScalarVariable(CtrlVar,MUAnew,Fnew.s) ; title('s : bh-FROM-sBS')
@@ -168,22 +168,53 @@ if ~isfield(OutsideValue,'vd')
     OutsideValue.vd=NaN;
 end
 
-
 if ~isfield(OutsideValue,'dhdt')
     OutsideValue.dhdt=NaN;
 end
 
-[Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt]=...
-    MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUAold,x,y,...
-    [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt],...
-    Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt) ;
 
-Fold.dubdt=zeros(MUAnew.Nnodes,1);
-Fold.dvbdt=zeros(MUAnew.Nnodes,1);
-Fold.duddt=zeros(MUAnew.Nnodes,1);
-Fold.duddt=zeros(MUAnew.Nnodes,1);
+if ~isfield(OutsideValue,'dubdt')
+    OutsideValue.dubdt=NaN;
+end
+
+if ~isfield(OutsideValue,'dvbdt')
+    OutsideValue.dvbdt=NaN;
+end
+
+if ~isfield(OutsideValue,'duddt')
+    OutsideValue.duddt=NaN;
+end
+
+if ~isfield(OutsideValue,'dvddt')
+    OutsideValue.dvddt=NaN;
+end
 
 
+switch CtrlVar.FlowApproximation
+    
+    case "SSTREAM"
+        
+        
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
+            MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
+        
+        Fnew.duddt=zeros(MUAnew.Nnodes,1);
+        Fnew.dvddt=zeros(MUAnew.Nnodes,1);
+        
+    case "SSHEET"
+        
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt]=...
+            MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold,dvddt) ;
+        
+        Fnew.dubdt=zeros(MUAnew.Nnodes,1);
+        Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
+        
+        
+end
 
 %%
 end

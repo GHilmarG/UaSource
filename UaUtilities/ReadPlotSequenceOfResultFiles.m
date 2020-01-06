@@ -31,6 +31,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring,PlotType,Pl
 %
 %    Ice1r=ReadPlotSequenceOfResultFiles("-Ice1r-","-mesh-");
 %
+%
+%    Ice2r=ReadPlotSequenceOfResultFiles("-Ice2r-Tsai-","-mesh-speed-s-ab-");
+%
 %% Parameters
 
 narginchk(0,7)
@@ -140,8 +143,11 @@ while iFile<=nFiles   % loop over files
             case "-mesh-speed-s-ab-"
                 
                 f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
+                clf(f4)
+                hold off
                 
                 subplot(4,1,1)
+                hold off
                 PlotMuaMesh(CtrlVar,MUA);
                 title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
@@ -152,6 +158,7 @@ while iFile<=nFiles   % loop over files
                 
                 subplot(4,1,2)
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%g',time))
                 %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
                 hold on
@@ -160,12 +167,14 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 subplot(4,1,3)
+                hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);   title(sprintf('surface at t=%g',time))
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                 
                 subplot(4,1,4)
+                hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%g',time))
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);

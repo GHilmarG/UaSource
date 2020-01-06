@@ -10,8 +10,8 @@ if ~isempty(L)
 end
 
 FigName='Nodal force residuals' ;
-Position=[1010,20,500,300] ; 
-FindOrCreateFigure(FigName,Position);
+
+FindOrCreateFigure(FigName);
 
 if ~contains(msg,'h-only')  % uvh residuals
     % uv-residuals

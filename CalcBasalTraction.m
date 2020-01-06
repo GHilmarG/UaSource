@@ -37,14 +37,19 @@ end
 
 
 % beta2=(F.C+CtrlVar.Czero).^(-1./F.m).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1) ;
-% 
-% tbx=F.GF.node.*beta2.*F.ub; 
+%
+% tbx=F.GF.node.*beta2.*F.ub;
 % tby=F.GF.node.*beta2.*F.vb;
 % tb=sqrt(tbx.^2+tby.^2);
 
-He=F.GF.node; delta=[] ; 
+
+hf=F.rhow*(F.S-F.B)./F.rho ;
+He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  % 1
+delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
+
 [tbx,tby] = ...
-        BasalDrag(CtrlVar,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g);
+    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk);
+
 tb=sqrt(tbx.^2+tby.^2);
 
 

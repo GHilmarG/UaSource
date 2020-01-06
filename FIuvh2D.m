@@ -191,19 +191,24 @@ else
                 
                 VariablesReset=1;
                 if CtrlVar.ThicknessConstraintsInfoLevel>=1
-                    fprintf(CtrlVar.fidlog,' uvh2D did not converge. Resetting u1, v1 and h1 to values at start of time step. \n');
+                    fprintf(CtrlVar.fidlog,' uvh solution did not converge. Creating a new uvh starting point for the solver. \n');
                 end
+
+                %                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
+                %                 F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
+                %                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
+                
+                dt=dt/2; CtrlVar.dt=dt;
+                [UserVar,RunInfo,F0,l0]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l0);
+                %[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs1);
+                [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs1);
+                F1=F0;
+                F1.h=F0.h+dhdt.*CtrlVar.dt ;
+                F1.h(F1.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+                F1.h(BCs1.hPosNode)=CtrlVar.ThickMin; 
+                [UserVar,RunInfo,F1,l1]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F1,l1);
                 
                 
-                if CtrlVar.WriteRunInfoFile
-                    fprintf(RunInfo.File.fid,' uvh2D did not converge. Resetting u1, v1 and h1 to values at start of time step. \n');
-                end
-                
-                
-                F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
-                F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
-                
-                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 
             elseif ~ReduceTimeStep
                 

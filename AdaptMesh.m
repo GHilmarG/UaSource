@@ -19,6 +19,10 @@ lnew=lold;
 RuvNew=RuvOld;
 
 %%
+isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of eliments, 
+                           % some new nodes are introduced that are OUTSIDE of any of the elements in the old mesh
+
+%%
 xGLold=[] ; yGLold=[]; GLgeoold=[];
 %%
 
@@ -86,6 +90,8 @@ if CtrlVar.InfoLevelAdaptiveMeshing>=1
     fprintf('Before remeshing: '); PrintInfoAboutElementsSizes(CtrlVar,MUAold);
 end
 
+OutsideValue=DefineOutsideValues(UserVar,CtrlVar,MUAold,Fold);
+
 
 if isMeshAdvanceRetreat ||  isMeshAdapt
     
@@ -101,7 +107,6 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     elseif isMeshAdapt
         
         while true
-            
             
             JJ=JJ+1;
             
@@ -123,17 +128,10 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                             abs(nNewElements),CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan)
                     end
                     break
-                    
                 end
             else
                 nNoChange=0;
             end
-            
-            % MUAold=MUAnew;
-            % Fold=Fnew;
-            % BCsOld=BCsNew;
-            
-            
             
             if CtrlVar.InfoLevelAdaptiveMeshing>=1
                 fprintf(CtrlVar.fidlog,' --------->  Remeshing at start of run step %-i. Remeshing iteration #%-i (#Ele=%i,#Nodes=%i) \n ',CtrlVar.CurrentRunStepNumber,JJ,MUAnew.Nele,MUAnew.Nnodes);
@@ -170,24 +168,22 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 return
             end
             
-            
             nNewElements=MUAnew.Nele-NeleBefore;
             nNewNodes=MUAnew.Nnodes-NnodesBefore;
-            
-            OutsideValue.h=2*CtrlVar.ThickMin ;
-            OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
-            OutsideValue.b=OutsideValue.s-OutsideValue.h;
-            OutsideValue.ub=0;
-            OutsideValue.vb=0;
-            OutsideValue.dhdt=0;
+                        
             [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+            
+            if RunInfo.Mapping.nNotIdenticalNodesOutside>0
+                isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of eliments, 
+            end
+            
             
             
             %% Plots
             if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
                 
-                FigureName='Adapt Mesh: before and after'; Position=[100,100,1000,1000] ;
-                fig=FindOrCreateFigure(FigureName,Position);
+                FigureName='Adapt Mesh: before and after'; 
+                fig=FindOrCreateFigure(FigureName);
                 clf(fig);
                 subplot(2,1,1)
                 hold off
@@ -227,16 +223,8 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     OutsideValue.vb=0;
     
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
-    
-    
-    
+
 end
-
-
-%%
-%% map variables to new mesh
-
-
 
 %%
 
@@ -264,14 +252,23 @@ if CtrlVar.ManuallyDeactivateElements
     end
     
     
-    % If the user wants to manually deactivate elements, I must
-    % re-introduce the full mesh at each mesh refinement stage to
-    % allow for the re-activation of regions previously were deactivated
-    %
+    % If the user wants to manually deactivate elements, I must re-introduce the full mesh
+    % at each mesh refinement stage to allow for the re-activation of regions previously
+    % deactivated. As this is also done within LocalMeshRefinement using newest-vertex
+    % bisection in combination with manual deactivation of elements, this is only
+    % occationally required.
     if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
+
         MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
-        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold);
+        % The user might need estimates over the full mesh when making decisions, hence a
+        % mapping to the new (full domain) mesh ahead of a call to
+        % DefineElementsToDeactivate.m
+        % it's enough to do this here because the mapping is otherwise always done in the Remeshing
+        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    
     end
+
+    
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
     
@@ -280,22 +277,20 @@ if CtrlVar.ManuallyDeactivateElements
     
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
         
-        FigureName="Elements to be deactivated (red)";  Position=[];
-        fig=FindOrCreateFigure(FigureName,Position);
+        FigureName="Elements to be deactivated (red)";  
+        fig=FindOrCreateFigure(FigureName);
         
-        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,'r')
+        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,'r');
         hold on
-        PlotMuaMesh(CtrlVar,MUAnew,~ElementsToBeDeactivated,'k')
+        PlotMuaMesh(CtrlVar,MUAnew,~ElementsToBeDeactivated,'k');
         title('Elements to be deactivated in red')
     end
     
     MUAnew=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
-    %[MUAnew.coordinates,MUAnew.connectivity]=DeactivateElements(CtrlVar,ElementsToBeDeactivated,MUAnew.coordinates,MUAnew.connectivity);
-
-    %MUAnew=CreateMUA(CtrlVar,connectivity,coordinates);
-    CtrlVar.MapOldToNew.method="scatteredInterpolant"; CtrlVar.InitialDiagnosticStepAfterRemeshing=true ; % testing
-    % 
+    
+    CtrlVar.MapOldToNew.method="scatteredInterpolant"; % testing
+    %
     
     OutsideValue.h=CtrlVar.ThickMin ;
     OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
@@ -304,6 +299,9 @@ if CtrlVar.ManuallyDeactivateElements
     OutsideValue.vb=0;
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     
+    if RunInfo.Mapping.nNotIdenticalNodesOutside>0
+        isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of eliments,
+    end
 end
 %%
 
@@ -317,8 +315,8 @@ end
 %% Plots
 if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
     
-    FigureName='Adapt Mesh: before and after'; Position=[100,100,1000,1000] ;
-    fig=FindOrCreateFigure(FigureName,Position);
+    FigureName='Adapt Mesh: before and after'; 
+    fig=FindOrCreateFigure(FigureName);
     
     subplot(2,1,1)
     hold off
@@ -360,14 +358,16 @@ end
 %   CtrlVar.InitialDiagnosticStepAfterRemeshing is true
 %   but also if mesh refinement method was not 'newest vertex bisection'
 %
-isMeshingLocalWithoutSmoothing=contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0;
+isMeshingLocalWithoutSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:local:red-green","IgnoreCase",true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0) ...
+    || contains(CtrlVar.MeshRefinementMethod,"local:newest vertex bisection","IgnoreCase",true);
+
+isMeshChanged=HasMeshChanged(MUAold,MUAnew);
+
+isRecalculateVelocities=isMeshChanged ||  isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
 
 if ~CtrlVar.AdaptMeshAndThenStop
-    if CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing
-        isMeshChanged=HasMeshChanged(MUAold,MUAnew);
-        if isMeshChanged
-            [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
-        end
+    if isRecalculateVelocities
+        [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
     end
 end
 

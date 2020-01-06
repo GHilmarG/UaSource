@@ -1,4 +1,4 @@
-function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
+function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin)
     
     %%
     % varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
@@ -9,25 +9,23 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
     
     %%
     
+   
     nVarargsIn = length(varargin);
-    
-    %fprintf('MapNodalVariablesFromMesh1ToMesh2 : Total number of varargin inputs = %d\n',nVarargsIn);
-    
     nVar=nVarargsIn;
-    
     varargout=cell(nVar,1);
     
-    if isempty(x2)
+    xOld=MUAold.coordinates(:,1);
+    yOld=MUAold.coordinates(:,2);
+    xNew=MUAnew.coordinates(:,1);
+    yNew=MUAnew.coordinates(:,2);
+    
+    
+    if isempty(xNew)
         for iOut=1:nVar
             varargout{iOut}=NaN;
         end
         return
     end
-    
-    x1=MUA1.coordinates(:,1);
-    y1=MUA1.coordinates(:,2);
-    x2=x2(:);
-    y2=y2(:);
     
     
     
@@ -41,29 +39,40 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
     % and where this is the case, just copy values across
     % TR = delaunayTriangulation(x1,y1);
     
-    tol = eps*1000;
-    [ID,d] = nearestNeighbor(MUA1.TR,[x2 y2]);  % only complete for 3-node elements
-    same=d<tol ;
+    Tarea=TriAreaFE(MUAold.coordinates,MUAold.connectivity);
+    tol=1e-5*sqrt(2*min(Tarea)) ;  % I found that tol=1000*eps is not enought...
     
-    %%  [ test 
-    Tarea=TriAreaFE(MUA1.coordinates,MUA1.connectivity); Tlength=sqrt(2*min(Tarea))/100 ; 
-    TestSame=d<Tlength ;
     
-    if ~isequal(same,TestSame)
-        save TestSave
-        error(' testing TestSave ')
+    [ID,d] = nearestNeighbor(MUAold.TR,[xNew yNew]);  % This works for all element types! (3, 6 and 10)
+    % The reason this works for all element types despite TR.ConnectivityList
+    % only containing the corner nodes is because all coordinates are included
+    % TR.Points.
+    % For example this gives correct answer:
+    %  T=triangulation([1 3 5],[0 0 ; 0.5 0 ; 1 0 ; 0.5 0.5 ; 0 1 ; 0 0.5]) ;
+    %  [ID,d] = nearestNeighbor(T,[0.5 0]);
+    
+    
+    IdenticalNodes=d<tol ;
+    
+    nNewNodes=numel(xNew);
+    nOldNodes=numel(xOld);
+    nIdenticalNodes=numel(find(IdenticalNodes));
+    NotIdendicalNodes=find(~IdenticalNodes);
+    nNotSame=numel(NotIdendicalNodes);
+    
+    RunInfo.Mapping.nNewNodes=nNewNodes;
+    RunInfo.Mapping.nOldNodes=nOldNodes;
+    RunInfo.Mapping.nIdenticalNodes=nIdenticalNodes;
+    RunInfo.Mapping.nNotIdenticalNodes=nNotSame;
+    
+    if nNewNodes == nIdenticalNodes
+        % all new nodes are identical to old ones
+        RunInfo.Mapping.nNotIdenticalNodesOutside=0;
+        RunInfo.Mapping.nNotIdenticalInside=0;
     end
-    %% test ]
-    
-    
-    nNew=numel(x2);
-    nOld=numel(x1);
-    nSame=numel(find(same));
-    nNotSame=numel(find(~same));
-    fprintf('#New=%i \t   #Old=%i \t  #Same=%i \t  #NotSame=%i \t #(New-Same)=%i \n',nNew,nOld,nSame,nNotSame,nNew-nSame)
     
     for iVar=1:nVar
-        varargout{iVar}(same)=varargin{iVar}(ID(same));
+        varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
     end
     
     
@@ -71,7 +80,11 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
     %% Now check if any locations are remaining
     %
     
-    if (nNew-nSame)>0
+    if (nNewNodes-nIdenticalNodes)>0
+        
+        % Determine which of the new nodes are inside and which outside of the old
+        % FE mesh over which a solution has already been calculated.
+        %
         
         % For the remaining (x2,y2) locations:
         % 1) if outside values have been defined, use those values
@@ -80,16 +93,16 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
         
         % Are any of the remaining locations within the old mesh?
         
-        ID = pointLocation(MUA1.TR,[x2(~same) y2(~same)]) ;  % ID is NaN if outside all triangles, 
-        NodesNotSame=find(~same);
-        NodesOutside=NodesNotSame(isnan(ID)) ;
-        NodesInsideAndNotSame=NodesNotSame(~isnan(ID)) ;
+        ID = pointLocation(MUAold.TR,[xNew(~IdenticalNodes) yNew(~IdenticalNodes)]) ;  % ID is NaN if outside all triangles,
+        
+        NodesOutside=NotIdendicalNodes(isnan(ID)) ;
+        NodesInsideAndNotSame=NotIdendicalNodes(~isnan(ID)) ;
         
         % Jan 2019:  poinLocation actually fails in some cases!
         % If a point is on an edge within a triangulation ID and barycentric
         % coordinates can be NaNs even if matlab documentation states that one of
         % the adjacent triangles will be selected.
-        % 
+        %
         % I guess one way of dealing with this is to add a small vector to the xy
         % locations in two orthonormal directions. This should work because I
         % already have delt with all idential nodes, so I now only have a potential
@@ -98,8 +111,8 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
         % the edge itself.
         %
         if ~isempty(NodesOutside)
-            shift=1e-5;
-            IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)+shift y2(NodesOutside)+2*shift]) ;
+            shift=tol;
+            IDTest = pointLocation(MUAold.TR,[xNew(NodesOutside)+shift yNew(NodesOutside)+2*shift]) ;
             
             NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
             %  Add those nodes to the right set
@@ -108,7 +121,7 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
                 NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
             end
             
-            IDTest = pointLocation(MUA1.TR,[x2(NodesOutside)-2*shift y2(NodesOutside)+shift]) ;
+            IDTest = pointLocation(MUAold.TR,[xNew(NodesOutside)-2*shift yNew(NodesOutside)+shift]) ;
             NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
             %  Add those nodes to the right set
             if ~isempty(NewInsideAndNotSameNodes)
@@ -117,7 +130,7 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
             end
             
             % And finally, are any of the outside nodes actually on the mesh boundary?
-            NodesOnBoundary = DistanceToLineSegment([x2(NodesOutside) y2(NodesOutside)],[MUA1.Boundary.x MUA1.Boundary.y],[],1000*eps);
+            NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],1000*eps);
             
             %  Add any ouside nodes on bounday to the set of inside nodes
             if ~isempty(NodesOnBoundary)
@@ -126,28 +139,50 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
             end
         end
         
-        fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
+        
+        RunInfo.Mapping.nNotIdenticalNodesOutside=numel(NodesOutside);
+        RunInfo.Mapping.nNotIdenticalNodesInside=numel(NodesInsideAndNotSame);
+        
         
         if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
             FindOrCreateFigure("-Old and new nodes-");
             tt=axis;
             hold off
-            PlotMuaMesh(CtrlVar,MUA1)
+            p0=PlotMuaMesh(CtrlVar,MUAnew,[],'b');
+            hold on
+            
+            p1=PlotMuaMesh(CtrlVar,MUAold,[],'k');
             if ~isequal(tt,[0 1 0 1])
                 axis(tt)
             end
-            hold on
-            p2=plot(x2(NodesOutside)/CtrlVar.PlotXYscale,y2(NodesOutside)/CtrlVar.PlotXYscale,'ob');
-            p3=plot(x2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,y2(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
+            
+            p2=plot(xNew(NodesOutside)/CtrlVar.PlotXYscale,yNew(NodesOutside)/CtrlVar.PlotXYscale,'om');
+            p3=plot(xNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,yNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
+            p4=plot(xNew(IdenticalNodes)/CtrlVar.PlotXYscale,yNew(IdenticalNodes)/CtrlVar.PlotXYscale,'*g');
+            
             if ~isempty(p2) && ~isempty(p3)
-                legend([p2 p3],'Outside','Inside','Location','northeastoutside')
+                legend([p0 p1 p2 p3 p4],'New Mesh','Old Mesh','New and outside','New but inside','Save','Location','northeastoutside')
+            elseif ~isempty(p3)
+                legend([p0 p1 p3 p4],'New Mesh','Old Mesh','New but inside','Same','Location','northeastoutside')
+            elseif  ~isempty(p2)
+                legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Same','Location','northeastoutside')
             end
-            axis tight
+            
+            
+            axis equal
             hold off
+            
+            
+            
+            
+            % fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
+            FigTitle=sprintf('             #Nodes in new mesh=%i \t #Nodes in old mesh=%i \t \n #Same Nodes=%i \t  #~Same Nodes=%i \t #Nodes inside and new=%i \t #Outside nodes=%i ',...
+                nNewNodes,nOldNodes,nIdenticalNodes,nNotSame,numel(NodesInsideAndNotSame),numel(NodesOutside)) ;
+            title(FigTitle)
         end
         
         F = scatteredInterpolant();
-        F.Points=MUA1.coordinates;
+        F.Points=MUAold.coordinates;
         
         F.Method='natural';
         F.ExtrapolationMethod='nearest';
@@ -163,9 +198,9 @@ function varargout=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(Ct
             if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
                 varargout{iVar}(NodesOutside)=OutsideValues(iVar);
             else
-                varargout{iVar}(NodesOutside)=F(x2(NodesOutside),y2(NodesOutside));
+                varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
             end
-            varargout{iVar}(NodesInsideAndNotSame)=F(x2(NodesInsideAndNotSame),y2(NodesInsideAndNotSame));
+            varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
         end
         
         

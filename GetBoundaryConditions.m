@@ -100,11 +100,8 @@ end
 
 
 if CtrlVar.doplots && CtrlVar.PlotBCs
-    if isempty(BCsFig) || ~ishandle(BCsFig)
-        BCsFig=figure('Name','Boundary Conditions','NumberTitle','off');
-    else
-        figure(BCsFig)
-    end
+    fig=FindOrCreateFigure("Boundary Conditions");
+    clf(fig) 
     hold off
     PlotBoundaryConditions(CtrlVar,MUA,BCs,'k');
 end
