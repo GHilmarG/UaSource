@@ -19,6 +19,7 @@
             <tocitem target="DefineElementsToDeactivate.html">Manual deactivation of elements </tocitem>
             <tocitem target="DefineRunStopCriterion.html">Define exit criterion from run-step loop for both a forward time-independent and time-dependent runs</tocitem>
             <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
+            <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="UaOutputs.html">Output </tocitem>
