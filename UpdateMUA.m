@@ -192,4 +192,11 @@ if ~isfield(MUA,'Boundary') ||  ~isfield(MUA,'TR')
     end
 end
 
+MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas if each element
+MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
+
+
+
+
+
 end

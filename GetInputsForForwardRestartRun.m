@@ -75,10 +75,26 @@ if ~isobject(RunInfo)
    RunInfo=UaRunInfo; 
 end
 
+if ~isfield(RunInfo,'Mapping') || isempty(RunInfo.Mapping)
+    RunInfo.Mapping.nNewNodes=NaN;
+    RunInfo.Mapping.nOldNodes=NaN;
+    RunInfo.Mapping.nIdenticalNodes=NaN;
+    RunInfo.Mapping.nNotIdenticalNodes=NaN;
+    RunInfo.Mapping.nNotIdenticalNodesOutside=NaN;
+    RunInfo.Mapping.nNotIdenticalNodesInside=NaN;
+end
+
+
+
 if CtrlVar.ResetTime==1
     CtrlVarInRestartFile.time=CtrlVar.RestartTime;
     fprintf(CtrlVar.fidlog,' Time reset to CtrlVar.RestartTime=%-g \n',CtrlVarInRestartFile.time);
 end
+
+
+
+
+
 
 if CtrlVar.ResetTimeStep==1
     CtrlVarInRestartFile.dt=CtrlVar.dt;

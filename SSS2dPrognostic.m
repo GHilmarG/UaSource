@@ -1,4 +1,6 @@
-function [h1,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt)
+function [UserVar,RunInfo,h1,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt)
+
+nargoutchk(3,4)
 
 
 % semi-implicit forward integration.
@@ -23,14 +25,21 @@ switch lower(CtrlVar.FlowApproximation)
     
     case 'sstream'
         
-        
-        % for CtrlVar.TG3=0 both do the same, but Next2DSparseVector does not calculate
-        % the TG3 terms, where as NextTG3in2D always does, even if they are not needed.
-        if CtrlVar.TG3==1
-            [h1,lambdah]=NexthTG3in2D(dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
-        else
-            % This is the default approach 
-            [h1,lambdah]=Nexh2DSparseVector(dt,h0,ub0,vb0,a0,ub1,vb1,a1,MUA.coordinates,MUA.connectivity,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
+        switch CtrlVar.uvhSemiimplicit
+            
+            % for CtrlVar.TG3=0 both do the same, but Next2DSparseVector does not calculate
+            % the TG3 terms, where as NextTG3in2D always does, even if they are not needed.
+            case "TG3"
+                 % This always includes the TG3 terms
+                [h1,lambdah]=NexthTG3in2D(dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
+            case "Galerkin"
+                % This is based on NexthTG3in2D but does not include the TG3 terms
+                % This used to be the default approach (until early 2020), but it does not
+                % include SUPG terms
+                [h1,lambdah]=Nexh2DSparseVector(dt,h0,ub0,vb0,a0,ub1,vb1,a1,MUA.coordinates,MUA.connectivity,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
+            case "SUPGh"
+                kappa=zeros(MUA.Nnodes,1);
+                [UserVar,h1,lambdah]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,h0,ub0,vb0,a0,ub1,vb1,a1,kappa,BCs);
         end
         
         

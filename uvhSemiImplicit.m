@@ -13,12 +13,14 @@ narginchk(8,8)
 % (Step 4 below). So I could consider getting rid of this, but it should not cost
 % too much time.
 %
-[UserVar,RunInfo,F0,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,l);
+% [UserVar,RunInfo,F0,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,l);
 
 %% 2) Get an explicit estimate of uv
 
 F1=F0;
-F1=ExplicitEstimationForUaFields(CtrlVar,F1,F0,Fm1);  
+
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-";
+[UserVar,RunInfo,F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);  
 % The explicit estimate for velocities is the one used for the velocities at the
 % end of the time step when h is calculated implicitly.
 
@@ -35,7 +37,7 @@ CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginn
 dadt=(F1.as+F1.ab-(F0.as+F0.ab))/CtrlVar.dt;
 
 %% 3) calculate new ice thickness implicitly with respect to h.
-[F1.h,l]=SSS2dPrognostic(CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
+[UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
 % Make sure to update s and b too.
 [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);

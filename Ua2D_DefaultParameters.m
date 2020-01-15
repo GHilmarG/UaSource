@@ -242,6 +242,9 @@ CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, the
 % This option that can be obtained by setting:
 % CtrlVar.TG3=1 ;  CtrlVar.Test1=1;  CtrlVar.Test0=0;   CtrlVar.theta=0.5;  
 % and using the fully-implicit time-stepping option (CtrlVar.Implicituvh=1)); 
+CtrlVar.uvhSemiimplicit="SUPGh" ; % {"TG3",'"Galerkin","SUPGh"
+CtrlVar.MustBe.uvhSemiimplicit={"TG3","Galerkin","SUPGh"} ;   
+
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
                 % Note, only theta=0.5 is strictly consistent with TG3=1, so
@@ -1088,7 +1091,7 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % MeshBoundaryCoordinatates).
 
 %% Options related to the Ua mesh structure variable MUA
-CtrlVar.MUA.MassMatrix=false ;       % true if the mass matrix is to be computed and stored as a part of MUA
+CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
 CtrlVar.MUA.DecomposeMassMatrix=false ;
 CtrlVar.CalcMUA_Derivatives=1;

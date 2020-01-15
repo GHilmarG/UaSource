@@ -85,7 +85,7 @@ else
     grhs=[];
 end
 
-r=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
 
 diffDu=0; 
 
@@ -147,7 +147,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         grhs=[];
     end
     
-    r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+    r0=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
     
     tSolution=tic;
     

@@ -540,6 +540,8 @@ while 1
                 end
             end
             
+        
+            
             F0=F;  % 
             
             
@@ -550,6 +552,8 @@ while 1
             % F0.dubdt is based on F0 and the previous solution to F0, which is referred to as Fm1, but is not saved 
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
+            
+       
             
             if CtrlVar.ExplicitEstimation
                 [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);

@@ -315,11 +315,14 @@ while true
     % D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
     % diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
     
-    diffDu=norm([dub;dvb])/(norm([F1.ub;F1.vb])+CtrlVar.SpeedZero) ; 
+    Inodes=F1.h<=CtrlVar.ThickMin; 
+    [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb,dh);
     
-    % diffDh=full(max(abs(dh))/mean(abs(F1.h)));  % max change in thickness divided by mean thickness
-    diffDh=norm(dh)/sqrt(MUA.Nnodes); 
-    
+%     diffDu=norm([dub;dvb])/(norm([F1.ub;F1.vb])+CtrlVar.SpeedZero) ; 
+%     
+%     % diffDh=full(max(abs(dh))/mean(abs(F1.h)));  % max change in thickness divided by mean thickness
+%     diffDh=norm(dh)/sqrt(MUA.Nnodes); 
+%     
     % diffDlambda=max(abs(dl))/mean(abs(luvh));
     diffDlambda=norm(dl)/(norm(luvh)+eps);
     
