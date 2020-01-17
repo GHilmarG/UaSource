@@ -255,15 +255,9 @@ while true
     [UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     
     %% either accept full Newton step or do a line search
-
-    
     
     [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
-    
-    % [UserVar,RunInfo,r1Test,ruv1Test,rh1Test,rl1Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    %
-    % Is r1Test equal to r ?
-    %
+
     
     iarm=RunInfo.BackTrack.iarm;
     infovector=RunInfo.BackTrack.Infovector;
@@ -317,13 +311,7 @@ while true
     
     Inodes=F1.h<=CtrlVar.ThickMin; 
     [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb,dh);
-    
-%     diffDu=norm([dub;dvb])/(norm([F1.ub;F1.vb])+CtrlVar.SpeedZero) ; 
-%     
-%     % diffDh=full(max(abs(dh))/mean(abs(F1.h)));  % max change in thickness divided by mean thickness
-%     diffDh=norm(dh)/sqrt(MUA.Nnodes); 
-%     
-    % diffDlambda=max(abs(dl))/mean(abs(luvh));
+
     diffDlambda=norm(dl)/(norm(luvh)+eps);
     
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
@@ -471,7 +459,7 @@ RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.
 if CtrlVar.WriteRunInfoFile
     
     fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-        CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
+        CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
     
 end
 

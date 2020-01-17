@@ -382,7 +382,7 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
-    if CtrlVar.InfoLevel >= 1 
+    if CtrlVar.InfoLevel >= 10 
         fprintf('\n =========================================> Current run step: %i <==================================\n',CtrlVar.CurrentRunStepNumber) ;  
     end
     
@@ -498,8 +498,9 @@ while 1
             
             
             fprintf(...
-                '\n ---------> Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
-                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
+                '\n ===============>  Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
+                100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
             
             if CtrlVar.WriteRunInfoFile
                 
@@ -562,103 +563,69 @@ while 1
             
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
-            uvhStep=1;
-            while uvhStep==1  && CtrlVar.dt > CtrlVar.dtmin  % if uvh step does not converge, it is repeated with a smaller dt value
-                CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-                [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-                CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            
+            
+            
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            
+            % uvh implicit step
+            [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            
+            CtrlVar.dt=dt;  % I might have changed dt within uvh
+            
+            if ~RunInfo.Forward.Converged
                 
                 
-                %Fguessed=F;  could use norm of difference between explicit and implicit to
-                %control dt
-                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
                 
-                CtrlVar.dt=dt;  % I might have changed dt within uvh
+                filename="Dumpfile_Ua2D-"+CtrlVar.Experiment+".mat";
+                fprintf(' ===>>> uvh did not converge! Saving all data in a dumpfile %s \n',filename)
+                fprintf(CtrlVar.fidlog,' =====>>> Using semi-implict and reducing future time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence);
+                CtrlVar.InfoLevel=10 ; % testing
+                [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
                 
-                if ~RunInfo.Forward.Converged
-                    
-                    uvhStep=1;  % continue within while loop
-                    
-                    filename="Dumpfile_Ua2D-"+CtrlVar.Experiment+".mat";
-                    fprintf(' ===>>> uvh did not converge! Saving all data in a dumpfile %s \n',filename)
-                    try
-                        save(filename)
-                    catch
-                        warning('Ua2D:FileNotSaved',...
-                            'could not save file %s.',filename)
-                    end
-                    
-                    
-                    fprintf(CtrlVar.fidlog,' =====>>> Reducing time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence);
-                    fprintf(CtrlVar.fidlog,'             Also resetting field and Lagrange variables. \n');
-                    fprintf(CtrlVar.fidlog,'             Starting values for velocities at end of time step set by StartVelocity.m \n');
-                    fprintf(CtrlVar.fidlog,'             Starting for s, b and h at end of time step set equal to values at beginning of time step. \n');
-                    
-                    CtrlVar.dt=CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
-                    F.s=F0.s ; F.b=F0.b ; F.h=F0.h;
-                    l.ubvb=l.ubvb*0; l.h=l.h*0;
-                    F=StartVelocity(CtrlVar,MUA,BCs,F);
-                    
-                else
-                    uvhStep=0;
-                end
+                CtrlVar.dt=CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
                 
             end
+            
+            
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            %CtrlVar.time=round(CtrlVar.time,14,'significant');
             
+            % Recalulating geometry based on floation not really needed here because uvh
+            % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-            
-            Fm1.dhdt=F0.dhdt ;
-            Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
-            Fm1.duddt=F0.duddt ; Fm1.dvddt=F0.dvddt;
-            
-            if CtrlVar.dt==0
-                F.dhdt=[];
-                F.dubdt=[]; F.dvbdt=[];
-                F.dsdt=[] ; F.dbdt=[];
-            else
-                F.dhdt=(F.h-F0.h)/CtrlVar.dt;
-                F.dsdt=(F.s-F0.s)/CtrlVar.dt;
-                F.dbdt=(F.b-F0.b)/CtrlVar.dt;
-                F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ; F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
-                F.duddt=(F.ud-F0.ud)/CtrlVar.dt ; F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
-            end
+            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             
 
-            % at the beginning of next times step update:  F0=F1   
-            
-            
-            
         elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
             
             RunInfo.Message="Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
             
-            if CtrlVar.InfoLevel>0 ; fprintf(CtrlVar.fidlog,'Semi-implicit transient step. Advancing time from t=%-g to t=%-g \n',CtrlVar.time,CtrlVar.time+CtrlVar.dt);end
             
-            %% Diagnostic calculation (uv)
-            if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Diagnostic step (uv). Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
+            fprintf(...
+                '\n =========> Semi-Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
+                100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
+            
             tSemiImplicit=tic;                  % -uv
             
-            % Solving the momentum equations for uv at the beginning of the time interval
-             
+            
             F0=F;
             
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-
-            Fm1.dhdt=F0.dhdt ;
-            Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
-            Fm1.duddt=F0.duddt ; Fm1.dvddt=F0.dvddt;
-                      
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            CtrlVar.time=round(CtrlVar.time,14,'significant');
+            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             
-            %CtrlVar.hChange=1; CtrlVar.s=1; % h and s just changed
+            
             tSemiImplicit=toc(tSemiImplicit);
-            if CtrlVar.InfoLevel >= 1 && fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec \n ',tSemiImplicit) ; end
+            if CtrlVar.InfoLevelCPU>=1
+                fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec \n ',tSemiImplicit) ; 
+            end
+            
         end
     end
     

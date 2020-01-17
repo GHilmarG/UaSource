@@ -25,7 +25,7 @@ switch lower(CtrlVar.FlowApproximation)
     
     case 'sstream'
         
-        switch CtrlVar.uvhSemiimplicit
+        switch CtrlVar.uvhSemiImplicitTimeSteppingMethod
             
             % for CtrlVar.TG3=0 both do the same, but Next2DSparseVector does not calculate
             % the TG3 terms, where as NextTG3in2D always does, even if they are not needed.
@@ -37,7 +37,7 @@ switch lower(CtrlVar.FlowApproximation)
                 % This used to be the default approach (until early 2020), but it does not
                 % include SUPG terms
                 [h1,lambdah]=Nexh2DSparseVector(dt,h0,ub0,vb0,a0,ub1,vb1,a1,MUA.coordinates,MUA.connectivity,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
-            case "SUPGh"
+            case "SUPG"
                 kappa=zeros(MUA.Nnodes,1);
                 [UserVar,h1,lambdah]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,h0,ub0,vb0,a0,ub1,vb1,a1,kappa,BCs);
         end

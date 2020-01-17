@@ -232,7 +232,12 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
                                  % 1: prognostic run is fully-implicit (implicit with respect to uvh)
 
-CtrlVar.uvhTimeSteppingMethod='supg'; % 'theta'|'supg'
+CtrlVar.uvhImplicitTimeSteppingMethod="SUPG"; % 
+CtrlVar.uvhSemiImplicitTimeSteppingMethod="SUPG"; % 'Galerkin'|'supg'
+
+CtrlVar.MustBe.uvhImplicitTimeSteppingMethod="SUPG"; % 'theta'|'supg' actually at the moment I've disabled the theta method...
+CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;   
+
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
@@ -242,8 +247,9 @@ CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, the
 % This option that can be obtained by setting:
 % CtrlVar.TG3=1 ;  CtrlVar.Test1=1;  CtrlVar.Test0=0;   CtrlVar.theta=0.5;  
 % and using the fully-implicit time-stepping option (CtrlVar.Implicituvh=1)); 
-CtrlVar.uvhSemiimplicit="SUPGh" ; % {"TG3",'"Galerkin","SUPGh"
-CtrlVar.MustBe.uvhSemiimplicit={"TG3","Galerkin","SUPGh"} ;   
+
+
+
 
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
@@ -506,7 +512,7 @@ CtrlVar.ThicknessConstraintsInfoLevel=1 ;
 CtrlVar.Report_if_b_less_than_B=0; %
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;
-CtrlVar.InfoLevelCPU=1;  % if 1 then some info on CPU time usage is given
+CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
 

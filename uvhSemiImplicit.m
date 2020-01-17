@@ -17,6 +17,10 @@ narginchk(8,8)
 
 %% 2) Get an explicit estimate of uv
 
+if CtrlVar.InfoLevel>=10 
+    fprintf("uvhSemiImplicit:Getting an explicit estimate for u,v and h at t=t1.\n")
+end
+
 F1=F0;
 
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-";
@@ -37,13 +41,18 @@ CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginn
 dadt=(F1.as+F1.ab-(F0.as+F0.ab))/CtrlVar.dt;
 
 %% 3) calculate new ice thickness implicitly with respect to h.
+if CtrlVar.InfoLevel>=10 
+    fprintf("uvhSemiImplicit:Solving for h at t=t1, implicitly.\n")
+end
 [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
 % Make sure to update s and b too.
 [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 %[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
 
 %% 4) And finally calculate uv based on the new geometry.
-
+if CtrlVar.InfoLevel>=10 
+    fprintf("uvhSemiImplicit:Solving for uv for t1.\n")
+end
 [UserVar,RunInfo,F1,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F1,l);
 
 % At the end of the time step, the velocities are fully consistent with he

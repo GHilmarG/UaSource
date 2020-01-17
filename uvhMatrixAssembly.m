@@ -37,10 +37,24 @@ end
 
 if ZeroFields
     
+    % I'm using this to come up with a reasonable normalizing factor to the
+    % residuals.  The uv side of things is clear and there I set u=v=0 and this
+    % ensures that all 'interanal' nodal forces are zero. The h side is less clear.
+    % and I've stuggled with finding a sensible normalising factor for this term.
+    % If I set u=v=0 to get the sensible uv normalisation, then dqdx=0. I can have a
+    % situation where a=0 and if h1=h0 then the initial estimate for dh/dt=0. So all
+    % terms are then zero. 
+    %
+    % One approach is to create a scale for dh/dt by using ThickMin/dt , or
+    % alternativily just make this term numerically equal to 1, i.e. no
+    % normalisatiion apart in the norm. This can be achived by setting the surface
+    % mass balance to 1.
+    
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
-    F0.ub=F0.ub*0; F0.vb=F0.vb*0;
-    Dh=1;
-    F1.h=F0.h+Dh ; % testing , 8 August, 2017
+    F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
+    F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
+    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;
+    F0.as=F0.ab*0+1;  F0.ab=F0.ab*0;
 end
 
 
