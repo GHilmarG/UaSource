@@ -64,23 +64,27 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     dtOut=dtIn ;
     
     
-    if dtModifiedOutside
-        
-        icount=icount+1;
-        if icount>10
-            dtModifiedOutside=false;
-            ItVector=ItVector*0+1e10; 
-            icount=0;
-        end
-        
     
-    %%
-    elseif CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations) 
+    % I first check if the previous forward calculation did not converge. If it did
+    % not converge I reduced the time step and reset all info about previous
+    % interations to reset the adaptive-time stepping approuch
+ 
+    icount=icount+1;
+    if ~RunInfo.Forward.Converged || dtModifiedOutside
         
-   
+        ItVector=ItVector*0+1e10;
+        icount=0;
+        dtModifiedOutside=false ; 
+        
+        if ~RunInfo.Forward.Converged 
+            dtOut=dtIn/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
+            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g due to lack of convergence in last uvh step. \n ',dtIn,dtOut);
+        end
+
+       
+    elseif CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations)
         
         
-        icount=icount+1;
         ItVector(2:end)=ItVector(1:end-1) ; 
         ItVector(1)=RunInfo.Forward.Iterations;
         nItVector=numel(find(ItVector<1e10)); 

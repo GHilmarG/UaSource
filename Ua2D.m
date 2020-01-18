@@ -577,16 +577,8 @@ while 1
             
             if ~RunInfo.Forward.Converged
                 
-                
-                
-                filename="Dumpfile_Ua2D-"+CtrlVar.Experiment+".mat";
-                fprintf(' ===>>> uvh did not converge! Saving all data in a dumpfile %s \n',filename)
-                fprintf(CtrlVar.fidlog,' =====>>> Using semi-implict and reducing future time step from %-g to %-g \n',CtrlVar.dt,CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence);
-                CtrlVar.InfoLevel=10 ; % testing
-                [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-                
-                CtrlVar.dt=CtrlVar.dt/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
-                
+                [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+
             end
             
             
