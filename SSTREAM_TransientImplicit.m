@@ -340,7 +340,8 @@ while true
     end
     
     % make sure to update s and b as well!
-    [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+    % [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng old
+    [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng new
     CtrlVar.ResetThicknessToMinThickness=temp;
     
     if~isempty(MLC.hL)

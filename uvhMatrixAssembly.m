@@ -1,6 +1,9 @@
 function [UserVar,RunInfo,R,K]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
+%
+%
+% Does not depend on s or b, only h, S and B
 
 
 %
@@ -53,7 +56,7 @@ if ZeroFields
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
     F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
-    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;
+    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;  % here using a=1 as a normalizing factor
     F0.as=F0.ab*0+1;  F0.ab=F0.ab*0;
 end
 
@@ -90,8 +93,9 @@ if ~CtrlVar.ResetThicknessInNonLinLoop
     CtrlVar.ResetThicknessToMinThickness=0;
 end
 
-[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
-%[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
+
+[F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);   % don't update h outside of loop, just get new values for s and b
+
 CtrlVar.ResetThicknessToMinThickness=temp;
 
 if CtrlVar.MassBalanceGeometryFeedback>=2

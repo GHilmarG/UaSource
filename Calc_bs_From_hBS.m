@@ -1,6 +1,6 @@
 function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
 
-nargoutchk(4,4)
+nargoutchk(2,4)
 narginchk(7,7)
 
 if ~ isstruct(CtrlVar)
@@ -62,30 +62,31 @@ bfloat=S-rho.*h/rhow;
 b=GF.node.*B + (1-GF.node) .* bfloat ;
 
 
-% because the grounding line is `smeared out' a bit for a finite CtrlVar.kH
-% one can have situations where b<B. For CtrlVar.kH>0.1 this is not really much of an issue
-I=b<B ;
-
-if any(I)
+if CtrlVar.Enforce_bAboveB
+    % because the grounding line is `smeared out' a bit for a finite CtrlVar.kH one can
+    % have situations where b<B. For CtrlVar.kH>0.1 this is not really much of an issue
+    % and anyhow this is a consequnce of using a smooth step function.
+    I=b<B ;
     
-    if ( CtrlVar.InfoLevelThickMin>=1)  && ~isempty(MUA)
-        fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
+    if any(I)
         
-        if CtrlVar.doplots==1
-            fig=FindOrCreateFigure('b<B');
-            PlotMuaMesh(CtrlVar,MUA) ; 
-            hold on ;
-            plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.') ; title('locations where b<B')
+        if ( CtrlVar.InfoLevelThickMin>=1)  && ~isempty(MUA)
+            fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
             
-            
+            if CtrlVar.doplots==1
+                fig=FindOrCreateFigure('b<B');
+                PlotMuaMesh(CtrlVar,MUA) ;
+                hold on ;
+                plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.r') ; title('locations where b<B')
+                PlotGroundingLines(CtrlVar,MUA,GF);
+                
+            end
         end
+        
+        b(I)=B(I); % make sure that lower ice surface is never below bedrock
+        
     end
-
-    % TestIng
-    b(I)=B(I); % make sure that lower ice surface is never below bedrock
-    
 end
-
 
 % Step 2:
 s=b+h;

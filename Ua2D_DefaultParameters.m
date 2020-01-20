@@ -1129,13 +1129,24 @@ CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear 
                                          % is set to zero, provided CtrlVar.ResetThicknessToMinThickness is also true (usually not a good idea)
 
 
-% active-set method, option 2 
+% active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
-                                            % if the maximum number of active-set iterations is reached, a warning is give, but
-                                            % the calculation is not stopped. (In many cases there is no need to wait for
-                                            % full convergence of the active-set method for each time step.)
-                                            % if set to 0, then the active set is updated once and then proceed to next time step.
+                                            % if the maximum number of active-set
+                                            % iterations is reached, a warning is given,
+                                            % but the calculation is not stopped. (In many
+                                            % cases there is no need to wait for full
+                                            % convergence of the active-set method for
+                                            % each time step.)
+                                            %
+                                            % If set to 0, then the active set is updated
+                                            % once at the beginning of the uvh step, but
+                                            % no iteration is done.
+                                            %
+                                            % In many cases, such as long transient runs,
+                                            % performing only one iteration per time step
+                                            % is presumably going to be OK.
+                                      
                                             
 CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
                                             % Limit the number of such cycles and exist loop.
@@ -1767,7 +1778,7 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 %% Internal variables 
-
+CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
 
