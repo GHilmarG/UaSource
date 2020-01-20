@@ -29,9 +29,23 @@ end
 
 if CtrlVar.ResetThicknessToMinThickness
     
-    h(h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-%    fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
-%    fprintf(CtrlVar.fidlog,' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+    indh0=h<CtrlVar.ThickMin;
+    
+    if any(indh0)
+        h(indh0)=CtrlVar.ThickMin;
+        
+        if CtrlVar.InfoLevelThickMin>=1
+            fprintf(' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(find(indh0)),CtrlVar.ThickMin,min(h));
+            fprintf(' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+            
+            if CtrlVar.InfoLevelThickMin>=10 && CtrlVar.doplots
+                fig=FindOrCreateFigure('ThickMin');
+                PlotMuaMesh(CtrlVar,MUA)
+                hold on
+                plot(MUA.coordinates(indh0,1)/CtrlVar.PlotXYscale,MUA.coordinates(indh0,2)/CtrlVar.PlotXYscale,'or')
+            end
+        end
+    end
 end
 
 
@@ -54,16 +68,20 @@ I=b<B ;
 
 if any(I)
     
-    if CtrlVar.Report_if_b_less_than_B  && ~isempty(MUA)
+    if ( CtrlVar.InfoLevelThickMin>=1)  && ~isempty(MUA)
         fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
         
         if CtrlVar.doplots==1
-            figure ; plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.') ; axis equal ; title('locations where b<B')
-            figure ; plot3(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,b(I)-B(I),'.')  ; title('b-B (where negative)')
+            fig=FindOrCreateFigure('b<B');
+            PlotMuaMesh(CtrlVar,MUA) ; 
+            hold on ;
+            plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.') ; title('locations where b<B')
+            
             
         end
     end
-    
+
+    % TestIng
     b(I)=B(I); % make sure that lower ice surface is never below bedrock
     
 end

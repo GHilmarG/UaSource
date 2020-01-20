@@ -509,7 +509,8 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
                               
-CtrlVar.Report_if_b_less_than_B=0; %
+CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
+                              % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
