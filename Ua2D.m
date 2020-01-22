@@ -382,7 +382,7 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
-    if CtrlVar.InfoLevel >= 10 
+    if CtrlVar.InfoLevel >= 1 
         fprintf('\n =========================================> Current run step: %i <==================================\n',CtrlVar.CurrentRunStepNumber) ;  
     end
     

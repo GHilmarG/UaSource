@@ -324,8 +324,8 @@ CtrlVar.AGlenmax=1e10;
 % then be large despite the BCs being exactly fulfilled.)
 %
 CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=0.1;      % tolerance for change in (normalized) speed
-CtrlVar.dh=0.1;      % tolerance for change in (normalized) thickness
+CtrlVar.du=1;      % tolerance for change in (normalized) speed
+CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 CtrlVar.Residual.uvh='uvh';
@@ -1601,8 +1601,8 @@ CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
-CtrlVar.ATSintervalUp=5 ;           %
-CtrlVar.ATSintervalDown=3 ;         %
+CtrlVar.ATSintervalUp=5 ;           % number of iterations between considering increasing dt
+CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering decreasing dt 
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp

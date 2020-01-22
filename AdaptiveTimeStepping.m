@@ -80,20 +80,27 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDownNOuvhConvergence;
             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g due to lack of convergence in last uvh step. \n ',dtIn,dtOut);
         end
-
-       
+        
+        
     elseif CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations)
         
         
-        ItVector(2:end)=ItVector(1:end-1) ; 
+        ItVector(2:end)=ItVector(1:end-1) ;
         ItVector(1)=RunInfo.Forward.Iterations;
-        nItVector=numel(find(ItVector<1e10)); 
+        nItVector=numel(find(ItVector<1e10));
         TimeStepUpRatio=max(ItVector(1:CtrlVar.ATSintervalUp))/CtrlVar.ATSTargetIterations ;
+        TimeStepDownRatio=min(ItVector(1:CtrlVar.ATSintervalUp))/CtrlVar.ATSTargetIterations ;
         
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping:  #Non-Lin Iterations over last %-i time steps: (max|mean|min)=(%-g|%-g|%-g). Target is %-i. \t TimeStepUpRatio=%-g \n ',...
             nItVector,max(ItVector),mean(ItVector),min(ItVector),CtrlVar.ATSTargetIterations,TimeStepUpRatio);
         
-        if icount>2 && RunInfo.Forward.Iterations>25
+        if RunInfo.Forward.Iterations==666  % This is a special forced reduction whenever RunInfo.Forward.Iterations has been set to this value
+            
+            icount=0;
+            dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
+            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            
+        elseif icount>2 && RunInfo.Forward.Iterations>25
             icount=0;
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
@@ -101,7 +108,8 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             
             if icount>CtrlVar.ATSintervalDown && nItVector >= CtrlVar.ATSintervalDown
                 %if mean(ItVector(1:CtrlVar.ATSintervalDown)) > 5
-                if all(ItVector(1:CtrlVar.ATSintervalDown) > 10 )
+                % if all iterations were greater than (target+2), reduce time step
+                if all(ItVector(1:CtrlVar.ATSintervalDown) > (CtrlVar.ATSTargetIterations+2) )  ||  ( TimeStepDownRatio > 2 ) 
                     dtOut=dtIn/CtrlVar.ATStimeStepFactorDown; icount=0;
                     
                     
