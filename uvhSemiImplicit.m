@@ -53,7 +53,7 @@ if CtrlVar.InfoLevel>=10
 end
 
 iCount=0 ; Du=inf ; Dv=inf ; Dh=inf ; 
-while iCount<1 || (Du<0.1 && Dv<0.1 && Dh<0.1) 
+while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2 
     
     iCount=iCount+1; 
     h1=F1.h ; u1=F1.ub ; v1=F1.vb;
