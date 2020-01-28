@@ -1607,7 +1607,10 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
-                                    
+CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
+                                    % even if this variable is set to false. 
+
+
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.
 % This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user

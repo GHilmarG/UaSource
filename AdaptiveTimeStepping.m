@@ -1,4 +1,4 @@
-function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
+function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F)
             
     %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
     %  modifies time step size
@@ -36,7 +36,13 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
     %
     %
     
+    narginchk(5,5)
+    
     persistent ItVector icount dtNotUserAdjusted dtOutLast dtModifiedOutside
+    
+        
+    time=CtrlVar.time;
+    dtIn=CtrlVar.dt ; 
     
     if isempty(dtModifiedOutside)
         dtModifiedOutside=false;
@@ -151,6 +157,20 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(RunInfo,CtrlVar,time,dtIn)
             end
         end
     end
+    
+    if  CtrlVar.EnforceCFL ||  ~CtrlVar.Implicituvh   % If in semi-implicit step, make sure not to violate CFL condition
+        
+        dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ; 
+        
+        if dtOut>dtcritical
+        
+           dtOut=dtcritical ;
+           
+           fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut) 
+           
+        end
+    end
+    
     
     if CtrlVar.ATSTdtRounding && CtrlVar.UaOutputsDt~=0
         % rounding dt to within 10% of Dt
