@@ -55,9 +55,24 @@ if ZeroFields
     
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
     F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
+    
+    % How to normalize the mass conservation term?
+    %
+    % Idea1) set a=1 as a normalizing factor
+    % The issue with this is that the accterm -> 0 as dt->0 
+    % because
+    % accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
+    % so the normalisation factor goes to zero with dt
     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
-    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;  % here using a=1 as a normalizing factor
+    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;  
     F0.as=F0.ab*0+1;  F0.ab=F0.ab*0;
+    
+    % I can solve this by dividing with dt again as I calculate the normalisation factor in the const
+    % function. This means that the normalisation is independent of dt
+    % 
+    % 
+    
+    
 end
 
 

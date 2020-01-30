@@ -329,7 +329,8 @@ CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 CtrlVar.Residual.uvh='uvh';
-CtrlVar.uvhConvergenceCriteria='residuals and increments';
+CtrlVar.uvhConvergenceCriteria="residuals and increments";
+CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration

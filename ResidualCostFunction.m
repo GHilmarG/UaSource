@@ -1,4 +1,4 @@
-function  [r,rbcs,ruv,rh]=ResidualCostFunction(CtrlV,MUA,L,Rfields,Rbcs,Fext0,uvORuvh)
+function  [r,rbcs,ruv,rh]=ResidualCostFunction(CtrlVar,MUA,L,Rfields,Rbcs,Fext0,uvORuvh)
                           
 
 
@@ -16,9 +16,17 @@ if isempty(Rbcs) ; Rbcs=0 ; end
 rfields=Rfields'*Rfields;
 rbcs=Rbcs'*Rbcs;
 
-
-
+% TestIng
 Fext0=Fext0+eps;
+
+if contains(uvORuvh,"-uvh-")
+    
+   % the h part of Fext0 goes to zero with dt, so redefine and make independent of dt 
+    Fext0(2*MUA.Nnodes+1:end)=Fext0(2*MUA.Nnodes+1:end)/CtrlVar.dt ;
+    
+end
+
+
 
 % r=full(real((rfields+rbcs)/(Fext0'*Fext0)));
 r=full(real(rfields/(Fext0'*Fext0)));  % August 2017. Decided to include only the uvh fields in the residual. 
