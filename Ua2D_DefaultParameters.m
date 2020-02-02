@@ -55,7 +55,7 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 
 %% Sliding law
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -279,6 +279,7 @@ CtrlVar.Czero=1e-20    ;    % must be much smaller than C.
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
+CtrlVar.Nzero=1e-20    ;    % lower value for effective pressure 
 
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularization parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.

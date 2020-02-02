@@ -168,6 +168,11 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
             
             
+        case {"InversePowerWeighting","WC-IPW-N0","Cornford"}
+            
+            [N,dNdh]=NPerfect(CtrlVar,h,H,rho,rhow,g) ;
+            [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  SlidingInversePowerWeighting(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
+            
         otherwise
             
             error("BasalDrag:CaseNotFound","what sliding law?")
@@ -413,16 +418,21 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
 end
 
-function [N,dNdh]=NPerfect(h,H,rho,rhow,g)
+function [N,dNdh]=NPerfect(CtrlVar,h,H,rho,rhow,g)
+    
+    narginchk(6,6)
     
     hf=rhow.*H./rho;
-    hf(hf<eps)=0;
+    hf(hf<eps)=0;  % positive floation thickness 
     Dh=h-hf;
     I=Dh<eps;
     Dh(I)=0;
-    N=rho.*g.*Dh;
+    
+    N=rho.*g.*Dh+ CtrlVar.Nzero ; 
     dNdh=rho.*g;
     dNdh(I)=0;
+    
+    
     
 end
 
