@@ -55,7 +55,7 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 
 %% Sliding law
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
