@@ -98,6 +98,17 @@ clear FindOrCreateFigure
 % get the Ua default values for the CtlrVar
 CtrlVar=Ua2D_DefaultParameters();
 
+
+if  ~isempty(CtrlVarOnInput)
+    % now replace default CtrlVar fields with those of CtrlVarOnInput
+    % of the input CtrlVarOnInput.
+    fprintf("\n ===== The fields of CtrlVar given as input to Ua replace corresponding fields of CtrlVar defined in Ua2D_InitialUserInput.m \n")
+    
+    CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput);
+
+end
+
+
 % Get user-defined parameter values
 %  CtrlVar,UsrVar,Info,UaOuts
 if nargin("Ua2D_InitialUserInput.m")>2
@@ -109,8 +120,7 @@ end
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 clearvars MeshBoundaryCoordinates;
 
-% check if the second input argument is a Ua CtrlVar
-% if so, then make a temporary copy of this variable
+
 if  ~isempty(CtrlVarOnInput)
     % now overwrite the changes to CtrlVar in Ua2D_InitialUserInput using the fields
     % of the input CtrlVarOnInput.
@@ -211,6 +221,7 @@ else
     
 end
 
+MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
 
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
