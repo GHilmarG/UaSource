@@ -54,8 +54,32 @@ CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
 CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
 
 %% Sliding law
+%
+% Several sliding laws can be defined. These include *Weertman* (power-law relationship
+% between basal drag and velocity, i.e. u=C tau^m ) and *Coulomb* friction (basal drag equal a constant times
+% effective pressure, i.e. tau = mu N).  When using Columb friction define mu in
+% DefineSlipperiness.m instead of C.
+%
+% The other sliding laws are all just different ways of combining Weertman and Coulomb.
+%
+% If the drag calculated using Weertman law is TauW and that calculated using Coulomb law
+% is TauC, while Tau is the drag used, then
+%
+% *Tsai:*   Tau=min(TauC,TauW)
+%
+% *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
+%
+% *Nebuchadnezzarson:* 1/Tau^m = 1/TauC + 1/TauW
+%
+% The *Budd* sliding law is a simple extension of the Weertman sliding law where:
+%
+% u = C tau^m/N^q
+%
+% The effective pressure is currently only calculated using a 'zeroth-order' hydrology
+% model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
+%
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Nebuchadnezzarson","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).

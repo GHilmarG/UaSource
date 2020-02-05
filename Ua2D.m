@@ -336,6 +336,7 @@ CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 RunInfo.Message="Run Step Loop.";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.Forward.IterationsTotal=0; 
+RunInfo.Forward.Converged=true; 
 %%  RunStep Loop
 while 1
     

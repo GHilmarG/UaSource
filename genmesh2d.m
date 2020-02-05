@@ -75,7 +75,7 @@ if  CtrlVar.doplots && CtrlVar.PlotMesh
     
     fig=FindOrCreateFigure("Mesh");
     clf(fig)
-    PlotFEmesh(coordinates,connectivity,CtrlVar)
+    PlotFEmesh(coordinates,connectivity,CtrlVar);
 end
 
 

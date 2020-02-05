@@ -111,13 +111,13 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             case {"rpCW-N0","Cornford"}
                 
                 U=speed; 
-                N=NPerfect(CtrlVar,h,H,rho,rhow,g) ;
+                N=N0(CtrlVar,h,H,rho,rhow,g) ;
                 dFuvdC=(U.^(1.0./m-1.0).*mu.^(m+1.0).*N.^(m+1.0).*He.*(mu.^m.*N.^m+U.*(He.*(C+C0).^(-1.0./m)).^m).^(-1.0./m-1.0).*(C+C0).^(-1.0./m-1.0))./m;
                 
-            case {"rCW-N0","Anonymous"}  % reciprocal Coulumb-Weertman with zeroth-order hydrology
+            case {"rCW-N0","Nebuchadnezzarson"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
                 
                 U=speed; 
-                N=NPerfect(CtrlVar,h,H,rho,rhow,g) ;
+                N=N0(CtrlVar,h,H,rho,rhow,g) ;
                 dFuvdC=(U.^(1.0./m).*mu.^2.*N.^2.*He.*1.0./(U.^(1.0./m).*He+mu.*N.*(C+C0).^(1.0./m)).^2.*(C+C0).^(1.0./m-1.0))./(U.*m) ;
                 
             case {"Tsai","minCW-N0"}
@@ -138,7 +138,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     
     switch CtrlVar.SlidingLaw
         
-        case {"Weertman","tauPower"}
+        case {"Weertman","W"}
             
           [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
             
@@ -147,15 +147,16 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
           % [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = Weertman2(C,CtrlVar.Czero,He,delta,m,ub,vb,CtrlVar.SpeedZero) ;
 
             
-        case {"Budd","tauPowerNperfectPower"}
+        case {"Budd","W-N0"}
+            
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
+            [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m) ;
             
             
-            [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i,q,m) ;
+        case {"Coulomb","C"}
             
-            
-        case "Coulomb"
-            
-            [N,dNdh]=NPerfect(h,H,rho,rhow,g) ;
+
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
             
             hf=rhow.*H./rho; hf(hf<eps)=0;
             Dh=h-hf; Dh(Dh<eps)=0;
@@ -167,7 +168,8 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             hf=rhow.*H./rho; hf(hf<eps)=0;
             Dh=h-hf; Dh(Dh<eps)=0;
             
-            [N,dNdh]=NPerfect(h,H,rho,rhow,g) ;
+       
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
             [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
             [taubxiC,taubyiC,dtaubxduiC,dtaubxdviC,dtaubyduiC,dtaubydviC,dtaubxdhiC,dtaubydhiC] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh) ;
             
@@ -190,12 +192,12 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             
         case {"rpCW-N0","Cornford"}
             
-            [N,dNdh]=NPerfect(CtrlVar,h,H,rho,rhow,g) ;
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  SlidingInversePowerWeighting(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
             
-        case "rCW-N0"  % reciprocal Coulumb-Weertman with zeroth-order hydrology
+        case {"rCW-N0","Nebuchadnezzarson"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
             
-            [N,dNdh]=NPerfect(CtrlVar,h,H,rho,rhow,g) ;
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
             
             
@@ -358,7 +360,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
     Nouts=nargout ;
     
-    taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
+    taubxi=He.*beta2i.*ub; 
     taubyi=He.*beta2i.*vb;
     
     % Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
@@ -392,7 +394,7 @@ end
 
 
 
-function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i,q,m)
+function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m)
     
     % Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i)
     % taux = G  N^(q/m) beta2 u
@@ -444,7 +446,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
 end
 
-function [N,dNdh]=NPerfect(CtrlVar,h,H,rho,rhow,g)
+function [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g)
     
     narginchk(6,6)
     
