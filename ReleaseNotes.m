@@ -1,6 +1,5 @@
 
 
-% 
 %%
 % *Release Notes*
 % _February 2020_
