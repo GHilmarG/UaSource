@@ -34,7 +34,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
             F1.h(F1.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
             % [UserVar,RunInfo,F1,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F1,l1);
             h=F1.h ;
-            
+
        
             ub=F0.ub+F0.dubdt*CtrlVar.dt ;
             vb=F0.vb+F0.dvbdt*CtrlVar.dt ;

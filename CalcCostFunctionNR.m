@@ -27,7 +27,7 @@ else
     grhs=[];
 end
 
-[r,rl,ruv]=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+[r,rl,ruv]=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
 
 
 

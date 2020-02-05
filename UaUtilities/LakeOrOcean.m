@@ -4,7 +4,7 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 %%
 %
 %   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
-%   
+%
 %
 %  Only CtrlVar and MUA are required input variables:
 %
@@ -26,9 +26,10 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 % May not always work, and anyhow I am not sure if one can always objectively
 % decide what is an ocean and what a lake.
 %
-% This approach will fail if in some circumstances. for example, enclosed parts
-% of an ice-rise go aflot, then this lake will not be identified as a lake and
-% classified as a part of the  ocean...
+% This approach will fail in some circumstances. If, for example, parts of an
+% ice-rise go afloat and the resulting subglacial lake does not make a
+% connection to the surronding ocean, then this lake will not be identified as a
+% lake but classified as a part of the ocean...
 %
 % Just use this m-file as a starting point towards defining lake/ocean nodes.
 %
@@ -38,10 +39,22 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 % Returns a logical indexing (this was changed from indexing vectors on 20 Dec,
 % 2018)
 %
-%  
-% Note: An alternative starting point might be: 
+%
+% Note: An alternative starting point might be:
 %
 %   IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
+%
+% Also consider using: LakeOrOcean3.m , which uses an alternative approach for
+% the problem.
+%
+% Currently, Úa users are split into LakeOrOcean.m and the LakeOrOcean3.m camps.
+% The LakeOrOcean3.m approach is to consider lake being a lake if it is enclosed
+% by  grounded ice. The LakeOrOcean.m approach is to identify the longest
+% grounding line and consider any floating areas upstream of that grounding line
+% to be lakes and all other floating areas a part of the ocean. Both of these
+% approached can fail. However, arguably the LakeOcean3.m definition of a lake
+% is more likely to be generally accepted by members of a typical university
+% geography department.
 %
 %%
 OceanNodes=[];

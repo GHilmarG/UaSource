@@ -34,6 +34,13 @@ else
     qnod=mnod*0 ;  % just to avoid asking this again within a loop 
 end
 
+if ~isempty(F.muk)
+    muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
+else
+    muknod=mnod*0 ;
+end
+
+
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -56,6 +63,7 @@ for Iint=1:MUA.nip
     Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
     mint=mnod*fun;
     qint=qnod*fun;
+    mukint=muknod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
     Hint=Sint-Bint; 
@@ -76,7 +84,7 @@ for Iint=1:MUA.nip
     
    
     Ctemp= ...
-        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,[]);
+        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
     
     % Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.Czero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     

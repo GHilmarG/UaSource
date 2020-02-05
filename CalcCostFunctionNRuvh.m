@@ -33,9 +33,15 @@ else
     grhs=[];
 end
 
-% I=F1.h<=CtrlVar.ThickMin ; frhs([I;I;I])=0;
+% Testing:
+%
+% in a uv solution the uv residuals have different physical dimentions from h.
+% One way of dealing with this is to multiply in a transient simulation uv with
+% dt, or divide h with dt
+%
+% Nuv=2*MUA.Nnodes; frhs(Nuv+1:end)=frhs(Nuv+1:end)/CtrlVar.dt;
 
-[r,rl,ruv,rh]=ResidualCostFunction(frhs,grhs,Fext0,MUA.Nnodes);
+[r,rl,ruv,rh]=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,Fext0,"-uvh-");
 
 
 

@@ -10,8 +10,6 @@ function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,Elemen
 
 
 
-
-
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
 M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
@@ -247,7 +245,7 @@ if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
             end
             dh=CtrlVar.MeshSizeMin;
         end
-        if CtrlVar.InfoLevelAdaptiveMeshing>=1
+        if CtrlVar.InfoLevelAdaptiveMeshing>=10
             fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
         end
         ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);

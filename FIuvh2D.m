@@ -193,19 +193,24 @@ else
                 if CtrlVar.ThicknessConstraintsInfoLevel>=1
                     fprintf(CtrlVar.fidlog,' uvh solution did not converge. Creating a new uvh starting point for the solver. \n');
                 end
-
+                
                 %                 F1.ub=F0.ub ; F1.vb=F0.vb; F1.ud=F0.ud ; F1.vd=F0.vd ; F1.h=F0.h;
                 %                 F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;  % consider adding
                 %                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 
+                dtOld=dt;
                 dt=dt/2; CtrlVar.dt=dt;
+                fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
+                
+                F0.h(F0.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ; F0.h(BCs1.hPosNode)=CtrlVar.ThickMin;
                 [UserVar,RunInfo,F0,l0]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l0);
                 %[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs1);
                 [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs1);
                 F1=F0;
                 F1.h=F0.h+dhdt.*CtrlVar.dt ;
-                F1.h(F1.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
-                F1.h(BCs1.hPosNode)=CtrlVar.ThickMin; 
+                F1.h(F1.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ; F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;
+                [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+                l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                 [UserVar,RunInfo,F1,l1]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F1,l1);
                 
                 

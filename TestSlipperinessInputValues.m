@@ -2,10 +2,9 @@
 function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
     
     narginchk(6,6)
+    nargoutchk(4,4)
     
-    if nargin<5
-        q=[];
-    end
+ 
     
     [nC,mC]=size(C);
     [nm,mm]=size(m);
@@ -44,7 +43,17 @@ function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
     end
     
     
-    if ~isempty(muk)
+    if isempty(muk)
+        
+        pattern=["Tsai","Coulomb","Cornford","Umbi","minCW-N0","rpCW-N0","rCW-N0"]  ;
+        if contains(CtrlVar.SlidingLaw,pattern)
+            fprintf("For sliding law: %s \n muk must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
+            fprintf("and in an inverse run in DefineInputsForInverseRun.m as well. \n")
+            error("Incorrect inputs")
+            
+        end
+        
+    else
         
         if numel(muk)==1
             
@@ -54,6 +63,7 @@ function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
                 muk=muk+zeros(MUA.Nnodes,1);
             end
         end
+        
     end
     
     

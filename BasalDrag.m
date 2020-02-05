@@ -46,51 +46,57 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     %% Basal drag term : ice
     % this drag term is zero if the velocities are zero.
     
+    C0=CtrlVar.Czero;
+    u0=CtrlVar.SpeedZero;
     
-    U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
-    beta2i=(C+CtrlVar.Czero).^(-1./m).*U ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+    speed=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)); 
+    Um=speed.^(1./m-1) ;
+    beta2i=(C+CtrlVar.Czero).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 
     
     % Dbeta2i is zero for m=1.
-    Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
-    He=He+CtrlVar.HeZero ; % Regularisation
-    
+    Dbeta2i=(1./m-1).*(C+C0).^(-1./m).*(ub.^2+vb.^2+u0^2).^((1-3*m)./(2*m));
+        
     
     if ~isfield(CtrlVar,"SlidingLaw")
-        CtrlVar.SlidingLaw="tauPower";
+        CtrlVar.SlidingLaw="Weertman";
     end
     
     
     if CtrlVar.Inverse.dFuvdClambda
         
+        % dF/dC
+        %  Just take the derivative of the tau term with respect to C. And don't forget
+        %  the minus in front of the tau term in the momemtum equation.
+        %
+        %  -Taux = |Tau|  u/U, 
+        %  -Tauy = |Tau|  v/U, 
+        %   where U is the speed.
+        %
+        % I include the u and v in the adjoint calculation itself, so I just need the
+        % derivative:
+        %
+        %   d (-|Tau|/U) / dC 
+        
+       
+        
         switch CtrlVar.SlidingLaw
-            case {"Weertman","tauPower"}
+            case {"W","Weertman"}
                 
                 % tau = He * (C+CtrlVar.Czero).^(-1./m)   * U
-                %  just take the derivative with respect to C
+                % 
+                % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
+                
+                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
+                
+            case {"B","Budd","W-N0"}
+    
                 %
-                dFuvdC =  He.*    (1./m).*(C+CtrlVar.Czero).^(-1./m-1)   .*U;
-                
-            case {"Budd","tauPowerNperfectPower"}
-                
-                
-                %             % tau = Nqm * (C+CtrlVar.Czero).^(-1./m)   * U
-                %
-                %             hf=rhow.*H./rho;
-                %             Dh=h-hf; Dh(Dh<eps)=0;
-                %             N=He.*rho.*g.*Dh ;
-                %             qm=q./m;
-                %             Nqm=N.^(qm) ;
-                %
-                %             dFuvdC= Nqm.*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
-                
-                
+                %             dFuvdC= Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*U;
                 %  just take the derivative with respect to C
                 %   tau = He.*Nqm.* beta2i
-                %       = He.*Nqm.* (C+CtrlVar.Czero).^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+                %       = He.*Nqm.* (C+C0.^(-1./m).*U ; %   with U=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
                 %
-                
-                
                 
                 hf=rhow.*H./rho;
                 hf(hf<eps)=0;
@@ -100,10 +106,21 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 Nqm=N.^(qm) ;
                 
                 
-                dFuvdC= He.*Nqm  .*(1./m).*(C+CtrlVar.Czero).^(-1./m-1)  .*U;
+                dFuvdC= He.*Nqm  .*(1./m).*(C+C0).^(-1./m-1)  .*Um;
                 
+            case {"rpCW-N0","Cornford"}
                 
-            case {"Tsai"}
+                U=speed; 
+                N=N0(CtrlVar,h,H,rho,rhow,g) ;
+                dFuvdC=(U.^(1.0./m-1.0).*muk.^(m+1.0).*N.^(m+1.0).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1.0./m)).^m).^(-1.0./m-1.0).*(C+C0).^(-1.0./m-1.0))./m;
+                
+            case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
+                
+                U=speed; 
+                N=N0(CtrlVar,h,H,rho,rhow,g) ;
+                dFuvdC=(U.^(1.0./m).*muk.^2.*N.^2.*He.*1.0./(U.^(1.0./m).*He+muk.*N.*(C+C0).^(1.0./m)).^2.*(C+C0).^(1.0./m-1.0))./(U.*m) ;
+                
+            case {"Tsai","minCW-N0"}
                 
                 
                 fprintf("Inversion using Tsai sliding law not implemented. \n")
@@ -121,33 +138,38 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     
     switch CtrlVar.SlidingLaw
         
-        case {"Weertman","tauPower"}
+        case {"Weertman","W"}
             
-            [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
+          [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
+            
+          % Weertman2 is done using symbolic toolbox, just did this out of curiosity, the
+          % results are exactly the same.
+          % [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = Weertman2(C,CtrlVar.Czero,He,delta,m,ub,vb,CtrlVar.SpeedZero) ;
+
+            
+        case {"Budd","W-N0"}
+            
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
+            [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m) ;
             
             
-        case {"Budd","tauPowerNperfectPower"}
+        case {"Coulomb","C"}
             
-            
-            [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i,q,m) ;
-            
-            
-        case "Coulomb"
-            
-            [N,dNdh]=NPerfect(h,H,rho,rhow,g) ;
+
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
             
             hf=rhow.*H./rho; hf(hf<eps)=0;
             Dh=h-hf; Dh(Dh<eps)=0;
             [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh) ;
             
             
-        case {"Tsai"}
-            
+        case {"Tsai","minCW-N0"}
                  
             hf=rhow.*H./rho; hf(hf<eps)=0;
             Dh=h-hf; Dh(Dh<eps)=0;
             
-            [N,dNdh]=NPerfect(h,H,rho,rhow,g) ;
+       
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g); 
             [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
             [taubxiC,taubyiC,dtaubxduiC,dtaubxdviC,dtaubyduiC,dtaubydviC,dtaubxdhiC,dtaubydhiC] = Coulomb(CtrlVar,muk,ub,vb,N,dNdh,Dh) ;
             
@@ -166,6 +188,17 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulom
             dtaubxdhi(isCoulomb)=dtaubxdhiC(isCoulomb);
             dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
+            
+            
+        case {"rpCW-N0","Cornford"}
+            
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
+            [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rpCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
+            
+        case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
+            
+            [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
+            [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
             
             
         otherwise
@@ -327,7 +360,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
     Nouts=nargout ;
     
-    taubxi=He.*beta2i.*ub; % this is the straightforward (linear) expression for basal stress
+    taubxi=He.*beta2i.*ub; 
     taubyi=He.*beta2i.*vb;
     
     % Dbeta2i=(1./m-1).*(C+CtrlVar.Czero).^(-1./m).*(ub.^2+vb.^2+CtrlVar.SpeedZero^2).^((1-3*m)./(2*m));
@@ -361,7 +394,7 @@ end
 
 
 
-function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i,q,m)
+function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtaubydhi] = Budd(CtrlVar,He,delta,ub,vb,N,dNdh,beta2i,Dbeta2i,q,m)
     
     % Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i)
     % taux = G  N^(q/m) beta2 u
@@ -413,16 +446,21 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
 end
 
-function [N,dNdh]=NPerfect(h,H,rho,rhow,g)
+function [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g)
+    
+    narginchk(6,6)
     
     hf=rhow.*H./rho;
-    hf(hf<eps)=0;
+    hf(hf<eps)=0;  % positive floation thickness 
     Dh=h-hf;
     I=Dh<eps;
     Dh(I)=0;
-    N=rho.*g.*Dh;
+    
+    N=rho.*g.*Dh+ CtrlVar.Nzero ; 
     dNdh=rho.*g;
     dNdh(I)=0;
+    
+    
     
 end
 

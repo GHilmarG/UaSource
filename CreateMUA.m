@@ -81,4 +81,11 @@ if ~isempty(RefineMesh)
     MUA.RefineMesh=RefineMesh;
 end
 
+MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each element
+MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
+
+
+
+
+
 end

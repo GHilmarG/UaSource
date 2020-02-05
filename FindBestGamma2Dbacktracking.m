@@ -28,16 +28,16 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
     infovector(1,1)=0 ; infovector(1,2)=r0;
     infovector(2,1)=1 ; infovector(2,2)=r1;
     
-    
-    
-    if r1<CtrlVar.NLtol
-        return
-%    elseif r0<CtrlVar.NLtol
-%        gamma=0;
-%        r=r0;
-    end
-    
-    
+%     
+%     
+%     if r1<CtrlVar.NLtol
+%         return
+% %    elseif r0<CtrlVar.NLtol
+% %        gamma=0;
+% %        r=r0;
+%     end
+%     
+%     
     cStatus=NaN ; pStatus=NaN;
     
     I=3;
@@ -108,7 +108,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
     iarm=0;
     
     %% backtracking
-    while r >  target && iarm<=iarmmax && gamma > GammaMin && r > CtrlVar.NLtol
+    while r >  target && iarm<=iarmmax && gamma > GammaMin  % && r > CtrlVar.NLtol
     
         
         iarm=iarm+1;

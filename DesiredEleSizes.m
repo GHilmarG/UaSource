@@ -8,6 +8,7 @@ function  [UserVar,x,y,EleSizeDesired,EleSizeCurrent,ElementsToBeRefined, Elemen
 % Scales element sizes to fit within the range of CtrlVar.MeshSizeMin to CtrlVar.MeshSizeMax
 %
 
+error('fsa') % am I using this?
 ubvbLambda=l.ubvb;
 
 hf=(F.S-F.B)*F.rhow./F.rho ;
@@ -451,7 +452,10 @@ if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
             fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
             dh=CtrlVar.MeshSizeMin;
         end
-        fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+        
+        if CtrlVar.InfoLevelAdaptiveMeshing>=10
+            fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+        end
         
         ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
         

@@ -2,7 +2,7 @@
 <toc version="2.0">
     
     <tocitem target="Ua.html">Úa
-        
+        <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
         <tocitem target="UserInputRoutines.html">User input 
             <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
@@ -19,6 +19,7 @@
             <tocitem target="DefineElementsToDeactivate.html">Manual deactivation of elements </tocitem>
             <tocitem target="DefineRunStopCriterion.html">Define exit criterion from run-step loop for both a forward time-independent and time-dependent runs</tocitem>
             <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
+            <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="UaOutputs.html">Output </tocitem>
@@ -51,6 +52,7 @@
                 <tocitem target="Matern.html">Matern covariance</tocitem>
                 <tocitem target="CGuesstimate.html">C Guesstimation</tocitem>
                 <tocitem target="LakeOrOcean.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
+                <tocitem target="LakeOrOcean3.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
                 <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
                 <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
                 

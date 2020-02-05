@@ -72,7 +72,7 @@ classdef UaRunInfo
             obj.Mapping.nNotIdenticalNodes=NaN;
             obj.Mapping.nNotIdenticalNodesOutside=NaN;
             obj.Mapping.nNotIdenticalNodesInside=NaN;
-            
+        
             
         end
         

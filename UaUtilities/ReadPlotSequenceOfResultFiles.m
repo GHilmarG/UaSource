@@ -73,7 +73,13 @@ end
 
 PlotTimeInterval=1;                     % model time interval between creation of plots
 PlotTimeMax=1e10;
-CreateVideo=1;
+
+if contains(PlotType,"-collect-")
+    CreateVideo=0;
+else
+    CreateVideo=1;
+end
+
 PlotRegion=[];
 PlotMinThickLocations=true;
 
@@ -495,8 +501,10 @@ while iFile<=nFiles   % loop over files
             hold off
             
         end
-        PlotArea=axis;
         
+        if ~contains(PlotType,"-collect-")
+            PlotArea=axis;
+        end
     end
     iFile=iFile+1;
     

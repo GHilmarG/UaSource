@@ -54,8 +54,32 @@ CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
 CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
 
 %% Sliding law
+%
+% Several sliding laws can be defined. These include *Weertman* (power-law relationship
+% between basal drag and velocity, i.e. u=C tau^m ) and *Coulomb* friction (basal drag equal a constant times
+% effective pressure, i.e. tau = mu N).  When using Columb friction define mu in
+% DefineSlipperiness.m instead of C.
+%
+% The other sliding laws are all just different ways of combining Weertman and Coulomb.
+%
+% If the drag calculated using Weertman law is TauW and that calculated using Coulomb law
+% is TauC, while Tau is the drag used, then
+%
+% *Tsai:*   Tau=min(TauC,TauW)
+%
+% *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
+%
+% *Nebuchadnezzarson:* 1/Tau^m = 1/TauC + 1/TauW
+%
+% The *Budd* sliding law is a simple extension of the Weertman sliding law where:
+%
+% u = C tau^m/N^q
+%
+% The effective pressure is currently only calculated using a 'zeroth-order' hydrology
+% model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
+%
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -232,7 +256,12 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
                                  % 1: prognostic run is fully-implicit (implicit with respect to uvh)
 
-CtrlVar.uvhTimeSteppingMethod='supg'; % 'theta'|'supg'
+CtrlVar.uvhImplicitTimeSteppingMethod="SUPG"; % 
+CtrlVar.uvhSemiImplicitTimeSteppingMethod="SUPG"; % 'Galerkin'|'supg'
+
+CtrlVar.MustBe.uvhImplicitTimeSteppingMethod="SUPG"; % 'theta'|'supg' actually at the moment I've disabled the theta method...
+CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;   
+
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
@@ -242,6 +271,10 @@ CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, the
 % This option that can be obtained by setting:
 % CtrlVar.TG3=1 ;  CtrlVar.Test1=1;  CtrlVar.Test0=0;   CtrlVar.theta=0.5;  
 % and using the fully-implicit time-stepping option (CtrlVar.Implicituvh=1)); 
+
+
+
+
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
                 % Note, only theta=0.5 is strictly consistent with TG3=1, so
@@ -270,6 +303,7 @@ CtrlVar.Czero=1e-20    ;    % must be much smaller than C.
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
+CtrlVar.Nzero=1e-20    ;    % lower value for effective pressure 
 
 CtrlVar.CAdjointZero=CtrlVar.Czero; % used as a regularization parameter when calculating dIdCq.
 CtrlVar.dbdxZero=1;   % when calculating basal shear stresses in the hybrid approximation, a very large bed slope causes errors.
@@ -315,12 +349,16 @@ CtrlVar.AGlenmax=1e10;
 % then be large despite the BCs being exactly fulfilled.)
 %
 CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=0.1;      % tolerance for change in (normalized) speed
-CtrlVar.dh=0.1;      % tolerance for change in (normalized) thickness
+CtrlVar.du=1;      % tolerance for change in (normalized) speed
+CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 CtrlVar.Residual.uvh='uvh';
-CtrlVar.uvhConvergenceCriteria='residuals and increments';
+CtrlVar.uvhConvergenceCriteria="residuals and increments";  % convergence criteria for the implicit uvh solution
+                                                            % Note: for the uv solution,
+                                                            % the convergence criteria is
+                                                            % always based on residuals
+CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
@@ -500,10 +538,11 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
                               
-CtrlVar.Report_if_b_less_than_B=0; %
+CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
+                              % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;
-CtrlVar.InfoLevelCPU=1;  % if 1 then some info on CPU time usage is given
+CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
 
@@ -1088,7 +1127,7 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 % MeshBoundaryCoordinatates).
 
 %% Options related to the Ua mesh structure variable MUA
-CtrlVar.MUA.MassMatrix=false ;       % true if the mass matrix is to be computed and stored as a part of MUA
+CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
 CtrlVar.MUA.DecomposeMassMatrix=false ;
 CtrlVar.CalcMUA_Derivatives=1;
@@ -1119,13 +1158,24 @@ CtrlVar.ResetThicknessInNonLinLoop=0;    % if true, thickness in the non-linear 
                                          % is set to zero, provided CtrlVar.ResetThicknessToMinThickness is also true (usually not a good idea)
 
 
-% active-set method, option 2 
+% active-set method, option 2
 CtrlVar.ThicknessConstraints=1;             % set to 1 to use the active-set method (Option 2 above, and the recommended option).
 CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set iterations.
-                                            % if the maximum number of active-set iterations is reached, a warning is give, but
-                                            % the calculation is not stopped. (In many cases there is no need to wait for
-                                            % full convergence of the active-set method for each time step.)
-                                            % if set to 0, then the active set is updated once and then proceed to next time step.
+                                            % if the maximum number of active-set
+                                            % iterations is reached, a warning is given,
+                                            % but the calculation is not stopped. (In many
+                                            % cases there is no need to wait for full
+                                            % convergence of the active-set method for
+                                            % each time step.)
+                                            %
+                                            % If set to 0, then the active set is updated
+                                            % once at the beginning of the uvh step, but
+                                            % no iteration is done.
+                                            %
+                                            % In many cases, such as long transient runs,
+                                            % performing only one iteration per time step
+                                            % is presumably going to be OK.
+                                      
                                             
 CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
                                             % Limit the number of such cycles and exist loop.
@@ -1580,13 +1630,16 @@ CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
-CtrlVar.ATSintervalUp=5 ;           %
-CtrlVar.ATSintervalDown=3 ;         %
+CtrlVar.ATSintervalUp=5 ;           % number of iterations between considering increasing dt
+CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering decreasing dt 
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
-                                    
+CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
+                                    % even if this variable is set to false. 
+
+
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.
 % This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user
@@ -1757,7 +1810,7 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 %% Internal variables 
-
+CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end
 
