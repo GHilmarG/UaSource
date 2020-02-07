@@ -1,5 +1,6 @@
 
 
+
 %%
 % *Release Notes*
 % _February 2020_
@@ -18,7 +19,7 @@
 % computational domain during the run.
 % 
 % Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
-% Cornford, and  Nebuchadnezzarson. Refer to the Ua compendium for definition of these
+% Cornford, and  Umbi. Refer to the Ua compendium for definition of these
 % different sliding laws. Inversion is also possible for all these sliding laws except for
 % the Coulomb sliding.
 % 
@@ -31,6 +32,10 @@
 % potential violation of mass conservation. However, this also ensures smooth upper
 % surfaces even when refining mesh over areas with very uneven bedrock topography.
 % 
+%
+% u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the
+% past. 
+%
 % *New user input file options:*
 % 
 %   DefineRunStopCriterion.m
