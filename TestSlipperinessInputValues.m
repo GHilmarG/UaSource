@@ -47,8 +47,8 @@ function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
         
         pattern=["Tsai","Coulomb","Cornford","Umbi","minCW-N0","rpCW-N0","rCW-N0"]  ;
         if contains(CtrlVar.SlidingLaw,pattern)
-            fprintf("For sliding law: %s \n muk must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
-            fprintf("and in an inverse run in DefineInputsForInverseRun.m as well. \n")
+            fprintf("Input Error:  \t For sliding law: %s \n \t \t \t \t muk must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
+            fprintf("\t \t \t \t and in an inverse run in DefineInputsForInverseRun.m as well. \n")
             error("Incorrect inputs")
             
         end
