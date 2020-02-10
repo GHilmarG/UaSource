@@ -66,7 +66,7 @@ if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and dia
 end
 
 
-if CtrlVar.InverseRun  && contains(CtrlVar.SlidingLaw,["Tsai","minCW"])
+if CtrlVar.InverseRun  && contains(CtrlVar.SlidingLaw,["Coulomb","-C-"])
    fprintf("Inversion using %s sliding law is not possible!\n",CtrlVar.SlidingLaw)
    error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
 end
