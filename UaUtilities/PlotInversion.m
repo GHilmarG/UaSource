@@ -1,4 +1,4 @@
-function PlotInversion(InverseRestartFile)
+function [UserVarInRestartFile,CtrlVarInRestartFile,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo]=PlotInversion(InverseRestartFile)
 
 
 %%

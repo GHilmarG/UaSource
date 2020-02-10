@@ -99,7 +99,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    CtrlVar.PlotNodes=0 ; PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
+    CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
@@ -122,7 +122,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    CtrlVar.PlotNodes=0 ; PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
+    CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
