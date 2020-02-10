@@ -60,6 +60,8 @@
 % additional criterion.
 % 
 % 
+% Inversion can be done using all implemented sliding laws except Coulumb. 
 % 
 % 
+%
 % 
