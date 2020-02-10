@@ -110,20 +110,35 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 
             case {"rpCW-N0","Cornford"}
                 
-                U=speed; 
+                U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
                 dFuvdC=(U.^(1.0./m-1.0).*muk.^(m+1.0).*N.^(m+1.0).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1.0./m)).^m).^(-1.0./m-1.0).*(C+C0).^(-1.0./m-1.0))./m;
                 
             case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
                 
-                U=speed; 
+                U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
                 dFuvdC=(U.^(1.0./m).*muk.^2.*N.^2.*He.*1.0./(U.^(1.0./m).*He+muk.*N.*(C+C0).^(1.0./m)).^2.*(C+C0).^(1.0./m-1.0))./(U.*m) ;
                 
             case {"Tsai","minCW-N0"}
                 
+                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
+
+                N=N0(CtrlVar,h,H,rho,rhow,g);
+                [taubxi,taubyi] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
+                [taubxiC,taubyiC] = Coulomb(CtrlVar,muk,ub,vb,N) ;
                 
-                fprintf("Inversion using Tsai sliding law not implemented. \n")
+                TauWeertman2=taubxi.*taubxi+taubyi.*taubyi ;
+                TauCoulomb2=taubxiC.*taubxiC+taubyiC.*taubyiC ;
+                isCoulomb=TauCoulomb2 <  TauWeertman2 ;
+                
+                dFuvdC(isCoulomb)=0 ; 
+                
+                
+            case {"Coulomb","-C-"}
+                
+                
+                fprintf("Inversion using Coulomb sliding law not implemented. \n")
                 error("BasalDrag:InvalidCase","Inversion using Tsai sliding law not implemented.")
                 
             otherwise
@@ -301,12 +316,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         
     end
     
-    %% Nested functions
-    
- 
-    
-    
-    
+        
     
 end
 
