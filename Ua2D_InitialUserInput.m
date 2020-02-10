@@ -26,7 +26,8 @@ CtrlVar.TotalNumberOfForwardRunSteps=3;
 CtrlVar.TotalTime=100;
 CtrlVar.UseUserDefinedRunStopCriterion=false;
 
-
+%% Sliding law
+CtrlVar.SlidingLaw="rCW-N0" ;   % This uses a 'reciprocal sum' of Coulomb and Weertman sliding laws. 
 
 %% time and time step
 CtrlVar.dt=0.01; 
