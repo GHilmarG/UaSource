@@ -277,13 +277,7 @@ for Iint=1:MUA.nip
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
-    
-    
-    %[beta2int,Dbeta2Duuint,Dbeta2Dvvint,Dbeta2Duvint] = calcBeta2in2Dint(uint,vint,Cint,mint,Heint,CtrlVar);
-    %etaint=etaInt(:,Iint) ;  % I could consider calculating this here
-    
-    
-    
+
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     

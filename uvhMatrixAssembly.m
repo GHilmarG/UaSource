@@ -91,12 +91,12 @@ end
 
 
 
-if any(isnan(F1.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to KRTFuvhGeneralTG3 \n'); end
-if any(isnan(F1.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to KRTFuvhGeneralTG3 \n'); end
-if any(isnan(F1.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h on input to KRTFuvhGeneralTG3 \n'); end
-if any(isnan(F0.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u0 on input to KRTFuvhGeneralTG3 \n'); end
-if any(isnan(F0.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v0 on input to KRTFuvhGeneralTG3 \n'); end
-if any(isnan(F0.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h0 on input to KRTFuvhGeneralTG3 \n'); end
+if any(isnan(F1.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); end
+if any(isnan(F1.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to uvhMatrixAssembly \n'); end
+if any(isnan(F1.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h on input to uvhMatrixAssembly \n'); end
+if any(isnan(F0.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u0 on input to uvhMatrixAssembly \n'); end
+if any(isnan(F0.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v0 on input to uvhMatrixAssembly \n'); end
+if any(isnan(F0.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h0 on input to uvhMatrixAssembly \n'); end
 
 g=F1.g ;
 alpha=F1.alpha;
@@ -295,32 +295,6 @@ end
 
 
 
-
-
-
-
-
-%     case 'shocks'
-%
-%         for Iint=1:MUA.nip
-%             [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
-%                 uvhAssemblyIntPointImplicitShocks(Iint,ndim,MUA,...
-%                 bnod,hnod,unod,vnod,Cnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dudtnod,dvdtnod,dadhnod,Bnod,Snod,rhonod,...
-%                 CtrlVar,rhow,F1.g,mnod,etaInt,exx,eyy,exy,Eint,Ronly,ca,sa,dt,...
-%                 Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
-%
-%             Tx=Tx+Tx1;  Fx=Fx+Fx1;
-%             Ty=Ty+Ty1;  Fy=Fy+Fy1;
-%             Th=Th+Th1;  Fh=Fh+Fh1;
-%
-%             Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
-%             Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
-%             Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
-%             Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
-%
-%         end
-%
-%%
 
 %     if CtrlVar.InfoLevelCPU ;
 %         UaInfo.CPUuvhAssembly=UaInfo.CPUuvhAssembly+toc(tAssembly) ;
