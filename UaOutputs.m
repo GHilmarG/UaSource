@@ -103,7 +103,7 @@ if contains(plots,'-plot-')
     
     
     FindOrCreateFigure("Mesh and grounding line") ; 
-    PlotMuaMesh(CtrlVar,MUA)
+    PlotMuaMesh(CtrlVar,MUA);
     hold on 
     
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r','LineWidth',2);
