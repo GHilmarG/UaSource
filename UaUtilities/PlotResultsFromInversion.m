@@ -32,7 +32,7 @@ else
 end
 Kplot=0;    
 
-figure
+fig=FindOrCreateFigure('Measuments') ;
 
 Kplot=Kplot+1;    
 subplot(Iplot,Jplot,Kplot)
@@ -95,20 +95,23 @@ end
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
+    fig=FindOrCreateFigure('A at the end of inversion') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
+    fig=FindOrCreateFigure('A at the beginning of inversion') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
     title('log10(Astart)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
+    fig=FindOrCreateFigure('Change in A during inversion run') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -118,20 +121,24 @@ end
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
+   
+    fig=FindOrCreateFigure('C at the end of inversion') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
+    fig=FindOrCreateFigure('C at the beginning of inversion') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
     title('log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
+    fig=FindOrCreateFigure('Change in C during inversion run') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -198,7 +205,7 @@ end
 %%
 F.C=InvFinalValues.C; % this should already have been updated internally in Ua
 [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
-figure
+fig=FindOrCreateFigure('Basal traction') ;
 PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
 title(' tb ') ; cbar=colorbar; title(cbar, '(kPa)');
 hold on
@@ -208,7 +215,7 @@ hold on
 % uAdjoint vAdjoint
 if isprop(InvFinalValues,'uAdjoint')
     if ~isempty(InvFinalValues.uAdjoint)
-        figure ;
+        fig=FindOrCreateFigure('Adjoint variables') ;
         subplot(1,2,1)
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.uAdjoint);
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
@@ -241,8 +248,9 @@ if ~exist('GLgeo','var')
 end
 
 %%
-FigSpeedMisfit=figure;
-speedMeas=sqrt(Meas.us.^2+Meas.us.^2);
+
+fig=FindOrCreateFigure('Speed misfit') ;
+speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
 ErrSpeed=sqrt(usError.^2+vsError.^2); 
 
@@ -268,7 +276,7 @@ subplot(2,2,4)
 hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 %%
-figure
+fig=FindOrCreateFigure('velocity misfit') ;
 Kplot=0;
 
 Kplot=Kplot+1;    
@@ -342,14 +350,15 @@ end
 
 
 %%
-figure
+fig=FindOrCreateFigure('calculated velocities') ;
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated horizontal velocities') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs); 
-figure
+
+fig=FindOrCreateFigure('dh/dt calculated') ;
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
@@ -362,7 +371,7 @@ SpeedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 SpeedCalc=sqrt(us.^2+vs.^2);
 
 SpeedDiff=100*(SpeedCalc-SpeedMeas)./SpeedMeas;
-figure 
+fig=FindOrCreateFigure('Normalized speed misfit') ;
 
 PlotMeshScalarVariable(CtrlVar,MUA,SpeedDiff);
 hold on 
@@ -586,25 +595,22 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 else
     
     if ~isempty(InvFinalValues.dJdAGlen)
-        IFigGradientsA=figure('Name','dJdAGlen Gradients','NumberTitle','off');
+        
+        fig=FindOrCreateFigure('dJdA');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; title('dJdAGlen')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdC)
-        IFigGradientsC=figure('Name','dJdC Gradients','NumberTitle','off');
+        
+        fig=FindOrCreateFigure('dJdC');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdB)
-        IFigGradientsb=figure('Name','dJdB Gradients','NumberTitle','off');
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ; title('dJdB')
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    end
-    
-    if ~isempty(InvFinalValues.dJdB)
-        IFigGradientsb=figure('Name','dJdB Gradients','NumberTitle','off');
+        
+        fig=FindOrCreateFigure('dJdB');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ; title('dJdB')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
@@ -620,6 +626,7 @@ else
     if contains(lower(CtrlVar.Inverse.InvertFor),'c')
         if ~isempty(Priors.TrueC)
             tFig1=figure('Name','True and estimated C','NumberTitle','off');
+
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ; title('True C')
             hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
@@ -783,7 +790,8 @@ else
     
     %%
     if ~isempty(RunInfo.Inverse.J)
-        FigObj=figure('Name','Inverse Parameter Optimisation','NumberTitle','off');
+        
+        fig=FindOrCreateFigure('Inverse Parameter Optimisation');
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
