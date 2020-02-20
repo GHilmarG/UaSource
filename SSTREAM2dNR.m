@@ -230,7 +230,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
     end
     
     Inodes=F.h <=CtrlVar.ThickMin ; 
-    diffDu=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb);
+    diffDu=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F.ub,dub,F.vb,dvb);
     diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
     
     diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
