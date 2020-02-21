@@ -82,13 +82,11 @@ clear FindOrCreateFigure
 % So for example, if Ua is called using the call
 %
 %   CtrlVar.dt=1; 
-%   CtrlVar.WhoAmI="Ua2D CtrlVar" ; % This field must always be defined
 %   Ua(UserVar,CtrlVar)
 %
-%   and within the Ua2D_InitialUserInput.m there is a line:
+% and within the Ua2D_InitialUserInput.m there is a line:
 % 
 %  CtrlVar.dt=10; 
-%
 %
 % Then the value used for CtrlVar.dt is the one given as input to Ua, i.e. CtrlVar.dt=1
 %
@@ -395,7 +393,7 @@ while 1
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
     if CtrlVar.InfoLevel >= 1 
-        fprintf('\n =========================================> Current run step: %i <==================================\n',CtrlVar.CurrentRunStepNumber) ;  
+        fprintf('\n \t ----------------------------------------> Current run step: %i <-------------------------------\n',CtrlVar.CurrentRunStepNumber) ;  
     end
     
     if CtrlVar.PlotWaitBar 
@@ -510,7 +508,7 @@ while 1
             
             
             fprintf(...
-                '\n ===============>  Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
+                '\n ==========================>  Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
             
@@ -592,8 +590,6 @@ while 1
                 [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             end
-            
-            
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             
