@@ -310,7 +310,7 @@ while true
     % diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
     
     Inodes=F1.h<=CtrlVar.ThickMin; 
-    [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb,dh);
+    [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
 
     diffDlambda=norm(dl)/(norm(luvh)+eps);
     
