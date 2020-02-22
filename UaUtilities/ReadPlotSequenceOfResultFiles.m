@@ -1,4 +1,4 @@
-function DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring,PlotType,PlotScreenPosition,N)
+function DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring,PlotType,PlotScreenPosition,N,AxisLimits)
 
 
 %%
@@ -41,10 +41,7 @@ nargoutchk(0,1)
 
 
 if nargin==0 || isempty(FileNameSubstring)
-    FileNameSubstring="-PIG-TWG-Weertman";
-    %FileNameSubstring="-PIG-TWG-Budd";
-    FileNameSubstring="-Initialisation";
-    FileNameSubstring="-Ice1r-";
+    FileNameSubstring="";
 end
 
 if nargin<2 || isempty(PlotType)
@@ -59,6 +56,7 @@ if nargin<2 || isempty(PlotType)
     PlotType="-log10(BasalSpeed)-";
     %PlotType="-VAF-";
     PlotType="-collect-";
+    PlotType="-mesh-speed-s-ab-";
 end
 
 
@@ -94,9 +92,14 @@ if CreateVideo
 end
 
 % assume results files have been saved in a subdirectory named 'ResultsFiles' (modify as needed)
-cd ./ResultsFiles/
-list=dir("*"+FileNameSubstring+"*.mat");   % get names of all .mat files containing a given substring
-cd ..   ; % go back up into working directory
+% cd ./ResultsFiles/
+SearchString="*"+FileNameSubstring+"*.mat";
+SearchString=replace(SearchString,"**","*");
+list=dir(SearchString);   % get names of all .mat files containing a given substring
+
+
+
+% cd ..   ; % go back up into working directory
 
 
 CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
@@ -114,9 +117,9 @@ while iFile<=nFiles   % loop over files
     if mod(time,PlotTimeInterval)==0 && time<=PlotTimeMax   % only do plots at given time intervals and up to a max time specifed
         
         try   % go back into subdirectory containing result files and load one result file
-            cd ./ResultsFiles/
+          
             load(list(iFile).name)
-            cd ..
+           
             fprintf(' %s \n ',list(iFile).name)
         catch
             fprintf('could not load %s \n ',list(iFile).name)
@@ -131,6 +134,20 @@ while iFile<=nFiles   % loop over files
         
         iCount=iCount+1;
         DataCollect.time(iCount)=CtrlVar.time;
+        
+        % if creaing 4 subplots, try to arrange them based on the aspect ratio
+        XYratio=(max(MUA.coordinates(:,2))-min(MUA.coordinates(:,2)))/(max(MUA.coordinates(:,1))-min(MUA.coordinates(:,1)));
+        
+        if XYratio>0.5 || XYration<1.5
+            nPx=2 ; nPy=2;
+        elseif XYratio<=0.5
+            nPx=1; nPy=4;
+        else
+            nPx=4; nPy=1;
+        end
+        
+        if nargi<
+        
         switch PlotType
             
             case "-collect-"
@@ -152,7 +169,7 @@ while iFile<=nFiles   % loop over files
                 clf(f4)
                 hold off
                 
-                subplot(4,1,1)
+                subplot(nPx,nPy,1)
                 hold off
                 PlotMuaMesh(CtrlVar,MUA);
                 title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
@@ -162,7 +179,7 @@ while iFile<=nFiles   % loop over files
                 axis equal tight 
                 hold off
                 
-                subplot(4,1,2)
+                subplot(nPx,nPy,2)
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
                 hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%g',time))
@@ -172,14 +189,14 @@ while iFile<=nFiles   % loop over files
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                 hold off
                 
-                subplot(4,1,3)
+                subplot(nPx,nPy,3)
                 hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);   title(sprintf('surface at t=%g',time))
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                 
-                subplot(4,1,4)
+                subplot(nPx,nPy,4)
                 hold off
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%g',time))
                 hold on
