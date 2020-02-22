@@ -158,6 +158,8 @@ isMeshChanged=HasMeshChanged(MUA,MUAold);
 if isMeshChanged
     
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
+    
+    
     [UserVar,RunInfo,F,BCs,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,l);
     %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     

@@ -2,8 +2,14 @@ function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,Ct
 
          
 
-narginchk(9,9)
+narginchk(8,9)
 nargoutchk(5,5)
+
+if nargin<9 || isempty(OutsideValue)
+    OutsideValue.h=CtrlVar.ThickMin;
+    OutsideValue.b=0;
+    OutsideValue.s=CtrlVar.ThickMin;
+end
 
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
