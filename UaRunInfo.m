@@ -34,6 +34,9 @@ classdef UaRunInfo
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
             
+            obj.Forward.uvConverged=0;
+            obj.Forward.uvIterations=NaN;
+            
             obj.Forward.Converged=0;
             obj.Forward.Iterations=NaN;
             obj.Forward.IterationsTotal=0;

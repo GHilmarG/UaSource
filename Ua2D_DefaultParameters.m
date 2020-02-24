@@ -355,9 +355,7 @@ CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables use
 
 CtrlVar.Residual.uvh='uvh';
 CtrlVar.uvhConvergenceCriteria="residuals and increments";  % convergence criteria for the implicit uvh solution
-                                                            % Note: for the uv solution,
-                                                            % the convergence criteria is
-                                                            % always based on residuals
+CtrlVar.uvConvergenceCriteria="residuals";                 % convergence criteria for the implicit uv solution
 CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
 
