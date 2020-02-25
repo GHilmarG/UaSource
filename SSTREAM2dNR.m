@@ -89,6 +89,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
     
     diffDu=0;
+    Kuv=[] ; 
     
     iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
     while true
