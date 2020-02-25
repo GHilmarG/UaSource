@@ -68,12 +68,25 @@ switch CtrlVar.SymmSolver
     case 'Bempty'
         x=A\f;
         y=[];
-            
+        
     case 'AugmentedLagrangian'
         
- %       if nargin<5  ; y0=zeros(nB,1) ;  end
+        %       if nargin<5  ; y0=zeros(nB,1) ;  end
+        
+        ALt=tic; 
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
+        ALt=toc(ALt);
+  
+        % TestIng
+        PEt=tic;
+        
+        [x2,y2,tolA2,tolB2]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+        
+        PEt=toc(PEt);
+        fprintf('AL : \t \t %f sec \t %g \t % g \n',ALt,norm(A*x+B'*y-f)/norm(f),norm(B*x-g))
+        fprintf('AL : \t \t %f sec \t %g \t % g \n',PEt,norm(A*x2+B'*y2-f)/norm(f),norm(B*x2-g))
+        
         
     case 'Backslash'
         
