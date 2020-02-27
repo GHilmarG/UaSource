@@ -563,6 +563,11 @@ while 1
             
             if ~RunInfo.Forward.Converged
                 
+                warning("Ua2D:WTSHTF","uvh did not converge")
+                filename="DumpWTSHTD.mat";
+                fprintf("Ua2D:Saving all variables in %s \n",filename)
+                save(filename) 
+                fprintf("Ua2D:calling WTSHTF\n")
                 [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             end
