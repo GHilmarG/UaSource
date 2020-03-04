@@ -26,7 +26,7 @@ g=zeros(p,1)+1;
 
 %%
 fprintf('\n\n\n')
-load ABfgSymmetric.mat
+
 [nA,mA]=size(A); 
 
 % Null-space method  (does not work for sparse
