@@ -30,7 +30,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             % To make this a bit more general, I here check if B B' is indeed unity, and
             % if not I do the requried scaling.
             tolerance=eps*1000;
-            isBBTunity=all(abs(diag(BBT') - 1) < tolerance) ;
+            isBBTunity=all(abs(diag(BBT) - 1) < tolerance) ;
             
             if ~isBBTunity
                 [B,g,~,Scale]=ScaleL(CtrlVar,B,g) ;
@@ -84,11 +84,8 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             y=Scale*y; % and now scale y in case B and g were scaled above.
             
         else
-            
-            x=NaN;
-            y=NaN;
-            tolA=NaN;
-            tolB=NaN;
+ 
+ 
             error('ABfgPreEliminate:B','B*B^T not diagonal')
         end
         
