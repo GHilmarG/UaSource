@@ -1,4 +1,4 @@
-function [UserVar,c1,lambda]=LevelSetEquation(UserVar,CtrlVar,MUA,F,phi0,SF)
+function [UserVar,f1,lambda]=LevelSetEquation(UserVar,CtrlVar,MUA,F,phi0,SF)
 
 %%
 % Solves the tracer conservation equation for the tracer c on the form:
@@ -15,19 +15,79 @@ function [UserVar,c1,lambda]=LevelSetEquation(UserVar,CtrlVar,MUA,F,phi0,SF)
 
 %   < f | N + M >  
 
-dx=phi0*Dxx*phiy
-dy=;phi0*Dyy*phiy
-Normphie=vecnorm([dx(:) dy(:)],2,2)
-
 
 MLC=BCs2MLC(CtrlVar,MUA,BCsTracer);
 L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
 
-[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
+%%
+Klear
+load('RestartMismipPlus-ice0.mat','MUA','F','CtrlVarInRestartFile','BCs');
+UserVar=[];
+CtrlVar=CtrlVarInRestartFile ;
 
-[c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
-c1=full(c1);
+u=F.ub*0+1000 ; v=F.vb*0 ;
+kappa=0 ;
+f1=F.s*0+1;
+c=f1*0 ;
 
+x=MUA.coordinates(:,1) ;
+
+% Define initial calving front
+
+yc=linspace(min(MUA.coordinates(:,2)),max(MUA.coordinates(:,2)));
+xc=yc*0+300e3 ;
+X=[xc(:) yc(:) ] ; Y=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
+Dist= pdist2(X,Y,'euclidean','Smallest',1) ; Dist=Dist(:) ;
+Outside=x > 300e3 ; % inside outside
+Dist(Outside)=-Dist(Outside) ;
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,Dist) ;
+
+
+GF.node=Dist ;
+hold on
+[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') ;
+
+
+
+f1=Dist ;
+
+CtrlVar.dt=1; CtrlVar.time=0;
+Nsteps=100;
+close
+for I=1:Nsteps
+    
+    f0=f1;
+    [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,kappa);
+    
+    L=[] ; Lrhs=[]  ;
+    
+    [f1,lambda]=solveKApe(kv,L,rh,Lrhs,[],[],CtrlVar);
+    
+    f1=full(f1);
+    
+    CtrlVar.time=CtrlVar.time+CtrlVar.dt ;
+    
+    figure(1) ;
+    
+    % Plots
+    % plot(x/1000,f1,'r.')
+    % PlotMeshScalarVariable(CtrlVar,MUA,f1);
+    GF.node=f1 ;[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') ;
+    
+    xlim([300-10 300+200])
+    title(sprintf('time %f ',CtrlVar.time))
+    
+    
+    % re-initialize
+    X=[xc(:) yc(:) ] ; Y=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
+    Dist= pdist2(X,Y,'euclidean','Smallest',1) ; Dist=Dist(:) ;
+    Outside=
+    Dist(Outside)=-Dist(Outside) ;
+    f1=Dist ;
+    
+    
+    
+end
 
 end
 
