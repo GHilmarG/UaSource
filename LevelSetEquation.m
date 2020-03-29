@@ -28,35 +28,40 @@ CtrlVar=CtrlVarInRestartFile ;
 u=F.ub*0+1000 ; v=F.vb*0 ;
 kappa=0 ;
 f1=F.s*0+1;
-c=f1*0 ;
+
 
 x=MUA.coordinates(:,1) ;
+y=MUA.coordinates(:,2) ;
 
-% Define initial calving front
+% Define initial calving front as a (closed loop) boundary 
+CalvingFront=[300e3 min(y) ; 300e3 max(y) ];
 
-yc=linspace(min(MUA.coordinates(:,2)),max(MUA.coordinates(:,2)));
-xc=yc*0+300e3 ;
-X=[xc(:) yc(:) ] ; Y=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
-Dist= pdist2(X,Y,'euclidean','Smallest',1) ; Dist=Dist(:) ;
-Outside=x > 300e3 ; % inside outside
-Dist(Outside)=-Dist(Outside) ;
-figure ; PlotMeshScalarVariable(CtrlVar,MUA,Dist) ;
+CalvingFrontClosure=[CalvingFront(end,:)+[0 10];   300e3 300e3 ; -300e3 300e3 ; -300e3 -300e3 ; 300e3 -300e3 ; CalvingFront(1,1)+[0 -10]];  
+CalvingFront=[CalvingFront ; CalvingFrontClosure ] ;
+Npoints=1000 ; CalvingFront = interparc(Npoints,CalvingFront(:,1),CalvingFront(:,2),'linear'); % add some points
 
 
-GF.node=Dist ;
+DistSigned=SignedDistance([x y],CalvingFront); 
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,DistSigned/1000) ;
 hold on
-[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') ;
+plot(CalvingFront(:,1)/1000,CalvingFront(:,2)/1000,'-or')
 
+GF.node=DistSigned; 
+hold on
+[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'k') ;
 
+%%
 
-f1=Dist ;
+f1=DistSigned ;
 
 CtrlVar.dt=1; CtrlVar.time=0;
-Nsteps=100;
-close
+Nsteps=10;
+close all
+figure
 for I=1:Nsteps
     
     f0=f1;
+    c=f0*0;
     [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,kappa);
     
     L=[] ; Lrhs=[]  ;
@@ -71,21 +76,27 @@ for I=1:Nsteps
     
     % Plots
     % plot(x/1000,f1,'r.')
-    % PlotMeshScalarVariable(CtrlVar,MUA,f1);
+    hold off
+    PlotMeshScalarVariable(CtrlVar,MUA,f1);
+    hold on
     GF.node=f1 ;[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r') ;
     
-    xlim([300-10 300+200])
+    % xlim([300-10 300+200])
     title(sprintf('time %f ',CtrlVar.time))
     
     
     % re-initialize
-    X=[xc(:) yc(:) ] ; Y=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
-    Dist= pdist2(X,Y,'euclidean','Smallest',1) ; Dist=Dist(:) ;
-    Outside=
-    Dist(Outside)=-Dist(Outside) ;
-    f1=Dist ;
     
+    [ycMax,IycMax]=max(yc) ; 
+    [ycMin,IycMin]=min(yc) ;
     
+    CalvingFrontClosure=[xc(IycMax) yc(IycMax)+10 ;   xc(IycMax) 300e3 ; -300e3 300e3 ; -300e3 -300e3 ; xc(IycMax) -300e3 ; xc(IycMin) yc(IycMin)-10] ;
+    CalvingFront=[xc(:) yc(:) ; CalvingFrontClosure ] ;
+    Npoints=1000 ; CalvingFront = interparc(Npoints,CalvingFront(:,1),CalvingFront(:,2),'linear'); % add some points
+    DistSigned=SignedDistance([x y],CalvingFront);
+    f1=DistSigned ;
+    
+   
     
 end
 
