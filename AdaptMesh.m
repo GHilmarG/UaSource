@@ -1,11 +1,11 @@
 
-function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,RuvOld,Lubvb)
+function [UserVar,RunInfo,MUAnew,BCsNew,BCsLevelSetNew,Fnew,lnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,BCsLevelSetOld,Fold,lold,RuvOld,Lubvb)
 
 
 persistent AdaptMeshTime
 
-narginchk(9,9)
-nargoutchk(6,6)
+narginchk(10,10)
+nargoutchk(7,7)
 
 %% Do all mesh modifications on MUAnew
 % Only use MUAold and Fold for mapping of variables to the new mesh, ie always
@@ -16,6 +16,7 @@ MUAnew=MUAold;
 Fnew=Fold;
 BCsNew=BCsOld;
 lnew=lold;
+BCsLevelSetNew=BCsLevelSetOld; 
 RuvNew=RuvOld;
 
 %%
@@ -171,7 +172,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             nNewElements=MUAnew.Nele-NeleBefore;
             nNewNodes=MUAnew.Nnodes-NnodesBefore;
                         
-            [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+            [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue);
             
             if RunInfo.Mapping.nNotIdenticalNodesOutside>0
                 isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of eliments, 
@@ -222,8 +223,8 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     OutsideValue.ub=0;
     OutsideValue.vb=0;
     
-    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
-
+    % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue); 
 end
 
 %%
@@ -297,7 +298,9 @@ if CtrlVar.ManuallyDeactivateElements
     OutsideValue.b=OutsideValue.s-OutsideValue.h;
     OutsideValue.ub=0;
     OutsideValue.vb=0;
-    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue);
+    
     
     if RunInfo.Mapping.nNotIdenticalNodesOutside>0
         isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of eliments,

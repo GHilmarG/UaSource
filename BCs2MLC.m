@@ -16,6 +16,10 @@ narginchk(3,3)
 
 MLC=MultiLinearConstraints;
 
+if isempty(BCs)
+    return
+end
+
 %% input tests
 
 if numel(BCs.ubTiedNodeA) ~= numel(BCs.ubTiedNodeB) ; save TestSave ; error(' number of elements  in BCs.uTiedNodeA and BCs.uTiedNodeB  not the same ') ; end

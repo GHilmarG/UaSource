@@ -36,6 +36,7 @@ Priors=PriorProbabilityDistribution;
 InvStartValues=InversionValues;
 InvFinalValues=InversionValues; 
 
+BCsLevelSet=BoundaryConditions;
 
 Lubvb=[];
 Ruv=[];
@@ -388,8 +389,8 @@ while 1
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
-        
-        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
+        [UserVar,RunInfo,MUA,BCs,BCsLevelSet,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,BCsLevelSet,F,l,Ruv,Lubvb);
+%                    [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
  %       fprintf('AdaptMesh #s=%i #b=%i #S=%i #B=%i #h=%i #GF.node=%i \n ',numel(F.s),numel(F.b),numel(F.S),numel(F.B),numel(F.h),numel(F.GF.node))
         
@@ -454,7 +455,9 @@ while 1
  
     
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+    [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F);
     
+ 
     %%  -------------------------------------------------------------------------------------]
     
     
@@ -468,8 +471,10 @@ while 1
         
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         
-        
-    else   % Time-dependent run
+    end  % ~CtrlVar.TimeDependentRun
+    
+    if CtrlVar.TimeDependentRun
+    
         
         %        0  : values at t      This is F0
         %        1  : values at t+dt   This is F.
@@ -556,7 +561,9 @@ while 1
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
             
-            % uvh implicit step
+            % uvh implicit step  (The F on input is based on an explicit estimate, on
+            % return I have the implicit estimate. The explicit estimate is only there to
+            % speed up the non-linear solver.
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             
             CtrlVar.dt=dt;  % I might have changed dt within uvh
@@ -608,9 +615,15 @@ while 1
             end
             
         end
-    end
+        
+        % update Level Set to current time using the new velocities 
+        BCsLevelSet=[];
+        
+        [UserVar,F.LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F,F0.LSF) ; 
+        
+    end   % CtrlVar.TimeDependentRun
     
-    %% calculations for this step are now done, only some plotting/writing issues do deal with
+    %% calculations for this rund step are now done, only some plotting/writing issues do deal with
     
     % calculating derived quantities
     

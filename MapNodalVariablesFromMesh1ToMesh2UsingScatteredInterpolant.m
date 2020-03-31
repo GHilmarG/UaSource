@@ -72,7 +72,11 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     end
     
     for iVar=1:nVar
-        varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
+        if isempty(varargin{iVar})
+            varargout{iVar}=[];
+        else
+            varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
+        end
     end
     
     
@@ -194,13 +198,18 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         
         for iVar=1:nVar
             
-            F.Values=double(varargin{iVar});
-            if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
-                varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+            if isempty(varargin{iVar})
+                varargout{iVar}=[];
             else
-                varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
+                
+                F.Values=double(varargin{iVar});
+                if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
+                    varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+                else
+                    varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
+                end
+                varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
             end
-            varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
         end
         
         

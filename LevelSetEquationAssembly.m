@@ -22,6 +22,11 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
     dt=CtrlVar.dt; 
     tauSUPG=CalcSUPGtau(CtrlVar,MUA,u,v,dt);
     
+    l=sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
+    mu=1e8; % not sure about how to select this
+    speed=sqrt(u.*u+v.*v) ; V=abs(speed-c) ; 
+    V=Nodes2EleMean(MUA.connectivity,V) ;
+    mu=V.*l;
     
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
@@ -41,7 +46,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
         kappa=kappa+zeros(MUA.Nnodes,1);
     end
     
-    kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    % kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
     tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
     
@@ -81,7 +86,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
         % v1int=v1nod*fun;
         % RHSint=RHS1nod*fun;
         
-        kappaint=kappanod*fun;
+        % kappaint=kappanod*fun;
         tauSUPGint=tauSUPGnod*fun;
         
         % du1dx=zeros(MUA.Nele,1); du0dx=zeros(MUA.Nele,1);
@@ -97,8 +102,13 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
             
         end
         
-        NormGradfint=sqrt(df0dx.*df0dx+df0dy.*df0dy);
+        NormGradfint=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         
+        
+        LT1=NormGradfint<1; 
+        kappaint=1-1./NormGradfint ; %  positive diffusion 
+        kappaint(LT1)=sin(2*pi*NormGradfint(LT1))./(2*pi*NormGradfint(LT1)+eps) ; % neg, then pos diffusion
+        kappaint=mu.*kappaint;
         
         detJw=detJ*weights(Iint);
         

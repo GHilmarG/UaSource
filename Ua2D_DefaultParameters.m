@@ -1369,7 +1369,10 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 %
 
+
+%% Calving 
 CtrlVar.ManuallyDeactivateElements=0; 
+CtrlVar.LevelSetMethod=0; 
 
 
 %% Controlling when and how often mesh is adapted    

@@ -1,9 +1,9 @@
-function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue)
+function [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue)
 
          
 
-narginchk(8,9)
-nargoutchk(5,5)
+narginchk(9,10)
+nargoutchk(6,6)
 
 if nargin<9 || isempty(OutsideValue)
     OutsideValue.h=CtrlVar.ThickMin;
@@ -19,6 +19,7 @@ if ~RunInfo.MeshAdapt.isChanged
 
     BCsNew=BCsOld;
     lnew=lold;
+    BCsLevelSetNew=BCsLevelSetOld; 
     return
 end
 
@@ -154,6 +155,15 @@ end
 BCsNew=BoundaryConditions;
 [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
+% Calving-rate field needs to be redefined each time, but the Level-Set Field may or may not be reset here 
+LSF=Fnew.LSF;
+BCsLevelSetNew=BoundaryConditions;
+[UserVar,BCsLevelSetNew,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,BCsNew,BCsLevelSetNew,Fnew);
+
+% if the new LSF has been changed, then it must have the right size and no further mapping
+% to the new mesh will be required
+isLSFchanged=~isequal(LSF,Fnew.LSF);
+
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
 %%
@@ -195,6 +205,10 @@ if ~isfield(OutsideValue,'dvddt')
     OutsideValue.dvddt=NaN;
 end
 
+if ~isfield(OutsideValue,'LSF')
+    OutsideValue.LSF=NaN;
+end
+
 
 switch CtrlVar.FlowApproximation
     
@@ -206,15 +220,28 @@ switch CtrlVar.FlowApproximation
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
         
+        if  CtrlVar.LevelSetMethod && ~(isLSFchanged && numel(Fnew.LSF)==MUAnew.Nnodes)
+            % only need to map LSF if using the LevelSetMethod and if LSF does not have
+            % the rigth size and has not been changed in the previous direct call to
+            % GetCalving
+            
+            [RunInfo,Fnew.LSF]=...
+                MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+                OutsideValue.LSF,...
+                Fold.LSF) ;
+            
+        end
+        
+        
         Fnew.duddt=zeros(MUAnew.Nnodes,1);
         Fnew.dvddt=zeros(MUAnew.Nnodes,1);
         
     case "SSHEET"
         
-        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt]=...
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt,Fnew.LSF]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt],...
-            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold,dvddt) ;
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt,OutsideValue.LSF],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold.dvddt,Fold.LSF) ;
         
         Fnew.dubdt=zeros(MUAnew.Nnodes,1);
         Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
