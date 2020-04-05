@@ -155,14 +155,22 @@ end
 BCsNew=BoundaryConditions;
 [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
-% Calving-rate field needs to be redefined each time, but the Level-Set Field may or may not be reset here 
-LSF=Fnew.LSF;
-BCsLevelSetNew=BoundaryConditions;
-[UserVar,BCsLevelSetNew,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,BCsNew,BCsLevelSetNew,Fnew);
+if  CtrlVar.LevelSetMethod
+    
+    % Calving-rate field needs to be redefined each time, but the Level-Set Field may or may not be reset here
+    % Possibly the user will want to use LSF so I must map this ono the new mesh ahead of
+    % the call
+     OutsideValue.LSF=NaN;
+    [RunInfo,Fnew.LSF]=...
+        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+        OutsideValue.LSF,...
+        Fold.LSF) ;
 
-% if the new LSF has been changed, then it must have the right size and no further mapping
-% to the new mesh will be required
-isLSFchanged=~isequal(LSF,Fnew.LSF);
+    BCsLevelSetNew=BoundaryConditions;
+    [UserVar,BCsLevelSetNew,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,BCsNew,BCsLevelSetNew,Fnew);
+    
+end
+
 
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
@@ -220,17 +228,18 @@ switch CtrlVar.FlowApproximation
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
         
-        if  CtrlVar.LevelSetMethod && ~(isLSFchanged && numel(Fnew.LSF)==MUAnew.Nnodes)
-            % only need to map LSF if using the LevelSetMethod and if LSF does not have
-            % the rigth size and has not been changed in the previous direct call to
-            % GetCalving
-            
-            [RunInfo,Fnew.LSF]=...
-                MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-                OutsideValue.LSF,...
-                Fold.LSF) ;
-            
-        end
+%  I've already done this interpolation or LSF was just defined by the user       
+%         if  CtrlVar.LevelSetMethod && ~(isLSFchanged && numel(Fnew.LSF)==MUAnew.Nnodes)
+%             % only need to map LSF if using the LevelSetMethod and if LSF does not have
+%             % the rigth size and has not been changed in the previous direct call to
+%             % GetCalving
+%             
+%             [RunInfo,Fnew.LSF]=...
+%                 MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+%                 OutsideValue.LSF,...
+%                 Fold.LSF) ;
+%             
+%         end
         
         
         Fnew.duddt=zeros(MUAnew.Nnodes,1);

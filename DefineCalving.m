@@ -35,9 +35,12 @@ function [UserVar,LSF,BCsLevelSet,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA
     end
     
     
-    CalvingRate=-100e3 ; % always define the calving rate
+    CalvingRate=-100e3 +zeros(MUA.Nnodes,1); % always define the calving rate
     
+    Delta = DiracDelta(1/50e3,LSF,0) ; 
+    Delta=Delta/max(Delta) ; 
     
+    CalvingRate=CalvingRate.*(1-F.GF.node).*Delta;
     
     %%
     

@@ -102,12 +102,13 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
             
         end
         
-        NormGradfint=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
+        % Norm of gradient (NG)
+        NG=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         
         
-        LT1=NormGradfint<1; 
-        kappaint=1-1./NormGradfint ; %  positive diffusion 
-        kappaint(LT1)=sin(2*pi*NormGradfint(LT1))./(2*pi*NormGradfint(LT1)+eps) ; % neg, then pos diffusion
+        LT1=NG<1; 
+        kappaint=1-1./NG ; %  positive diffusion 
+        kappaint(LT1)=sin(2*pi*NG(LT1))./(2*pi*NG(LT1)+eps) ; % neg, then pos diffusion
         kappaint=mu.*kappaint;
         
         detJw=detJ*weights(Iint);
@@ -143,7 +144,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
             
             f0term=f0int.*SUPGdetJw;  % this is the h term, ie not \Delta h term (because the system is linear in h no need to write it in incremental form)
             
-            RHSterm=dt*cint.*NormGradfint.*SUPGdetJw;
+            RHSterm=dt*cint.*NG.*SUPGdetJw;
             
             % RHS1term=dt*theta*RHS1.*SUPGdetJw;
             
@@ -155,6 +156,8 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
             
             kappadfdx=-dt*(1-theta)*kappaint.*df0dx.*Deriv(:,1,Inod).*detJw;
             kappadfdy=-dt*(1-theta)*kappaint.*df0dy.*Deriv(:,2,Inod).*detJw;
+            
+
             
             % b1(:,Inod)=b1(:,Inod)+f0term+RHS0term+RHS1term+fdxu0+udxf0+fdyv0+vdyf0+kappadhdx+kappadhdy;
             b1(:,Inod)=b1(:,Inod)+f0term+RHSterm+udf0dx+vdf0dy+kappadfdx+kappadfdy;
