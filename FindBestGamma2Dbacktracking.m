@@ -74,7 +74,8 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
             if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
                 
             
-            [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+           % [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+            [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
             %[UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
             infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
             
@@ -128,7 +129,8 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
             break
         end
         
-        [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+       % [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl);
+        [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
         %[UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
    
@@ -164,7 +166,8 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
     if iarm==1 && r> 0.1*r0 && r> CtrlVar.NLtol
         gammaTest=gamma/2;
         
-        [UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl);                     
+        % [UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl);   
+        [UserVar,rTest,rRest,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl); 
         %[UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,l,dl,cuv);
         infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
         if rTest<r ; r=rTest ; gamma=gammaTest ; end

@@ -1,35 +1,54 @@
-function [UserVar,r,ruv,rl] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl)
-
-
-narginchk(12,12)
-
-if isnan(gamma) ; error(' gamma is nan ') ; end
-if ~isreal(gamma) ; error(' gamma is not real ') ; end
-
-F.ub=F.ub+gamma*dub;
-F.vb=F.vb+gamma*dvb;
-l.ubvb=l.ubvb+gamma*dl;
-
-Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-
-%Ruv=KRTFgeneralBCs(CtrlVar,MUA,s,S,B,h,ub+gamma*dub,vb+gamma*dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g);
-
-
-if ~isempty(L)
-    frhs=-Ruv-L'*l.ubvb;
-    grhs=cuv-L*[F.ub;F.vb];
+function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,K)
     
-    %frhs=-Ruv-L'*(l+gamma*dl);
-    %grhs=cuv-L*[ub+gamma*dub;vb+gamma*dvb];
+    nargoutchk(6,6)
     
-else
-    frhs=-Ruv;
-    grhs=[];
-end
-
-[r,rl,ruv]=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
-
-
-
+    narginchk(12,13)
+    
+    if isnan(gamma) ; error(' gamma is nan ') ; end
+    if ~isreal(gamma) ; error(' gamma is not real ') ; end
+    
+    F.ub=F.ub+gamma*dub;
+    F.vb=F.vb+gamma*dvb;
+    % l.ubvb=l.ubvb+gamma*dl;
+    l.ubvb=l.ubvb+dl;
+    
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+    
+    if ~isempty(L)
+        frhs=-Ruv-L'*l.ubvb;
+        grhs=cuv-L*[F.ub;F.vb];
+        
+    else
+        frhs=-Ruv;
+        grhs=[];
+    end
+    
+    rRes=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
+    
+    % var her
+    % Here [dub;dvb] must be the full Newton step
+    D2=frhs'*[dub;dvb]  ;
+    rWork=D2^2 ;
+    
+   
+    
+    % Energy cost function: -Ruv'*[dub;dvb]
+    
+    
+    Inodes=F.h <=CtrlVar.ThickMin ;
+    rDisp=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F.ub,dub,F.vb,dvb);
+    
+        
+    switch CtrlVar.uv.CostFunction
+        case "Residuals"
+            r=rRes;
+        case "Work"
+            r=rWork;
+        case "Increments"
+            r=rDisp ;
+    end
+    
+    fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2) 
+    
 end
 
