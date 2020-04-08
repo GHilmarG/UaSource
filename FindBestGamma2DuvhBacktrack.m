@@ -1,9 +1,9 @@
-function [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0)
+function [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0)
 
 
 
-nargoutchk(7,7)
-narginchk(19,19)
+nargoutchk(4,4)
+narginchk(16,16)
 
 if CtrlVar.InfoLevelNonLinIt>2
     fprintf(CtrlVar.fidlog,'FindBestGamma2DuvhBacktrack: on input r0=%-g  and r1=%-g \n ',r0,r1) ;
@@ -14,7 +14,7 @@ gammaNaN=0;
 
 
 Slope0=-2*r0 ;  % using the inner product def
-gamma=1; r=r1; ruv=ruv1 ; rh=rh1; rl=rl1;
+gamma=1; r=r1; 
 gammab=1; rb=r1 ;
 gammac=1 ; rc=r1;
 
@@ -69,8 +69,9 @@ while ExtrapolationStep && iarm<=10
         if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
         
         
-        [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+        % [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,r]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
         
         if isnan(r) 
@@ -127,9 +128,9 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
         break
     end
     
-    [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-
-    %[UserVar,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gamma,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
+    % [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    [UserVar,RunInfo,r]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    
     
     infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
     

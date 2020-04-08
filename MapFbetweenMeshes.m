@@ -14,12 +14,13 @@ end
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
 Fnew=Fold;
+BCsLevelSetNew=BCsLevelSetOld; 
 
 if ~RunInfo.MeshAdapt.isChanged
 
     BCsNew=BCsOld;
     lnew=lold;
-    BCsLevelSetNew=BCsLevelSetOld; 
+    
     return
 end
 

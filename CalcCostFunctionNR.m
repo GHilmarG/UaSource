@@ -1,7 +1,6 @@
 function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,K)
     
     nargoutchk(6,6)
-    
     narginchk(12,13)
     
     if isnan(gamma) ; error(' gamma is nan ') ; end
@@ -9,8 +8,8 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     
     F.ub=F.ub+gamma*dub;
     F.vb=F.vb+gamma*dvb;
-    % l.ubvb=l.ubvb+gamma*dl;
-    l.ubvb=l.ubvb+dl;
+    % l.ubvb=l.ubvb+gamma*dl; α
+    l.ubvb=l.ubvb+dl;  % here I must use the final l value for K Δx = - frhs -L'*l to hold
     
     Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
     
@@ -25,8 +24,7 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     
     rRes=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
     
-    % var her
-    % Here [dub;dvb] must be the full Newton step
+    % Newton Decrement 
     D2=frhs'*[dub;dvb]  ;
     rWork=D2^2 ;
     
@@ -40,15 +38,15 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     
         
     switch CtrlVar.uv.CostFunction
-        case "Residuals"
+        case "Force Residuals"
             r=rRes;
-        case "Work"
+        case "Work Residuals"
             r=rWork;
         case "Increments"
             r=rDisp ;
     end
     
-    fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2) 
+    % fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2) 
     
 end
 

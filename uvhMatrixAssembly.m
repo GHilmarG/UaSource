@@ -426,7 +426,7 @@ end
 minh=min(F1.h);
 
 
-if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100   % if min thickness is approaching ThickMin give some information on h within NR loop
+if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>1000   % if min thickness is approaching ThickMin give some information on h within NR loop
     msg=sprintf('In NRuvh loop, assembly stage: min(h) %-f \t max(h) %-g \n ',minh,max(F1.h)) ;
     fprintf(CtrlVar.fidlog,msg) ;
 end

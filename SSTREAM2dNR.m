@@ -74,8 +74,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
     
     
-    diffVector=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    % diffVector=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.gamma=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.rDisp=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
     
+    Kuv=[] ; 
     
     fext0=KRTFgeneralBCs(CtrlVar,MUA,F,true); % RHS with velocities set to zero, i.e. only external forces
     Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocitie, i.e. difference between external and internal forces
@@ -90,35 +95,24 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         grhs=[];
     end
     
+    
+    % think about deleting this and only use the call to CalcCostFunction
     r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
  
     Temp=CtrlVar.uv.CostFunction;
     % The initial estimate must be based on residuals as both displacements and work
     % requires solving the Newton system. 
-    CtrlVar.uv.CostFunction="Residuals" ; 
-    gamma=0 ; [UserVar,r0Test,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
+    CtrlVar.uv.CostFunction="Force Residuals" ; 
+    gamma=0 ; [UserVar,r0Test,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
     fprintf(' Testing: norm(r-r0Test)=%f \n ',norm(r-r0Test))
-    
     CtrlVar.uv.CostFunction=Temp; 
-    %nC=nC+1; 
-    %CostFunctionValues.gamma(nC)=gamma;
-    %CostFunctionValues.rResiduals(nC)=r0Test;  
-    %CostFunctionValues.rWork(nC)=rWork0+NaN; % Here the Newton step has not been calculated, so this is not the Newton decrement at gamma=0
+        
     
-    
-    diffDu=0;
-    Kuv=[] ; 
+  
     
     iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
     while true
-        
-        %
-        %  ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitmax  )  || (iteration < CtrlVar.NRitmin)
-        
-        nC=0;
-        CostFunctionValues.gamma=zeros(10,1)+NaN;
-        CostFunctionValues.rResiduals=zeros(10,1)+NaN;
-        CostFunctionValues.rWork=zeros(10,1)+NaN;
+
         
         
         
@@ -140,7 +134,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
                 
             case 'increments'
                 
-                if diffDu < CtrlVar.du
+                if rDisp < CtrlVar.du
                     tEnd=toc(tStart);
                     if CtrlVar.InfoLevelNonLinIt>=1
                         fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g with r=%-g in %-i iterations and in %-g  sec \n',...
@@ -153,12 +147,12 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
                 
             case 'residuals and increments'
                 
-                if r<CtrlVar.NLtol && diffDu < CtrlVar.du
+                if r<CtrlVar.NLtol && rDisp < CtrlVar.du
                     
                     tEnd=toc(tStart);
                     if CtrlVar.InfoLevelNonLinIt>=1
                         fprintf(CtrlVar.fidlog,' SSTREAM(uv) (time|dt)=(%g|%g): Converged to given residual (r=%g) and increment tolerances (du=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,r,diffDu,diffDh,iteration,tEnd) ;
+                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,r,rDisp,diffDh,iteration,tEnd) ;
                     end
                     RunInfo.Forward.Converged=1;
                     break
@@ -166,12 +160,12 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
                 
             case 'residuals or increments'
                 
-                if r<CtrlVar.NLtol && diffDu < CtrlVar.du
+                if r<CtrlVar.NLtol && rDisp < CtrlVar.du
                     
                     tEnd=toc(tStart);
                     if CtrlVar.InfoLevelNonLinIt>=1
                         fprintf(CtrlVar.fidlog,' SSTREAM(uv) (time|dt)=(%g|%g): Converged to given residual (r=%g) or increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,r,diffDu,diffDh,iteration,tEnd) ;
+                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,r,rDisp,diffDh,iteration,tEnd) ;
                     end
                     RunInfo.Forward.Converged=1;
                     break
@@ -201,7 +195,9 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         iteration=iteration+1;
         
-        
+        %% Newton step
+        % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
+        % step ahead of the cost function
         if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
             
             tAssembly=tic;
@@ -214,21 +210,11 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
             NRincomplete=1;
         end
-        
-        %
-        %     if iteration==1
-        %         fext0=R0 ; % fext0 is used as a normalisation factor when calculating the residual, do not change this normalisation factor in the course of the iteration.
-        %         % As it happens, due to the way it is defined, F only depends on the right-hand side, so F could be updated in the course of the non-linear iteration
-        %         % without affecting its value.
-        %     end
-        %
-        %
-        
+
         
         if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
             CtrlVar.TestForRealValues=false;
         end
-        
         
         if CtrlVar.TestForRealValues
             if ~isreal(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K not real') ;  end
@@ -239,8 +225,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         if any(isnan(L)) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
-        
-        
+
         
         % [Kuv  Luv' ]  [duv]  =  [ -R(uv) - Luv' l]
         % [Luv   0    ]  [dl]      [ cuv-Luv uv      ]
@@ -252,11 +237,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             frhs=-Ruv;
             grhs=[];
         end
-        
-        
    
         tSolution=tic;
-        
         
         if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
             [sol,dl]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
@@ -272,37 +254,29 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         else
             dub=sol(1:MUA.Nnodes) ; dvb=sol(MUA.Nnodes+1:2*MUA.Nnodes);
         end
-        
-        % Evaluate force residual at full Newton step
-        
-        
-        %[ - TestIng
-        r0=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");  % var svona
-        %gamma=0 ; [UserVar,r0,ruv0,rl0,rWork0] =  CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl);
+
+        %% Residuals , at gamma=0;
         gamma=0 ; [UserVar,r0,rRes0,rWork0,rDisp0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
-        nC=nC+1;
-        CostFunctionValues.gamma(nC)=gamma;
-        CostFunctionValues.rResiduals(nC)=r0Test;
-        CostFunctionValues.rWork(nC)=rWork0; % Here the Newton step has been calculated, so this is the Newton decrement at gamma=0
-        fprintf(' Testing: norm(r-r0Test)=%f \n ',norm(r-r0Test))
-        if iteration==1
-            diffVector(1)=r0;  % if using rWork this is f(x) dx   where dx is the full Newton step
-                               % r1 will be f(x+dx) dx
+        
+        if iteration==1  % save the first r value for plotting, etc
+            rVector.gamma(1)=gamma; 
+            rVector.rDisp(1)=rDisp0; 
+            rVector.rWork(1)=rWork0; 
+            rVector.rForce(1)=rRes0 ; 
         end
-        %  ---- ]
-        
-        
-        % [UserVar,r1] =  CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl);
-        % gamma=1 ; [UserVar,r1,ruv1,rl1,rWork1]= CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl);
+   
+        %% calculate  residuals at full Newton step, i.e. at gamma=1
         gamma=1 ; [UserVar,r1,rRes1,rWork1,rDisp1,D21] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
+ 
         
         [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,fext0,r0,r1,L,l,cuv,dub,dvb,dl);
-        %[UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,fext0,r0,r1,s,S,B,h,ub,dub,vb,dvb,uo,vo,AGlen,n,C,m,alpha,rho,rhow,g,L,l.ubvb,dl,cuv);
         
-        nC=nC+1; 
-        CostFunctionValues.gamma(nC)=gamma;
-        CostFunctionValues.rResiduals(nC)=r1;
-        CostFunctionValues.rWork(nC)=rWork1;
+        % If backtracking returns all values, then this call will not be needed.
+        [UserVar,rTest,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
+        rVector.gamma(iteration+1)=gamma;
+        rVector.rDisp(iteration+1)=rDisp;
+        rVector.rWork(iteration+1)=rWork;
+        rVector.rForce(iteration+1)=rRes ;
         
         
         
@@ -329,53 +303,50 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
              % [UserVar,r1,rRes1,rWork1,rDisp1,D21] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
                 gammaTestVector(I)=gammaTest ; rResTestvector(I)=rResTest; rWorkTestvector(I)=rWorkTest;
             end
-            %
-            %             gammaTestVector=[gammaTestVector(:);infovector(:,1);CostFunctionValues.gamma];
-            %             rResTestvector=[rResTestvector(:);infovector(:,2);CostFunctionValues.rResiduals];
-            %             rWorkTestvector=[rWorkTestvector(:);NaN+infovector(:,2);CostFunctionValues.rWork];
-            
-            % gammaTestVector=[gammaTestVector(:);CostFunctionValues.gamma(:)];
-            % rResTestvector=[rResTestvector(:);CostFunctionValues.rResiduals(:)];
-            % rWorkTestvector=[rWorkTestvector(:);CostFunctionValues.rWork(:)];
+
             
             
             [gammaTestVector,ind]=unique(gammaTestVector) ; rResTestvector=rResTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
             [gammaTestVector,ind]=sort(gammaTestVector) ; rResTestvector=rResTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
             
             
-            figSB=FindOrCreateFigure("SSTREAM backtracking");
-            hold off
-            plot(gammaTestVector,rResTestvector,'o-r') ; hold on ;
-            if CtrlVar.uv.CostFunction=="Residuals" 
-                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
-            end
-            
+            FindOrCreateFigure("SSTREAM uv rResiduals");
             slope=-2*rRes0;
+            yyaxis left
+            plot(gammaTestVector,rResTestvector,'o-') ; hold on ;
             plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
-            title(sprintf('iteration %i ',iteration)) ; hold off
+            ylabel('Force Residuals')
             
-            %input('press return to continue')
-            
-            
-            figSBr=FindOrCreateFigure("SSTREAM rWork");
-            hold off
-            plot(gammaTestVector,rWorkTestvector,'o-b') ; hold on ;
-            slope=-2*rWork0;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
-            
-            if CtrlVar.uv.CostFunction=="Work"
+            if CtrlVar.uv.CostFunction=="Force Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
-            title(sprintf('iteration %i ',iteration)) ; hold off
+            
+            yyaxis right
+            slope=-2*rWork0;
+            plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
+            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            ylabel('Work Residuals')
+            
+            if CtrlVar.uv.CostFunction=="Work Residuals"
+                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+            end
+            
+            title(sprintf('uv iteration %-i,  iarm=%-i ',iteration,BacktrackInfo.iarm)) ; xlabel(' \gamma ') ;
+            
+            
+            
             
         end
         
-        Inodes=F.h <=CtrlVar.ThickMin ;
-        diffDu=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F.ub,dub,F.vb,dvb);
-        diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
-        
+%         Inodes=F.h <=CtrlVar.ThickMin ;
+%         rDisp=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F.ub,dub,F.vb,dvb);
+%         diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
+%         
         % diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
-        diffVector(iteration+1)=r;
+        % diffVector(iteration+1)=r;
+        
+     
+        
         
         F.ub=F.ub+gamma*dub ;
         F.vb=F.vb+gamma*dvb;
@@ -395,32 +366,34 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         if CtrlVar.InfoLevelNonLinIt>=1
             
-            fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-                stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
+            fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+                stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,rDisp,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
         end
         
         if CtrlVar.WriteRunInfoFile
             
-            fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , dl=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-                stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,diffDu,diffDlambda,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
+            fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , du=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+                stri,iteration,BacktrackInfo.iarm,gamma,r/r0,r0,r,rDisp,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
         end
         
     end
     
     
     
-    if CtrlVar.InfoLevelNonLinIt>3 && iteration >= 2
-        
-        N=max([1,iteration-5]);
-        
-        [~,~,a1]=detrend_xt(log10(diffVector(N:iteration)),N:iteration);
-        fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
-        if CtrlVar.doplots==1
-            figSBr=FindOrCreateFigure("NR-uv iteration");
-            semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ;
-            title('r^2 residual (NR uv diagnostic step)') ; xlabel('Iteration') ; ylabel('r^2 (Residual)')
-        end
-        
+    if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
+  
+            
+            FindOrCreateFigure("NR-uv r");
+            yyaxis left
+            semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
+            ylabel('rResiduals^2')
+            yyaxis right
+            semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
+            ylabel('rWork^2')
+            
+            title('Force and Work residuals (NR uv diagnostic step)') ; xlabel('Iteration') ;
+            
+  
     end
     
     if isnan(r)
