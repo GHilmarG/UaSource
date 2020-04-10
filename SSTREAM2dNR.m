@@ -99,13 +99,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     % think about deleting this and only use the call to CalcCostFunction
     r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
  
-    Temp=CtrlVar.uv.CostFunction;
+    Temp=CtrlVar.uvCostFunction;
     % The initial estimate must be based on residuals as both displacements and work
     % requires solving the Newton system. 
-    CtrlVar.uv.CostFunction="Force Residuals" ; 
+    CtrlVar.uvCostFunction="Force Residuals" ; 
     gamma=0 ; [UserVar,r0Test,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
-    fprintf(' Testing: norm(r-r0Test)=%f \n ',norm(r-r0Test))
-    CtrlVar.uv.CostFunction=Temp; 
+    fprintf(' TestIng: norm(r-r0Test)=%f \n ',norm(r-r0Test))
+    CtrlVar.uvCostFunction=Temp; 
         
     
   
@@ -317,7 +317,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
             ylabel('Force Residuals')
             
-            if CtrlVar.uv.CostFunction=="Force Residuals"
+            if CtrlVar.uvCostFunction=="Force Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             
@@ -327,7 +327,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
             ylabel('Work Residuals')
             
-            if CtrlVar.uv.CostFunction=="Work Residuals"
+            if CtrlVar.uvCostFunction=="Work Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             

@@ -326,7 +326,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
             ylabel('Force Residuals')
             
-            if CtrlVar.uvh.CostFunction=="Force Residuals"
+            if CtrlVar.uvhCostFunction=="Force Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             
@@ -336,7 +336,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
             ylabel('Work Residuals')
             
-            if CtrlVar.uvh.CostFunction=="Work Residuals"
+            if CtrlVar.uvhCostFunction=="Work Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             

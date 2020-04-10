@@ -36,7 +36,7 @@ function [UserVar,RunInfo,r,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,R
     
     
     
-    switch CtrlVar.uvh.CostFunction
+    switch CtrlVar.uvhCostFunction
         case "Force Residuals"
             r=rRes;
         case "Work Residuals"

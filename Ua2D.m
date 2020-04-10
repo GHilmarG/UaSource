@@ -427,17 +427,21 @@ while 1
             hOld=F.h;
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
             
+            %% TestIng
+            CtrlVar.ExplicitEstimation=true;
             % Was geometry manually changed by the user? If so then enforce a new uv
             % solution
-            dh=norm(hOld-F.h)/sqrt(numel(hOld));
+%             dh=norm(hOld-F.h)/sqrt(numel(hOld));
+%             
+%             if dh>1000*eps 
+%                 [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+%                 Fm1=F;
+%                 CtrlVar.ExplicitEstimation=false;
+%             else
+%                 
+%            end
+            %% - ] 
             
-            if dh>1000*eps 
-                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-                Fm1=F;
-                CtrlVar.ExplicitEstimation=false;
-            else
-                CtrlVar.ExplicitEstimation=true;
-            end
         else
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
         end

@@ -358,8 +358,10 @@ CtrlVar.uvhConvergenceCriteria="residuals and increments";  % convergence criter
 CtrlVar.uvConvergenceCriteria="residuals";                 % convergence criteria for the implicit uv solution
 CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
-CtrlVar.uv.CostFunction="Force Residuals" ; % ["Work","Increments"] 
-CtrlVar.uvh.CostFunction="Force Residuals" ; % ["Work","Increments"] 
+CtrlVar.uvCostFunction="Force Residuals" ;  % ["Work Residuals","Force Residuals"] 
+CtrlVar.uvhCostFunction="Force Residuals" ; % ["Work Residuals","Force Residuals"] 
+CtrlVar.MustBe.uvCostFunction=["Force Residuals","Work Residuals"];
+CtrlVar.MustBe.uvhCostFunction=["Force Residuals","Work Residuals"];
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %

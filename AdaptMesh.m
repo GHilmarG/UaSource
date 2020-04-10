@@ -366,7 +366,13 @@ isMeshingLocalWithoutSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:
 
 isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
-isRecalculateVelocities=isMeshChanged ||  isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
+% isRecalculateVelocities=isMeshChanged ||  isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
+% Only recalculate uv if either: (1) we have new outside nodes,
+%                                (2) the user specifically asks,
+%                                (3) the remeshing done involved mesh smoothing (in which
+%                                    case most nodes will have shifted).
+% It the mesh changed but all now nodes are interior nodes, do not recalculate uv.
+isRecalculateVelocities=isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
 
 if ~CtrlVar.AdaptMeshAndThenStop
     if isRecalculateVelocities

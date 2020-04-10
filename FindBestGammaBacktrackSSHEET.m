@@ -2,7 +2,7 @@ function [r,gamma,infovector,iarm,BacktrackInfo]=FindBestGammaBacktrackSSHEET(Ct
     AGlen,n,rho,g,s0,b0,s1,b1,a0,a1,dh,dt,Lh,lambdah,dlambdah)
          
     
-    if CtrlVar.InfoLevelNonLinIt>=10
+    if CtrlVar.InfoLevelNonLinIt>=1000
         fprintf(CtrlVar.fidlog,...
             'FindBestGamma2DuvhBacktrack: on input r0=%-g \t r1=%-g \t r1/r0=%-g\n ',r0,r1,r1/r0) ;
     end

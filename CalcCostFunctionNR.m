@@ -37,7 +37,7 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     rDisp=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F.ub,dub,F.vb,dvb);
     
         
-    switch CtrlVar.uv.CostFunction
+    switch CtrlVar.uvCostFunction
         case "Force Residuals"
             r=rRes;
         case "Work Residuals"

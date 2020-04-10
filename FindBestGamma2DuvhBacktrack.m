@@ -5,7 +5,7 @@ function [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,C
 nargoutchk(4,4)
 narginchk(16,16)
 
-if CtrlVar.InfoLevelNonLinIt>2
+if CtrlVar.InfoLevelNonLinIt>=1000
     fprintf(CtrlVar.fidlog,'FindBestGamma2DuvhBacktrack: on input r0=%-g  and r1=%-g \n ',r0,r1) ;
 end
 
@@ -45,7 +45,7 @@ I=3;
 
 if r> target && r1 < r0  && CtrlVar.LineSearchAllowedToUseExtrapolation
     ExtrapolationStep=true ;
-    if CtrlVar.InfoLevelNonLinIt>=2
+    if CtrlVar.InfoLevelNonLinIt>=1000
         fprintf(CtrlVar.fidlog,' Extrapolation flag set to true in line-search uv \n ');
     end
 else
@@ -86,7 +86,7 @@ while ExtrapolationStep && iarm<=10
             gammab=gammac ; rb=rc ;
             gammac=gamma  ; rc=r;
             target= r0-beta*Slope0*gamma  ; % Armijo criteria
-            if CtrlVar.InfoLevelNonLinIt>=2
+            if CtrlVar.InfoLevelNonLinIt>=1000
                 fprintf(CtrlVar.fidlog,'E: iarm=%-i \t gammab=%-g \t gammac=%-g \t r0=%-g \t r1=%-g \t r=%-g \t  rc=%-g \t target=%-g \t r/rtarget=%-g \n',iarm,gammab,gammac,r0,r1,r,rc,target,r/target);
             end
         else
@@ -145,7 +145,7 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
         rTemp=r; gammaTemp=gamma;
         r=rb ; gamma=gammab ;        % Because I start with a different exit criterion, I must
         rb=rTemp ; gammab=gammaTemp ;   % check if initial estimate is actually better than first improvement
-        if CtrlVar.InfoLevelNonLinIt>10
+        if CtrlVar.InfoLevelNonLinIt>1000
             fprintf(CtrlVar.fidlog,' Newton step better than first backtracking step \n');
         end
     else
@@ -154,7 +154,7 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
     
     
     target= r0-beta*Slope0*gamma  ; % Armijo criteria
-    if CtrlVar.InfoLevelNonLinIt>=2
+    if CtrlVar.InfoLevelNonLinIt>=1000
         fprintf(CtrlVar.fidlog,'B: iarm=%-i \t gammab=%-g \t gammac=%-g \t r0=%-g \t r1=%-g \t r=%-g \t  rc=%-g \t target=%-g \t r/rtarget=%-g \n',iarm,gammab,gammac,r0,r1,r,rc,target,r/target);
     end
 end
