@@ -303,7 +303,7 @@ if CtrlVar.ManuallyDeactivateElements
     
     
     if RunInfo.Mapping.nNotIdenticalNodesOutside>0
-        isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of eliments,
+        isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of elements,
     end
 end
 %%
