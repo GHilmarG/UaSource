@@ -1561,7 +1561,8 @@ CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
 CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 
-
+%% Local mesh refinement around calving front
+CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.CFrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 %% Parameters affecting the floating mask
 
 CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.

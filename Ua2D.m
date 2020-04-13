@@ -402,7 +402,11 @@ while 1
         if CtrlVar.doplots  && CtrlVar.PlotMesh
             figMesh=FindOrCreateFigure("Mesh");
             clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
-            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r'); hold off
+            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
+            if ~isempty(F.LSF)
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+            end
+            hold off
         end
 
         

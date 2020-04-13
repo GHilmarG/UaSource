@@ -222,36 +222,65 @@ EleSizeDesired(I)=CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing*EleSizeCur
 %%
 % Set elesizes around GL to a specific value
 
+% Range-based mesh refinement
+isRangeBased=isfield(CtrlVar,'MeshAdapt') && (~isempty(CtrlVar.MeshAdapt.GLrange) || ~isempty(CtrlVar.MeshAdapt.CFrange));
 
-if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
+if isRangeBased
     
-    %fprintf('Remeshing based on distance of nodes from grounding line.\n')
+    cooA=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
+    KdTree=KDTreeSearcher(cooA) ;
+    CtrlVar.PlotGLs=0; CtrlVar.GLsubdivide=1; CtrlVar.LineUpGLs=0;
     
-    KdTree=[];
-    CtrlVar.PlotGLs=0;
-    CtrlVar.GLsubdivide=1;
-    CtrlVar.LineUpGLs=0; 
-    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL. 
-    
-    
-    for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
+    if ~isempty(CtrlVar.MeshAdapt.GLrange)
+        % GL refinement
+        %fprintf('Remeshing based on distance of nodes from grounding line.\n')
         
-        ds=CtrlVar.MeshAdapt.GLrange(I,1);
-        dh=CtrlVar.MeshAdapt.GLrange(I,2);
-        if dh<CtrlVar.MeshSizeMin
-            if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
-                fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL.
+        for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
+            
+            ds=CtrlVar.MeshAdapt.GLrange(I,1);
+            dh=CtrlVar.MeshAdapt.GLrange(I,2);
+            if dh<CtrlVar.MeshSizeMin
+                if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                    fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+                    fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+                end
+                dh=CtrlVar.MeshSizeMin;
             end
-            dh=CtrlVar.MeshSizeMin;
+            if CtrlVar.InfoLevelAdaptiveMeshing>=10
+                fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+            end
+            [ID,~,~,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
+            
+            EleSizeIndicator(ID)=dh;
+            EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
         end
-        if CtrlVar.InfoLevelAdaptiveMeshing>=10
-            fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
-        end
-        ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
+    end
+    
+    if ~isempty(CtrlVar.MeshAdapt.CFrange) && ~isempty(F.LSF) 
+        % Calving-Front refinement
+        %fprintf('Remeshing based on distance of nodes from calving fronts.\n')
         
-        EleSizeIndicator(ID)=dh;
-        EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+        [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F);
+        for I=1:size(CtrlVar.MeshAdapt.CFrange,1)
+            
+            ds=CtrlVar.MeshAdapt.CFrange(I,1);
+            dh=CtrlVar.MeshAdapt.CFrange(I,2);
+            if dh<CtrlVar.MeshSizeMin
+                if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                    fprintf('---> Warning: CtrlVar.MeshAdapt.CFrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+                    fprintf('              Setting CtrlVar.MeshAdapt.CFrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+                end
+                dh=CtrlVar.MeshSizeMin;
+            end
+            if CtrlVar.InfoLevelAdaptiveMeshing>=10
+                fprintf('Nodes within the distance of %g from calving fronts are given the target element size %g \n',ds,dh)
+            end
+            [ID,~,~,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xCF,yCF,ds,KdTree);
+            
+            EleSizeIndicator(ID)=dh;
+            EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+        end
     end
     
     

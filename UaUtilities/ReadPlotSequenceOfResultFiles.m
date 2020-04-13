@@ -43,7 +43,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
-    expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-','-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-','-collect-'};
+    defaultPlotType="-mesh-speed-calving-level set-";
+    expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-','-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-','-collect-'};
     
     IP = inputParser;
     
@@ -150,7 +151,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
             
             XYratio=(xmax-xmin)/(ymax-ymin) ;
             
-            if XYratio>0.5 || XYration<1.5
+            if XYratio>0.5 && XYratio<1.5
                 nPx=2 ; nPy=2;
             elseif XYratio<=0.5
                 nPx=1; nPy=4;
@@ -159,7 +160,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
             end
             
             if isnan(AxisLimits)
-                AxisLimits=[xmin xmax ymin ymax];
+                AxisLimits=[xmin xmax ymin ymax]/CtrlVar.PlotXYscale;
             end
             
             switch PlotType
@@ -177,7 +178,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     %%
                     
-                case "-mesh-speed-s-ab-"
+                case {"-mesh-speed-s-ab-","-mesh-speed-calving-level set-"}
                     
                     f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
                     clf(f4)
@@ -191,14 +192,19 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     
                     hold off
-                    PlotMuaMesh(CtrlVar,MUA);
-                    title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h);
+                    
+                    hold on
+                    PlotMuaMesh(CtrlVar,MUA,[],'w');
+                    
                     hold on ;
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                     xlabel('x (km)') ; ylabel('y (km)') ;
                     axis equal tight
                     axis(AxisLimits) ;
                     
+                    title(sprintf('Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    title(cbar,'(m)')
                     ax = gca;
                     outerpos = ax.OuterPosition;
                     ti = ax.TightInset;
@@ -236,10 +242,21 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     
                     hold off
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);   title(sprintf('surface at t=%-g',time))
+                    
+                    if contains(PlotType,"-calving-")
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);   
+                        title(sprintf('Calving Rate Field at t=%g',time))
+                        hold on
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ; 
+                    else
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
+                        title(sprintf('surface at t=%-g',time))
+                    end
+                    
                     hold on
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                    xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                    xlabel('x (km)') ; ylabel('y (km)') ; 
+                    title(cbar,'(m/yr)')
                     axis equal tight ; axis(AxisLimits) ;
                     ax = gca;
                     outerpos = ax.OuterPosition;
@@ -254,7 +271,17 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     
                     hold off
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);   title(sprintf('Basal melt at t=%-g',time))
+                    
+                    if contains(PlotType,"-level set-")
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF);
+                        title(sprintf('Level Set Field at t=%-g',time))
+                        hold on
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ; 
+                    else
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
+                        title(sprintf('Basal melt at t=%-g',time))
+                    end
+                    
                     hold on
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                     xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')

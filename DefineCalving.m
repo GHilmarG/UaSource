@@ -35,7 +35,13 @@ function [UserVar,LSF,BCsLevelSet,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA
     end
     
     
-    CalvingRate=-100e3 +zeros(MUA.Nnodes,1); % always define the calving rate
+    if CtrlVar.time>800
+        CalvingRate=-500 +zeros(MUA.Nnodes,1); % always define the calving rate
+    elseif CtrlVar.time>700
+        CalvingRate=-200 +zeros(MUA.Nnodes,1); % always define the calving rate
+    else
+        CalvingRate=zeros(MUA.Nnodes,1); % always define the calving rate
+    end
     
     Delta = DiracDelta(1/50e3,LSF,0) ; 
     Delta=Delta/max(Delta) ; 
