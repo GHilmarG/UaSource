@@ -11,6 +11,8 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
     %
     % Very usefull utility with a proven negative grumpiness impact.
     %
+    %   
+    %
     % Example:
     %
     %   FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);

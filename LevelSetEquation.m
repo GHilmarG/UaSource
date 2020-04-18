@@ -7,6 +7,15 @@ function [UserVar,phi1,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsL
     
     persistent iCalls
     
+    
+    if ~CtrlVar.LevelSetMethod
+        phi1=phi0; 
+        lambda=[]; 
+        return
+    end
+    
+    
+    
     if isempty(iCalls)
         iCalls=0 ;
     end

@@ -126,6 +126,7 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 % write out some basic information about the type of run selected
 PrintRunInfo(CtrlVar);
 RunInfo.Message="Start of Run";
+CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 if CtrlVar.Restart
     RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
@@ -141,7 +142,7 @@ if CtrlVar.InverseRun %  inverse run
         
         
         RunInfo.Message="Getting inputs for an inverse restart run";
-        CtrlVar.RunInfoMessage=RunInfo.Message(end);
+        CtrlVar.RunInfoMessage=RunInfo.Message;
         [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
             GetInputsForInverseRestartRun(UserVar,CtrlVar,RunInfo);
         
@@ -200,7 +201,7 @@ MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has ch
 
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
-
+CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 
 if CtrlVar.Restart
@@ -319,13 +320,14 @@ end
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
 
-RunInfo.Message="Run Step Loop.";
-CtrlVar.RunInfoMessage=RunInfo.Message;
+
 RunInfo.Forward.IterationsTotal=0; 
 RunInfo.Forward.Converged=true; 
 %%  RunStep Loop
 while 1
     
+    RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
+    CtrlVar.RunInfoMessage=RunInfo.Message;
     RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
     
     %% check run-step stop criteria
@@ -390,9 +392,8 @@ while 1
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
         [UserVar,RunInfo,MUA,BCs,BCsLevelSet,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,BCsLevelSet,F,l,Ruv,Lubvb);
-%                    [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
- %       fprintf('AdaptMesh #s=%i #b=%i #S=%i #B=%i #h=%i #GF.node=%i \n ',numel(F.s),numel(F.b),numel(F.S),numel(F.B),numel(F.h),numel(F.GF.node))
+ 
         
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
@@ -426,44 +427,31 @@ while 1
     
     %% [----------------------- Changes to F required at each RunStep
     
+    % There are questions as to which field should be updated manually first.
+    % Geometry modifications might depend on the level-set, so call GetCalving before
+    % GetGeometryAndDensities.
+    
+    [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F);
+    [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+    [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
+    
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
-            hOld=F.h;
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
-            
-            %% TestIng
-            CtrlVar.ExplicitEstimation=true;
-            % Was geometry manually changed by the user? If so then enforce a new uv
-            % solution
-%             dh=norm(hOld-F.h)/sqrt(numel(hOld));
-%             
-%             if dh>1000*eps 
-%                 [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-%                 Fm1=F;
-%                 CtrlVar.ExplicitEstimation=false;
-%             else
-%                 
-%            end
-            %% - ] 
-            
         else
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry);
         end
     end
-    
-    
-
-    [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
-    [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
 
     if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
         [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
         F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
  
-    
+    % get mass-balance after any modifications to geometry, as mass balance might depent
+    % on geometry. 
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-    [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F);
+    
     
  
     %%  -------------------------------------------------------------------------------------]
@@ -474,7 +462,7 @@ while 1
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
         
-        RunInfo.Message="Diagnostic step. Solving for velocities.";
+        RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
         
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
@@ -492,7 +480,7 @@ while 1
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
             
-            RunInfo.Message="Time dependent step. Solving implicitly for velocities and thickness.";
+            RunInfo.Message="-RunStepLoop- Time dependent step. Solving implicitly for velocities and thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
             
             
@@ -542,24 +530,19 @@ while 1
             
         
             
-            F0=F;  % 
+            F0=F;  %
             
             
             %% get an explicit estimate for u, v and h at the end of the time step
             
             %
             % F0 is the converged solution from the previous time step
-            % F0.dubdt is based on F0 and the previous solution to F0, which is referred to as Fm1, but is not saved 
+            % F0.dubdt is based on F0 and the previous solution to F0, which is referred to as Fm1, but is not saved
             % F0.dubdt=(F0.ub-Fm1.ub)/dt  (where dt is the time step between Fm1 and F0.)
             %
             
-       
-            
-            if CtrlVar.ExplicitEstimation
-                [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
-            end
-            
-            
+            [UserVar,RunInfo,F.ub,F.vb,F.ud,F.vd,F.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
             
@@ -598,7 +581,7 @@ while 1
         elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
             
             
-            RunInfo.Message="Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
+            RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
             
             

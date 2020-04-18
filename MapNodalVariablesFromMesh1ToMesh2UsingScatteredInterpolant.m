@@ -149,7 +149,8 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         
         
         if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
-            FindOrCreateFigure("-Old and new nodes-");
+            fig=FindOrCreateFigure("-Old and new nodes-");
+           
             tt=axis;
             hold off
             p0=PlotMuaMesh(CtrlVar,MUAnew,[],'b');
@@ -165,11 +166,11 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
             p4=plot(xNew(IdenticalNodes)/CtrlVar.PlotXYscale,yNew(IdenticalNodes)/CtrlVar.PlotXYscale,'*g');
             
             if ~isempty(p2) && ~isempty(p3)
-                legend([p0 p1 p2 p3 p4],'New Mesh','Old Mesh','New and outside','New but inside','Save','Location','northeastoutside')
+                legend([p0 p1 p2 p3 p4],'New Mesh','Old Mesh','New and outside','New but inside','Identical','Location','northeastoutside')
             elseif ~isempty(p3)
-                legend([p0 p1 p3 p4],'New Mesh','Old Mesh','New but inside','Same','Location','northeastoutside')
+                legend([p0 p1 p3 p4],'New Mesh','Old Mesh','New but inside','Identical','Location','northeastoutside')
             elseif  ~isempty(p2)
-                legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Same','Location','northeastoutside')
+                legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Identical','Location','northeastoutside')
             end
             
             

@@ -52,7 +52,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
      
     rVector.gamma=zeros(CtrlVar.NRitmax+1,1)+NaN;
-    rVector.rDisp=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.ruv=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
     
@@ -138,7 +138,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     Fext0=R0;
     
     iteration=0 ;
-    r=1e50; diffDu=1e10 ; diffDh=1e10; 
+    r=1e50; ruv=1e10 ; rh=1e10; 
     RunInfo.Forward.Converged=0;
     RunInfo.BackTrack.Converged=1 ;
     
@@ -149,7 +149,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             || iteration < CtrlVar.NRitmin;
         
         
-        IncrementCriteria=(~(diffDu < CtrlVar.du && diffDh< CtrlVar.dh  )) ...
+        IncrementCriteria=(~(ruv < CtrlVar.du && rh< CtrlVar.dh  )) ...
             || iteration < CtrlVar.NRitmin;
         
         
@@ -173,12 +173,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if RunInfo.BackTrack.Converged==0
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
+                    CtrlVar.time,CtrlVar.dt,r,ruv,rh,iteration) ;
             end
             
             if CtrlVar.WriteRunInfoFile
                 fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
+                    CtrlVar.time,CtrlVar.dt,r,ruv,rh,iteration) ;
             end
             
             RunInfo.Forward.Converged=0;
@@ -223,7 +223,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                     tEnd=toc(tStart);
                     if CtrlVar.InfoLevelNonLinIt>=1
                         fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) and increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
+                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,ruv,rh,iteration,tEnd) ;
                     end
                     RunInfo.Forward.Converged=1;
                     break
@@ -236,7 +236,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                     tEnd=toc(tStart);
                     if CtrlVar.InfoLevelNonLinIt>=1
                         fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) or increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,diffDu,diffDh,iteration,tEnd) ;
+                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,ruv,rh,iteration,tEnd) ;
                     end
                     RunInfo.Forward.Converged=1;
                     break
@@ -270,22 +270,19 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         %% Residuals , at gamma=0;
         gamma=0;
-        % [UserVar,RunInfo,r0,ruv0,rh0,rl0,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [UserVar,RunInfo,r0,rRes0,rWork0,rDisp0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         
         
         if iteration==1  % save the first r value for plotting, etc
             rVector.gamma(1)=gamma;
-            rVector.rDisp(1)=rDisp0;
+            rVector.ruv(1)=NaN;
             rVector.rWork(1)=rWork0;
-            rVector.rForce(1)=rRes0 ;
+            rVector.rForce(1)=rForce0 ;
         end
         
         %% calculate  residuals at full Newton step, i.e. at gamma=1
         gamma=1;
-        
-        %[UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [UserVar,RunInfo,r1,rRes1,rWork1,rDisp1,D21]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,r1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         
         %% either accept full Newton step or do a line search
         
@@ -293,37 +290,40 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
         
         % If backtracking returns all values, then this call will not be needed.
-        [UserVar,RunInfo,rTest,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,rTest,rForce,rWork,ruv,rh]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         rVector.gamma(iteration+1)=gamma;
-        rVector.rDisp(iteration+1)=rDisp;
+        rVector.ruv(iteration+1)=ruv;
         rVector.rWork(iteration+1)=rWork;
-        rVector.rForce(iteration+1)=rRes ;
-        
+        rVector.rForce(iteration+1)=rForce ;
+        if ~isequal(r,rTest)
+            fprintf("r=%g \t rTest=%g \t \n",r,rTest)
+            error('SSTREAM_TransientImplicit:expecting r and rTest to be equal')
+        end
         
         
         %% If desired, plot residual along search direction
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=20;
-            gammaTestVector=zeros(nnn,1) ; rResTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1);
+            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1);
             Up=2.2;
             if gamma>0.7*Up ; Up=2*gamma; end
             parfor I=1:nnn
                 gammaTest=Up*(I-1)/(nnn-1)+gamma/250;
-                % [~,~,rTest,~,~,~]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
-                [~,~,rTest,rResTest,rWorkTest,rDispTest,D2Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
-                gammaTestVector(I)=gammaTest ; rResTestvector(I)=rResTest; rWorkTestvector(I)=rWorkTest;
+                
+                [~,~,rTest,rForceTest,rWorkTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
+                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;
             end
             
             
-            [gammaTestVector,ind]=unique(gammaTestVector) ; rResTestvector=rResTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
-            [gammaTestVector,ind]=sort(gammaTestVector) ; rResTestvector=rResTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
+            [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
+            [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
             
             
-            FindOrCreateFigure("SSTREAM uvh rResiduals");
-            slope=-2*rRes0;
+            FindOrCreateFigure("SSTREAM uvh rForceiduals");
+            slope=-2*rForce0;
             yyaxis left
-            plot(gammaTestVector,rResTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            plot(gammaTestVector,rForceTestvector,'o-') ; hold on ;
+            plot([gammaTestVector(1) gammaTestVector(2)],[rForceTestvector(1) rForceTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
             ylabel('Force Residuals')
             
             if CtrlVar.uvhCostFunction=="Force Residuals"
@@ -351,29 +351,14 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
         
         
-        %% calculate statistics on change in speed, thickness and Lagrange parameters
-        % D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
-        % diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-        
-        Inodes=F1.h<=CtrlVar.ThickMin;
-        [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
-        
-        diffDlambda=norm(dl)/(norm(luvh)+eps);
-        
-    
-        
-        
-        if isempty(diffDlambda)
-            diffDlambda=0;
-        end
-        
+   
         %% update variables
         
         
         F1.ub=F1.ub+gamma*dub;
         F1.vb=F1.vb+gamma*dvb;
         F1.h=F1.h+gamma*dh;
-        luvh=luvh+gamma*dl;
+        luvh=luvh+dl;
         
         l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
         
@@ -385,8 +370,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
         
         % make sure to update s and b as well!
-        % [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng old
-        [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng new
+        [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  
         CtrlVar.ResetThicknessToMinThickness=temp;
         
         if~isempty(MLC.hL)
@@ -429,11 +413,11 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
             PlotForceResidualVectors('uvh',Ruvh,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight
         end
-        ruv=NaN ; rh=NaN ;  % TestIng
+     
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(...
-                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , ruv=%-14.7g , rh=%-14.7g , du=%-14.7g , dh=%-14.7g , dl=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
-                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,ruv,rh,diffDu,diffDh,diffDlambda,BCsNormuv,BCsNormh);
+                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
+                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
             
         end
         
@@ -442,8 +426,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if CtrlVar.WriteRunInfoFile
             
             fprintf(RunInfo.File.fid,...
-                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , ruv=%-14.7g , rh=%-14.7g , du=%-14.7g , dh=%-14.7g , dl=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
-                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,ruv,rh,diffDu,diffDh,diffDlambda,BCsNormuv,BCsNormh);
+                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
+                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
             
         end
         
@@ -469,7 +453,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         FindOrCreateFigure("NR-uvh r");
         yyaxis left
         semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
-        ylabel('rResiduals^2')
+        ylabel('rForce^2')
         yyaxis right
         semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
         ylabel('rWork^2')

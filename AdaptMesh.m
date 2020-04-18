@@ -265,7 +265,9 @@ if CtrlVar.ManuallyDeactivateElements
         % mapping to the new (full domain) mesh ahead of a call to
         % DefineElementsToDeactivate.m
         % it's enough to do this here because the mapping is otherwise always done in the Remeshing
-        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+
+        [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue); 
+        % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     
     end
 

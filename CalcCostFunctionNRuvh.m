@@ -1,12 +1,8 @@
-function [UserVar,RunInfo,r,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+function [UserVar,RunInfo,r,rForce,rWork,ruv,rh,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
     
     
     narginchk(15,15)
-    nargoutchk(3,7) % later reduce this (TestIng)
-    
-    % TestIng
-    % P=F0.LSF>0 ; 
-  
+    nargoutchk(3,8)
     
     
     F1.ub=F1.ub+gamma*dub;
@@ -15,7 +11,7 @@ function [UserVar,RunInfo,r,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,R
     % luvh=luvh+gamma*dl;
     luvh=luvh+dl;
     
-  
+    
     
     CtrlVar.uvhMatrixAssembly.ZeroFields=false;
     CtrlVar.uvhMatrixAssembly.Ronly=true;
@@ -23,7 +19,7 @@ function [UserVar,RunInfo,r,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,R
     
     [UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
     
- 
+    
     if ~isempty(L)
         
         frhs=-R-L'*luvh;
@@ -34,35 +30,27 @@ function [UserVar,RunInfo,r,rRes,rWork,rDisp,D2]=CalcCostFunctionNRuvh(UserVar,R
         grhs=[];
     end
     
-    %%
-    
-    %% TestIng
-    
-    % frhs=[P;P;P].*frhs;
-    % fext0=[P;P;P].*fext0;
-    %d=[P;P;P].*d;
     
     d=[dub;dvb;dh]  ; % Newton step
     
     D2=frhs'*d  ;
     rWork=D2^2 ;
-
-   rRes=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
-        
-    rDisp=NaN ;
+    
+    rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
     
     
     
     switch CtrlVar.uvhCostFunction
         case "Force Residuals"
-            r=rRes;
+            r=rForce;
         case "Work Residuals"
             r=rWork;
-        case "Increments"
-            r=rDisp ;
     end
     
-    
+    if nargout>=6
+        Inodes=[]; 
+        [ruv,rh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
+    end
     
 end
 

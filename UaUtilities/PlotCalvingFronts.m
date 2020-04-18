@@ -8,13 +8,22 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     %
     %
     %
+   
+    if  isnumeric(F) && numel(F)==MUA.Nnodes 
+        LSF=F;
+    else
+        LSF=F.LSF ;
+    end
     
-    if isempty(F.LSF)
+    if isempty(LSF)
         xc=[] ; yc=[] ; 
         return
     end
     
-    GF.node=F.LSF ;
+    
+    
+   
+    GF.node=LSF ;
     
     
     [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
