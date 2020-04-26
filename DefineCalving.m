@@ -34,8 +34,9 @@ function [UserVar,LSF,BCsLevelSet,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA
         
     end
     
-    
-    if CtrlVar.time>800
+    if CtrlVar.time>1000
+        CalvingRate=zeros(MUA.Nnodes,1); % always define the calving rate
+    elseif CtrlVar.time>800
         CalvingRate=-500 +zeros(MUA.Nnodes,1); % always define the calving rate
     elseif CtrlVar.time>700
         CalvingRate=-200 +zeros(MUA.Nnodes,1); % always define the calving rate
