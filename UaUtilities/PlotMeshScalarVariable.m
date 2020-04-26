@@ -67,7 +67,8 @@ else
     
     fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
     warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
-    
+    FigHandle=[] ; 
+    ColorbarHandle=[] ; 
     
 end
 

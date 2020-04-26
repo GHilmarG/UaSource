@@ -34,33 +34,33 @@ function [UserVar,phi1,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsL
     L=MLC.hL ; Lrhs=MLC.hRhs ;
     
     
-    kappa=0 ;  % for the time being
-    [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,phi0,F.c,F.ub,F.vb,kappa);
+ 
+    [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,phi0,F.c,F.ub,F.vb);
     [phi1,lambda]=solveKApe(kv,L,rh,Lrhs,[],[],CtrlVar);
     phi1=full(phi1);
     
     
-    if isempty(phi0) ||  mod(iCalls,CtrlVar.LevelSetResetInterval)==0
-        
-        % >>>>>  Initialize
-        CtrlVar.PlotGLs=0 ;
-        GF.node=phi1;
-        [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'k') ;
-        
-        x=MUA.coordinates(:,1);
-        y=MUA.coordinates(:,2);
-        xMax=max(x) ; xMin=min(x) ;  xL=xMax-xMin;
-        yMax=max(y) ; yMin=min(y) ;  yL=yMax-yMin;
-        CalvingFrontClosure=[xc(end) yMax+yL ;   xMin-xL yMax+yL ; xMin-xL yMin-yL ;  xc(end) yMin-yL ] ;
-        
-        CalvingFront=[xc(:) yc(:) ; CalvingFrontClosure ] ;
-        Npoints=1000 ; CalvingFront = interparc(Npoints,CalvingFront(:,1),CalvingFront(:,2),'linear'); % add some points
-        DistSigned=SignedDistance(MUA.coordinates,CalvingFront);
-        phi1=DistSigned ;
-        % <<<<<<
-    end
-    
-    
+%     if isempty(phi0) ||  mod(iCalls,CtrlVar.LevelSetResetInterval)==0
+%         
+%         % >>>>>  Initialize
+%         CtrlVar.PlotGLs=0 ;
+%         GF.node=phi1;
+%         [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'k') ;
+%         
+%         x=MUA.coordinates(:,1);
+%         y=MUA.coordinates(:,2);
+%         xMax=max(x) ; xMin=min(x) ;  xL=xMax-xMin;
+%         yMax=max(y) ; yMin=min(y) ;  yL=yMax-yMin;
+%         CalvingFrontClosure=[xc(end) yMax+yL ;   xMin-xL yMax+yL ; xMin-xL yMin-yL ;  xc(end) yMin-yL ] ;
+%         
+%         CalvingFront=[xc(:) yc(:) ; CalvingFrontClosure ] ;
+%         Npoints=1000 ; CalvingFront = interparc(Npoints,CalvingFront(:,1),CalvingFront(:,2),'linear'); % add some points
+%         DistSigned=SignedDistance(MUA.coordinates,CalvingFront);
+%         phi1=DistSigned ;
+%         % <<<<<<
+%     end
+%     
+%     
     
     
     
