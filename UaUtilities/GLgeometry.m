@@ -86,6 +86,11 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 % see also: PlotGroundingLines, EleBasedGL
 %%
 
+if ~isfield(GF,'node')
+    value=GF ;
+    clearvars GF
+    GF.node=value; 
+end
 
 if nargin<4 || isempty(CtrlVar)
     

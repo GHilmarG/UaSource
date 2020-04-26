@@ -1581,7 +1581,20 @@ CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the va
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
                           % then all nodal values of 6-node and 10-node triangles are also used. This is done by splitting those into 4 and 9 triangles, respectively
 
-
+%%
+% Grounding/Floating mask
+% The grounding/floating mask (GF) can be accessed as F.GF
+% By default GF has one field, GF.nodes, with values betweon 0 and 1. 
+% The value 0 indicates that the corrsponding node is afloat, and the value 1 that it is
+% grounded.
+%
+% Sometimes it is usefull to have additional information about which nodes are strickly
+% upstream/downstream of grounding lines. For node to be "stricly afloat" all the nodes of
+% all the elements containing that particular node must all be afloat. For example, generally
+% ocean-induced melt should only be applied to nodes that are "strickly afloat". 
+%
+CtrlVar.GroundingFloatingMaskContains="GF nodes only" ; 
+CtrlVar.MustBe.GroundingFloatingMaskContains=["GF nodes only","GF nodes and strickly afloat/grounded nodes and elements"];
 
 %% A and C as element or nodal variables
 % AGlen and C can be either nodal or element variables.
@@ -1632,7 +1645,7 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
-CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
+CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size (ie dt) allowed
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor

@@ -199,6 +199,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     hold on ;
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    if contains(PlotType,"-calving-")
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    end
                     xlabel('x (km)') ; ylabel('y (km)') ;
                     axis equal tight
                     axis(AxisLimits) ;
@@ -213,6 +216,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     ax_width = outerpos(3) - ti(1) - ti(3);
                     ax_height = outerpos(4) - ti(2) - ti(4);
                     ax.Position = [left bottom ax_width ax_height];
+                    
                     hold off
                     
                     
@@ -235,8 +239,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     ax_width = outerpos(3) - ti(1) - ti(3);
                     ax_height = outerpos(4) - ti(2) - ti(4);
                     ax.Position = [left bottom ax_width ax_height];
+                    if contains(PlotType,"-calving-")
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    end
                     hold off
-                    
                     
                     subplot(nPx,nPy,3);
                     
@@ -255,8 +261,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     hold on
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                    xlabel('x (km)') ; ylabel('y (km)') ; 
-                    title(cbar,'(m/yr)')
+                    xlabel('x (km)') ; ylabel('y (km)') ;
+                    if ~isempty(cbar)
+                        title(cbar,'(m/yr)')
+                    end
                     axis equal tight ; axis(AxisLimits) ;
                     ax = gca;
                     outerpos = ax.OuterPosition;
@@ -284,7 +292,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     hold on
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                    xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                    xlabel('x (km)') ; ylabel('y (km)') ;
+                    if ~isempty(cbar)
+                        title(cbar,'(m/yr)')
+                    end
                     axis equal tight ; axis(AxisLimits) ;
                     hold off
                     

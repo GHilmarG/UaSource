@@ -25,7 +25,7 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
    
     GF.node=LSF ;
     
-    
+    CtrlVar.GLthreshold=0; 
     [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
     
     

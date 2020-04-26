@@ -1,5 +1,5 @@
 
-function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,kappa)
+function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v)
     
     
     %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
@@ -23,10 +23,10 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
     tauSUPG=CalcSUPGtau(CtrlVar,MUA,u,v,dt);
     
     l=sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
-    mu=1e8; % not sure about how to select this
+ 
     speed=sqrt(u.*u+v.*v) ; V=abs(speed-c) ; 
     V=Nodes2EleMean(MUA.connectivity,V) ;
-    mu=V.*l;
+    mu=V.*l;  % looks resonable to me
     
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
@@ -38,13 +38,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
     
     % RHS1nod=reshape(RHS1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
-    if nargin < 8 || isempty(kappa)
-        kappa=0 ;
-    end
-    
-    if numel(kappa)==1
-        kappa=kappa+zeros(MUA.Nnodes,1);
-    end
+ 
     
     % kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
     tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -144,7 +138,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,f0,c,u,v,k
             
             f0term=f0int.*SUPGdetJw;  % this is the h term, ie not \Delta h term (because the system is linear in h no need to write it in incremental form)
             
-            RHSterm=dt*cint.*NG.*SUPGdetJw;
+            RHSterm=-dt*cint.*NG.*SUPGdetJw;
             
             % RHS1term=dt*theta*RHS1.*SUPGdetJw;
             
