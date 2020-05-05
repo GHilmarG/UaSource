@@ -72,7 +72,7 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
 
 
 
-if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements
+if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements && ~CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && ~CtrlVar.LevelSetMethod  
     return
 end
 
@@ -190,7 +190,9 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 hold off
                 
                 PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
-                hold on ;  [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r');
+                hold on ;  
+                [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
                 title(sprintf('Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
                 axis tight
                 
@@ -201,12 +203,16 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
                 PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
                 title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
                     JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
-                hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
+                hold on ;  
+                [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b','LineWidth',2);
                 axis tight
                 
                 fig.Children(2).XLim=fig.Children(1).XLim;
                 fig.Children(2).YLim=fig.Children(1).YLim;
                 sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
+                
+                
                 
             end
             
@@ -229,11 +235,16 @@ end
 
 %%
 
-if CtrlVar.ManuallyDeactivateElements
+if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
     
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
-        fprintf('Manual deactivation of elements.\n');
+        if CtrlVar.ManuallyDeactivateElements
+            fprintf("AdaptMesh: Manual deactivation of elements.\n")
+        end
+        if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+            fprintf("AdaptMesh: Automated deactivation of elements based on the level set. \n")
+        end
     end
     
     % I need to have saved the original mesh if I want to be able to reactivate
@@ -242,14 +253,16 @@ if CtrlVar.ManuallyDeactivateElements
     % local mesh refinement is used, I need to create this structure here.
     
     if  ~isfield(MUAnew,'RefineMesh')  ||  isempty(MUAnew.RefineMesh)
-        mesh = genMesh(MUAnew.connectivity, MUAnew.coordinates);
+        [coo,con]=ChangeElementType(MUAnew.coordinates,MUAnew.connectivity,3);
+        mesh = genMesh(con,coo);
         mesh.bd=[];
         mesh = genBisectionMesh(mesh);
         mesh = SelectRefinementEdge(mesh);
+        MUAnew.RefineMesh=mesh;
         if MUAold.nod~=3
             mesh.TR=triangulation(mesh.elements,mesh.coordinates);
         end
-        MUAnew.RefineMesh=mesh;
+        
     end
     
     
@@ -266,18 +279,24 @@ if CtrlVar.ManuallyDeactivateElements
         % DefineElementsToDeactivate.m
         % it's enough to do this here because the mapping is otherwise always done in the Remeshing
 
-        [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue); 
+        [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue);
         % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
-    
+        
     end
-
-    
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
+    if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+        ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
+    end
     
-    [UserVar,ElementsToBeDeactivated]=...
-        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
     
+    if CtrlVar.ManuallyDeactivateElements
+        
+        [UserVar,ElementsToBeDeactivated]=...
+            DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
+    end
+    
+
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
         
         FigureName="Elements to be deactivated (red)";  
@@ -374,7 +393,10 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 %                                (3) the remeshing done involved mesh smoothing (in which
 %                                    case most nodes will have shifted).
 % It the mesh changed but all now nodes are interior nodes, do not recalculate uv.
-isRecalculateVelocities=isNewOutsideNodes  || CtrlVar.InitialDiagnosticStepAfterRemeshing || ~isMeshingLocalWithoutSmoothing ;
+isRecalculateVelocities=(isNewOutsideNodes  ...
+    || CtrlVar.InitialDiagnosticStepAfterRemeshing ...
+    || ~isMeshingLocalWithoutSmoothing) ...
+    && ~CtrlVar.LevelSetMethod ; 
 
 if ~CtrlVar.AdaptMeshAndThenStop
     if isRecalculateVelocities

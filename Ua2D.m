@@ -404,7 +404,7 @@ while 1
             figMesh=FindOrCreateFigure("Mesh");
             clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
             [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
-            if ~isempty(F.LSF)
+            if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
             end
             hold off
@@ -425,7 +425,7 @@ while 1
     
     %% -------------------------------------------------------------------------------------------]
     
-    %% [----------------------- Changes to F required at each RunStep
+    %% [----------------------- Changes to F required at each RunStep external to the solver
     
     % There are questions as to which field should be updated manually first.
     % Geometry modifications might depend on the level-set, so call GetCalving before
@@ -434,6 +434,10 @@ while 1
     [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F);
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
+    
+    if CtrlVar.LevelSetMethod
+       [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; 
+    end
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
@@ -608,9 +612,7 @@ while 1
         end
         
         % update Level Set to current time using the new velocities 
-        BCsLevelSet=[];
-        
-        [UserVar,F.LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F,F0.LSF) ; 
+        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F);
         
     end   % CtrlVar.TimeDependentRun
     

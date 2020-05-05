@@ -165,7 +165,8 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         
         subplot(1,3,1) ; hold off
         %plot(ErrorProxy,EleSizeIndicator,'.r') ;
-        semilogy(ErrorProxy,EleSizeIndicator,'.r') ;
+        %semilogy(ErrorProxy,EleSizeIndicator,'.r') ;
+        loglog(ErrorProxy,EleSizeIndicator,'.r') ;
         title('Desired element sizes as a function of error proxy')
         xlabel(['Error proxy: ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name])
         ylabel('Ele Size Estimate')

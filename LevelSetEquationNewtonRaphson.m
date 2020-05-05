@@ -35,10 +35,9 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
     
     
     
-    NRitMax=5;
+    
     NRit=0 ;
-    rWorkTolerance=1e-15;
-    rForceTolerance=1e-15;
+    
     while true
         
         NRit=NRit+1 ;
@@ -47,6 +46,12 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
         
         [dLSF,lambda]=solveKApe(K,L,R,Lrhs,[],[],CtrlVar);
         dLSF=full(dLSF);
+        
+        if any(isnan(dLSF))
+            save TestSave
+            error('LevelSetEquationNewtonRaphson:NaNinSolution','NaN in the solution for dLSF')
+        end
+        
         F1.LSF=F1.LSF+dLSF;
         
         
@@ -63,30 +68,29 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
             rWork=abs(R'*dLSF);
             rForce=full(R'*R);
         end
-        rDist=dLSF'*dLSF;
+        rDist=sqrt(dLSF'*dLSF)/MUA.Nnodes;
         
         
         %% more info
-        fprintf('NR it %i  : \t rWork=%-15g \t rForce=%-15g \t rDist=%-15g  \n',NRit,rWork,rForce,rDist) ;
+        if CtrlVar.LevelSetInfoLevel>=1
+            fprintf('\t Level-Set NR it %i  : \t rWork=%-15g \t rForce=%-15g \t rDist=%-15g  \n',NRit,rWork,rForce,rDist) ;
+            
+            if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
+                FindOrCreateFigure('LSF1'); PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF); title('LSF1')
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
+                FindOrCreateFigure('LSF0');  PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF); title('LSF0')
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+                FindOrCreateFigure('dLSF');  PlotMeshScalarVariable(CtrlVar,MUA,dLSF); title('dLSF1')
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
+            end
+        end
         
-        FindOrCreateFigure('LSF1'); PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF); title('LSF1')
-        FindOrCreateFigure('LSF0');  PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF); title('LSF0')
-        FindOrCreateFigure('dLSF');  PlotMeshScalarVariable(CtrlVar,MUA,dLSF); title('dLSF1')
-        prompt = 'Do you want more? Y/N [Y]: ';
-%          str = input(prompt,'s');
-%         if isempty(str)
-%             str = 'Y';
-%         end
-        %%
-        
-        
-        
-        if NRit>NRitMax
-            fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',NRitMax)
+        if NRit>CtrlVar.LevelSetSolverMaxIterations
+            fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
             break
         end
         
-        if (rWork < rWorkTolerance) || (rForce < rForceTolerance)
+        if (rWork < CtrlVar.LevelSetSolverWorkTolerance) || (rForce < CtrlVar.LevelSetSolverForceTolerance)
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',NRit,rWork,rForce)
             break
         end
@@ -94,8 +98,7 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
         
         
         
-        
-        
+
         
     end
     

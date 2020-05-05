@@ -947,7 +947,7 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 
 
 
-CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
+CtrlVar.UaOutputsDt=1; % model time interval between calling UaOutputs.m
 % if set to zero UaOutputs is called at every time/run step
 % if set to a negative number, or NaN, UaOutputs is never called
 CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
@@ -1378,6 +1378,19 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.ManuallyDeactivateElements=0; 
 CtrlVar.LevelSetMethod=0; 
 
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=1;
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
+
+CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
+CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;  
+
+CtrlVar.LevelSetMethodReinitializeInterval=1000;
+CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+CtrlVar.LevelSetInfoLevel=1;
+CtrlVar.LevelSetSolverForceTolerance=1e-15;
+CtrlVar.LevelSetSolverWorkTolerance=1e-15;
+CtrlVar.LevelSetSolverMaxIterations=10;
 
 %% Controlling when and how often mesh is adapted    
 %

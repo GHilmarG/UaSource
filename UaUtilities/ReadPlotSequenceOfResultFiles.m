@@ -37,14 +37,17 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     % Read only those .mat files that have FileNameSubstring as a part of their name, set the
     % axis limits, and plot a file every 0.1 time units.
     %
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimeInterval",0.1) ;
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
     %
     %
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
     defaultPlotType="-mesh-speed-calving-level set-";
-    expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-','-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-','-collect-'};
+    expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
+        '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
+        '-1dIceShelf-',...
+        '-collect-'};
     
     IP = inputParser;
     
@@ -54,7 +57,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     addParameter(IP,"N",7,@isnumeric);
     addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,expectedPlotTypes)));
     addParameter(IP,"PlotScreenPosition",NaN,@isnumeric);
-    addParameter(IP,"PlotTimeInterval",1,@isnumeric);
+    addParameter(IP,"PlotTimeInterval",[0 1e10],@isnumeric);
+    addParameter(IP,"PlotTimestep",1,@isnumeric);
     
     
     
@@ -66,6 +70,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     AxisLimits=IP.Results.AxisLimits;
     PlotScreenPosition=IP.Results.PlotScreenPosition;
     PlotTimeInterval=IP.Results.PlotTimeInterval;
+    PlotTimestep=IP.Results.PlotTimestep;
     %%
     
     
@@ -75,9 +80,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
         HW=min(ScreenSize(3),ScreenSize(4));
         PlotScreenPosition=[5 5 HW-10 HW-10];  % creates a square plot window
     end
-    
-    
-    PlotTimeMax=1e10;
+
     
     if contains(PlotType,"-collect-")
         CreateVideo=0;
@@ -94,7 +97,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     if CreateVideo
         
         vidObj = VideoWriter("VideoResultsFile"+FileNameSubstring+PlotType);
-        vidObj.FrameRate=1;   % frames per sec
+        vidObj.FrameRate=10;   % frames per sec
         open(vidObj);
     end
     
@@ -121,7 +124,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
         
         time=str2double(list(iFile).name(1:N))/100;  % get the model time, assuming that the first N letters of filename are the model time*100
         %time=str2double(list(iFile).name(1:4));
-        if mod(time,PlotTimeInterval)==0 && time<=PlotTimeMax   % only do plots at given time intervals and up to a max time specifed
+        if mod(time,PlotTimestep)==0 && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specifed
             
             try   % go back into subdirectory containing result files and load one result file
                 
@@ -177,6 +180,58 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     
                     %%
+                    
+                case "-1dIceShelf-"
+                    %%
+                    
+                    
+                    ugl=300; hgl=1000; xgl=0;
+                    [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,F,hgl,ugl,xgl);
+                    yProfile=0 ;
+                    
+                    FigureName='flowline';
+                    FigFL=FindOrCreateFigure(FigureName) ;
+                    FigFL.InnerPosition=[100 700 939 665];
+                    hold on 
+                    % point selection
+                    Iy=abs(MUA.coordinates(:,2)-yProfile)< 1000 ;
+                    
+                    xProfile=MUA.coordinates(Iy,1) ;
+                    [xProfile,Ix]=sort(xProfile) ;
+                    
+                    sProfile=F.s(Iy);
+                    bProfile=F.b(Iy);
+                    uProfile=F.ub(Iy) ;
+                    
+                    
+                    
+                    uProfile=uProfile(Ix) ;
+                    sProfile=sProfile(Ix);
+                    bProfile=bProfile(Ix);
+                    
+                    
+                    yyaxis left
+                    plot(xProfile/1000,sProfile,'bo')
+                    hold on
+                    plot(xProfile/1000,bProfile,'go')
+                    
+                    plot(x/1000,s,'b-','LineWidth',2)
+                    plot(x/1000,b,'g-','LineWidth',2)
+                    ylabel('$z$ (m)','interpreter','latex')
+                    yyaxis right
+                    
+                    plot(xProfile/1000,uProfile,'ro')
+                    hold on
+                    plot(x/1000,u,'r-','LineWidth',2)
+                    ylabel('$u$ (m/a)','interpreter','latex')
+                    
+                    title(sprintf('Profile along the medial line at t=%g',CtrlVar.time))
+                    xlabel('$x$ (km)','interpreter','latex') ;
+                    legend('$s$ numerical','$b$ numerical','$s$ analytical ','$b$ analytical','$u$ numerical','$u$ analytical',...
+                        'interpreter','latex','Location','SouthEast')
+                    xlim([0 600]);
+                    hold off
+                    
                     
                 case {"-mesh-speed-s-ab-","-mesh-speed-calving-level set-"}
                     
@@ -250,10 +305,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     hold off
                     
                     if contains(PlotType,"-calving-")
-                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);   
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
                         title(sprintf('Calving Rate Field at t=%g',time))
                         hold on
-                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ; 
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                     else
                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
                         title(sprintf('surface at t=%-g',time))
@@ -614,7 +669,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
             end
             
-            axis equal tight ; axis(AxisLimits) ;
+            if PlotType~="-1dIceShelf-"
+                axis equal tight ; axis(AxisLimits) ;
+            end
             
             if CreateVideo
                 iFrame=iFrame+1;

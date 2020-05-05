@@ -35,7 +35,7 @@ xc0=300e3;
 CalvingFront=[xc0 min(y) ; xc0 max(y) ];
 ymax=max(y) ; ymin=min(y) ; 
 yc=linspace(ymin,ymax) ; 
-xc=xc0+100e3*cos(2*pi*yc/(ymax-ymin));
+xc=xc0+100e3*cos(2*2*pi*yc/(ymax-ymin));
 CalvingFront=[xc(:) yc(:)] ; 
 
 
@@ -57,7 +57,7 @@ ModifyColormap();
 %%
 % TestIng
 RunInfo=[] ;  BCsLevelSet=[]; 
-F.c=zeros(MUA.Nnodes,1)+100000;
+F.c=zeros(MUA.Nnodes,1)-100000;
 F.ub=u ; F.vb=v ;
 F.LSF=DistSigned ;
 
@@ -69,10 +69,26 @@ CtrlVar.LevelSetMethod=true;
 
 F1=F; F0=F; 
 CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
-
+% CtrlVar.LevelSetSolutionMethod="Piccard" ;
 fprintf('\n \n \n')
-[UserVar,RunInfo,LSF1NR,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1) ;
+[UserVar,RunInfo,LSF1,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1); 
+F.LSF ; 
+%%
+% re-initialize
+%
+% 1) mask
+Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0); 
+% 2) Distance from calving front
 
+Dist=pdist2(MUA.coordinates(Mask.NodesOn,:),MUA.coordinates,'euclidean','Smallest',1) ;
+Dist(Mask.NodesOut)=-Dist(Mask.NodesOut); 
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,Dist(:)) ;
+
+% 3) Replace LSF with signed distance over In and Out nodes
+F.LSF(Mask.NodesIn)=Dist(Mask.NodesIn) ;
+F.LSF(Mask.NodesOut)=Dist(Mask.NodesOUt) ;
+
+%%
 CtrlVar.LevelSetSolutionMethod="Piccard" ;
 [UserVar,RunInfo,LSF1Piccard,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0); 
 
@@ -92,9 +108,7 @@ for I=1:Nsteps
     F.c=zeros(MUA.Nnodes,1);
     F.ub=u ; F.vb=v ; 
 
-    
 
-    
     
     [UserVar,F.LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F,F.LSF); 
     CtrlVar.time=CtrlVar.time+CtrlVar.dt ;

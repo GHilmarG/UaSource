@@ -54,7 +54,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     b1=zeros(MUA.Nele,MUA.nod);
     
     
-    if CtrlVar.LevelSetSolutionMethod=="Newton-Raphson"
+    if CtrlVar.LevelSetSolutionMethod=="Newton Raphson"
         NR=1;
     else
         NR=0;
@@ -104,12 +104,12 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
         end
         
         % Norm of gradient (NG)
-        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
-        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
+        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
+        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
         n1x=df1dx./NG1;  n1y=df1dy./NG1;
         n0x=df0dx./NG0;  n0y=df0dy./NG0;
-        c1xint=c1int.*n1x ; c1yint=c1int.*n1y;
-        c0xint=c0int.*n0x ; c0yint=c0int.*n0y;
+        c1xint=-c1int.*n1x ; c1yint=-c1int.*n1y;
+        c0xint=-c0int.*n0x ; c0yint=-c0int.*n0y;
         
         
         
