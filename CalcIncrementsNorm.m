@@ -21,7 +21,7 @@ diffDu=sqrt((du'*MUA.M*du+dv'*MUA.M*dv)/2/MUA.Area);
 if nargout>1
     dh(Inodes)=0;
     h=h+CtrlVar.ThickMin; 
-    dh=dh./h ; 
+    dh=dh./(h+eps) ; 
     diffDh=sqrt( (dh'*MUA.M*dh)/MUA.Area);
 else
     diffDh=[];

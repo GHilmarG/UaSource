@@ -270,7 +270,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         %% Residuals , at gamma=0;
         gamma=0;
-        [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,gamma*dl,L,luvh,cuvh,gamma,Fext0);
         
         
         if iteration==1  % save the first r value for plotting, etc
@@ -416,7 +416,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
      
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(...
-                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
+                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
                 iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
             
         end
@@ -426,7 +426,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if CtrlVar.WriteRunInfoFile
             
             fprintf(RunInfo.File.fid,...
-                'NR-STREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
+                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
                 iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
             
         end

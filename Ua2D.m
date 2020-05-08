@@ -128,11 +128,13 @@ PrintRunInfo(CtrlVar);
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-if CtrlVar.Restart
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-    fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
-else
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+if CtrlVar.WriteRunInfoFile
+    if CtrlVar.Restart
+        RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+        fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
+    else
+        RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+    end
 end
 
 %% Get input data
@@ -204,12 +206,14 @@ RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 
-if CtrlVar.Restart
-    if ~isnan(RunInfo.File.fid) ; fclose(RunInfo.File.fid) ; end
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-    fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
-else
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+if CtrlVar.WriteRunInfoFile
+    if CtrlVar.Restart
+        if ~isnan(RunInfo.File.fid) ; fclose(RunInfo.File.fid) ; end
+        RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+        fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
+    else
+        RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
+    end
 end
 
 %%
@@ -497,12 +501,10 @@ while 1
                 
                 RunInfo.CPU.Total=duration(0,0,cputime);
                 RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
-                
                 fprintf(RunInfo.File.fid,...
                     '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
                     CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'),...
                     duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
-                
             end
             
             

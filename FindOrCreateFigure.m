@@ -18,6 +18,12 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
     %   FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);
     %
     %   fig=FindOrCreateFigure("ThisIsMyFigureAndIWantToFindItAgainLaterAndReuse")  ;
+    %
+    %
+    %   Note:  To keep the figure frame but to clear everything else use
+    %       
+    %       clf(fig)
+    %
     %%
     
     persistent nFigs
@@ -63,7 +69,7 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
     else
         fig=figure(fig);
         Position=fig.Position;
-        clf(fig)
+ 
         fig.Position=Position;
         hold off
     end

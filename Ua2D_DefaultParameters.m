@@ -354,7 +354,7 @@ CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
 CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
 CtrlVar.Residual.uvh='uvh';
-CtrlVar.uvhConvergenceCriteria="residuals and increments";  % convergence criteria for the implicit uvh solution
+CtrlVar.uvhConvergenceCriteria="residuals";  % convergence criteria for the implicit uvh solution
 CtrlVar.uvConvergenceCriteria="residuals";                 % convergence criteria for the implicit uv solution
 CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
@@ -947,7 +947,7 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 
 
 
-CtrlVar.UaOutputsDt=1; % model time interval between calling UaOutputs.m
+CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
 % if set to zero UaOutputs is called at every time/run step
 % if set to a negative number, or NaN, UaOutputs is never called
 CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
@@ -966,7 +966,7 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
 % run-step number.
 %
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
-CtrlVar.WriteRunInfoFile=1;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
+CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %

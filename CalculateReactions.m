@@ -1,4 +1,4 @@
-function Reactions=CalculateReactions(CtrlVar,MUA,BCs,l)
+function [Reactions,lStar]=CalculateReactions(CtrlVar,MUA,BCs,l)
 
 % save TestSaveCalculateReactions
 narginchk(4,4)
@@ -27,55 +27,64 @@ narginchk(4,4)
 % they will automatically be equal to zero. However, in the special case where no essential
 % BCs are applied, reactions are returned as an empty matrix.
 %
+% If the multi-linear contraint matrix L was assembled in the FE basis, then the reactions
+% are already physically correct and I only need to split them up in uv and h reactions.
 %
-   
+% If L is a point-contraint matrix (default) then I need to map these into physical space
+% usuing
+%
+%   lambda^* = M^{-1} L' lambda 
+%
+%  This gives lamda over all nodes.
+%
+% To restrict it to the nodes over which the constrants were applied use:
+%
+%     lambda^* = (L L')^{-1} L M^{-1} L' lambda 
+%
+%
+%% 
+
+Reactions.ubvb=[];
+Reactions.udvd=[];
+Reactions.h=[];
+lStar.h=[];  % only calculating physical lambdas for thickness constraints
+
 MLC=BCs2MLC(CtrlVar,MUA,BCs) ;
 
 if ~CtrlVar.LinFEbasis
     if ~isfield(MUA,'M')
         MUA.M=MassMatrix2D1dof(MUA);
     end
-     if ~isfield(MUA,'dM')
-        MUA.dM=decomposition(MUA.M);
-    end
-   
 end
 
 if ~isempty(l.ubvb)
-    if CtrlVar.LinFEbasis
-        Reactions.ubvb=MLC.ubvbL'*l.ubvb;
-    else
+    
         luv=MLC.ubvbL'*l.ubvb;
-        Rx=MUA.dM\luv(1:MUA.Nnodes);
-        Ry=MUA.dM\luv(MUA.Nnodes+1:end); 
-        Reactions.ubvb=[Rx;Ry];
-    end
-else
-    Reactions.ubvb=[];
+        Rx=MUA.M\luv(1:MUA.Nnodes);
+        Ry=MUA.M\luv(MUA.Nnodes+1:end); 
+        Reactions.ubvb=full([Rx;Ry]);
+        
+        
 end
 
 if ~isempty(l.udvd)
-    if CtrlVar.LinFEbasis
-        Reactions.udvd=MLC.udvdL'*l.udvd;
-    else
-        luv=MLC.udvdL'*l.udvd;
-        Reactions.udvd(1:MUA.Nnodes)=MUA.dM\luv(1:MUA.Nnodes);
-        Reactions.udvd(MUA.Nnodes+1:end)=MUA.dM\luv(MUA.Nnodes+1:end);
 
-    end
-else
-    Reactions.udvd=[];
+        luv=MLC.udvdL'*l.udvd;
+        Reactions.udvd(1:MUA.Nnodes)=full(MUA.M\luv(1:MUA.Nnodes));
+        Reactions.udvd(MUA.Nnodes+1:end)=full(MUA.M\luv(MUA.Nnodes+1:end));
 end
 
 if ~isempty(l.h)
-    if CtrlVar.LinFEbasis
-        Reactions.h=MLC.hL'*l.h;
-    else
-        Reactions.h=MUA.dM\(MLC.hL'*l.h);
-    end
-else
-    Reactions.h=[];
+        M=MUA.M;
+        L=MLC.hL;
+        lambda=l.h ; 
+        Reactions.h=M\(L'*lambda); 
+        lStar.h=(L*L')\(L*Reactions.h);
+        Reactions.h=full(Reactions.h);
+        lStar.h=full(lStar.h) ; 
 end
+
+
 
 
 end

@@ -97,14 +97,15 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     
     % think about deleting this and only use the call to CalcCostFunction
-    r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
+    % r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
  
     Temp=CtrlVar.uvCostFunction;
     % The initial estimate must be based on residuals as both displacements and work
     % requires solving the Newton system. 
     CtrlVar.uvCostFunction="Force Residuals" ; 
-    gamma=0 ; [UserVar,r0Test,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
-    fprintf(' TestIng: norm(r-r0Test)=%f \n ',norm(r-r0Test))
+    gamma=0 ; [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
+    
+    % fprintf(' TestIng: norm(r-r0Test)=%f \n ',norm(r-r0Test))
     CtrlVar.uvCostFunction=Temp; 
         
     
@@ -256,7 +257,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
         %% Residuals , at gamma=0;
-        gamma=0 ; [UserVar,r0,rRes0,rWork0,rDisp0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
+        gamma=0 ; [UserVar,r0,rRes0,rWork0,rDisp0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,gamma*dl,Kuv) ; 
         
         if iteration==1  % save the first r value for plotting, etc
             rVector.gamma(1)=gamma; 
@@ -350,7 +351,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         F.ub=F.ub+gamma*dub ;
         F.vb=F.vb+gamma*dvb;
-        l.ubvb=l.ubvb+gamma*dl;
+        % l.ubvb=l.ubvb+gamma*dl;
+        l.ubvb=l.ubvb+dl;
         
         ResidualReduction=r/r0;
         

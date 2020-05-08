@@ -157,8 +157,9 @@ else
             %
             if ~CtrlVar.LinFEbasis
                 if numel(BCs1.hPosNode) >0
-                    Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
-                    lambdahpos=Reactions.h(BCs1.hPosNode); 
+
+                    [~,lStar]=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+                    lambdahpos=lStar.h ;
                 else
                     lambdahpos=[];
                 end

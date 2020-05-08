@@ -1,6 +1,6 @@
 function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,K)
     
-    nargoutchk(6,6)
+    nargoutchk(2,6)
     narginchk(12,13)
     
     if isnan(gamma) ; error(' gamma is nan ') ; end
