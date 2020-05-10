@@ -144,9 +144,9 @@ else
             
             %must now find the lambda values corresponding to nodes that where constrainted to pos thickness
             
-            hLambda=l1.h;
-            %lambdahpos=hLambda(numel(BCs1.hFixedNode)+1:end);  % if I always put the hPos constraints at end of all other h constraints
-            lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
+            % hLambda=l1.h;
+            % lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
+            lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
             % then this will work
             
             %%  Mapping ino 'physical' nodal basis if required
@@ -157,9 +157,11 @@ else
             %
             if ~CtrlVar.LinFEbasis
                 if numel(BCs1.hPosNode) >0
-
-                    [~,lStar]=CalculateReactions(CtrlVar,MUA,BCs1,l1);
-                    lambdahpos=lStar.h ;
+                    
+                    Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+                    % lambdahpos=lStar.h ;  % here, incorrect
+                    lambdahpos=Reactions.h(BCs1.hPosNode);
+                    
                 else
                     lambdahpos=[];
                 end
@@ -245,7 +247,7 @@ else
             fprintf(CtrlVar.fidlog,'            Nodes fixed: ')   ;
             fprintf(CtrlVar.fidlog,' \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \n \t \t \t \t \t \t',BCs1.hPosNode(I));
             fprintf(CtrlVar.fidlog,'\n   Lagrange multipliers: ') ;
-            fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',hLambda(I)) ;
+            fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',lambdahpos(I)) ;
             fprintf(CtrlVar.fidlog,'\n');
         end
         

@@ -68,20 +68,22 @@ if ~isempty(l.ubvb)
 end
 
 if ~isempty(l.udvd)
-
-        luv=MLC.udvdL'*l.udvd;
-        Reactions.udvd(1:MUA.Nnodes)=full(MUA.M\luv(1:MUA.Nnodes));
-        Reactions.udvd(MUA.Nnodes+1:end)=full(MUA.M\luv(MUA.Nnodes+1:end));
+    
+    luv=MLC.udvdL'*l.udvd;
+    Reactions.udvd(1:MUA.Nnodes)=full(MUA.M\luv(1:MUA.Nnodes));
+    Reactions.udvd(MUA.Nnodes+1:end)=full(MUA.M\luv(MUA.Nnodes+1:end));
 end
 
 if ~isempty(l.h)
-        M=MUA.M;
-        L=MLC.hL;
-        lambda=l.h ; 
-        Reactions.h=M\(L'*lambda); 
-        lStar.h=(L*L')\(L*Reactions.h);
-        Reactions.h=full(Reactions.h);
-        lStar.h=full(lStar.h) ; 
+    M=MUA.M;
+    L=MLC.hL;
+    lambda=l.h ;
+    Reactions.h=full(M\(L'*lambda));
+    
+    if nargout>1
+        lStar.h=full((L*L')\(L*Reactions.h));
+    end
+    
 end
 
 

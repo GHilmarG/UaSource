@@ -32,21 +32,21 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %   DataCollect.GroundedArea/1e6,'-or'); xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
     %
     %
-    % Example:
+    % Examples:
     %
     % Read only those .mat files that have FileNameSubstring as a part of their name, set the
     % axis limits, and plot a file every 0.1 time units.
     %
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
     %
-    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Nod10-MeshSize5000","PlotType","-hPositive-","PlotTimeInterval",[0 500])
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
     defaultPlotType="-mesh-speed-calving-level set-";
     expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
         '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
-        '-1dIceShelf-',...
+        '-1dIceShelf-','-hPositive-',...
         '-collect-'};
     
     IP = inputParser;
@@ -180,6 +180,96 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     
                     %%
+                    
+                case "-hPositive-"
+                    
+                    figV=FindOrCreateFigure('-hPositive-',[100 100 1500 1500]) ;
+                    [TotalIceVolume,ElementIceVolume]=CalcIceVolume(CtrlVar,MUA,F.h);
+                    I=F.h<=(CtrlVar.ThickMin+100*eps);
+                    Reactions=CalculateReactions(CtrlVar,MUA,BCs,l);
+                    
+                    subplot(2,2,1)
+                    TRI = delaunay(x,y);
+                    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,F.h,100*F.s+100,'EdgeColor','none') ; hold on
+                    
+                    plot3(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,F.h(I),'ko');
+                    
+                    view(45,25); lightangle(-45,10) ; lighting phong ;
+                    xlabel('y (km)') ; ylabel('x (km)') ; zlabel('ice thickness (m)') ;
+                    %colorbar ; title(colorbar,'(m)')
+                    colormap(flipud(othercolor('RdYlBu_11b',2000)))
+                    hold on
+                    
+                    nThickConstraints=numel(find(I));
+                    title(sprintf(' Volume=%#8.3f (m^3)  #Contraints=%i',TotalIceVolume/1e9,nThickConstraints))
+                    axis normal
+                    zlim([0 110])
+                    %axis equal ; tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/80]); axis tight
+                    hold off
+                    
+                    subplot(2,2,2)
+                    hold off
+%                     if ~isempty(Reactions.h)
+%                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Reactions.h./F.rho) ;
+%                         title(cbar,'Reactions (m)')
+%                         colormap(flipud(othercolor('RdYlBu_11b',2000))) ;
+%                     end
+                    
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Ice thickness (m)')
+                    caxis([-0.1 1])
+                    colormap(flipud(othercolor('RdYlBu_11b',2000))) ;
+                    AxisLimits=[-25 25 -25 25] ;
+                    axis(AxisLimits) ;
+                    xlabel('x (km)') ; ylabel('y (km)')
+                    hold on
+                    plot(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,'wo');
+                    hold off
+                    
+                    subplot(2,2,3)
+                    hold on
+                    yyaxis left
+                    
+                    plot(CtrlVar.time,TotalIceVolume/1e9,'o') ;
+                    ylabel('Ice Volume (m^3)')
+                    ylim([3.7e3 4e3])
+                    
+                    rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
+                    [temp,I]=min(rDist);
+                    hCentre=F.s(I)-F.b(I);
+                    yyaxis right
+                    plot(CtrlVar.time,hCentre,'o') ;
+                    ylabel("Centre ice thickness (m)")
+                    ylim([0 10]) ; % ylim([0 101])
+                    
+                    
+                    xlabel('time (yr)') ;
+                    xlim(PlotTimeInterval)
+                    
+                    subplot(2,2,4)
+                    hold off ;
+                    
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h.*Reactions.h./F.rho) ; 
+                    colormap(flipud(othercolor('RdYlBu_11b',1000))) ;
+                    ModifyColormap ;
+                    title(cbar,'$\lambda h$ ($m^2$)','Interpreter','latex')
+                    
+                    hold on
+                    
+                    plot(x(BCs.hPosNode)/CtrlVar.PlotXYscale,y(BCs.hPosNode)/CtrlVar.PlotXYscale,'*b');
+                    if numel(BCs.hPosNode) >0
+                        scale=1000;
+                        
+                        Ir=Reactions.h>0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,+scale*Reactions.h(Ir)./F.rho(Ir),'r')
+                        Ir=Reactions.h<0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,-scale*Reactions.h(Ir)./F.rho(Ir),'b')
+
+                    end
+                    PlotMuaMesh(CtrlVar,MUA);
+                    
+                    xlabel('x (km)') ; ylabel('y (km)')
+                    axis(AxisLimits) ;
+                    
+                    sgtitle(sprintf("Cubic element.  time=%3.0f",CtrlVar.time))
+                    
                     
                 case "-1dIceShelf-"
                     %%
