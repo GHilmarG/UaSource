@@ -41,9 +41,19 @@ classdef UaRunInfo
             obj.Forward.Iterations=NaN;
             obj.Forward.IterationsTotal=0;
             obj.Forward.Residual=NaN;
-            obj.Forward.time=NaN;
-            obj.Forward.dt=NaN;
+           
             obj.Forward.dtRestart=NaN;
+            
+            obj.Forward.iCounter=0;
+            N=1000; % initial memory allocation  
+            obj.Forward.time=zeros(N,1)+NaN;
+            obj.Forward.dt=zeros(N,1)+NaN;
+            obj.Forward.uvhIterations=zeros(N,1)+NaN;
+            obj.Forward.uvhResidual=zeros(N,1)+NaN;
+            obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
+            obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
+            obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
+            obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
             
             obj.Forward.ActiveSetConverged=NaN;
             

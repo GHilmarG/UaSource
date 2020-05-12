@@ -8,9 +8,7 @@ function [UserVar,RunInfo,r,rForce,rWork,ruv,rh,D2]=CalcCostFunctionNRuvh(UserVa
     F1.ub=F1.ub+gamma*dub;
     F1.vb=F1.vb+gamma*dvb;
     F1.h=F1.h+gamma*dh;
-    % luvh=luvh+gamma*dl;
-    luvh=luvh+dl;
-    
+    luvh=luvh+gamma*dl;
     
     
     CtrlVar.uvhMatrixAssembly.ZeroFields=false;
@@ -31,10 +29,14 @@ function [UserVar,RunInfo,r,rForce,rWork,ruv,rh,D2]=CalcCostFunctionNRuvh(UserVa
     end
     
     
-    d=[dub;dvb;dh]  ; % Newton step
-    
-    D2=frhs'*d  ;
+%    d=[dub;dvb;dh]  ; % Newton step
+%    D2=frhs'*d  ;
+
+    d=[dub;dvb;dh;dl]  ; % Newton step
+    D2=[frhs;grhs]'*d  ;
     rWork=D2^2 ;
+    
+    
     
     rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
     

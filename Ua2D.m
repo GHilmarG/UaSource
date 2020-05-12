@@ -478,12 +478,30 @@ while 1
     end  % ~CtrlVar.TimeDependentRun
     
     if CtrlVar.TimeDependentRun
-    
+        
         
         %        0  : values at t      This is F0
         %        1  : values at t+dt   This is F.
         %       at start, F is explicit guess for values at t+dt
         %       an end,   F are converged values at t+dt
+        
+        % RunInfo
+        
+        if  numel(RunInfo.Forward.time)<=RunInfo.Forward.iCounter
+            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
+            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
+            RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
+            RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
+            RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
+            RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
+            RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
+            RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
+            
+        end
+        
+        RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
+        RunInfo.Forward.time(RunInfo.Forward.iCounter)=CtrlVar.time;
+        RunInfo.Forward.dt(RunInfo.Forward.iCounter)=CtrlVar.dt;
         
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
@@ -573,8 +591,13 @@ while 1
                 save(filename) 
                 fprintf("Ua2D:calling WTSHTF\n")
                 [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-
+                
             end
+            
+            
+     
+            
+            
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             

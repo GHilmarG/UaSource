@@ -315,7 +315,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             slope=-2*rRes0;
             yyaxis left
             plot(gammaTestVector,rResTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            plot([gammaTestVector(1) gammaTestVector(2)],[rResTestvector(1) rResTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'b-','LineWidth',2)
             ylabel('Force Residuals')
             
             if CtrlVar.uvCostFunction=="Force Residuals"
@@ -325,7 +325,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             yyaxis right
             slope=-2*rWork0;
             plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'r-','LineWidth',2)
             ylabel('Work Residuals')
             
             if CtrlVar.uvCostFunction=="Work Residuals"
@@ -351,8 +351,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         F.ub=F.ub+gamma*dub ;
         F.vb=F.vb+gamma*dvb;
-        % l.ubvb=l.ubvb+gamma*dl;
-        l.ubvb=l.ubvb+dl;
+        l.ubvb=l.ubvb+gamma*dl;
         
         ResidualReduction=r/r0;
         

@@ -8,8 +8,7 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     
     F.ub=F.ub+gamma*dub;
     F.vb=F.vb+gamma*dvb;
-    % l.ubvb=l.ubvb+gamma*dl; α
-    l.ubvb=l.ubvb+dl;  % here I must use the final l value for K Δx = - frhs -L'*l to hold
+    l.ubvb=l.ubvb+gamma*dl;
     
     Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
     

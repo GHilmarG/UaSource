@@ -239,21 +239,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         error('dtOut is zero')
     end
     
-    if ~isfield(RunInfo.Forward,'dt')
-        RunInfo.Forward.dt=NaN;
-        RunInfo.Forward.time=NaN;
-    end
-    
-    k=find(isnan(RunInfo.Forward.time),1);
-    if isempty(k)
-        RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time*0+NaN];
-        RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt*0+NaN];
-        k=find(isnan(RunInfo.Forward.time),1);
-    end
-    
-    RunInfo.Forward.time(k)=time;
-    RunInfo.Forward.dt(k)=dtOut;
-    
+
     
     
 end

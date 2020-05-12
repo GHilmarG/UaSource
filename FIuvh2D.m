@@ -1,8 +1,5 @@
 function [UserVar,RunInfo,F1,l1,BCs1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
-% save TestSave
-% load TestSave ; CtrlVar.LinFEbasis=false ; [UserVar,RunInfo,F1,l1,BCs1,dt]=FIuvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
-
 
 narginchk(9,9)
 nargoutchk(6,6)
@@ -18,6 +15,9 @@ if ~CtrlVar.ThicknessConstraints
     [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
     
     CtrlVar.NumberOfActiveThicknessConstraints=0;
+    RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=NaN ; 
+    RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=NaN;
+    RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=NaN;
     
 else
     %    NodesFixed: holdes the nodal numbers nodes in the active set
@@ -44,7 +44,7 @@ else
     % hPosValue
     
     
-    ActiveSetReset=0; VariablesReset=0;  % keep this out here, only set once, whereas ReduceTimeStep is reset in each active-set iteration.
+    VariablesReset=0;  % keep this out here, only set once, whereas ReduceTimeStep is reset in each active-set iteration.
     iCounter=1;
     %hfixednodeposNew=[];
     if CtrlVar.ThicknessConstraintsInfoLevel>=10
@@ -74,7 +74,7 @@ else
     end
     
     isActiveSetModified=1;
-    it=0;
+    iActiveSetIteration=0;
     
     nlIt=zeros(CtrlVar.ThicknessConstraintsItMax+1,1)*2+NaN;  %
     Released=[] ; Activated=[];
@@ -89,10 +89,10 @@ else
         end
         
         
-        it=it+1;
+        iActiveSetIteration=iActiveSetIteration+1;
         isActiveSetModified=0;
         
-        fprintf(CtrlVar.fidlog,' ----------> Active-set Iteration #%-i <----------  \n',it);
+        fprintf(CtrlVar.fidlog,' ----------> Active-set Iteration #%-i <----------  \n',iActiveSetIteration);
         
         if CtrlVar.ThicknessConstraintsInfoLevel>=1
             if numel(BCs1.hPosNode)>0 || CtrlVar.ThicknessConstraintsInfoLevel>=10
@@ -260,8 +260,8 @@ else
         % For case 2, I must exit the loop here because I've already have calculated the
         % velocities, but I have not updated the active set.
         
-        if  it > CtrlVar.ThicknessConstraintsItMax
-            fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',it,CtrlVar.ThicknessConstraintsItMax)
+        if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
+            fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
             break
         end
         
@@ -369,7 +369,7 @@ else
                 fprintf(CtrlVar.fidlog,'No pos.-thickness constraints activated or deactivated. \n')   ;
             end
             
-            if isActiveSetModified==1 && it <= CtrlVar.ThicknessConstraintsItMax
+            if isActiveSetModified==1 && iActiveSetIteration <= CtrlVar.ThicknessConstraintsItMax
                 fprintf(' Active set modified.\n')
             end
         end
@@ -381,7 +381,7 @@ else
         
         isActiveSetCyclical=false ;
         
-        if it>1
+        if iActiveSetIteration>1
             
             ActivatedAndPreviouslyReleasedDifference=setxor(Activated,LastReleased); % if empty then the sets of activated and previously de-activated nodes are identical
             ReleasedAndPreviouslyActivatedDifference=setxor(Released,LastActivated); % if empty then the sets of de-activated and previously activated nodes are identical
@@ -443,16 +443,16 @@ else
     % set have been found, of course this assumes that as the final
     % convergence is reached, the active set no longer changes.
     
-    if it > CtrlVar.ThicknessConstraintsItMax
+    if iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
         RunInfo.Forward.ActiveSetConverged=0;
     end
     
     
-    if  it> CtrlVar.ThicknessConstraintsItMax
+    if  iActiveSetIteration> CtrlVar.ThicknessConstraintsItMax
         fprintf(CtrlVar.fidlog,' Warning: In enforcing thickness constraints and finding a critical point, the loop was exited due to maximum number of iterations (%i) being reached. \n',CtrlVar.ThicknessConstraintsItMax);
     else
         if numel(BCs1.hPosNode)>0
-            fprintf(CtrlVar.fidlog,'----- Active-set iteration converged after %-i iterations, constraining %-i thicknesses  \n \n ',it-1,numel(BCs1.hPosNode));
+            fprintf(CtrlVar.fidlog,'----- Active-set iteration converged after %-i iterations, constraining %-i thicknesses  \n \n ',iActiveSetIteration-1,numel(BCs1.hPosNode));
         end
     end
     
@@ -485,5 +485,9 @@ else
     end
 end
 
+
+RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=iActiveSetIteration-1 ; 
+RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=isActiveSetCyclical;
+RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=numel(BCs1.hPosNode);
 
 end

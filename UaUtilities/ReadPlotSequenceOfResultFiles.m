@@ -39,7 +39,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
     %
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Nod10-MeshSize5000","PlotType","-hPositive-","PlotTimeInterval",[0 500])
+    % 
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Nod10-MeshSize10000-lambdak100","PlotType","-hPositive-","PlotTimeInterval",[130 300])
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
@@ -103,7 +104,11 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     
     % assume results files have been saved in a subdirectory named 'ResultsFiles' (modify as needed)
     % cd ./ResultsFiles/
-    SearchString="*"+FileNameSubstring+"*.mat";
+    if ~contains(FileNameSubstring,".mat")
+        SearchString="*"+FileNameSubstring+"*.mat";
+    else
+                SearchString="*"+FileNameSubstring;
+    end
     SearchString=replace(SearchString,"**","*");
     list=dir(SearchString);   % get names of all .mat files containing a given substring
     
@@ -142,8 +147,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
             x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
             ih=F.h<=CtrlVar.ThickMin;
             
-            iCount=iCount+1;
-            DataCollect.time(iCount)=CtrlVar.time;
+            
+            
             
             % if creaing 4 subplots, try to arrange them based on the aspect ratio
             
@@ -172,11 +177,27 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     % collect data across all result files
                     
-                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+                    if ~isfield(DataCollect,'time')
+                        DataCollect.time=zeros(nFiles,1)+NaN;
+                        DataCollect.VAF=zeros(nFiles,1)+NaN;
+                        DataCollect.GroundedArea=zeros(nFiles,1)+NaN;
+                        DataCollect.IceVolume=zeros(nFiles,1)+NaN;
+                        DataCollect.hCentre=zeros(nFiles,1)+NaN;
+                    end
                     
+                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+                               
+                    iCount=iCount+1;
+                    DataCollect.time(iCount)=CtrlVar.time;
                     DataCollect.VAF(iCount)=VAF.Total ;
                     DataCollect.GroundedArea(iCount)=GroundedArea.Total;
-                    DataCollect.IceVolume(iCount)=IceVolume;
+                    DataCollect.IceVolume(iCount)=IceVolume.Total;
+                    
+                        
+                    rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
+                    [temp,I]=min(rDist);
+                    hCentre=F.s(I)-F.b(I);
+                    DataCollect.hCentre(iCount)=hCentre;
                     
                     
                     %%
@@ -248,10 +269,17 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     subplot(2,2,4)
                     hold off ;
                     
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h.*Reactions.h./F.rho) ; 
+                    if isempty(Reactions.h)
+                        Reactions.h=zeros(MUA.Nnodes,1);
+                    end
+                    
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h.*Reactions.h./F.rho) ;
+                    caxis([min(F.h.*Reactions.h./F.rho)-eps max(F.h.*Reactions.h./F.rho)+eps])
+                    
                     colormap(flipud(othercolor('RdYlBu_11b',1000))) ;
                     ModifyColormap ;
                     title(cbar,'$\lambda h$ ($m^2$)','Interpreter','latex')
+                    
                     
                     hold on
                     

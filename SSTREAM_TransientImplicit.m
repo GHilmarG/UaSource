@@ -56,7 +56,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
     
-    
+    BackTrackSteps=0;
     
     
     if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
@@ -254,6 +254,10 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %% Newton step 
         % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
         % step ahead of the cost function
+
+
+        
+        
         CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
         [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
         
@@ -268,9 +272,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
-        %% Residuals , at gamma=0;
-        gamma=0;
-        [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,gamma*dl,L,luvh,cuvh,gamma,Fext0);
+        gamma=0; [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);   
         
         
         if iteration==1  % save the first r value for plotting, etc
@@ -303,7 +305,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         %% If desired, plot residual along search direction
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
-            nnn=20;
+            nnn=50;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1);
             Up=2.2;
             if gamma>0.7*Up ; Up=2*gamma; end
@@ -319,11 +321,13 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
             
             
-            FindOrCreateFigure("SSTREAM uvh rForceiduals");
+            fig=FindOrCreateFigure("SSTREAM uvh rForceiduals");
+            clf(fig)
+            hold off
             slope=-2*rForce0;
             yyaxis left
             plot(gammaTestVector,rForceTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rForceTestvector(1) rForceTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            plot([gammaTestVector(1) gammaTestVector(2)],[rForceTestvector(1) rForceTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'b-','LineWidth',2)
             ylabel('Force Residuals')
             
             if CtrlVar.uvhCostFunction=="Force Residuals"
@@ -333,7 +337,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             yyaxis right
             slope=-2*rWork0;
             plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'g')
+            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'r-','LineWidth',2)
             ylabel('Work Residuals')
             
             if CtrlVar.uvhCostFunction=="Work Residuals"
@@ -341,11 +345,6 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             end
             
             title(sprintf('uvh iteration %-i,  iarm=%-i ',iteration,RunInfo.BackTrack.iarm)) ; xlabel(' \gamma ') ;
-            
-            
-            
-            
-            
             hold off
             %input('press return to continue')
         end
@@ -358,7 +357,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         F1.ub=F1.ub+gamma*dub;
         F1.vb=F1.vb+gamma*dvb;
         F1.h=F1.h+gamma*dh;
-        luvh=luvh+dl;
+        luvh=luvh+gamma*dl;
         
         l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
         
@@ -431,7 +430,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             
         end
         
-        
+        BackTrackSteps=BackTrackSteps+RunInfo.BackTrack.iarm ; 
         
         
     end
@@ -483,9 +482,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         save(filename)
     end
     
-    RunInfo.Forward.Iterations=iteration;
-    RunInfo.Forward.Residual=r;
-    RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations;
+    RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)=iteration ; 
+    RunInfo.Forward.uvhResidual(RunInfo.Forward.iCounter)=r;
+    RunInfo.Forward.uvhBackTrackSteps(RunInfo.Forward.iCounter)=BackTrackSteps ; 
     
     if CtrlVar.WriteRunInfoFile
         
