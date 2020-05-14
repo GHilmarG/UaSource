@@ -257,7 +257,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
         %% Residuals , at gamma=0;
-        gamma=0 ; [UserVar,r0,rRes0,rWork0,rDisp0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,gamma*dl,Kuv) ; 
+        gamma=0 ; [UserVar,r0,rRes0,rWork0,rDisp0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl,Kuv) ; 
         
         if iteration==1  % save the first r value for plotting, etc
             rVector.gamma(1)=gamma; 

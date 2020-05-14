@@ -287,23 +287,9 @@ else
         
         if numel(BCs1.hPosNode)>0   % are there any thickness constraints? If so see if some should be in-activated
             
-            % sometimes constraints are being activated and in-activated over and over again. A possible remedy is not to in-activate constraints
-            % immediately and to introduce a 1% threshold value
-            
-            lambdahposThreshold=CtrlVar.ThicknessConstraintsLambdaPosThreshold;
-            %
-            %             if it>4 && CtrlVar.ThicknessConstraintsLambdaPosThreshold==0
-            %
-            %                 lambdahposThreshold=-mean(lambdahpos(lambdahpos<0))/100;
-            %                 if isnan(lambdahposThreshold) ; lambdahposThreshold=0 ; end
-            %                 if CtrlVar.ThicknessConstraintsInfoLevel>=1 ;
-            %                     fprintf(CtrlVar.fidlog,' Introducing a min threshold of  %-g for  in-activating thickness constraints. \n',lambdahposThreshold);
-            %                 end
-            %             end
-            
-            
-            %%
-            I=lambdahpos>lambdahposThreshold  ;  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
+            % I divide here with rho for this to have the same units as the mass balance
+            % (distance/time) 
+            I=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./F1.rho(BCs1.hPosNode);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
             NewInActiveConstraints=find(I);
             iNewInActiveConstraints=numel(NewInActiveConstraints);
             if iNewInActiveConstraints>0   % have any become inactive?
