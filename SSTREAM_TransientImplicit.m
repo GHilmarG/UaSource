@@ -307,10 +307,11 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1);
-            Up=2.2;
-            if gamma>0.7*Up ; Up=2*gamma; end
+            Upper=2.2;
+            Lower=0 ;
+            if gamma>0.7*Upper ; Upper=2*gamma; end
             parfor I=1:nnn
-                gammaTest=Up*(I-1)/(nnn-1)+gamma/250;
+                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
                 
                 [~,~,rTest,rForceTest,rWorkTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;
@@ -321,7 +322,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
             
             
-            fig=FindOrCreateFigure("SSTREAM uvh rForceiduals");
+            fig=FindOrCreateFigure("SSTREAM uvh rForceReciduals");
             clf(fig)
             hold off
             slope=-2*rForce0;
@@ -482,6 +483,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         save(filename)
     end
     
+    RunInfo.Forward.Iterations=iteration; % May try to get rid of and use the uvhIterations vector instead
     RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)=iteration ; 
     RunInfo.Forward.uvhResidual(RunInfo.Forward.iCounter)=r;
     RunInfo.Forward.uvhBackTrackSteps(RunInfo.Forward.iCounter)=BackTrackSteps ; 
