@@ -10,8 +10,6 @@ if CtrlVar.InfoLevelNonLinIt>=1000
 end
 
 converged=1;  % true if it converged
-gammaNaN=0;
-
 
 Slope0=-2*r0 ;  % using the inner product def
 gamma=1; r=r1; 
@@ -69,8 +67,8 @@ while ExtrapolationStep && iarm<=10
         if gamma>2* gammac ; gamma=2*gammac ; end  % guard against wild extrapolation
         
         
-        % [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [UserVar,RunInfo,r]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        
+        r=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
         
@@ -98,8 +96,8 @@ while ExtrapolationStep && iarm<=10
 end
 
 
-iarmExtrapolation=iarm;
-iarm=0;
+
+iarm=0;  % reset iarm after a possible extrapolation step.
 
 %% backtracking step
 while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
@@ -128,8 +126,8 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
         break
     end
     
-    % [UserVar,RunInfo,r,ruv,rh,rl]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    [UserVar,RunInfo,r]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+    
+    r=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     
     
     infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
@@ -158,19 +156,6 @@ while r >  target && iarm<=iarmmax && gamma > GammaMin %  && r > CtrlVar.NLtol
         fprintf(CtrlVar.fidlog,'B: iarm=%-i \t gammab=%-g \t gammac=%-g \t r0=%-g \t r1=%-g \t r=%-g \t  rc=%-g \t target=%-g \t r/rtarget=%-g \n',iarm,gammab,gammac,r0,r1,r,rc,target,r/target);
     end
 end
-% 
-% if iarm==1 && r> 0.1*r0 && gammaNaN==0 && r> CtrlVar.NLtol
-%     % another case that is sometimes worthwile investigating is if first backtracking step can be improved
-%     
-%     gammaTest=gamma/2;
-%     
-%     [UserVar,RunInfo,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
-%     %[UserVar,rTest,ruvTest,rhTest,rlTest]=CalcCostFunctionNRuvh(UserVar,CtrlVar,MUA,gammaTest,du,dv,dh,u,v,h,S,B,u0,v0,h0,as0,ab0,as1,ab1,dudt,dvdt,dt,AGlen,n,C,m,alpha,rho,rhow,g,F0,L,lambda,dlambda,cuvh);
-%     
-%     infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
-%     if rTest<r ; r=rTest ; ruv=ruvTest ; rh=rhTest ; gamma=gammaTest ;  iarm=iarm+1; end
-% 
-% end
 
 infovector=infovector(1:I-1,:);
 

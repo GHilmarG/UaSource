@@ -55,6 +55,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     rVector.ruv=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.D2=zeros(CtrlVar.NRitmax+1,1)+NaN;
     
     BackTrackSteps=0;
     
@@ -138,20 +139,64 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     Fext0=R0;
     
     iteration=0 ;
-    r=1e50; ruv=1e10 ; rh=1e10; 
+    r=1e50; 
     RunInfo.Forward.Converged=0;
     RunInfo.BackTrack.Converged=1 ;
+    rWork=1e50 ; rForce=1e50; 
+    gamma=1 ; iCounterGammaSmall=0 ; 
     
     while true
         
+   
         
-        ResidualsCriteria=(~(r< CtrlVar.NLtol )) ...
-            || iteration < CtrlVar.NRitmin;
+        % I define two types of exit critera:
+        %  1) if residuals are below a given tolerance, exit and call it a success
+        %  2) if step size is below a prescribed fraction of the Newton step in two
+        %     consecutive iterations, the minimisation procedure is judged to have
+        %     stagnated. There can be good or bad reasons for this: Possibly the
+        %     minimisation procedure has converged on the miniumum and the norm of the
+        %     gradient is small-enough (good) or it is too-large (bad).
+        %
+        
+        CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+        CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+        
+        CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-9];
+        CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-10];
         
         
-        IncrementCriteria=(~(ruv < CtrlVar.du && rh< CtrlVar.dh  )) ...
-            || iteration < CtrlVar.NRitmin;
+        if gamma > max(1e-3,CtrlVar.BacktrackingGammaMin)
+            
+            ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhDesiredWorkAndForceTolerances(2))...
+                && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhDesiredWorkOrForceTolerances(2))...
+                && iteration >= CtrlVar.NRitmin;
+            
+            iCounterGammaSmall=0 ;
+            
+        elseif gamma <= max(1e-3,CtrlVar.BacktrackingGammaMin)
+            
+            iCounterGammaSmall=iCounterGammaSmall+1;
+            
+            if iCounterGammaSmall
+                
+                ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhAcceptableWorkAndForceTolerances(2))...
+                    && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhAcceptableWorkOrForceTolerances(2))...
+                    && iteration >= CtrlVar.NRitmin;
+            end
+        end
         
+        
+        if ResidualsCriteria
+            
+            tEnd=toc(tStart);
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
+                    CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
+            end
+            RunInfo.Forward.Converged=1;
+            break
+            
+        end
         
         
         if iteration > CtrlVar.NRitmax
@@ -172,13 +217,13 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         if RunInfo.BackTrack.Converged==0
             if CtrlVar.InfoLevelNonLinIt>=1
-                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,ruv,rh,iteration) ;
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
+                    CtrlVar.time,CtrlVar.dt,r,iteration) ;
             end
             
             if CtrlVar.WriteRunInfoFile
-                fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,ruv,rh,iteration) ;
+                fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g   after %-i iterations. \n',...
+                    CtrlVar.time,CtrlVar.dt,r,iteration) ;
             end
             
             RunInfo.Forward.Converged=0;
@@ -186,76 +231,20 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
         
         
-        switch lower(CtrlVar.uvhConvergenceCriteria)
-            
-            case 'residuals'
-                
-                if ~ResidualsCriteria
-                    
-                    tEnd=toc(tStart);
-                    if CtrlVar.InfoLevelNonLinIt>=1
-                        fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,r,iteration,tEnd) ;
-                    end
-                    RunInfo.Forward.Converged=1;
-                    break
-                    
-                end
-                
-            case 'increments'
-                
-                if ~IncrementCriteria
-                    
-                    tEnd=toc(tStart);
-                    if CtrlVar.InfoLevelNonLinIt>=1
-                        fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given increment tolerance of du=%g and dh=%g with r=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.du,CtrlVar.dh,r,iteration,tEnd)
-                    end
-                    RunInfo.Forward.Converged=1;
-                    break
-                    
-                end
-                
-            case 'residuals and increments'
-                
-                if ~ResidualsCriteria && ~IncrementCriteria
-                    
-                    tEnd=toc(tStart);
-                    if CtrlVar.InfoLevelNonLinIt>=1
-                        fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) and increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,ruv,rh,iteration,tEnd) ;
-                    end
-                    RunInfo.Forward.Converged=1;
-                    break
-                end
-                
-            case 'residuals or increments'
-                
-                if ~ResidualsCriteria || ~IncrementCriteria
-                    
-                    tEnd=toc(tStart);
-                    if CtrlVar.InfoLevelNonLinIt>=1
-                        fprintf(CtrlVar.fidlog,' SSTREAM(uvh) (time|dt)=(%g|%g): Converged to given residual (r=%g) or increment tolerances (du=%g,dh=%g) with r=%-g, du=%-g and dh=%-g in %-i iterations and in %-g  sec \n',...
-                            CtrlVar.time,CtrlVar.dt,CtrlVar.NLtol,CtrlVar.du,CtrlVar.dh,r,ruv,rh,iteration,tEnd) ;
-                    end
-                    RunInfo.Forward.Converged=1;
-                    break
-                end
-            otherwise
-                fprintf(' CtrlVar.uvhConvergenceCriteria (%s) not set to a valid value.\n',CtrlVar.uvhConvergenceCriteria)
-                error('parameter values incorrect')
-        end
+  
+        
+        
         
         
         
         iteration=iteration+1;
         
         
-        %% Newton step 
+        %% Newton step
         % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
         % step ahead of the cost function
-
-
+        
+        
         
         
         CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
@@ -272,31 +261,53 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
-        gamma=0; [UserVar,RunInfo,r0,rForce0,rWork0]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);   
+        gamma=0; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         
+        
+        if D20 < 0
+            
+            % The Newton direction at a feasable point is a decent direction for the Newton Decrement provided D2>0
+            fprintf('\n \n \t \t WARNING: ------------------   Newton direction not a decent direction of the Newton Decrement ---------------- . \n')
+            fprintf('\t \t WARNING: ------------------   D2(gamma=0)=%f \n \n',D20)
+            
+        end
         
         if iteration==1  % save the first r value for plotting, etc
             rVector.gamma(1)=gamma;
             rVector.ruv(1)=NaN;
             rVector.rWork(1)=rWork0;
             rVector.rForce(1)=rForce0 ;
+            rVector.D2(1)=D20 ;
         end
         
         %% calculate  residuals at full Newton step, i.e. at gamma=1
         gamma=1;
-        [UserVar,RunInfo,r1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        
+        r1=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         
         %% either accept full Newton step or do a line search
         
         [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0);
+        
+        Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+        
+        slope0=-2*r0 ; 
+        [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
 
+        fprintf('\n \t\t gamma=%g \t r=%g \n ',gamma,r)
+        fprintf('  \t \t gmin=%g \t fmin=%g \n \n',gmin,fmin)
+
+        if RunInfo.BackTrack.iarm>5
+            fprintf(' RunInfo.BackTrack.iarm=%i \n',RunInfo.BackTrack.iarm)
+        end
         
         % If backtracking returns all values, then this call will not be needed.
-        [UserVar,RunInfo,rTest,rForce,rWork,ruv,rh]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
         rVector.gamma(iteration+1)=gamma;
-        rVector.ruv(iteration+1)=ruv;
+        rVector.ruv(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
+        rVector.D2(iteration+1)=D2 ;
         if ~isequal(r,rTest)
             fprintf("r=%g \t rTest=%g \t \n",r,rTest)
             error('SSTREAM_TransientImplicit:expecting r and rTest to be equal')
@@ -306,29 +317,34 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %% If desired, plot residual along search direction
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
-            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1);
+            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             Upper=2.2;
-            Lower=0 ;
+            Lower=-1 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
             parfor I=1:nnn
                 gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
                 
-                [~,~,rTest,rForceTest,rWorkTest]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
-                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;
+                [rTest,~,~,rForceTest,rWorkTest,D2Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
+                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;
             end
             
+            gammaZero=min(abs(gammaTestVector)) ;
+            if gammaZero~=0
+                [rTest,~,~,rForceTest,rWorkTest,D2Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,0,Fext0);
+                gammaTestVector(nnn+1)=0 ; rForceTestvector(nnn+1)=rForceTest; rWorkTestvector(nnn+1)=rWorkTest;  rD2Testvector(nnn+1)=D2Test;
+            end
             
-            [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
-            [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;
+            [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
+            [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
+            [temp,I0]=min(abs(gammaTestVector)) ;
             
-            
-            fig=FindOrCreateFigure("SSTREAM uvh rForceReciduals");
+            fig=FindOrCreateFigure("SSTREAM uvh Force and Work Residuals"+num2str(iteration));
             clf(fig)
             hold off
             slope=-2*rForce0;
             yyaxis left
             plot(gammaTestVector,rForceTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rForceTestvector(1) rForceTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'b-','LineWidth',2)
+            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rForceTestvector(I0) rForceTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'b-','LineWidth',2)
             ylabel('Force Residuals')
             
             if CtrlVar.uvhCostFunction=="Force Residuals"
@@ -338,14 +354,49 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             yyaxis right
             slope=-2*rWork0;
             plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(1) gammaTestVector(2)],[rWorkTestvector(1) rWorkTestvector(1)+(gammaTestVector(2)-gammaTestVector(1))*slope],'r-','LineWidth',2)
+            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
+            ylabel('Work Residuals')
+            
+            if CtrlVar.uvhCostFunction=="Work Residuals"
+                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+            end
+            title(sprintf('uvh iteration %-i,  iarm=%-i, $\\gamma$=%-6g ',iteration,RunInfo.BackTrack.iarm,gamma),'interpreter','latex') ;
+            xlabel(' \gamma ') ;
+            xlim([Lower Upper])
+            
+            fig=FindOrCreateFigure("SSTREAM uvh: rWork and D2"+num2str(iteration));
+            clf(fig)
+            hold off
+            slope=-D20;
+            yyaxis left
+            plot(gammaTestVector,rD2Testvector,'o-') ; hold on ;
+            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rD2Testvector(I0) rD2Testvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'b-','LineWidth',2)
+            ylabel('$D^2$','interpreter','latex')
+            % fig.CurrentAxes.XAxisLocation='origin';
+            
+            % if CtrlVar.uvhCostFunction=="Force Residuals"
+            %     plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+            % end
+            
+            yyaxis right
+            slope=-2*rWork0;
+            plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
+          
+            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
             ylabel('Work Residuals')
             
             if CtrlVar.uvhCostFunction=="Work Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             
-            title(sprintf('uvh iteration %-i,  iarm=%-i ',iteration,RunInfo.BackTrack.iarm)) ; xlabel(' \gamma ') ;
+            
+            
+            
+            % title(sprintf('uvh iteration %-i,  iarm=%-i ',iteration,RunInfo.BackTrack.iarm)) ; xlabel(' \gamma ') ;
+            title(sprintf('uvh iteration %-i,  iarm=%-i, $\\gamma$=%-6g, $r_W$=%-6.3g, $r_F$=%-6.3g',iteration,RunInfo.BackTrack.iarm,gamma,rWork,rForce),'interpreter','latex') ;
+            xlabel(' \gamma ') ;
+            fig.CurrentAxes.XAxisLocation='origin'; grid on ;
+            xlim([Lower Upper])
             hold off
             %input('press return to continue')
         end
@@ -372,20 +423,13 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         % make sure to update s and b as well!
         [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  
         CtrlVar.ResetThicknessToMinThickness=temp;
+ 
         
-        if~isempty(MLC.hL)
-            BCsNormh=norm(MLC.hRhs-MLC.hL*F1.h);
-        else
-            BCsNormh=0;
+        if ~isempty(L)
+            BCsError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
+        else 
+            BCsError=0;
         end
-        
-        if ~isempty(MLC.ubvbL)
-            BCsNormuv=norm(MLC.ubvbRhs-MLC.ubvbL*[F1.ub;F1.vb]);
-        else
-            BCsNormuv=0;
-        end
-        
-        
         
         % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
         % update the surface mass balance within this non-linear loop. Actually I here
@@ -416,8 +460,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
      
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(...
-                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
-                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
+                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
+                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
             
         end
         
@@ -426,8 +470,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         if CtrlVar.WriteRunInfoFile
             
             fprintf(RunInfo.File.fid,...
-                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , ruv=%-14.7g , rh=%-14.7g , BCsNormuv=%-g , BCsNormh=%-g  \n ',...
-                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,ruv,rh,BCsNormuv,BCsNormh);
+                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g   \n ',...
+                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
             
         end
         
@@ -464,9 +508,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     end
     
     if ~isempty(L)
-        BCerror=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
-        if BCerror>0
-            fprintf(CtrlVar.fidlog,'Norm of error satisfying Dirichlet BC=%14.7g  \n ',norm(L*[F1.ub;F1.vb;F1.h]-cuvh));
+        BCsError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
+        if BCsError>10*eps
+            fprintf(CtrlVar.fidlog,'Norm of BCs residuals is %14.7g  \n ',BCsError);
         end
     end
     

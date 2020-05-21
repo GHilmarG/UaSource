@@ -19,12 +19,14 @@ function [UserVar,r,rRes,rWork,rDisp,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MU
     else
         frhs=-Ruv;
         grhs=[];
+        dl=[];
     end
     
     rRes=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uv-");
     
     % Newton Decrement 
-    D2=frhs'*[dub;dvb]  ;
+
+    D2=[frhs;grhs]'*[dub;dvb;dl]  ;
     rWork=D2^2 ;
     
    

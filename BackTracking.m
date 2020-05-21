@@ -14,6 +14,8 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 % then that can be deal with by defining listInf and litOutF. When F is called
 % additional nOut-1 outputs are collected, i.e. the total number of outputs collected from F in nOut
 % These additional outputs are then given as additional inputs to F:
+%
+%
 %  [fa,varargout{1:nOut-1}]=F(a,varargin{:}) ;
 %   varargin(listInF)=varargout(listOutF)
 %
@@ -22,16 +24,29 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 % when backtracking:  gamma < b   and  c is the previous b with c > b
 % when extrapolating: c=gamma ; b is the previous extrapolation value
 %                      b < c=gamma , fb> fc=fgamma
-
-
-
+%
+%
+%
+% Example:
+%
+%     c1=0 ; c2=0.5  ; c3=1.1 ; Func=@(x)  -(x-c1).* (x-c2).*(x-c3) ; slope0=-(c1*c2+c1*c3+c2*c3);  f0=Func(0) ; f1=Func(1) ; 
+%
+%     [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,f0,f1,Func);
+%
+%     xvector=linspace(0,1) ; yvector=Func(xvector);
+%     figure
+%     plot(xvector,yvector) ; hold on
+%     plot(gmin,fmin,'or')
+%     plot(BackTrackInfo.InfoVector(:,1),BackTrackInfo.InfoVector(:,2),'+b')
+%
 %%
 BackTrackInfo.converged=0;
 nFuncEval=0; 
-%% First check if the input value can already be accepted
 
-target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
-xfrac=1e10;
+
+if nargin< 6
+   CtrlVar=[];  
+end
 
 if nargin<7
     Fargcollect=0;
@@ -40,38 +55,7 @@ else
 end
 
 
-if fb<target 
-    
-    gamma=b; fgamma=fb; Iteration=0; fc=NaN; fmin=fb ; gmin=b ; c=NaN ;
-    InfoVector(1:2,1)=[0 ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ;
-    BackTrackInfo.InfoVector=InfoVector;
-    BackTrackInfo.nExtrapolatinSteps=0;
-    BackTrackInfo.nBackTrackSteps=Iteration;
-    
-    
-    if Fargcollect
-        
-        [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
-        
-        nFuncEval=nFuncEval+1; 
-        if ~isempty(listOutF) && ~isempty(listInF)
-            [varargin{listInF}]=varargout{listOutF-1} ;
-        end
-    else
-        fb=Func(b);
-        nFuncEval=nFuncEval+1; 
-    end
-    
-    %[fb,varargout{1:nOut-1}]=F(b,varargin{:}) ;
-    
-    
-    if CtrlVar.InfoLevelBackTrack>=2
-        fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
-    end
-    BackTrackInfo.converged=1;
-    BackTrackInfo.nFuncEval=nFuncEval;
-    return
-end
+
 
 %%
 
@@ -109,16 +93,33 @@ if isfield(CtrlVar,'BacktrackingGammaMin')
     BacktrackingGammaMin=CtrlVar.BacktrackingGammaMin;
 end
 
-if isfield(CtrlVar,'InfoLevelBackTrack')
- CtrlVar.InfoLevelBackTrack=CtrlVar.InfoLevelBackTrack;
+if ~isfield(CtrlVar,'InfoLevelBackTrack')
+    CtrlVar.InfoLevelBackTrack=0;
 end
-%%
-iMinSame=0; iMinSameWhileBacktracking=0;
-a=0;
 
+if ~isfield(CtrlVar,'NewtonAcceptRatio')
+    CtrlVar.NewtonAcceptRatio=0.5 ;
+end
 
+if ~isfield(CtrlVar,'NLtol')
+    CtrlVar.NLtol=1e-15;
+end
 
-InfoVector=zeros(MaxIterations+3,2)+NaN;
+if ~isfield(CtrlVar,'doplots')
+    CtrlVar.doplots=0; 
+end
+
+if ~isfield(CtrlVar,'BackTrackGuardLower')
+    CtrlVar.BackTrackGuardLower=0.45;
+end
+
+if ~isfield(CtrlVar,'BackTrackGuardUpper')
+    CtrlVar.BackTrackGuardUpper=0.95;
+end
+
+% Backtracking continues even if target has been reached if last reduction in
+% ratio is smaller than:
+CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
 
 if isempty(slope0)
     NoSlopeInformation=1;
@@ -129,10 +130,26 @@ else
     end
 end
 
+if NoSlopeInformation
+    target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
+else
+    target=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
+end
+
+xfrac=1e10;
+
+%%
+iMinSame=0; iMinSameWhileBacktracking=0;
+Iteration=0; 
+
+a=0;
+
+InfoVector=zeros(MaxIterations+3,2)+NaN;
+
+
 
 if isempty(fa)
     a=0 ;
-    
     if Fargcollect
         
         [fa,varargout{1:nOut-1}]=Func(a,varargin{:}) ;
@@ -148,13 +165,10 @@ if isempty(fa)
     
 end
 
-
-
 f0=fa; % the value of f at gamma=0
 
 if isempty(fb)
     b=1 ;
-    
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
         nFuncEval=nFuncEval+1; 
@@ -166,14 +180,28 @@ if isempty(fb)
         fb=Func(b);
         nFuncEval=nFuncEval+1; 
     end
-    
-    
 end
 
 
 
-InfoVector(1:2,1)=[a ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ; iq=2;  [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+InfoVector(1:2,1)=[a ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ; iq=2;  
+[fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
 
+BackTrackInfo.InfoVector=InfoVector;
+BackTrackInfo.nExtrapolatinSteps=0;
+BackTrackInfo.nBackTrackSteps=Iteration;
+
+if fb<target 
+    
+    fmin=fb ; gmin=b ;
+    
+    if CtrlVar.InfoLevelBackTrack>=2
+        fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
+    end
+    BackTrackInfo.converged=1;
+    BackTrackInfo.nFuncEval=nFuncEval;
+    return
+end
 
 if ~NoSlopeInformation
     gamma=-b*slope0/2/( (fb-fa)/b-slope0);
@@ -183,7 +211,13 @@ else
 end
 
 % limit changes and enforce backtracking
-if gamma > 0.9*b ; gamma=0.9*b ; elseif gamma < 0.25*b ; gamma=0.25*b; end
+if gamma > CtrlVar.BackTrackGuardUpper*b
+    gamma=CtrlVar.BackTrackGuardUpper*b ;
+elseif gamma < CtrlVar.BackTrackGuardLower*b
+    gamma=CtrlVar.BackTrackGuardLower*b;
+end
+
+
 
 Iteration=1 ;
 if Fargcollect
@@ -357,7 +391,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
             % general backtracking step
-            %  a+0.25 (b-a)  < gamma < a+ 0.95 (b-a)
+ 
             
             if gamma > (a+CtrlVar.BackTrackGuardUpper*(b-a))
                 gamma=a+CtrlVar.BackTrackGuardUpper*(b-a) ;
@@ -488,7 +522,7 @@ I=~isnan(InfoVector(:,1));  InfoVector=InfoVector(I,:);
 
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
-    figure
+    fig=FindOrCreateFigure('BackTrackingInfo') ; 
     plot(InfoVector(:,1),InfoVector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',Iteration,Extrapolation))
     hold on
