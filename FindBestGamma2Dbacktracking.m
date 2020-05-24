@@ -79,7 +79,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
                 
             
            
-            [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
+            r = CalcCostFunctionNR(UserVar,[],CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
            
             infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
             
@@ -134,7 +134,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
         end
         
        
-        [UserVar,r] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
+        r = CalcCostFunctionNR(UserVar,[],CtrlVar,MUA,gamma,F,F0,L,l,cuv,dub,dvb,dl); 
        
         infovector(I,1)=gamma ; infovector(I,2)=r; I=I+1;
    
@@ -171,7 +171,7 @@ function [UserVar,r,gamma,infovector,BacktrackInfo] = FindBestGamma2Dbacktrackin
         gammaTest=gamma/2;
         
         
-        [UserVar,rTest] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl); 
+        rTest = CalcCostFunctionNR(UserVar,[],CtrlVar,MUA,gammaTest,F,F0,L,l,cuv,dub,dvb,dl); 
 
         infovector(I,1)=gammaTest ; infovector(I,2)=rTest; I=I+1;
         if rTest<r ; r=rTest ; gamma=gammaTest ; end

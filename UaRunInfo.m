@@ -36,6 +36,9 @@ classdef (ConstructOnLoad) UaRunInfo
             
             obj.Forward.uvConverged=0;
             obj.Forward.uvIterations=NaN;
+
+            obj.Forward.hConverged=0;
+            obj.Forward.hIterations=NaN;
             
             obj.Forward.Converged=0;
             obj.Forward.Iterations=NaN;
@@ -61,7 +64,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.AdaptiveTimeSteppingResetCounter=0;
             
             obj.BackTrack.Converged=NaN;
-            obj.BackTrack.iarm=NaN;
+            obj.BackTrack.iarm=0;
             obj.BackTrack.Infovector=NaN;
             obj.BackTrack.nFuncEval=NaN;
             obj.BackTrack.nExtrapolationSteps=NaN;

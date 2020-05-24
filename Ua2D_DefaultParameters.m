@@ -371,10 +371,19 @@ CtrlVar.uvExitBackTrackingStepLength=1e-4;
 CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-9];
 CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-10];
 
-CtrlVar.uvhMinimisationQuantity="Force Residuals";  
-CtrlVar.uvMinimisationQuantity="Force Residuals";  
+CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.hExitBackTrackingStepLength=1e-4;
+CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-9];
+CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-10];
+
+
+CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
+CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
+CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 
 
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  

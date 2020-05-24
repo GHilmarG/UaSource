@@ -1,7 +1,7 @@
-function [UserVar,r,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl)
+function [r,UserVar,RunInfo,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl)
     
-    nargoutchk(2,5)
-    narginchk(12,12)
+    nargoutchk(1,6)
+    narginchk(13,13)
     
     if isnan(gamma) ; error(' gamma is nan ') ; end
     if ~isreal(gamma) ; error(' gamma is not real ') ; end
@@ -22,24 +22,27 @@ function [UserVar,r,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,ga
         dl=[];
     end
     
-        
-    rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps); 
+    
+    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
+    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
     
     % Newton Decrement
     
-    D2=[frhs;grhs]'*[dub;dvb;dl]  ;
+    D2=full([frhs;grhs]'*[dub;dvb;dl])  ;
     rWork=D2^2 ;
-
+    
     
     
     switch CtrlVar.uvMinimisationQuantity
         case "Force Residuals"
-            r=full(rForce);
+            r=rForce;
         case "Work Residuals"
-            r=full(rWork);
+            r=rWork;
+        otherwise
+            error("CalcCostFunctionNR:UnknownCase")
     end
     
-    % fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2) 
+    % fprintf('gamma=%f rRes=%g \t rWork=%g \t D2=%g \n',gamma,rRes,rWork,D2)
     
 end
 

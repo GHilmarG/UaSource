@@ -2,6 +2,8 @@
 
 %%
 IsUsed="DesiredEleSizes.m";
+IsUsed="FindBestGamma2D.m";
+IsUsed="FindBestGamma2Dbacktracking.m";
 
 if ~any(contains(fList,"\"+IsUsed))
     fprintf("%s is not used by Ua \n",IsUsed)

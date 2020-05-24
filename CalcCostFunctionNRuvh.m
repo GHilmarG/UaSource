@@ -20,22 +20,28 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     
     if ~isempty(L)
         
-        Ruvh=-R-L'*luvh;   % Not sure why I put this minus here, but with the minus it becomes the right-hand side
-        Rl=cuvh-L*[F1.ub;F1.vb;F1.h];
+        frhs=-R-L'*luvh;   % Not sure why I put this minus here, but with the minus it becomes the right-hand side
+        grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
         
     else
-        Ruvh=-R;
-        Rl=[];
+        frhs=-R;
+        grhs=[];
     end
     
     
 %    d=[dub;dvb;dh]  ; % Newton step
 %    D2=frhs'*d  ;
 
-    Ru=-Ruvh(1:MUA.Nnodes) ;
-    Rv=-Ruvh(MUA.Nnodes+1:2*MUA.Nnodes)  ;
-    Rh=-Ruvh(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
-    
+% The system I solve is K deltax = -R 
+% and K=dR/dx
+%
+% D^2 = - R d = rhs d
+%
+%
+    Ru=-frhs(1:MUA.Nnodes) ;
+    Rv=-frhs(MUA.Nnodes+1:2*MUA.Nnodes)  ;
+    Rh=-frhs(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
+    Rl=-grhs ; 
     % I= (F1.h <= (CtrlVar.ThickMin+1000*eps)); Ru(I)=0 ; Rv(I)=0 ; Rh(I)=0 ; 
  
     D2u=-Ru'*dub;
@@ -43,20 +49,15 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     D2h=-Rh'*dh;
     D2l=-Rl'*dl; 
     
-    D2=D2u+D2v+D2h+D2l ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
+    D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
     % Newton decrement: R' d
     
     rWork=D2^2; 
-
-%    d=[dub;dvb;dh;dl]  ; D2=[Ruvh;Rl]'*d  ; rWork=D2^2 ;
     
-    
-    
-    
-    rForce=ResidualCostFunction(CtrlVar,MUA,L,Ruvh,Rl,fext0,"-uvh-");
-    
-    
-    
+    % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
+    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps); 
+    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps)); 
+        
     switch CtrlVar.uvhMinimisationQuantity
         case "Force Residuals"
             r=rForce;

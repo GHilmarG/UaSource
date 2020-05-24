@@ -292,10 +292,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
         RunInfo.BackTrack=BackTrackInfo; 
         
-       
-        
         % If backtracking returns all values, then this call will not be needed.
-        [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        % [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [rTest,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma); 
         rVector.gamma(iteration+1)=gamma;
         rVector.ruv(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
@@ -331,67 +330,14 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
             [temp,I0]=min(abs(gammaTestVector)) ;
             
-            fig=FindOrCreateFigure("SSTREAM uvh Force and Work Residuals"+num2str(iteration));
-            clf(fig)
-            hold off
-            slope=-2*rForce0;
-            yyaxis left
-            plot(gammaTestVector,rForceTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rForceTestvector(I0) rForceTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'b-','LineWidth',2)
-            ylabel('Force Residuals')
-            
-            if CtrlVar.uvhMinimisationQuantity=="Force Residuals"
-                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
-            end
-            
-            yyaxis right
-            slope=-2*rWork0;
-            plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
-            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
-            ylabel('Work Residuals')
-            
-            if CtrlVar.uvhMinimisationQuantity=="Work Residuals"
-                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
-            end
-            title(sprintf('uvh iteration %-i,  iarm=%-i, $\\gamma$=%-6g ',iteration,RunInfo.BackTrack.iarm,gamma),'interpreter','latex') ;
-            xlabel(' \gamma ') ;
-            xlim([Lower Upper])
-            
-            fig=FindOrCreateFigure("SSTREAM uvh: rWork and D2"+num2str(iteration));
-            clf(fig)
-            hold off
-            slope=-D20;
-            yyaxis left
-            plot(gammaTestVector,rD2Testvector,'o-') ; hold on ;
-            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rD2Testvector(I0) rD2Testvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'b-','LineWidth',2)
-            ylabel('$D^2$','interpreter','latex')
-            % fig.CurrentAxes.XAxisLocation='origin';
-            
-            % if CtrlVar.uvhCostFunction=="Force Residuals"
-            %     plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
-            % end
-            
-            yyaxis right
-            slope=-2*rWork0;
-            plot(gammaTestVector,rWorkTestvector,'o-') ; hold on ;
-          
-            plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
-            ylabel('Work Residuals')
-            
-            if CtrlVar.uvhMinimisationQuantity=="Work Residuals"
-                plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
-            end
-            
-            
-            
-            
-            % title(sprintf('uvh iteration %-i,  iarm=%-i ',iteration,RunInfo.BackTrack.iarm)) ; xlabel(' \gamma ') ;
-            title(sprintf('uvh iteration %-i,  iarm=%-i, $\\gamma$=%-6g, $r_W$=%-6.3g, $r_F$=%-6.3g',iteration,RunInfo.BackTrack.iarm,gamma,rWork,rForce),'interpreter','latex') ;
-            xlabel(' \gamma ') ;
-            fig.CurrentAxes.XAxisLocation='origin'; grid on ;
-            xlim([Lower Upper])
-            hold off
-            %input('press return to continue')
+            SlopeForce=-2*rForce0;
+            SlopeWork=-2*rWork0;
+            SlopeD2=-D20;
+            CtrlVar.MinimisationQuantity=CtrlVar.uvhMinimisationQuantity;
+            [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-uvh-",...
+                gammaTestVector,rForceTestvector,rWorkTestvector,rD2Testvector,...
+                SlopeForce,SlopeWork,SlopeD2,rForce,rWork,D2);
+
         end
         
         

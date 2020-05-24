@@ -117,6 +117,10 @@ if ~isfield(CtrlVar,'BackTrackGuardUpper')
     CtrlVar.BackTrackGuardUpper=0.95;
 end
 
+if ~isfield(CtrlVar,'AllowExtrapolation')
+    CtrlVar.AllowExtrapolation=false;
+end
+
 % Backtracking continues even if target has been reached if last reduction in
 % ratio is smaller than:
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
@@ -202,6 +206,7 @@ if fb<target
     BackTrackInfo.nFuncEval=nFuncEval;
     I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
     BackTrackInfo.Infovector=Infovector;
+    BackTrackInfo.iarm=iarm;
     return
 end
 
@@ -255,51 +260,53 @@ end
 %% check extrapolation option
 
 Extrapolation=0;
-while  fb<fa && fc < fb && fmin > target
-    Extrapolation=Extrapolation+1;
-    
-    
-    if CtrlVar.InfoLevelBackTrack>=2
-        %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
-        fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
-            Extrapolation-1,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
-        fprintf('                a=%-10.5g  \t   b=%-10.5g  \t     c=%-10.5g   \t  g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
+
+if CtrlVar.AllowExtrapolation
+    while  fb<fa && fc < fb && fmin > target
+        Extrapolation=Extrapolation+1;
+        
+        
+        if CtrlVar.InfoLevelBackTrack>=2
+            %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
+            fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
+                Extrapolation-1,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
+            fprintf('                a=%-10.5g  \t   b=%-10.5g  \t     c=%-10.5g   \t  g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
+            
+        end
+        
+        gamma=ExtrapolationRatio*c ;
+        gammaOld=gamma ;
+        
+        if Fargcollect
+            [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
+            nFuncEval=nFuncEval+1;
+            if ~isempty(listOutF) && ~isempty(listInF)
+                [varargin{listInF}]=varargout{listOutF-1} ;
+            end
+        else
+            fgamma=Func(gamma);
+            nFuncEval=nFuncEval+1;
+        end
+        iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
+        
+        fbOld=fb; bOld=b;
+        fb=fc ; b=c ;
+        fc=fgamma ; c=gamma ;
+        %
+        %         if  ~NoSlopeInformation
+        %             target=fa+beta*slope0*gmin  ; % Armijo criteria
+        %         end
+        %
+        
+        if Extrapolation > MaxExtrapolations
+            if CtrlVar.InfoLevelBackTrack>=2
+                fprintf(' exiting extrapolation step because number of extrapolation steps greater than maximum %-i allowed \n',MaxExtrapolations)
+            end
+            break
+        end
         
     end
-    
-    gamma=ExtrapolationRatio*c ;
-    gammaOld=gamma ;
-    
-    if Fargcollect
-        [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
-        nFuncEval=nFuncEval+1; 
-        if ~isempty(listOutF) && ~isempty(listInF)
-            [varargin{listInF}]=varargout{listOutF-1} ;
-        end
-    else
-        fgamma=Func(gamma);
-        nFuncEval=nFuncEval+1; 
-    end
-    iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
-    
-    fbOld=fb; bOld=b;
-    fb=fc ; b=c ;
-    fc=fgamma ; c=gamma ;
-    %
-    %         if  ~NoSlopeInformation
-    %             target=fa+beta*slope0*gmin  ; % Armijo criteria
-    %         end
-    %
-    
-    if Extrapolation > MaxExtrapolations
-        if CtrlVar.InfoLevelBackTrack>=2
-            fprintf(' exiting extrapolation step because number of extrapolation steps greater than maximum %-i allowed \n',MaxExtrapolations)
-        end
-        break
-    end
-    
 end
-
 
 %%
 
