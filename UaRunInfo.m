@@ -63,6 +63,8 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.BackTrack.Converged=NaN;
             obj.BackTrack.iarm=NaN;
             obj.BackTrack.Infovector=NaN;
+            obj.BackTrack.nFuncEval=NaN;
+            obj.BackTrack.nExtrapolationSteps=NaN;
             
             
             obj.CPU.Total=0;
@@ -116,6 +118,17 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
                 obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
                 obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+                
+            end
+            
+            if ~isfield(s.BackTrack,'iarm')
+                
+                obj.BackTrack.Converged=NaN;
+                obj.BackTrack.iarm=NaN;
+                obj.BackTrack.Infovector=NaN;
+                obj.BackTrack.nFuncEval=NaN;
+                obj.BackTrack.nExtrapolationSteps=NaN;
+                
                 
             end
             

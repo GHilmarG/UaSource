@@ -348,20 +348,37 @@ CtrlVar.AGlenmax=1e10;
 % to how the primary variables (u,v,h) change.  The norm of these changes can
 % then be large despite the BCs being exactly fulfilled.)
 %
-CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=1;      % tolerance for change in (normalized) speed
-CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
-CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
-CtrlVar.Residual.uvh='uvh';
-CtrlVar.uvhConvergenceCriteria="residuals";  % convergence criteria for the implicit uvh solution
-CtrlVar.uvConvergenceCriteria="residuals";                 % convergence criteria for the implicit uv solution
-CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
+
+%% uvh Convergence criteria
+% The non-linear uvh/uv loops are considered to have converged if:
+%
+%  1) Work and Force tolerances are both less than: 
+CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+% and, furthermore, at least one of Work and Force tolerances are less than:
+CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+
+% 2) If the step length in the backtracking becomes smaller than
+CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+% while at the same time these Work and Force tolerances also fullfilled:
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-9];
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-10];
+
+
+CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvExitBackTrackingStepLength=1e-4;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-9];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-10];
+
+CtrlVar.uvhMinimisationQuantity="Force Residuals";  
+CtrlVar.uvMinimisationQuantity="Force Residuals";  
+CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+
+
 CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
-CtrlVar.uvCostFunction="Force Residuals" ;  % ["Work Residuals","Force Residuals"] 
-CtrlVar.uvhCostFunction="Force Residuals" ; % ["Work Residuals","Force Residuals"] 
-CtrlVar.MustBe.uvCostFunction=["Force Residuals","Work Residuals"];
-CtrlVar.MustBe.uvhCostFunction=["Force Residuals","Work Residuals"];
+
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %

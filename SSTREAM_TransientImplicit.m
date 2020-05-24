@@ -143,7 +143,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     RunInfo.Forward.Converged=0;
     RunInfo.BackTrack.Converged=1 ;
     rWork=1e50 ; rForce=1e50; 
-    gamma=1 ; iCounterGammaSmall=0 ; 
+    gamma=1 ; 
     
     while true
         
@@ -158,31 +158,22 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %     gradient is small-enough (good) or it is too-large (bad).
         %
         
-        CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
-        CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
-        
-        CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-9];
-        CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-10];
         
         
-        if gamma > max(1e-3,CtrlVar.BacktrackingGammaMin)
+        
+        if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
             
             ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhDesiredWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhDesiredWorkOrForceTolerances(2))...
                 && iteration >= CtrlVar.NRitmin;
+
             
-            iCounterGammaSmall=0 ;
+        else
             
-        elseif gamma <= max(1e-3,CtrlVar.BacktrackingGammaMin)
+            ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhAcceptableWorkAndForceTolerances(2))...
+                && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhAcceptableWorkOrForceTolerances(2))...
+                && iteration >= CtrlVar.NRitmin;
             
-            iCounterGammaSmall=iCounterGammaSmall+1;
-            
-            if iCounterGammaSmall
-                
-                ResidualsCriteria=(rWork<CtrlVar.uvhAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhAcceptableWorkAndForceTolerances(2))...
-                    && (rWork<CtrlVar.uvhAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhAcceptableWorkOrForceTolerances(2))...
-                    && iteration >= CtrlVar.NRitmin;
-            end
         end
         
         
@@ -261,8 +252,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
-        gamma=0; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        gamma=0; 
         
+        % [r0,UserVar,RunInfo,rForce0,rWork0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+                                
+        Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+        [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); 
         
         if D20 < 0
             
@@ -282,24 +277,22 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         %% calculate  residuals at full Newton step, i.e. at gamma=1
         gamma=1;
-        
-        r1=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+           
+        % r1=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
+        [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma); 
         
         %% either accept full Newton step or do a line search
         
-        [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0);
+        % [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0);
         
         Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
         
         slope0=-2*r0 ; 
-        [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
 
-        fprintf('\n \t\t gamma=%g \t r=%g \n ',gamma,r)
-        fprintf('  \t \t gmin=%g \t fmin=%g \n \n',gmin,fmin)
-
-        if RunInfo.BackTrack.iarm>5
-            fprintf(' RunInfo.BackTrack.iarm=%i \n',RunInfo.BackTrack.iarm)
-        end
+        RunInfo.BackTrack=BackTrackInfo; 
+        
+       
         
         % If backtracking returns all values, then this call will not be needed.
         [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
@@ -308,7 +301,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
         rVector.D2(iteration+1)=D2 ;
-        if ~isequal(r,rTest)
+        if ~isequal(r,rTest) 
             fprintf("r=%g \t rTest=%g \t \n",r,rTest)
             error('SSTREAM_TransientImplicit:expecting r and rTest to be equal')
         end
@@ -347,7 +340,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rForceTestvector(I0) rForceTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'b-','LineWidth',2)
             ylabel('Force Residuals')
             
-            if CtrlVar.uvhCostFunction=="Force Residuals"
+            if CtrlVar.uvhMinimisationQuantity=="Force Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             
@@ -357,7 +350,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
             ylabel('Work Residuals')
             
-            if CtrlVar.uvhCostFunction=="Work Residuals"
+            if CtrlVar.uvhMinimisationQuantity=="Work Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             title(sprintf('uvh iteration %-i,  iarm=%-i, $\\gamma$=%-6g ',iteration,RunInfo.BackTrack.iarm,gamma),'interpreter','latex') ;
@@ -385,7 +378,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             plot([gammaTestVector(I0) gammaTestVector(I0+1)],[rWorkTestvector(I0) rWorkTestvector(I0)+(gammaTestVector(I0+1)-gammaTestVector(I0))*slope],'r-','LineWidth',2)
             ylabel('Work Residuals')
             
-            if CtrlVar.uvhCostFunction=="Work Residuals"
+            if CtrlVar.uvhMinimisationQuantity=="Work Residuals"
                 plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
             end
             

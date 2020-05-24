@@ -169,6 +169,7 @@ if r > r0 && r > CtrlVar.NLtol
     converged=0;
 end
 
+
 RunInfo.BackTrack.Converged=converged;
 RunInfo.BackTrack.iarm=iarm;
 RunInfo.BackTrack.Infovector=infovector;

@@ -37,10 +37,10 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %     figure
 %     plot(xvector,yvector) ; hold on
 %     plot(gmin,fmin,'or')
-%     plot(BackTrackInfo.InfoVector(:,1),BackTrackInfo.InfoVector(:,2),'+b')
+%     plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'+b')
 %
 %%
-BackTrackInfo.converged=0;
+BackTrackInfo.Converged=0;
 nFuncEval=0; 
 
 
@@ -140,11 +140,11 @@ xfrac=1e10;
 
 %%
 iMinSame=0; iMinSameWhileBacktracking=0;
-Iteration=0; 
+iarm=0; 
 
 a=0;
 
-InfoVector=zeros(MaxIterations+3,2)+NaN;
+Infovector=zeros(MaxIterations+3,2)+NaN;
 
 
 
@@ -184,12 +184,12 @@ end
 
 
 
-InfoVector(1:2,1)=[a ; b ] ;  InfoVector(1:2,2)=[ fa ; fb ] ; iq=2;  
-[fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+Infovector(1:2,1)=[a ; b ] ;  Infovector(1:2,2)=[ fa ; fb ] ; iq=2;  
+[fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
 
-BackTrackInfo.InfoVector=InfoVector;
-BackTrackInfo.nExtrapolatinSteps=0;
-BackTrackInfo.nBackTrackSteps=Iteration;
+BackTrackInfo.Infovector=Infovector;
+BackTrackInfo.nExtrapolationSteps=0;
+BackTrackInfo.iarm=iarm;
 
 if fb<target 
     
@@ -198,8 +198,10 @@ if fb<target
     if CtrlVar.InfoLevelBackTrack>=2
         fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
     end
-    BackTrackInfo.converged=1;
+    BackTrackInfo.Converged=1;
     BackTrackInfo.nFuncEval=nFuncEval;
+    I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
+    BackTrackInfo.Infovector=Infovector;
     return
 end
 
@@ -219,7 +221,7 @@ end
 
 
 
-Iteration=1 ;
+iarm=1 ;
 if Fargcollect
     [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
     nFuncEval=nFuncEval+1; 
@@ -233,7 +235,7 @@ end
 
 gammaOld=gamma ;
 
-iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
 
 c=b; fc=fb ; b=gamma ; fb=fgamma ;
 
@@ -247,7 +249,7 @@ c=b; fc=fb ; b=gamma ; fb=fgamma ;
 
 if CtrlVar.InfoLevelBackTrack>=2
     fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
-        Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
+        iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
     fprintf('               a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g   \t    g=%-10.5g     \t    gmin=%-10.5g \n ',a,b,c,gamma,gmin)
 end
 %% check extrapolation option
@@ -278,7 +280,7 @@ while  fb<fa && fc < fb && fmin > target
         fgamma=Func(gamma);
         nFuncEval=nFuncEval+1; 
     end
-    iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+    iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
     
     fbOld=fb; bOld=b;
     fb=fc ; b=c ;
@@ -327,12 +329,12 @@ if  Extrapolation>0
         fb=Func(b);
         nFuncEval=nFuncEval+1; 
     end
-    iq=iq+1 ; InfoVector(iq,1)=b ;  InfoVector(iq,2)=fb ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+    iq=iq+1 ; Infovector(iq,1)=b ;  Infovector(iq,2)=fb ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
 end
 
 fLastReduction=1;
 while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
-    Iteration=Iteration+1;
+    iarm=iarm+1;
     
     
     
@@ -349,7 +351,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
         end
     end
     
-    if Iteration==2  && Extrapolation>0
+    if iarm==2  && Extrapolation>0
         
         % After an extrapolation step
         % I know that the minimum is between a and c with b=(a+c)/2
@@ -419,7 +421,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     
     
     fminOld=fmin ; gminOld=gmin;
-    iq=iq+1 ; InfoVector(iq,1)=gamma ;  InfoVector(iq,2)=fgamma ; [fmin,I]=min(InfoVector(:,2)) ; gmin=InfoVector(I,1) ;
+    iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
     
     fLastReduction=fmin/fminOld;
     
@@ -453,7 +455,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     
     if CtrlVar.InfoLevelBackTrack>=2
         fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
-            Iteration,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
+            iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
         fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
     end
     
@@ -489,7 +491,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     end
     
     
-    if Iteration>MaxIterations
+    if iarm>MaxIterations
         if CtrlVar.InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because number of iteration greater than maximum %-i allowed \n',MaxIterations)
         end
@@ -501,7 +503,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
 end
 
 if fmin<fa
-    BackTrackInfo.converged=1;
+    BackTrackInfo.Converged=1;
 end
 
 
@@ -515,22 +517,22 @@ end
 %fprintf('B: exit # %-i. fa=%-10.5g \t fb=%-10.5g \t fc=%-10.5g \t fgamma=%-10.5g \t fmin=%-10.5g \t b=%-10.5g \t c=%-10.5g \t gamma=%-10.5g  \n ',Iteration,fa,fb,fc,fgamma,fmin,b,c,gamma)
 
 
-I=~isnan(InfoVector(:,1));  InfoVector=InfoVector(I,:);
-[~,I]=sort(InfoVector(:,1)) ; InfoVector=InfoVector(I,:);
+I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
+[~,I]=sort(Infovector(:,1)) ; Infovector=Infovector(I,:);
 
-[fgamma,I]=min(InfoVector(:,2)) ; gamma=InfoVector(I,1) ;
+[fgamma,I]=min(Infovector(:,2)) ; gamma=Infovector(I,1) ;
 
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     fig=FindOrCreateFigure('BackTrackingInfo') ; 
-    plot(InfoVector(:,1),InfoVector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
-    title(sprintf('backtracking/extrapolation steps %-i/%-i',Iteration,Extrapolation))
+    plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
+    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     hold on
     plot(gamma,fgamma,'xg')
     
     if ~NoSlopeInformation
         hold on
-        dx=min(InfoVector(2:end,1)/10) ;
+        dx=min(Infovector(2:end,1)/10) ;
         plot([0 dx],[f0 f0+slope0*dx],'g')
         hold off
     end
@@ -542,10 +544,10 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     %          end
 end
 
-
-BackTrackInfo.InfoVector=InfoVector;
-BackTrackInfo.nExtrapolatinSteps=Extrapolation;
-BackTrackInfo.nBackTrackSteps=Iteration;
+I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
+BackTrackInfo.Infovector=Infovector;
+BackTrackInfo.nExtrapolationSteps=Extrapolation;
+BackTrackInfo.iarm=iarm;
 BackTrackInfo.nFuncEval=nFuncEval;
 
 

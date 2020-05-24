@@ -1,4 +1,4 @@
-function UserVar=DefineFinalReturnedValueOfUserVa(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+function UserVar=DefineFinalReturnedValueOfUserVa(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 %% 
 %

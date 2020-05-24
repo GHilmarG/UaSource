@@ -7,7 +7,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     
     RunInfo.Forward.ActiveSetConverged=1;
     RunInfo.Forward.IterationsTotal=0;
-    
+    iActiveSetIteration=0;
+    isActiveSetCyclical=NaN;
     if ~CtrlVar.ThicknessConstraints
         
         

@@ -57,7 +57,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     
     
     
-    switch CtrlVar.uvhCostFunction
+    switch CtrlVar.uvhMinimisationQuantity
         case "Force Residuals"
             r=rForce;
         case "Work Residuals"
