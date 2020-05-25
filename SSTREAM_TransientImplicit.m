@@ -71,7 +71,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     % However, since the uvh formulation is with respect to h
     % alone, this will not affect the solution since this does not
     % change h.
-    dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
+    dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h; 
     
     
     %%
@@ -113,6 +113,10 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     
     
+    
+    
+    
+    
     %% assemble global Lagrange constraint matrix
     MLC=BCs2MLC(CtrlVar,MUA,BCs1);
     
@@ -128,10 +132,22 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     %[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
     [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
-    
-    
     dl=luvh*0;
     
+    if ~isempty(L)
+        BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/norm(cuvh+1000*eps);
+    else
+        BCsRelativeError=0;
+    end
+    
+    if BCsRelativeError>0.01
+        
+        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasable point\n')
+        % fprintf('         Although the uvh iteration can start at an infeasable point and still converge successfully, \n')
+        
+    end
+    
+
     
     CtrlVar.uvhMatrixAssembly.ZeroFields=true;
     CtrlVar.uvhMatrixAssembly.Ronly=true;
@@ -139,11 +155,14 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     Fext0=R0;
     
     iteration=0 ;
-    r=1e50; 
+    
     RunInfo.Forward.Converged=0;
     RunInfo.BackTrack.Converged=1 ;
-    rWork=1e50 ; rForce=1e50; 
-    gamma=1 ; 
+    r=inf;  rWork=inf ; rForce=inf;
+    gamma=1 ;
+    
+    
+  
     
     while true
         
@@ -221,22 +240,13 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             break
         end
         
-        
-  
-        
-        
-        
-        
-        
         iteration=iteration+1;
         
         
         %% Newton step
         % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
         % step ahead of the cost function
-        
-        
-        
+
         
         CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
         [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
@@ -248,24 +258,17 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             frhs=-Ruvh;
             grhs=[];
         end
+
         
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
-        gamma=0; 
+  
         
         % [r0,UserVar,RunInfo,rForce0,rWork0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
                                 
         Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
-        [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); 
-        
-        if D20 < 0
-            
-            % The Newton direction at a feasable point is a decent direction for the Newton Decrement provided D2>0
-            fprintf('\n \n \t \t WARNING: ------------------   Newton direction not a decent direction of the Newton Decrement ---------------- . \n')
-            fprintf('\t \t WARNING: ------------------   D2(gamma=0)=%f \n \n',D20)
-            
-        end
+        gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); 
         
         if iteration==1  % save the first r value for plotting, etc
             rVector.gamma(1)=gamma;
@@ -276,16 +279,16 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
         
         %% calculate  residuals at full Newton step, i.e. at gamma=1
-        gamma=1;
+  
            
         % r1=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma); 
+        gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma); 
         
         %% either accept full Newton step or do a line search
         
         % [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0);
         
-        Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+        
         
         slope0=-2*r0 ; 
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
@@ -447,7 +450,6 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     end
     
     if ~isempty(L)
-        BCsError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
         if BCsError>10*eps
             fprintf(CtrlVar.fidlog,'Norm of BCs residuals is %14.7g  \n ',BCsError);
         end

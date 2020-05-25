@@ -38,20 +38,17 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
 % D^2 = - R d = rhs d
 %
 %
-    Ru=-frhs(1:MUA.Nnodes) ;
-    Rv=-frhs(MUA.Nnodes+1:2*MUA.Nnodes)  ;
-    Rh=-frhs(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
-    Rl=-grhs ; 
-    % I= (F1.h <= (CtrlVar.ThickMin+1000*eps)); Ru(I)=0 ; Rv(I)=0 ; Rh(I)=0 ; 
- 
-    D2u=-Ru'*dub;
-    D2v=-Rv'*dvb;
-    D2h=-Rh'*dh;
-    D2l=-Rl'*dl; 
+    % Ru=-frhs(1:MUA.Nnodes) ;
+    % Rv=-frhs(MUA.Nnodes+1:2*MUA.Nnodes)  ;
+    % Rh=-frhs(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
+    % Rl=-grhs ; 
+    % D2u=-Ru'*dub;
+    % D2v=-Rv'*dvb;
+    % D2h=-Rh'*dh;
+    % D2l=-Rl'*dl; 
+    % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
     
-    D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
-    % Newton decrement: R' d
-    
+    D2=[frhs;grhs]'*[dub;dvb;dh;dl];
     rWork=D2^2; 
     
     % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");

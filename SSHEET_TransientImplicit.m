@@ -43,7 +43,7 @@ if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
 
 dlambdah=lambdah*0;
 dh=h0*0;
-iteration=0 ; Stagnated=0;
+iteration=0 ; 
 diffVector=zeros(CtrlVar.NRitmax,1) ;
 gamma=1;  rWork=inf ; rForce=inf ; 
 
@@ -188,16 +188,15 @@ while true
     [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
     CtrlVar.ResetThicknessToMinThickness=temp;
     %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
-    
-    
-     %% calculate statistics on change in speed, thickness and Lagrange parameters
+
+
 
     if~isempty(Lh)
         BCsNorm=norm(ch-Lh*h);
     else
         BCsNorm=0;
     end
-    %fprintf(' BCsNorm=%-g \n ',BCsNorm)
+
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
 
@@ -239,20 +238,14 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     figure; semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR SSHEET h implicit') ; xlabel('Iteration') ; ylabel('Residual')
 end
 
-%     if ~isempty(Lh) &&   CtrlVar.InfoLevelNonLinIt>=0
-%         fprintf(CtrlVar.fidlog,' final error in satisfying Dirichlet BC %14.7g  \n ',norm(Lh*h-Lhrhs));
-%     end
-
-
 if iteration > CtrlVar.NRitmax
     fprintf(CtrlVar.fidlog,'Warning: maximum number of NRh iterations %-i reached \n',CtrlVar.NRitmax);
     warning('uvh2DSSHEET:MaxIterationReached','uvh2DSSHEET exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
     RunInfo.Forward.hConverged=0;
 end
 
-RunInfo.Forward.Iterations=iteration;   
-RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations; 
-RunInfo.Forward.Residual=r;
+RunInfo.Forward.hIterations=iteration;   
+RunInfo.Forward.hResidual=r;
 
 
 end
