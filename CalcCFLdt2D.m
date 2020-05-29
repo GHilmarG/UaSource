@@ -1,19 +1,45 @@
-function dtcritical=CalcCFLdt2D(DTxy,coordinates,connectivity,u,v);
+function dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F)
+
+%
+%  CFL   : dt < l/v
+%
+%
+
+
+switch lower(CtrlVar.FlowApproximation)
     
     
-    % just a rough method of estimating maximum time based on CFL
-    % must improve on this later
-    
-    
-    [Nele,nod]=size(connectivity);
-    
-    x=coordinates(:,1); y=coordinates(:,2);
-    
-    area=(max(x)-min(x))*(max(y)-min(y));
-    
-    dl=sqrt(area/Nele);
-    
-    dtcritical=dl/max(sqrt(u.*u+v.*v));
-    
+    case 'sstream'
+        
+        u=F.ub;
+        v=F.vb;
+        
+        
+    case 'ssheet'
+        
+        u=F.ud ;
+        v=F.vd ;
+        
+        
+    case 'hybrid'
+        
+        u=F.ub+F.ud ;
+        v=F.vb+F.vd ;
+        
+        
+    otherwise
+        
+        error('what case')
+        
+end
+
+speed=sqrt(u.*u+v.*v) ;
+speed=Nodes2EleMean(MUA.connectivity,speed); 
+
+l=sqrt(MUA.EleAreas);  % there is a factor of two here that I'm not including, this will reduced dt 
+                       % and provide a margin of safety.
+
+dtcritical=min(l./(speed+eps));
+
 end
 

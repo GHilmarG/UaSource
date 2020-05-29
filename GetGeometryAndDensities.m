@@ -23,6 +23,17 @@ if nargin<5 || isempty(FieldsToBeDefined)
     FieldsToBeDefined='sbSB';
 end
 
+% Note: GF can not be calculated without knowing both the geometrical variables (s,b,S,B) returned by
+% DefineGeometry.m and the densities (rho, rhow) returned by DefineDensities.m 
+
+if ~isempty(F.GF)
+    
+    if ~isequal(numel(F.GF.node),MUA.Nnodes)
+        error('InternalUAerror: numel(F.GF.node) ~= MUA.Nnodes') 
+    end
+end
+
+
 if ~(FieldsToBeDefined=="")
     
     nArgs=nargin('DefineGeometry');
@@ -130,6 +141,24 @@ end
 
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
+switch CtrlVar.Calculate.Geometry
+    
+    case "bs-FROM-hBS"
+        
+        [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+        
+    case "bh-FROM-sBS"
+        
+ 
+        [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow) ;
+        
+    otherwise
+        
+        error('which case')
+        
+end
+
+
 
 end

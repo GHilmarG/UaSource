@@ -1,0 +1,266 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>LakeOrOcean</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-12-30"><meta name="DC.source" content="LakeOrOcean.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+</pre><pre class="language-matlab">[OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+</pre><pre>Only CtrlVar and MUA are required input variables:</pre><p>Example:</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span> ; CtrlVar=CtrlVarInRestartFile;
+CtrlVar.doplots=1 ;  CtrlVar.PlotOceanLakeNodes=1;
+[OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ;
+</pre><p>Tries to determine which floating nodes are part of the ocean and which belong to subglacial lakes.</p><p>Uses GLgeometry to determine the longest grounding line and assumes that this grounding line represents the ocean boundary. Then determines if nodal point at floating level are inside or outside of this boundary.</p><p>May not always work, and anyhow I am not sure if one can always objectively decide what is an ocean and what a lake.</p><p>This approach will fail if in some circumstances. for example, enclosed parts of an ice-rise go aflot, then this lake will not be identified as a lake and classified as a part of the  ocean...</p><p>Just use this m-file as a starting point towards defining lake/ocean nodes.</p><p>Note: GLgeo calculated is slighly different from the usual way of doing this       because here the grounding line needs to be closed.</p><p>Returns a logical indexing (this was changed from indexing vectors on 20 Dec, 2018)</p><p>Note: An alternative starting point might be:</p><pre class="language-matlab">IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
+</pre><pre class="codeinput">OceanNodes=[];
+LakeNodes=[];
+OceanElements=[];
+
+
+<span class="keyword">if</span> nargin&lt;4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
+    [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> ~isfield(GF,<span class="string">'NodesDownstreamOfGroundingLines'</span>)
+    [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele);
+<span class="keyword">end</span>
+
+I=find(GF.NodesDownstreamOfGroundingLines);
+
+
+<span class="keyword">if</span> ~isempty(I)
+
+
+    GFtemp=GF; GFtemp.node(MUA.Boundary.Nodes)=0;  <span class="comment">% I need to `close' the grounding line, so I set all boundary nodes to floating status</span>
+    GLgeoMod=GLgeometry(MUA.connectivity,MUA.coordinates,GFtemp,CtrlVar);
+    [xGL1,yGL1] = ArrangeGroundingLinePos(CtrlVar,GLgeoMod,1);
+
+    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+    <span class="comment">%  IN = inpolygon(x(I),y(I),xGL,yGL);  % for some reason this standard matlab routine is much slower than inpoly</span>
+    [IN,ON] = inpoly([x(I) y(I)],[xGL1 yGL1],[],1);
+
+    <span class="comment">% There is a bit of a question here what to do with nodes that are</span>
+    <span class="comment">% directly on the grounding line. I've here decided to consider them part of</span>
+    <span class="comment">% the ocean.</span>
+    Ind=~IN  | ON ; <span class="comment">% ocean nodes are not within grounding line, but can be on it</span>
+
+
+    OceanNodes=I(Ind);
+    LakeNodes=I(~Ind);
+
+    II=false(MUA.Nnodes,1);
+    II(OceanNodes)=true;
+    OceanNodes=II;
+
+    II=false(MUA.Nnodes,1);
+    II(LakeNodes)=true;
+    LakeNodes=II;
+
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ;
+
+
+    <span class="keyword">if</span> CtrlVar.doplots &amp;&amp; CtrlVar.PlotOceanLakeNodes
+
+        figure
+        hold <span class="string">off</span>
+
+
+        P1=plot(x(OceanNodes)/CtrlVar.PlotXYscale,y(OceanNodes)/CtrlVar.PlotXYscale,<span class="string">'og'</span>,<span class="string">'DisplayName'</span>,<span class="string">'Ocean Nodes'</span>) ; hold <span class="string">on</span>
+        P2=plot(x(LakeNodes)/CtrlVar.PlotXYscale,y(LakeNodes)/CtrlVar.PlotXYscale,<span class="string">'or'</span>,<span class="string">'DisplayName'</span>,<span class="string">'Lake Nodes'</span>);
+
+
+        PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ; hold <span class="string">on</span>
+        plot(xGL1/CtrlVar.PlotXYscale,yGL1/CtrlVar.PlotXYscale,<span class="string">'k'</span>,<span class="string">'LineWidth'</span>,2);
+        [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,[],[],<span class="string">'r'</span>);
+        <span class="comment">%plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1);</span>
+        <span class="comment">%plot(x(Boundary.EdgeCornerNodes)/CtrlVar.PlotXYscale,y(Boundary.EdgeCornerNodes)/CtrlVar.PlotXYscale,'k.-')</span>
+        <span class="comment">%plot(x(Boundary.Nodes)/CtrlVar.PlotXYscale,y(Boundary.Nodes)/CtrlVar.PlotXYscale,'ro')</span>
+        axis <span class="string">equal</span> <span class="string">tight</span>
+        hold <span class="string">on</span>
+        title(<span class="string">'Ocean/Lake nodes'</span>)
+        lg=legend([P1 P2]);
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+
+%%
+%
+%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+%   
+%
+%  Only CtrlVar and MUA are required input variables:
+%
+% Example:
+%
+%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
+%   CtrlVar.doplots=1 ;  CtrlVar.PlotOceanLakeNodes=1;
+%   [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele]=LakeOrOcean(CtrlVar,MUA,F.GF) ;
+%
+%
+%
+% Tries to determine which floating nodes are part of the ocean and which belong
+% to subglacial lakes.
+%
+% Uses GLgeometry to determine the longest grounding line and assumes that this
+% grounding line represents the ocean boundary. Then determines if nodal point
+% at floating level are inside or outside of this boundary.
+%
+% May not always work, and anyhow I am not sure if one can always objectively
+% decide what is an ocean and what a lake.
+%
+% This approach will fail if in some circumstances. for example, enclosed parts
+% of an ice-rise go aflot, then this lake will not be identified as a lake and
+% classified as a part of the  ocean...
+%
+% Just use this m-file as a starting point towards defining lake/ocean nodes.
+%
+% Note: GLgeo calculated is slighly different from the usual way of doing this
+%       because here the grounding line needs to be closed.
+%
+% Returns a logical indexing (this was changed from indexing vectors on 20 Dec,
+% 2018)
+%
+%  
+% Note: An alternative starting point might be: 
+%
+%   IEle=EleFlooding(CtrlVar,MUA,NodeSeed,EleSubset);
+%
+%%
+OceanNodes=[];
+LakeNodes=[];
+OceanElements=[]; 
+
+
+if nargin<4 || isempty(GLgeo) || isempty(GLnodes) || isempty(GLele)
+    [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+end
+
+if ~isfield(GF,'NodesDownstreamOfGroundingLines')
+    [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele);
+end
+
+I=find(GF.NodesDownstreamOfGroundingLines);
+
+
+if ~isempty(I)
+    
+    
+    GFtemp=GF; GFtemp.node(MUA.Boundary.Nodes)=0;  % I need to `close' the grounding line, so I set all boundary nodes to floating status
+    GLgeoMod=GLgeometry(MUA.connectivity,MUA.coordinates,GFtemp,CtrlVar);
+    [xGL1,yGL1] = ArrangeGroundingLinePos(CtrlVar,GLgeoMod,1);
+    
+    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+    %  IN = inpolygon(x(I),y(I),xGL,yGL);  % for some reason this standard matlab routine is much slower than inpoly
+    [IN,ON] = inpoly([x(I) y(I)],[xGL1 yGL1],[],1);
+    
+    % There is a bit of a question here what to do with nodes that are
+    % directly on the grounding line. I've here decided to consider them part of
+    % the ocean.
+    Ind=~IN  | ON ; % ocean nodes are not within grounding line, but can be on it
+    
+    
+    OceanNodes=I(Ind);
+    LakeNodes=I(~Ind);
+    
+    II=false(MUA.Nnodes,1);
+    II(OceanNodes)=true;
+    OceanNodes=II;
+    
+    II=false(MUA.Nnodes,1);
+    II(LakeNodes)=true;
+    LakeNodes=II;
+    
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ; 
+    
+
+    if CtrlVar.doplots && CtrlVar.PlotOceanLakeNodes
+        
+        figure
+        hold off
+        
+        
+        P1=plot(x(OceanNodes)/CtrlVar.PlotXYscale,y(OceanNodes)/CtrlVar.PlotXYscale,'og','DisplayName','Ocean Nodes') ; hold on
+        P2=plot(x(LakeNodes)/CtrlVar.PlotXYscale,y(LakeNodes)/CtrlVar.PlotXYscale,'or','DisplayName','Lake Nodes');
+        
+        
+        PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ; hold on 
+        plot(xGL1/CtrlVar.PlotXYscale,yGL1/CtrlVar.PlotXYscale,'k','LineWidth',2);
+        [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,[],[],'r');
+        %plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',1);
+        %plot(x(Boundary.EdgeCornerNodes)/CtrlVar.PlotXYscale,y(Boundary.EdgeCornerNodes)/CtrlVar.PlotXYscale,'k.-')
+        %plot(x(Boundary.Nodes)/CtrlVar.PlotXYscale,y(Boundary.Nodes)/CtrlVar.PlotXYscale,'ro')
+        axis equal tight
+        hold on
+        title('Ocean/Lake nodes')
+        lg=legend([P1 P2]);
+        
+    end
+end
+end
+##### SOURCE END #####
+--></body></html>

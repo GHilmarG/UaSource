@@ -10,8 +10,6 @@ function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,Elemen
 
 
 
-
-
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
 M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
@@ -161,15 +159,9 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
     if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=10
         
         FigName=['Explicit Mesh Refinement ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name];
-        fig=findobj(0,'name',FigName);
-        if isempty(fig)
-            fig=figure('name',FigName);
-            fig.Position=[200+20*Kfig,200,1600,600] ;
-            Kfig=Kfig+1;
-        else
-            figure(fig);
-            hold off
-        end
+        fig=FindOrCreateFigure(FigName);
+        clf(fig)
+      
         
         subplot(1,3,1) ; hold off
         %plot(ErrorProxy,EleSizeIndicator,'.r') ;
@@ -253,7 +245,7 @@ if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
             end
             dh=CtrlVar.MeshSizeMin;
         end
-        if CtrlVar.InfoLevelAdaptiveMeshing>=1
+        if CtrlVar.InfoLevelAdaptiveMeshing>=10
             fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
         end
         ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
@@ -312,7 +304,7 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')
 
 
-if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5
+if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
     
     xyRange=range(MUA.coordinates);
     
@@ -328,16 +320,10 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     
     if contains(lower(CtrlVar.MeshRefinementMethod),'global')
         
-        fig=findobj(0,'name','Global mesh refinement');
+        FigureName="Global mesh refinement"; 
         
-        if isempty(fig)
-            fig=figure('name','Global mesh refinement');
-            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
-        else
-            figure(fig)
-            hold off
-        end
-        
+        fig=FindOrCreateFigure(FigureName) ;
+        clf(fig)
         subplot(1,2,1,'replace')
         hold off
         PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,EleSizeDesired,CtrlVar);
@@ -353,16 +339,10 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
         
-        fig=findobj(0,'name','Local mesh refinement');
+        FigureName="Local mesh refinement"; 
         
-        if isempty(fig)
-            fig=figure('name','Local mesh refinement');
-            fig.Position=[1100,100,xFigWidth,yFigWidth] ;
-        else
-            fig=figure(fig);
-            hold off
-        end
-        
+        fig=FindOrCreateFigure(FigureName) ;
+        clf(fig)
         CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
         
         PlotMuaMesh(CtrlVar,MUA,[],'k');

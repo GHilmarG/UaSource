@@ -1,6 +1,9 @@
 function [UserVar,RunInfo,R,K]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
+%
+%
+% Does not depend on s or b, only h, S and B
 
 
 %
@@ -37,10 +40,39 @@ end
 
 if ZeroFields
     
+    % I'm using this to come up with a reasonable normalizing factor to the
+    % residuals.  The uv side of things is clear and there I set u=v=0 and this
+    % ensures that all 'interanal' nodal forces are zero. The h side is less clear.
+    % and I've stuggled with finding a sensible normalising factor for this term.
+    % If I set u=v=0 to get the sensible uv normalisation, then dqdx=0. I can have a
+    % situation where a=0 and if h1=h0 then the initial estimate for dh/dt=0. So all
+    % terms are then zero. 
+    %
+    % One approach is to create a scale for dh/dt by using ThickMin/dt , or
+    % alternativily just make this term numerically equal to 1, i.e. no
+    % normalisatiion apart in the norm. This can be achived by setting the surface
+    % mass balance to 1.
+    
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
-    F0.ub=F0.ub*0; F0.vb=F0.vb*0;
-    Dh=1;
-    F1.h=F0.h+Dh ; % testing , 8 August, 2017
+    F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
+    
+    % How to normalize the mass conservation term?
+    %
+    % Idea1) set a=1 as a normalizing factor
+    % The issue with this is that the accterm -> 0 as dt->0 
+    % because
+    % accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
+    % so the normalisation factor goes to zero with dt
+    F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
+    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;  
+    F0.as=F0.ab*0+1;  F0.ab=F0.ab*0;
+    
+    % I can solve this by dividing with dt again as I calculate the normalisation factor in the const
+    % function. This means that the normalisation is independent of dt
+    % 
+    % 
+    
+    
 end
 
 
@@ -76,8 +108,9 @@ if ~CtrlVar.ResetThicknessInNonLinLoop
     CtrlVar.ResetThicknessToMinThickness=0;
 end
 
-[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
-%[F1.b,F1.s,F1.h]=Calc_bs_From_hBS(F1.h,F1.S,F1.B,F1.rho,F1.rhow,CtrlVar,MUA.coordinates);
+
+[F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);   % don't update h outside of loop, just get new values for s and b
+
 CtrlVar.ResetThicknessToMinThickness=temp;
 
 if CtrlVar.MassBalanceGeometryFeedback>=2
@@ -133,13 +166,27 @@ if ~CtrlVar.CisElementBased
     Cnod=reshape(F1.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
     mnod=reshape(F1.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
+    if ~isempty(F1.q)
+        qnod=reshape(F1.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    else
+        qnod=[];
+    end
+    
+    if ~isempty(F1.muk)
+        muknod=reshape(F1.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    else
+        muknod=[];
+    end
+    
+    
+    
     if CtrlVar.IncludeMelangeModelPhysics
         
         Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
         monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
         Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
         manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
+        
     end
     
 else
@@ -206,7 +253,7 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
         
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
@@ -228,7 +275,7 @@ else
         
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);

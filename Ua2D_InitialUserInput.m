@@ -19,11 +19,17 @@ CtrlVar.Experiment=['MismipPlus-',UserVar.MisExperiment];
 %% Types of run
 %
 CtrlVar.TimeDependentRun=1; 
-CtrlVar.TotalNumberOfForwardRunSteps=3;
-CtrlVar.TotalTime=100;
 CtrlVar.Restart=0;  
 
+%% Run-stop criteria
+CtrlVar.TotalNumberOfForwardRunSteps=3;
+CtrlVar.TotalTime=100;
+CtrlVar.UseUserDefinedRunStopCriterion=false;
 
+%% Sliding law
+CtrlVar.SlidingLaw="rCW-N0" ;   % This uses a 'reciprocal sum' of Coulomb and Weertman sliding laws. 
+
+%% time and time step
 CtrlVar.dt=0.01; 
 CtrlVar.time=0; 
 
@@ -79,8 +85,7 @@ CtrlVar.SaveAdaptMeshFileName='AdaptMesh.mat';
 CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If left empty, no file is written
 
 CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection';
-%CtrlVar.MeshRefinementMethod='explicit:local';
-%CtrlVar.MeshRefinementMethod='explicit:global';
+%CtrlVar.MeshRefinementMethod='explicit:local:red-green';
 
 
 CtrlVar.LocalAdaptMeshSmoothingIterations=0;

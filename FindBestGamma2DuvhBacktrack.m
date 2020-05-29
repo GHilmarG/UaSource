@@ -43,7 +43,7 @@ I=3;
 
 %% possible initial extrapolation step
 
-if r> target && r1 < r0  && CtrlVar.LineSeachAllowedToUseExtrapolation
+if r> target && r1 < r0  && CtrlVar.LineSearchAllowedToUseExtrapolation
     ExtrapolationStep=true ;
     if CtrlVar.InfoLevelNonLinIt>=2
         fprintf(CtrlVar.fidlog,' Extrapolation flag set to true in line-search uv \n ');

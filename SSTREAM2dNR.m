@@ -4,12 +4,15 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 nargoutchk(7,7)
 narginchk(7,7)
 
+
 tStart=tic;
 RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
 
-MLC=BCs2MLC(MUA,BCs);
-L=MLC.ubvbL;
-cuv=MLC.ubvbRhs;
+% MLC=BCs2MLC(CtrlVar,MUA,BCs);
+% L=MLC.ubvbL;
+% cuv=MLC.ubvbRhs;
+
+[L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
 
 if isempty(cuv)
@@ -83,7 +86,7 @@ else
     grhs=[];
 end
 
-r=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+r=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
 
 diffDu=0; 
 
@@ -145,7 +148,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         grhs=[];
     end
     
-    r0=ResidualCostFunction(frhs,grhs,F0,MUA.Nnodes);
+    r0=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,F0,"-uv-");
     
     tSolution=tic;
     
@@ -180,6 +183,7 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
         fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
         save SSTREAM2dNRDump
+        RunInfo.Forward.Converged=0; 
         break
     end
     
@@ -225,13 +229,9 @@ while ((r> CtrlVar.NLtol  || diffDu > CtrlVar.du  )&& iteration <= CtrlVar.NRitm
         %input('press return to continue')
     end
     
-    
-    
-    Du=gamma*dub ; Dv=gamma*dvb; diffDu=norm([Du;Dv])/norm([F.ub;F.vb]) ;                           % relative norm of changes in velocities
-    %D=mean(sqrt(F.ub.*F.ub+F.vb.*F.vb)); ; diffDu=full(max(abs(gamma*dub))+max(abs(gamma*dvb)))/D; % sum of max change in du and dv normalized by mean speed
+    Inodes=F.h <=CtrlVar.ThickMin ; 
+    diffDu=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb);
     diffDlambda=full(max(abs(gamma*dl))/mean(abs(l.ubvb)));
-    
-    
     
     diffVector(iteration)=r0;   % override last value, because it was just a (very accurate) estimate
     diffVector(iteration+1)=r;
@@ -290,6 +290,8 @@ elseif r>CtrlVar.NLtol
     RunInfo.Forward.Converged=0;
     warning('uvSSTREAM:didnotconverge',' SSTREAM2dNR did not converge to a solution. Saving all variables in TestSaveNR.mat \n ')
     save TestSaveNR
+    
+    
 else
     if CtrlVar.InfoLevel>0
         if CtrlVar.InfoLevelNonLinIt>0
@@ -313,6 +315,7 @@ end
 if iteration > CtrlVar.NRitmax
     fprintf(CtrlVar.fidlog,'Maximum number of NR iterations %-i reached in uv-SSTREAM loop with r=%-g \n',CtrlVar.NRitmax,r);
     warning('SSTREAM2dNR:MaxIterationReached','uv-SSTREAM exits because maximum number of iterations %-i reached with r=%-g \n',CtrlVar.NRitmax,r)
+    RunInfo.Forward.Converged=0; 
 end
 
 RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;

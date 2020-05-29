@@ -1,7 +1,7 @@
-function [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmshBackgroundScalarField)
+function [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,EleSizeScalarField)
 
 %
-%  [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,GmshBackgroundScalarField)
+%  [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,MeshBoundaryCoordinates,EleSizeScalarField)
 %
 % requires first two input arguments, and uses the following CtrlVar fields:
 %
@@ -36,7 +36,7 @@ end
 
 
 
-if nargin<3 || isempty(GmshBackgroundScalarField)  % mesh domain (without using background mesh file giving desired ele sizes)
+if nargin<3 || isempty(EleSizeScalarField)  % mesh domain (without using background mesh file giving desired ele sizes)
     
     
     % possibly create a new .geo input file for GMESH. If not then it is assumed that
@@ -71,7 +71,7 @@ else  % remesh with a given scalar background field defining desired ele sizes
     
     FileName=[CtrlVar.GmshFile,'.pos'];
     fprintf(CtrlVar.fidlog,'Creating a Gmsh scalar post file %s \n',FileName);
-    CreateGmshBackgroundScalarMesh(GmshBackgroundScalarField.xy,GmshBackgroundScalarField.TRI,GmshBackgroundScalarField.EleSize,FileName);
+    CreateGmshBackgroundScalarMesh(EleSizeScalarField.xy,EleSizeScalarField.TRI,EleSizeScalarField.EleSize,FileName);
     
     RunString=[gmshRunString,CtrlVar.GmshFile,'.geo -bgm ',FileName,' -format msh2 -2 -v ',num2str(CtrlVar.GmshVerbosityLevel)];
     

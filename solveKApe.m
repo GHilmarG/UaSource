@@ -10,7 +10,7 @@ narginchk(7,7)
 % where A is n times n, C is m times m , B is m times n.
 % A does not have to be symmetrical
 
-[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ; 
+[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;
 [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 
 if nA~=mA
@@ -32,20 +32,21 @@ if ng~=nB
     error('error in solveKApe')
 end
 
-if nx0~=nA
-    fprintf('x0 must have same number of elements as there are rows in A\n')
-    error('error in solveKApe')
+if ~isempty(B)
+    if nx0~=nA
+        fprintf('x0 must have same number of elements as there are rows in A\n')
+        error('error in solveKApe')
+    end
+    
+    if ny0~=nB
+        fprintf('y0 must have same number of elements as there are rows in B\n')
+        error('error in solveKApe')
+    end
 end
-
-if ny0~=nB
-    fprintf('y0 must have same number of elements as there are rows in B\n')
-    error('error in solveKApe')
-end
-
 
 n=size(A,1) ; m=size(B,1);
 
-% 
+%
 % if isempty(B) || numel(B)==0
 %     CtrlVar.AsymmSolver='Bempty';
 % elseif all(full(sum(B~=0,2))==1)
@@ -57,19 +58,21 @@ if isequal(lower(CtrlVar.AsymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
         CtrlVar.AsymmSolver='Bempty';
-%    elseif all(full(sum(B~=0,2))==1)
-%        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-%        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+        %    elseif all(full(sum(B~=0,2))==1)
+        %        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
+        %        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+     elseif isdiag(B*B')
+         CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
     else
         CtrlVar.AsymmSolver='AugmentedLagrangian';
-        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g; 
+        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g;
     end
     
 end
 
 
 
-tSolve=tic; 
+tSolve=tic;
 
 switch CtrlVar.AsymmSolver
     case 'Bempty'
@@ -87,30 +90,31 @@ switch CtrlVar.AsymmSolver
     case 'EliminateBCsSolveSystemDirectly'
         
         if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
+        %
+        %         Test=sum(sum(B*B'-speye(p,p)));  % this is too slow!
+        %         if Test>100*eps
+        %             fprintf('EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case!')
+        %             fprintf(' sum(sum(B*BT-speye(p,p)))=%g \n',Test)
+        %             fprintf(' Change the value of CtrlVar.AsymmSolver\n')
+        %             error('solveKApe:EliminateBCsSolveSystemDirectly','EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case')
+        %         end
         
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); 
-        iConstrainedDOF=iConstrainedDOF(:);
+        % scale A
+        %factor=1./sqrt(full(mean(abs(diag(A*A')))));
+        factor=1./(full(mean(abs(diag(A))))); 
+        A=factor*A ; f=factor*f ;  % this leaves x unaffected but y is scaled
         
-        iFreeDOF=setdiff(1:n,iConstrainedDOF); 
-        iFreeDOF=iFreeDOF(:);
         
+        Q=speye(nA,nA)-B'*B;
+        Atilde=Q*A+B'*B;
+        btilde=(Q*f+B'*g) ;
+        dAtilde=factorize(Atilde);
+        x=dAtilde\btilde;
+        y=B*(f-A*x);
         
-        AA=A; ff=f;
-        AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
-        sol=AA\ff;
+        A=A/factor ; f=f/factor ;  % this leaves x unaffected but y is scaled
+        y=y/factor; 
         
-        x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol;
-        y=B'\(f-A*x);
-
-%
-%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
-%  [B   0 ] [y]  [g]      
-%
-% -> A x + B' y = f -> y = B'\(f-A x)
-%   B'*B=1 then
-%   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
-%
-
     case 'AugmentedLagrangian'
         
         
@@ -179,9 +183,9 @@ tSolve=toc(tSolve);
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
         n+m,n,m,tSolve,CtrlVar.AsymmSolver)
-    if CtrlVar.InfoLevelCPU 
+    if CtrlVar.InfoLevelCPU
         fprintf(CtrlVar.fidlog,' in %-g sec. \n',tSolve) ;
-    end 
+    end
 end
 
 %% Testing
@@ -195,12 +199,12 @@ if isempty(B)
         fprintf('solveKApe: Solution residual appears too large! %g \n',res)
     end
 else
-    if norm(f)>eps
+    if norm(f)>1000*eps
         res1=norm(A*x+B'*y-f)/norm(f);
     else
         res1=norm(A*x+B'*y-f);
     end
-    if norm(g)>eps
+    if norm(g)>1000*eps
         res2=norm(B*x-g)/norm(g);
     else
         res2=norm(B*x-g);

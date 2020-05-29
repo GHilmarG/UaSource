@@ -65,7 +65,11 @@ end
 hold off
 
 
-h=s-b;
+if ~isempty(s) && ~isempty(b)
+    h=s-b;
+else
+    h=[] ;
+end
 
 
 if isfield(CtrlVar,'ThicknessCutOffForPlotting')
@@ -74,23 +78,29 @@ else
     I=h>2*CtrlVar.ThickMin;
 end
 
-if isempty(sCol)
-    sCol=copper(numel(s));
-    ColorIndex=Variable2ColorIndex(s);
-    sCol(:,:)=sCol(ColorIndex,:);
-    sCol(I,:)=zeros(numel(find(I)),3)+1;
+if ~isempty(s)
+    if isempty(sCol)
+        sCol=copper(numel(s));
+        ColorIndex=Variable2ColorIndex(s);
+        sCol(:,:)=sCol(ColorIndex,:);
+        sCol(I,:)=zeros(numel(find(I)),3)+1;
+    end
 end
 
-if isempty(bCol)
-    bCol=copper(numel(s));
-    ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
-    bCol(I,:)=zeros(numel(find(I)),3)+1;
+if ~isempty(b)
+    if isempty(bCol)
+        bCol=copper(numel(s));
+        ColorIndex=Variable2ColorIndex(b); bCol(:,:)=bCol(ColorIndex,:);
+        bCol(I,:)=zeros(numel(find(I)),3)+1;
+    end
 end
 
-if isempty(BCol)
-    BCol=copper(numel(s));
-    ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
-    BCol(I,:)=zeros(numel(find(I)),3)+1;
+if ~isempty(B)
+    if isempty(BCol)
+        BCol=copper(numel(s));
+        ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
+        BCol(I,:)=zeros(numel(find(I)),3)+1;
+    end
 end
 
 

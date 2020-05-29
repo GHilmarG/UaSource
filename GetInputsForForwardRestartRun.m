@@ -18,7 +18,7 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
-        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','time','dt','F','GF','l');
+        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','RunInfo','F','l');
         
         MUAold=MUA;
         MUA=UpdateMUA(CtrlVar,MUA);
@@ -49,7 +49,7 @@ else
 end
 
 
-RunInfo=UaRunInfo;
+% RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
 
@@ -75,10 +75,26 @@ if ~isobject(RunInfo)
    RunInfo=UaRunInfo; 
 end
 
+if ~isfield(RunInfo,'Mapping') || isempty(RunInfo.Mapping)
+    RunInfo.Mapping.nNewNodes=NaN;
+    RunInfo.Mapping.nOldNodes=NaN;
+    RunInfo.Mapping.nIdenticalNodes=NaN;
+    RunInfo.Mapping.nNotIdenticalNodes=NaN;
+    RunInfo.Mapping.nNotIdenticalNodesOutside=NaN;
+    RunInfo.Mapping.nNotIdenticalNodesInside=NaN;
+end
+
+
+
 if CtrlVar.ResetTime==1
     CtrlVarInRestartFile.time=CtrlVar.RestartTime;
     fprintf(CtrlVar.fidlog,' Time reset to CtrlVar.RestartTime=%-g \n',CtrlVarInRestartFile.time);
 end
+
+
+
+
+
 
 if CtrlVar.ResetTimeStep==1
     CtrlVarInRestartFile.dt=CtrlVar.dt;
@@ -142,7 +158,7 @@ isMeshChanged=HasMeshChanged(MUA,MUAold);
 if isMeshChanged
     
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
-    [UserVar,RunInfo,F,BCs,GF,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF,l);
+    [UserVar,RunInfo,F,BCs,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,l);
     %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     
     
@@ -189,7 +205,7 @@ BCs=BoundaryConditions;
 
 if CtrlVar.IncludeMelangeModelPhysics
     fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')
-    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F,GF);
+    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
 end
 
 

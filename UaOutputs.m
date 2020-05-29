@@ -38,7 +38,7 @@ if contains(plots,'-save-')
         FileName=sprintf('%s/%07i-Nodes%i-Ele%i-Tri%i-kH%i-%s.mat',...
             CtrlVar.Outputsdirectory,round(100*time),MUA.Nnodes,MUA.Nele,MUA.nod,1000*CtrlVar.kH,CtrlVar.Experiment);
         fprintf(' Saving data in %s \n',FileName)
-        save(FileName,'UserVar','CtrlVar','MUA','time','s','b','S','B','h','ub','vb','C','dhdt','AGlen','m','n','rho','rhow','as','ab','GF')
+        save(FileName,'UserVar','CtrlVar','MUA','F')
         
     end
     
@@ -49,23 +49,24 @@ if contains(plots,'-plot-')
     figsWidth=1000 ; figHeights=300;
     GLgeo=[]; xGL=[] ; yGL=[];
     %%
-    fig100=figure(100) ;
-    fig100.Position=[50 50 figsWidth 3*figHeights];
+    
+    FindOrCreateFigure("FourPlots") ; % ,[50 50 figsWidth 3*figHeights]) ;
+
     subplot(4,1,1)
-    PlotMeshScalarVariable(CtrlVar,MUA,h); title(sprintf('h at t=%g',time))
+    PlotMeshScalarVariable(CtrlVar,MUA,F.s); title(sprintf('s at t=%g',time))
     hold on    
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     %Plot_sbB(CtrlVar,MUA,s,b,B) ; title(sprintf('time=%g',time))
     
     
     subplot(4,1,2)
-    QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
+    QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb,CtrlVar);
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     hold off
     
     subplot(4,1,3)
-    PlotMeshScalarVariable(CtrlVar,MUA,dhdt);   title(sprintf('dhdt at t=%g',time))
+    PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);   title(sprintf('dhdt at t=%g',time))
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
     
@@ -91,10 +92,8 @@ if contains(plots,'-plot-')
     
     BProfile=MismBed(xProfile,yCentre);
     
-    
-    fig200=figure(200);
-    fig200.Position=[1200 50 figsWidth 2*figHeights];
-    
+        
+    FindOrCreateFigure("Profile") ; 
     plot(xProfile/1000,sProfile,'b')
     hold on
     plot(xProfile/1000,bProfile,'b')
@@ -103,8 +102,7 @@ if contains(plots,'-plot-')
     hold off
     
     
-    fig300=figure(300);
-    fig300.Position=[1200 700 figsWidth figHeights];
+    FindOrCreateFigure("Mesh and grounding line") ; 
     PlotMuaMesh(CtrlVar,MUA)
     hold on 
     

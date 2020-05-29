@@ -13,7 +13,7 @@ F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
-[F.C,F.m]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m);
+[F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
 
 if CtrlVar.TestForRealValues
     if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
@@ -76,14 +76,19 @@ switch lower(CtrlVar.FlowApproximation)
     
     case 'sstream'
         
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
         
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
+        if ~RunInfo.Forward.Converged
+            fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
+            F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
+            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+        end
         
     case 'ssheet'
         
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' start SSHEET diagnostic. \n') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' start SSHEET diagnostic. \n') ;  end
         [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
         
         [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
@@ -94,17 +99,17 @@ switch lower(CtrlVar.FlowApproximation)
         
     case 'hybrid'
         
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
         %SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         
         
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' 2:Basal stress, ') ;  end
         GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
         [txzb,tyzb]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb);
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' 3:SSHEET.') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' 3:SSHEET.') ;  end
         [F.ud,F.vd]=uvSSHEETplus(CtrlVar,MUA,BCs,F.AGlen,F.n,F.h,txzb,tyzb);
-        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Hybrid done \n') ;  end
+        if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Hybrid done \n') ;  end
         
     otherwise
         

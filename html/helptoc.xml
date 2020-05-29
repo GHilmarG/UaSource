@@ -2,7 +2,7 @@
 <toc version="2.0">
     
     <tocitem target="Ua.html">Úa
-        
+        <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
         <tocitem target="UserInputRoutines.html">User input 
             <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
@@ -17,6 +17,9 @@
             <tocitem target="DefineInputsForInverseRun.html">Define inputs for an inverse run </tocitem>
             <tocitem target="DefineMeshModifications.html">Define mesh modifications </tocitem>
             <tocitem target="DefineElementsToDeactivate.html">Manual deactivation of elements </tocitem>
+            <tocitem target="DefineRunStopCriterion.html">Define exit criterion from run-step loop for both a forward time-independent and time-dependent runs</tocitem>
+            <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
+            <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="UaOutputs.html">Output </tocitem>
@@ -30,6 +33,8 @@
                 <tocitem target="PlotGroundingLines.html">Plot grounding lines</tocitem>
                 <tocitem target="PlotBoundaryConditions.html">Plot boundary conditions</tocitem>
                 <tocitem target="Plot_sbB.html">Plot upper and lower surfaces and bedrock </tocitem>
+                <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
+                <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
@@ -43,7 +48,16 @@
                 <tocitem target="CalcNodalStrainRates.html">Calculate nodal strain rates</tocitem>
                 <tocitem target="CalcNodalStrainRatesAndStresses.html">Calculate nodal strain rates and stresses</tocitem>
                 <tocitem target="CalcIceShelfMeltRates.html">Calculate ice-shelf melt rates from flux divergence</tocitem>
+                <tocitem target="CalcVAF.html">Calculate ice volume above flotation (VAF), ice volume and grounded area </tocitem>
                 <tocitem target="TracerConservationEquation.html">Tracer Conservation Equation</tocitem>
+                <tocitem target="Matern.html">Matern covariance</tocitem>
+                <tocitem target="CGuesstimate.html">C Guesstimation</tocitem>
+                <tocitem target="LakeOrOcean.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
+                <tocitem target="LakeOrOcean3.html">Determine if a floating node belongs to a subglacial lake or the ocean</tocitem>
+                <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
+                <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
+                
+                
             </tocitem>
         </tocitem>
     </tocitem>

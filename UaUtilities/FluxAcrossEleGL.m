@@ -115,8 +115,11 @@ if DoPlots
     Par.VelPlotIntervalSpacing='log10';
     Par.RelativeVelArrowSize=10;
     Par.QuiverColorPowRange=2;
-    QuiverColorGHG(xEdge,yEdge,qGLx,qGLy,Par);
-    
+    % assuming units: m/yr, m, kg/m^3  for velocity, distance and density
+    % q calculated has the units:  m/yr m m kg/m^3 = kg/yr
+    % To get Gt divide by 1e9
+    cbar=QuiverColorGHG(xEdge,yEdge,qGLx/1e9,qGLy/1e9,Par);
+    title(cbar,'kg/yr')   ;
     axis equal
     
 end

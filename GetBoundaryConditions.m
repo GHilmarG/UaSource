@@ -1,7 +1,6 @@
 
 function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F)
 
-persistent BCsFig
 
 narginchk(5,5)
 nargoutchk(2,2)
@@ -13,7 +12,9 @@ nargoutchk(2,2)
 
 if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
     
-    fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
+    if CtrlVar.InfoLevel>=10
+        fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
+    end
     
     N=nargout('DefineBoundaryConditions');
     
@@ -100,11 +101,8 @@ end
 
 
 if CtrlVar.doplots && CtrlVar.PlotBCs
-    if isempty(BCsFig) || ~ishandle(BCsFig)
-        BCsFig=figure('Name','Boundary Conditions','NumberTitle','off');
-    else
-        figure(BCsFig)
-    end
+    fig=FindOrCreateFigure("Boundary Conditions");
+    clf(fig) 
     hold off
     PlotBoundaryConditions(CtrlVar,MUA,BCs,'k');
 end

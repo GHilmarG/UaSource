@@ -1,6 +1,10 @@
 function [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,rho,g,s0,b0,s1,b1,a0,a1,dt)
 
-if nargout==1 ; OnlyR=1 ; else OnlyR=0 ; end
+if nargout==1  
+    OnlyR=1 ; 
+else
+    OnlyR=0 ;
+end
 
 if CtrlVar.InfoLevelCPU>=10 ;   tCPU=tic; end
 

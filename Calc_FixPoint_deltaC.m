@@ -1,4 +1,9 @@
-function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
+function dIdC=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas)
+
+narginchk(5,5)
+
+
+%  dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     
     % Fix point idea:
     %
@@ -44,41 +49,73 @@ function dIdC=Calc_FixPoint_deltaC(CtrlVar,MUA,C,m,GF,ub,vb,usMeas,vsMeas)
     
     
     if CtrlVar.CisElementBased
-        uEle=Nodes2EleMean(MUA.connectivity,ub); 
-        vEle=Nodes2EleMean(MUA.connectivity,vb); 
+        uEle=Nodes2EleMean(MUA.connectivity,F.ub); 
+        vEle=Nodes2EleMean(MUA.connectivity,F.vb); 
         speed=sqrt(uEle.*uEle+vEle.*vEle);
-        uEleMeas=Nodes2EleMean(MUA.connectivity,usMeas); vEleMeas=Nodes2EleMean(MUA.connectivity,vsMeas);
+        uEleMeas=Nodes2EleMean(MUA.connectivity,Meas.us); 
+        vEleMeas=Nodes2EleMean(MUA.connectivity,Meas.vs);
         speedMeas=sqrt(uEleMeas.*uEleMeas+vEleMeas.*vEleMeas);
     else 
-        speed=sqrt(ub.*ub+vb.*vb);
-        speedMeas=sqrt(usMeas.*usMeas+vsMeas.*vsMeas);
+        speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+        speedMeas=sqrt(Meas.us.*Meas.us+Meas.vs.*Meas.vs);
     end
     
     
     %dIdC=-(speedEleMeas-speedEle)./(tb./GF.ele).^m; % this is not based on dIdC= dI/du  du/dC, this is an estimate of the (negative) Newton step -H\grad I
     
     minSpeed=10;
-    speedMeas(speedMeas<minSpeed)=minSpeed; % see Remark
-    dIdC=-C.*(speedMeas-speed)./(speed+minSpeed) ; % this is not based on dIdC= dI/du  du/dC,
+    % speedMeas(speedMeas<minSpeed)=minSpeed; % see Remark
+    % dIdC=-F.C.*(speedMeas-speed)./(speed+minSpeed) ; % this is not based on dIdC= dI/du  du/dC,
+
+    
+    % dIdC=-0.5*(F.C+Clast).*(speedMeas-speed)./((speed+speedMeas)/2+ minSpeed) ; % this is not based on dIdC= dI/du  du/dC,
+    
+    DSpeed=(speedMeas-speed);
+    
+    % experience has shown that this fix-point method sometimes stagnates after one
+    % iteration.  Using speedMeas instead of calculated speed helps, and also not
+    % trying to match largest differences right away.
+    %
+    %     factor=0.95;  % set any differences beyond a given upper +/- range to upper values
+    %     DSpeedMax=factor*(max(DSpeed)-mean(DSpeed))+ mean(DSpeed) ;
+    %     DSpeedMin=factor*(min(DSpeed)-mean(DSpeed)) + mean(DSpeed) ;
+    %
+    %     DSpeed(DSpeed>DSpeedMax)=DSpeedMax;
+    %     DSpeed(DSpeed<DSpeedMin)=DSpeedMin;
+    
+    dIdC=-F.C.*DSpeed./(speedMeas+minSpeed) ; % here using speedMeas instead of calculated speed. 
+    
+    
+    % I=find(dIdC> (mean(dIdC)+10*std(dIdC)));  numel(I)
+    % I=find(dIdC< (mean(dIdC)-10*std(dIdC)));  numel(I)
+    
     % but an estimate of the (negative) Newton step -H\grad I
     % the problem with this expression is that u is not equal to c (tb/He)^m when He->0
     
     % Remark: when speedEleMeas=0 then  dIdC=-(speedEleMeas-speedEle)./(speedEle./C)=1/C , irrespectivly of how close speedEle is to zero.
     % This will drive C further and further towards zero with every iteration.
     % in some sense this is correct, because only for C stricly equal to 0 is speedEle=0
-    % The problme is that this creates infinitly large beta^2
+    % The problem is that this creates infinitly large beta^2
     % and to avoid this I introduce a minimum speed of 1 m/a
     
     
+    % if C is close to limits and gradient is pushing it further towards the limits,
+    % set gradient to zero
+    dIdC(F.C>0.9*CtrlVar.Cmax & dIdC<0)=0; dIdC(F.C<0.1*CtrlVar.Cmin & dIdC>0)=0;
+    
+    
+    
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        dIdC=log(10)*C.*dIdC;
+        dIdC=log(10)*F.C.*dIdC;
     end
     
+    dIdC=dIdC/norm(dIdC) ; % Just normalize this gradient to ensure step size are numerically reasonable
+                            
     
     if CtrlVar.CisElementBased
-        dIdC=dIdC.*GF.ele;
+        dIdC=dIdC.*F.GF.ele;
     else
-        dIdC=dIdC.*GF.node;
+        dIdC=dIdC.*F.GF.node;
     end
     
    

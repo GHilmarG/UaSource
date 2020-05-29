@@ -32,7 +32,7 @@ p=kk_proj(p,pub,plb);
 
 [J0,dJdp,Hess,fOuts]=func(p);
 dJdp=dJdp(:);
-GradNorm=norm(dJdp)/sqrt(numel(dJdp));
+GradNorm=norm(dJdp);
 RunInfo.Inverse.ConjGradUpdate=0;
 
 if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1
@@ -63,13 +63,13 @@ end
 % If CtrlVar.Inverse.InitialLineSearchStepSize is defined use that
 %
 
-if norm(dJdp)<eps
-   
-    fprintf('Norm of the gradient of the objective function is less than eps. \n')
-    fprintf('No further inverse iterations needed/possible. \n')
-    return
-    
-end
+% if norm(dJdp)<eps
+%    
+%     fprintf('Norm of the gradient of the objective function is less than eps. \n')
+%     fprintf('No further inverse iterations needed/possible. \n')
+%     return
+%     
+% end
 
 % determine initial search direction and initial step size for line-search.
 if ~(isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0)
@@ -112,14 +112,19 @@ end
 
 
 
-
-
+%% Backtracking parameter modifications
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
-CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSeachSteps;
+CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSearchSteps;
 CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevel;
-
-
+CtrlVar.BackTrackGuardLower=0.25;
+CtrlVar.BackTrackGuardUpper=0.95;
+% Backtracking continues even if target has been reached if last reduction in
+% ratio is smaller than:
+CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
+CtrlVar.NewtonAcceptRatio=0.5;
+CtrlVar.BackTrackExtrapolationRatio=10;
+%%
 
 It0=RunInfo.Inverse.Iterations(end);
 
@@ -133,8 +138,8 @@ iBackTry=0;
 
 for It=1:CtrlVar.Inverse.Iterations
     
-    CtrlVar.BackTrackExtrapolationRatio=10;
-    CtrlVar.NewtonAcceptRatio=0.90;
+    
+
     [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
     
@@ -148,6 +153,9 @@ for It=1:CtrlVar.Inverse.Iterations
         Func=@(gamma) func(p-gamma*dJdpModified);
         J1=Func(gamma);
         
+        
+   
+        
         [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
         nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
         
@@ -158,13 +166,13 @@ for It=1:CtrlVar.Inverse.Iterations
         
     end
     %
-%     if BackTrackingInfoVector.converged
-%         iBackTry=0;   % After returning from a successful backtracking, update p
-%         p=p-gamma*dJdpModified;
-%         dJdpLast=dJdp;
-%     else
-%         fprintf(' Line search has stagnated,')
-%         iBackTry=iBackTry+1;
+    %     if BackTrackingInfoVector.converged
+    %         iBackTry=0;   % After returning from a successful backtracking, update p
+    %         p=p-gamma*dJdpModified;
+    %         dJdpLast=dJdp;
+    %     else
+    %         fprintf(' Line search has stagnated,')
+    %         iBackTry=iBackTry+1;
 %         if iBackTry==1
 %             fprintf(' try resetting step size to 1.\n')
 %             gamma=1;

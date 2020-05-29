@@ -105,18 +105,22 @@ end
 
 
 %% assemble global Lagrange constraint matrix
-MLC=BCs2MLC(MUA,BCs1);
-Luv=MLC.ubvbL;
-cuv=MLC.ubvbRhs;
-Lh=MLC.hL;
-ch=MLC.hRhs;
+MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 
-if numel(l1.ubvb)~=numel(cuv) ; l1.ubvb=zeros(numel(cuv),1) ; end
-if numel(l1.h)~=numel(ch) ; l1.h=zeros(numel(ch),1) ; end
+% Luv=MLC.ubvbL;
+% cuv=MLC.ubvbRhs;
+% Lh=MLC.hL;
+% ch=MLC.hRhs;
+
+if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
+if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
 nlubvb=numel(l1.ubvb) ; 
 
 
-[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+%[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
+[L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+
+
 dl=luvh*0;
 
 
@@ -160,12 +164,12 @@ while true
     
     if RunInfo.BackTrack.Converged==0
         if CtrlVar.InfoLevelNonLinIt>=1
-            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         
         if CtrlVar.WriteRunInfoFile
-            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteraton with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
+            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g, du=%-g and dh=%-g  after %-i iterations. \n',...
                 CtrlVar.time,CtrlVar.dt,r,diffDu,diffDh,iteration) ;
         end
         
@@ -251,15 +255,9 @@ while true
     [UserVar,RunInfo,r1,ruv1,rh1,rl1]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
     
     %% either accept full Newton step or do a line search
-
-    
     
     [UserVar,RunInfo,gamma,r,ruv,rh,rl]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,ruv1,rh1,rl1,Fext0);
-    
-    % [UserVar,RunInfo,r1Test,ruv1Test,rh1Test,rl1Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-    %
-    % Is r1Test equal to r ?
-    %
+
     
     iarm=RunInfo.BackTrack.iarm;
     infovector=RunInfo.BackTrack.Infovector;
@@ -288,15 +286,8 @@ while true
         slope=-2*r0;
         
         FigName='uvh iteration: line-search';
-        fig=findobj(0,'name',FigName);
-        if isempty(fig)
-            fig=figure('name',FigName);
-            fig.Position=[10,10,600,600] ;
-        else
-            fig=figure(fig);
-            hold off
-        end
-        
+      
+        FindOrCreateFigure(FigName);
         
         
         plot(gammaTestVector,rTestvector,'o-r') ; hold on ;
@@ -315,10 +306,14 @@ while true
     
     
     %% calculate statistics on change in speed, thickness and Lagrange parameters
-    D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
-    diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
-    diffDh=full(max(abs(dh))/mean(abs(F1.h)));            % max change in thickness divided by mean thickness
-    diffDlambda=max(abs(dl))/mean(abs(luvh));
+    % D=mean(sqrt(F1.ub.*F1.ub+F1.vb.*F1.vb))+CtrlVar.SpeedZero;
+    % diffDu=full(max(abs(dub))+max(abs(dvb)))/D;        % sum of max change in du and dv normalized by mean speed
+    
+    Inodes=F1.h<=CtrlVar.ThickMin; 
+    [diffDu,diffDh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,dub,dvb,dh);
+
+    diffDlambda=norm(dl)/(norm(luvh)+eps);
+    
     diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
     diffVector(iteration+1)=r;
     
@@ -345,17 +340,18 @@ while true
     end
     
     % make sure to update s and b as well!
-    [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+    % [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng old
+    [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % TestIng new
     CtrlVar.ResetThicknessToMinThickness=temp;
     
-    if~isempty(Lh)
-        BCsNormh=norm(ch-Lh*F1.h);
+    if~isempty(MLC.hL)
+        BCsNormh=norm(MLC.hRhs-MLC.hL*F1.h);
     else
         BCsNormh=0;
     end
     
-    if~isempty(Luv)
-        BCsNormuv=norm(cuv-Luv*[F1.ub;F1.vb]);
+    if ~isempty(MLC.ubvbL)
+        BCsNormuv=norm(MLC.ubvbRhs-MLC.ubvbL*[F1.ub;F1.vb]);
     else
         BCsNormuv=0;
     end
@@ -431,17 +427,10 @@ if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
     
     FigName='NR uvh implicit';
-    fig=findobj(0,'name',FigName);
-    if isempty(fig)
-        fig=figure('name',FigName);
-        fig.Position=[10,10,800,800] ;
-    else
-        fig=figure(fig);
-        hold off
-    end
     
-    
+    FindOrCreateFigure(FigName);
     semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR uvh implicit') ; xlabel('Iteration') ; ylabel('Residual')
+
 end
 
 if ~isempty(L)
@@ -471,7 +460,7 @@ RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.
 if CtrlVar.WriteRunInfoFile
     
     fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-        CtrlVar.uvhTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
+        CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
     
 end
 
