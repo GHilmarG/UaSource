@@ -7,7 +7,7 @@ classdef BoundaryConditions
     
     properties
         
-        % basal
+        % basal velocities
         ubFixedNode=[];
         ubFixedValue=[];
         vbFixedNode=[];
@@ -54,7 +54,12 @@ classdef BoundaryConditions
         dhdtTiedNodeB=[];
          
         
+        % Boundary conditions for the Level Set Field (LSF)
         
+        LSFFixedNode=[];
+        LSFFixedValue=[];
+        LSFTideNodeA=[];
+        LSFTideNodeB=[];
         
     end
  

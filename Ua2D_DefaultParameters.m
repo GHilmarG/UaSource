@@ -1400,7 +1400,7 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 
 
-%% Calving 
+%% Calving :  including Level Set Method
 CtrlVar.ManuallyDeactivateElements=0; 
 CtrlVar.LevelSetMethod=0; 
 

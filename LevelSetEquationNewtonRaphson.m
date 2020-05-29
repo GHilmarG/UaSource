@@ -31,10 +31,10 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
     end
     
     MLC=BCs2MLC(CtrlVar,MUA,BCsLevelSet);
-    L=MLC.hL ; Lrhs=MLC.hRhs ;
+    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+    L=[] ; Lrhs=[]; % for the time being
     
-    
-    
+
     
     NRit=0 ;
     
