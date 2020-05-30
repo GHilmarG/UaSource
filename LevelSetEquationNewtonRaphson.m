@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1)
+function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1)
     %%
     %
     %
@@ -10,7 +10,7 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
     
     if ~CtrlVar.LevelSetMethod
         LSF1=F1.LSF;
-        lambda=[];
+        l=[];
         return
     end
     
@@ -30,21 +30,46 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
         CtrlVar.LevelSetResetInterval=10000;
     end
     
-    MLC=BCs2MLC(CtrlVar,MUA,BCsLevelSet);
-    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+    % MLC=BCs2MLC(CtrlVar,MUA,BCsLevelSet);
+    % L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
     L=[] ; Lrhs=[]; % for the time being
+    l=Lrhs*0; 
+    dl=l ; 
+    dLSF=F1.LSF*0;
     
-
     
-    NRit=0 ;
-    
+    iteration=0 ; rWork=inf ; rForce=inf; 
+    CtrlVar.LSFMinimisationQuantity="Force Residuals" ;
     while true
         
-        NRit=NRit+1 ;
         
-        [UserVar,K,R]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         
-        [dLSF,lambda]=solveKApe(K,L,R,Lrhs,[],[],CtrlVar);
+        if iteration>=CtrlVar.LevelSetSolverMaxIterations
+            fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
+            break
+        end
+        
+        if (rWork < CtrlVar.LevelSetSolverWorkTolerance) || (rForce < CtrlVar.LevelSetSolverForceTolerance)
+            fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
+            break
+        end
+        
+        
+        iteration=iteration+1 ;
+        
+        
+        [UserVar,R,K]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+        if ~isempty(L)
+            
+            frhs=-R-L'*l;
+            grhs=cuvh-L*F1.LSF;
+            
+        else
+            frhs=-R;
+            grhs=[];
+        end
+        
+        [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
         dLSF=full(dLSF);
         
         if any(isnan(dLSF))
@@ -52,60 +77,74 @@ function [UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,Run
             error('LevelSetEquationNewtonRaphson:NaNinSolution','NaN in the solution for dLSF')
         end
         
-        F1.LSF=F1.LSF+dLSF;
+        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,l,dLSF,dl);
+        gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
+        gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
         
+        slope0=-2*r0 ;
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        [r1Test,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma);
         
-        % Newton decrement:  (R+L'lambda) dLSF
-        %  R has the units area
-        %  dLSF is dimentionless
-        %
-        % When calculating residuals make R dimentionless as well by dividing by area
-        R=R/MUA.Area;
-        if ~isempty(L)
-            rWork=abs((R+L'*lambda)*dLSF) ;
-            rForce=full((R+L'*lambda)'*(R+L'*lambda)) ;
-        else
-            rWork=abs(R'*dLSF);
-            rForce=full(R'*R);
-        end
-        rDist=sqrt(dLSF'*dLSF)/MUA.Nnodes;
-        
-        
-        %% more info
-        if CtrlVar.LevelSetInfoLevel>=1
-            fprintf('\t Level-Set NR it %i  : \t rWork=%-15g \t rForce=%-15g \t rDist=%-15g  \n',NRit,rWork,rForce,rDist) ;
-            
-            if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
-                FindOrCreateFigure('LSF1'); PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF); title('LSF1')
-                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
-                FindOrCreateFigure('LSF0');  PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF); title('LSF0')
-                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F0,'r');
-                FindOrCreateFigure('dLSF');  PlotMeshScalarVariable(CtrlVar,MUA,dLSF); title('dLSF1')
-                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
+        if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
+            nnn=50;
+            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
+            Upper=2.2;
+            Lower=-1 ;
+            if gamma>0.7*Upper ; Upper=2*gamma; end
+            parfor I=1:nnn
+                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
+                [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
+                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;
             end
+            
+            gammaZero=min(abs(gammaTestVector)) ;
+            if gammaZero~=0
+                [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(0);
+                gammaTestVector(nnn+1)=0 ; rForceTestvector(nnn+1)=rForceTest; rWorkTestvector(nnn+1)=rWorkTest;  rD2Testvector(nnn+1)=D2Test;
+            end
+            
+            [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
+            [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
+            [temp,I0]=min(abs(gammaTestVector)) ;
+            
+            SlopeForce=-2*rForce0;
+            SlopeWork=-2*rWork0;
+            SlopeD2=-D20;
+            CtrlVar.MinimisationQuantity=CtrlVar.LSFMinimisationQuantity;
+            [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-LSF-",...
+                gammaTestVector,rForceTestvector,rWorkTestvector,rD2Testvector,...
+                SlopeForce,SlopeWork,SlopeD2,rForce,rWork,D2);
+            
         end
         
-        if NRit>CtrlVar.LevelSetSolverMaxIterations
-            fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
-            break
+        
+        F1.LSF=F1.LSF+gamma*dLSF;
+        l=l+gamma*dl;
+        if CtrlVar.InfoLevelNonLinIt>=1
+            
+            fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
+                iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork);
         end
-        
-        if (rWork < CtrlVar.LevelSetSolverWorkTolerance) || (rForce < CtrlVar.LevelSetSolverForceTolerance)
-            fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',NRit,rWork,rForce)
-            break
-        end
-        
-        
-        
-        
-
         
     end
     
+    LSF1=F1.LSF ; % Because I don't return F1
     
-    LSF1=F1.LSF ;
-    
+    %% more info
+    if CtrlVar.LevelSetInfoLevel>=1
+        
+        
+        if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
+            FindOrCreateFigure('LSF1'); PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF); title('LSF1')
+            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
+            FindOrCreateFigure('LSF0');  PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF); title('LSF0')
+            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+            FindOrCreateFigure('dLSF');  PlotMeshScalarVariable(CtrlVar,MUA,dLSF); title('dLSF1')
+            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
+        end
+    end
     
     
 end
+
 

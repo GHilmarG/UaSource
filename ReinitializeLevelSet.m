@@ -22,13 +22,15 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     
     %%
     % 1) mask
+    
     Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+    
     
     % 2) Distance from nodes to the nodes of the zero-line elements
     if numel(find(Mask.NodesOn))>0
         Dist=pdist2(MUA.coordinates(Mask.NodesOn,:),MUA.coordinates,'euclidean','Smallest',1) ;
         
-  
+        
         % 3) Replace LSF with signed distance over In and Out nodes
         LSF(Mask.NodesIn)=Dist(Mask.NodesIn) ;
         LSF(Mask.NodesOut)=-Dist(Mask.NodesOut) ;

@@ -1,4 +1,4 @@
-function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
+function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
     
     
     %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
@@ -62,7 +62,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     
     
     % vector over all elements for each integration point
-    for Iint=1:MUA.nip
+    for Iint=1:MUA.nip  % intergration points
         
         
         
@@ -88,7 +88,7 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
         
         tauSUPGint=tauSUPGnod*fun;
         
-
+        
         
         % derivatives at one integration point for all elements
         df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
@@ -143,24 +143,26 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
             
             SUPGdetJw=SUPG.*detJw;
             
-            for Jnod=1:MUA.nod
-                
-                
-                LHS=(fun(Jnod)...
-                    +NR*dt*theta*((u1int-c1xint).*Deriv(:,1,Jnod) + (v1int-c1yint).*Deriv(:,2,Jnod))...  % this term clearly speeds it up (as it should)
-                    ).*SUPGdetJw;
-                
-                
-                LHSDiffusion=dt*theta*...
-                    (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
-                    + NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
-                    .*detJw;
-                
-                
-                LHSterm=LHS+LHSDiffusion; % .*SUPGdetJw ;
-                
-                d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHSterm; % +kdf1dx+kdf1dy;
-                
+            if nargout>2
+                for Jnod=1:MUA.nod
+                    
+                    
+                    LHS=(fun(Jnod)...
+                        +NR*dt*theta*((u1int-c1xint).*Deriv(:,1,Jnod) + (v1int-c1yint).*Deriv(:,2,Jnod))...  % this term clearly speeds it up (as it should)
+                        ).*SUPGdetJw;
+                    
+                    
+                    LHSDiffusion=dt*theta*...
+                        (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
+                        + NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
+                        .*detJw;
+                    
+                    
+                    LHSterm=LHS+LHSDiffusion; % .*SUPGdetJw ;
+                    
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHSterm; % +kdf1dx+kdf1dy;
+                    
+                end
             end
             
             RHS=(f1int-f0int).*SUPGdetJw ...
@@ -173,11 +175,13 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
                 + kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw ...
                 );
             
-            RHSterm=-RHS;
+            RHSterm=RHS;
             
             b1(:,Inod)=b1(:,Inod)+RHSterm; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;
             
         end
+        
+        
     end
     
     % assemble right-hand side
@@ -188,21 +192,22 @@ function [UserVar,kv,rh]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     end
     
     
-    
-    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-    istak=0;
-    
-    for Inod=1:MUA.nod
-        for Jnod=1:MUA.nod
-            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-            Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-            Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
-            istak=istak+MUA.Nele;
+    if nargout>2
+        Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+        istak=0;
+        
+        for Inod=1:MUA.nod
+            for Jnod=1:MUA.nod
+                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+                Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+                Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
+                istak=istak+MUA.Nele;
+            end
         end
+        
+        kv=sparseUA(Iind,Jind,Xval,neq,neq);
     end
-    
-    kv=sparseUA(Iind,Jind,Xval,neq,neq);
-    
+
     
     
     

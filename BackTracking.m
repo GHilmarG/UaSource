@@ -350,10 +350,10 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     else
         [gamma,cStatus]=CubicFit(slope0,fa,fb,fc,b,c,CtrlVar.InfoLevelBackTrack);
         if cStatus==1
-            fprintf(CtrlVar.fidlog,'Cubic Fit returns status 1 with gamma=%-g \n ',gamma);
+            fprintf('Cubic Fit returns status 1 with gamma=%-g \n ',gamma);
             [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc);
             if pStatus==1
-                fprintf(CtrlVar.fidlog,'parabolamin returns status 1 with gamma%-g \n ',gamma);
+                fprintf('parabolamin returns status 1 with gamma%-g \n ',gamma);
             end
         end
     end

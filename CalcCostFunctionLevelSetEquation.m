@@ -1,75 +1,43 @@
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dLSF,dlambda
-
-    dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,l,dLSF,dl)
     
     
     
-    
-      narginchk(15,15)
+    narginchk(11,11)
     nargoutchk(1,6)
     
     
     F1.LSF=F1.LSF+gamma*dLSF;
-    lLSF=lLSF+gamma*dlLSF;
+    l=l+gamma*dl;
+
     
-    
-    CtrlVar.uvhMatrixAssembly.ZeroFields=false;
-    CtrlVar.uvhMatrixAssembly.Ronly=true;
-    
-    
-    [UserVar,K,R]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
-    
-    [UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    [UserVar,R]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
     
     
     if ~isempty(L)
         
-        frhs=-R-L'*luvh;   % Not sure why I put this minus here, but with the minus it becomes the right-hand side
-        grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
+        frhs=-R-L'*l;  
+        grhs=cuvh-L*F1.LSF;
         
     else
         frhs=-R;
         grhs=[];
     end
     
+    frhs=frhs/MUA.Area;
+    grhs=grhs/MUA.Area; 
     
-%    d=[dub;dvb;dh]  ; % Newton step
-%    D2=frhs'*d  ;
-
-% The system I solve is K deltax = -R 
-% and K=dR/dx
-%
-% D^2 = - R d = rhs d
-%
-%
-    % Ru=-frhs(1:MUA.Nnodes) ;
-    % Rv=-frhs(MUA.Nnodes+1:2*MUA.Nnodes)  ;
-    % Rh=-frhs(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
-    % Rl=-grhs ; 
-    % D2u=-Ru'*dub;
-    % D2v=-Rv'*dvb;
-    % D2h=-Rh'*dh;
-    % D2l=-Rl'*dl; 
-    % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
+    D2=[frhs;grhs]'*[dLSF;dl]; 
+    rWork=D2^2;
     
-    D2=[frhs;grhs]'*[dub;dvb;dh;dl];
-    rWork=D2^2; 
+    rForce=full([frhs;grhs]'*[frhs;grhs]); 
     
-    % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
-    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps); 
-    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps)); 
-        
-    switch CtrlVar.uvhMinimisationQuantity
+    switch CtrlVar.LSFMinimisationQuantity
         case "Force Residuals"
             r=rForce;
         case "Work Residuals"
             r=rWork;
     end
     
-%     if nargout>=7
-%         Inodes=[]; 
-%         [ruv,rh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
-%     end
     
 end
 

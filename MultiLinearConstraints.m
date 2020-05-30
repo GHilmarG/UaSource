@@ -8,13 +8,21 @@ classdef MultiLinearConstraints
         udvdL=[];
         udvdRhs=[];
         
-        hL=[];
-        hRhs=[];
-
+        
+        
         ubvbTies=[];
         udvdTies=[];
+        
+        hL=[];
+        hRhs=[];
         hTies=[];
+        
+             
+        LSFL=[];
+        LSFRhs=[];
+        LSFTies=[];
+        
     end
- 
+    
     
 end

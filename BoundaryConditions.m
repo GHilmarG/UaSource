@@ -45,7 +45,12 @@ classdef BoundaryConditions
         hPosNode=[];
         hPosValue=[];
          
-        
+               % thickness  - only used if solving for thickness, for example in a uvh step
+        LSFFixedNode=[];
+        LSFFixedValue=[];
+        LSFTiedNodeA=[];
+        LSFTiedNodeB=[];
+
         % rate of thickness change - only used when using calculating dh/dt in combination with the ajoint methods
         %                            for example when using measurements of dh/dt in an inversion 
         dhdtFixedNode=[];
@@ -53,13 +58,6 @@ classdef BoundaryConditions
         dhdtTiedNodeA=[];
         dhdtTiedNodeB=[];
          
-        
-        % Boundary conditions for the Level Set Field (LSF)
-        
-        LSFFixedNode=[];
-        LSFFixedValue=[];
-        LSFTideNodeA=[];
-        LSFTideNodeB=[];
         
     end
  
