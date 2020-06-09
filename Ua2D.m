@@ -36,8 +36,7 @@ Priors=PriorProbabilityDistribution;
 InvStartValues=InversionValues;
 InvFinalValues=InversionValues; 
 
-BCsLevelSet=BoundaryConditions;
-
+RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 Lubvb=[];
 Ruv=[];
 
@@ -114,7 +113,7 @@ end
 
 
 
-% do some basic test on the vality of the CtrlVar fields
+% do some basic test on the vality of the CtrlVar fields, validate CtlrVar
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
 
 
@@ -348,7 +347,7 @@ while 1
         break
     end
     
-    if CtrlVar.TimeDependentRun && CtrlVar.dt <= CtrlVar.dtmin % I limit dt some small value for numerical reasons
+    if CtrlVar.TimeDependentRun && CtrlVar.dt < CtrlVar.dtmin  && ~RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs
         fprintf('Exiting run-step loop because time step too small (%g<%g)\n',CtrlVar.dt,CtrlVar.dtmin)
         TempFile=CtrlVar.Experiment+"-UaDumpTimeStepTooSmall.mat";
         fprintf(CtrlVar.fidlog,' saving variables in %s \n ',TempFile) ;
@@ -395,7 +394,7 @@ while 1
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
         
-        [UserVar,RunInfo,MUA,BCs,BCsLevelSet,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,BCsLevelSet,F,l,Ruv,Lubvb);
+        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
  
         
@@ -408,8 +407,14 @@ while 1
             figMesh=FindOrCreateFigure("Mesh");
             clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
             [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
+            if ~isempty(xGL)
+                Temp=figMesh.CurrentAxes.Title.String;
+                figMesh.CurrentAxes.Title.String={Temp,"Grounding line in red"};
+            end
             if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                 Temp=figMesh.CurrentAxes.Title.String;
+                figMesh.CurrentAxes.Title.String={Temp,"Calving front in blue"};
             end
             hold off
         end
@@ -435,11 +440,11 @@ while 1
     % Geometry modifications might depend on the level-set, so call GetCalving before
     % GetGeometryAndDensities.
     
-    [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F);
+    [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
-    if CtrlVar.LevelSetMethod
+    if CtrlVar.LevelSetMethod % Level Set
        [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; 
     end
     
@@ -637,7 +642,7 @@ while 1
         end
         
         % update Level Set to current time using the new velocities 
-        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F);
+        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);
         
     end   % CtrlVar.TimeDependentRun
     

@@ -1,8 +1,10 @@
-function [UserVar,RunInfo,phi1,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0)
+function [UserVar,RunInfo,phi1,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,CtrlVar,MUA,BCs,F0)
     %%
     %
     %
     %  %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
+    %
+    % This was an initial rough approach, now only use LevelSetEquationNewtonRaphson.m
     %
     
     persistent iCalls
@@ -13,8 +15,7 @@ function [UserVar,RunInfo,phi1,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,C
         lambda=[]; 
         return
     end
-    
-    
+
     
     if isempty(iCalls)
         iCalls=0 ;
@@ -30,48 +31,15 @@ function [UserVar,RunInfo,phi1,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,C
         CtrlVar.LevelSetResetInterval=10000;
     end
     
-    MLC=BCs2MLC(CtrlVar,MUA,BCsLevelSet);
-    L=MLC.hL ; Lrhs=MLC.hRhs ;
     
+    MLC=BCs2MLC(CtrlVar,MUA,BCs);
+    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+    l=Lrhs*0;
+  
     
- 
     [UserVar,kv,rh]=LevelSetEquationAssembly(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb);
     [phi1,lambda]=solveKApe(kv,L,rh,Lrhs,[],[],CtrlVar);
     phi1=full(phi1);
-    
-    
-    
-    
-%     if isempty(phi0) ||  mod(iCalls,CtrlVar.LevelSetResetInterval)==0
-%         
-%         % >>>>>  Initialize
-%         CtrlVar.PlotGLs=0 ;
-%         GF.node=phi1;
-%         [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'k') ;
-%         
-%         x=MUA.coordinates(:,1);
-%         y=MUA.coordinates(:,2);
-%         xMax=max(x) ; xMin=min(x) ;  xL=xMax-xMin;
-%         yMax=max(y) ; yMin=min(y) ;  yL=yMax-yMin;
-%         CalvingFrontClosure=[xc(end) yMax+yL ;   xMin-xL yMax+yL ; xMin-xL yMin-yL ;  xc(end) yMin-yL ] ;
-%         
-%         CalvingFront=[xc(:) yc(:) ; CalvingFrontClosure ] ;
-%         Npoints=1000 ; CalvingFront = interparc(Npoints,CalvingFront(:,1),CalvingFront(:,2),'linear'); % add some points
-%         DistSigned=SignedDistance(MUA.coordinates,CalvingFront);
-%         phi1=DistSigned ;
-%         % <<<<<<
-%     end
-%     
-%     
-    
-    
-    
-    %     %% Plotting
-    %     figLSF=FindOrCreateFigure("Level Set Field");
-    %     PlotMeshScalarVariable(CtrlVar,MUA,phi1) ; title("Level Set")
-    %     hold on
-    %     F.LSF=phi1 ;
-    %     [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'r');
     
 end
 

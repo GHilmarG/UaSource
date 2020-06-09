@@ -20,13 +20,20 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     
     theta=CtrlVar.theta;
     dt=CtrlVar.dt;
+    CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
     tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
     
-    l=sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
+    l2=TriAreaFE(MUA.coordinates,MUA.connectivity);
     
-    speed0=sqrt(u0.*u0+v0.*v0) ; V=abs(speed0-c0) ;
-    V=Nodes2EleMean(MUA.connectivity,V) ;
-    mu=V.*l;  % looks resonable to me
+    if CtrlVar.LevelSetFAB
+        speed0=sqrt(u0.*u0+v0.*v0) ; V=abs(speed0-c0) ;
+        V=Nodes2EleMean(MUA.connectivity,V) ;
+        mu=V.*l2;  % looks resonable to me
+    else
+        mu=0;
+    end
+    
+    
     
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);

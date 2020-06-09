@@ -40,14 +40,19 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
     %
     % 
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Nod10-MeshSize10000-lambdak100","PlotType","-hPositive-","PlotTimeInterval",[130 300])
+    %
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","TravellingFront-1dAnalyticalIceShelf","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","TravellingFront-1dAnalyticalIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %                                                                   
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-Level Set-","PlotTimestep",10,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
     defaultPlotType="-mesh-speed-calving-level set-";
     expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
         '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
-        '-1dIceShelf-','-hPositive-',...
+        '-1dIceShelf-','-hPositive-','-Level Set-',...
         '-collect-'};
     
     IP = inputParser;
@@ -299,6 +304,44 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     sgtitle(sprintf("Cubic element.  time=%3.0f",CtrlVar.time))
                     
                     
+                case "-Level Set-"
+                    
+                    if ~isempty(F.LSF)
+                        
+                        
+                        fMeshLSF=FindOrCreateFigure("Mesh and LSF");
+                        clf(fMeshLSF) ;
+                        
+                        fMeshLSF.Position=[100 650 1100 570] ;
+                        PlotMuaMesh(CtrlVar,MUA); hold on
+                    
+                        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
+                        if ~isempty(xGL)
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String={Temp,"Grounding line in red"};
+                        end
+                        
+                        if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
+                            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String={Temp,"Calving front in blue"};
+                            
+                            [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,10);
+                            plot(xf/1000,yf/1000,'r','LineWidth',2); 
+                            
+                            
+                        end
+                        Par.RelativeVelArrowSize=10 ;
+                        QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
+                        
+                        Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+                        plot(MUA.coordinates(Mask.NodesOut,1)/1000,MUA.coordinates(Mask.NodesOut,2)/1000,'*b')
+                        
+                        xlim([min(xc)-50e3  max(xc)+50e3]/1000)
+                        ylim([-12 12])
+                        drawnow
+                    end
+                    
                 case "-1dIceShelf-"
                     %%
                     
@@ -308,7 +351,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     yProfile=0 ;
                     
                     FigureName='flowline';
-                    FigFL=FindOrCreateFigure(FigureName) ;
+                    FigFL=FindOrCreateFigure(FigureName) ; 
+                    clf(FigFL)
                     FigFL.InnerPosition=[100 700 939 665];
                     hold on 
                     % point selection
@@ -327,27 +371,57 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     sProfile=sProfile(Ix);
                     bProfile=bProfile(Ix);
                     
-                    
+                    if isfield(F,'c') && ~isempty(F.c)
+                        cProfile=F.c(Iy);
+                        cProfile=cProfile(Ix);
+                    else
+                        cProfile=[];
+                    end
+              
+                    if isfield(F,'LSF') && ~isempty(F.LSF)
+                        LSFProfile=F.LSF(Iy);
+                        LSFProfile=LSFProfile(Ix);
+                    else
+                        LSFProfile=[];
+                    end
+            
                     yyaxis left
-                    plot(xProfile/1000,sProfile,'bo')
+                    plot(xProfile/1000,sProfile,'bo-','DisplayName','$s$')
                     hold on
-                    plot(xProfile/1000,bProfile,'go')
+                    plot(xProfile/1000,bProfile,'go-','DisplayName','$b$')
                     
-                    plot(x/1000,s,'b-','LineWidth',2)
-                    plot(x/1000,b,'g-','LineWidth',2)
+                    if contains(CtrlVar.Experiment,'analytical')
+                        plot(x/1000,s,'b-','LineWidth',2,'DisplayName','$s$ analytical')
+                        plot(x/1000,b,'g-','LineWidth',2,'DisplayName','$b$ analytical')
+                    end
+                    
+                    if ~isempty(LSFProfile)
+                       
+                        plot(xProfile/1000,LSFProfile*(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)),'m.-','DisplayName','$\varphi$ (scaled)')
+                        
+                    end
+                    
                     ylabel('$z$ (m)','interpreter','latex')
+                    
                     yyaxis right
                     
-                    plot(xProfile/1000,uProfile,'ro')
+                    plot(xProfile/1000,uProfile,'ro-','DisplayName','$u$')
                     hold on
-                    plot(x/1000,u,'r-','LineWidth',2)
+                    if contains(CtrlVar.Experiment,'analytical')
+                        plot(x/1000,u,'r-','LineWidth',2,'DisplayName','$u$ analytical')
+                    end
+                    
+                    if ~isempty(cProfile)
+                        plot(xProfile/1000,cProfile,'-k','DisplayName','$c$')
+                    end
+                    
+                    
                     ylabel('$u$ (m/a)','interpreter','latex')
                     
                     title(sprintf('Profile along the medial line at t=%g',CtrlVar.time))
                     xlabel('$x$ (km)','interpreter','latex') ;
-                    legend('$s$ numerical','$b$ numerical','$s$ analytical ','$b$ analytical','$u$ numerical','$u$ analytical',...
-                        'interpreter','latex','Location','SouthEast')
-                    xlim([0 600]);
+                    legend('interpreter','latex','Location','SouthEast')
+                    xlim([min(x)/1000 max(x)/1000]);
                     hold off
                     
                     
@@ -786,17 +860,19 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     Sub4.Position=[0.55 0.05 0.35 0.43];
                     
             end
-            
-            if PlotType~="-1dIceShelf-"
-                axis equal tight ; axis(AxisLimits) ;
-            end
+            %
+            %             if PlotType~="-1dIceShelf-"
+            %                 axis equal tight ; axis(AxisLimits) ;
+            %             end
             
             if CreateVideo
                 iFrame=iFrame+1;
-                Frame = getframe(gcf);
-                %Frame = hardcopy(hFig, '-opengl', '-r0');
-                writeVideo(vidObj,Frame);
-                hold off
+                if iFrame>1
+                    Frame = getframe(gcf);
+                    %Frame = hardcopy(hFig, '-opengl', '-r0');
+                    writeVideo(vidObj,Frame);
+                    hold off
+                end
                 
             end
             

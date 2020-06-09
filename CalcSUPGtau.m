@@ -4,7 +4,7 @@ function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
 %
 %  Calculates nodal based tau values to be used in the SUPG method.
 %
-
+% Area=l^2/2 -> l=sqrt( 2 Area) 
 l=sqrt(2*TriAreaFE(MUA.coordinates,MUA.connectivity));
 [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
 l=M*l;

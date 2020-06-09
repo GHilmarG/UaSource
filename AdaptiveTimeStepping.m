@@ -30,7 +30,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     %
     % There are some further modifications possible:
     %  -time step is adjusted so that time interval for making transient plots (CtrlVar.TransientPlotDt) is not skipped over
-    %  -time step is not increased further than the target time step CtrlVar.ATStimeStepTarget
+    %  -time step is not increased further than the target time step CtrlVar.ATSdtMax
     %  -time step is adjusted so that total simulation time does not exceed CtrlVar.TotalTime
     %
     %
@@ -39,6 +39,8 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     narginchk(5,5)
     
     persistent dtNotUserAdjusted dtOutLast dtModifiedOutside
+    
+    RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0 ;
     
     
     if ~CtrlVar.Implicituvh
@@ -142,22 +144,28 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
             % increase in the number of non-linear iterations, or if the initial time step
             % a the start of a run was set too large.
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
+            dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
             RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
-            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
-            
+            if dtOut<dtIn
+                fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            end
         else
             
             % This is the more general case.
             
             if RunInfo.Forward.AdaptiveTimeSteppingResetCounter>CtrlVar.ATSintervalDown && ~isnan(TimeStepDownRatio)
-              
+                
                 % Potentially decrease time step
                 
                 if all(ItVector(1:CtrlVar.ATSintervalDown) > (CtrlVar.ATSTargetIterations+2) )  ||  ( TimeStepDownRatio > 2 )
                     dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
+                    dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
                     RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
                     
-                    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+                    if dtOut<dtIn
+                        fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut)
+                    end
+                    
                 end
             end
             
@@ -166,7 +174,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
                     
                     % Potentially increase time step 
                     
-                    dtOut=min(CtrlVar.ATStimeStepTarget,dtIn*CtrlVar.ATStimeStepFactorUp);
+                    dtOut=min(CtrlVar.ATSdtMax,dtIn*CtrlVar.ATStimeStepFactorUp);
                     RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
                     
                     if  CtrlVar.UaOutputsDt>0
@@ -184,9 +192,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
                     
                     
                     
-                    if CtrlVar.ATStimeStepTarget <= dtOut
-                        dtOut=CtrlVar.ATStimeStepTarget ;
-                        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached target time step of %-g and is therefore not increased further \n ',CtrlVar.ATStimeStepTarget);
+                    if CtrlVar.ATSdtMax <= dtOut
+                        dtOut=CtrlVar.ATSdtMax ;
+                        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reacd max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
                     else
                         if dtOut>dtIn
                             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
@@ -218,6 +226,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         dtOut=CtrlVar.UaOutputsDt/round(CtrlVar.UaOutputsDt/dtOut,1,'significant') ;
     end
     
+    
+    
+    
     RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modifications related to plot times and end times.
     % This is the dt to be used in further restart runs
     
@@ -233,6 +244,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.UaOutputsDt);
         if abs(temp-dtOut)>100*eps
             fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate user output requirements and set to %-g \n ',dtOut);
+            RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=1; 
         end
     end
     

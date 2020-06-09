@@ -1,8 +1,8 @@
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,l,dLSF,dl)
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl)
     
     
     
-    narginchk(11,11)
+    narginchk(12,12)
     nargoutchk(1,6)
     
     
@@ -16,7 +16,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     if ~isempty(L)
         
         frhs=-R-L'*l;  
-        grhs=cuvh-L*F1.LSF;
+        grhs=Lrhs-L*F1.LSF;
         
     else
         frhs=-R;

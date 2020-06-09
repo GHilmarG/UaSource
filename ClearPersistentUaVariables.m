@@ -29,5 +29,5 @@ clear GetDesiredEleSize
 clear PlotMeshScalarVariable
 clear PlotFEmesh
 clear FindOrCreateFigure
-
+clear LevelSetEquation
 end

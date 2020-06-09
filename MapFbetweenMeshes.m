@@ -1,9 +1,9 @@
-function [UserVar,RunInfo,Fnew,BCsNew,lnew,BCsLevelSetNew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,BCsLevelSetOld,OutsideValue)
+function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue)
 
          
 
-narginchk(9,10)
-nargoutchk(6,6)
+narginchk(8,9)
+nargoutchk(5,5)
 
 if nargin<9 || isempty(OutsideValue)
     OutsideValue.h=CtrlVar.ThickMin;
@@ -14,7 +14,6 @@ end
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
 Fnew=Fold;
-BCsLevelSetNew=BCsLevelSetOld; 
 
 if ~RunInfo.MeshAdapt.isChanged
 
@@ -167,8 +166,8 @@ if  CtrlVar.LevelSetMethod
         OutsideValue.LSF,...
         Fold.LSF) ;
 
-    BCsLevelSetNew=BoundaryConditions;
-    [UserVar,BCsLevelSetNew,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,BCsNew,BCsLevelSetNew,Fnew);
+
+    [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew);
     
 end
 

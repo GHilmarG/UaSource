@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1)
+function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
     %%
     %
     %
@@ -30,26 +30,40 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         CtrlVar.LevelSetResetInterval=10000;
     end
     
-    % MLC=BCs2MLC(CtrlVar,MUA,BCsLevelSet);
-    % L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
-    L=[] ; Lrhs=[]; % for the time being
+    MLC=BCs2MLC(CtrlVar,MUA,BCs);
+    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
     l=Lrhs*0; 
     dl=l ; 
     dLSF=F1.LSF*0;
     
     
-    iteration=0 ; rWork=inf ; rForce=inf; 
-    CtrlVar.LSFMinimisationQuantity="Force Residuals" ;
+    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
+   CtrlVar.LevelSetSolverMaxIterations=25;
+    
     while true
+     
         
+        if gamma > max(CtrlVar.LSFExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
+            
+            ResidualsCriteria=(rWork<CtrlVar.LSFDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFDesiredWorkAndForceTolerances(2))...
+                && (rWork<CtrlVar.LSFDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFDesiredWorkOrForceTolerances(2))...
+                && iteration >= CtrlVar.NRitmin;
+            
+        else
+            
+            ResidualsCriteria=(rWork<CtrlVar.LSFAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFAcceptableWorkAndForceTolerances(2))...
+                && (rWork<CtrlVar.LSFAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFAcceptableWorkOrForceTolerances(2))...
+                && iteration >= CtrlVar.NRitmin;
+            
+        end
         
-        
+           
         if iteration>=CtrlVar.LevelSetSolverMaxIterations
             fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
             break
         end
         
-        if (rWork < CtrlVar.LevelSetSolverWorkTolerance) || (rForce < CtrlVar.LevelSetSolverForceTolerance)
+        if ResidualsCriteria
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             break
         end
@@ -62,7 +76,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         if ~isempty(L)
             
             frhs=-R-L'*l;
-            grhs=cuvh-L*F1.LSF;
+            grhs=Lrhs-L*F1.LSF;
             
         else
             frhs=-R;
@@ -77,7 +91,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             error('LevelSetEquationNewtonRaphson:NaNinSolution','NaN in the solution for dLSF')
         end
         
-        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,l,dLSF,dl);
+        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl);
         gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
         
@@ -121,28 +135,19 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
         if CtrlVar.InfoLevelNonLinIt>=1
-            
-            fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
-                iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork);
+            BCsError=norm(Lrhs-L*F1.LSF);
+            fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
+                iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
         end
         
     end
     
     LSF1=F1.LSF ; % Because I don't return F1
     
-    %% more info
-    if CtrlVar.LevelSetInfoLevel>=1
-        
-        
-        if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
-            FindOrCreateFigure('LSF1'); PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF); title('LSF1')
-            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
-            FindOrCreateFigure('LSF0');  PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF); title('LSF0')
-            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F0,'r');
-            FindOrCreateFigure('dLSF');  PlotMeshScalarVariable(CtrlVar,MUA,dLSF); title('dLSF1')
-            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'r');
-        end
-    end
+ 
+    
+    
+   
     
     
 end

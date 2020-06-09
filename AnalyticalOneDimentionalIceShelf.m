@@ -1,6 +1,6 @@
 
 
-function [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,F,hgl,ugl,xgl)
+function [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,F,hgl,ugl,xgl,x,A,n,rho,rhow,a,g)
     %
     %
     % a=0.3;
@@ -9,21 +9,24 @@ function [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,F,hgl,ugl,xgl)
     % rhow=1030;
     % g=9.81/1000;
     % A=AGlenVersusTemp(-10);
-    % hgl=2000;
+    % hgl=1000;
     % ugl=300;
     
-    
-    a=F.as+F.ab ;
-    n=F.n;
-    rho=F.rho;
-    rhow=F.rhow;
-    g=F.g;
-    A=F.AGlen;
+    if nargin<9
+        a=F.as(1)+F.ab(1) ;
+        n=F.n(1);
+        rho=F.rho(1);
+        rhow=F.rhow(1);
+        g=F.g(1);
+        A=F.AGlen(1);
+    end
     
     qgl=hgl*ugl;
     gamm=A.*(rho.*(1-rho./rhow).*g).^n./(4.^n);
-    x=sort(MUA.coordinates(:,1)-xgl) ;
     
+    if nargin<7 || isempty(x)
+        x=sort(MUA.coordinates(:,1)-xgl) ;
+    end
     
     K=qgl.^(n + 1).*(a./hgl.^(n + 1)-gamm);
     

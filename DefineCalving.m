@@ -1,4 +1,4 @@
-function [UserVar,LSF,BCsLevelSet,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F)
+function [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,BCs,F)
     
     %%  This is the only DefineCalving m-file at the moment, still testing
     

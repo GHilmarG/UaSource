@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1)
+function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
     %%
     %
     %
@@ -9,7 +9,7 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
     nargoutchk(3,3)
     
     
-    persistent iCalls
+    persistent LastResetTime
     
     
     if ~CtrlVar.LevelSetMethod
@@ -18,10 +18,16 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
         return
     end
     
-    if isempty(iCalls)
-        iCalls=0 ;
+    if isempty(LastResetTime)
+        LastResetTime=0 ;
     end
-    iCalls=iCalls+1;
+ 
+       
+    if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval) 
+        fprintf("LevelSetEquation: Level Set is re-initialized. \n")
+        [F0.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F0.LSF)  ;
+        LastResetTime=CtrlVar.time ; 
+    end
     
     
     
@@ -30,20 +36,26 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
         
         case "Piccard"
             
-            [UserVar,RunInfo,LSF,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0);
+            [UserVar,RunInfo,LSF,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,CtrlVar,MUA,BCs,F0);
             
         otherwise
             
             % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
-            [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1);
+            [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
             
     end
+ 
     
-    if mod(iCalls,CtrlVar.LevelSetMethodReinitializeInterval)==0
-        fprintf("LevelSetEquation: Level Set is re-initialized. \n")
-        [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,LSF)  ;
+    
+    if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
+       
+        F1.LSF=LSF ; % here needed for plotting
+        [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);
+        
     end
     
     
 end
+
+
 

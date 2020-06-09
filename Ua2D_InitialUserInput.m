@@ -37,7 +37,8 @@ CtrlVar.UaOutputsDt=0; % interval between calling UaOutputs. 0 implies call it a
                        % setting CtrlVar.UaOutputsDt=1; causes UaOutputs to be called every 1 years.
                        % This is a more reasonable value once all looks OK.
 
-CtrlVar.ATStimeStepTarget=1;
+
+CtrlVar.ATSdtMax=1;
 CtrlVar.WriteRestartFile=1;
 
 %% Reading in mesh

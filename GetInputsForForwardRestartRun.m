@@ -195,7 +195,7 @@ end
 
 fprintf(' Note: Even though this is a restart run the following variables are defined at the beginning of the run\n')
 fprintf('       through calls to corresponding user-input files: rho, rhow, g, C, m, AGlen, n, as, and ab.\n')
-fprintf('       These will owerwrite those in restart file.\n')
+fprintf('       These will overwrite those in restart file.\n')
 
 
 %[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
@@ -215,7 +215,9 @@ end
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     
-    figure
+    fig=FindOrCreateFigure("Boundary Conditions");
+    clf(fig) 
+    hold off
     PlotBoundaryConditions(CtrlVar,MUA,BCs);
     
 end

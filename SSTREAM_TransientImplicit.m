@@ -180,7 +180,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         
         
-        if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
+        if gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
             
             ResidualsCriteria=(rWork<CtrlVar.uvhDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvhDesiredWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.uvhDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvhDesiredWorkOrForceTolerances(2))...

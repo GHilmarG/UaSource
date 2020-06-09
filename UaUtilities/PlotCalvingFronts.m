@@ -4,7 +4,7 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     % Plots calving fronts, just a simple wrapper around PlotGroundingLines
     %
     %
-    % To suppress plotting set CtrlVar.PlotGLs=false ;
+    % To suppress plotting set 
     %
     %
     %

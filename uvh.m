@@ -9,6 +9,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     RunInfo.Forward.IterationsTotal=0;
     iActiveSetIteration=0;
     isActiveSetCyclical=NaN;
+    
+    if CtrlVar.LevelSetMethod % Level Set
+        [F1,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F1) ;
+    end
+    
+    
     if ~CtrlVar.ThicknessConstraints
         
         

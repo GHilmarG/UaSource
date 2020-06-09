@@ -294,8 +294,8 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-dhdt-" ; % {"-Adams-Bashforth-","-dhdt-"}
-
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
@@ -361,32 +361,42 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-4;
 % while at the same time these Work and Force tolerances also fullfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-9];
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-10];
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.uvExitBackTrackingStepLength=1e-4;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-9];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-10];
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
-CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-9];
-CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-10];
+CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-4];
+CtrlVar.LSFDesiredWorkOrForceTolerances=[1 1e-5];
+CtrlVar.LSFExitBackTrackingStepLength=1e-4;
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-4];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[1 1e-4];
+
 
 
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+CtrlVar.LSFMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 
 
-CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
+CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
@@ -1411,7 +1421,9 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;  
 
-CtrlVar.LevelSetMethodReinitializeInterval=1000;
+CtrlVar.LevelSetFAB=true;  % use forward an backwards (FAB) diffusion 
+CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
+CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 CtrlVar.LevelSetInfoLevel=1;
 CtrlVar.LevelSetSolverForceTolerance=1e-15;
@@ -1684,7 +1696,8 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
-CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size (ie dt) allowed
+CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithim
+CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithim
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor

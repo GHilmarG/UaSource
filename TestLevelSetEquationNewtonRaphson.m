@@ -13,4 +13,4 @@ F0.LSF=LSF; F1.LSF=F0.LSF;
 CtrlVar.dt=1; 
 CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
 
-[UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCsLevelSet,F0,F1);
+[UserVar,RunInfo,LSF1,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);

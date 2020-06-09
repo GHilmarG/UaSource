@@ -1,16 +1,15 @@
-function [UserVar,BCsLevelSet,F]=GetCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F)
+function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
     
     
-    narginchk(6,6)
-    nargoutchk(3,3)
+    narginchk(5,5)
+    nargoutchk(2,2)
     
     
      if ~CtrlVar.LevelSetMethod
          return
      end
-     
-     
-    [UserVar,F.LSF,BCsLevelSet,F.c]=DefineCalving(UserVar,CtrlVar,MUA,BCs,BCsLevelSet,F) ;
+
+    [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
     
     % some input checks
     

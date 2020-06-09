@@ -62,6 +62,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.ActiveSetConverged=NaN;
             
             obj.Forward.AdaptiveTimeSteppingResetCounter=0;
+            obj.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
             
             obj.BackTrack.Converged=NaN;
             obj.BackTrack.iarm=0;
