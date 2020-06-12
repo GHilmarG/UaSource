@@ -28,6 +28,17 @@ persistent wasRefine
 
 narginchk(5,5)
 
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    
+    fprintf('\t Local adaptive remeshing at run-step %i and time=%f \n',CtrlVar.CurrentRunStepNumber,CtrlVar.time)
+    
+end
+
+
+
+
+
 MUAnew=MUAold;
 MUAonInput=MUAold;
 % Make sure that lists are logical
@@ -161,9 +172,6 @@ switch CtrlVar.MeshRefinementMethod
         %elements=TestAndCorrectForInsideOutElements(CtrlVar,mesh.coordinates,mesh.elements);
         
         Nb=size(mesh.coordinates,1);  Eb=size(mesh.elements,1);
-        
-        isMeshChanged= ~(Na==Nb && Ea==Eb) ;
-        
         isMeshChangedSufficiently=abs(Eb-Ea) > CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan ;
         
         

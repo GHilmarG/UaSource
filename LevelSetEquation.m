@@ -18,6 +18,12 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
         return
     end
     
+    if CtrlVar.CalvingLaw=="-No Ice Shelves-" 
+    
+        [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.GF.node,CtrlVar.GLthreshold);
+        return 
+    end
+    
     if isempty(LastResetTime)
         LastResetTime=0 ;
     end

@@ -46,6 +46,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %   ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
     %                                                                   
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-Level Set-","PlotTimestep",10,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
+    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
@@ -318,27 +320,34 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
                         if ~isempty(xGL)
                             Temp=fMeshLSF.CurrentAxes.Title.String;
-                            fMeshLSF.CurrentAxes.Title.String={Temp,"Grounding line in red"};
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Grounding line in red"}];
                         end
                         
                         if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
                             hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                             Temp=fMeshLSF.CurrentAxes.Title.String;
-                            fMeshLSF.CurrentAxes.Title.String={Temp,"Calving front in blue"};
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in blue"}];
                             
-                            [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,10);
-                            plot(xf/1000,yf/1000,'r','LineWidth',2); 
+                            [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
+                            plot(xf/1000,yf/1000,'m','LineWidth',2); 
                             
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Small-thickness front in magenta "}];
                             
                         end
-                        Par.RelativeVelArrowSize=10 ;
-                        QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
+                        
+                        % Par.RelativeVelArrowSize=10 ;
+                        % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
                         
                         Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
                         plot(MUA.coordinates(Mask.NodesOut,1)/1000,MUA.coordinates(Mask.NodesOut,2)/1000,'*b')
                         
-                        xlim([min(xc)-50e3  max(xc)+50e3]/1000)
-                        ylim([-12 12])
+                        if contains(FileNameSubstring,'-1dIceShelf-')
+                            xlim([min(xc)-50e3  max(xc)+50e3]/1000)
+                            ylim([-12 12])
+                        else
+                            axis(AxisLimits) ;
+                        end
+                        
                         drawnow
                     end
                     

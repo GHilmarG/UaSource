@@ -224,7 +224,7 @@ CtrlVar.Plot.Units.Stress="kPa" ;
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
 % either PlotFEmesh or PlotMuaMesh (see help PlotFEmesh)
 CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
-CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1; 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0; 
 CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
 CtrlVar.PlotNodes=0;       % If true then nodes are plotted when FE mesh is shown
 CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labeled with their respective numbers
@@ -505,7 +505,6 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
-CtrlVar.CalvingFrontFullyFloating=0;  % if true then the natural BC is only covers a freely floating calving front (do not change, only for testing)
 CtrlVar.GroupRepresentation=0;
 %% Number of integration points
 % if left empty, the number of integration points is set automatically
@@ -1395,7 +1394,8 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
                                                    % 'explicit:local:red-green'
                                                    % 'explicit:local:newest vertex bisection';
                                                    
-CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green"];
+CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green",...
+    "start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"];
                                                    
 %  
 % `explicit:global' implies a global remeshing of the whole domain. This is a
@@ -1430,6 +1430,8 @@ CtrlVar.LevelSetSolverForceTolerance=1e-15;
 CtrlVar.LevelSetSolverWorkTolerance=1e-15;
 CtrlVar.LevelSetSolverMaxIterations=10;
 
+CtrlVar.CalvingLaw="-User Defined-"; 
+CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted

@@ -7,6 +7,9 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % variable can be either nodal or element variable
 %
+% If variable is empty, nothing is plotted and no warning given.
+%
+% If not empty, and neither nodal nor elemetn variable, I complain a bit. 
 %
 % vararing is passed on to the patch command
 %
@@ -63,7 +66,7 @@ elseif N==MUA.Nele && M==1 % element variable
     
     [FigHandle,ColorbarHandle,EleTri]=PlotElementBasedQuantities(EleTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
     
-else
+elseif ~isempty(Variable)
     
     fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
     warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')

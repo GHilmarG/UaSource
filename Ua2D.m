@@ -409,12 +409,12 @@ while 1
             [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
             if ~isempty(xGL)
                 Temp=figMesh.CurrentAxes.Title.String;
-                figMesh.CurrentAxes.Title.String={Temp,"Grounding line in red"};
+                figMesh.CurrentAxes.Title.String=[Temp(:)',{'Grounding line in red'}];
             end
             if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                  Temp=figMesh.CurrentAxes.Title.String;
-                figMesh.CurrentAxes.Title.String={Temp,"Calving front in blue"};
+                figMesh.CurrentAxes.Title.String=[Temp(:)',{'Calving front in blue'}];
             end
             hold off
         end

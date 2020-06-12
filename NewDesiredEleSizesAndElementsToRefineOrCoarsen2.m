@@ -22,7 +22,6 @@ EleSizeDesired=zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 EleSizeIndicator =zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 
 NodalErrorIndicators=[];
-Kfig=0;
 isCalculated=false;
 
 %CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
@@ -368,26 +367,34 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
         
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
+                
         
-        FigureName="Local mesh refinement"; 
+        nRefineEle=numel(find(ElementsToBeRefined));
+        nCoarsenedEle=numel(find(ElementsToBeCoarsened)) ;
         
-        fig=FindOrCreateFigure(FigureName) ;
-        clf(fig)
-        CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-        
-        PlotMuaMesh(CtrlVar,MUA,[],'k');
-        hold on
-        PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
-        PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
-        axis tight
-        
-        nR=numel(find(ElementsToBeRefined));
-        nC=numel(find(ElementsToBeCoarsened));
-        title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
-        
+        if nRefineEle>0 && nCoarsenedEle>0
+            
+            FigureName="Local mesh refinement";
+            
+            fig=FindOrCreateFigure(FigureName) ;
+            clf(fig)
+            CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+            
+            PlotMuaMesh(CtrlVar,MUA,[],'k');
+            hold on
+            PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
+            PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
+            axis tight
+            
+            nR=numel(find(ElementsToBeRefined));
+            nC=numel(find(ElementsToBeCoarsened));
+            title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
+            drawnow
+        end
         fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
         fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
-        drawnow
+
+        
     end
     
     

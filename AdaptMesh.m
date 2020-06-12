@@ -27,6 +27,18 @@ xGLold=[] ; yGLold=[]; GLgeoold=[];
 %%
 
 
+
+if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"
+    
+    if CtrlVar.CurrentRunStepNumber==1
+        
+        CtrlVar.MeshRefinementMethod="explicit:global" ;
+    else
+        CtrlVar.MeshRefinementMethod="explicit:local:newest vertex bisection";
+    end
+    
+end
+
 isMeshAdvanceRetreat = CtrlVar.FEmeshAdvanceRetreat && ( ReminderFraction(CtrlVar.time,CtrlVar.FEmeshAdvanceRetreatDT)<1e-5 || CtrlVar.FEmeshAdvanceRetreatDT==0);
 
 % isMeshAdapt=CtrlVar.AdaptMesh  ...
@@ -182,36 +194,38 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             %% Plots
             if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
                 
-                FigureName='Adapt Mesh: before and after'; 
-                fig=FindOrCreateFigure(FigureName);
-                clf(fig);
-                subplot(2,1,1)
-                hold off
-                
-                PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
-                hold on ;  
-                [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
-                [xc,yc]=PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
-                title(sprintf('Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
-                axis tight
-                
-                subplot(2,1,2)
-                hold off
-                xGL=[] ; yGL=[]; GLgeo=[];
-                CtrlVar.PlotGLs=1;
-                PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
-                title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
-                    JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
-                hold on ;  
-                [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                [xc,yc]=PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b','LineWidth',2);
-                axis tight
-                
-                fig.Children(2).XLim=fig.Children(1).XLim;
-                fig.Children(2).YLim=fig.Children(1).YLim;
-                sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
-                
-                
+                if nNewElements> 0 && nNewNodes>0
+                    
+                    FigureName='Adapt Mesh: before and after';
+                    fig=FindOrCreateFigure(FigureName);
+                    clf(fig);
+                    subplot(2,1,1)
+                    hold off
+                    
+                    PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+                    hold on ;
+                    [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
+                    title(sprintf('Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+                    axis tight
+                    
+                    subplot(2,1,2)
+                    hold off
+                    xGL=[] ; yGL=[]; GLgeo=[];
+                    CtrlVar.PlotGLs=1;
+                    PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+                    title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
+                        JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
+                    hold on ;
+                    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b','LineWidth',2);
+                    axis tight
+                    
+                    fig.Children(2).XLim=fig.Children(1).XLim;
+                    fig.Children(2).YLim=fig.Children(1).YLim;
+                    sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
+                    
+                end
                 
             end
             
@@ -229,7 +243,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     OutsideValue.vb=0;
     
     % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
-    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue); 
+    [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
 end
 
 %%
@@ -271,13 +285,13 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     % bisection in combination with manual deactivation of elements, this is only
     % occationally required.
     if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
-
+        
         MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
         % The user might need estimates over the full mesh when making decisions, hence a
         % mapping to the new (full domain) mesh ahead of a call to
         % DefineElementsToDeactivate.m
         % it's enough to do this here because the mapping is otherwise always done in the Remeshing
-
+        
         [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
         % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
         
@@ -362,10 +376,15 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
 end
 
 
-if ~isempty(CtrlVar.SaveAdaptMeshFileName)
+if ~isempty(CtrlVar.SaveAdaptMeshFileName) && CtrlVar.SaveAdaptMeshFileName~=""
     MUA=MUAnew;
-    save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
-    fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+    try
+        save(CtrlVar.SaveAdaptMeshFileName,'MUA') ;
+        fprintf(CtrlVar.fidlog,'New mesh was saved in %s .\n',CtrlVar.SaveAdaptMeshFileName);
+    catch ME
+        disp('Could not save AdaptMeshFile. Error Message:')
+        disp(ME.message)
+    end
 end
 
 if CtrlVar.AdaptMeshAndThenStop

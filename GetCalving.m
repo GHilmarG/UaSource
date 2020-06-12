@@ -5,10 +5,18 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
     nargoutchk(2,2)
     
     
-     if ~CtrlVar.LevelSetMethod
-         return
-     end
-
+    if ~CtrlVar.LevelSetMethod
+        return
+    end
+    
+    if CtrlVar.CalvingLaw=="-No Ice Shelves-"
+        if isempty(F.LSF) && ~isempty(F.GF.node)
+            F.LSF=ReinitializeLevelSet([],[],CtrlVar,MUA,F.GF.node,CtrlVar.GLthreshold);
+        end
+        return
+    end
+    
+     
     [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
     
     % some input checks
