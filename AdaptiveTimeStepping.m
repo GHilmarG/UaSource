@@ -177,15 +177,15 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
                     dtOut=min(CtrlVar.ATSdtMax,dtIn*CtrlVar.ATStimeStepFactorUp);
                     RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
                     
-                    if  CtrlVar.UaOutputsDt>0
+                    if  CtrlVar.DefineOutputsDt>0
                         
-                        Fraction=dtOut/CtrlVar.UaOutputsDt;
-                        if Fraction>=1  % Make sure dt is not larger than the interval between UaOutputs
-                            dtOut=CtrlVar.UaOutputsDt;
-                        elseif Fraction>0.1   % if dt is greater than 10% of UaOutputs interval, round dt
-                            % so that it is an interger multiple of UaOutputsDt
+                        Fraction=dtOut/CtrlVar.DefineOutputsDt;
+                        if Fraction>=1  % Make sure dt is not larger than the interval between DefineOutputs
+                            dtOut=CtrlVar.DefineOutputsDt;
+                        elseif Fraction>0.1   % if dt is greater than 10% of DefineOutputs interval, round dt
+                            % so that it is an interger multiple of DefineOutputsDt
                             fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
-                            dtOut=CtrlVar.UaOutputsDt/RoundNumber(CtrlVar.UaOutputsDt/dtOut,1);
+                            dtOut=CtrlVar.DefineOutputsDt/RoundNumber(CtrlVar.DefineOutputsDt/dtOut,1);
                             fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
                         end
                     end
@@ -221,9 +221,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     end
     
     
-    if CtrlVar.ATSTdtRounding && CtrlVar.UaOutputsDt~=0
+    if CtrlVar.ATSTdtRounding && CtrlVar.DefineOutputsDt~=0
         % rounding dt to within 10% of Dt
-        dtOut=CtrlVar.UaOutputsDt/round(CtrlVar.UaOutputsDt/dtOut,1,'significant') ;
+        dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,1,'significant') ;
     end
     
     
@@ -239,9 +239,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     % after this adjustment
     
     %
-    if CtrlVar.UaOutputsDt>0
+    if CtrlVar.DefineOutputsDt>0
         temp=dtOut;
-        dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.UaOutputsDt);
+        dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
         if abs(temp-dtOut)>100*eps
             fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate user output requirements and set to %-g \n ',dtOut);
             RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=1; 

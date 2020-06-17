@@ -509,7 +509,10 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     
 end
 
-if fmin<fa
+if fgamma<(target-eps)
+    BackTrackInfo.Converged=1;
+elseif abs(fmin-fa)/fa > 1e-5 && gamma > BacktrackingGammaMin
+    % also consider backtracking to have been success if some reduction was achieved, even though the target reduction may not have been reached
     BackTrackInfo.Converged=1;
 end
 

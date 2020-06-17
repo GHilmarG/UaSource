@@ -17,13 +17,6 @@ end
 
 SetUaPath() %% 
 
-if ~exist(fullfile(cd,'Ua2D_InitialUserInput.m'),'file')
-    
-    fprintf('The input-file Ua2D_InitialUserInput.m not found in the working directory (%s).\n',pwd)
-    fprintf('This input-file is required for Ua to run.\n')
-    return
-    
-end
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 
@@ -82,17 +75,8 @@ if  ~isempty(CtrlVarOnInput)
 
 end
 
+[UserVar,CtrlVar]=GetInitialInputs(UserVar,CtrlVar,varargin{:});
 
-% Get user-defined parameter values
-%  CtrlVar,UsrVar,Info,UaOuts
-if nargin("Ua2D_InitialUserInput.m")>2
-    [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar,varargin{:});
-else
-    [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar,CtrlVar);
-end
-
-CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
-clearvars MeshBoundaryCoordinates;
 
 
 if  ~isempty(CtrlVarOnInput)
@@ -251,11 +235,11 @@ if CtrlVar.doInverseStep   % -inverse
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
     
-    CtrlVar.UaOutputsInfostring='Start of inverse run';
-    CtrlVar.UaOutputsCounter=1;
+    CtrlVar.DefineOutputsInfostring='Start of inverse run';
+    CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
-    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
+    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     
     %         [db,dc] = Deblurr2D(NaN,...
@@ -292,28 +276,28 @@ if CtrlVar.doInverseStep   % -inverse
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
-    CtrlVar.UaOutputsInfostring='End of Inverse Run';
-    CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
-    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    CtrlVar.DefineOutputsInfostring='End of Inverse Run';
+    CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
+    fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
+    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
     SayGoodbye(CtrlVar,RunInfo);
     return  % This is the end of the (inverse) run
     
 end
 
-%% UaOutputs
-CtrlVar.UaOutputsCounter=0;
-if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-    CtrlVar.UaOutputsInfostring='First call';
-    CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
+%% DefineOutputs
+CtrlVar.DefineOutputsCounter=0;
+if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+    CtrlVar.DefineOutputsInfostring='First call';
+    CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
-    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
+    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
-    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
-        fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
-            CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
+    if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
+        fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
+            CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
         return
     end
 end
@@ -411,7 +395,7 @@ while 1
                 Temp=figMesh.CurrentAxes.Title.String;
                 figMesh.CurrentAxes.Title.String=[Temp(:)',{'Grounding line in red'}];
             end
-            if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
+            if ~isempty(F.LSF) && CtrlVar.LevelSetMethod    % Level Set  
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                  Temp=figMesh.CurrentAxes.Title.String;
                 figMesh.CurrentAxes.Title.String=[Temp(:)',{'Calving front in blue'}];
@@ -445,7 +429,7 @@ while 1
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
     if CtrlVar.LevelSetMethod % Level Set
-       [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; 
+       [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
     end
     
     if ~CtrlVar.doInverseStep
@@ -543,15 +527,15 @@ while 1
                 %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;
                 
                 
-                if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-                    CtrlVar.UaOutputsInfostring='Diagnostic step';
-                    CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
-                    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
+                if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+                    CtrlVar.DefineOutputsInfostring='Diagnostic step';
+                    CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
+                    fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
                     
-                    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
-                    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
-                        fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
-                            CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
+                    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+                    if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
+                        fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
+                            CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
                         return
                     end
                 end
@@ -642,7 +626,7 @@ while 1
         end
         
         % update Level Set to current time using the new velocities 
-        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);
+        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set  
         
     end   % CtrlVar.TimeDependentRun
     
@@ -655,11 +639,11 @@ while 1
   
     %% plotting results
     
-    % UaOutputs
+    % DefineOutputs
     
-    if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-        CtrlVar.UaOutputsInfostring='inside transient loop and inside run-step loop';
-        CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
+    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+        CtrlVar.DefineOutputsInfostring='inside transient loop and inside run-step loop';
+        CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
@@ -668,14 +652,14 @@ while 1
             %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
         end
         
-        fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
+        fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
         
-        UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
-        %UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,s,b,S,B,h,ub,vb,ud,vd,uo,vo,dhdt,dsdt,dbdt,C,AGlen,m,n,rho,rhow,g,as,ab,dasdh,dabdh,GF,BCs,l);
+        UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
         
-        if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
-            fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
-                CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
+        
+        if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
+            fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
+                CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
             return
         end
     end
@@ -700,12 +684,12 @@ if CtrlVar.PlotWaitBar
 end
 
 
-%% Final call to UaOutputs
+%% Final call to DefineOutputs
 
 
-if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputsDt==0 )
-    CtrlVar.UaOutputsInfostring='Last call';
-    CtrlVar.UaOutputsCounter=CtrlVar.UaOutputsCounter+1;
+if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+    CtrlVar.DefineOutputsInfostring='Last call';
+    CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
         CtrlVar.time=CtrlVar.time+CtrlVar.dt;
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
@@ -713,12 +697,12 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.UaOutputsDt)<1e-5 || CtrlVar.UaOutputs
         %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     
-    fprintf(' Calling UaOutputs. UaOutputsInfostring=%s , UaOutputsCounter=%i \n ',CtrlVar.UaOutputsInfostring,CtrlVar.UaOutputsCounter)
-    UserVar=CreateUaOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
+    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
-    if CtrlVar.UaOutputsCounter>=CtrlVar.UaOutputsMaxNrOfCalls
-        fprintf(' Exiting because number of calls to UaOutputs (%i) >= CtrlVar.UaOutputsMaxNrOfCalls (%i) /n',...
-            CtrlVar.UaOutputsCounter,CtrlVar.UaOutputsMaxNrOfCalls)
+    if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
+        fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
+            CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
         return
     end
 end

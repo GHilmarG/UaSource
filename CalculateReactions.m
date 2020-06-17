@@ -13,12 +13,12 @@ narginchk(4,4)
 % MLC  : muliple-linear-constraint matrix
 %   l  : Lagrange variables
 %
-%   l is one of the outputs of Ua available in UaOutputs
+%   l is one of the outputs of Ua available in DefineOutputs
 %
 %   If MLC is not available, calculate MLC using MLC=BCs2MLC(MUA,BCs)
 %
 %   Example:
-%   To calculate and plot reactions from within UaOutputs
+%   To calculate and plot reactions from within DefineOutputs
 %   MLC=BCs2MLC(MUA,BCs) ;
 %   Reactions=CalculateReactions(CtrlVar,MLC,l)
 %   PlotReactions(CtrlVar,MUA,Reactions);

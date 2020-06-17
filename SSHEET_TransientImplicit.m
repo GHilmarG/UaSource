@@ -145,7 +145,7 @@ while true
     RunInfo.BackTrack=BackTrackInfo;
 
     
-    [rTest,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma);
+    [rTest,~,~,rForce,rWork,D2]=Func(gamma);
     
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1

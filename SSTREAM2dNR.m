@@ -237,7 +237,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         % If backtracking returns all values, then this call will not be needed.
         % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
-        [rTest,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma);
+        [rTest,~,~,rForce,rWork,D2]=Func(gamma);
         rVector.gamma(iteration+1)=gamma;
         rVector.rDisp(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;

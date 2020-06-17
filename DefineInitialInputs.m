@@ -11,7 +11,7 @@ function [UserVar,CtrlVar,MeshBoundaryCoordinates]=Ua2D_InitialUserInput(UserVar
 
 %%
 UserVar.MisExperiment='ice0';            % This I use in DefineMassBalance
-UserVar.Outputsdirectory='ResultsFiles'; % This I use in UaOutputs
+UserVar.Outputsdirectory='ResultsFiles'; % This I use in DefineOutputs
 
 %%
 
@@ -33,8 +33,8 @@ CtrlVar.SlidingLaw="rCW-N0" ;   % This uses a 'reciprocal sum' of Coulomb and We
 CtrlVar.dt=0.01; 
 CtrlVar.time=0; 
 
-CtrlVar.UaOutputsDt=0; % interval between calling UaOutputs. 0 implies call it at each and every run step.
-                       % setting CtrlVar.UaOutputsDt=1; causes UaOutputs to be called every 1 years.
+CtrlVar.DefineOutputsDt=0; % interval between calling DefineOutputs. 0 implies call it at each and every run step.
+                       % setting CtrlVar.DefineOutputsDt=1; causes DefineOutputs to be called every 1 years.
                        % This is a more reasonable value once all looks OK.
 
 

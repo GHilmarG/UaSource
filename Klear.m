@@ -14,4 +14,4 @@ clear DefineDensities
 clear DefineDesiredEleSize
 clear DefineBoundaryConditions
 clear DefineMassBalance
-clear UaOutputs
+clear DefineOutputs

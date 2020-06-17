@@ -315,8 +315,12 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         clf(fMeshLSF) ;
                         
                         fMeshLSF.Position=[100 650 1100 570] ;
-                        PlotMuaMesh(CtrlVar,MUA); hold on
-                    
+                        
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
+                        title(cbar,'Thickness (m)') 
+                        hold on 
+                        PlotMuaMesh(CtrlVar,MUA,'w'); hold on
+                     
                         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
                         if ~isempty(xGL)
                             Temp=fMeshLSF.CurrentAxes.Title.String;
@@ -331,7 +335,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                             [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
                             plot(xf/1000,yf/1000,'m','LineWidth',2); 
                             
-                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Small-thickness front in magenta "}];
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Blue: LSF zero-line. Magneta:Ice cliff front"}];
                             
                         end
                         
@@ -339,7 +343,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
                         
                         Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-                        plot(MUA.coordinates(Mask.NodesOut,1)/1000,MUA.coordinates(Mask.NodesOut,2)/1000,'*b')
+                        plot(MUA.coordinates(Mask.NodesOut,1)/1000,MUA.coordinates(Mask.NodesOut,2)/1000,'*r')
                         
                         if contains(FileNameSubstring,'-1dIceShelf-')
                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
@@ -347,7 +351,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         else
                             axis(AxisLimits) ;
                         end
-                        
+                        caxis([0 50])
+                        xlabel('x (km)') ; ylabel('y (km)') ; 
                         drawnow
                     end
                     

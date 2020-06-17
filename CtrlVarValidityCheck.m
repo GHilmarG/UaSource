@@ -255,6 +255,12 @@ if isfield(CtrlVar,'ATStimeStepTarget')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
 
+if isfield(CtrlVar,'UaOutputsDt')
+    fprintf(' Note: CtrlVar.UaOutputsDt no longer used.\n')
+    fprintf('       Use CtrlVar.DefineOutputsDt instead.\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+end
+
 
 end
 

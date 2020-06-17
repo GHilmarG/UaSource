@@ -188,7 +188,7 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %
 % Most plotting is typically done by the user using his own version of the m-file 
 %
-%   UaOutputs.m
+%   DefineOutputs.m
 %
 % or in a separate post-processing step.
 %
@@ -972,20 +972,20 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 %
 % For outputs Ua calls a routine called 
 %
-%   UaOutputs.m
+%   DefineOutputs.m
 %
 % Write your own version of this routine to fit your own output/plotting needs and keep
 % the routine into you local run directory, i.e. the directory from which you run Ua
-% Start by copying the example UaOutput.m routine from the Ua source installation folder
+% Start by copying the example DefineOutputs.m routine from the Ua source installation folder
 % to you local run directory.
 %
 
 
 
-CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
-% if set to zero UaOutputs is called at every time/run step
-% if set to a negative number, or NaN, UaOutputs is never called
-CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
+CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m
+% if set to zero DefineOutputs is called at every time/run step
+% if set to a negative number, or NaN, DefineOutputs is never called
+CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % Once this limit is reached, the run stops. (Setting this to 1 or some low number
 % can sometimes be useful for testing/control purposes)
 % NaN implies no limit to the number of calls
@@ -1708,7 +1708,7 @@ CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering d
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
-CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
+CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
 CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 

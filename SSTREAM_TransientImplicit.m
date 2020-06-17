@@ -177,7 +177,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %     gradient is small-enough (good) or it is too-large (bad).
         %
         
-        
+       
         
         
         if gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
@@ -216,16 +216,11 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                 fprintf(' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r)
             end
             
-            if CtrlVar.WriteRunInfoFile
-                fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt);
-                fprintf(RunInfo.File.fid,' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r);
-            end
-            
             RunInfo.Forward.Converged=0;
             break
         end
-        
-        if RunInfo.BackTrack.Converged==0
+   
+        if RunInfo.BackTrack.Converged==0 || gamma==0 
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
                     CtrlVar.time,CtrlVar.dt,r,iteration) ;
@@ -297,7 +292,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         % If backtracking returns all values, then this call will not be needed.
         % [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [rTest,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma); 
+        [rTest,~,~,rForce,rWork,D2]=Func(gamma); 
         rVector.gamma(iteration+1)=gamma;
         rVector.ruv(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
