@@ -144,7 +144,7 @@ xfrac=1e10;
 
 %%
 iMinSame=0; iMinSameWhileBacktracking=0;
-iarm=0; 
+iarm=0;  BackTrackInfo.iarm=iarm;
 
 a=0;
 
@@ -193,7 +193,7 @@ Infovector(1:2,1)=[a ; b ] ;  Infovector(1:2,2)=[ fa ; fb ] ; iq=2;
 
 BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=0;
-BackTrackInfo.iarm=iarm;
+
 
 if fb<target 
     
@@ -206,7 +206,6 @@ if fb<target
     BackTrackInfo.nFuncEval=nFuncEval;
     I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
     BackTrackInfo.Infovector=Infovector;
-    BackTrackInfo.iarm=iarm;
     return
 end
 
@@ -226,7 +225,7 @@ end
 
 
 
-iarm=1 ;
+iarm=1 ;     BackTrackInfo.iarm=iarm;
 if Fargcollect
     [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
     nFuncEval=nFuncEval+1; 
@@ -341,7 +340,7 @@ end
 
 fLastReduction=1;
 while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
-    iarm=iarm+1;
+    iarm=iarm+1; BackTrackInfo.iarm=iarm;
     
     
     

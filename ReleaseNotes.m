@@ -4,6 +4,71 @@
 
 %%
 % *Release Notes*
+% _June 2020_
+%
+% * Naming of some user input m-files has changed: 
+%
+%
+%       Ua2D_InitialUserInput.m  
+%
+% is now named:
+%
+%       DefineInitialInputs.m
+% 
+% And
+%   
+%       UaOutputs.m
+%
+% is now:
+%
+%       DefineOutputs.m
+%
+% These changes were done so that names of all user-input files start with 'Define'
+%
+% Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and
+% UaOutputs.m files you can, for example, consider using the m-file utility file:
+%
+%       RenameFileRecursively.m
+%
+% * Naming of a few CtrlVar fields has changed. For example
+%
+%       CtrlVar.ATStimeStepTarget
+%
+% is for example no longer used. Use:
+%
+%       CtrlVar.ATSdtMax
+%
+% instead.  
+%
+% You can also now specify a minimum selected time step in the
+% automated-time-stepping (ATM) algorithm settting the field
+%    
+%       CtrlVar.ATSdtMin
+% 
+% Also
+%
+%   CtrlVar.UaOutputsDt 
+%
+% has also been replaced by
+%
+%   CtrlVar.DefineOutputsDt 
+%
+% If you define these old fields in your (new) DefineInitialInputs.m, Úa will spot this and complain bitterly. 
+%
+% Those using Unix might want to systematically change names of some of the CtrlVar fields
+% in there old input files. You might be able to use something like:
+%
+%   find . -name "DefineInitialInputs.m" -exec sed -i 's/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g' {} +
+%   find . -name "Define*.m" -exec sed -i 's/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g' {} +
+%
+% * Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for
+% more options. See comments in 
+%
+%       Ua2D_DefaultParameters.m
+%
+% for more details.
+%
+% *Release Notes*
 % _February 2020_
 %
 %

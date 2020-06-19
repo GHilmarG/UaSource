@@ -300,13 +300,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         if CtrlVar.InfoLevelNonLinIt>=1
             
             fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
-                stri,iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork);
+                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork);
         end
         
         if CtrlVar.WriteRunInfoFile
             
             fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rWork=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-                stri,iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rWork,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
+                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rWork,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
         end
         
     end

@@ -1,14 +1,22 @@
 
 function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
     
-    narginchk(6,6)
-    nargoutchk(4,4)
+    narginchk(4,6)
+    nargoutchk(2,4)
     
  
     
     [nC,mC]=size(C);
     [nm,mm]=size(m);
     
+    
+    if nargin<5
+        q=[];
+    end
+    
+    if nargin<6
+        muk=[];
+    end
     
     
     if numel(C)==1
