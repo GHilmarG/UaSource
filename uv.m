@@ -10,7 +10,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     tdiagnostic=tic;
     
     if CtrlVar.LevelSetMethod % Level Set
-        [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ;
+        [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ;
     end
 
     

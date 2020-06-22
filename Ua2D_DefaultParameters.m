@@ -377,11 +377,12 @@ CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-4];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[1 1e-5];
+CtrlVar.LevelSetSolverMaxIterations=10;
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1];
+CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-2];
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-4];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[1 1e-4];
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-2];
 
 
 
@@ -1414,7 +1415,11 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.ManuallyDeactivateElements=0; 
 CtrlVar.LevelSetMethod=0; 
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=1;
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
+
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
+CtrlVar.LSFMeltFeedbackMultiplier=10; % 
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
@@ -1423,12 +1428,11 @@ CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;
 
 CtrlVar.LevelSetFAB=true;  % use forward an backwards (FAB) diffusion 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
+
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
 CtrlVar.LevelSetInfoLevel=1;
-CtrlVar.LevelSetSolverForceTolerance=1e-15;
-CtrlVar.LevelSetSolverWorkTolerance=1e-15;
-CtrlVar.LevelSetSolverMaxIterations=10;
 
 CtrlVar.CalvingLaw="-User Defined-"; 
 CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;

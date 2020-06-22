@@ -5,7 +5,7 @@
         <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
         <tocitem target="UserInputRoutines.html">User input 
-            <tocitem target="Ua2D_InitialUserInput.html">Initial user input </tocitem>
+            <tocitem target="DefineInitialInputs.html">Initial user input </tocitem>
             <tocitem target="DefineGeometry.html">Define geometry </tocitem>
             <tocitem target="DefineSlipperyDistribution.html">Define basal slipperiness </tocitem>
             <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
@@ -20,9 +20,10 @@
             <tocitem target="DefineRunStopCriterion.html">Define exit criterion from run-step loop for both a forward time-independent and time-dependent runs</tocitem>
             <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
             <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
+            <tocitem target="DefineCalving.html">Define level set and calving rate fields</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
-        <tocitem target="UaOutputs.html">Output </tocitem>
+        <tocitem target="DefineOutputs.html">Output </tocitem>
         <tocitem target="Utilities.html">Utilities 
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>

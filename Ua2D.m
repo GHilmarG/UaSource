@@ -398,7 +398,7 @@ while 1
             if ~isempty(F.LSF) && CtrlVar.LevelSetMethod    % Level Set  
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                  Temp=figMesh.CurrentAxes.Title.String;
-                figMesh.CurrentAxes.Title.String=[Temp(:)',{'Calving front in blue'}];
+                figMesh.CurrentAxes.Title.String=[Temp(:)',{'Level set zero line in blue'}];
             end
             hold off
         end
@@ -424,12 +424,12 @@ while 1
     % Geometry modifications might depend on the level-set, so call GetCalving before
     % GetGeometryAndDensities.
     
-    [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);
+    [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
     if CtrlVar.LevelSetMethod % Level Set
-       [F,RunInfo]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
+       [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
     end
     
     if ~CtrlVar.doInverseStep
@@ -626,7 +626,7 @@ while 1
         end
         
         % update Level Set to current time using the new velocities 
-        [UserVar,RunInfo,F.LSF]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set  
+        [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set  
         
     end   % CtrlVar.TimeDependentRun
     

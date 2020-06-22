@@ -38,7 +38,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
-   CtrlVar.LevelSetSolverMaxIterations=25;
+ 
     
     while true
      
@@ -92,12 +92,12 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
         Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl);
-        gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
-        gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
+        gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
+        gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
         
         slope0=-2*r0 ;
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
-        [r1Test,UserVar,RunInfo,rForce,rWork,D2]=Func(gamma);
+        [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
@@ -134,7 +134,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
-        if CtrlVar.InfoLevelNonLinIt>=1
+        if CtrlVar.LevelSetInfoLevel>=1
             BCsError=norm(Lrhs-L*F1.LSF);
             fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
                 iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);

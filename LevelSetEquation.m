@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
+function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
     %%
     %
     %
@@ -6,7 +6,7 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
     %
     
     narginchk(7,7)
-    nargoutchk(3,3)
+    nargoutchk(4,4)
     
     
     persistent LastResetTime
@@ -19,8 +19,12 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
     end
     
     if CtrlVar.CalvingLaw=="-No Ice Shelves-" 
-    
+         
+         % I think this could be simplified, arguably no need to calculate signed distance
+         % in this case. Presumably could just define the LSF as distance from flotaion, ie
+         % h-hf. 
         [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.GF.node,CtrlVar.GLthreshold);
+        Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
         return 
     end
     
@@ -51,6 +55,8 @@ function [UserVar,RunInfo,LSF,lambda]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
             
     end
  
+    
+    Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
     
     
     if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots

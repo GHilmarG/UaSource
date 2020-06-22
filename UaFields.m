@@ -82,6 +82,7 @@ classdef UaFields
         GFInit=[];
         
         LSF=[] % Level Set Field
+        LSFMask=[]; 
         c=[] ; % calving rate
         
     end

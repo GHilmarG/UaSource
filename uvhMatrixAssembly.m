@@ -113,7 +113,7 @@ end
 
 CtrlVar.ResetThicknessToMinThickness=temp;
 
-if CtrlVar.MassBalanceGeometryFeedback>=2
+if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
     %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
     rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
     if rdamp~=0
@@ -139,6 +139,25 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
     end
 else
     dadh=zeros(MUA.Nnodes,1);
+end
+
+if ~isempty(F1.LSFMask) &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback && ~ZeroFields
+    
+   
+    abLSF=zeros(MUA.Nnodes,1) ;
+    dadhLSF=zeros(MUA.Nnodes,1) ;
+    
+    if isempty(F1.dabdh)
+        F1.dabdh=zeros(MUA.Nnodes,1) ;
+    end
+ 
+    CtrlVar.LSFMeltFeedbackMultiplier
+    abLSF(F1.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness-CtrlVar.LSFMeltFeedbackMultiplier*F1.h(F1.LSFMask.NodesOut);
+    dadhLSF(F1.LSFMask.NodesOut)=-CtrlVar.LSFMeltFeedbackMultiplier;
+    
+    F1.ab=F1.ab+abLSF;
+    dadh=dadh+dadhLSF;
+    
 end
 
 

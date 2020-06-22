@@ -1,3 +1,4 @@
+
 function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     
     
@@ -48,6 +49,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-Level Set-","PlotTimestep",10,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
     %
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)
+    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
+    
     %% Parse inputs
     
     defaultPlotType="-mesh-speed-s-ab-";
@@ -319,7 +323,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
                         title(cbar,'Thickness (m)') 
                         hold on 
-                        PlotMuaMesh(CtrlVar,MUA,'w'); hold on
+                        PlotMuaMesh(CtrlVar,MUA,'k'); hold on
                      
                         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
                         if ~isempty(xGL)
@@ -342,12 +346,14 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         % Par.RelativeVelArrowSize=10 ;
                         % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
                         
-                        Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-                        plot(MUA.coordinates(Mask.NodesOut,1)/1000,MUA.coordinates(Mask.NodesOut,2)/1000,'*r')
+                        if ~isempty(F.LSFMask)
+                            plot(MUA.coordinates(F.LSFMask.NodesOut,1)/1000,MUA.coordinates(F.LSFMask.NodesOut,2)/1000,'*r')
+                        end
+                        
                         
                         if contains(FileNameSubstring,'-1dIceShelf-')
                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
-                            ylim([-12 12])
+                            ylim([min(y) max(y)]/1e3) ; 
                         else
                             axis(AxisLimits) ;
                         end
@@ -360,8 +366,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     %%
                     
                     
-                    ugl=300; hgl=1000; xgl=0;
-                    [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,F,hgl,ugl,xgl);
+                   
+                    [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
                     yProfile=0 ;
                     
                     FigureName='flowline';

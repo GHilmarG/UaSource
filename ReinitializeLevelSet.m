@@ -1,3 +1,4 @@
+
 function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,LSF,Threshold)
     
     
@@ -7,12 +8,12 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     %
     % Reinitilizes the Level Set;
     %
-    % On return LSF is based on the distance from those nodes that were 'On' the zero-line of
-    % the level set as given as input.
+    % On return LSF is based on the distance from those nodes that were 'On' the zero-line
+    % of the level set as given as input.
     %
     % This distance is signed, and the sign is positive over 'In' nodes and negative over
-    % 'Out' nodes.  Hence, this is only usefull for REinitilizing the level set, but can not use to
-    % initilize it.
+    % 'Out' nodes.  Hence, this is particularly usefull for Reinitilizing the level set,
+    % but it can also potentiallyt be use to initilize it.
     %
     % In, Out, and On nodes as based on a nodal mask of the Level Set given as input.
     %
