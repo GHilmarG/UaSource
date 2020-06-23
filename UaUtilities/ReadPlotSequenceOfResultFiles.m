@@ -193,7 +193,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         DataCollect.VAF=zeros(nFiles,1)+NaN;
                         DataCollect.GroundedArea=zeros(nFiles,1)+NaN;
                         DataCollect.IceVolume=zeros(nFiles,1)+NaN;
-                        DataCollect.hCentre=zeros(nFiles,1)+NaN;
+                        DataCollect.hCentre=zeros(nFiles,1)+NaN;  
+                        DataCollect.LSFmax=zeros(nFiles,1)+NaN;  
+                        DataCollect.LSFmin=zeros(nFiles,1)+NaN;  
+                        DataCollect.LSFmean=zeros(nFiles,1)+NaN;  
                     end
                     
                     [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
@@ -204,12 +207,19 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     DataCollect.GroundedArea(iCount)=GroundedArea.Total;
                     DataCollect.IceVolume(iCount)=IceVolume.Total;
                     
-                        
+                    
                     rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
                     [temp,I]=min(rDist);
                     hCentre=F.s(I)-F.b(I);
                     DataCollect.hCentre(iCount)=hCentre;
                     
+                    
+                    if ~isempty(F.LSF)
+                        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                        DataCollect.LSFmax(iCount)=max(xc) ;
+                        DataCollect.LSFmin(iCount)=min(xc) ;
+                        DataCollect.LSFmean(iCount)=mean(xc) ;
+                    end
                     
                     %%
                     
