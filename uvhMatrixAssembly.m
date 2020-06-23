@@ -141,17 +141,17 @@ else
     dadh=zeros(MUA.Nnodes,1);
 end
 
-if ~isempty(F1.LSFMask) &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback && ~ZeroFields
+if ~isempty(F1.LSF) &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback && ~ZeroFields
     
-   
+    
     abLSF=zeros(MUA.Nnodes,1) ;
     dadhLSF=zeros(MUA.Nnodes,1) ;
     
     if isempty(F1.dabdh)
         F1.dabdh=zeros(MUA.Nnodes,1) ;
     end
- 
-    CtrlVar.LSFMeltFeedbackMultiplier
+    
+    F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
     abLSF(F1.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness-CtrlVar.LSFMeltFeedbackMultiplier*F1.h(F1.LSFMask.NodesOut);
     dadhLSF(F1.LSFMask.NodesOut)=-CtrlVar.LSFMeltFeedbackMultiplier;
     

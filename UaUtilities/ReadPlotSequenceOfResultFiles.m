@@ -50,7 +50,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %
     %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)
     %
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1)
     
     %% Parse inputs
     
