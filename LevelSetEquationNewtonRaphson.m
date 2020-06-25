@@ -22,6 +22,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     iCalls=iCalls+1;
     
     
+    
     % Define calving rate
     % F.c=zeros(MUA.Nnodes,1)-100e3 ;
     
@@ -35,7 +36,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     l=Lrhs*0; 
     dl=l ; 
     dLSF=F1.LSF*0;
-    
+    BCsError=0;
     
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
  
@@ -58,12 +59,12 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
            
-        if iteration>=CtrlVar.LevelSetSolverMaxIterations
+        if iteration>=CtrlVar.LevelSetSolverMaxIterations && (r/r0>0.5) 
             fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
             break
         end
         
-        if ResidualsCriteria
+        if ResidualsCriteria  && (r/r0>0.5) 
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             break
         end
@@ -134,8 +135,10 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
-        if CtrlVar.LevelSetInfoLevel>=1
-            BCsError=norm(Lrhs-L*F1.LSF);
+        if CtrlVar.LevelSetInfoLevel>=10
+            if ~isempty(L)
+                BCsError=norm(Lrhs-L*F1.LSF);
+            end
             fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
                 iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
         end
@@ -144,10 +147,16 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     LSF1=F1.LSF ; % Because I don't return F1
     
- 
+    CtrlVar.LevelSetInfoLevel=1;
+    if CtrlVar.LevelSetInfoLevel>=1  && CtrlVar.LevelSetInfoLevel<10
+        if ~isempty(L)
+            BCsError=norm(Lrhs-L*F1.LSF);
+        end
+        fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
+            iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+    end
     
     
-   
     
     
 end

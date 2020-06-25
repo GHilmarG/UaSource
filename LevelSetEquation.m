@@ -23,7 +23,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
          % I think this could be simplified, arguably no need to calculate signed distance
          % in this case. Presumably could just define the LSF as distance from flotaion, ie
          % h-hf. 
-        [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.GF.node,CtrlVar.GLthreshold);
+        [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
         Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
         return 
     end
