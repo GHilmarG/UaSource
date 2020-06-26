@@ -1426,7 +1426,7 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;  
 
-CtrlVar.LevelSetFAB=true;  % use forward an backwards (FAB) diffusion 
+CtrlVar.LevelSetFAB=1;  % multiplier, 1 use full forward an backwards (FAB) diffusion, 0 no FAB
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;

@@ -25,13 +25,10 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     
     l2=TriAreaFE(MUA.coordinates,MUA.connectivity);
     
-    if CtrlVar.LevelSetFAB
-        speed0=sqrt(u0.*u0+v0.*v0) ; V=abs(speed0-c0) ;
-        V=Nodes2EleMean(MUA.connectivity,V) ;
-        mu=V.*l2;  % looks resonable to me
-    else
-        mu=0;
-    end
+    
+    speed0=sqrt(u0.*u0+v0.*v0) ; V=abs(speed0-c0) ;
+    V=Nodes2EleMean(MUA.connectivity,V) ;
+    mu=CtrlVar.LevelSetFAB*V.*l2;  % looks resonable to me
     
     
     
