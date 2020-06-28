@@ -61,12 +61,12 @@ end
 
 %% parameters
 beta=0.1;
-MaxIterations=50;
+MaxIterations=20;
 MaxExtrapolations=100;
 ExtrapolationRatio=2.5;
 MinXfrac=1e-10*b; % exit if change in x as a fraction of initial interval smaller than this
 MaxFuncSame=3; % exit if minimum of func did not change during MaxFuncSame iterations
-BacktrackingGammaMin=1e-20;
+BacktrackingGammaMin=1e-10;
 
 
 
@@ -558,6 +558,7 @@ BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=Extrapolation;
 BackTrackInfo.iarm=iarm;
 BackTrackInfo.nFuncEval=nFuncEval;
+
 
 
 end

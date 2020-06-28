@@ -8,32 +8,20 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     %
     % Reinitilizes the Level Set;
     %
-    % On return LSF is based on the distance from those nodes that were 'On' the zero-line
-    % of the level set as given as input.
-    %
-    % This distance is signed, and the sign is positive over 'In' nodes and negative over
-    % 'Out' nodes.  Hence, this is particularly usefull for Reinitilizing the level set,
-    % but it can also potentiallyt be use to initilize it.
-    %
-    % In, Out, and On nodes as based on a nodal mask of the Level Set given as input.
-    %
-    % The value of the On nodes is not changed.
-    %
     %%
+
     
-    %%
-    % 1) mask
+    %% 1)
     
     if nargin < 6  || isempty(Threshold)
         Threshold=0 ;
     end
-    
-    % Mask=CalcMeshMask(CtrlVar,MUA,LSF,Threshold);
+
     CtrlVar.LineUpGLs=false ; 
     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Threshold);
     
     
-    % 2) Distance from nodes to the nodes of the zero-line elements
+    % 2) Distance 
     if numel(xc)>0
         
         %Dist=pdist2(MUA.coordinates(Mask.NodesOn,:),MUA.coordinates,'euclidean','Smallest',1) ;
@@ -42,11 +30,9 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     
         PM=sign(LSF) ; 
         
-        % 3) Replace LSF with signed distance over In and Out nodes
+     % 3) Replace LSF with signed distance 
 
         LSF=PM.*Dist ; 
-        %LSF(Mask.NodesIn)=Dist(Mask.NodesIn) ;
-        %LSF(Mask.NodesOut)=-Dist(Mask.NodesOut) ;
         
         
     else

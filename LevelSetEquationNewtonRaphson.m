@@ -59,16 +59,23 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
            
-        if iteration>=CtrlVar.LevelSetSolverMaxIterations && (r/r0>0.5) 
+        if iteration>=CtrlVar.LevelSetSolverMaxIterations && (r/r0>0.9) 
             fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
             break
         end
         
-        if ResidualsCriteria  && (r/r0>0.5) 
+        if ResidualsCriteria  && (r/r0>0.75)
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             break
         end
         
+        
+        if RunInfo.BackTrack.Converged==0 || gamma<1e-10
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf('LevelSetEquationNewtonRaphson: Backtracking stagnated or step too small. Exiting after %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
+            end
+            break
+        end
         
         iteration=iteration+1 ;
         
@@ -147,7 +154,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     LSF1=F1.LSF ; % Because I don't return F1
     
-    CtrlVar.LevelSetInfoLevel=1;
+   
     if CtrlVar.LevelSetInfoLevel>=1  && CtrlVar.LevelSetInfoLevel<10
         if ~isempty(L)
             BCsError=norm(Lrhs-L*F1.LSF);

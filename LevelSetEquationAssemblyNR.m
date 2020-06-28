@@ -179,9 +179,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
                 + kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw ...
                 );
             
-            RHSterm=RHS;
             
-            b1(:,Inod)=b1(:,Inod)+RHSterm; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;
+            
+            b1(:,Inod)=b1(:,Inod)+RHS; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;
             
         end
         
@@ -211,7 +211,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
         
         kv=sparseUA(Iind,Jind,Xval,neq,neq);
     end
-
+    
     
     
     

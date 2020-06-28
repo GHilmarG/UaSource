@@ -25,4 +25,14 @@ else
 end
 
 
+
+% if numel(varargin{1})>100000
+%    
+%     t2=tic ; S=sparse2(varargin{:}); t2=toc(t2) ; 
+%     t=tic ; S=sparse(varargin{:}); t=toc(t) ; 
+%     
+%     fprintf(' Sparse2 in %f sec \t \t sparse in %f sec. \n',t2,t)
+%     fprintf(' \n ')
+% end
+
 end

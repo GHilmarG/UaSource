@@ -330,8 +330,10 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         
                         fMeshLSF.Position=[100 650 1100 570] ;
                         
-                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
-                        title(cbar,'Thickness (m)') 
+                        %[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Thickness (m)') ; caxis([0 50])
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,'LSF (km)') ; caxis([-10 10])
+                        colormap(flipud(othercolor('RdYlBu_11b',2000)))
+                        
                         hold on 
                         PlotMuaMesh(CtrlVar,MUA,'k'); hold on
                      
@@ -367,7 +369,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         else
                             axis(AxisLimits) ;
                         end
-                        caxis([0 50])
+                        
                         xlabel('x (km)') ; ylabel('y (km)') ; 
                         drawnow
                     end

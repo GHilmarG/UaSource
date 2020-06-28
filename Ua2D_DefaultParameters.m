@@ -1418,7 +1418,7 @@ CtrlVar.LevelSetMethod=0;
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LSFMeltFeedbackMultiplier=10; % 
+CtrlVar.LSFMeltFeedbackMultiplier=1; % 
 
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance

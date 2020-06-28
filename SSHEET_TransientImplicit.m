@@ -79,12 +79,12 @@ while true
         if iteration > CtrlVar.NRitmax
             
             if CtrlVar.InfoLevelNonLinIt>=1
-                fprintf(' SSHEET(h) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uv iteration did not converge! \n',CtrlVar.time,CtrlVar.dt)
+                fprintf(' SSHEET(h) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt)
                 fprintf(' Exiting h iteration after %-i iterations with r=%-g \n',iteration,r)
             end
             
             if CtrlVar.WriteRunInfoFile
-                fprintf(RunInfo.File.fid,' SSHEET(h) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uv iteration did not converge! \n',CtrlVar.time,CtrlVar.dt);
+                fprintf(RunInfo.File.fid,' SSHEET(h) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uvh iteration did not converge! \n',CtrlVar.time,CtrlVar.dt);
                 fprintf(RunInfo.File.fid,' Exiting h iteration after %-i iterations with r=%-g \n',iteration,r);
             end
             

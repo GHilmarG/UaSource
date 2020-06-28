@@ -9,7 +9,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     nargoutchk(4,4)
     
     
-    persistent LastResetTime
+    persistent LastResetTime dLSF
     
     
     if ~CtrlVar.LevelSetMethod
@@ -31,12 +31,18 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     if isempty(LastResetTime)
         LastResetTime=0 ;
     end
- 
-       
-    if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval) 
+    
+    CtrlVar.LevelSetInfoLevel=10 ;  
+    
+    
+    if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval)
         fprintf("LevelSetEquation: Level Set is re-initialized. \n")
         [F0.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F0.LSF)  ;
-        LastResetTime=CtrlVar.time ; 
+        F1.LSF=F0.LSF ;  % helps with convergence
+        LastResetTime=CtrlVar.time ;
+    elseif ~isempty(dLSF)  && ( numel(F0.LSF) == numel(dLSF))
+        
+        F1.LSF=F0.LSF+dLSF*CtrlVar.dtRatio ;
     end
     
     
@@ -58,6 +64,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     
     Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
     
+    dLSF=LSF-F0.LSF; 
     
     if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
        
