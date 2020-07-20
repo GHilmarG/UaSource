@@ -10,7 +10,7 @@ classdef (ConstructOnLoad) UaRunInfo
         MeshAdapt
         File
         Mapping
-        
+        LevelSet
     end
     
     
@@ -34,7 +34,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
             
-            obj.Forward.uvConverged=0;
+            obj.Forward.uvConverged=false;
             obj.Forward.uvIterations=NaN;
 
             obj.Forward.hConverged=0;
@@ -58,6 +58,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
             obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
             
+            obj.Forward.ubvbRecalculatedOnNewMesh=false; 
             
             obj.Forward.ActiveSetConverged=NaN;
             
@@ -70,6 +71,11 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.BackTrack.nFuncEval=NaN;
             obj.BackTrack.nExtrapolationSteps=NaN;
             
+            
+            obj.LevelSet.SolverConverged=0;
+            obj.LevelSet.Iterations=NaN;
+            obj.LevelSet.rForce=NaN;
+            obj.LevelSet.rWork=NaN;
             
             obj.CPU.Total=0;
             obj.CPU.Assembly.uv=0;
@@ -148,6 +154,18 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
                 obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
             end
+            
+            if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
+                obj.Forward.ubvbRecalculatedOnNewMesh=false;
+            end
+            
+            if ~isfield(s.LevelSet,'SolverConverged')
+                obj.LevelSet.SolverConverged=0;
+                obj.LevelSet.Iterations=NaN;
+                obj.LevelSet.rForce=NaN;
+                obj.LevelSet.rWork=NaN;
+            end
+            
             
             
             

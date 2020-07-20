@@ -148,7 +148,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         RunInfo.Mapping.nNotIdenticalNodesInside=numel(NodesInsideAndNotSame);
         
         
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 ;
             fig=FindOrCreateFigure("-Old and new nodes-");
            
             tt=axis;

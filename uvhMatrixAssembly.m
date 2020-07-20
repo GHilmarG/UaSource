@@ -141,7 +141,13 @@ else
     dadh=zeros(MUA.Nnodes,1);
 end
 
-if ~isempty(F1.LSF) &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback && ~ZeroFields
+if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0) && ~ZeroFields
+    
+    % Cubic model: ab=a1*h + a3 h^3 with
+    %
+    %       h1=1; h2=10 ; f1=1 ; f2=100 ; [a1,a3]=CubicMelt(h1,f1,h2,f2);
+    %     
+    % a1=0.909090909090909;  a3=a1/10
     
     
     abLSF=zeros(MUA.Nnodes,1) ;
@@ -152,8 +158,19 @@ if ~isempty(F1.LSF) &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedb
     end
     
     F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-    abLSF(F1.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness-CtrlVar.LSFMeltFeedbackMultiplier*F1.h(F1.LSFMask.NodesOut);
-    dadhLSF(F1.LSFMask.NodesOut)=-CtrlVar.LSFMeltFeedbackMultiplier;
+    
+    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+        
+        a1=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
+        a3=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+        
+        hmin=CtrlVar.LevelSetMinIceThickness;
+        hTemp=F1.h ;
+        abTemp=a1*(hTemp-hmin)+ a3*(hTemp-hmin).^3 ;
+        dabdhTemp=a1+3*a3*(hTemp-hmin).^2 ;
+        abLSF(F1.LSFMask.NodesOut)=abTemp(F1.LSFMask.NodesOut);
+        dadhLSF(F1.LSFMask.NodesOut)=dabdhTemp(F1.LSFMask.NodesOut);
+    end
     
     F1.ab=F1.ab+abLSF;
     dadh=dadh+dadhLSF;

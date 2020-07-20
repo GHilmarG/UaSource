@@ -1,4 +1,3 @@
-
 function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     
     
@@ -134,6 +133,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     iCount=0;
     DataCollect=[];
     DataCollect.FileNameSubstring=FileNameSubstring;
+    LSFScale=[]; 
     
     while iFile<=nFiles   % loop over files
         
@@ -216,9 +216,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     
                     if ~isempty(F.LSF)
                         [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
-                        DataCollect.LSFmax(iCount)=max(xc) ;
-                        DataCollect.LSFmin(iCount)=min(xc) ;
-                        DataCollect.LSFmean(iCount)=mean(xc) ;
+                        DataCollect.LSFmax(iCount)=max(xc,[],'omitnan') ;
+                        DataCollect.LSFmin(iCount)=min(xc,[],'omitnan') ;
+                        DataCollect.LSFmean(iCount)=mean(xc,'omitnan') ;
                     end
                     
                     %%
@@ -337,6 +337,12 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         hold on 
                         PlotMuaMesh(CtrlVar,MUA,'k'); hold on
                      
+                              
+                        if ~isempty(F.LSFMask)
+                            plot(MUA.coordinates(F.LSFMask.NodesOut,1)/1000,MUA.coordinates(F.LSFMask.NodesOut,2)/1000,'*r')
+                        end
+                        
+                        
                         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
                         if ~isempty(xGL)
                             Temp=fMeshLSF.CurrentAxes.Title.String;
@@ -357,11 +363,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         
                         % Par.RelativeVelArrowSize=10 ;
                         % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
-                        
-                        if ~isempty(F.LSFMask)
-                            plot(MUA.coordinates(F.LSFMask.NodesOut,1)/1000,MUA.coordinates(F.LSFMask.NodesOut,2)/1000,'*r')
-                        end
-                        
+                  
                         
                         if contains(FileNameSubstring,'-1dIceShelf-')
                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
@@ -388,7 +390,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     FigFL.InnerPosition=[100 700 939 665];
                     hold on 
                     % point selection
-                    Iy=abs(MUA.coordinates(:,2)-yProfile)< 1000 ;
+                    Iy=abs(MUA.coordinates(:,2)-yProfile)< 10000 ;
                     
                     xProfile=MUA.coordinates(Iy,1) ;
                     [xProfile,Ix]=sort(xProfile) ;
@@ -427,9 +429,23 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         plot(x/1000,b,'g-','LineWidth',2,'DisplayName','$b$ analytical')
                     end
                     
+                    LSFmean=NaN;
                     if ~isempty(LSFProfile)
-                       
-                        plot(xProfile/1000,LSFProfile*(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)),'m.-','DisplayName','$\varphi$ (scaled)')
+                        
+                        if isempty(LSFScale)
+                            LSFScale=(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)) ;
+                        end
+                        
+                        plot(xProfile/1000,LSFProfile*LSFScale,'m.-','DisplayName','$\varphi$ (scaled)')
+                        
+                        
+                        if ~isempty(F.LSF)
+                            [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                            LSFmax=max(xc) ;
+                            LSFmin=min(xc) ;
+                            LSFmean=mean(xc) ;
+                        end
+                        
                         
                     end
                     
@@ -454,6 +470,11 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     xlabel('$x$ (km)','interpreter','latex') ;
                     legend('interpreter','latex','Location','SouthEast')
                     xlim([min(x)/1000 max(x)/1000]);
+                    
+                    ytt=ylim;
+                    
+                    plot([LSFmean,LSFmean]/1000,[ytt(1) ytt(2)],'k--')
+                    
                     hold off
                     
                     

@@ -155,21 +155,7 @@ end
 BCsNew=BoundaryConditions;
 [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
-if  CtrlVar.LevelSetMethod
-    
-    % Calving-rate field needs to be redefined each time, but the Level-Set Field may or may not be reset here
-    % Possibly the user will want to use LSF so I must map this ono the new mesh ahead of
-    % the call
-     OutsideValue.LSF=NaN;
-    [RunInfo,Fnew.LSF]=...
-        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-        OutsideValue.LSF,...
-        Fold.LSF) ;
 
-
-    [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew);
-    
-end
 
 
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
@@ -222,25 +208,15 @@ switch CtrlVar.FlowApproximation
     
     case "SSTREAM"
         
-        
+% if ub vb has been calculated as a part of the remeshing, I'm loosing that information
+% here. The problem is that ub vb will not, in general, have been calculated on either
+% MUAnew or MUAold unless only one adapt iteration was performed. 
+%
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
-        
-%  I've already done this interpolation or LSF was just defined by the user       
-%         if  CtrlVar.LevelSetMethod && ~(isLSFchanged && numel(Fnew.LSF)==MUAnew.Nnodes)
-%             % only need to map LSF if using the LevelSetMethod and if LSF does not have
-%             % the rigth size and has not been changed in the previous direct call to
-%             % GetCalving
-%             
-%             [RunInfo,Fnew.LSF]=...
-%                 MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-%                 OutsideValue.LSF,...
-%                 Fold.LSF) ;
-%             
-%         end
-        
+
         
         Fnew.duddt=zeros(MUAnew.Nnodes,1);
         Fnew.dvddt=zeros(MUAnew.Nnodes,1);
@@ -257,6 +233,20 @@ switch CtrlVar.FlowApproximation
         
         
 end
+
+% No need to update the calving as it is only needed in a transient run
+% 
+if  CtrlVar.LevelSetMethod
+
+     OutsideValue.LSF=NaN;
+    [RunInfo,Fnew.LSF]=...
+        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+        OutsideValue.LSF,...
+        Fold.LSF) ;
+    
+end
+
+
 
 %%
 end

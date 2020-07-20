@@ -5,6 +5,19 @@ function [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,hgl,ugl,xgl,x,A,
     
     % sorts the outputs with x if x is requied as an output.
     % otherwise, s, b, u are ordered as the nodes in the mesh
+    %
+    %
+    %
+    % Examples: 
+    %
+    %
+    % Use default values, and x values based on MUA.coordinates(:,1)
+    %    [s,b,u,x]=AnalyticalOneDimentionalIceShelf([],MUA)
+    %
+    % Solution at x using defaults values
+    %    [s,b,u]=AnalyticalOneDimentionalIceShelf([],x)
+    %
+    %%
     
     if ~ ( (nargin == 2) || (nargin==13) )
         error('AnalyticalOneDimentionalIceShelf:IncorrectNumberOfInputArguments','Incorrect number of input arguments')
@@ -20,10 +33,17 @@ function [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA,hgl,ugl,xgl,x,A,
         A=AGlenVersusTemp(-10);
         hgl=1000;
         ugl=300;
-        xgl=0 ; 
-        x=MUA.coordinates(:,1) ;
+        xgl=0 ;
+        if isstruct(MUA)
+            x=MUA.coordinates(:,1) ;
+        else
+            x=MUA;
+        end
+        
     end
 
+    
+    
     x=x-xgl ; 
     
     qgl=hgl*ugl;

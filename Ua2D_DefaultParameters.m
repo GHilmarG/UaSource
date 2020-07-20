@@ -79,7 +79,7 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 % model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
 %
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -377,12 +377,12 @@ CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
-CtrlVar.LevelSetSolverMaxIterations=10;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-2];
+CtrlVar.LevelSetSolverMaxIterations=100;
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-6];
+CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-6];
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-2];
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-6];
 
 
 
@@ -1412,13 +1412,19 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 
 %% Calving :  including Level Set Method
+% Calving using the level-set method is currently experimental.
+% For the time being use other options such as the manual element deactivation
+%
 CtrlVar.ManuallyDeactivateElements=0; 
 CtrlVar.LevelSetMethod=0; 
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
+
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LSFMeltFeedbackMultiplier=1; % 
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
+
 
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
@@ -1701,7 +1707,7 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 %
-CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
+CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
 CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithim
 CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithim
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
@@ -1848,11 +1854,6 @@ CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}
 %%
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 
-%%
-CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
-                                % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DebugMode=false; 
-
 
 %% Mapping variables from one FE mesh to another
 % Remeshing during a run requires variables to be mapped from the older mesh to
@@ -1887,6 +1888,10 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 %% Internal variables 
+%%
+CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
+                                % (unless you want to use some untried, untested and unfinished features....)
+CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end

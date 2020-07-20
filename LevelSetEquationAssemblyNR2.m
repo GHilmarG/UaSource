@@ -1,4 +1,4 @@
-function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
+function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
     
     
     %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
@@ -19,19 +19,21 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
     theta=CtrlVar.theta;
- 
+   % theta=0; 
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
     
-    tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
-    % tauSUPG=CalcSUPGtau(CtrlVar,MUA,abs(u0-c0),v0*0 ,dt)  ;  % TestIng    !!!
-    l2=TriAreaFE(MUA.coordinates,MUA.connectivity);
+    tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);  % TestIng  1
+    % tauSUPG=CalcSUPGtau(CtrlVar,MUA,abs(u0-c0),v0*0 ,dt)  ;  % TestIng  2
     
+    l=sqrt(MUA.EleAreas) ;
     
-    speed0=sqrt(u0.*u0+v0.*v0) ; V=abs(speed0-c0) ; 
-    V=speed0; % Testing
-    V=Nodes2EleMean(MUA.connectivity,V) ;
-    mu=CtrlVar.LevelSetFAB*V.*l2;  % looks resonable to me
+    speed0=sqrt(u0.*u0+v0.*v0) ; 
+    % V=abs(speed0-c0) ; % TesTing 2 
+    V=speed0; % TestIng 1
+    V=Nodes2EleMean(MUA.connectivity,V) ; % consider doing this a integration points
+    l=10e3 ; 
+    mu=CtrlVar.LevelSetFAB*V.*l;  % looks resonable to me
     
     
     
@@ -111,14 +113,14 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
         end
         
         % Norm of gradient (NG)
-        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
-        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
+        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+100*eps); % at each integration point for all elements
+        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+100*eps); % at each integration point for all elements
         
         
-        n1x=df1dx./NG1;  n1y=df1dy./NG1;
-        n0x=df0dx./NG0;  n0y=df0dy./NG0;
-        c1xint=-c1int.*n1x ; c1yint=-c1int.*n1y;
-        c0xint=-c0int.*n0x ; c0yint=-c0int.*n0y;
+        n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
+        %n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
+        %c1xint=c1int.*n1x ; c1yint=c1int.*n1y;  
+        %c0xint=c0int.*n0x ; c0yint=c0int.*n0y;
         
         
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
@@ -128,27 +130,24 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
         
         
         
-        
-        
         for Inod=1:MUA.nod
             
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-            
-            
             SUPGdetJw=SUPG.*detJw;
             
             if nargout>2
                 for Jnod=1:MUA.nod
                     
-                    
-                    LHS=(fun(Jnod)...
-                        +NR*dt*theta*((u1int-c1xint).*Deriv(:,1,Jnod) + (v1int-c1yint).*Deriv(:,2,Jnod))...  % this term clearly speeds it up (as it should)
-                        ).*SUPGdetJw;
-                    
+                    LHS=fun(Jnod).*SUPGdetJw...
+                        +NR*dt*theta*(...
+                        (u1int.*Deriv(:,1,Jnod) + v1int.*Deriv(:,2,Jnod))... 
+                        +c1int.*(df1dx.*Deriv(:,1,Jnod)+df1dy.*Deriv(:,2,Jnod))./NG1)...
+                        .*SUPGdetJw;
+
                     
                     LHSDiffusion=dt*theta*...
                         (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
-                        + NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
+                        - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                     
                     
@@ -158,17 +157,21 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,f0,c0,u0
                     
                 end
             end
+
             
-            RHS=(f1int-f0int).*SUPGdetJw ...
+            RHS=(f1int-f0int).*SUPGdetJw...
                 + dt*theta*(...
-                ((u1int-c1xint).*df1dx +(v1int-c1yint).*df1dy).*SUPGdetJw...
+                (u1int.*df1dx +v1int.*df1dy).*SUPGdetJw...
                 + kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
                 ) ...
                 + dt*(1-theta)*(...
-                ((u0int-c0xint).*df0dx +(v0int-c0yint).*df0dy).*SUPGdetJw...
-                + kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw ...
-                );
+                (u0int.*df0dx +v0int.*df0dy).*SUPGdetJw...
+                + kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw...
+                ) ...
+                +dt*(1-theta)*c0int.*NG0.*SUPGdetJw+dt*theta*c1int.*NG1.*SUPGdetJw...    
+                ;
             
+   
             
             
             b1(:,Inod)=b1(:,Inod)+RHS; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;

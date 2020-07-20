@@ -183,6 +183,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             nNewElements=MUAnew.Nele-NeleBefore;
             nNewNodes=MUAnew.Nnodes-NnodesBefore;
                         
+            
             [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
             
             if RunInfo.Mapping.nNotIdenticalNodesOutside>0
@@ -328,10 +329,19 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     %
     
     OutsideValue.h=CtrlVar.ThickMin ;
+    
+    if OutsideValue.h==0
+        warning('AdaptMesh:OutsideValueForThicknesSetToZero','CtrlVar.ThickMin is set to zero. This might make system singular.')
+    end
+
     OutsideValue.s=mean(Fold.S)+CtrlVar.ThickMin*(1-mean(Fold.rho)/Fold.rhow);
     OutsideValue.b=OutsideValue.s-OutsideValue.h;
     OutsideValue.ub=0;
     OutsideValue.vb=0;
+
+
+
+
     % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     

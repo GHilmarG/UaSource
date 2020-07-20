@@ -2,14 +2,23 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     %%
     %
     %
-    %  %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
+    %    df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
+    %
     %
     
+    
     narginchk(7,7)
-    nargoutchk(4,4)
+    nargoutchk(4,5)
     
     
     persistent LastResetTime dLSF
+    
+    if ~CtrlVar.DevelopmentVersion
+       
+        error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
+        
+    end
+    
     
     
     if ~CtrlVar.LevelSetMethod
@@ -42,7 +51,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         LastResetTime=CtrlVar.time ;
     elseif ~isempty(dLSF)  && ( numel(F0.LSF) == numel(dLSF))
         
-        F1.LSF=F0.LSF+dLSF*CtrlVar.dtRatio ;
+        F1.LSF=F0.LSF;  % +dLSF*CtrlVar.dtRatio ;
     end
     
     
@@ -58,6 +67,23 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
             
             % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
             [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
+            
+            if ~RunInfo.LevelSet.SolverConverged
+                % oops
+                error('LevelSetEquation:NoConvergence','LSF did not converge')
+                fprintf('LevelSetEquation:  Solver did not converge.\n')
+                dtKeep=CtrlVar.dt; 
+                CtrlVar.dt=CtrlVar.dt/10 ; 
+                F1.LSF=F0.LSF; 
+                LSF=F0.LSF;
+                for iTheta=1:10
+                    F1.LSF=LSF ;
+                    [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
+                end
+                CtrlVar.dt=dtKeep; 
+            end
+            
+            
             
     end
  

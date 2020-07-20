@@ -31,8 +31,9 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
         PM=sign(LSF) ; 
         
      % 3) Replace LSF with signed distance 
-
-        LSF=PM.*Dist ; 
+        TH = TopHatApprox(1/10e3,LSF,50e3) ;
+     
+        LSF=PM.*Dist.*TH+(1-TH).*LSF; 
         
         
     else

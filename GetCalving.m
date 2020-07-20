@@ -58,4 +58,13 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
         error(errorStruct)
     end
     
+    %% Modify c away from calving front
+    %
+    %
+    % The calving rate can be effectivly nautralized by setting c=(u,v) grad \varphi 
+    % The automated mass-balance feedback is applied to LSFMask.NOdesOut so I must 
+    
+    
+    
+    
 end

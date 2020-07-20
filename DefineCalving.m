@@ -50,41 +50,18 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
     %
     %%
     
+    error('DefineCalving:NotSupported','Calving using the level-set method is still in development/testing phase. Do not use. ')
     
-    LSF=F.LSF ;  % always do this if you do not want to modify the LSF
-    
-    if CtrlVar.CurrentRunStepNumber< 2  % initialize the Level-Set-Field
+    if CtrlVar.CurrentRunStepNumber < 2  % initialize the Level-Set-Field
         
-        % LSF set equal to signed distance from x=xc
-        xc=200e3;  % this is the initial calving front
+        % An example where the calving front is initially located at xc
+        xc=200e3;  % this is the initial calving front position 
         LSF=xc-MUA.coordinates(:,1) ;
         
     end
     
-    q=-2;
-    k=86322275.9814533 ;
     
-    switch UserVar.Calving
-        
-        case "Function of analytical thickness"
-            % First for testing, define calving rate as a function of the analytical thickness
-            % profile.
-            
-            [s,b]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
-            h=s-b;
-            
-            
-            c=k*h.^q;
-            
-        case "Function of numerical thickness"
-            
-            c=k*F.h.^q;
-            % The issue is that this goes to infinity with h to zero. 
-            % 
-            c(c>2000)=2000; 
-    end
+    K=1;
+    c=K.*F.h  ;  % An example where calving rate is a linear function of ice thickness
     
-    c=c(:) ;
-    c=c.*(1-F.GF.node) ;
-
 end

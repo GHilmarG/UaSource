@@ -27,8 +27,8 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     % F.c=zeros(MUA.Nnodes,1)-100e3 ;
     
     
-    if ~isfield(CtrlVar,'LevelSetResetInterval') || isempty(CtrlVar.LevelSetResetInterval)
-        CtrlVar.LevelSetResetInterval=10000;
+    if ~isfield(CtrlVar,'LevelSetReinitializeTimeInterval') || isempty(CtrlVar.LevelSetReinitializeTimeInterval)
+        CtrlVar.LevelSetResetInterval=inf;
     end
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -39,7 +39,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     BCsError=0;
     
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
- 
+    RunInfo.LevelSet.SolverConverged=false;
     
     while true
      
@@ -51,7 +51,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
                 && iteration >= CtrlVar.NRitmin;
             
         else
-            
+            % gamma very small
             ResidualsCriteria=(rWork<CtrlVar.LSFAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFAcceptableWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.LSFAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFAcceptableWorkOrForceTolerances(2))...
                 && iteration >= CtrlVar.NRitmin;
@@ -61,11 +61,13 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
            
         if iteration>=CtrlVar.LevelSetSolverMaxIterations && (r/r0>0.9) 
             fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
+            RunInfo.LevelSet.SolverConverged=false;
             break
         end
         
-        if ResidualsCriteria  && (r/r0>0.75)
-            fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
+        if (ResidualsCriteria  &&  (r/r0>0.75)) || rForce<1e-15
+            fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
+            RunInfo.LevelSet.SolverConverged=true;
             break
         end
         
@@ -74,13 +76,15 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf('LevelSetEquationNewtonRaphson: Backtracking stagnated or step too small. Exiting after %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             end
+            RunInfo.LevelSet.SolverConverged=false;
             break
         end
         
         iteration=iteration+1 ;
         
         
-        [UserVar,R,K]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+        %[UserVar,R,K]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+        [UserVar,R,K]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         if ~isempty(L)
             
             frhs=-R-L'*l;

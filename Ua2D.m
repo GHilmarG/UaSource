@@ -424,7 +424,7 @@ while 1
     % Geometry modifications might depend on the level-set, so call GetCalving before
     % GetGeometryAndDensities.
     
-    [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
+ 
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
@@ -541,7 +541,9 @@ while 1
                 end
             end
             
-        
+            % put this here because now the velocity has been calculated, even if this is
+            % the first
+           [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
             
             F0=F;  %
             
@@ -625,9 +627,10 @@ while 1
             
         end
         
-        % update Level Set to current time using the new velocities 
-        [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set  
-        
+        % update Level Set to current time using the new velocities
+        if CtrlVar.LevelSetMethod
+            [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+        end
     end   % CtrlVar.TimeDependentRun
     
     %% calculations for this rund step are now done, only some plotting/writing issues do deal with

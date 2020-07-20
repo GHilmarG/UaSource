@@ -24,6 +24,9 @@ EleSizeIndicator =zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 NodalErrorIndicators=[];
 isCalculated=false;
 
+RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
+
+
 %CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
 
 for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
@@ -56,6 +59,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
+                RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
@@ -70,6 +74,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
+                RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
@@ -261,6 +266,8 @@ if isRangeBased
         % Calving-Front refinement
         %fprintf('Remeshing based on distance of nodes from calving fronts.\n')
         
+       
+        
         [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F);
         for I=1:size(CtrlVar.MeshAdapt.CFrange,1)
             
@@ -396,7 +403,6 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
 
         
     end
-    
     
     
 end
