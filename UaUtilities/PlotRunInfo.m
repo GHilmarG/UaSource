@@ -5,9 +5,9 @@ function PlotRunInfo(RunInfo)
     semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; ylabel(' dt ' ) ; xlabel(' time ' )
     title('time step as a function of time')
     
-    figure ; 
-    histogram(RunInfo.Forward.dt) ; xlabel('dt')
-    title('dt Histogram')
+%     figure ; 
+%     histogram(RunInfo.Forward.dt) ; xlabel('dt')
+%     title('dt Histogram')
     
     
     figure ; 

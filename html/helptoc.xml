@@ -7,8 +7,8 @@
         <tocitem target="UserInputRoutines.html">User input 
             <tocitem target="DefineInitialInputs.html">Initial user input </tocitem>
             <tocitem target="DefineGeometry.html">Define geometry </tocitem>
-            <tocitem target="DefineSlipperyDistribution.html">Define basal slipperiness </tocitem>
-            <tocitem target="DefineAGlenDistribution.html">Define A in Glen's flow law </tocitem>
+            <tocitem target="DefineSlipperyDistribution.html">Define sliding-law parameters </tocitem>
+            <tocitem target="DefineAGlenDistribution.html">Define ice flow-law parameters</tocitem>
             <tocitem target="DefineMassBalance.html">Define surface mass balance </tocitem>
             <tocitem target="DefineDensities.html">Define densities </tocitem>
             <tocitem target="DefineBoundaryConditions.html">Define boundary conditions </tocitem>

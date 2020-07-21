@@ -40,7 +40,7 @@
 %
 % instead.  
 %
-% You can also now specify a minimum selected time step in the
+% You can now specify a minimum selected time step in the
 % automated-time-stepping (ATM) algorithm settting the field
 %    
 %       CtrlVar.ATSdtMin
@@ -67,6 +67,24 @@
 %       Ua2D_DefaultParameters.m
 %
 % for more details.
+%
+% The
+%
+%   RunInfo
+%
+% variable now contains more information about the run, such as time step and number of
+% non-linear iterations per runstep. 
+%
+% Most of the changes since last Feb 2020 have been 'under the hood'. For example solving
+% a KKT type system can now be done with a much more flexible pre-elimination method than
+% before.
+%
+% All line searches are now done using one single backtracking algorithm (before at least
+% 4 different backtracking routines were used.) 
+%
+% The KKT system is now always solved using the primal-dual method. (Previously the
+% initial iterative was made feasible and the primal method then used.) 
+%
 %
 % *Release Notes*
 % _February 2020_

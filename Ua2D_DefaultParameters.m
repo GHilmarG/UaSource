@@ -69,7 +69,6 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 %
 % *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
 %
-% *Nebuchadnezzarson:* 1/Tau^m = 1/TauC + 1/TauW
 %
 % The *Budd* sliding law is a simple extension of the Weertman sliding law where:
 %
