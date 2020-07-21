@@ -65,7 +65,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %
 %% User m-files :
 % 
-% * Ua2D_InitialUserInput
+% * DefineInitialUserInput.m
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
 % * DefineBoundaryConditions.m 
@@ -76,7 +76,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
 % * DefineInverseModellingVariables.m
-% * UaOutputs.m
+% * DefineOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
 % example: help DefineGeometry 
@@ -94,7 +94,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % is only needed if one finds that the standard remeshing options within Úa are
 % too limited.
 %
-% UaOutputs is only needed for producing output files or for some plotting, etc.
+% DefineOutputs is only needed for producing output files or for some plotting, etc.
 %
 % If any of the above listed m-Files are not found in the run directory, the
 % corresponding m-Files in the Úa home directory are used instead.

@@ -52,12 +52,10 @@ if isequal(lower(CtrlVar.SymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
         CtrlVar.SymmSolver='Bempty';
-%     elseif all(full(sum(B~=0,2))==1)
-%         %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-%         CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+    elseif isdiag(B*B')
+        CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
     else
         CtrlVar.SymmSolver='AugmentedLagrangian';
-
     end
     
 end
@@ -68,12 +66,13 @@ switch CtrlVar.SymmSolver
     case 'Bempty'
         x=A\f;
         y=[];
-            
-    case 'AugmentedLagrangian'
         
- %       if nargin<5  ; y0=zeros(nB,1) ;  end
+    case 'AugmentedLagrangian'
+
+   
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
+
         
     case 'Backslash'
         
@@ -83,48 +82,15 @@ switch CtrlVar.SymmSolver
         x=sol(1:nA) ; y=sol(nA+1:nA+nB);
         
     case 'EliminateBCsSolveSystemDirectly'
-        
-        if CtrlVar.SymmSolverInfoLevel>=10 ; fprintf(' Eliminating BCs and solving system directly \n') ; end
-        
-        [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); 
-        iConstrainedDOF=iConstrainedDOF(:);
-        iFreeDOF=setdiff(1:nA,iConstrainedDOF); 
-        iFreeDOF=iFreeDOF(:);
-        
-        
-        AA=A; ff=f;
-        AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
-        sol=AA\ff;
-        
-        x=zeros(nA,1) ; 
-        x(iConstrainedDOF)=g ; 
-        x(iFreeDOF)=sol;
-        %y=B*(f-A*x);
-        y=B'\(f-A*x);
-
-%  [A   B'] [x]= [f]  -> A x + B' y = f -> y = B'\(f-A x)
-%  [B   0 ] [y]  [g]      
-%
-% -> A x + B' y = f -> y = B'\(f-A x)
-%   B'*B=1 then
-%   y = B'\(f-A x) = inv(B') B' B (f-A x)=  B (f-A x)
-%
-
+     
+        [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
 
     otherwise
+        
         error('case not reckognised ')
         
 end
 
-% 	C=sparse(m,m);
-% 	AA=[A B' ;B -C] ; bb=[f;g];
-% 	sol=AA\bb;
-% 	xTest=sol(1:n) ; yTest=sol(n+1:n+m);
-%
-% 	fprintf(' Diff in sol is %-g and %-g \n ',norm(x-xTest),norm(y-yTest))
-%
-
-%save TestSaveSolveKApeSymmetric A B f g x0 y0 AA ff CtrlVar ; error('asdf')
 
 tSolve=toc(tSolve); 
 

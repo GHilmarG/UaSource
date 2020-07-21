@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-05"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
+      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-07-21"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,47 +67,142 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>February 2020</i></p><p>&Uacute;a can now be called with CtrlVar as second argument, e.g</p><pre class="language-matlab">Ua([],CtrlVar)
-</pre><p>in which case the fields of the CtrlVar on input will be those used in the run even if these same fields are also defined in Ua2D_InitialUserInput.m</p><p>The combination of local mesh refinement using the newest-vertex bisection method with mesh deactivation is now very flexible and allows for both reduction and extension of the computational domain during the run.</p><p>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and  Nebuchadnezzarson. Refer to the Ua compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</p><p>The semi-implicit time-stepping method now uses SUPG by default and when used the automated time-stepping algorithm ensures that time step fulfils the CFL condition.</p><p>When using automated mesh refinement/coarsening in a time-dependent run, the upper surfaces are mapped between meshes and the thickness calculated afterwards. (Previously, the thickness was mapped and the surface calculated afterwards.) This may cause a potential violation of mass conservation. However, this also ensures smooth upper surfaces even when refining mesh over areas with very uneven bedrock topography.</p><p><b>New user input file options:</b></p><pre class="language-matlab">DefineRunStopCriterion.m
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>June 2020</i></p><div><ul><li>Naming of some user input m-files has changed:</li></ul></div><pre>     Ua2D_InitialUserInput.m</pre><p>is now named:</p><pre>     DefineInitialInputs.m</pre><p>And</p><pre>     UaOutputs.m</pre><p>is now:</p><pre>     DefineOutputs.m</pre><p>These changes were done so that names of all user-input files start with 'Define'</p><p>Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and UaOutputs.m files you can, for example, consider using the m-file utility file:</p><pre>     RenameFileRecursively.m</pre><div><ul><li>Naming of a few CtrlVar fields has changed. For example</li></ul></div><pre>     CtrlVar.ATStimeStepTarget</pre><p>is for example no longer used. Use:</p><pre>     CtrlVar.ATSdtMax</pre><p>instead.</p><p>You can now specify a minimum selected time step in the automated-time-stepping (ATM) algorithm settting the field</p><pre>     CtrlVar.ATSdtMin</pre><p>Also</p><pre class="language-matlab">CtrlVar.UaOutputsDt
+</pre><p>has also been replaced by</p><pre class="language-matlab">CtrlVar.DefineOutputsDt
+</pre><p>If you define these old fields in your (new) DefineInitialInputs.m, &Uacute;a will spot this and complain bitterly.</p><p>Those using Unix might want to systematically change names of some of the CtrlVar fields in there old input files. You might be able to use something like:</p><pre class="language-matlab">find <span class="string">.</span> <span class="string">-name</span> <span class="string">"DefineInitialInputs.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g'</span> <span class="string">{}</span> <span class="string">+</span>
+find <span class="string">.</span> <span class="string">-name</span> <span class="string">"Define*.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g'</span> <span class="string">{}</span> <span class="string">+</span>
+</pre><div><ul><li>Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for more options. See comments in</li></ul></div><pre>     Ua2D_DefaultParameters.m</pre><p>for more details.</p><p>The</p><pre class="language-matlab">RunInfo
+</pre><p>variable now contains more information about the run, such as time step and number of non-linear iterations per runstep.</p><p>Most of the changes since last Feb 2020 have been 'under the hood'. For example solving a KKT type system can now be done with a much more flexible pre-elimination method than before.</p><p>All line searches are now done using one single backtracking algorithm (before at least 4 different backtracking routines were used.)</p><p>The KKT system is now always solved using the primal-dual method. (Previously the initial iterative was made feasible and the primal method then used.)</p><p><b>Release Notes</b> <i>February 2020</i></p><div><ul><li>&Uacute;a can now be called with CtrlVar as second argument, e.g</li></ul></div><pre class="language-matlab">Ua([],CtrlVar)
+</pre><p>in which case the fields of the CtrlVar on input will be those used in the run even if these same fields are also defined in Ua2D_InitialUserInput.m</p><div><ul><li>The combination of local mesh refinement using the newest-vertex bisection method with mesh deactivation is now very flexible and allows for both reduction and extension of the computational domain during the run.</li></ul></div><div><ul><li>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and  Umbi. Refer to the Ua compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</li></ul></div><div><ul><li>The semi-implicit time-stepping method now uses SUPG by default and when used the automated time-stepping algorithm ensures that time step fulfils the CFL condition.</li></ul></div><div><ul><li>When using automated mesh refinement/coarsening in a time-dependent run, the upper surfaces are mapped between meshes and the thickness calculated afterwards. (Previously, the thickness was mapped and the surface calculated afterwards.) This may cause a potential violation of mass conservation. However, this also ensures smooth upper surfaces even when refining mesh over areas with very uneven bedrock topography.</li></ul></div><div><ul><li>Inversion can be done using all implemented sliding laws except Coulumb.</li></ul></div><div><ul><li>u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the past.</li></ul></div><p><b>New user input file options:</b></p><pre class="language-matlab">DefineRunStopCriterion.m
 </pre><pre class="language-matlab">DefineFinalReturnedValueOfUserVar.m
 </pre><pre class="language-matlab">DefineOutsideValues
 </pre><p><b>Several new computational utilities</b></p><pre class="language-matlab">LakeOrOcean3.m
 </pre><p>is both fast and robust (Thanks to Sebastian Rosier).</p><pre class="language-matlab">EleFlooding.m
-</pre><p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre><p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
+
+
 
 
 %%
 % *Release Notes*
+% _June 2020_
+%
+% * Naming of some user input m-files has changed: 
+%
+%
+%       Ua2D_InitialUserInput.m  
+%
+% is now named:
+%
+%       DefineInitialInputs.m
+% 
+% And
+%   
+%       UaOutputs.m
+%
+% is now:
+%
+%       DefineOutputs.m
+%
+% These changes were done so that names of all user-input files start with 'Define'
+%
+% Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and
+% UaOutputs.m files you can, for example, consider using the m-file utility file:
+%
+%       RenameFileRecursively.m
+%
+% * Naming of a few CtrlVar fields has changed. For example
+%
+%       CtrlVar.ATStimeStepTarget
+%
+% is for example no longer used. Use:
+%
+%       CtrlVar.ATSdtMax
+%
+% instead.  
+%
+% You can now specify a minimum selected time step in the
+% automated-time-stepping (ATM) algorithm settting the field
+%    
+%       CtrlVar.ATSdtMin
+% 
+% Also
+%
+%   CtrlVar.UaOutputsDt 
+%
+% has also been replaced by
+%
+%   CtrlVar.DefineOutputsDt 
+%
+% If you define these old fields in your (new) DefineInitialInputs.m, Úa will spot this and complain bitterly. 
+%
+% Those using Unix might want to systematically change names of some of the CtrlVar fields
+% in there old input files. You might be able to use something like:
+%
+%   find . -name "DefineInitialInputs.m" -exec sed -i 's/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g' {} +
+%   find . -name "Define*.m" -exec sed -i 's/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g' {} +
+%
+% * Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for
+% more options. See comments in 
+%
+%       Ua2D_DefaultParameters.m
+%
+% for more details.
+%
+% The
+%
+%   RunInfo
+%
+% variable now contains more information about the run, such as time step and number of
+% non-linear iterations per runstep. 
+%
+% Most of the changes since last Feb 2020 have been 'under the hood'. For example solving
+% a KKT type system can now be done with a much more flexible pre-elimination method than
+% before.
+%
+% All line searches are now done using one single backtracking algorithm (before at least
+% 4 different backtracking routines were used.) 
+%
+% The KKT system is now always solved using the primal-dual method. (Previously the
+% initial iterative was made feasible and the primal method then used.) 
+%
+%
+% *Release Notes*
 % _February 2020_
 %
 %
-% Úa can now be called with CtrlVar as second argument, e.g 
+% * Úa can now be called with CtrlVar as second argument, e.g 
 %
 %   Ua([],CtrlVar) 
 %
-% in which case
-% the fields of the CtrlVar on input will be those used in the run even if these same
-% fields are also defined in Ua2D_InitialUserInput.m
+% in which case the fields of the CtrlVar on input will be those used in the run
+% even if these same fields are also defined in Ua2D_InitialUserInput.m
 % 
-% The combination of local mesh refinement using the newest-vertex bisection method with
+% * The combination of local mesh refinement using the newest-vertex bisection method with
 % mesh deactivation is now very flexible and allows for both reduction and extension of the
 % computational domain during the run.
 % 
-% Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
-% Cornford, and  Nebuchadnezzarson. Refer to the Ua compendium for definition of these
+% * Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
+% Cornford, and  Umbi. Refer to the Ua compendium for definition of these
 % different sliding laws. Inversion is also possible for all these sliding laws except for
 % the Coulomb sliding.
 % 
-% The semi-implicit time-stepping method now uses SUPG by default and when used the
+% * The semi-implicit time-stepping method now uses SUPG by default and when used the
 % automated time-stepping algorithm ensures that time step fulfils the CFL condition.
 % 
-% When using automated mesh refinement/coarsening in a time-dependent run, the upper
+% * When using automated mesh refinement/coarsening in a time-dependent run, the upper
 % surfaces are mapped between meshes and the thickness calculated afterwards. (Previously,
 % the thickness was mapped and the surface calculated afterwards.) This may cause a
 % potential violation of mass conservation. However, this also ensures smooth upper
 % surfaces even when refining mesh over areas with very uneven bedrock topography.
 % 
+% * Inversion can be done using all implemented sliding laws except Coulumb. 
+% 
+%
+% * u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the
+% past. 
+%
 % *New user input file options:*
 % 
 %   DefineRunStopCriterion.m
@@ -128,8 +224,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 % additional criterion.
 % 
 % 
-% 
-% 
-% 
+%%
+
 ##### SOURCE END #####
 --></body></html>

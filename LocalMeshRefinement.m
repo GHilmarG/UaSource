@@ -23,12 +23,21 @@ persistent wasRefine
 %          MUAnew=LocalMeshRefinement(CtrlVar,MUA,I)
 
 
-% refine and smoothmesh only works for 3-nod elements
-% so first change to 3-nod if needed
 %%
 
 
 narginchk(5,5)
+
+
+if CtrlVar.InfoLevelAdaptiveMeshing>=1
+    
+    fprintf('\t Local adaptive remeshing at run-step %i and time=%f \n',CtrlVar.CurrentRunStepNumber,CtrlVar.time)
+    
+end
+
+
+
+
 
 MUAnew=MUAold;
 MUAonInput=MUAold;
@@ -79,6 +88,8 @@ if isempty(wasRefine)
 end
 
 
+% refine and smoothmesh only works for 3-nod elements
+% so first change to 3-nod if needed
 [MUAold.coordinates,MUAold.connectivity]=ChangeElementType(MUAold.coordinates,MUAold.connectivity,3);
 
 switch CtrlVar.MeshRefinementMethod
@@ -161,9 +172,6 @@ switch CtrlVar.MeshRefinementMethod
         %elements=TestAndCorrectForInsideOutElements(CtrlVar,mesh.coordinates,mesh.elements);
         
         Nb=size(mesh.coordinates,1);  Eb=size(mesh.elements,1);
-        
-        isMeshChanged= ~(Na==Nb && Ea==Eb) ;
-        
         isMeshChangedSufficiently=abs(Eb-Ea) > CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan ;
         
         
@@ -171,6 +179,7 @@ switch CtrlVar.MeshRefinementMethod
         if isMeshChangedSufficiently
             fprintf('In local mesh-refinement step the change in the number of elements and nodes was %i and %i, respectivily  (#R/#C)=(%i/%i). \n',...
                 Eb-Ea,Nb-Na,nRefine,nCoarsen)
+            % This will also change the element type back to 6 adn 10 nodes if required
             MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
             
         else

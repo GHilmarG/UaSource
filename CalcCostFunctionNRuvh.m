@@ -1,53 +1,71 @@
-function [UserVar,RunInfo,r,ruv,rh,rl,R,K,frhs,grhs]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0)
-
-
-
-narginchk(15,15)
-
-Nout=nargout;
-
-F1.ub=F1.ub+gamma*dub;
-F1.vb=F1.vb+gamma*dvb;
-F1.h=F1.h+gamma*dh;
-luvh=luvh+gamma*dl;
-
-CtrlVar.uvhMatrixAssembly.ZeroFields=false;
-if Nout<8
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+    
+    
+    narginchk(15,15)
+    nargoutchk(1,6)
+    
+    
+    F1.ub=F1.ub+gamma*dub;
+    F1.vb=F1.vb+gamma*dvb;
+    F1.h=F1.h+gamma*dh;
+    luvh=luvh+gamma*dl;
+    
+    
+    CtrlVar.uvhMatrixAssembly.ZeroFields=false;
     CtrlVar.uvhMatrixAssembly.Ronly=true;
-else
-    CtrlVar.uvhMatrixAssembly.Ronly=false;
-end
-
-[UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
-
-
-if ~isempty(L)
     
-    frhs=-R-L'*luvh;
-    grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
     
-    %frhs=-R-L'*(luv+gamma*dl);
-    %grhs=cuvh-L*[ub+gamma*dub;vb+gamma*dvb;h+gamma*dh];
-else
-    frhs=-R;
-    grhs=[];
-end
+    [UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    
+    
+    if ~isempty(L)
+        
+        frhs=-R-L'*luvh;   % Not sure why I put this minus here, but with the minus it becomes the right-hand side
+        grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
+        
+    else
+        frhs=-R;
+        grhs=[];
+    end
+    
+    
+%    d=[dub;dvb;dh]  ; % Newton step
+%    D2=frhs'*d  ;
 
-% Testing:
+% The system I solve is K deltax = -R 
+% and K=dR/dx
 %
-% in a uv solution the uv residuals have different physical dimentions from h.
-% One way of dealing with this is to multiply in a transient simulation uv with
-% dt, or divide h with dt
+% D^2 = - R d = rhs d
 %
-% Nuv=2*MUA.Nnodes; frhs(Nuv+1:end)=frhs(Nuv+1:end)/CtrlVar.dt;
-
-[r,rl,ruv,rh]=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,Fext0,"-uvh-");
-
-
-
-if isequal(CtrlVar.Residual.uvh,'uv')
-    r=ruv;
-end
-
+%
+    % Ru=-frhs(1:MUA.Nnodes) ;
+    % Rv=-frhs(MUA.Nnodes+1:2*MUA.Nnodes)  ;
+    % Rh=-frhs(2*MUA.Nnodes+1:3*MUA.Nnodes) ;
+    % Rl=-grhs ; 
+    % D2u=-Ru'*dub;
+    % D2v=-Rv'*dvb;
+    % D2h=-Rh'*dh;
+    % D2l=-Rl'*dl; 
+    % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
+    
+    D2=[frhs;grhs]'*[dub;dvb;dh;dl];
+    rWork=D2^2; 
+    
+    % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
+    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps); 
+    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps)); 
+        
+    switch CtrlVar.uvhMinimisationQuantity
+        case "Force Residuals"
+            r=rForce;
+        case "Work Residuals"
+            r=rWork;
+    end
+    
+%     if nargout>=7
+%         Inodes=[]; 
+%         [ruv,rh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
+%     end
+    
 end
 

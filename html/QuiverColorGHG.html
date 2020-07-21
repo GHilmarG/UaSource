@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>QuiverColorGHG</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-24"><meta name="DC.source" content="QuiverColorGHG.m"><style type="text/css">
+      --><title>QuiverColorGHG</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-04"><meta name="DC.source" content="QuiverColorGHG.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -67,13 +68,17 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Plot velocity using colours/colors</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
-</pre><h2 id="2">Plot velocity using colours/colors</h2><p>Just a wrapper around quiver to generate coloured arrow field with a colorbar.</p><p>[cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)</p><p>x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve as a compact representation of a grid in ndgrid format. For example, [X,Y] = ndgrid(xg,yg) )</p><pre class="language-matlab">Par.QuiverColorSpeedLimits=[min max]       : Speed range <span class="string">being</span> <span class="string">colored</span>, leave <span class="string">empty</span> <span class="string">for</span> <span class="string">auto.</span>
+</pre><h2 id="2">Plot velocity using colours/colors</h2><p>Just a wrapper around quiver to generate coloured arrow field with a colorbar.</p><pre class="language-matlab">[cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
+</pre><p>x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve as a compact representation of a grid in ndgrid format. For example, [X,Y] = ndgrid(xg,yg) )</p><pre class="language-matlab">Par.RelativeVelArrowSize                   : affects the <span class="string">size</span> <span class="string">of</span> <span class="string">the</span> <span class="string">velocity</span> <span class="string">arrows.</span>
+                                             by <span class="string">default</span> <span class="string">Par.RelativeVelArrowSize=0.</span>
+                                             Increase <span class="string">value</span> <span class="string">for</span> <span class="string">larger</span> <span class="string">arrows.</span>
+Par.QuiverColorSpeedLimits=[min max]        : Speed range <span class="string">being</span> <span class="string">colored</span>, leave <span class="string">empty</span> <span class="string">for</span> <span class="string">auto.</span>
                                              Note <span class="string">however</span> <span class="string">that</span> <span class="string">when</span> <span class="string">plotting</span>
                                              using <span class="string">log10</span> <span class="string">scaling</span> <span class="string">the</span> <span class="string">min</span> <span class="string">speed</span>
                                              colored <span class="string">will</span> <span class="string">be</span> <span class="string">some</span> <span class="string">fraction</span> <span class="string">of</span> <span class="string">the</span>
                                              max <span class="string">speed</span> <span class="string">based</span> <span class="string">on</span> <span class="string">the</span> <span class="string">value</span> <span class="string">of</span>
                                            Par.QuiverColorPowRange
-Par.RelativeVelArrowSize                   : scaling factor <span class="string">for</span> <span class="string">arrow</span> <span class="string">size</span>, default <span class="string">value</span> <span class="string">is</span> <span class="string">1</span>
+                                         : scaling factor <span class="string">for</span> <span class="string">arrow</span> <span class="string">size</span>, default <span class="string">value</span> <span class="string">is</span> <span class="string">1</span>
 Par.VelArrowColorSteps                     : number of <span class="string">coloring</span> <span class="string">steps</span>, default <span class="string">is</span> <span class="string">20</span>
 Par.VelColorBarTitle                       : default value <span class="string">is</span> <span class="string">'(m a^{-1})'</span> ;
 Par.PlotXYscale                            : default value <span class="string">is</span> <span class="string">1</span>
@@ -134,7 +139,10 @@ cbar=colorbar;
 cbar.Ticks=Par.QuiverTicks*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
 cbar.TickLabels=Par.QuiverTickLabels;
 title(cbar,<span class="string">'(m/d)'</span>)   ;
-</pre><pre class="codeinput"><span class="keyword">if</span> numel(x) ==0
+</pre><pre class="codeinput">cbar=[];
+QuiverHandel=[];
+
+<span class="keyword">if</span> numel(x) ==0
     <span class="keyword">return</span>
 <span class="keyword">end</span>
 
@@ -205,14 +213,20 @@ speed=sqrt(u.*u+v.*v); <span class="comment">% speed is never scaled, so I can u
 
     <span class="keyword">if</span> ~isfield(Par,<span class="string">'MaxPlottedSpeed'</span>)  || isempty(Par.MaxPlottedSpeed)
 
-        <span class="keyword">if</span> all(speed==0)
-            ticks=logticks(speed,Par.QuiverColorPowRange);
-            Par.MaxPlottedSpeed=max(ticks);
+        <span class="keyword">if</span> isfield(Par,<span class="string">'QuiverColorSpeedLimits'</span>)  &amp;&amp; ~isempty(Par.QuiverColorSpeedLimits)
+            Par.MaxPlottedSpeed=Par.QuiverColorSpeedLimits(2);
         <span class="keyword">else</span>
-            <span class="comment">%Par.MaxPlottedSpeed=max(speed(:))*1.001;</span>
-            Par.MaxPlottedSpeed=max(speed(:));
-        <span class="keyword">end</span>
 
+
+            <span class="keyword">if</span> all(speed==0)
+                ticks=logticks(speed,Par.QuiverColorPowRange);
+                Par.MaxPlottedSpeed=max(ticks);
+
+            <span class="keyword">else</span>
+                <span class="comment">%Par.MaxPlottedSpeed=max(speed(:))*1.001;</span>
+                Par.MaxPlottedSpeed=max(speed(:));
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
     <span class="keyword">end</span>
 
 
@@ -321,7 +335,7 @@ speed=sqrt(u.*u+v.*v); <span class="comment">% speed is never scaled, so I can u
 
         <span class="keyword">case</span> <span class="string">'log10'</span>
 
-            ticks=logticks(speed,Par.QuiverColorPowRange);
+            ticks=logticks(speed,Par.QuiverColorPowRange,12,Par.QuiverColorSpeedLimits);
 
             MinTick=min(ticks);
 
@@ -519,15 +533,14 @@ title(cbar,Par.VelColorBarTitle)   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
 
-Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
-
-Par.QuiverColorSpeedLimits=[];  <span class="comment">% don't reuse these setting in next call</span>
+<span class="comment">% Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];</span>
+<span class="comment">% Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call</span>
 
 
 axis <span class="string">equal</span>
-axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
+<span class="comment">% axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 
@@ -535,7 +548,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % Just a wrapper around quiver to generate coloured arrow field with a colorbar.
 %
-% [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
+%   [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can
 % be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve
@@ -543,13 +556,16 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % ndgrid(xg,yg) )
 %
 %
-%   Par.QuiverColorSpeedLimits=[min max]       : Speed range being colored, leave empty for auto.
+%   Par.RelativeVelArrowSize                   : affects the size of the velocity arrows. 
+%                                                by default Par.RelativeVelArrowSize=0.
+%                                                Increase value for larger arrows.
+%   Par.QuiverColorSpeedLimits=[min max]        : Speed range being colored, leave empty for auto.
 %                                                Note however that when plotting
 %                                                using log10 scaling the min speed
 %                                                colored will be some fraction of the
 %                                                max speed based on the value of
 %                                              Par.QuiverColorPowRange
-% Par.RelativeVelArrowSize                   : scaling factor for arrow size, default value is 1
+%                                            : scaling factor for arrow size, default value is 1
 % Par.VelArrowColorSteps                     : number of coloring steps, default is 20
 % Par.VelColorBarTitle                       : default value is '(m a^{-1})' ;
 % Par.PlotXYscale                            : default value is 1
@@ -642,6 +658,8 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   title(cbar,'(m/d)')   ;
 %%
 
+cbar=[];
+QuiverHandel=[];
 
 if numel(x) ==0
     return
@@ -714,14 +732,20 @@ if nargin>4 && ~isempty(Par)
     
     if ~isfield(Par,'MaxPlottedSpeed')  || isempty(Par.MaxPlottedSpeed)
         
-        if all(speed==0)
-            ticks=logticks(speed,Par.QuiverColorPowRange);
-            Par.MaxPlottedSpeed=max(ticks);
+        if isfield(Par,'QuiverColorSpeedLimits')  && ~isempty(Par.QuiverColorSpeedLimits)
+            Par.MaxPlottedSpeed=Par.QuiverColorSpeedLimits(2);
         else
-            %Par.MaxPlottedSpeed=max(speed(:))*1.001;
-            Par.MaxPlottedSpeed=max(speed(:));
+            
+            
+            if all(speed==0)
+                ticks=logticks(speed,Par.QuiverColorPowRange);
+                Par.MaxPlottedSpeed=max(ticks);
+                
+            else
+                %Par.MaxPlottedSpeed=max(speed(:))*1.001;
+                Par.MaxPlottedSpeed=max(speed(:));
+            end
         end
-        
     end
     
     
@@ -834,7 +858,7 @@ else
         
         case 'log10'
             
-            ticks=logticks(speed,Par.QuiverColorPowRange);
+            ticks=logticks(speed,Par.QuiverColorPowRange,12,Par.QuiverColorSpeedLimits);
             
             MinTick=min(ticks);
             
@@ -1041,13 +1065,12 @@ title(cbar,Par.VelColorBarTitle)   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
 
-Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
-
-Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call
+% Par.QuiverColorSpeedLimits=[min(Par.SpeedPlotIntervals) max(Par.SpeedPlotIntervals)];
+% Par.QuiverColorSpeedLimits=[];  % don't reuse these setting in next call
 
 
 axis equal
-axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
+% axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
 
 end
 

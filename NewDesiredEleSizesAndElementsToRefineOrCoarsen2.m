@@ -22,8 +22,10 @@ EleSizeDesired=zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 EleSizeIndicator =zeros(numel(xNod),1)+CtrlVar.MeshSizeMax ;
 
 NodalErrorIndicators=[];
-Kfig=0;
 isCalculated=false;
+
+RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
+
 
 %CalcVel=any(arrayfun(@(x) strcmpi(x,'effective strain rates'),CtrlVar.RefineCriteria) | arrayfun(@(x) strcmpi(x,'residuals'),CtrlVar.RefineCriteria));
 
@@ -57,6 +59,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
+                RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
@@ -71,6 +74,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                 [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
+                RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
@@ -165,7 +169,8 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         
         subplot(1,3,1) ; hold off
         %plot(ErrorProxy,EleSizeIndicator,'.r') ;
-        semilogy(ErrorProxy,EleSizeIndicator,'.r') ;
+        %semilogy(ErrorProxy,EleSizeIndicator,'.r') ;
+        loglog(ErrorProxy,EleSizeIndicator,'.r') ;
         title('Desired element sizes as a function of error proxy')
         xlabel(['Error proxy: ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name])
         ylabel('Ele Size Estimate')
@@ -222,36 +227,67 @@ EleSizeDesired(I)=CtrlVar.MinRatioOfChangeInEleSizeDuringAdaptMeshing*EleSizeCur
 %%
 % Set elesizes around GL to a specific value
 
+% Range-based mesh refinement
+isRangeBased=isfield(CtrlVar,'MeshAdapt') && (~isempty(CtrlVar.MeshAdapt.GLrange) || ~isempty(CtrlVar.MeshAdapt.CFrange));
 
-if isfield(CtrlVar,'MeshAdapt') && isfield(CtrlVar.MeshAdapt,'GLrange')
+if isRangeBased
     
-    %fprintf('Remeshing based on distance of nodes from grounding line.\n')
+    cooA=[MUA.coordinates(:,1) MUA.coordinates(:,2)];
+    KdTree=KDTreeSearcher(cooA) ;
+    CtrlVar.PlotGLs=0; CtrlVar.GLsubdivide=1; CtrlVar.LineUpGLs=0;
     
-    KdTree=[];
-    CtrlVar.PlotGLs=0;
-    CtrlVar.GLsubdivide=1;
-    CtrlVar.LineUpGLs=0; 
-    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL. 
-    
-    
-    for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
+    if ~isempty(CtrlVar.MeshAdapt.GLrange)
+        % GL refinement
+        %fprintf('Remeshing based on distance of nodes from grounding line.\n')
         
-        ds=CtrlVar.MeshAdapt.GLrange(I,1);
-        dh=CtrlVar.MeshAdapt.GLrange(I,2);
-        if dh<CtrlVar.MeshSizeMin
-            if CtrlVar.InfoLevelAdaptiveMeshing>=1
-                fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
-                fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL.
+        for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
+            
+            ds=CtrlVar.MeshAdapt.GLrange(I,1);
+            dh=CtrlVar.MeshAdapt.GLrange(I,2);
+            if dh<CtrlVar.MeshSizeMin
+                if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                    fprintf('---> Warning: CtrlVar.MeshAdapt.GLrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+                    fprintf('              Setting CtrlVar.MeshAdapt.GLrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+                end
+                dh=CtrlVar.MeshSizeMin;
             end
-            dh=CtrlVar.MeshSizeMin;
+            if CtrlVar.InfoLevelAdaptiveMeshing>=10
+                fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
+            end
+            [ID,~,~,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
+            
+            EleSizeIndicator(ID)=dh;
+            EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
         end
-        if CtrlVar.InfoLevelAdaptiveMeshing>=10
-            fprintf('Nodes within the distance of %g from the grounding line are given the target element size %g \n',ds,dh)
-        end
-        ID=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xGL,yGL,ds,KdTree);
+    end
+    
+    if ~isempty(CtrlVar.MeshAdapt.CFrange) && ~isempty(F.LSF) 
+        % Calving-Front refinement
+        %fprintf('Remeshing based on distance of nodes from calving fronts.\n')
         
-        EleSizeIndicator(ID)=dh;
-        EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+       
+        
+        [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F);
+        for I=1:size(CtrlVar.MeshAdapt.CFrange,1)
+            
+            ds=CtrlVar.MeshAdapt.CFrange(I,1);
+            dh=CtrlVar.MeshAdapt.CFrange(I,2);
+            if dh<CtrlVar.MeshSizeMin
+                if CtrlVar.InfoLevelAdaptiveMeshing>=1
+                    fprintf('---> Warning: CtrlVar.MeshAdapt.CFrange(%i,2)=%g<CtrlVar.MeshSizeMin=%g \n',I,dh,CtrlVar.MeshSizeMin)
+                    fprintf('              Setting CtrlVar.MeshAdapt.CFrange(%i,2)=%g \n',I,CtrlVar.MeshSizeMin)
+                end
+                dh=CtrlVar.MeshSizeMin;
+            end
+            if CtrlVar.InfoLevelAdaptiveMeshing>=10
+                fprintf('Nodes within the distance of %g from calving fronts are given the target element size %g \n',ds,dh)
+            end
+            [ID,~,~,KdTree]=FindAllNodesWithinGivenRangeFromGroundingLine(CtrlVar,MUA,xCF,yCF,ds,KdTree);
+            
+            EleSizeIndicator(ID)=dh;
+            EleSizeDesired=min(EleSizeDesired,EleSizeIndicator);
+        end
     end
     
     
@@ -338,28 +374,35 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         
         
     elseif contains(lower(CtrlVar.MeshRefinementMethod),'local')
+                
         
-        FigureName="Local mesh refinement"; 
+        nRefineEle=numel(find(ElementsToBeRefined));
+        nCoarsenedEle=numel(find(ElementsToBeCoarsened)) ;
         
-        fig=FindOrCreateFigure(FigureName) ;
-        clf(fig)
-        CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-        
-        PlotMuaMesh(CtrlVar,MUA,[],'k');
-        hold on
-        PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
-        PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
-        axis tight
-        
-        nR=numel(find(ElementsToBeRefined));
-        nC=numel(find(ElementsToBeCoarsened));
-        title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
-        
+        if nRefineEle>0 && nCoarsenedEle>0
+            
+            FigureName="Local mesh refinement";
+            
+            fig=FindOrCreateFigure(FigureName) ;
+            clf(fig)
+            CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+            
+            PlotMuaMesh(CtrlVar,MUA,[],'k');
+            hold on
+            PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
+            PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');
+            axis tight
+            
+            nR=numel(find(ElementsToBeRefined));
+            nC=numel(find(ElementsToBeCoarsened));
+            title(sprintf('Elements to be refined(%i)/coarsened(%i) in blue/red',nR,nC))
+            drawnow
+        end
         fprintf('  Number of elements to be refined: %i \n',numel(find(ElementsToBeRefined)))
         fprintf('Number of elements to be coarsened: %i \n',numel(find(ElementsToBeCoarsened)))
-        drawnow
+
+        
     end
-    
     
     
 end

@@ -1,28 +1,7 @@
-function FigureObject=PlotReactions(CtrlVar,MUA,Reactions,FigureObject)
-
-
-persistent FigReactions
-
-if nargin==4
-    FigReactions=FigureObject;
-    FigReactions=figure(FigReactions) ; 
-elseif isempty(FigReactions)
-    FigReactions=figure; hold off
-   
-else
-    try
-        FigReactions=figure(FigReactions) ; hold off
-    catch
-        FigReactions=figure; hold off
-    end
-end
+function PlotReactions(CtrlVar,MUA,Reactions)
 
 
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-
-
-hold on
-
 
 Two= numel(Reactions.ubvb)>0 && numel(Reactions.ubvb)>0;
 
@@ -55,6 +34,5 @@ end
 
 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel); 
 
-FigureObject=FigReactions;
 
 end

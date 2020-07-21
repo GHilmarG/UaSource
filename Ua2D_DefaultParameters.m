@@ -69,7 +69,6 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 %
 % *Conford:*  1/Tau^m = 1/TauC^m + 1/TauW^m
 %
-% *Nebuchadnezzarson:* 1/Tau^m = 1/TauC + 1/TauW
 %
 % The *Budd* sliding law is a simple extension of the Weertman sliding law where:
 %
@@ -79,7 +78,7 @@ CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;
 % model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
 %
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","rpCW-N0","rCW-N0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -188,7 +187,7 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %
 % Most plotting is typically done by the user using his own version of the m-file 
 %
-%   UaOutputs.m
+%   DefineOutputs.m
 %
 % or in a separate post-processing step.
 %
@@ -224,7 +223,7 @@ CtrlVar.Plot.Units.Stress="kPa" ;
 % The mesh can be plotted within Ua by setting CtrlVar.PlotMesh=1, or by calling 
 % either PlotFEmesh or PlotMuaMesh (see help PlotFEmesh)
 CtrlVar.PlotMesh=0;        % If true then FE mesh is shown every time a new mesh is generated
-CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1; 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0; 
 CtrlVar.PlotBCs=0;         % If true then boundary conditions are shown at the beginning of the run
 CtrlVar.PlotNodes=0;       % If true then nodes are plotted when FE mesh is shown
 CtrlVar.PlotLabels=0 ;     % If true elements and nodes are labeled with their respective numbers
@@ -294,12 +293,12 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-dhdt-" ; % {"-Adams-Bashforth-","-dhdt-"}
-
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=1e-20    ;    % must be much smaller than C. 
+CtrlVar.Czero=0 ; % 1e-20    ;    % must be much smaller than C. 
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
@@ -348,18 +347,57 @@ CtrlVar.AGlenmax=1e10;
 % to how the primary variables (u,v,h) change.  The norm of these changes can
 % then be large despite the BCs being exactly fulfilled.)
 %
-CtrlVar.NLtol=1e-15; % tolerance for the square of the norm of the residual error
-CtrlVar.du=1;      % tolerance for change in (normalized) speed
-CtrlVar.dh=1;      % tolerance for change in (normalized) thickness
-CtrlVar.dl=100;      % tolerance for change in (normalized) lambda variables used to enforced BCs
 
-CtrlVar.Residual.uvh='uvh';
-CtrlVar.uvhConvergenceCriteria="residuals and increments";  % convergence criteria for the implicit uvh solution
-                                                            % Note: for the uv solution,
-                                                            % the convergence criteria is
-                                                            % always based on residuals
-CtrlVar.MustBe.uvhConvergenceCriteria=["residuals","increments","residuals and increments","residuals or increments"];
-CtrlVar.uvh.SUPG.tau="tau2" ; % {'tau1','tau2','taus','taut'}  
+
+%% uvh Convergence criteria
+% The non-linear uvh/uv loops are considered to have converged if:
+%
+%  1) Work and Force tolerances are both less than: 
+CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+% and, furthermore, at least one of Work and Force tolerances are less than:
+CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+
+% 2) If the step length in the backtracking becomes smaller than
+CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+% while at the same time these Work and Force tolerances also fullfilled:
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
+
+
+CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvExitBackTrackingStepLength=1e-4;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
+
+CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.hExitBackTrackingStepLength=1e-4;
+CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+
+CtrlVar.LevelSetSolverMaxIterations=100;
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-6];
+CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-6];
+CtrlVar.LSFExitBackTrackingStepLength=1e-4;
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-6];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-6];
+
+
+
+CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
+CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
+CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+CtrlVar.LSFMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+
+CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.hMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"]; 
+
+
+CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
+
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -467,7 +505,6 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
-CtrlVar.CalvingFrontFullyFloating=0;  % if true then the natural BC is only covers a freely floating calving front (do not change, only for testing)
 CtrlVar.GroupRepresentation=0;
 %% Number of integration points
 % if left empty, the number of integration points is set automatically
@@ -935,20 +972,20 @@ CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a 
 %
 % For outputs Ua calls a routine called 
 %
-%   UaOutputs.m
+%   DefineOutputs.m
 %
 % Write your own version of this routine to fit your own output/plotting needs and keep
 % the routine into you local run directory, i.e. the directory from which you run Ua
-% Start by copying the example UaOutput.m routine from the Ua source installation folder
+% Start by copying the example DefineOutputs.m routine from the Ua source installation folder
 % to you local run directory.
 %
 
 
 
-CtrlVar.UaOutputsDt=0; % model time interval between calling UaOutputs.m
-% if set to zero UaOutputs is called at every time/run step
-% if set to a negative number, or NaN, UaOutputs is never called
-CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
+CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m
+% if set to zero DefineOutputs is called at every time/run step
+% if set to a negative number, or NaN, DefineOutputs is never called
+CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % Once this limit is reached, the run stops. (Setting this to 1 or some low number
 % can sometimes be useful for testing/control purposes)
 % NaN implies no limit to the number of calls
@@ -964,7 +1001,7 @@ CtrlVar.UaOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to UaOutputs
 % run-step number.
 %
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
-CtrlVar.WriteRunInfoFile=1;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
+CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %
@@ -1357,7 +1394,8 @@ CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these value
                                                    % 'explicit:local:red-green'
                                                    % 'explicit:local:newest vertex bisection';
                                                    
-CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green"];
+CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest vertex bisection","explicit:local:red-green",...
+    "start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"];
                                                    
 %  
 % `explicit:global' implies a global remeshing of the whole domain. This is a
@@ -1371,9 +1409,38 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 %
 
+
+%% Calving :  including Level Set Method
+% Calving using the level-set method is currently experimental.
+% For the time being use other options such as the manual element deactivation
+%
 CtrlVar.ManuallyDeactivateElements=0; 
+CtrlVar.LevelSetMethod=0; 
+
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
+
+
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
+
+CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
+CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;  
+
+CtrlVar.LevelSetFAB=1;  % multiplier, 1 use full forward an backwards (FAB) diffusion, 0 no FAB
+CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
+
+CtrlVar.LevelSetReinitializeTimeInterval=inf;
+CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
+CtrlVar.LevelSetInfoLevel=1;
+
+CtrlVar.CalvingLaw="-User Defined-"; 
+CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted
@@ -1556,7 +1623,8 @@ CtrlVar.RefineDiracDeltaWidth=100;
 CtrlVar.RefineDiracDeltaOffset=0;
 CtrlVar.MeshAdapt.GLrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 
-
+%% Local mesh refinement around calving front
+CtrlVar.MeshAdapt.CFrange=[];   % Example (see description above):  CtrlVar.MeshAdapt.CFrange=[5000 2000 ; 1000 500 ; 250 50];                                                 
 %% Parameters affecting the floating mask
 
 CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
@@ -1575,7 +1643,20 @@ CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the va
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
                           % then all nodal values of 6-node and 10-node triangles are also used. This is done by splitting those into 4 and 9 triangles, respectively
 
-
+%%
+% Grounding/Floating mask
+% The grounding/floating mask (GF) can be accessed as F.GF
+% By default GF has one field, GF.nodes, with values betweon 0 and 1. 
+% The value 0 indicates that the corrsponding node is afloat, and the value 1 that it is
+% grounded.
+%
+% Sometimes it is usefull to have additional information about which nodes are strickly
+% upstream/downstream of grounding lines. For node to be "stricly afloat" all the nodes of
+% all the elements containing that particular node must all be afloat. For example, generally
+% ocean-induced melt should only be applied to nodes that are "strickly afloat". 
+%
+CtrlVar.GroundingFloatingMaskContains="GF nodes only" ; 
+CtrlVar.MustBe.GroundingFloatingMaskContains=["GF nodes only","GF nodes and strickly afloat/grounded nodes and elements"];
 
 %% A and C as element or nodal variables
 % AGlen and C can be either nodal or element variables.
@@ -1625,8 +1706,9 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 %
-CtrlVar.AdaptiveTimeStepping=1 ;    % true if time step should potentially be modified
-CtrlVar.ATStimeStepTarget=1000.0;   % maximum time step size allowed
+CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
+CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithim
+CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithim
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
@@ -1635,7 +1717,7 @@ CtrlVar.ATSintervalDown=3 ;         % number of iterations between considering d
 CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been less than ATSTargetIterations for
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
-CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.UaOutputsDt (but only if  CtrlVar.UaOutputsDt>0)                                 
+CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
 CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 
@@ -1771,11 +1853,6 @@ CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}
 %%
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 
-%%
-CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
-                                % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DebugMode=false; 
-
 
 %% Mapping variables from one FE mesh to another
 % Remeshing during a run requires variables to be mapped from the older mesh to
@@ -1810,6 +1887,10 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 %% Internal variables 
+%%
+CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
+                                % (unless you want to use some untried, untested and unfinished features....)
+CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
 end

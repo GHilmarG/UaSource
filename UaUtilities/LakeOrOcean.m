@@ -52,7 +52,10 @@ function [OceanNodes,LakeNodes,GLgeo,GLnodes,GLele,OceanElements]=LakeOrOcean(Ct
 % by  grounded ice. The LakeOrOcean.m approach is to identify the longest
 % grounding line and consider any floating areas upstream of that grounding line
 % to be lakes and all other floating areas a part of the ocean. Both of these
-% approached can fail. However, arguably the LakeOcean3.m definition of a lake
+% approached can fail. ]
+
+
+% However, arguably the LakeOcean3.m definition of a lake
 % is more likely to be generally accepted by members of a typical university
 % geography department.
 %

@@ -2,8 +2,14 @@ function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,Ct
 
          
 
-narginchk(9,9)
+narginchk(8,9)
 nargoutchk(5,5)
+
+if nargin<9 || isempty(OutsideValue)
+    OutsideValue.h=CtrlVar.ThickMin;
+    OutsideValue.b=0;
+    OutsideValue.s=CtrlVar.ThickMin;
+end
 
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
@@ -13,6 +19,7 @@ if ~RunInfo.MeshAdapt.isChanged
 
     BCsNew=BCsOld;
     lnew=lold;
+    
     return
 end
 
@@ -148,6 +155,9 @@ end
 BCsNew=BoundaryConditions;
 [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
+
+
+
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
 %%
@@ -189,32 +199,54 @@ if ~isfield(OutsideValue,'dvddt')
     OutsideValue.dvddt=NaN;
 end
 
+if ~isfield(OutsideValue,'LSF')
+    OutsideValue.LSF=NaN;
+end
+
 
 switch CtrlVar.FlowApproximation
     
     case "SSTREAM"
         
-        
+% if ub vb has been calculated as a part of the remeshing, I'm loosing that information
+% here. The problem is that ub vb will not, in general, have been calculated on either
+% MUAnew or MUAold unless only one adapt iteration was performed. 
+%
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...
             Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.dubdt,Fold.dvbdt) ;
+
         
         Fnew.duddt=zeros(MUAnew.Nnodes,1);
         Fnew.dvddt=zeros(MUAnew.Nnodes,1);
         
     case "SSHEET"
         
-        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt]=...
+        [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt,Fnew.LSF]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt],...
-            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold,dvddt) ;
+            [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.duddt,OutsideValue.dvddt,OutsideValue.LSF],...
+            Fold.ub,Fold.vb,Fold.ud,Fold.vd,Fold.dhdt,Fold.duddt,Fold.dvddt,Fold.LSF) ;
         
         Fnew.dubdt=zeros(MUAnew.Nnodes,1);
         Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
         
         
 end
+
+% No need to update the calving as it is only needed in a transient run
+% 
+if  CtrlVar.LevelSetMethod
+
+     OutsideValue.LSF=NaN;
+    [RunInfo,Fnew.LSF]=...
+        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+        OutsideValue.LSF,...
+        Fold.LSF) ;
+    
+end
+
+
 
 %%
 end

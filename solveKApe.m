@@ -58,14 +58,10 @@ if isequal(lower(CtrlVar.AsymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
         CtrlVar.AsymmSolver='Bempty';
-        %    elseif all(full(sum(B~=0,2))==1)
-        %        %    isequal(B*B',sparse(1:nB,1:nB,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-        %        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
      elseif isdiag(B*B')
          CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
     else
         CtrlVar.AsymmSolver='AugmentedLagrangian';
-        %Scale=mean(abs(diag(A))); B=Scale*B; g=Scale*g;
     end
     
 end
@@ -88,33 +84,10 @@ switch CtrlVar.AsymmSolver
         end
         
     case 'EliminateBCsSolveSystemDirectly'
+    
         
-        if CtrlVar.InfoLevelLinSolve>=2; fprintf(' Eliminating constraints and solving system directly \n') ; end
-        %
-        %         Test=sum(sum(B*B'-speye(p,p)));  % this is too slow!
-        %         if Test>100*eps
-        %             fprintf('EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case!')
-        %             fprintf(' sum(sum(B*BT-speye(p,p)))=%g \n',Test)
-        %             fprintf(' Change the value of CtrlVar.AsymmSolver\n')
-        %             error('solveKApe:EliminateBCsSolveSystemDirectly','EliminateBCsSolveSystemDirectly assumes B*B^T=eye but this is not the case')
-        %         end
-        
-        % scale A
-        %factor=1./sqrt(full(mean(abs(diag(A*A')))));
-        factor=1./(full(mean(abs(diag(A))))); 
-        A=factor*A ; f=factor*f ;  % this leaves x unaffected but y is scaled
-        
-        
-        Q=speye(nA,nA)-B'*B;
-        Atilde=Q*A+B'*B;
-        btilde=(Q*f+B'*g) ;
-        dAtilde=factorize(Atilde);
-        x=dAtilde\btilde;
-        y=B*(f-A*x);
-        
-        A=A/factor ; f=f/factor ;  % this leaves x unaffected but y is scaled
-        y=y/factor; 
-        
+         [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+    
     case 'AugmentedLagrangian'
         
         

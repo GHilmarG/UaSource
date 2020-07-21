@@ -105,7 +105,7 @@ end
 
 % requires 2k^2 n operations where n is the matrix size and k the semi-bandwidth
 tElapsed=toc(tStart);
-if CtrlVar.InfoLevelLinSolve>1 ; fprintf(CtrlVar.fidlog,' LU factorisation in %g sec \n',tElapsed) ; end
+if CtrlVar.InfoLevelLinSolve>1 ; fprintf(' LU factorisation in %g sec \n',tElapsed) ; end
 
 %     lu factorisation for the non-symmetrical case
 %     Q*Q'=1,  P*P'=1,  but  R*R' ~=1
@@ -219,21 +219,21 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
 end
 
 if CtrlVar.InfoLevelLinSolve>=10
-    fprintf(CtrlVar.fidlog,' Number of Augmented Lagrangian Iterations when solving ([A B'' ; B 0] [x;y] =[f;g]) was  %-i \n',Iteration);
-    fprintf(CtrlVar.fidlog,' Relative solution residual %-g \t , relative change in x and y: %-g and %-g \n',resRelative,xDiff,yDiff);
+    fprintf(' Number of Augmented Lagrangian Iterations when solving ([A B'' ; B 0] [x;y] =[f;g]) was  %-i \n',Iteration);
+    fprintf(' Relative solution residual %-g \t , relative change in x and y: %-g and %-g \n',resRelative,xDiff,yDiff);
 end
 
 if Iteration > IterationMax
     res1=norm(A*x+B'*y-f);
     res2=norm(B*x-g);
     if CtrlVar.InfoLevelLinSolve<1
-        fprintf(CtrlVar.fidlog,' Relative and absolute total solution residuals:  %-g , %-g  \n',resRelative,resAbsolute);
-        fprintf(CtrlVar.fidlog,'  Change in x and y: %-g and %-g \n',xDiff,yDiff);
+        fprintf(' Relative and absolute total solution residuals:  %-g , %-g  \n',resRelative,resAbsolute);
+        fprintf('  Change in x and y: %-g and %-g \n',xDiff,yDiff);
     end
-    fprintf(CtrlVar.fidlog,' Absolute solution residuals for first equation %-g \t and second equation %-g \n',res1,res2);
+    fprintf(' Absolute solution residuals for first equation %-g \t and second equation %-g \n',res1,res2);
     res1=res1/norm(f);
     res2=res2/norm(g);
-    fprintf(CtrlVar.fidlog,' Relative solution residuals for first equation %-g \t and second equation %-g \n',res1,res2);
+    fprintf(' Relative solution residuals for first equation %-g \t and second equation %-g \n',res1,res2);
     warning('ALS:MaxIterationReached','Augmented Lagrangian Solver exits because maximum number of iterations %g reached \n',IterationMax)
 end
 
@@ -246,7 +246,7 @@ if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
     else
         res2=norm(B*x-g);
     end
-    fprintf(CtrlVar.fidlog,' relative residuals=%-g \t absolute residuals=%-g \t first equation %-g \t second equation %-g \n',resRelative,resAbsolute,res1,res2);
+    fprintf(' relative residuals=%-g \t absolute residuals=%-g \t first equation %-g \t second equation %-g \n',resRelative,resAbsolute,res1,res2);
     warning('ALS:MaxIterationReached','Augmented Lagrangian Solver did not fully converge to prescribed tolerance of %-g \n',CtrlVar.LinSolveTol)
     
     % save TestSave
