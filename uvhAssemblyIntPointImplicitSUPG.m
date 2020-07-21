@@ -274,7 +274,9 @@ qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 
 %% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
 
-l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
+%l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
+
+l=sqrt(2*MUA.EleAreas);
 
 speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);

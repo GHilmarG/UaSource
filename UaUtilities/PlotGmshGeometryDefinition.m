@@ -18,7 +18,7 @@ switch CtrlVar.GmshInputFormat
             I=isnan(CtrlVar.MeshBoundaryCoordinates(:,2));
             CtrlVar.MeshBoundaryCoordinates(I,1)=NaN;
             
-            plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'bx-','LineWidth',2)
+            plot(CtrlVar.MeshBoundaryCoordinates(:,1)/CtrlVar.PlotXYscale,CtrlVar.MeshBoundaryCoordinates(:,2)/CtrlVar.PlotXYscale,'mx-','LineWidth',2)
         else
             
             warning('PlotGmshGeometryDefinition can not plot the CtrlVar.MeshBoundaryCoordinates because the field does not exist.')

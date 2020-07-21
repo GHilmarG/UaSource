@@ -72,7 +72,11 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     end
     
     for iVar=1:nVar
-        varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
+        if isempty(varargin{iVar})
+            varargout{iVar}=[];
+        else
+            varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
+        end
     end
     
     
@@ -144,8 +148,9 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         RunInfo.Mapping.nNotIdenticalNodesInside=numel(NodesInsideAndNotSame);
         
         
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots
-            FindOrCreateFigure("-Old and new nodes-");
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 ;
+            fig=FindOrCreateFigure("-Old and new nodes-");
+           
             tt=axis;
             hold off
             p0=PlotMuaMesh(CtrlVar,MUAnew,[],'b');
@@ -161,11 +166,11 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
             p4=plot(xNew(IdenticalNodes)/CtrlVar.PlotXYscale,yNew(IdenticalNodes)/CtrlVar.PlotXYscale,'*g');
             
             if ~isempty(p2) && ~isempty(p3)
-                legend([p0 p1 p2 p3 p4],'New Mesh','Old Mesh','New and outside','New but inside','Save','Location','northeastoutside')
+                legend([p0 p1 p2 p3 p4],'New Mesh','Old Mesh','New and outside','New but inside','Identical','Location','northeastoutside')
             elseif ~isempty(p3)
-                legend([p0 p1 p3 p4],'New Mesh','Old Mesh','New but inside','Same','Location','northeastoutside')
+                legend([p0 p1 p3 p4],'New Mesh','Old Mesh','New but inside','Identical','Location','northeastoutside')
             elseif  ~isempty(p2)
-                legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Same','Location','northeastoutside')
+                legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Identical','Location','northeastoutside')
             end
             
             
@@ -194,13 +199,18 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         
         for iVar=1:nVar
             
-            F.Values=double(varargin{iVar});
-            if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
-                varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+            if isempty(varargin{iVar})
+                varargout{iVar}=[];
             else
-                varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
+                
+                F.Values=double(varargin{iVar});
+                if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
+                    varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+                else
+                    varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
+                end
+                varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
             end
-            varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
         end
         
         

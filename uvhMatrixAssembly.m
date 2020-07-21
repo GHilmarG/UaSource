@@ -113,7 +113,7 @@ end
 
 CtrlVar.ResetThicknessToMinThickness=temp;
 
-if CtrlVar.MassBalanceGeometryFeedback>=2
+if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
     %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
     rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
     if rdamp~=0
@@ -139,6 +139,42 @@ if CtrlVar.MassBalanceGeometryFeedback>=2
     end
 else
     dadh=zeros(MUA.Nnodes,1);
+end
+
+if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0) && ~ZeroFields
+    
+    % Cubic model: ab=a1*h + a3 h^3 with
+    %
+    %       h1=1; h2=10 ; f1=1 ; f2=100 ; [a1,a3]=CubicMelt(h1,f1,h2,f2);
+    %     
+    % a1=0.909090909090909;  a3=a1/10
+    
+    
+    abLSF=zeros(MUA.Nnodes,1) ;
+    dadhLSF=zeros(MUA.Nnodes,1) ;
+    
+    if isempty(F1.dabdh)
+        F1.dabdh=zeros(MUA.Nnodes,1) ;
+    end
+    
+    F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+    
+    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+        
+        a1=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
+        a3=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+        
+        hmin=CtrlVar.LevelSetMinIceThickness;
+        hTemp=F1.h ;
+        abTemp=a1*(hTemp-hmin)+ a3*(hTemp-hmin).^3 ;
+        dabdhTemp=a1+3*a3*(hTemp-hmin).^2 ;
+        abLSF(F1.LSFMask.NodesOut)=abTemp(F1.LSFMask.NodesOut);
+        dadhLSF(F1.LSFMask.NodesOut)=dabdhTemp(F1.LSFMask.NodesOut);
+    end
+    
+    F1.ab=F1.ab+abLSF;
+    dadh=dadh+dadhLSF;
+    
 end
 
 
@@ -426,7 +462,7 @@ end
 minh=min(F1.h);
 
 
-if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>100   % if min thickness is approaching ThickMin give some information on h within NR loop
+if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>1000   % if min thickness is approaching ThickMin give some information on h within NR loop
     msg=sprintf('In NRuvh loop, assembly stage: min(h) %-f \t max(h) %-g \n ',minh,max(F1.h)) ;
     fprintf(CtrlVar.fidlog,msg) ;
 end

@@ -51,7 +51,9 @@ end
 
 % RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+if CtrlVar.WriteRunInfoFile
+    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
+end
 
 if exist('BCs','var')==0
     fprintf(' The variable BCs not found in restart file. Reset. \n')
@@ -158,6 +160,8 @@ isMeshChanged=HasMeshChanged(MUA,MUAold);
 if isMeshChanged
     
     fprintf(CtrlVar.fidlog,' Grid changed, all variables mapped from old to new grid \n ');
+    
+    
     [UserVar,RunInfo,F,BCs,l]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,l);
     %[UserVar,RunInfo,F,BCs,GF]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUA,F,BCs,GF);
     
@@ -191,7 +195,7 @@ end
 
 fprintf(' Note: Even though this is a restart run the following variables are defined at the beginning of the run\n')
 fprintf('       through calls to corresponding user-input files: rho, rhow, g, C, m, AGlen, n, as, and ab.\n')
-fprintf('       These will owerwrite those in restart file.\n')
+fprintf('       These will overwrite those in restart file.\n')
 
 
 %[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
@@ -211,7 +215,9 @@ end
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     
-    figure
+    fig=FindOrCreateFigure("Boundary Conditions");
+    clf(fig) 
+    hold off
     PlotBoundaryConditions(CtrlVar,MUA,BCs);
     
 end

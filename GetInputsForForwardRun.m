@@ -107,6 +107,24 @@ F.dvddt=zeros(MUA.Nnodes,1) ;
 F.dhdt=zeros(MUA.Nnodes,1) ; 
 
 
+% is prescribed initial thickness distribution consistent the thickness boundary conditions?
+MLC=BCs2MLC(CtrlVar,MUA,BCs);
+
+if ~isempty(MLC.hL)
+    BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs)/norm(MLC.hRhs+1000*eps) ;
+    
+    if BCsThicknessError > 0.1
+        
+        fprintf(' Node \t \t h (defined) \t \t \t h (BCs) \n')
+        fprintf('%i : \t \t %f \t \t %f \n ',[BCs.hFixedNode  MLC.hL*F.h MLC.hRhs]')
+        
+        fprintf('The user-defined initial ice thickness distribution is inconsistent with the user-defined thickness boundary conditions.\n')
+        fprintf('Redefine either the initial ice thickness distribution or the boundary conditions for the ice thickness. \n')
+        error('GetInputsForForwardRun:IncorrectUserInputs','User inputs are inconsistent')
+        
+    end
+end
+
 %[UserVar,F]=DefineInputFieldsModifications(UserVar,CtrlVar,F); 
 
 

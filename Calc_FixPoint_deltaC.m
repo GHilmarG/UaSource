@@ -83,7 +83,8 @@ narginchk(5,5)
     %     DSpeed(DSpeed>DSpeedMax)=DSpeedMax;
     %     DSpeed(DSpeed<DSpeedMin)=DSpeedMin;
     
-    dIdC=-F.C.*DSpeed./(speedMeas+minSpeed) ; % here using speedMeas instead of calculated speed. 
+    %dIdC=-F.C.*DSpeed./(speedMeas+minSpeed) ; % here using speedMeas instead of calculated speed. 
+    dIdC=-F.C.*DSpeed./(speed+minSpeed)      ; % here using calculated speed. 
     
     
     % I=find(dIdC> (mean(dIdC)+10*std(dIdC)));  numel(I)

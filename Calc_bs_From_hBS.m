@@ -91,5 +91,10 @@ end
 % Step 2:
 s=b+h;
 
+if CtrlVar.GroundingFloatingMaskContains=="GF nodes and strickly afloat/grounded nodes and elements"
+    GF=IceSheetIceShelves(CtrlVar,MUA,GF);
+end
+
+
 
 end

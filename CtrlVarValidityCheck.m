@@ -210,8 +210,7 @@ end
 if isfield(CtrlVar,'AdaptMeshInterval')
     
     fprintf(' Note: CtrlVar.AdaptMeshInterval no longer used. Use CtrlVar.AdaptMeshRunStepInterval instead.\n')
-    fprintf(' setting CtrlVar.AdaptMeshRunStepInterval=CtrlVar.AdaptMeshInterval \n')
-    CtrlVar.AdaptMeshRunStepInterval=CtrlVar.AdaptMeshInterval;
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     
 end
 
@@ -250,10 +249,17 @@ if isfield(CtrlVar,'InDiagnosticRunsDefineIceGeometryAtEveryRunStep')
     
 end
 
+if isfield(CtrlVar,'ATStimeStepTarget')
+    fprintf(' Note: CtrlVar.ATStimeStepTarget no longer used.\n')
+    fprintf('       Use CtrlVar.ATSdtMax instead.\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+end
 
-
-
-
+if isfield(CtrlVar,'UaOutputsDt')
+    fprintf(' Note: CtrlVar.UaOutputsDt no longer used.\n')
+    fprintf('       Use CtrlVar.DefineOutputsDt instead.\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+end
 
 
 end

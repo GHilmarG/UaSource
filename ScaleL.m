@@ -1,4 +1,4 @@
-function [L,c,isLLunity]=ScaleL(CtrlVar,L,c,test)
+function [L,c,isLLunity,Scale]=ScaleL(CtrlVar,L,c,test)
 
 %%
 %

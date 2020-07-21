@@ -12,13 +12,16 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % ndgrid(xg,yg) )
 %
 %
-%   Par.QuiverColorSpeedLimits=[min max]       : Speed range being colored, leave empty for auto.
+%   Par.RelativeVelArrowSize                   : affects the size of the velocity arrows. 
+%                                                by default Par.RelativeVelArrowSize=0.
+%                                                Increase value for larger arrows.
+%   Par.QuiverColorSpeedLimits=[min max]        : Speed range being colored, leave empty for auto.
 %                                                Note however that when plotting
 %                                                using log10 scaling the min speed
 %                                                colored will be some fraction of the
 %                                                max speed based on the value of
 %                                              Par.QuiverColorPowRange
-%                   : scaling factor for arrow size, default value is 1
+%                                            : scaling factor for arrow size, default value is 1
 % Par.VelArrowColorSteps                     : number of coloring steps, default is 20
 % Par.VelColorBarTitle                       : default value is '(m a^{-1})' ;
 % Par.PlotXYscale                            : default value is 1
@@ -476,6 +479,14 @@ else
                 ticklabel=first:D:last;
                 tickpos=(ticklabel-min(Par.SpeedPlotIntervals))/(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
                 %tickpos=(ticklabel-first)/(last-first);
+                
+                if numel(ticklabel)>10
+                   
+                    ticklabel=ticklabel(1:2:end) ;
+                    tickpos=tickpos(1:2:end) ;
+                    
+                end
+                
             end
             %ticklabel=unique(D*round(sp/D));
             
@@ -523,7 +534,7 @@ cbar.Ticks=Par.QuiverTicks;
 
 
 axis equal
-axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
+% axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
 
 end
 

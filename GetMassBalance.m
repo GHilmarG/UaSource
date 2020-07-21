@@ -7,25 +7,24 @@ nargoutchk(2,2)
 N=nargout('DefineMassBalance');
 
 switch N
-    
-    case 2
-        
-        [F.as,F.ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
-        F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
-        
+         
     case 3
         
         [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
         F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
-        
-    case 4
-        
-        [F.as,F.ab]=DefineMassBalance(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
-        F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
-        
+         
     case 5
         
         [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+        
+    otherwise 
+        
+        fprintf('DefineMassBalance must return either 3 or 5 outputs\n')
+        fprintf('The outputs must be either: \n')
+        fprintf('\t (UserVar,as,ab) \n')
+        fprintf('or  \n')
+        fprintf('\t (UserVar,as,ab,dasdh,dabdh) \n')
+        error('Ua:IncorrectUserInputs','Incorrect number of outputs returned by DefineMassbalance.m')
         
 end
 
@@ -88,6 +87,8 @@ end
 if ~iscolumn(F.as)
     error("GetMassBalance:abNotColumnVector","error: as returned by DefineMassBalance not a column vector.")
 end
+
+
 
 
 end

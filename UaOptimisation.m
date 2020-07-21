@@ -143,7 +143,7 @@ for It=1:CtrlVar.Inverse.Iterations
     [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
     
-    if ~BackTrackingInfoVector.converged
+    if ~BackTrackingInfoVector.Converged
         
         fprintf(' Line search has stagnated. \n')
         fprintf(' Try resetting step size and using direction of steepest decent. \n')
@@ -159,14 +159,14 @@ for It=1:CtrlVar.Inverse.Iterations
         [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
         nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
         
-        if ~BackTrackingInfoVector.converged
+        if ~BackTrackingInfoVector.Converged
             fprintf(' Resetting step size to 1 and using steepest decent did not help, now breaking out.\n')
             break
         end
         
     end
     %
-    %     if BackTrackingInfoVector.converged
+    %     if BackTrackingInfoVector.Converged
     %         iBackTry=0;   % After returning from a successful backtracking, update p
     %         p=p-gamma*dJdpModified;
     %         dJdpLast=dJdp;

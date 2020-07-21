@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineBoundaryConditions</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-31"><meta name="DC.source" content="DefineBoundaryConditions.m"><style type="text/css">
+      --><title>DefineBoundaryConditions</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-07-21"><meta name="DC.source" content="DefineBoundaryConditions.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -67,7 +68,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span>  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
-</pre><p>BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)</p><p>BC is a matlab object with the following fields</p><p>BCs =</p><pre class="language-matlab">BoundaryConditions <span class="string">with</span> <span class="string">properties:</span>
+</pre><p>BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)</p><p>BC is a matlab object with the following fields</p><pre class="language-matlab">BCs =
+</pre><pre class="language-matlab">BoundaryConditions <span class="string">with</span> <span class="string">properties:</span>
 </pre><pre>            ubFixedNode: []
            ubFixedValue: []
             vbFixedNode: []
@@ -99,21 +101,34 @@ BCs.ubFixedNode=GroundedBoundaryNodes;
 BCs.ubFixedValue=BCs.ubFixedNode*0;
 BCs.vbFixedValue=BCs.vbFixedNode*0;
 </pre><pre class="codeinput">x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-
-
-<span class="comment">% find nodes along boundary</span>
 xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
-nodesd=find(abs(x-xd)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
-nodesu=find(abs(x-xu)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);
-nodesl=find(abs(y-yl)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);
-nodesr=find(abs(y-yr)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);
+
+
+<span class="comment">% find nodes along boundary, simple approach</span>
+<span class="comment">% nodesd=find(abs(x-xd)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);</span>
+<span class="comment">% nodesu=find(abs(x-xu)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);</span>
+<span class="comment">% nodesl=find(abs(y-yl)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);</span>
+<span class="comment">% nodesr=find(abs(y-yr)&lt;1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);</span>
+
+<span class="comment">% find nodes along boundary, more robust approach.</span>
+<span class="comment">% Here we are using the fact that all nodes along the boundary in the list:</span>
+<span class="comment">%</span>
+<span class="comment">%   MUA.Boundary.Nodes</span>
+<span class="comment">%</span>
+<span class="comment">% And we only limit the search to those nodes along the boundary.</span>
+<span class="comment">%</span>
+L=min(sqrt(MUA.EleAreas)/1000); <span class="comment">% set a distance tolerance which is a fraction of smallest element size</span>
+nodesd=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,1)-xd)&lt;L) ;
+nodesu=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,1)-xu)&lt;L) ;
+nodesl=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,2)-yl)&lt;L);
+nodesr=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,2)-yr)&lt;L);
 
 BCs.ubFixedNode=nodesu ;
 BCs.ubFixedValue=BCs.ubFixedNode*0;
 BCs.vbFixedNode=[nodesu;nodesl;nodesr] ;
 BCs.vbFixedValue=BCs.vbFixedNode*0;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
 %%
@@ -121,7 +136,7 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 %
 % BC is a matlab object with the following fields 
 %
-% BCs = 
+%   BCs = 
 % 
 %   BoundaryConditions with properties:
 % 
@@ -167,16 +182,28 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 %
 % 
 %%
-
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-
-
-% find nodes along boundary 
 xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
-nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
-nodesu=find(abs(x-xu)<1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);
-nodesl=find(abs(y-yl)<1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);
-nodesr=find(abs(y-yr)<1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);
+
+
+% find nodes along boundary, simple approach
+% nodesd=find(abs(x-xd)<1e-5); [~,ind]=sort(MUA.coordinates(nodesd,2)); nodesd=nodesd(ind);
+% nodesu=find(abs(x-xu)<1e-5); [~,ind]=sort(MUA.coordinates(nodesu,2)); nodesu=nodesu(ind);
+% nodesl=find(abs(y-yl)<1e-5); [~,ind]=sort(MUA.coordinates(nodesl,1)); nodesl=nodesl(ind);
+% nodesr=find(abs(y-yr)<1e-5); [~,ind]=sort(MUA.coordinates(nodesr,1)); nodesr=nodesr(ind);
+
+% find nodes along boundary, more robust approach.
+% Here we are using the fact that all nodes along the boundary in the list:
+%
+%   MUA.Boundary.Nodes
+%
+% And we only limit the search to those nodes along the boundary.
+%
+L=min(sqrt(MUA.EleAreas)/1000); % set a distance tolerance which is a fraction of smallest element size
+nodesd=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,1)-xd)<L) ; 
+nodesu=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,1)-xu)<L) ; 
+nodesl=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,2)-yl)<L);
+nodesr=MUA.Boundary.Nodes(abs(MUA.coordinates(MUA.Boundary.Nodes,2)-yr)<L);
 
 BCs.ubFixedNode=nodesu ; 
 BCs.ubFixedValue=BCs.ubFixedNode*0;

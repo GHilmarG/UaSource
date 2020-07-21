@@ -1,10 +1,10 @@
-function [tau,tau1,tau2,taus,taut,ECN,K]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
+function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
 
 
 %
 %  Calculates nodal based tau values to be used in the SUPG method.
 %
-
+% Area=l^2/2 -> l=sqrt( 2 Area) 
 l=sqrt(2*TriAreaFE(MUA.coordinates,MUA.connectivity));
 [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
 l=M*l;
@@ -13,7 +13,7 @@ speed=sqrt(u.*u+v.*v);
 %dt=l./speed;
 dt=dt+zeros(MUA.Nnodes,1);
 
-ECN=speed.*dt./l;
+ECN=speed.*dt./l;  % non-dimentional
 
 K=coth(ECN)-1./ECN;  % (1/ECN+ECN/3+..) -1/ECN=ECN/3  if ECN->0
 % turns out the expression for K starts to suffer from numerical errors for ECN < 1e-6

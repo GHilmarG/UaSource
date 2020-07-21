@@ -1,6 +1,6 @@
-function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes)
+function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 
-narginchk(3,4)
+narginchk(3,5)
 nargoutchk(2,4)
 
 %%
@@ -40,9 +40,24 @@ nargoutchk(2,4)
 
 GF = IceSheetIceShelves(CtrlVar,MUA,GF);
 
+% TestIng
+if nargin<5 || isempty(NodesDownstreamOfGroundingLines)
+    
+    NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+else
+    if isstring(NodesDownstreamOfGroundingLines)
+        if contains(NodesDownstreamOfGroundingLines,"Strickt")
+            NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+        elseif contains(NodesDownstreamOfGroundingLines,"Relaxed")
+            NodesDownstreamOfGroundingLines=GF.node < 0.5 ; 
+        end
+    end
+end
+
+    
 % if the user does not provide an OceanBoundaryNodes vector as input,
 % assume that floating nodes on the Mesh Boundary are ocean nodes
-if nargin<4
+if nargin<4 || isempty(OceanBoundaryNodes)
     OceanBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)<0.5);
 end
 
@@ -68,7 +83,7 @@ bins=conncomp(G) ;
 Nnum = zeros(MUA.Nnodes,1);
 
 Nnum(FloatingSubset) = 1;
-LakeNodes = GF.NodesDownstreamOfGroundingLines;
+LakeNodes = NodesDownstreamOfGroundingLines;
 
 % loop through ocean boundary nodes until each one has been checked for
 % connected floating nodes, once this is done for all boundary nodes the
@@ -87,7 +102,7 @@ while sum(Nnum)>0
     
 end
 
-OceanNodes = GF.NodesDownstreamOfGroundingLines & ~LakeNodes;
+OceanNodes = NodesDownstreamOfGroundingLines & ~LakeNodes;
 
 if nargout > 2
     LakeElements=AllElementsContainingGivenNodes(MUA.connectivity,find(LakeNodes)) ;

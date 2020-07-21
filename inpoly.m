@@ -71,6 +71,7 @@ if nargin<5
     doFigures=0;
 end
 
+error('inpoly:depreciated',' use inpoly2 instead ' )
 
 
 %% ERROR CHECKING

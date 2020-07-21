@@ -639,17 +639,17 @@ else
                 %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
                 
                 subplot(1,3,1)
-                tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.C);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C); 
                 xlabel('x') ; ylabel('y') ; title('Inverted slipperiness')
                 colorbar('southoutside')
                 
                 subplot(1,3,2)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueC);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC); 
                 xlabel('x') ; ylabel('y') ; title('True slipperiness')
                 colorbar('southoutside')
                 
                 subplot(1,3,3)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.C-Priors.TrueC);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C-Priors.TrueC);
                 xlabel('x') ; ylabel('y') ; title('True slipperiness')
                 title('Slipperiness: True-Estimated')
                 colorbar('southoutside')
@@ -676,19 +676,20 @@ else
                 %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
                 
                 subplot(1,3,1)
-                tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.AGlen);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);
+                
                 SetLabels("km","km","m");
                 title('Inverted AGlen')
                 colorbar('southoutside')
                 
                 subplot(1,3,2)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueAGlen);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen);
                 SetLabels("km","km","m");
                 title('True AGlen')
                 colorbar('southoutside')
                 
                 subplot(1,3,3)
-                PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.AGlen-Priors.TrueAGlen);
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen-Priors.TrueAGlen);
                 SetLabels("km","km","m");
                 title('True AGlen')
                 title('AGlen: True-Estimated')
@@ -719,28 +720,28 @@ else
             
                   
             subplot(2,2,1)
-            tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvStartValues.B);
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Inv. start field: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,2)
-            tri=PlotNodalVariableAsTriSurface(CtrlVar,MUA,[],InvFinalValues.B);
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Inverted: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,3)
-            PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,Priors.TrueB);
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB);            
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("True: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,4)
-            PlotNodalVariableAsTriSurface(CtrlVar,MUA,tri,InvFinalValues.B-Priors.TrueB);
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-Priors.TrueB);
             %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Estimated-True: "+CtrlVar.Inverse.InvertFor)

@@ -16,6 +16,10 @@ narginchk(3,3)
 
 MLC=MultiLinearConstraints;
 
+if isempty(BCs)
+    return
+end
+
 %% input tests
 
 if numel(BCs.ubTiedNodeA) ~= numel(BCs.ubTiedNodeB) ; save TestSave ; error(' number of elements  in BCs.uTiedNodeA and BCs.uTiedNodeB  not the same ') ; end
@@ -40,10 +44,13 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 [hL,hRhs]=createLh(MUA.Nnodes,[BCs.hFixedNode;BCs.hPosNode],[BCs.hFixedValue;BCs.hPosValue],BCs.hTiedNodeA,BCs.hTiedNodeB);
 
+[LSFL,LSFRhs]=createLh(MUA.Nnodes,BCs.LSFFixedNode,BCs.LSFFixedValue,BCs.LSFTiedNodeA,BCs.LSFTiedNodeB);
+
 
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
 MLC.hL=hL; MLC.hRhs=hRhs;
+MLC.LSFL=LSFL; MLC.LSFRhs=LSFRhs;
 
 %LastBCs=BCs ; LastMLC=MLC;
 
@@ -52,6 +59,7 @@ MLC.hL=hL; MLC.hRhs=hRhs;
 [MLC.ubvbL,MLC.ubvbRhs,isLLubvb]=ScaleL(CtrlVar,MLC.ubvbL,MLC.ubvbRhs) ; 
 [MLC.udvdL,MLC.udvdRhs,isLLudvd]=ScaleL(CtrlVar,MLC.udvdL,MLC.udvdRhs) ; 
 [MLC.hL,MLC.hRhs,isLLh]=ScaleL(CtrlVar,MLC.hL,MLC.hRhs) ; 
+[MLC.LSFL,MLC.LSFRhs,isLLLSF]=ScaleL(CtrlVar,MLC.LSFL,MLC.LSFRhs) ; 
 
 
 end

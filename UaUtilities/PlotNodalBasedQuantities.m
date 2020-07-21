@@ -65,8 +65,7 @@ end
 PatchObject=patch('faces',tri,'vertices',coordinates/CtrlVar.PlotXYscale,...
     'FaceVertexCData',Value,'CDataMapping','scaled','EdgeColor','none','FaceColor','interp',varargin{:}) ;
 
-axis equal tight
-
+axis equal
 ColorbarHandel=colorbar;
 xlabel(CtrlVar.PlotsXaxisLabel)  ; ylabel(CtrlVar.PlotsYaxisLabel) ;
 

@@ -22,8 +22,8 @@ dtOut=round(dtIn,14); % round to 10 significant digits.
 LimitTime=Dt*ceil(time/Dt);  % time that should not be overstepped.
                              % LimitTime is always >= time
                              
-% If LimitTime is effectivly equal to time, then advance LimitTime by Dt
-if abs(LimitTime-time) < CtrlVar.dtmin
+% If LimitTime is numerically effectivly equal to time, then advance LimitTime by Dt
+if abs(LimitTime-time) < 1000*eps
     LimitTime=time+Dt;
 end
 

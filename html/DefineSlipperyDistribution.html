@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineSlipperyDistribution</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-10-29"><meta name="DC.source" content="DefineSlipperyDistribution.m"><style type="text/css">
+      --><title>DefineSlipperyDistribution</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-07-21"><meta name="DC.source" content="DefineSlipperyDistribution.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,41 +67,55 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
-</pre><pre>User input m-file to define C and m in the Weertman sliding law
-[UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</pre><p>Usually C is defined on the nodes, but sometimes in an inverse run C might be defined as an element variable. The user makes this decision by setting CtrlVar.CisElementBased to true or false in Ua2D_InitialUserInput</p><pre class="codeinput">warning(<span class="string">'Ua:DefaultDefine'</span>,<span class="string">'Using default DefineSlipperyDistribution \n'</span>)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,C,m,q,muk]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+</pre><p>[UserVar,C,m,q,muk]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</p><p>Defines sliding-law parameters.</p><p>The sliding law used is determined by the value of</p><pre class="language-matlab">CtrlVar.SlidingLaw
+</pre><p>which is defined in</p><pre class="language-matlab">DefineInitialInputs.m
+</pre><p>See description in Ua2D_DefaultParameters.m for further details and the UaCompendium.pdf.</p><pre class="codeinput">    m=3;
+    C0=3.16e6^(-m)*1000^m*365.2422*24*60*60;
 
-m=3 ; C=0.01 ;
+    C=C0+zeros(MUA.Nnodes,1);
 
-<span class="keyword">if</span> CtrlVar.CisElementBased
-    C=C+zeros(MUA.Nele,1);
-<span class="keyword">else</span>
-    C=C+zeros(MUA.Nnodes,1);
-<span class="keyword">end</span>
+
+    q=1 ;      <span class="comment">% only needed for Budd sliding law</span>
+    muk=0.5 ;  <span class="comment">% required for Coulomb friction type sliding law as well as Budd, minCW (Tsai), rCW  (Umbi) and rpCW (Cornford).</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 
-%%
-%  User input m-file to define C and m in the Weertman sliding law
-% [UserVar,C,m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
-%
-% Usually C is defined on the nodes, but sometimes in an inverse run C might be
-% defined as an element variable. The user makes this decision by setting
-% CtrlVar.CisElementBased to true or false in Ua2D_InitialUserInput
-%%
-
-warning('Ua:DefaultDefine','Using default DefineSlipperyDistribution \n')
-
-m=3 ; C=0.01 ; 
-
-if CtrlVar.CisElementBased
-    C=C+zeros(MUA.Nele,1);
-else
-    C=C+zeros(MUA.Nnodes,1);
-end
-
+function [UserVar,C,m,q,muk]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+    
+    
+    %%
+    %
+    % [UserVar,C,m,q,muk]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+    %
+    %
+    % Defines sliding-law parameters.
+    %
+    % The sliding law used is determined by the value of 
+    %
+    %   CtrlVar.SlidingLaw
+    %
+    % which is defined in 
+    %
+    %   DefineInitialInputs.m
+    %
+    % See description in Ua2D_DefaultParameters.m for further details and the
+    % UaCompendium.pdf.
+    %
+    %%
+    
+    
+    m=3;
+    C0=3.16e6^(-m)*1000^m*365.2422*24*60*60;
+    
+    C=C0+zeros(MUA.Nnodes,1);
+    
+    
+    q=1 ;      % only needed for Budd sliding law
+    muk=0.5 ;  % required for Coulomb friction type sliding law as well as Budd, minCW (Tsai), rCW  (Umbi) and rpCW (Cornford).
+    
+    
 end
 
 ##### SOURCE END #####

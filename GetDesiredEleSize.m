@@ -1,8 +1,16 @@
 function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)
 
 
+persistent nCalls
+
 narginchk(11,11)
 nargoutchk(4,4)
+
+if isempty(nCalls)
+    nCalls=0;
+end
+nCalls=nCalls+1;
+
 
 N=nargout('DefineDesiredEleSize');
 
@@ -41,24 +49,28 @@ end
 if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
     
     if ~isequal(InputEleSizeDesired,EleSizeDesired)
-        fprintf(['Note: The mesh refinement methods is %s. \n' ...
-            'When using this local mesh-refinement method in combination with ``DefineDesiredEleSize'' \n',...
-            'you only need to specify as an output which elements are to be refined and/or coarsended. \n',...
-            'You can specify ``EleSizeDesired'' as well, but it will be ignored.\n'],...
-            CtrlVar.MeshRefinementMethod)
+        if nCalls==1
+            fprintf(['Note: The mesh refinement methods is %s. \n' ...
+                'When using this local mesh-refinement method in combination with ``DefineDesiredEleSize'' \n',...
+                'you only need to specify as an output which elements are to be refined and/or coarsended. \n',...
+                'You can specify ``EleSizeDesired'' as well, but it will be ignored.\n'],...
+                CtrlVar.MeshRefinementMethod)
+        end
     end
     
     
 elseif contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     
     if ~isequal(InputElementsToBeRefined,ElementsToBeRefined)
-        fprintf(['Note: The mesh refinement methods is %s. \n' ...
-            'When using this global mesh-refinement method in combination with ``DefineDesiredEleSize'' \n',...
-            'you only need to specify as an output the variable ``EleSizeDesired''.\n',...
-            'You can specify which elements are to be refined and/or coarsended but this will be ignored. \n'],...
-            CtrlVar.MeshRefinementMethod)
+        if nCalls==1
+            fprintf(['Note: The mesh refinement methods is %s. \n' ...
+                'When using this global mesh-refinement method in combination with ``DefineDesiredEleSize'' \n',...
+                'you only need to specify as an output the variable ``EleSizeDesired''.\n',...
+                'You can specify which elements are to be refined and/or coarsended but this will be ignored. \n'],...
+                CtrlVar.MeshRefinementMethod)
+        end
     end
-
+    
     
 else
     fprintf('Incorrect value for CtrlVar.MeshRefinementMethod (%s) \n',CtrlVar.MeshRefinementMethod)

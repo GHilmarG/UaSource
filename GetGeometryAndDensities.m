@@ -139,6 +139,16 @@ if ~(FieldsToBeDefined=="")
 end
 
 
+% Generally the min ice-thickness constraint should be enforced using the active set
+% method. However, when the user defines s and b it seems reasonable to expect that
+% initial user-defined ice distribution to be consistent with user-defined min ice
+% thickness.
+%
+
+if contains(FieldsToBeDefined,'s')|| contains(FieldsToBeDefined,'b')
+    CtrlVar.ResetThicknessToMinThickness=1;
+end
+
 
 [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
 
