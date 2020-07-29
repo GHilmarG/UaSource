@@ -19,10 +19,17 @@ function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField)
 %
 %%
 
-narginchk(3,4)
+narginchk(2,4)
 nargoutchk(2,2)
 
+if nargin==2
+    F=[];
+    EleSizeScalarField=[];
+end
+
+
 if nargin==3 
+    % Old input format
     CtrlVar.MeshBoundaryCoordinates=F;
     EleSizeScalarField=[];
     F=[]; 
