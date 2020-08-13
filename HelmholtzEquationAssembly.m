@@ -2,8 +2,9 @@
 
 function [UserVar,Matrix,rh]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
 
+
 %
-%  $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y)$$
+% $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla d(x,y) $$
 %
 
 narginchk(7,7)
