@@ -125,7 +125,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
                 NodesOutside=setdiff(NodesOutside,NewInsideAndNotSameNodes);
             end
             
-            IDTest = pointLocation(MUAold.TR,[xNew(NodesOutside)-2*shift yNew(NodesOutside)+shift]) ;
+            IDTest = pointLocation(MUAold.TR,[xNew(NodesOutside)-2*shift yNew(NodesOutside)-shift]) ;
             NewInsideAndNotSameNodes=NodesOutside(~isnan(IDTest));
             %  Add those nodes to the right set
             if ~isempty(NewInsideAndNotSameNodes)
