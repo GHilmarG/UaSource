@@ -79,7 +79,7 @@ if CtrlVar.OnlyMeshDomainAndThenStop
 end
 
 
-[UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
+[UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
 TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);

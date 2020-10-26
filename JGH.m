@@ -28,7 +28,7 @@ end
 
 
 if CtrlVar.Inverse.MinimisationMethod=="UaOptimization"
-     p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticaed approach (I hope). 
+     p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope). 
 end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)

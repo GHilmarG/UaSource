@@ -86,6 +86,16 @@ else
         gamma1=-0.01*J0/slope0 ; % linear approx
         p1=p-gamma1*dJdp;
         J1=func(p1);
+        
+        iCount=0 ; 
+        while (abs(J1-J0)/J1 < 0.01) && iCount<10 
+            
+            gamma1=gamma1*10 ;
+            p1=p-gamma1*dJdp;
+            J1=func(p1);
+            iCount=iCount+1; 
+        end
+            
         gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadradic approx
         if gamma<0 ; gamma=gamma1; end 
     end
