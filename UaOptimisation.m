@@ -87,7 +87,8 @@ else
         p1=p-gamma1*dJdp;
         J1=func(p1);
         
-        iCount=0 ; 
+        iCount=0 ; % sometimes the initial guess is so small that there is almost no change in the cost function
+                   % try to increase gamma by factor of 10 until at least 1% change has been generated.
         while (abs(J1-J0)/J1 < 0.01) && iCount<10 
             
             gamma1=gamma1*10 ;
