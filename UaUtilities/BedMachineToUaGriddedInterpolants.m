@@ -120,6 +120,8 @@ OceanMask=(mask==0) ;
 
 rhoi=917 ; 
 rhof=500;  % Not even sure if this is correct, but if the density model came from Racmo, then this is most likley the case (must check).
+rhof=1;    % Apparantly this is not firn thickness but air thickness, therefore the relevant rho is the density of air
+
 rho=(rhoi*(thickness+eps)+rhof*(firn+eps))./(thickness+firn+2*eps) ; 
 rho(OceanMask)=rhoi;  % be carefull here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
 
