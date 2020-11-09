@@ -1,7 +1,7 @@
 function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs) 
 
 %%  
-% Reads BedMachine nc file and creates Ua gridded interpolants with s, b, B and rho.
+% Reads BedMachine nc file and creates Úa gridded interpolants with s, b, B and rho.
 % 
 % Note: This is just a rough idea as to how this could be done and most likely will need some modifications for some particular
 % applications.
@@ -26,13 +26,17 @@ function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,L
 %       BedMachineToUaGriddedInterpolants ; 
 %
 %  
-% Full resolution, ie N=1 and boundary resolution equal to the resolution of the data sets, ie 500 meters.
+% Maximum data resolution (N=1) and boundary resolution equal to the resolution of the data sets (500 meters). 
 %   
 %       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,500,true);
 %
+% Reduced resolution (N=10), boundary resolution at 20km, and do not save outputs.
+%
 %       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",10,false,20e3,false) ; 
 %
-% 
+% Full data resolution (N=1), boundary resolution at 1000m and saving outputs.
+%   
+%       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,1000,true);
 %
 %% 
 
@@ -86,13 +90,14 @@ fprintf("...done.\n")
 %
 %% Plot raw data, just to see if all is OK
 %
+fprintf(' Generating some figures of raw data...')
 figure(10) ; imagesc(x,y,bed); axis xy equal; caxis([-4000 1800]); title(' bed ' ) ; colorbar ; axis tight
 figure(20) ; imagesc(x,y,thickness); axis xy equal; caxis([0 4500]); title(' thickness ' ) ; colorbar ; axis tight
 figure(30) ; imagesc(x,y,firn); axis xy equal; caxis([0 50]); title(' firn ' ) ; colorbar ; axis tight 
 figure(40) ; imagesc(x,y,surface); axis xy equal; caxis([0 4800]); title(' surface ' ) ; colorbar ; axis tight
 figure(50) ; imagesc(x,y,geoid); axis xy equal; caxis([-100 100]); title(' geoid ' ) ; colorbar ; axis tight
 figure(60) ; imagesc(x,y,mask); axis xy equal; caxis([0 4]); title(' mask ' ) ; colorbar ; axis tight
-
+drawnow ; fprintf('done.\n')
 
 
 %% Check relationship between geometrical variables
@@ -119,18 +124,44 @@ end
 OceanMask=(mask==0) ; 
 
 rhoi=917 ; 
-rhof=500;  % Not even sure if this is correct, but if the density model came from Racmo, then this is most likley the case (must check).
-rhof=1;    % Apparantly this is not firn thickness but air thickness, therefore the relevant rho is the density of air
+rhoMin=100; 
 
-rho=(rhoi*(thickness+eps)+rhof*(firn+eps))./(thickness+firn+2*eps) ; 
+
+%%
+%
+% The 'firn' field in the Bedmachine data is not the firn thickness! It is the firn air content
+%
+% $$ \mathrm{firn} =  \frac{1}{\rho_i}  \int_{firn layer} (\rho_i - \rho_f) \, dz $$
+%
+% The 'firn air content' has the units distance (odd units for an air content...) 
+%
+% \rho = (1-firn/h) \rho_i   where h is the total ice thickness (Ua definition).
+%
+%
+%%
+
+
+rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the deph h=s-b=firn+thicknes
+
+% Note: one would expect that the minimum value of rho would be equal to the firn density,
+%       but there are a number of values where rho=0, that is when firn=h. Not sure how this can happen
+%       when the ice thickness is larger than zero... Possibly some inconsistencies between the data sets providing air content (firn) and
+%       ice thickness. Note: firn is 'air content', but 'air content' is defined in a rather odd way in Racmo and has the units distance...
+I=h>0 ; figure(190) ; histogram(rho(I),'Normalization','probability') ; title('histogram of densities where h>0')
+
+fprintf('Over glaciated areas %f%% of densities are smaller than %f kg/m^3 \n', 100*numel(find(rho(I)<rhoMin))/numel(find(I)),rhoMin)
+fprintf('These densities are set to %f kg/m^3\n',rhoMin)
+I=h>0 & rho<rhoMin ; rho(I)=rhoMin ; 
+
 rho(OceanMask)=rhoi;  % be carefull here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
 
+fprintf(' Plotting s, b, h, B and rho over the data grid')
 figure(200) ; imagesc(x,y,s); axis xy equal; caxis([0 4000]); title(' s ' ) ; colorbar ; axis tight
 figure(210) ; imagesc(x,y,b); axis xy equal; caxis([-2000 4000]); title(' b ' ) ; colorbar ; axis tight
 figure(220) ; imagesc(x,y,h); axis xy equal; caxis([0 4000]); title(' h ' ) ; colorbar ; axis tight
 figure(230) ; imagesc(x,y,B); axis xy equal; caxis([-4000 4000]); title(' B ' ) ; colorbar ; axis tight
-figure(240) ; imagesc(x,y,rho); axis xy equal; caxis([500 920]); title(' rho ' ) ; colorbar ; axis tight
-
+figure(240) ; imagesc(x,y,rho); axis xy equal; caxis([0 920]); title(' rho ' ) ; colorbar ; axis tight
+drawnow ; fprintf('done.\n')
 %% Possible subsampling
 
 x=x(1:N:end) ;
@@ -143,14 +174,14 @@ mask=mask(1:N:end,1:N:end) ;
 
 %% create gridded interpolants
 
-
+fprintf(' Creating gridded interpolants...')
 [X,Y]=ndgrid(double(x),double(flipud(y))) ;
 
-Fs=griddedInterpolant(X,Y,rot90(s,3)); 
-Fb=griddedInterpolant(X,Y,rot90(b,3)); 
-FB=griddedInterpolant(X,Y,rot90(B,3)); 
-Frho=griddedInterpolant(X,Y,rot90(rho,3)); 
-
+Fs=griddedInterpolant(X,Y,rot90(double(s),3)); 
+Fb=griddedInterpolant(X,Y,rot90(double(b),3)); 
+FB=griddedInterpolant(X,Y,rot90(double(B),3)); 
+Frho=griddedInterpolant(X,Y,rot90(double(rho),3)); 
+fprintf('done.\n')
 
 if SaveOutputs
     fprintf(' Saving BedMachineGriddedInterpolants with Fs, Fb, FB and Frho. \n')
@@ -160,6 +191,7 @@ end
 %% Test gridded interpolants
 
 % load in an old mesh of Antarctica and map on this mesh. Just done for testing purposes and to see if the gridded data looks sensible.
+fprintf(' Testing interpolants by mapping on a FE grid of Antartica...')
 
 load MUA_Antarctica.mat; 
 xFE=MUA.coordinates(:,1) ; yFE=MUA.coordinates(:,2) ; 
@@ -188,18 +220,18 @@ xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('B') ; title(cbar,'m a.s.l')
 
 rhofig=FindOrCreateFigure('rho') ; 
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,rhoFE); 
-xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('rho') ; title(cbar,'km/m^3')
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('rho') ; title(cbar,'kg/m^3')
 
 rhofig=FindOrCreateFigure('bFE-BFE') ; 
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE-BFE); 
 xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b-B') ; title(cbar,'m')
 
-
+fprintf('done.\n')
 %% Meshboundary coordinates
 % Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the
 % situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the
 % time. 
-
+fprintf('Creating MeshBoundary coordinates...')
 IceMask=(mask~=0) ;  IceMask=double(IceMask);
 DataResolution=N*500 ; % the resolution of the data set is 500 m
 NN=min([round(BoundaryResolution/DataResolution) 1]) ;
@@ -217,7 +249,7 @@ Boundary=M(:,I(J)+1:I(J)+M(2,I(J))) ;
 plot(Boundary(1,:),Boundary(2,:),'o-k')  ; axis equal
 
 Boundary=Boundary';
-
+fprintf('done.\n')
 if SaveOutputs
     
     fprintf('Saving MeshBoundaryCoordinates. \n ')
