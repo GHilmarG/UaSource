@@ -133,7 +133,7 @@ rhoMin=100;
 %
 % $$ \mathrm{firn} =  \frac{1}{\rho_i}  \int_{firn layer} (\rho_i - \rho_f) \, dz $$
 %
-% The 'firn air content' has the units distance (odd units for an air content...) 
+% The 'firn air content' has the units distance.
 %
 % \rho = (1-firn/h) \rho_i   where h is the total ice thickness (Ua definition).
 %
@@ -146,7 +146,7 @@ rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the deph 
 % Note: one would expect that the minimum value of rho would be equal to the firn density,
 %       but there are a number of values where rho=0, that is when firn=h. Not sure how this can happen
 %       when the ice thickness is larger than zero... Possibly some inconsistencies between the data sets providing air content (firn) and
-%       ice thickness. Note: firn is 'air content', but 'air content' is defined in a rather odd way in Racmo and has the units distance...
+%       ice thickness. Note: firn is 'air content', but 'air content'
 I=h>0 ; figure(190) ; histogram(rho(I),'Normalization','probability') ; title('histogram of densities where h>0')
 
 fprintf('Over glaciated areas %f%% of densities are smaller than %f kg/m^3 \n', 100*numel(find(rho(I)<rhoMin))/numel(find(I)),rhoMin)
