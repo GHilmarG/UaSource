@@ -61,7 +61,7 @@ Priors.C=C0;
 Priors.rho=F.rho;
 Priors.rhow=F.rhow;
 
-
+% Not the prior for C needs to be change as well when using Budds law! still to do.
 
 
 %% Covariance of prior (if using Bayesian Regularisation)

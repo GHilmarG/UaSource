@@ -21,7 +21,9 @@ CtrlVar=Ua2D_DefaultParameters(); %
 CtrlVar.MeshSizeMax=0.1; 
 CtrlVar.MeshSizeMin=0.1;
 CtrlVar.MeshSize=0.1;
+
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
+
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 % Now generate mesh (When using Úa this is done internally, no such call
 % then needed).

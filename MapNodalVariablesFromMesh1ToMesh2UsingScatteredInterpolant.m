@@ -40,7 +40,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     % TR = delaunayTriangulation(x1,y1);
     
     Tarea=TriAreaFE(MUAold.coordinates,MUAold.connectivity);
-    tol=1e-5*sqrt(2*min(Tarea)) ;  % I found that tol=1000*eps is not enought...
+    tol=1e-5*sqrt(2*min(Tarea)) ;  % I found that tol=1000*eps is not enough...
     
     
     [ID,d] = nearestNeighbor(MUAold.TR,[xNew yNew]);  % This works for all element types! (3, 6 and 10)
@@ -194,7 +194,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         
         % If OutsideValues have been defined for the variable, then use these for
         % the outside points. Otherwise use scattered interpolant.
-        % For all the remaingin new nodes within the old mesh use scattered
+        % For all the remaining new nodes within the old mesh use scattered
         % interpolant
         
         for iVar=1:nVar

@@ -1,12 +1,17 @@
 function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
 
-%%
-% Solves the Helmholtz equation:
+%% 
+% Solves the nonhomogeneous Helmholtz equation with variable coefficients in two dimentions:
 %
-% $$  \kappa^2 f(x,y) - \nabla^2 f(x,y)) = c(x,y) - \nabla d(x,y) $$
+% $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla d(x,y) $$
 %
+% Also possible to specify the right-hand-side directly through 
 %
-% The non-homogeneous Helmholtz equaton with variable coefficents in two spatial
+%   RHS
+%
+% If RHS is given as input, c and d are not used. 
+%
+% The non-homogeneous Helmholtz equation with variable coefficents in two spatial
 % dimentions is
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla  d(x,y) $$
@@ -16,7 +21,21 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 % $$  a ( f - \tilde{f} ) - \nabla \cdot (b \nabla (f-\tilde{f})) = 0 $$
 %
 % where $\tilde{f}$ is a given function
-
+%
+% Examples:  
+%
+% Smooth a give field over a FE mesh:
+%
+%    load('PIG-TWG-RestartFile.mat') ; CtrlVar=CtrlVarInRestartFile;
+%    L=1e3 ;  % Smoothing length scale 
+%    [UserVar,SmoothedField]=HelmholtzEquation([],CtrlVar,MUA,1,L^2,F.B,0); 
+%
+%    figure(1) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField) ; title(' Smoothed field') ; xlabel('x (km)') ; ylabel('y (km)') 
+%    figure(2) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,F.B) ; title(' Original field')  ; xlabel('x (km)') ; ylabel('y (km)') 
+%    figure(3) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField-F.B) ; title(' Smoothed-Original')  ; xlabel('x (km)') ; ylabel('y (km)') 
+%
+%
+%%
 narginchk(7,8)
 
 

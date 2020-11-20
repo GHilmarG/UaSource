@@ -37,7 +37,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     % Read only those .mat files that have FileNameSubstring as a part of their name, set the
     % axis limits, and plot a file every 0.1 time units.
     %
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",10) ;
     %
     % 
     %

@@ -101,21 +101,22 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     while true
 
         
+        ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce,rWork,iteration,gamma) ; 
             
-        if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
-            
-            ResidualsCriteria=(rWork<CtrlVar.uvDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvDesiredWorkAndForceTolerances(2))...
-                && (rWork<CtrlVar.uvDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvDesiredWorkOrForceTolerances(2))...
-                && iteration >= CtrlVar.NRitmin;
-            
-            
-        else
-            
-            ResidualsCriteria=(rWork<CtrlVar.uvAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvAcceptableWorkAndForceTolerances(2))...
-                && (rWork<CtrlVar.uvAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvAcceptableWorkOrForceTolerances(2))...
-                && iteration >= CtrlVar.NRitmin;
-            
-        end
+%         if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
+%             
+%             ResidualsCriteria=(rWork<CtrlVar.uvDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvDesiredWorkAndForceTolerances(2))...
+%                 && (rWork<CtrlVar.uvDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvDesiredWorkOrForceTolerances(2))...
+%                 && iteration >= CtrlVar.NRitmin;
+%             
+%             
+%         else
+%             
+%             ResidualsCriteria=(rWork<CtrlVar.uvAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvAcceptableWorkAndForceTolerances(2))...
+%                 && (rWork<CtrlVar.uvAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvAcceptableWorkOrForceTolerances(2))...
+%                 && iteration >= CtrlVar.NRitmin;
+%             
+%         end
         
         if ResidualsCriteria
             
@@ -215,14 +216,28 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         Func=@(gamma) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
         
-        
-        if iteration==1  % save the first r value for plotting, etc
-            rVector.gamma(1)=gamma; 
+        if iteration==1
+%           special case to check if initial state was already within tolorance 
+            ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce0,rWork0,iteration,1) ;  % here I set gamma as an input to one, i.e. as if I had take a full step
+            
+            % save the first r value for plotting, etc
+            rVector.gamma(1)=gamma;
             rVector.rDisp(1)=NaN;
-            rVector.rWork(1)=rWork0; 
-            rVector.rForce(1)=rForce0 ; 
+            rVector.rWork(1)=rWork0;
+            rVector.rForce(1)=rForce0 ;
+            if ResidualsCriteria
+                tEnd=toc(tStart);
+                if CtrlVar.InfoLevelNonLinIt>=1
+                    fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
+                        CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration-1,tEnd) ;
+                end
+                RunInfo.Forward.uvConverged=1;
+                break
+            end
         end
+        
    
+    
         %% calculate  residuals at full Newton step, i.e. at gamma=1
         % gamma=1 ; [UserVar,r1,rForce1,rWork1,D21] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
         % gamma=1 ; [r,UserVar,RunInfo,rForce,rWork] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;

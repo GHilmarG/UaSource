@@ -172,7 +172,7 @@ else
         
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
         % [UserVar,~,~,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'SB');
-        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'SB');
+        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'-S-B-');
         
         l=UaLagrangeVariables;
         
@@ -183,8 +183,8 @@ else
         fprintf('When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
         fprintf('are therefore obtained through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         
-        %[UserVar,F.s,F.b,F.S,F.B,F.alpha]=GetGeometry(UserVar,CtrlVar,MUA,CtrlVar.time,'sbSB');
-        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'sbSB');
+        
+        [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,'-s-b-S-B-rho-rhow-g');
         TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
         %F.h=F.s-F.b;
         

@@ -41,10 +41,7 @@ if CtrlVar.TimeDependentRun
         fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
         fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
         
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
-        
-        %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
-        %Fnew.h=Fnew.s-Fnew.b;
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'-s-b-S-B-rho-rhow-g-');
         
     else
         % if time dependent then surface (s) and bed (b) are defined by mapping old thickness onto
@@ -130,22 +127,10 @@ else
     fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
     fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
     
-    [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'sbSB');
-    
-    %[UserVar,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.alpha]=GetGeometry(UserVar,CtrlVar,MUAnew,CtrlVar.time,'sbSB');
-    %Fnew.h=Fnew.s-Fnew.b;
+    [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'-s-b-S-B-rho-rhow-g-');
+
     
 end
-
-% I define through user input:
-%
-% S, B, rho, rhow, as, ab, dasdh, dabdh, C, m, AGlen, n, BCs and all sea ice
-% parameters.
-%
-%
-
-%[UserVar,Fnew]=GetDensities(UserVar,CtrlVar,MUAnew,Fnew);
-%[Fnew.b,Fnew.s,Fnew.h,GFnew]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
 
 
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);

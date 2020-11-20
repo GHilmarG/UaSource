@@ -52,7 +52,9 @@ CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
 CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
+%% Slope of coordinate system with respect to gravity
 
+CtrlVar.alpha=0 ; 
 %% Sliding law
 %
 % Several sliding laws can be defined. These include *Weertman* (power-law relationship
@@ -121,19 +123,19 @@ CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
 CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
 %
-% Possible values for these stings are any combinations of  "sbSB".  
+% Possible values for these stings are any combinations of  "-s-b-S-B-rho-rhow-g-".  
 %
 % Examples: 
 %
-%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S";
+%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="-S-";
 %
 %  forces an update of the ocean surface, S, within each time step. This could, for example, be used to specify a time varying ocean surface
 %  elevation due to tides. Hence, DefineGeometry will be called at each transient with FieldsToBeDefined='S'
 %
-%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB";  
+%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="-s-b-S-B-rho-rhow-g-";  
 %
 % forces all geometrical variables, i.e. upper ice surface (s), lower ice surface (b), ocean surface (S), and bedrock (B) to be defined in each
-% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='sbSB'
+% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='-s-b-S-B-rho-rhow-g-'
 %
 % The default option is not to modify any geometrical variables manually within a run step. 
 %
@@ -694,7 +696,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 
 
 CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
-CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
