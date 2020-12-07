@@ -80,7 +80,7 @@ end
 
 
 [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
-TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
+
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
