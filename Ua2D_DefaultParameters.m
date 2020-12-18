@@ -12,7 +12,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 %  
 %  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
-%  Changing the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'. 
+%  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
 
@@ -155,7 +155,7 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 % the run stops.
 
 CtrlVar.TotalTime=1e10;          % maximum model time
-CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the Ua2D_InitialUserInputFile
+CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
 CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnostic step, even if the step is a restart step.
@@ -177,7 +177,7 @@ CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
 CtrlVar.WriteRestartFileInterval=100;    % restart file written at this time-step interval  (note, these are run steps, not model time)
 CtrlVar.ResetTime=0 ;                    % set to 1 to reset (model) time at start of restart run
 CtrlVar.RestartTime=NaN;                 % if ResetTime is true, then this is the model time at the start of the restart run
-CtrlVar.ResetTimeStep=0;                 % true if time step should be reset to dt given in the Ua2D_InitialUserInputFile
+CtrlVar.ResetTimeStep=0;                 % true if time step should be reset to dt given in the DefineInitialUserInputFile
 CtrlVar.ResetRunStepNumber=0;            % if true, RunStepNumber is set to zero at the beginning of a restart run. 
 CtrlVar.NameOfRestartFiletoRead='Ua2D_Restartfile.mat';
 CtrlVar.NameOfRestartFiletoWrite='Ua2D_Restartfile.mat';
@@ -855,7 +855,7 @@ if license('test','Optimization_Toolbox')
     %
     %  The last example is the default 
     %
-    %  You can copy some of these examples into your own Ua2D_InitialUserInput.m
+    %  You can copy some of these examples into your own DefineInitialUserInput.m
     %  file and modify as needed. See Matlab documentation for further information. 
     %
     
@@ -1010,7 +1010,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % In almost all cases the simplest option tends to be to define the outlines of
 % the computational domain in 
 %
-%   Ua2D_InitialUserInput 
+%   DefineInitialUserInput 
 %
 %
 % by setting the variable
@@ -1042,7 +1042,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % 
 % set in
 %
-%   Ua2D_InitialUserInput.m. 
+%   DefineInitialUserInput.m. 
 %
 % This approach is quite flexible and allows for
 % complicated computational domains containing holes and/or separated domains.
@@ -1351,7 +1351,7 @@ CtrlVar.RefineMeshOnStart=0;
 % option) or the elements to be refined (explicit:local option), using the user
 % m-file 
 % 
-%   DefineDesireEleSizes.m
+%   DefineDesiredEleSizes.m
 %
 % Note: Adapt meshing can only be done in a combination with a forward run.
 % Adapt meshing can not be done in an inverse run. Usually before starting with

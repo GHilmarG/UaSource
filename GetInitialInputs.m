@@ -3,9 +3,9 @@ function [UserVar,CtrlVar]=GetInitialInputs(UserVar,CtrlVar,varargin)
     
     
     OldInputFile="Ua2D_InitialUserInput.m" ; 
-    NewINputFile="DefineInitialInputs.m" ; 
+    NewInputFile="DefineInitialInputs.m" ; 
     
-    if exist(OldInputFile,'file')==2  && ~(exist(NewINputFile,'file')==2)
+    if exist(OldInputFile,'file')==2  && ~(exist(NewInputFile,'file')==2)
         
         warning("OldInputFormat:Ua2D_InitialUserInput","Ua2D_InitialUserInput.m  no longer used. Rename that file to DefineInitialInputs.m")
         
