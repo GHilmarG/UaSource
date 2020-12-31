@@ -47,7 +47,7 @@ if any(F.h<0) ; warning('MATLAB:KRTF:hnegative',' h negative ') ; end
 if any(F.C<0) ; warning('MATLAB:KRTF:Cnegative',' C negative ') ; end
 
 
-if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
     CtrlVar.TestForRealValues=false;
 end
 

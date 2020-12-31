@@ -923,8 +923,8 @@ end
 %%
 % Some less-often used parameters related to inversion:
 CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration,
-%%
-% >=2 for additional info on backtracking,
+CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step
+
 % >=100 for further info and plots
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
@@ -942,7 +942,12 @@ CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calcu
 % differences, second-order central differences, or fourth-order central
 % differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
+CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ; 
+CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
+    ["forward-first-order","central-second-order","forward-second-order"...
+    "central-fourth-order","complex step differentiation"] ; 
+% {'-forward-first-order','central-second-order','forward-second-order''fourth-order'}
+
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
 %
 % if left empty, values are calculated for every node/element within the mesh.

@@ -130,7 +130,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     end
     
     
-    if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+    if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
         CtrlVar.TestForRealValues=false;
     end
     

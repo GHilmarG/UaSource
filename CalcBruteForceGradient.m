@@ -8,7 +8,7 @@ fprintf(' Calculating gradients using brute-force method...')
 
 J0=func(p0);
 
-deltaStep=deltaStep+p0*0; % force to be a vector
+deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
 
 % Testing gradient using brute force method
 
@@ -17,9 +17,9 @@ deltaStep=deltaStep+p0*0; % force to be a vector
 dJ=p0*0+NaN;
 dJtemp=dJ;
 
-switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
+switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
     
-    case {'forward-first-order'}
+    case {"forward-first-order"}
         
         
         parfor k=1:numel(iRange)
@@ -35,7 +35,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             dJ(iRange(k))=dJtemp(k);
         end
         
-    case {'central-second-order'}
+    case {"central-second-order"}
         
         
         parfor k=1:numel(iRange)
@@ -56,7 +56,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         end
         
         
-    case {'forward-second-order'}
+    case {"forward-second-order"}
         
         parfor k=1:numel(iRange)
             I=iRange(k);
@@ -77,7 +77,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
             dJ(iRange(k))=dJtemp(k);
         end
         
-    case 'central-fourth-order'
+    case "central-fourth-order"
         
         parfor k=1:numel(iRange)
             I=iRange(k);
@@ -105,7 +105,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         end
         
         
-    case 'complex step differentiation'
+    case "complex step differentiation"
         
         fprintf('Error: complex step differentiation not possible because now using a linear solver\n')
         fprintf('that does not work with complex matrices.\n')
@@ -128,13 +128,7 @@ switch  lower(CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
         
     otherwise
         
-        fprintf(' CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType has invalid value.\n')
-        fprintf(' Currently: CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=%s \n',CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType)
-        fprintf(' Possible values are : \n ')
-        fprintf(' \t \t forward-first-order \n')
-        fprintf(' \t \t forward-second-order \n')
-        fprintf(' \t \t central-second-order \n')
-        fprintf(' \t \t central-forth-order \n')
+
         error('which case')
 end
 

@@ -63,6 +63,7 @@ if CtrlVar.TimeDependentRun
                 % I don't really need to map b from old to new, but I use this later as an initial
                 % guess.
                 
+                % Var her [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUAnew,Fnew.s,Fnew.B,Fnew.S,Fnew.rho,rhow)
                 
             case "bs-FROM-hBS"
                 

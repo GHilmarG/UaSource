@@ -5,8 +5,7 @@ narginchk(3,3)
 
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for,
-% This mapping between A, b and C into the control variable is done by
-% InveValues2o
+% 
 
 pA=[];
 lbA=[];

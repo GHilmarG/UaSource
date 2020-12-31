@@ -117,6 +117,7 @@ h=firn+thickness ; % or just h=s-b
 B=bed ; 
 
 if ~LakeVostok
+    % get rid of Lake Vostok by setting lower ice surface (b) equal to bedrock elevation (B) over the lake as defined my mask.
     IV=mask== 4;
     B(IV)=b(IV);
 end

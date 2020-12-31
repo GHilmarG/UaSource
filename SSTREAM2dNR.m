@@ -167,7 +167,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
         
-        if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+        if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
             CtrlVar.TestForRealValues=false;
         end
         
@@ -226,12 +226,14 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             rVector.rWork(1)=rWork0;
             rVector.rForce(1)=rForce0 ;
             if ResidualsCriteria
+                iteration=iteration-1 ; % reset to zero as the iteration was never performed 
                 tEnd=toc(tStart);
                 if CtrlVar.InfoLevelNonLinIt>=1
                     fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
-                        CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration-1,tEnd) ;
+                        CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration,tEnd) ;
                 end
                 RunInfo.Forward.uvConverged=1;
+                
                 break
             end
         end
@@ -352,8 +354,10 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     end
     
     
-    RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;
-    RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations;
+    RunInfo.Forward.uvIterations=iteration;  
+    RunInfo.Forward.uvResidual=r;
+    
+    
     
     if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     

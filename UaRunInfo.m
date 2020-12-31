@@ -36,14 +36,13 @@ classdef (ConstructOnLoad) UaRunInfo
             
             obj.Forward.uvConverged=false;
             obj.Forward.uvIterations=NaN;
-
+            obj.Forward.uvResidual=NaN;
+            
             obj.Forward.hConverged=0;
             obj.Forward.hIterations=NaN;
             
             obj.Forward.Converged=0;
-            obj.Forward.Iterations=NaN;
-            obj.Forward.IterationsTotal=0;
-            obj.Forward.Residual=NaN;
+            
             
             obj.Forward.dtRestart=NaN;
             

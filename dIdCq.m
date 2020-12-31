@@ -5,19 +5,27 @@ narginchk(6,6)
 %
 % Calculates the product: dFuv/dC  \lambda
 %
-% If we write: 
+% If we write:
 %
 %   dJ/dC  = dFuv/dC lambda  + dJ/dC
 %          = dI/dC + dJ/dC
 %
-% the this is equal to dI/dC, hence the name.
+% then this is equal to dI/dC, hence the name.
 %
 % dI/dC is the 'misfit' contribution to dJ/dC
 %
 % dIdC=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
-% 
-% 
-
+%
+%
+%
+%  < (dF/dC)^* l | phi >
+%
+% Example:  F = C u
+%
+% < u dC l | phi >
+%
+% if dC=phi then : <u l phi_q | phi >
+%
 % nodal based gradient
 
 ndim=2;
@@ -79,10 +87,9 @@ for Iint=1:MUA.nip
     %
     % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
     %
-    
+
+    % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
-    
-   
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
     

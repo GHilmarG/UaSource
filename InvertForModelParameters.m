@@ -33,7 +33,7 @@ end
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
-[J0,dJdp,Hessian,JGHouts,F]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
@@ -74,21 +74,13 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     iRange=iRange(I);
     
     % calc brute force gradient
+
     
-    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(p0);
-    
-    if CtrlVar.Inverse.InvertForField=="B"
-        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*mean(F.h);
-        % deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(F.h);
-        deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
-        
-    end
-    
-    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep);
+    dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
 
     filename=CtrlVar.Experiment+"BruteForceGradient";
     fprintf('BruteForceGradient save in the file : %s \n',filename)
-    save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange','deltaStep')
+    save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
     
     CtrlVar.Inverse.pPreMultiplier="I";
 else

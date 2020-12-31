@@ -30,7 +30,7 @@ p=p(:);
 p=kk_proj(p,pub,plb);
 
 
-[J0,dJdp,Hess,fOuts]=func(p);
+[J0,dJdp,Hess,fOuts,~,RunInfo]=func(p);
 dJdp=dJdp(:);
 GradNorm=norm(dJdp);
 RunInfo.Inverse.ConjGradUpdate=0;
@@ -111,7 +111,7 @@ fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |gra
 
 
 Func=@(gamma) func(p-gamma*dJdp);
-J1=Func(gamma);
+[J1,~,~,~,~,RunInfo]=Func(gamma);
 nFuncEval=1;
 
 
@@ -121,13 +121,23 @@ if isnan(J1)
     nFuncEval=nFuncEval+1;
 end
 
-
+while RunInfo.Forward.uvIterations==0
+   
+    % the gamma step caused so little change in the model paramters that the previous J0 uv solution was accepted.
+    % So increase gamma
+    fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model paramters to require a new uv solution.\n")
+    fprintf(" gamma increased from %g to %g \n",gamma,gamma*1000)
+    gamma=gamma*1000 ; 
+    [J1,~,~,~,~,RunInfo]=Func(gamma);
+    nFuncEval=nFuncEval+1;
+    
+end
 
 %% Backtracking parameter modifications
 CtrlVar.BacktrackingGammaMin=CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize;
 CtrlVar.BackTrackMinXfrac=CtrlVar.Inverse.MinimumRelativelLineSearchStepSize;
 CtrlVar.BackTrackMaxIterations=CtrlVar.Inverse.MaximumNumberOfLineSearchSteps;
-CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevel;
+CtrlVar.InfoLevelBackTrack=CtrlVar.Inverse.InfoLevelBackTrack;
 CtrlVar.BackTrackGuardLower=0.25;
 CtrlVar.BackTrackGuardUpper=0.95;
 % Backtracking continues even if target has been reached if last reduction in

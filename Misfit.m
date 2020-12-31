@@ -175,7 +175,7 @@ end
 I=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
 duvJduv=[duJdu(:)+duJhdot(:);dvJdv(:)+dvJhdot(:)];
 
-if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
     CtrlVar.TestForRealValues=false;
 end
 
@@ -267,7 +267,7 @@ if CtrlVar.Inverse.CalcGradI
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
-            if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+            if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
                 CtrlVar.TestForRealValues=false;
             end
             
@@ -323,6 +323,8 @@ if CtrlVar.Inverse.CalcGradI
                         else
                             Cnode=F.C;
                         end
+                        
+                       
                         
                         dCFuvLambda = -(1./F.m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1./F.m-1).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1).*(F.ub.*uAdjoint+F.vb.*vAdjoint);
                         

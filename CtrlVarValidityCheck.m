@@ -34,6 +34,9 @@ if isfield(CtrlVar,'doInverseStep')
     end
 end
 
+
+
+
 %%
 
 if CtrlVar.TimeDependentRun
@@ -261,6 +264,9 @@ if isfield(CtrlVar,'UaOutputsDt')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
 
-
+if isfield(CtrlVar.Inverse.TestAdjoint,'FiniteDifferenceType')
+    fprintf(' Note: CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType no longer used.\n')
+    fprintf('       Use CtrlVar.TestAdjointFiniteDifferenceType instead.\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
 
