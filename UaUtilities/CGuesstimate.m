@@ -28,10 +28,10 @@ end
 
 
 GradSurf=sqrt(dsdx.*dsdx+dsdy.*dsdy) ;
-Speed=sqrt(Meas.us.*Meas.us+Meas.vs.*Meas.vs) ;
+SpeedMeasured=sqrt(Meas.us.*Meas.us+Meas.vs.*Meas.vs) ;
 DrivingStress= F.rho.*F.g.*(F.h+CtrlVar.ThickMin).*(GradSurf+CtrlVar.SurfaceSlopeMin);
 
-CGuess=Speed./(DrivingStress.^F.m);
+CGuess=SpeedMeasured./(DrivingStress.^F.m);
 
 
 %  u = c rho g h ds/dx
@@ -51,8 +51,8 @@ if nargin>8 && ~isnan(CorrelationDistance)
     [UserVar,DrivingStress]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,DrivingStress,0);
     
     % Smoothing surface speed
-    [UserVar,Speed]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,Speed,0);
-    CGuess=Speed./(DrivingStress.^F.m);
+    [UserVar,SpeedMeasured]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,SpeedMeasured,0);
+    CGuess=SpeedMeasured./(DrivingStress.^F.m);
     
     % Can't stop smoothing...
     [UserVar,CGuess]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,CGuess,0);

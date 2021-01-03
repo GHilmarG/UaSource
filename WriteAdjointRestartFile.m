@@ -28,7 +28,7 @@ else
     yC=MUA.coordinates(:,2);
 end
 
-
+   
 if CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile
     fprintf(CtrlVar.fidlog,' saving sliding-law parameters  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
     C=F.C;

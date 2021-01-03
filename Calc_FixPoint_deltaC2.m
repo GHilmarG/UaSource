@@ -26,25 +26,34 @@ function dIdC=Calc_FixPoint_deltaC2(CtrlVar,UserVar,MUA,F,Meas)
 
 tau=sqrt(txzb.*txzb+tyzb.*tyzb) ;
 
-m=F.m ;
-C=F.C ;
 
 
-u=C.*tau.^(m-1).*txzb ;
-v=C.*tau.^(m-1).*tyzb ;
+% u=C.*tau.^(m-1).*txzb ;
+% v=C.*tau.^(m-1).*tyzb ;
 
 uErr=sqrt(spdiags(Meas.usCov));
 vErr=sqrt(spdiags(Meas.vsCov));
 
 
 Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
-dIdC=MUA.M*( (u-Meas.us)./uErr +  (v-Meas.vs)./vErr)./Area ;
 
-figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; 
+%dIdC=MUA.M*( (F.ub-Meas.us).*txzb./uErr +  (F.vb-Meas.vs).*tyzb./vErr).*(tau.^(m-1)) ./Area ;
+
+% dIdC=MUA.M*( (F.ub-Meas.us).*F.ub./uErr +  (F.vb-Meas.vs).*F.vb./vErr)./F.C./Area ;
+
+dIdC=MUA.M*( (F.ub-Meas.us).*txzb./uErr +  (F.vb-Meas.vs).*tyzb./vErr).*(tau.^(F.m-1)) ./Area ;
+
+% txzb.*tau.^(m-1)  = u/C = F.ub./F.C
+
+
+
+
+% figure ; PlotMeshScalarVariable(CtrlVar,MUA,dIdC) ; 
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
     dIdC=log(10)*F.C.*dIdC;
 end
 
-
+ % dIdC=dIdC/norm(dIdC) ; 
+ 
 end

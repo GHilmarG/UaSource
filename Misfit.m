@@ -207,6 +207,7 @@ if CtrlVar.Inverse.CalcGradI
                     
                     %dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
                     dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
+                    % dCFuvLambda=Calc_FixPoint_deltaC2(CtrlVar,UserVar,MUA,F,Meas);
                     np=numel(dIdp); ddIddp=sparse(np,np);
                     dCJ=0 ;
                     DCJ=dCFuvLambda+dCJ;
