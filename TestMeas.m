@@ -22,7 +22,7 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-")
     
     if isdiag(Meas.vsCov)
         if any(diag(Meas.usCov)==0)
-            error('Ua:TestMeas','The error covariance matrix usCov is a diagonal matrix and has zeros on the diagonal. This is not allowed. Modify data errors')
+            error('Ua:TestMeas','The error covariance matrix vsCov is a diagonal matrix and has zeros on the diagonal. This is not allowed. Modify data errors')
         end
     end
     
@@ -49,7 +49,7 @@ if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
     
     if isdiag(Meas.dhdtCov)
         if any(diag(Meas.dhdtCov)==0)
-            error('Ua:TestMeas','The error covariance matrix usCov is a diagonal matrix and has zeros on the diagonal. This is not allowed. Modify data errors')
+            error('Ua:TestMeas','The error covariance matrix dhdtCov is a diagonal matrix and has zeros on the diagonal. This is not allowed. Modify data errors')
         end
     end
     

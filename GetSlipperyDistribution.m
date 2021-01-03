@@ -3,6 +3,8 @@ function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F)
     narginchk(4,4)
     nargoutchk(2,2)
     
+    InputFile="DefineSlipperyDistribution.m"; TestIfInputFileInWorkingDirectory(InputFile) ; 
+    
     
     N=nargout('DefineSlipperyDistribution');
     

@@ -41,7 +41,7 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 
 persistent GLgeo GLnodes GLele
 
-Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+Area=MUA.Area; 
 
 dAFuvLambda=[];
 dBFuvLambda=[];

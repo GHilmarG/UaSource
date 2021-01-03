@@ -703,6 +703,9 @@ CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
+
+CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile=true ;
+CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile=true ;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 

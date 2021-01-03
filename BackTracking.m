@@ -117,8 +117,8 @@ if ~isfield(CtrlVar,'BackTrackGuardUpper')
     CtrlVar.BackTrackGuardUpper=0.95;
 end
 
-if ~isfield(CtrlVar,'AllowExtrapolation')
-    CtrlVar.AllowExtrapolation=false;
+if ~isfield(CtrlVar,'LineSearchAllowedToUseExtrapolation')
+    CtrlVar.LineSearchAllowedToUseExtrapolation=false;
 end
 
 % Backtracking continues even if target has been reached if last reduction in
@@ -260,7 +260,7 @@ end
 
 Extrapolation=0;
 
-if CtrlVar.AllowExtrapolation
+if CtrlVar.LineSearchAllowedToUseExtrapolation
     while  fb<fa && fc < fb && fmin > target
         Extrapolation=Extrapolation+1;
         

@@ -1,4 +1,4 @@
-function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange,deltaStep)
+function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange)
 
 
 CPUstart=tic;

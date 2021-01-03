@@ -12,15 +12,8 @@ function [UserVar,CtrlVar]=GetInitialInputs(UserVar,CtrlVar,varargin)
     end
     
     
-    
-    if ~exist(fullfile(cd,'DefineInitialInputs.m'),'file')
-        
-        fprintf('The input-file DefineInitialInputs.m not found in the working directory (%s).\n',pwd)
-        fprintf('This input-file is required for Ua to run.\n')
-        error('Ua2D:InputFileNotFound','DefineInitialInputs.m not found in working directory.')
-        
-    end
-    
+    InputFile="DefineInitialInputs.m" ;
+    TestIfInputFileInWorkingDirectory(InputFile) ;
     
     
     

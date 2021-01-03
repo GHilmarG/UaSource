@@ -6,6 +6,9 @@ persistent nCalls
 narginchk(11,11)
 nargoutchk(4,4)
 
+InputFile="DefineDesiredEleSize.m"; TestIfInputFileInWorkingDirectory(InputFile) ; 
+
+
 if isempty(nCalls)
     nCalls=0;
 end
@@ -13,6 +16,7 @@ nCalls=nCalls+1;
 
 
 N=nargout('DefineDesiredEleSize');
+
 
 
 InputEleSizeDesired=EleSizeDesired;

@@ -476,7 +476,7 @@ while 1
         
         % RunInfo
         
-        if  numel(RunInfo.Forward.time)<=RunInfo.Forward.iCounter
+        if  numel(RunInfo.Forward.time)<=CtrlVar.CurrentRunStepNumber
             RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
             RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
             RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
@@ -488,9 +488,9 @@ while 1
             
         end
         
-        RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
-        RunInfo.Forward.time(RunInfo.Forward.iCounter)=CtrlVar.time;
-        RunInfo.Forward.dt(RunInfo.Forward.iCounter)=CtrlVar.dt;
+        % RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
+        RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
+        RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
