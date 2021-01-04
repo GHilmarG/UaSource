@@ -235,7 +235,7 @@ if CtrlVar.doInverseStep   % -inverse
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
     
-    CtrlVar.DefineOutputsInfostring='Start of inverse run';
+    CtrlVar.DefineOutputsInfostring="Start of inverse run";
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -276,7 +276,7 @@ if CtrlVar.doInverseStep   % -inverse
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
-    CtrlVar.DefineOutputsInfostring='End of Inverse Run';
+    CtrlVar.DefineOutputsInfostring="End of Inverse Run";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
     UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -289,7 +289,7 @@ end
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='First call';
+    CtrlVar.DefineOutputsInfostring="First call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -528,7 +528,7 @@ while 1
                 
                 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-                    CtrlVar.DefineOutputsInfostring='Diagnostic step';
+                    CtrlVar.DefineOutputsInfostring="Diagnostic step";
                     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
                     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
                     
@@ -645,7 +645,7 @@ while 1
     % DefineOutputs
     
     if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-        CtrlVar.DefineOutputsInfostring='inside transient loop and inside run-step loop';
+        CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0
@@ -691,7 +691,7 @@ end
 
 
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='Last call';
+    CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
         CtrlVar.time=CtrlVar.time+CtrlVar.dt;

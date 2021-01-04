@@ -6,7 +6,7 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 %
 % Provides a rough estimate of C based on measured surface velocities and
 % an estimate of driving stress assuming Weertman sliding law. Can easily be
-% modifed to include Budd or other Robin type BCs. 
+% modifed to include Budd or other Robin type BCs.
 %
 % Returns
 %
@@ -15,47 +15,70 @@ function [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MU
 % Optionally, smooths estimate using Helmholtz smoothing for a given Matern correlation
 % distance.
 %
+% Example:
+%
+%   CorrelationDistance=50e3; 
+%   [UserVar,CGuess,DrivingStress,GradSurf]=CGuesstimate(UserVar,CtrlVar,MUA,F,F.GF,Meas,CorrelationDistance); 
+%
 %%
 
-% Calc surface gradient
 
+DrivingStressMax=200;
+DrivingStressMin=5;
+
+GradSurfMin=1e-4; 
+GradSurfMax=0.1; 
+BasalSpeedMax=3000 ;
+CGuessMax=mean(BasalSpeedMax./(DrivingStressMin.^F.m));
+
+% Calc surface gradient
 [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
 [dsdx,dsdy]=ProjectFintOntoNodes(MUA,dsdx,dsdy);
 
-if ~isfield(CtrlVar,'SurfaceSlopeMin')
-    CtrlVar.SurfaceSlopeMin=1e-4;
-end
 
 
 GradSurf=sqrt(dsdx.*dsdx+dsdy.*dsdy) ;
+GradSurf(GradSurf<GradSurfMin)=GradSurfMin ;
+GradSurf(GradSurf>GradSurfMax)=GradSurfMax ;
+
 SpeedMeasured=sqrt(Meas.us.*Meas.us+Meas.vs.*Meas.vs) ;
-DrivingStress= F.rho.*F.g.*(F.h+CtrlVar.ThickMin).*(GradSurf+CtrlVar.SurfaceSlopeMin);
+DrivingStress= F.rho.*F.g.*(F.h+CtrlVar.ThickMin).*GradSurf;
+
+DrivingStress(DrivingStress>DrivingStressMax)=DrivingStressMax;
+DrivingStress(DrivingStress<DrivingStressMin)=DrivingStressMin;
 
 CGuess=SpeedMeasured./(DrivingStress.^F.m);
-
+CGuess(CGuess>CGuessMax)=CGuessMax;
 
 %  u = c rho g h ds/dx
 
 
-if nargin>8 && ~isnan(CorrelationDistance)
+if nargin>6 && ~isnan(CorrelationDistance)
     % Helmholtz smoothing
     % This is really just here as an example
     % Arguably better to do whatever smoothing required outside of this routine
     Dimention=2; alpha=2 ; % get the wavenumber in the Helmoltz equation corresponding to a given
-                           % correlation distance for the Matern covariance of degree one
-                           
-        
+    % correlation distance for the Matern covariance of degree one
+    
+    
     [~,~,kappa,~]=Matern(alpha,CorrelationDistance,Dimention,NaN);
+    
+    [UserVar,GradSurf]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,GradSurf,0);
+    
+    GradSurf(GradSurf<GradSurfMin)=GradSurfMin ;
+    GradSurf(GradSurf>GradSurfMax)=GradSurfMax ;
+    
+    
+    DrivingStress= F.rho.*F.g.*(F.h+CtrlVar.ThickMin).*GradSurf;
+    DrivingStress(DrivingStress>DrivingStressMax)=DrivingStressMax;
+    DrivingStress(DrivingStress<DrivingStressMin)=DrivingStressMin;
     
     % Smoothing driving stress
     [UserVar,DrivingStress]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,DrivingStress,0);
-    
-    % Smoothing surface speed
-    [UserVar,SpeedMeasured]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,SpeedMeasured,0);
+    DrivingStress(DrivingStress>DrivingStressMax)=DrivingStressMax;
+    DrivingStress(DrivingStress<DrivingStressMin)=DrivingStressMin;
     CGuess=SpeedMeasured./(DrivingStress.^F.m);
-    
-    % Can't stop smoothing...
-    [UserVar,CGuess]=HelmholtzEquation(UserVar,CtrlVar,MUA,1,1/kappa^2,CGuess,0);
+    CGuess(CGuess>CGuessMax)=CGuessMax;
 end
 
 
