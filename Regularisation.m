@@ -247,9 +247,11 @@ else  % Tikhonov regularization
         end
         RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
+        ddRddAGlen=NA.*dAfactor;
     else
         RAGlen=0;
         dRdAGlen=[];
+        ddRddAGlen=[]; 
     end
     
     if isC
@@ -267,10 +269,13 @@ else  % Tikhonov regularization
         
         RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
+        ddRddC=NC.*dCfactor;
+        
         
     else
         RC=0;
         dRdC=[];
+        ddRddC=[]; 
     end
     
     

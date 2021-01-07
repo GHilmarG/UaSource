@@ -739,7 +739,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 % 'I', and then to try out 'M' for comparison.
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
-CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change. 
+
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 

@@ -11,22 +11,38 @@ switch CtrlVar.Inverse.AdjointGradientPreMultiplier
     case 'M'
         
         % The mass matrix has the dimensions area.
-        Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+
+        H=MUA.M ;         
         
-        if ~isfield(MUA,'M')
-            MUA.M=MassMatrix2D1dof(MUA);
-        end
+        % TestIng
+        H=MUA.M+1e6*(MUA.Dxx+MUA.Dyy) ; 
+        %
         
         
         for k=1:numel(varargin)
             
             if ~isempty(varargin{k})
-                varargout{k}=Area*(MUA.M\varargin{k});
+                
+                varargout{k}=MUA.Area*(H\varargin{k});
+                
+                %IgradientNorm=norm(varargin{k}); 
+                %Mgradient=Area*(MUA.M\varargin{k});
+                %MgradientNorm=norm(Mgradient) ;
+                %varargout{k}=Mgradient*IgradientNorm/MgradientNorm;
                 
                 
                 if CtrlVar.Inverse.InfoLevel>=1000
-                    figure ; PlotMeshScalarVariable(CtrlVar,MUA,varargin{k}) ; title('Derivative Mesh Dependent')
-                    figure ; PlotMeshScalarVariable(CtrlVar,MUA,varargout{k}) ; title('Derivative Mesh Independent')
+                    FindOrCreateFigure('I gradient') ; 
+                    PlotMeshScalarVariable(CtrlVar,MUA,varargin{k}) ; 
+                    hold on 
+                    PlotMuaMesh(CtrlVar,MUA,[],'w');
+                    title('Derivative Mesh Dependent')
+                    
+                    FindOrCreateFigure('M gradient') ; 
+                    PlotMeshScalarVariable(CtrlVar,MUA,varargout{k}) ; 
+                    hold on
+                    PlotMuaMesh(CtrlVar,MUA,[],'w');
+                    title('Derivative Mesh Independent')
                 end
             end
         end

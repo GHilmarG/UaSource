@@ -21,11 +21,7 @@ F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 
- [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
-
-if CtrlVar.Inverse.TestAdjoint.isTrue
-    CtrlVar.Inverse.pPreMultiplier=CtrlVar.Inverse.AdjointGradientPreMultiplier ;
-end
+[F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
@@ -82,7 +78,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     fprintf('BruteForceGradient save in the file : %s \n',filename)
     save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
     
-    CtrlVar.Inverse.pPreMultiplier="I";
+    
 else
     
     
