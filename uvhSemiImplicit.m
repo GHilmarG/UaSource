@@ -70,7 +70,7 @@ while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2
     Du=norm(du)/norm(F1.ub) ; Dv=norm(dv)/norm(F1.vb) ; Dh=norm(dh)/norm(F1.h);
     if Du > 0.25 || Dv > 0.25 || Dh> 0.05  % if so, then force a reduction in dt
         %RunInfo.Forward.uvhIterations=max([10*CtrlVar.ATSTargetIterations ; RunInfo.Forward.Iterations]);
-        RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)=666;
+        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=666;
     end
     [Du Dv Dh]
     

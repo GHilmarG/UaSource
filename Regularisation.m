@@ -214,7 +214,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         RB=dpB'*temp/(2*npB)   ;
         dRdB=temp/npB;
         %ddRdd=inv(Priors.CovC)/2/N;
-        ddRCddpB=[];
+        ddRddpB=[];
     else
         RB=0;
         dRdB=[];
@@ -301,9 +301,14 @@ else  % Tikhonov regularization
     else
         RB=0;
         dRdB=[];
+        ddRddB=[];
     end
     
-    [dRdAGlen,dRdb,dRdB,dRdC]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dRdAGlen,dRdb,dRdB,dRdC); 
+    
+    
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddAGlen,dRdAGlen); 
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddC,dRdC); 
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
         
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];

@@ -1,6 +1,6 @@
-function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint)
+function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
 
-narginchk(6,6)
+narginchk(7,7)
 
 %
 % Calculates the product: dFuv/dC  \lambda
@@ -10,7 +10,7 @@ narginchk(6,6)
 %   dJ/dC  = dFuv/dC lambda  + dJ/dC
 %          = dI/dC + dJ/dC
 %
-% then this is equal to dI/dC, hence the name.
+% then this is equal to dI/dC, hence the name, although this should maybe be referred to as dIdp
 %
 % dI/dC is the 'misfit' contribution to dJ/dC
 %
@@ -92,7 +92,7 @@ for Iint=1:MUA.nip
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
-    
+    CtrlVar.Inverse.dFuvdClambda=false;
     % Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.Czero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
@@ -113,7 +113,27 @@ for Inod=1:MUA.nod
     dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dIdC);
+% dI/dC=2 (umeas-ucalc)*tau^m = -2 (umeas-ucalc)* (u/uerr)  * (1/C)
+%
+uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
+usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
+
+dIdCAna=2*(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C;
+dIdCAna=dIdCAna.*F.GF.node;
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+    dIdpAna=log(10)*F.C.*dIdCAna;
+end
+
+FindOrCreateFigure('dIdC Analytical Estimate') ;
+PlotMeshScalarVariable(CtrlVar,MUA,dIdpAna) ;
+hold on
+PlotMuaMesh(CtrlVar,MUA,[],'w');
+title('dIdC analytical estimate')
+%
+
+
+Happrox=MUA.M/MUA.Area;
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdC);
 
 
 

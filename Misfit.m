@@ -347,7 +347,7 @@ if CtrlVar.Inverse.CalcGradI
                             np=numel(F.C); ddIddp=sparse(ones(np,1),1:np,1:np);
                         else
                             
-                             dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint);
+                             dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
                             %dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end
                 end

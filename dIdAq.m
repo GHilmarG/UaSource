@@ -79,7 +79,8 @@ for Inod=1:MUA.nod
     dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dIdA);
+Happrox=MUA.M/MUA.Area; 
+dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdA);
 
 end
 

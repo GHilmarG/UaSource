@@ -46,7 +46,7 @@ classdef (ConstructOnLoad) UaRunInfo
             
             obj.Forward.dtRestart=NaN;
             
-            obj.Forward.iCounter=0;
+            
             N=1000; % initial memory allocation
             obj.Forward.time=zeros(N,1)+NaN;
             obj.Forward.dt=zeros(N,1)+NaN;
@@ -142,7 +142,7 @@ classdef (ConstructOnLoad) UaRunInfo
             end
             
             if ~isfield(s.Forward,'iCounter')
-                obj.Forward.iCounter=0;
+                
                 N=1000; % initial memory allocation
                 obj.Forward.time=zeros(N,1)+NaN;
                 obj.Forward.dt=zeros(N,1)+NaN;
