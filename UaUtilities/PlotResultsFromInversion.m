@@ -628,9 +628,9 @@ else
             tFig1=figure('Name','True and estimated C','NumberTitle','off');
 
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ; title('True C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -665,9 +665,9 @@ else
         if ~isempty(Priors.TrueAGlen)
             tFig1=figure('Name','True and estimated AGlen','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; title('True AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; title('Retrieved AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -708,9 +708,9 @@ else
             
             tFig1=figure('Name','True and estimated B','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB) ; title('True B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B) ; title('Retrieved B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ; 
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.51 0.5 0.4];
             

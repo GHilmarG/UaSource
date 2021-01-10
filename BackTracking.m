@@ -138,6 +138,11 @@ if NoSlopeInformation
     target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
 else
     target=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
+    
+    if target< 0
+        %  oops clearly the slope information must be incorrect
+        target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
+    end
 end
 
 xfrac=1e10;

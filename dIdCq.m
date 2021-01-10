@@ -118,24 +118,41 @@ end
 uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
 usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
 
-dIdCAna=2*(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C;
-dIdCAna=dIdCAna.*F.GF.node;
+
+dIdpana=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C./MUA.Area;
+dIdpana=dIdpana.*F.GF.node;
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    dIdpAna=log(10)*F.C.*dIdCAna;
+    dIdpana=log(10)*F.C.*dIdpana;
 end
 
 FindOrCreateFigure('dIdC Analytical Estimate') ;
-PlotMeshScalarVariable(CtrlVar,MUA,dIdpAna) ;
+PlotMeshScalarVariable(CtrlVar,MUA,dIdpana) ;
 hold on
 PlotMuaMesh(CtrlVar,MUA,[],'w');
 title('dIdC analytical estimate')
 %
 
+ab=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(MUA.Area.*F.C.^2);
 
-Happrox=MUA.M/MUA.Area;
+
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+    ab=ab.*(log(10)*F.C).^2;
+end
+
+AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
+Happrox=AB*MUA.M ; 
+
+
 dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdC);
 
-
+dCNewton=(1./ab).*dIdpana ;  
+FindOrCreateFigure('dC Newton Estimate') ;
+PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
+hold on
+PlotMuaMesh(CtrlVar,MUA,[],'w');
+title('dC Newton Estimate')
+%
+% dIdC=dCNewton ;   this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
 
 end
 

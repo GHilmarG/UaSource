@@ -926,7 +926,7 @@ end
 %%
 % Some less-often used parameters related to inversion:
 CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration,
-CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step
+CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step, only relevant when using UaOptimisation
 
 % >=100 for further info and plots
 % In an inversion it it generally better to set other infolevels to a low value. So
