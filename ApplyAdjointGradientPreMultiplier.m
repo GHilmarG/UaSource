@@ -6,13 +6,15 @@ narginchk(4,inf)
 
 varargout=varargin;
 
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="I"
-    varargout=varargin;
-    return
-elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
     P=MUA.M/MUA.Area ;
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="D"
     P=MUA.Dxx+MUA.Dyy  ;
+elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ...
+        || CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical" ...
+        || isempty(P)
+    varargout=varargin;
+    return
 end
 
 

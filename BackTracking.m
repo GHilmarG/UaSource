@@ -134,10 +134,11 @@ else
     end
 end
 
-if NoSlopeInformation
-    target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
-else
-    target=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
+target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
+    
+if ~NoSlopeInformation
+    targetwithslope=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
+    target=max(target,targetwithslope);
     
     if target< 0
         %  oops clearly the slope information must be incorrect

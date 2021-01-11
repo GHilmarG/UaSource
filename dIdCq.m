@@ -115,6 +115,9 @@ end
 
 % dI/dC=2 (umeas-ucalc)*tau^m = -2 (umeas-ucalc)* (u/uerr)  * (1/C)
 %
+
+
+
 uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
 usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
 
@@ -139,20 +142,25 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
     ab=ab.*(log(10)*F.C).^2;
 end
 
-AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
-Happrox=AB*MUA.M ; 
-
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=="H"
+    AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
+    Happrox=AB*MUA.M ;
+elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
+    Happrox=[];
+end
 
 dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdC);
 
-dCNewton=(1./ab).*dIdpana ;  
-FindOrCreateFigure('dC Newton Estimate') ;
-PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
-hold on
-PlotMuaMesh(CtrlVar,MUA,[],'w');
-title('dC Newton Estimate')
-%
-% dIdC=dCNewton ;   this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
+    dCNewton=(1./ab).*dIdpana ;
+    FindOrCreateFigure('dC Newton Estimate') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
+    hold on
+    PlotMuaMesh(CtrlVar,MUA,[],'w');
+    title('dC Newton Estimate')
+    dIdC=dCNewton ;  %  this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
+end
+
 
 end
 
