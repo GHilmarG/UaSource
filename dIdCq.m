@@ -39,7 +39,7 @@ mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 if CtrlVar.SlidingLaw=="Budd"
     qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
 else
-    qnod=mnod*0 ;  % just to avoid asking this again within a loop 
+    qnod=mnod*0 ;  % just to avoid asking this again within a loop
 end
 
 if ~isempty(F.muk)
@@ -74,7 +74,7 @@ for Iint=1:MUA.nip
     mukint=muknod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
-    Hint=Sint-Bint; 
+    Hint=Sint-Bint;
     rhoint=rhonod*fun;
     uAdjointint=uAdjointnod*fun;
     vAdjointint=vAdjointnod*fun;
@@ -83,11 +83,11 @@ for Iint=1:MUA.nip
     %
     % dF/dC=dtaux/dC uAdjoint + dtauy/dC vAdjoint
     %
-    % dtaux/dC= He u * dbeta2/dC 
+    % dtaux/dC= He u * dbeta2/dC
     %
     % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
     %
-
+    
     % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
@@ -107,10 +107,10 @@ for Iint=1:MUA.nip
     end
 end
 
-dIdC=zeros(MUA.Nnodes,1);
+dIdCtemp=zeros(MUA.Nnodes,1);
 
 for Inod=1:MUA.nod
-    dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dIdCtemp=dIdCtemp+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
 % dI/dC=2 (umeas-ucalc)*tau^m = -2 (umeas-ucalc)* (u/uerr)  * (1/C)
@@ -118,49 +118,57 @@ end
 
 
 
-uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
-usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdCtemp);
 
 
-dIdpana=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C./MUA.Area;
-dIdpana=dIdpana.*F.GF.node;
-if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    dIdpana=log(10)*F.C.*dIdpana;
-end
-
-FindOrCreateFigure('dIdC Analytical Estimate') ;
-PlotMeshScalarVariable(CtrlVar,MUA,dIdpana) ;
-hold on
-PlotMuaMesh(CtrlVar,MUA,[],'w');
-title('dIdC analytical estimate')
-%
-
-ab=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(MUA.Area.*F.C.^2);
 
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    ab=ab.*(log(10)*F.C).^2;
-end
-
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="H"
-    AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
-    Happrox=AB*MUA.M ;
-elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
-    Happrox=[];
-end
-
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdC);
-
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
-    dCNewton=(1./ab).*dIdpana ;
-    FindOrCreateFigure('dC Newton Estimate') ;
-    PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
+if CtrlVar.DevelopmentVersion
+    
+    uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
+    usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
+    
+    
+    dIdpana=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C./MUA.Area;
+    dIdpana=dIdpana.*F.GF.node;
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+        dIdpana=log(10)*F.C.*dIdpana;
+    end
+    
+    FindOrCreateFigure('dIdC Analytical Estimate') ;
+    PlotMeshScalarVariable(CtrlVar,MUA,dIdpana) ;
     hold on
     PlotMuaMesh(CtrlVar,MUA,[],'w');
-    title('dC Newton Estimate')
-    dIdC=dCNewton ;  %  this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
+    title('dIdC analytical estimate')
+    %
+    
+    ab=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(MUA.Area.*F.C.^2);
+    
+    
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+        ab=ab.*(log(10)*F.C).^2;
+    end
+    
+    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="H"
+        AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
+        Happrox=AB*MUA.M ;
+    elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
+        Happrox=[];
+    end
+    
+    dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdCtemp);
+    
+    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
+        dCNewton=(1./ab).*dIdpana ;
+        FindOrCreateFigure('dC Newton Estimate') ;
+        PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
+        hold on
+        PlotMuaMesh(CtrlVar,MUA,[],'w');
+        title('dC Newton Estimate')
+        dIdC=dCNewton ;  %  this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
+    end
+    
 end
-
 
 end
 

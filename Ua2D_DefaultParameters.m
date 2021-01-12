@@ -972,11 +972,6 @@ CtrlVar.sweep=1;              % renumber nodes using a `sweep' plane
 CtrlVar.SweepAngle=0.01;      % angle of sweep plane with respect to x axis
 CtrlVar.CuthillMcKee=0;       % renumber nodes using sparse reverse Cuthill-McKee ordering
 
-%% Creation of a dumpfile
-% Mainly used for testing purposes, but can in principle also be used to generate output data files.
-CtrlVar.WriteDumpFile=0;                      % a dumpfile is created containing all variables
-CtrlVar.WriteDumpFileStepInterval=1000;       % number of time steps between writing a dump file
-CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a dump file
 
 %%  Outputs
 %
