@@ -149,12 +149,10 @@ if CtrlVar.DevelopmentVersion
         ab=ab.*(log(10)*F.C).^2;
     end
     
-    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="H"
-        AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
-        Happrox=AB*MUA.M ;
-    elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
-        Happrox=[];
-    end
+    
+    AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
+    Happrox=AB*MUA.M ;
+    
     
     dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdCtemp);
     

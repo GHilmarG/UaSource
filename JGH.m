@@ -27,7 +27,7 @@ if ~isempty(ubP)
 end
 
 
-if CtrlVar.Inverse.MinimisationMethod=="UaOptimization"
+if contains(CtrlVar.Inverse.MinimisationMethod,"UaOptimization")
      p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope). 
 end
 

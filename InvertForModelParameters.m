@@ -84,30 +84,28 @@ else
     
     %%
     
-    switch CtrlVar.Inverse.MinimisationMethod
+    if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
+
         
-        case 'UaOptimization'
-            
-            %[p,RunInfo]=UaOptimisation(CtrlVar,func,p0,plb,pub,RunInfo);
-            [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p0,plb,pub);
-            
-        case 'MatlabOptimization'
-            
-            clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-            
-            [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo);
-            
-        otherwise
-            
-            fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
-            fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
-            error('what case? ')
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p0,plb,pub);
+        
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
+        
+        clear fminconOutputFunction fminconHessianFcn fminuncOutfun
+        
+        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo);
+        
+    else
+        
+        fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
+        fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
+        error('what case? ')
     end
- 
-    F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
+    
+    F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
     [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
-  
+    
     
 end
 

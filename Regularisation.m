@@ -17,7 +17,7 @@ RegOuts=[];
 %
 
 % C
-if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+if contains(lower(CtrlVar.Inverse.InvertFor),'c')  % this includes both c and logc inversion
     
     isC=1;
     if contains(lower(CtrlVar.Inverse.Regularize.Field),'logc')
@@ -305,7 +305,7 @@ else  % Tikhonov regularization
     end
     
     
-    
+    % Here using the Hessian as a premultiplier
     dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddAGlen,dRdAGlen); 
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddC,dRdC); 
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
