@@ -21,7 +21,7 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %
 %  Notation:
-%  J = Juv   + Jdot    + JA    +   JB   + JC
+%  I = Iuv   + Idot    + IA    +   IB   + IC
 %
 %  I need:
 %
@@ -33,11 +33,11 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %   Adjoint Eqs:  duvFuv lambda = duvJ
 %
-%       DAJ     = dAFuv lambda + dAJ
-%       DBJ     = dBFuv lambda + dBJ
-%       DCJ     = dCFuv lambda + dCJ
+%       DAI     = dAFuv lambda + dAI
+%       DBI     = dBFuv lambda + dBI
+%       DCI     = dCFuv lambda + dCI
 %
-
+%   here D is the total derivative and I use d for the partial derivative
 
 persistent GLgeo GLnodes GLele
 
@@ -47,9 +47,9 @@ dAFuvLambda=[];
 dBFuvLambda=[];
 dCFuvLambda=[];
 
-DAJ=[];
-DBJ=[];
-DCJ=[];
+DAI=[];
+DBI=[];
+DCI=[];
 
 dIdp=[] ;
 ddIddp=sparse(1,1);
@@ -209,8 +209,25 @@ if CtrlVar.Inverse.CalcGradI
                     dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
                     % dCFuvLambda=Calc_FixPoint_deltaC2(CtrlVar,UserVar,MUA,F,Meas);
                     np=numel(dIdp); ddIddp=sparse(np,np);
-                    dCJ=0 ;
-                    DCJ=dCFuvLambda+dCJ;
+                    dCI=0 ;
+                    DCI=dCFuvLambda+dCI;
+                    
+                    uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
+                    usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
+                    
+                    
+                    dIdpFP=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C;
+                    dIdpFP=dIdpFP.*F.GF.node;
+                    
+                    ddIddpFP=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(F.C.^2);
+                    
+                    DCI=dIdpFP;
+                    DDCI=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ddIddpFP); 
+                    
+                    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+                        dIdpana=log(10)*F.C.*dIdpana;
+                    end
+                    
                     
                 case 'B'
                     
@@ -218,7 +235,7 @@ if CtrlVar.Inverse.CalcGradI
                     dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
                     np=numel(dIdp); ddIddp=sparse(np,np);
                     dBJ=0;
-                    DBJ=dBFuvLambda+dBJ;
+                    DBI=dBFuvLambda+dBJ;
                     
                 otherwise
                     
@@ -348,11 +365,11 @@ if CtrlVar.Inverse.CalcGradI
                         else
                             
                              dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
-                            %dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                            
                         end
                 end
-                dCJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-                DCJ=dCFuvLambda+dCJ;
+                dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DCI=dCFuvLambda+dCI;
             end
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
@@ -375,8 +392,8 @@ if CtrlVar.Inverse.CalcGradI
                             dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
                         end
                 end
-                dAJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-                DAJ=dAFuvLambda+dAJ;
+                dAI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DAI=dAFuvLambda+dAI;
             end
             
             
@@ -409,12 +426,12 @@ if CtrlVar.Inverse.CalcGradI
                         
                         
                 end
-                dBJ=dhdp.*dhJhdot;
-                DBJ=dBFuvLambda+dBJ;
+                dBI=dhdp.*dhJhdot;
+                DBI=dBFuvLambda+dBI;
                 
                 if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
                     [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
-                    DBJ(~F.GF.NodesUpstreamOfGroundingLines)=0;
+                    DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
                 end
                 
 
@@ -432,9 +449,9 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
-% [I,L,U,C] = isoutlier(DBJ,'gesd'); factor=1 ; DBJ(DBJ>(factor*U))=factor*U ; DBJ(DBJ<(L/factor))=L/factor ; 
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title('DBI')
+% [I,L,U,C] = isoutlier(DBI,'gesd'); factor=1 ; DBI(DBI>(factor*U))=factor*U ; DBI(DBI<(L/factor))=L/factor ; 
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title('DBI')
     
 % Hessians
     
@@ -461,21 +478,23 @@ if CtrlVar.Inverse.CalcGradI
             ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
         case 'M'
             ddIddp=Hscale*MUA.M;
+        case 'C'
+            ddIddp=DDCI; 
     end
     
     
     switch CtrlVar.Inverse.InvertForField
         
         case 'A'
-            dIdp=DAJ;
+            dIdp=DAI;
         case 'b'
             error('fdsa')
         case 'B'
-            dIdp=DBJ;
+            dIdp=DBI;
         case 'C'
-            dIdp=DCJ;
+            dIdp=DCI;
         case 'AC'
-            dIdp=[DAJ;DCJ];
+            dIdp=[DAI;DCI];
         otherwise
             
             error('sdfsa')
@@ -501,9 +520,9 @@ end
 
 if nargout>3
     MisfitOuts.I=I;
-    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCJ;
-    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAJ;
-    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBJ;
+    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCI;
+    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAI;
+    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBI;
 end
 
 end

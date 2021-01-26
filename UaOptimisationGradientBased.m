@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,~,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)

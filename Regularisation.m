@@ -306,14 +306,19 @@ else  % Tikhonov regularization
     
     
     % Here using the Hessian as a premultiplier
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddAGlen,dRdAGlen); 
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddC,dRdC); 
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddAGlen,dRdAGlen);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddC,dRdC);
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
-        
+    
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
-    ddRddp=[];
     
+    
+    [Am,An] = size(ddRddAGlen);
+    [Cm,Cn] = size(ddRddC);
+    ddRddp = spalloc(Am+Cm,An+Cn,nnz(ddRddAGlen)+nnz(ddRddC));
+    ddRddp(1:Am,1:An) = ddRddAGlen;
+    ddRddp(Am+1:Am+Cm,An+1:An+Cn) = ddRddC;
     
     
 end

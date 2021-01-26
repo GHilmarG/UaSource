@@ -1,4 +1,5 @@
-function  [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub)
+function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)
@@ -17,12 +18,12 @@ switch CtrlVar.Inverse.MinimisationMethod
     
     case {"UaOptimization","UaOptimization:Gradient"}
         
-        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub) ;
+        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CrlVar,RunInfo,MUA,func,p,plb,pub) ;
         
         
     case "UaOptimization:Hessian"
         
-        [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub) ;
+        [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
         
     otherwise
         

@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,RunInfo,CtrlVar,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,~,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)
@@ -26,12 +26,61 @@ if isempty(CtrlVar)
     CtrlVar.Inverse.StoreSolutionAtEachIteration=0;
 end
 
+
+
+%%
 p=p(:); 
 p=kk_proj(p,pub,plb);
 
 
 [J0,dJdp,Hess,fOuts,~,RunInfo]=func(p);
 dJdp=dJdp(:);
+
+
+
+
+dp=-Hess\dJdp ; 
+
+
+
+
+FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ;
+FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 GradNorm=norm(dJdp);
 RunInfo.Inverse.ConjGradUpdate=0;
 

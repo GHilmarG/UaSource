@@ -85,15 +85,16 @@ else
     %%
     
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
-
         
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,RunInfo,CtrlVar,MUA,func,p0,plb,pub);
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+        
         
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
         
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
         
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo);
+        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+        
         
     else
         

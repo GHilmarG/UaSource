@@ -1,5 +1,5 @@
-function [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(CtrlVar,func,p0,plb,pub,RunInfo)
 
+function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
 
 CtrlVar.Inverse.MatlabOptimisationParameters= optimoptions(CtrlVar.Inverse.MatlabOptimisationParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
 
