@@ -46,7 +46,11 @@ F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
 if nargout>1
     dJdp=dRdp+dIdp;
-    Hessian=ddRddp+ddIddp;
+    if isempty(ddIddp)
+        Hessian=ddRddp;
+    else
+        Hessian=ddRddp+ddIddp;
+    end
 end
 
 if RunInfo.Forward.Converged

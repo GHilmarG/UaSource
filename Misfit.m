@@ -468,11 +468,11 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     switch upper(CtrlVar.Inverse.DataMisfit.HessianEstimate)
-        
+        % TestIng: This sees to be in the wrong place, should be after dIdp has been defined
         
         case {'0','O'}
             np=numel(dIdp);
-            ddIddp=sparse(np,np);
+            ddIddp=sparse(ones(np,1),1:np,1:np);
         case {'1','I'}
             np=numel(dIdp);
             ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
