@@ -7,9 +7,15 @@ function [UserVar,ab]=FE_outer_product(UserVar,CtrlVar,MUA,a,b)
 %
 % $$ ( a_r \phi_r   \phi_p , \phi_q  \b_s \phi_s )   $$
 %
+% Not sure if the name of this m-File really is a good description of what it does,
+% But it generates something that I find similar to an outer product.
 
+narginchk(4,5)
 
-narginchk(5,5)
+if nargin<5
+   b=ones(MUA.Nnodes,1) ; 
+end
+
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 

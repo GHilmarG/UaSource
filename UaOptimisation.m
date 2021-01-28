@@ -16,12 +16,12 @@ nargoutchk(3,3)
 switch CtrlVar.Inverse.MinimisationMethod
     
     
-    case {"UaOptimization","UaOptimization:Gradient"}
+    case {"UaOptimization","UaOptimization-Gradient"}
         
         [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CrlVar,RunInfo,MUA,func,p,plb,pub) ;
         
         
-    case "UaOptimization:Hessian"
+    case "UaOptimization-Hessian"
         
         [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
         

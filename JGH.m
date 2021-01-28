@@ -10,6 +10,7 @@ CtrlVar.nargoutJGH=nargout;
 if nargout==1
     CtrlVar.Inverse.CalcGradI=false;
     CtrlVar.Inverse.CalcGradR=false;
+    dJdp=[] ; Hessian=[] ; JGHouts=[] ;
 else
     CtrlVar.Inverse.CalcGradI=true;
     CtrlVar.Inverse.CalcGradR=true;
@@ -37,10 +38,16 @@ F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
 
 
-[UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+[UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
-[R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
-[I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+
+if nargout==1
+     R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
+    I=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+else
+    [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
+    [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+end
 
 
 

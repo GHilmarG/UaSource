@@ -1,4 +1,4 @@
-function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,~,MUA,func,p,plb,pub)
+function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
 %  p is the paramter set, i.e. func(p)
@@ -10,50 +10,68 @@ function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,~,MUA,f
 narginchk(8,8)
 nargoutchk(3,3)
 
-if isempty(CtrlVar)
+%%
+p=p(:);
+p=kk_proj(p,pub,plb);
+[J,dJdp,Hess,fOuts]=func(p);
+GradNorm=norm(dJdp);
+RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
+RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
+RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
+RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
+RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
+RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
+
+FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ;  title(sprintf("p at iteration %i",0))
+
+gamma=1; 
+for Iteration=1:CtrlVar.Inverse.Iterations
     
-    CtrlVar.Inverse.InitialLineSearchStepSize=1;
-    CtrlVar.Inverse.DataMisfit.HessianEstimate='0';
-    CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-5;
-    CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-4;
-    CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=100;
-    CtrlVar.Inverse.InfoLevel=1;
-    CtrlVar.Inverse.Iterations=4;
-    CtrlVar.Inverse.GradientUpgradeMethod='SteepestDecent' ; %{'SteepestDecent','ConjGrad'}
-    CtrlVar.NewtonAcceptRatio=0.5;
-    CtrlVar.NLtol=1e-15;
-    CtrlVar.doplots=1;
-    CtrlVar.Inverse.StoreSolutionAtEachIteration=0;
+    J0=J; 
+    
+    dp=-Hess\dJdp ;
+    
+    Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
+    
+    % slope0=dJdp'*dp; % not sure this slope is that accurate,
+    slope0=[]; 
+    
+    J1=Func(gamma);
+    
+    CtrlVar.NewtonAcceptRatio=0.9 ;
+    nOut=4;
+    CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ; 
+    [gamma,J,BackTrackInfo,dJdp,Hess,fOuts]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar,nOut);
+    p=p+gamma*dp;
+    [p,iU,iL]=kk_proj(p,pub,plb);
+    % dp(iU)=0 ; dp(iL)=0; 
+    
+    fprintf("Iteration %i: \t gamma=%-f \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |dJ/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
+    
+    
+    GradNorm=norm(dJdp);
+    RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
+    RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
+    RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
+    RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
+    RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
+    RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
+    
+    FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ; title(sprintf("p at iteration %i",Iteration))
+    FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ; title(sprintf("dp at iteration %i",Iteration))
+    
+     if norm(GradNorm) < eps
+        
+        fprintf('UaOptimisation: norm of gradient of the objective function smaller than epsilon.\n')
+        fprintf('Exciting inverse optimisation step. \n')
+        return
+    end
+    
+    
 end
 
 
-
-%%
-p=p(:); 
-p=kk_proj(p,pub,plb);
-
-
-[J0,dJdp,Hess,fOuts,~,RunInfo]=func(p);
-dJdp=dJdp(:);
-
-
-
-
-dp=-Hess\dJdp ; 
-
-
-
-
-FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ;
-FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ;
-
-
-
-
-
-
-
-
+return
 
 
 

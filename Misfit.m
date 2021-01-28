@@ -205,28 +205,8 @@ if CtrlVar.Inverse.CalcGradI
                 
                 case 'C'
                     
-                    %dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
-                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
-                    % dCFuvLambda=Calc_FixPoint_deltaC2(CtrlVar,UserVar,MUA,F,Meas);
-                    np=numel(dIdp); ddIddp=sparse(np,np);
-                    dCI=0 ;
-                    DCI=dCFuvLambda+dCI;
-                    
-                    uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
-                    usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
-                    
-                    
-                    dIdpFP=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C;
-                    dIdpFP=dIdpFP.*F.GF.node;
-                    
-                    ddIddpFP=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(F.C.^2);
-                    
-                    DCI=dIdpFP;
-                    DDCI=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ddIddpFP); 
-                    
-                    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-                        dIdpana=log(10)*F.C.*dIdpana;
-                    end
+
+                    DCI=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
                     
                     
                 case 'B'
@@ -365,11 +345,13 @@ if CtrlVar.Inverse.CalcGradI
                         else
                             
                              dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
-                            
+                             
                         end
                 end
                 dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
                 DCI=dCFuvLambda+dCI;
+
+                
             end
             
             if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
@@ -455,31 +437,20 @@ if CtrlVar.Inverse.CalcGradI
     
 % Hessians
     
-    switch lower(CtrlVar.Inverse.InvertFor)
-        
-        case {'c','-c-'}
-            Hscale=1/(mean(F.C)^2);
-        case {'aglen','-aglen-'}
-            Hscale=1/(mean(F.AGlen)^2);
-        case {'logc','-logc-'}
-            Hscale=1/(log10(mean(F.C)^2));
-        case {'logaglen','-logaglen-'}
-            Hscale=1/(log10(mean(F.AGlen)^2));
-    end
-    
-    switch upper(CtrlVar.Inverse.DataMisfit.HessianEstimate)
+    switch CtrlVar.Inverse.DataMisfit.HessianEstimate
         % TestIng: This sees to be in the wrong place, should be after dIdp has been defined
         
-        case {'0','O'}
-            np=numel(dIdp);
-            ddIddp=sparse(ones(np,1),1:np,1:np);
         case {'1','I'}
             np=numel(dIdp);
-            ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
+            ddIddp=sparse(ones(np,1),1:np,1:np);
         case 'M'
-            ddIddp=Hscale*MUA.M;
-        case 'C'
-            ddIddp=DDCI; 
+            ddIddp=MUA.M;
+        case 'FixPointC'
+            
+            [~,ddIddp]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+            
+        otherwise
+            error('case not found')
     end
     
     

@@ -45,15 +45,23 @@ nFuncEval=0;
 
 
 if nargin< 6
-   CtrlVar=[];  
+    CtrlVar=[];
+ 
 end
 
 if nargin<7
     Fargcollect=0;
+    nOut=[] ;
+    listInF=[];
+    listOutF=[];
 else
     Fargcollect=1;
 end
 
+if nargin<8
+    listInF=[];
+    listOutF=[];
+end
 
 
 
@@ -212,6 +220,11 @@ if fb<target
     BackTrackInfo.nFuncEval=nFuncEval;
     I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
     BackTrackInfo.Infovector=Infovector;
+    
+    if ~isempty(nOut) && nOut> 0
+        [fmin,varargout{1:nOut-1}]=Func(gmin,varargin{:}) ;
+    end
+    
     return
 end
 
@@ -461,6 +474,11 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
     
     if  ~NoSlopeInformation
         target=fa+beta*slope0*b  ; % Armijo criteria
+        
+        if target< 0
+            %  oops clearly the slope information must be incorrect
+            target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
+        end
     end
     
     %% Print info

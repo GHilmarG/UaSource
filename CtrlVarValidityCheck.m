@@ -70,9 +70,10 @@ end
 
 
 if CtrlVar.InverseRun  && contains(CtrlVar.SlidingLaw,["Coulomb","-C-"])
-   fprintf("Inversion using %s sliding law is not possible!\n",CtrlVar.SlidingLaw)
-   error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
+    fprintf("Inversion using %s sliding law is not possible!\n",CtrlVar.SlidingLaw)
+    error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
 end
+
 
 
 
@@ -141,12 +142,12 @@ end
 %% inverse
 
 if CtrlVar.InverseRun
-   
+    
     % First make sure that CtrlVar.Inverse.InvertFor and CtrlVar.Inverse.Regularize.Field
     % only contain some combinations of "-C-","-logC-","-AGlen-","-logAGlen-" and
-    % "-B-" 
+    % "-B-"
     %
-    % for example : "-A-C-"  -> "-AGlen-C-" 
+    % for example : "-A-C-"  -> "-AGlen-C-"
     
     [CtrlVar.Inverse.InvertFor,status]=SearchAndReplaceInverseFieldsInCtrlVar(CtrlVar.Inverse.InvertFor);
     
@@ -174,7 +175,7 @@ if CtrlVar.InverseRun
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"logAGlen","");
         CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"AGlen","");
         
-      
+        
         
     end
     
@@ -207,7 +208,25 @@ if CtrlVar.InverseRun
     % create a string with letters indicating which fields are being inverted for
     % e.g "ABC" if inverting for AGlen, B and C.
     CtrlVar.Inverse.InvertForField=string(sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),"log","") ,"-",""),"AGlen","A")))) ;
+    
+    
+    if contains(CtrlVar.Inverse.MinimisationMethod,'UaOptimization-Hessian')
+        
+        CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
+        CtrlVar.Inverse.DataMisfit.HessianEstimate='FixPointC';
+        CtrlVar.Inverse.DataMisfit.GradientCalculation='FixPointC' ;
+        
+        if contains(CtrlVar.Inverse.InvertForField,"A")
+            
+            fprintf("Hessian based inversion currently only possible for a C or a logC inversion\n")
+            error("incorrect inputs")
+            
+        end
+        
+    end
+    
 end
+
 
 
 if isfield(CtrlVar,'AdaptMeshInterval')
@@ -269,4 +288,11 @@ if isfield(CtrlVar.Inverse.TestAdjoint,'FiniteDifferenceType')
     fprintf('       Use CtrlVar.TestAdjointFiniteDifferenceType instead.\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
+
+
+
+
+
+
+
 
