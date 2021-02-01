@@ -213,16 +213,7 @@ if CtrlVar.InverseRun
     if contains(CtrlVar.Inverse.MinimisationMethod,'UaOptimization-Hessian')
         
         CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
-        CtrlVar.Inverse.DataMisfit.HessianEstimate='FixPointC';
-        
-        
-        if contains(CtrlVar.Inverse.InvertForField,"A")
-            
-            fprintf("Hessian based inversion currently only possible for a C or a logC inversion\n")
-            error("incorrect inputs")
-            
-        end
-        
+                
     end
     
 end

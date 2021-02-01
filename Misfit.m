@@ -41,7 +41,7 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 
 persistent GLgeo GLnodes GLele
 
-Area=MUA.Area; 
+Area=MUA.Area;
 
 dAFuvLambda=[];
 dBFuvLambda=[];
@@ -205,7 +205,7 @@ if CtrlVar.Inverse.CalcGradI
                 
                 case "C"
                     
-
+                    
                     DCI=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
                     
                     
@@ -322,7 +322,7 @@ if CtrlVar.Inverse.CalcGradI
                             Cnode=F.C;
                         end
                         
-                       
+                        
                         
                         dCFuvLambda = -(1./F.m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1./F.m-1).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1).*(F.ub.*uAdjoint+F.vb.*vAdjoint);
                         
@@ -344,13 +344,13 @@ if CtrlVar.Inverse.CalcGradI
                             np=numel(F.C); ddIddp=sparse(ones(np,1),1:np,1:np);
                         else
                             
-                             dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
-                             
+                            dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
+                            
                         end
                 end
                 dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
                 DCI=dCFuvLambda+dCI;
-
+                
                 
             end
             
@@ -403,7 +403,7 @@ if CtrlVar.Inverse.CalcGradI
                         
                         dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
                         dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                        %dBFuvLambda=dBFuvLambda2; 
+                        %dBFuvLambda=dBFuvLambda2;
                         
                         
                         
@@ -416,7 +416,7 @@ if CtrlVar.Inverse.CalcGradI
                     DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
                 end
                 
-
+                
                 
             end
             
@@ -431,26 +431,42 @@ if CtrlVar.Inverse.CalcGradI
     end
     
     
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
-% [I,L,U,C] = isoutlier(DBI,"gesd"); factor=1 ; DBI(DBI>(factor*U))=factor*U ; DBI(DBI<(L/factor))=L/factor ; 
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
+    %figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
+    % [I,L,U,C] = isoutlier(DBI,"gesd"); factor=1 ; DBI(DBI>(factor*U))=factor*U ; DBI(DBI<(L/factor))=L/factor ;
+    %figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
     
-% Hessians
+    % Hessians
     
-    switch CtrlVar.Inverse.DataMisfit.HessianEstimate
-        % TestIng: This sees to be in the wrong place, should be after dIdp has been defined
-        
-        case {"1","I"}
-            np=numel(dIdp);
-            ddIddp=sparse(ones(np,1),1:np,1:np);
-        case "M"
-            ddIddp=MUA.M;
-        case "FixPointC"
-            
-            [~,ddIddp]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-            
-        otherwise
-            error("case not found")
+    if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
+        error(' field no longer used ')
+    end
+    
+    if contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=FP")
+        [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=M")
+        ddIdCC=MUA.M/MUA.Area;
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=D")
+        ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=O")
+        N=MUA.Nnodes;
+        ddIdCC=sparse(N,N); 
+    else
+        N=MUA.Nnodes;
+        ddIdCC=speye(N,N);
+    end
+    
+    if contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=FP")
+        [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=M")
+        ddIdAA=MUA.M/MUA.Area;
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=D")
+        ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HD=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HD=O")
+        N=MUA.Nnodes;
+        ddIdAA=sparse(N,N); 
+    else
+        N=MUA.Nnodes;
+        ddIdAA=speye(N,N);
     end
     
     
@@ -458,14 +474,23 @@ if CtrlVar.Inverse.CalcGradI
         
         case "A"
             dIdp=DAI;
+            ddIddp=ddIdAA ;
         case "b"
             error("fdsa")
         case "B"
             dIdp=DBI;
         case "C"
             dIdp=DCI;
+            ddIddp=ddIdCC ;
         case "AC"
             dIdp=[DAI;DCI];
+            
+            N=MUA.Nnodes;
+            ddIddp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
+            ddIddp(1:N,1:N) = ddIdAA;
+            ddIddp(N+1:N+N,N+1:N+N) = ddIdCC;
+            
+            
         otherwise
             
             error("sdfsa")

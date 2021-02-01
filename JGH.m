@@ -29,12 +29,12 @@ end
 
 
 if contains(CtrlVar.Inverse.MinimisationMethod,"UaOptimization")
-     p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope). 
+    p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope).
 end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)
 
-F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
+F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
 
 
@@ -42,7 +42,7 @@ F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
 
 if nargout==1
-     R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
+    R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
     I=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
 else
     [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
@@ -68,7 +68,7 @@ else
     vbP=[];
     I=NaN;
     R=NaN ;
-    dJdp=p*0+NaN; 
+    dJdp=p*0+NaN;
     MisfitOuts.I=NaN;
 end
 

@@ -381,7 +381,8 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
         % After an extrapolation step
         % I know that the minimum is between a and c with b=(a+c)/2
         
-        if gamma > b+0.95*(c-b) ; gamma=b+0.95*(c-b) ; elseif gamma < b+0.75*(c-b) ; gamma=b+0.75*(c-b); end
+        % if gamma > b+0.95*(c-b) ; gamma=b+0.95*(c-b) ; elseif gamma < b+0.75*(c-b) ; gamma=b+0.75*(c-b); end
+        if gamma > b+0.95*(c-b) ; gamma=b+0.95*(c-b) ; elseif gamma < a+0.25*(b-a) ; gamma=a+0.25*(b-a); end
         %fprintf(' a=%-g \t b=%-g \t c=%-g \t gamma=%-g \n',a,b,c,gamma)
         
         if Fargcollect
@@ -397,23 +398,48 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
         end
         
         
+        % Jan 2020: Just changed the limits on gamma so now gamma is somewhere between a and c
+        %            But I do not know if gamma is greater or less than b
+        
+        % I want the minimum to be bracked by a and b
+         % b=c ; fb=fc ;
+        
+        if gamma < b  && fgamma< fb    % min is between a and b
+            c=b ; fc=fb ;   % here a < b < c
+            b=gamma ; fb=fgamma ;   
+        elseif gamma > b && fgamma < fb
+            % a=b ; fa=fb ;
+            b=c  ; fb=fc ;
+            c=gamma ; fc=fgamma ; % now c < b !
+        end
+        
         %b=gamma ; fb=fgamma ;
-        c=gamma ; fc=fgamma ;
+        % c=gamma ; fc=fgamma ;
+        
     else
         
         % I allow for the possibility that gamma is larger than b and less than c
         % this is the case in the second backstep following extrapolation
-        if gamma >=b+0.5*(c-b) && gamma <=b+0.95*(c-b)
+        if gamma > b  && gamma < c
+            % OK gamma suggested is larger than b
+            % so I should try out this value.
+            % But make sure the value I try is sufficiently far away from both b and c
+            if gamma < (b+CtrlVar.BackTrackGuardUpper*(c-a))
+                gamma=b+CtrlVar.BackTrackGuardUpper*(c-a) ;
+            elseif gamma > (c-CtrlVar.BackTrackGuardLower*(c-b))
+                gamma=c-CtrlVar.BackTrackGuardLower*(c-b);
+            end
+            
             if Fargcollect
                 [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
-                nFuncEval=nFuncEval+1; 
+                nFuncEval=nFuncEval+1;
                 
                 if ~isempty(listOutF) && ~isempty(listInF)
                     [varargin{listInF}]=varargout{listOutF-1} ;
                 end
             else
                 fgamma=Func(gamma);
-                nFuncEval=nFuncEval+1; 
+                nFuncEval=nFuncEval+1;
             end
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
@@ -499,7 +525,7 @@ while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReduction
         break
     end
     
-    if  iMinSameWhileBacktracking> 4 && fmin < f0
+    if   iarm>5  && iMinSameWhileBacktracking> 2 && fmin < f0
         if CtrlVar.InfoLevelBackTrack>=2
             fprintf(' exiting backtracking because two subsequent backtracking steps did not result in any further reduction \n')
         end
@@ -559,13 +585,36 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
-    fig=FindOrCreateFigure('BackTrackingInfo') ; 
+    if CtrlVar.InfoLevelBackTrack>=1000
+        nnn=10 ; 
+        
+        rTestVector=zeros(nnn,1)+NaN ;
+        Upper=1.2*max(Infovector(:,1)) ; Lower=0; 
+        gammaTestVector=linspace(Lower,Upper,nnn) ;
+        dx=min(Infovector(2:end,1)/10) ;
+        gammaTestVector=[Lower,dx/2,dx,2*dx,gammaTestVector(2:end)]; 
+        parfor I=1:numel(gammaTestVector)
+            gammaTest=gammaTestVector(I); 
+            rTest=Func(gammaTest);
+            gammaTestVector(I)=gammaTest ; 
+            rTestVector(I)=rTest;
+        end
+    end
+    
+    
+    fig=FindOrCreateFigure('BackTrackingInfo') ;
     plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     hold on
-    plot(gamma,fgamma,'xg')
+    plot(gamma,fgamma,'*g')
     
-    if ~NoSlopeInformation
+    if CtrlVar.InfoLevelBackTrack>=1000
+       plot(gammaTestVector,rTestVector,'xk-') 
+        
+    end
+    
+    
+    if ~isempty(slope0)
         hold on
         dx=min(Infovector(2:end,1)/10) ;
         plot([0 dx],[f0 f0+slope0*dx],'g')

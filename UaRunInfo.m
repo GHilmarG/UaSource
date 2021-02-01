@@ -29,7 +29,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Inverse.R = NaN ;
             obj.Inverse.StepSize = NaN ;
             obj.Inverse.GradNorm = NaN ;
-            obj.Inverse.GradNorm = NaN ;
+            obj.Inverse.nFuncEval = 0 ;
             obj.Inverse.ConjGradUpdate = 0 ;
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
@@ -165,7 +165,9 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.LevelSet.rWork=NaN;
             end
             
-            
+            if ~isfield(s.Inverse,'nFuncEval')
+                obj.Inverse.nFuncEval = 0 ;
+            end
             
             
         end

@@ -739,7 +739,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 % 'I', and then to try out 'M' for comparison.
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
-
+CtrlVar.Inverse.DataMisfit.Hessian="HC=M HA=M"; 
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
@@ -959,7 +959,7 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % end, testing adjoint parameters.
 %% Inverse testing parameters (do not change)
 
-CtrlVar.Inverse.DataMisfit.HessianEstimate='I'; % {'0','I','MassMatrix'} Do not use, just for testing.
+
 CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
 CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
 CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
@@ -1077,8 +1077,8 @@ CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and loa
 % 
 CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable) directly from a .mat file 
                               % unless the adaptive meshing option is used, no further meshing is done.
-CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';
-CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
+CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
+CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
 % But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA

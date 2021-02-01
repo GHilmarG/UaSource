@@ -13,7 +13,7 @@ nargoutchk(3,3)
 %%
 p=p(:);
 p=kk_proj(p,pub,plb);
-[J,dJdp,Hess,fOuts]=func(p);
+[J,dJdp,Hess,fOuts]=func(p); RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
 GradNorm=norm(dJdp);
 RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
@@ -22,41 +22,62 @@ RunInfo.Inverse.I=[RunInfo.Inverse.I;fOuts.MisfitOuts.I];
 RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
 RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
-FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ;  title(sprintf("p at iteration %i",0))
 
 gamma=1;
+
+fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \n")
+
+CtrlVar.NewtonAcceptRatio=0.1 ;
+
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
+    
     
     dp=-Hess\dJdp ;
     
     
     
-    [p,iU,iL]=kk_proj(p,pub,plb); 
+    [p,iU,iL]=kk_proj(p,pub,plb);
     I=iU & dp>0 ; dp(I)=0;
     I=iL & dp<0 ; dp(I)=0;
     
     
     Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
     
-    % slope0=dJdp'*dp; % not sure this slope is that accurate,
-    slope0=[];
+    slope0=dJdp'*dp; % not sure this slope is that accurate,
+    %slope0=[];
     
-    J1=Func(gamma);
+    [J,dJdp,Hess]=Func(gamma);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
     
-    CtrlVar.NewtonAcceptRatio=0.9 ;
-    nOut=4;
-    CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
-    [gamma,J,BackTrackInfo,dJdp,Hess,fOuts]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar,nOut);
-    p=p+gamma*dp;
-    [p,iU,iL]=kk_proj(p,pub,plb);
+    
+    BackTrackInfo.Converged=1;
+    
+    if J>J0*CtrlVar.NewtonAcceptRatio
+        % CtrlVar.BackTrackBeta=1;  % effectivly forces bactrackign
+        CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
+        [gamma,J,BackTrackInfo]=BackTracking(slope0,gamma,J0,J,Func,CtrlVar);
+        [gamma,fval]=fminbnd(Func,0,2) ; 
+        
+        RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+BackTrackInfo.nFuncEval;
+        p=p+gamma*dp;  % do the update
+        [J,dJdp,Hess]=func(p); RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    else
+        p=p+gamma*dp;  % do the update
+    end
+    
+    CtrlVar.NewtonAcceptRatio= J/J0 ;
+    
+    
+    % [p,iU,iL]=kk_proj(p,pub,plb);
     % dp(iU)=0 ; dp(iL)=0;
+    
+    
+    
     GradNorm=norm(dJdp);
     
-    fprintf("Iteration %i: \t gamma=%-f \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |J/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
-    
-    
+    fprintf("%5i \t %5i \t %7g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %-g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
+    %fprintf("Iteration %i: \t gamma=%-10g \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |dJ/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
     
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
@@ -65,8 +86,8 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
     RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gamma];
     
-    FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ; title(sprintf("p at iteration %i",Iteration))
-    FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ; title(sprintf("dp at iteration %i",Iteration))
+    % FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ; title(sprintf("p at iteration %i",Iteration))
+    % FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ; title(sprintf("dp at iteration %i",Iteration))
     
     if norm(GradNorm) < eps
         
@@ -75,12 +96,12 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         break
     end
     
-    if    ~BackTrackInfo.Converged
+    if  ~BackTrackInfo.Converged
         fprintf('UaOptimisation: backtrack set in optimisation did not converge.\n')
         fprintf('Exciting inverse optimisation step. \n')
         break
         
-    end
+     end
     
     
 end
