@@ -214,7 +214,7 @@ if CtrlVar.InverseRun
         
         CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
         CtrlVar.Inverse.DataMisfit.HessianEstimate='FixPointC';
-        CtrlVar.Inverse.DataMisfit.GradientCalculation='FixPointC' ;
+        
         
         if contains(CtrlVar.Inverse.InvertForField,"A")
             

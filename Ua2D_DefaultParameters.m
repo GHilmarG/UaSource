@@ -959,7 +959,7 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % end, testing adjoint parameters.
 %% Inverse testing parameters (do not change)
 
-CtrlVar.Inverse.DataMisfit.HessianEstimate='0'; % {'0','I','MassMatrix'} Do not use, just for testing.
+CtrlVar.Inverse.DataMisfit.HessianEstimate='I'; % {'0','I','MassMatrix'} Do not use, just for testing.
 CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
 CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
 CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing

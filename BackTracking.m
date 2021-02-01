@@ -537,6 +537,8 @@ if fgamma<(target-eps)
 elseif abs(fmin-fa)/fa > 1e-5 && gamma > BacktrackingGammaMin
     % also consider backtracking to have been success if some reduction was achieved, even though the target reduction may not have been reached
     BackTrackInfo.Converged=1;
+else
+    BackTrackInfo.Converged=0;  % This is actually value set at start, so not really need, but easy to understand this way
 end
 
 

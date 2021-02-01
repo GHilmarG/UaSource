@@ -65,7 +65,7 @@ vs=F.vb+F.vd ;
 
 %% Do some test on inputs, check if error covariance matrices are correctly defined
 % calculate residual terms, i.e. difference between meas and calc values.
-if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
+if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
     
     if isempty(Meas.us)
         fprintf('Meas.us is empty! \n')
@@ -139,7 +139,7 @@ dhJhdot=zeros(MUA.Nnodes,1) ;
 
 switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
     
-    case 'uvdiscrete'  % this is here for comparision and testing, do not use, it's wrong!
+    case "uvdiscrete"  % this is here for comparision and testing, do not use, it's wrong!
         
         N=numel(us);
         Juv=full(usres'*usres+vsres'*vsres)/2/N;
@@ -147,13 +147,13 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
         dvJdv=vsres./vErr/N;
         
         
-    case 'integral' % always evaluate the continuous approximation
+    case "integral" % always evaluate the continuous approximation
         
-        if ~isfield(MUA,'M')
+        if ~isfield(MUA,"M")
             MUA.M=MassMatrix2D1dof(MUA);
         end
         
-        if contains(CtrlVar.Inverse.Measurements,'-uv-')
+        if contains(CtrlVar.Inverse.Measurements,"-uv-")
             
             duJdu=(MUA.M*usres)./uErr/Area;
             dvJdv=(MUA.M*vsres)./vErr/Area;
@@ -162,7 +162,7 @@ switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
         end
         
         
-        if contains(CtrlVar.Inverse.Measurements,'-dhdt-')
+        if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
             
             [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
             
@@ -180,7 +180,7 @@ if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
 end
 
 if ~isreal(duvJduv)  && CtrlVar.TestForRealValues
-    save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
+    save TestSave ; error("MisfitFunction:dIduvNoReal","dIduv is not real! Possibly a problem with covariance of data.")
 end
 
 
@@ -199,17 +199,17 @@ if CtrlVar.Inverse.CalcGradI
     
     switch lower(CtrlVar.Inverse.DataMisfit.GradientCalculation)
         
-        case {'fixpoint','fixpointc','-fixpoint-','-fixpointc-'}
+        case {"fixpoint","fixpointc","-fixpoint-","-fixpointc-"}
             
             switch CtrlVar.Inverse.InvertForField
                 
-                case 'C'
+                case "C"
                     
 
                     DCI=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
                     
                     
-                case 'B'
+                case "B"
                     
                     
                     dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
@@ -219,15 +219,15 @@ if CtrlVar.Inverse.CalcGradI
                     
                 otherwise
                     
-                    fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
-                    fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
-                    fprintf(' Fixpoint inversion only possible for C and B inversion. \n')
-                    error('Misfit:IncorrectInputParameterCombination','Fixpoint inversion only possible for C and B inversion')
+                    fprintf(" CtrlVar.Inverse.InvertFor has an invalid value.\ n ")
+                    fprintf(" CtrlVar.Inverse.InvertFor = %s \n ",CtrlVar.Inverse.InvertFor)
+                    fprintf(" Fixpoint inversion only possible for C and B inversion. \n")
+                    error("Misfit:IncorrectInputParameterCombination","Fixpoint inversion only possible for C and B inversion")
                     
             end
             
             
-        case 'adjoint'
+        case {"adjoint","-adjoint-"}
             %% Inverse problem
             %
             % Forward model:
@@ -270,7 +270,7 @@ if CtrlVar.Inverse.CalcGradI
             end
             
             if CtrlVar.TestForRealValues && ~isreal(lAdjoint)
-                save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
+                save TestSave ; error("When solving adjoint equation Lagrange parmeters complex ")
             end
             
             uAdjoint=real(lambda(1:MUA.Nnodes)) ;
@@ -287,7 +287,7 @@ if CtrlVar.Inverse.CalcGradI
                 figure
                 hold off
                 subplot(2,2,1)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title('dIdu')
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title("dIdu")
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,2)
@@ -309,11 +309,11 @@ if CtrlVar.Inverse.CalcGradI
             % For p=A and p=C, d_p I =0 because I is not an explicit function of A and C
             % But for b, d_b I = p_x (u db)
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+            if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
                 switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
                     
-                    case 'discrete' % Direct gradient evaluated from nodal points.
+                    case "discrete" % Direct gradient evaluated from nodal points.
                         
                         if CtrlVar.CisElementBased
                             M = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
@@ -337,7 +337,7 @@ if CtrlVar.Inverse.CalcGradI
                         np=numel(dCFuvLambda);
                         ddIddp=sparse(np,np);
                         
-                    case 'integral'
+                    case "integral"
                         
                         if CtrlVar.CisElementBased
                             dCFuvLambda=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
@@ -354,16 +354,16 @@ if CtrlVar.Inverse.CalcGradI
                 
             end
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+            if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
                 switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
                     
-                    case 'discrete' % Direct gradient evaluated from nodal points.
+                    case "discrete" % Direct gradient evaluated from nodal points.
                         
                         fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inversion.\n')
                         error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
                         
-                    case 'integral'
+                    case "integral"
                         
                         if CtrlVar.AGlenisElementBased
                             
@@ -379,16 +379,16 @@ if CtrlVar.Inverse.CalcGradI
             end
             
             
-            if contains(CtrlVar.Inverse.InvertFor,'-B-')
+            if contains(CtrlVar.Inverse.InvertFor,"-B-")
                 
                 switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
                     
-                    case 'discrete' % Direct gradient evaluated from nodal points.
+                    case "discrete" % Direct gradient evaluated from nodal points.
                         
-                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with b inversion.\n')
-                        error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
+                        fprintf(" CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with b inversion.\n")
+                        error("AdjointGradientNR2d:DiscreteAdjointAGlen","Discrete case not implemented. Used integral evaluation instead.")
                         
-                    case 'integral'
+                    case "integral"
                         
                         %  p= B ;
                         
@@ -424,51 +424,51 @@ if CtrlVar.Inverse.CalcGradI
             
         otherwise
             
-            fprintf(' CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
-            fprintf(' but the only allowed values are ''fixpoint'' and ''adjoint'' \n')
-            error(' which case? ')
+            fprintf(" CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n",CtrlVar.Inverse.DataMisfit.GradientCalculation)
+            fprintf(" but the only allowed values are ''fixpoint'' and ''adjoint'' \n")
+            error(" which case? ")
             
     end
     
     
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title('DBI')
-% [I,L,U,C] = isoutlier(DBI,'gesd'); factor=1 ; DBI(DBI>(factor*U))=factor*U ; DBI(DBI<(L/factor))=L/factor ; 
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title('DBI')
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
+% [I,L,U,C] = isoutlier(DBI,"gesd"); factor=1 ; DBI(DBI>(factor*U))=factor*U ; DBI(DBI<(L/factor))=L/factor ; 
+%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBI) ; title("DBI")
     
 % Hessians
     
     switch CtrlVar.Inverse.DataMisfit.HessianEstimate
         % TestIng: This sees to be in the wrong place, should be after dIdp has been defined
         
-        case {'1','I'}
+        case {"1","I"}
             np=numel(dIdp);
             ddIddp=sparse(ones(np,1),1:np,1:np);
-        case 'M'
+        case "M"
             ddIddp=MUA.M;
-        case 'FixPointC'
+        case "FixPointC"
             
             [~,ddIddp]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
             
         otherwise
-            error('case not found')
+            error("case not found")
     end
     
     
     switch CtrlVar.Inverse.InvertForField
         
-        case 'A'
+        case "A"
             dIdp=DAI;
-        case 'b'
-            error('fdsa')
-        case 'B'
+        case "b"
+            error("fdsa")
+        case "B"
             dIdp=DBI;
-        case 'C'
+        case "C"
             dIdp=DCI;
-        case 'AC'
+        case "AC"
             dIdp=[DAI;DCI];
         otherwise
             
-            error('sdfsa')
+            error("sdfsa")
             
     end
     

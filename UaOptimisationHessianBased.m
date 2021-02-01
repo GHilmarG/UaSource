@@ -24,32 +24,40 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
 FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ;  title(sprintf("p at iteration %i",0))
 
-gamma=1; 
+gamma=1;
 for Iteration=1:CtrlVar.Inverse.Iterations
     
-    J0=J; 
+    J0=J;
     
     dp=-Hess\dJdp ;
+    
+    
+    
+    [p,iU,iL]=kk_proj(p,pub,plb); 
+    I=iU & dp>0 ; dp(I)=0;
+    I=iL & dp<0 ; dp(I)=0;
+    
     
     Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
     
     % slope0=dJdp'*dp; % not sure this slope is that accurate,
-    slope0=[]; 
+    slope0=[];
     
     J1=Func(gamma);
     
     CtrlVar.NewtonAcceptRatio=0.9 ;
     nOut=4;
-    CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ; 
+    CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
     [gamma,J,BackTrackInfo,dJdp,Hess,fOuts]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar,nOut);
     p=p+gamma*dp;
     [p,iU,iL]=kk_proj(p,pub,plb);
-    % dp(iU)=0 ; dp(iL)=0; 
-    
-    fprintf("Iteration %i: \t gamma=%-f \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |dJ/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
-    
-    
+    % dp(iU)=0 ; dp(iL)=0;
     GradNorm=norm(dJdp);
+    
+    fprintf("Iteration %i: \t gamma=%-f \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |J/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
+    
+    
+    
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
     RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
     RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
@@ -60,11 +68,18 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ; title(sprintf("p at iteration %i",Iteration))
     FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ; title(sprintf("dp at iteration %i",Iteration))
     
-     if norm(GradNorm) < eps
+    if norm(GradNorm) < eps
         
         fprintf('UaOptimisation: norm of gradient of the objective function smaller than epsilon.\n')
         fprintf('Exciting inverse optimisation step. \n')
-        return
+        break
+    end
+    
+    if    ~BackTrackInfo.Converged
+        fprintf('UaOptimisation: backtrack set in optimisation did not converge.\n')
+        fprintf('Exciting inverse optimisation step. \n')
+        break
+        
     end
     
     
@@ -131,11 +146,11 @@ end
 %
 
 % if norm(dJdp)<eps
-%    
+%
 %     fprintf('Norm of the gradient of the objective function is less than eps. \n')
 %     fprintf('No further inverse iterations needed/possible. \n')
 %     return
-%     
+%
 % end
 
 % determine initial search direction and initial step size for line-search.
@@ -155,17 +170,17 @@ else
         J1=func(p1);
         
         iCount=0 ; % sometimes the initial guess is so small that there is almost no change in the cost function
-                   % try to increase gamma by factor of 10 until at least 1% change has been generated.
-        while (abs(J1-J0)/J1 < 0.01) && iCount<10 
+        % try to increase gamma by factor of 10 until at least 1% change has been generated.
+        while (abs(J1-J0)/J1 < 0.01) && iCount<10
             
             gamma1=gamma1*10 ;
             p1=p-gamma1*dJdp;
             J1=func(p1);
-            iCount=iCount+1; 
+            iCount=iCount+1;
         end
-            
+        
         gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadradic approx
-        if gamma<0 ; gamma=gamma1; end 
+        if gamma<0 ; gamma=gamma1; end
     end
     
 end
@@ -189,12 +204,12 @@ if isnan(J1)
 end
 
 while RunInfo.Forward.uvIterations==0
-   
+    
     % the gamma step caused so little change in the model paramters that the previous J0 uv solution was accepted.
     % So increase gamma
     fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model paramters to require a new uv solution.\n")
     fprintf(" gamma increased from %g to %g \n",gamma,gamma*1000)
-    gamma=gamma*1000 ; 
+    gamma=gamma*1000 ;
     [J1,~,~,~,~,RunInfo]=Func(gamma);
     nFuncEval=nFuncEval+1;
     
@@ -227,7 +242,7 @@ iBackTry=0;
 for It=1:CtrlVar.Inverse.Iterations
     
     
-
+    
     [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
     
@@ -242,7 +257,7 @@ for It=1:CtrlVar.Inverse.Iterations
         J1=Func(gamma);
         
         
-   
+        
         
         [gamma,JgammaNew,BackTrackingInfoVector]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
         nFuncEval=nFuncEval+BackTrackingInfoVector.nFuncEval;
@@ -261,27 +276,27 @@ for It=1:CtrlVar.Inverse.Iterations
     %     else
     %         fprintf(' Line search has stagnated,')
     %         iBackTry=iBackTry+1;
-%         if iBackTry==1
-%             fprintf(' try resetting step size to 1.\n')
-%             gamma=1;
-%             continue
-%         else
-%             fprintf(' and resetting step size to 1 did not help, now breaking out.\n')
-%             break
-%         end
-%     end
+    %         if iBackTry==1
+    %             fprintf(' try resetting step size to 1.\n')
+    %             gamma=1;
+    %             continue
+    %         else
+    %             fprintf(' and resetting step size to 1 did not help, now breaking out.\n')
+    %             break
+    %         end
+    %     end
     
     p=p-gamma*dJdpModified;
     p=kk_proj(p,pub,plb);
     dJdpLast=dJdp;
     % Get new directional derivative
-    [J0,dJdp,Hess,fOuts]=func(p);       
+    [J0,dJdp,Hess,fOuts]=func(p);
     nFuncEval=nFuncEval+1; % here J0 and JgammaNew must be (almost) equal
-
+    
     GradNorm=norm(dJdp)/sqrt(numel(dJdp));
     
     % update search direction.
-  
+    
     
     fprintf('%5i  %5i %10g  %10g  %10g  %10g  %10g  %5i\n',It+It0,nFuncEval,J0,fOuts.MisfitOuts.I,fOuts.RegOuts.R,GradNorm,gamma,RunInfo.Inverse.ConjGradUpdate)
     
