@@ -26,14 +26,15 @@ RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNorm];
 RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
 
-gamma=1;
+
 
 fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap\n")
-fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %g \t\t %g \n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN)
+fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %g \n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN)
 
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ; 
+gamma=1e-5; 
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
@@ -46,9 +47,9 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     [p,iU,iL]=kk_proj(p,pub,plb);
     I=iU & dp>0 ; dp(I)=0;
     I=iL & dp<0 ; dp(I)=0;
-    slope0=dJdp'*dp; % not sure this slope is that accurate,
- 
-    [J,dJdp,Hess]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    %slope0=dJdp'*dp; % not sure this slope is that accurate,
+    slope0=[] ;
+    [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
     % I can keep these values if gamma is accepted, and then this will be J0 in the next iterations
   
     
@@ -66,7 +67,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         
         [gamma,J,BackTrackInfo]=BackTracking(slope0,gamma,J0,J,Func,CtrlVar);
         % gamma has changed so I must recalculate J which becomes J0 in the next iteration
-        [J,dJdp,Hess]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+        [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
         
     end
     
