@@ -619,6 +619,10 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         dx=min(Infovector(2:end,1)/10) ;
         plot([0 dx],[f0 f0+slope0*dx],'g')
         hold off
+        
+        % slopeExperimenta=(rTest(2)-rTest(1))/(gammaTestVector(2)-gammaTestVector(1));
+        
+        
     end
     
     %          prompt = 'Do you want more? Y/N [Y]: ';

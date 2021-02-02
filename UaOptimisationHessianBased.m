@@ -13,7 +13,10 @@ nargoutchk(3,3)
 %%
 p=p(:);
 p=kk_proj(p,pub,plb);
+
 [J,dJdp,Hess,fOuts]=func(p); RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+
+
 GradNorm=norm(dJdp);
 RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
@@ -26,7 +29,7 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 gamma=1;
 
 fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap\n")
-
+fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %g \t\t %g \n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN)
 
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
@@ -34,18 +37,24 @@ CtrlVar.BackTrackMinXfrac=1e-3 ;
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
+        
+   % [J0,dJdp,Hess]=func(p);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+
     dp=-Hess\dJdp ;   % Newton system
+    SubOptimality=-dJdp'*dp/2  ;  % sub-optimality at the beginning of the iteration step
+    % GradNorm=norm(dJdp);
     [p,iU,iL]=kk_proj(p,pub,plb);
     I=iU & dp>0 ; dp(I)=0;
     I=iL & dp<0 ; dp(I)=0;
-    
-    
-    Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
-    
     slope0=dJdp'*dp; % not sure this slope is that accurate,
-    %slope0=[];
+ 
+    [J,dJdp,Hess]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    % I can keep these values if gamma is accepted, and then this will be J0 in the next iterations
+  
     
-    [J,dJdp,Hess]=Func(gamma);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    
+    
+    %slope0=[];
     
     BackTrackInfo.Converged=1;
     
@@ -53,25 +62,28 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     if J>J0*CtrlVar.NewtonAcceptRatio
         % CtrlVar.BackTrackBeta=1;  % effectivly forces bactracking
         % CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
+        Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
+        
         [gamma,J,BackTrackInfo]=BackTracking(slope0,gamma,J0,J,Func,CtrlVar);
+        % gamma has changed so I must recalculate J which becomes J0 in the next iteration
+        [J,dJdp,Hess]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
         
-        
-        RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+BackTrackInfo.nFuncEval;
-        p=p+gamma*dp;  % do the update
-        [J,dJdp,Hess]=func(p); RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
-    else
-        p=p+gamma*dp;  % do the update
     end
+    
+    GradNorm=norm(dJdp); % grad norm at the end of the iteration step
     
     CtrlVar.NewtonAcceptRatio= max(J/J0,NewtonAcceptRatioMin) ;
     
     % [p,iU,iL]=kk_proj(p,pub,plb);
     % dp(iU)=0 ; dp(iL)=0;
+
     
-    GradNorm=norm(dJdp);
     
-    SubOptimality=-dJdp'*dp/2  ;
-    fprintf("%5i \t %5i \t %7g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %g \t\t %g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality)
+    if SubOptimality < 0
+       fprintf(' ? \n ') 
+    end
+    
+    fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %g \t\t %g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality)
     %fprintf("Iteration %i: \t gamma=%-10g \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |dJ/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
     
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
@@ -83,6 +95,8 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     
     % FindOrCreateFigure('p')  ; PlotMeshScalarVariable(CtrlVar,MUA,p) ; title(sprintf("p at iteration %i",Iteration))
     % FindOrCreateFigure('dp')  ; PlotMeshScalarVariable(CtrlVar,MUA,dp) ; title(sprintf("dp at iteration %i",Iteration))
+   
+    p=p+gamma*dp;  % do the update
     
     if norm(GradNorm) < eps
         
