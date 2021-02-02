@@ -76,7 +76,7 @@ end
 if isnan(xmin) || (fa+(b-a)*(fc-fa)/(c-a)<fb)  %  not convex
     
     if InfoLevel>=10
-        fprintf(' parabolic fit not successful, try to improve  ')
+        fprintf(' parabolic fit not successful, try to improve.\n  ')
     end
     if fc < fb && fb < fa      % decreasing values
         xmin=5*c;    % extrapolate

@@ -25,19 +25,16 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
 gamma=1;
 
-fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \n")
+fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap\n")
 
-CtrlVar.NewtonAcceptRatio=0.1 ;
 
+NewtonAcceptRatioMin=0.9 ;
+CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
+CtrlVar.BackTrackMinXfrac=1e-3 ; 
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
-    
-    
-    dp=-Hess\dJdp ;
-    
-    
-    
+    dp=-Hess\dJdp ;   % Newton system
     [p,iU,iL]=kk_proj(p,pub,plb);
     I=iU & dp>0 ; dp(I)=0;
     I=iL & dp<0 ; dp(I)=0;
@@ -50,14 +47,14 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     
     [J,dJdp,Hess]=Func(gamma);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
     
-    
     BackTrackInfo.Converged=1;
     
+    
     if J>J0*CtrlVar.NewtonAcceptRatio
-        % CtrlVar.BackTrackBeta=1;  % effectivly forces bactrackign
-        CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
+        % CtrlVar.BackTrackBeta=1;  % effectivly forces bactracking
+        % CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
         [gamma,J,BackTrackInfo]=BackTracking(slope0,gamma,J0,J,Func,CtrlVar);
-        [gamma,fval]=fminbnd(Func,0,2) ; 
+        
         
         RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+BackTrackInfo.nFuncEval;
         p=p+gamma*dp;  % do the update
@@ -66,17 +63,15 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         p=p+gamma*dp;  % do the update
     end
     
-    CtrlVar.NewtonAcceptRatio= J/J0 ;
-    
+    CtrlVar.NewtonAcceptRatio= max(J/J0,NewtonAcceptRatioMin) ;
     
     % [p,iU,iL]=kk_proj(p,pub,plb);
     % dp(iU)=0 ; dp(iL)=0;
     
-    
-    
     GradNorm=norm(dJdp);
     
-    fprintf("%5i \t %5i \t %7g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %-g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
+    SubOptimality=-dJdp'*dp/2  ;
+    fprintf("%5i \t %5i \t %7g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %g \t\t %g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality)
     %fprintf("Iteration %i: \t gamma=%-10g \t \t \t J0=%-15.5g \t\t J=%-15.5g \t\t  J1/J0=%-15.5g \t \t |dp|/|p|=%-15.5g \t |dJ/dp|=%-g \n",Iteration,gamma,J0,J,J/J0,norm(dp)/norm(p+eps),GradNorm)
     
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
