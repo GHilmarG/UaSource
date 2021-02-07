@@ -34,24 +34,37 @@ fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ; 
-gamma=1e-5; 
+gamma=NaN;
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
-        
-   % [J0,dJdp,Hess]=func(p);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
-
+    
+    % [J0,dJdp,Hess]=func(p);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    
     dp=-Hess\dJdp ;   % Newton system
+    
     SubOptimality=-dJdp'*dp/2  ;  % sub-optimality at the beginning of the iteration step
-    % GradNorm=norm(dJdp);
-    [p,iU,iL]=kk_proj(p,pub,plb);
-    I=iU & dp>0 ; dp(I)=0;
-    I=iL & dp<0 ; dp(I)=0;
-    %slope0=dJdp'*dp; % not sure this slope is that accurate,
-    slope0=[] ;
+    slope0=dJdp'*dp;
+    
+    
+    % A sensible step length is something like
+    if isnan(gamma)
+        gamma=-0.01*J0/slope0  ;
+    end
+    
+    theta=acos(-dJdp'*dp/(norm(dJdp)*norm(dp))); 
+     fprintf("angle between search direction and steepest-decent direction is %f degrees.\n",theta*180/pi)
+    
     [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
-    % I can keep these values if gamma is accepted, and then this will be J0 in the next iterations
-  
+    
+    % Test slope
+    
+    
+    Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
+    
+    TestSlope(Func,0,0.1*gamma,slope0) ;
+    
+    
     
     
     
@@ -62,7 +75,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     
     if J>J0*CtrlVar.NewtonAcceptRatio
         % CtrlVar.BackTrackBeta=1;  % effectivly forces bactracking
-        % CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
+        CtrlVar.InfoLevelBackTrack=1000 ; CtrlVar.doplots=1 ;
         Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
         
         [gamma,J,BackTrackInfo]=BackTracking(slope0,gamma,J0,J,Func,CtrlVar);

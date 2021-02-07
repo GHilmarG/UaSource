@@ -29,7 +29,10 @@ end
 
 
 if contains(CtrlVar.Inverse.MinimisationMethod,"UaOptimization")
-    p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope).
+    % p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope).
+    [~,iU,iL] = kk_proj(p,pub,plb);
+    numel(find(iU))
+    numel(find(iL))
 end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)

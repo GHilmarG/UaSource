@@ -322,8 +322,8 @@ switch lower(CtrlVar.FlowApproximation)
         CtrlVar.Cmin=0; 
 end
 CtrlVar.Cmax=1e50;
-CtrlVar.AGlenmin=100*eps;
-CtrlVar.AGlenmax=1e10;
+CtrlVar.AGlenmin=1e-20;
+CtrlVar.AGlenmax=1e20;
 
 %% Non-linear iteration-loop parameters
 % The non-linear system is considered solved once the residuals are smaller than 

@@ -589,7 +589,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         nnn=10 ; 
         
         rTestVector=zeros(nnn,1)+NaN ;
-        Upper=1.2*max(Infovector(:,1)) ; Lower=0; 
+        Upper=1.05*max(Infovector(:,1)) ; Lower=0; 
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
         gammaTestVector=[Lower,dx/2,dx,2*dx,gammaTestVector(2:end)]; 
@@ -606,7 +606,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     hold on
-    plot(gamma,fgamma,'*g')
+    plot(gamma,fgamma,'*b')
     
     if CtrlVar.InfoLevelBackTrack>=1000
        plot(gammaTestVector,rTestVector,'xk-') 
@@ -617,7 +617,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     if ~isempty(slope0)
         hold on
         dx=min(Infovector(2:end,1)/10) ;
-        plot([0 dx],[f0 f0+slope0*dx],'g')
+        plot([0 dx],[f0 f0+slope0*dx],'g','LineWidth',2)
         hold off
         
         % slopeExperimenta=(rTest(2)-rTest(1))/(gammaTestVector(2)-gammaTestVector(1));

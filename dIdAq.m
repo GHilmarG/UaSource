@@ -35,16 +35,16 @@ for Iint=1:MUA.nip
     AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
     
     
-    dudx=zeros(MUA.Nele,1); dvdx=zeros(MUA.Nele,1); dudy=zeros(MUA.Nele,1); dvdy=zeros(MUA.Nele,1);
+    exx=zeros(MUA.Nele,1); exy=zeros(MUA.Nele,1);  eyy=zeros(MUA.Nele,1);
     dlxdx=zeros(MUA.Nele,1); dlydx=zeros(MUA.Nele,1); dlxdy=zeros(MUA.Nele,1); dlydy=zeros(MUA.Nele,1);
     
     for Inod=1:MUA.nod
         
-        dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
-        dvdx=dvdx+Deriv(:,1,Inod).*vnod(:,Inod);
-        dudy=dudy+Deriv(:,2,Inod).*unod(:,Inod);
-        dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-         
+        exx=exx+Deriv(:,1,Inod).*unod(:,Inod);
+        eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
+        exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod)); 
+        
+        
         dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
         dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
         dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
@@ -55,21 +55,25 @@ for Iint=1:MUA.nip
 
     detJw=detJ*weights(Iint);
 
-    exy=(dudy+dvdx)/2;    
-    [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,dudx,dvdy,exy);
-    dEtadA=dEtadA.*hint; 
+    
+    [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
+    %dEtadA=dEtadA.*hint; 
 
     
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-            
-            dEtadA=log(10)*AGlenInt.*dEtadA;
-            
-    end
-    
+%     if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+%             
+%             dEtadA=log(10)*AGlenInt.*dEtadA;
+%             
+%     end
+%     
     
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
-            -dEtadA.*((4*dudx+2*dvdy).*dlxdx+(dudy+dvdx).*dlxdy+(4*dvdy+2*dudx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw;
+            -dEtadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
+        %-dEtadA.*((4*exx+2*eyy).*dlxdx+(dudy+dvdx).*dlxdy+(4*eyy+2*exx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw;
+        
+ 
+        
     end
 end
 
@@ -79,7 +83,16 @@ for Inod=1:MUA.nod
     dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-Happrox=MUA.M/MUA.Area; 
+
+if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+    
+    dIdA=log(10)*AGlen.*dIdA;
+    
+end
+
+
+
+Happrox=MUA.M/MUA.Area;
 dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdA);
 
 end

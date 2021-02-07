@@ -52,6 +52,8 @@ end
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+hfnod=F.rhow*(Snod-Bnod)./rhonod;
+
 uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -78,7 +80,8 @@ for Iint=1:MUA.nip
     rhoint=rhonod*fun;
     uAdjointint=uAdjointnod*fun;
     vAdjointint=vAdjointnod*fun;
-    hfint=(Sint-Bint)*F.rhow./rhoint;
+    hfint=hfnod*fun;
+    %hfint=(Sint-Bint)*F.rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     %
     % dF/dC=dtaux/dC uAdjoint + dtauy/dC vAdjoint
@@ -93,12 +96,12 @@ for Iint=1:MUA.nip
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
     CtrlVar.Inverse.dFuvdClambda=false;
-    % Ctemp= (1./mint).*Heint.*(Cint+CtrlVar.Czero).^(-1./mint-1).*(sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)).^(1./mint-1) ;
     
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        Ctemp=log(10)*Cint.*Ctemp;
-    end
     
+%     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+%        Ctemp=log(10)*Cint.*Ctemp;
+%     end
+%     
     detJw=detJ*weights(Iint);
     for Inod=1:MUA.nod
         
@@ -113,60 +116,15 @@ for Inod=1:MUA.nod
     dIdCtemp=dIdCtemp+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-% dI/dC=2 (umeas-ucalc)*tau^m = -2 (umeas-ucalc)* (u/uerr)  * (1/C)
-%
-
-
+% change of variables should be done on nodal values!
+% I learned this the hard way by doing extensive tests on dJ/dgamma
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+    dIdCtemp=log(10)*F.C.*dIdCtemp;
+end
 
 dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdCtemp);
 
 
-
-
-if CtrlVar.DevelopmentVersion
-    
-    uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
-    usres=(F.ub-Meas.us)./uErr;  vsres=(F.vb-Meas.vs)./vErr;
-    
-    
-    dIdpana=(usres.*F.ub./uErr+vsres.*F.vb./vErr)./F.C./MUA.Area;
-    dIdpana=dIdpana.*F.GF.node;
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        dIdpana=log(10)*F.C.*dIdpana;
-    end
-    
-    FindOrCreateFigure('dIdC Analytical Estimate') ;
-    PlotMeshScalarVariable(CtrlVar,MUA,dIdpana) ;
-    hold on
-    PlotMuaMesh(CtrlVar,MUA,[],'w');
-    title('dIdC analytical estimate')
-    %
-    
-    ab=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(MUA.Area.*F.C.^2);
-    
-    
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        ab=ab.*(log(10)*F.C).^2;
-    end
-    
-    
-    AB=sparse(1:MUA.Nnodes,1:MUA.Nnodes,ab) ;
-    Happrox=AB*MUA.M ;
-    
-    
-    dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdCtemp);
-    
-    if CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
-        dCNewton=(1./ab).*dIdpana ;
-        FindOrCreateFigure('dC Newton Estimate') ;
-        PlotMeshScalarVariable(CtrlVar,MUA,dCNewton) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA,[],'w');
-        title('dC Newton Estimate')
-        dIdC=dCNewton ;  %  this seems to work really nicely which is good news, dIdC with Happrox should be close to this estimate
-    end
-    
-end
 
 end
 
