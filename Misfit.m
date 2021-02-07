@@ -450,23 +450,29 @@ if CtrlVar.Inverse.CalcGradI
     elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=O")
         N=MUA.Nnodes;
         ddIdCC=sparse(N,N); 
-    else
+    elseif  contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HC=I")
         N=MUA.Nnodes;
         ddIdCC=speye(N,N);
+    else
+        error('case not found')
     end
     
     if contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=FP")
         [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=GN")
+        [~,ddIdAA]=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
     elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=M")
         ddIdAA=MUA.M/MUA.Area;
     elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=D")
         ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HD=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HD=O")
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=O")
         N=MUA.Nnodes;
         ddIdAA=sparse(N,N); 
-    else
+    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=1") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"HA=I")
         N=MUA.Nnodes;
         ddIdAA=speye(N,N);
+    else
+        error('case not found')
     end
     
     

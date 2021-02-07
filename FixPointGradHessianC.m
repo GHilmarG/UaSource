@@ -19,7 +19,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
     % dIdpFP=log(10)*F.C.*dIdpFP;
     
     dIdC=log(10)*(usres.*F.ub./uErr+vsres.*F.vb./vErr);
-    ddIdCC=(log(10))^2*((F.ub./uErr).^2+(F.vb./vErr).^2 + CtrlVar.SpeedZero^2 );
+    ddIdCC=(log(10))^2*((F.ub./uErr).^2+(F.vb./vErr).^2 + (CtrlVar.SpeedZero./uErr).^2 );
 end
 
 
