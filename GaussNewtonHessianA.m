@@ -1,4 +1,4 @@
-function [dIdA,ddIdAA,UserVar]=GaussNewtonHessianA(UserVar,CtrlVar,MUA,dIdA,F,Meas)
+function [ddIdAA,UserVar]=GaussNewtonHessianA(UserVar,CtrlVar,MUA,dIdA,F,Meas)
 
 
 % Gauss Newton estimate of ddIdCC
