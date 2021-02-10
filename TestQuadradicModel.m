@@ -1,7 +1,7 @@
 function [f,x]=TestQuadradicModel(fIn,xIn,Func,Hess,dp,gamma,J0,dJdp,slope0,xMax,N)
 
 if nargin<10 || isempty(xMax)
-    gammaMin=-dJdp'*dp/(dp'*Hess*dp);
+    gammaMin=-dJdp'*dp/(dp'*Hess*dp);  % this should actually always be equal to 1, if dp is the Newton step
     xMax=min(gammaMin,2*gamma) ; 
 end
 
@@ -28,7 +28,7 @@ f=[f;fIn]; x=[x;xIn];
 
 FindOrCreateFigure("TestQuadradicModel") ;
 hold off
-plot(xQuad,fQuad,'k')
+plot(xQuad,fQuad,'k--','LineWidth',2)
 hold on
 plot(x,f,'ro-')
 

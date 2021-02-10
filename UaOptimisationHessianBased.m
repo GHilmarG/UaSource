@@ -72,9 +72,11 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     theta=acos(-dJdp'*dp/(norm(dJdp)*norm(dp)));
     fprintf("angle between search direction and steepest-decent direction is %f degrees.\n",theta*180/pi)
     
+    JQuad=J0+gamma*dJdp'*dp+gamma^2*dp'*Hess*dp/2 ; % must do this before I calculate the new Hessian
     [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
     
-  
+    
+    fprintf('J=%g \t JQuad=%g \t (J-JQuad)/J=%g \n',J,JQuad,(JQuad-J)/J)
     
     BackTrackInfo.Converged=1;
     

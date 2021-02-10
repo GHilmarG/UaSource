@@ -14,14 +14,14 @@ function [ddIdCC,UserVar]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,dIdC,F,Meas)
 % H \approx dJ dJ ures^2
 %
 %
-
-g= (1./uErr)^2 + (1/vErr).^2  ;
+ uErr=sqrt(spdiags(Meas.usCov));
+ vErr=sqrt(spdiags(Meas.vsCov));
+g= (1./uErr)^2 + (1./vErr).^2  ;
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-   g=log(10)* g ;  
+% and if inverting for log c I think there is an additional log(10) factor here as well
+    g=log(10)* g ;  
 end
-
-% and if inverting for log c I think there is an addionla log(10) factor here as well
 
 f=dIdC(:).*g;
 
