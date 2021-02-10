@@ -10,32 +10,27 @@ function [ddIdCC,UserVar]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,dIdC,F,Meas)
 % 
 %  ddIdCC=  uerr^{-2}   (du/dC)^2   + second-order derivative with respect to u that we ignore
 % 
-% But looking at the relationship between dI/dC and ddI/dCC based on fix point suggests
-% H \approx dJ dJ ures^2
 %
-%
- uErr=sqrt(spdiags(Meas.usCov));
- vErr=sqrt(spdiags(Meas.vsCov));
-g= (1./uErr)^2 + (1./vErr).^2  ;
+ 
+uErr=sqrt(spdiags(Meas.usCov));
+vErr=sqrt(spdiags(Meas.vsCov));
 
-if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-% and if inverting for log c I think there is an additional log(10) factor here as well
-    g=log(10)* g ;  
-end
+speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
+uMin=max(CtrlVar.SpeedZero,0.01*max(speed)); 
 
-f=dIdC(:).*g;
+ 
+gx= uErr./(abs(F.ub-Meas.us)+uMin); 
+gy= vErr./(abs(F.vb-Meas.vs)+uMin); 
 
-
-
-
-[UserVar,ddIdCC]=FE_outer_product(UserVar,CtrlVar,MUA,f,f) ; 
-
-%Biggest=max(diag(ddIdCC)) ; Smallest=min(diag(ddIdCC)) ; 
-%p=0.01*(Biggest-Smallest)+Smallest;
-%ddIdCC=ddIdCC+p*MUA.M;
+dIdC=dIdC(:) ; gx=gx(:) ; gy=gy(:) ;
 
 
-ddIdCC=ddIdCC/MUA.Area; 
+f=(gx.*gx+gy.*gy).*dIdC.*dIdC ;
+
+
+
+[UserVar,ddIdCC]=FE_outer_product(UserVar,CtrlVar,MUA,f) ; 
+
 ddIdCC=(ddIdCC+ddIdCC')/2 ; 
 
 
