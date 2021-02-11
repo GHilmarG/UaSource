@@ -30,8 +30,8 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
 
 
-fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap\n")
-fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %g \n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN)
+fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap \t  theta (degrees) \n")
+fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g\n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN,NaN)
 
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
@@ -51,20 +51,27 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         % gamma=-dJdp'*dp/(dp'*Hess*dp);  % or if I beleve in the Hessian then...
     end
     
+    theta=real(acos(-dJdp'*dp/(norm(dJdp)*norm(dp))));
+    % [~,theta2]=FE_inner_product(-dJdp,dp,MUA.M) ; % This is actually the correct angle, but as far as I can see the difference is small
+    % [real(theta) real(theta2)]*180/pi
     
-    if CtrlVar.InfoLevelAdjoint>=1000
-        %% Test quadratic model and slope
-
-        CtrlVar.InfoLevelBackTrack=1000 ; % also get info on backtracking 
+    if CtrlVar.InfoLevelInverse>=10
         
-        Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
         
-        f=[] ; x=[];
-        [f,x]=TestQuadradicModel(f,x,Func,Hess,dp,gamma,J0,dJdp,slope0);
-        TestSlope(Func,0,0.01*gamma,slope0) ;
-
-        theta=acos(-dJdp'*dp/(norm(dJdp)*norm(dp)));
         fprintf("angle between search direction and steepest-decent direction is %f degrees.\n",theta*180/pi)
+        
+        if CtrlVar.InfoLevelInverse>=1000
+            %% Test quadratic model and slope
+            
+            CtrlVar.InfoLevelBackTrack=1000 ; % also get info on backtracking
+            
+            Func=@(gamma) func(p+gamma*dp); % here a plus sign because I'm going in the direction dp
+            
+            f=[] ; x=[];
+            [f,x]=TestQuadradicModel(f,x,Func,Hess,dp,gamma,J0,dJdp,slope0);
+            TestSlope(Func,0,0.01*gamma,slope0) ;
+            
+        end
         
         % JQuad=J0+gamma*dJdp'*dp+gamma^2*dp'*Hess*dp/2 ; % must do this before I calculate the new Hessian
     end
@@ -85,7 +92,8 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     GradNorm=norm(dJdp); % grad norm at the end of the iteration step
     CtrlVar.NewtonAcceptRatio= max(J/J0,NewtonAcceptRatioMin) ;
 
-    fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %g \n",Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality)
+    fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \n",...
+        Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality,theta*180/pi)
     
     
     RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];

@@ -529,7 +529,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
 %
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
 
-CtrlVar.InfoLevelAdjoint=1; % Overall level of information (inverse runs). 
+CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
                             

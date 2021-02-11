@@ -30,7 +30,7 @@ p=p(:);
 p=kk_proj(p,pub,plb);
 
 
-[J0,dJdp,Hess,fOuts,~,RunInfo]=func(p);
+[J0,dJdp,~,fOuts,~,RunInfo]=func(p);
 dJdp=dJdp(:);
 GradNorm=norm(dJdp);
 RunInfo.Inverse.ConjGradUpdate=0;
@@ -55,51 +55,28 @@ if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1
 end
 
 
-
-
-
-% Determine initial step size:
-% If Hessian is defined, use Newton step.
-% If CtrlVar.Inverse.InitialLineSearchStepSize is defined use that
-%
-
-% if norm(dJdp)<eps
-%    
-%     fprintf('Norm of the gradient of the objective function is less than eps. \n')
-%     fprintf('No further inverse iterations needed/possible. \n')
-%     return
-%     
-% end
-
 % determine initial search direction and initial step size for line-search.
 if ~(isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0)
     gamma=CtrlVar.Inverse.InitialLineSearchStepSize;
     slope0=-dJdp'*dJdp;
 else
-    if ~(isdiag(Hess) && sum(diag(Hess))==0) && ~strcmpi(CtrlVar.Inverse.DataMisfit.HessianEstimate,'0')
-        dp=-Hess\dJdp;
-        gamma=1;
-        dJdp=-dp;
-        slope0=-dJdp'*dJdp;
-    else
-        slope0=-dJdp'*dJdp;
-        gamma1=-0.01*J0/slope0 ; % linear approx
+    slope0=-dJdp'*dJdp;
+    gamma1=-0.01*J0/slope0 ; % linear approx
+    p1=p-gamma1*dJdp;
+    J1=func(p1);
+    
+    iCount=0 ; % sometimes the initial guess is so small that there is almost no change in the cost function
+    % try to increase gamma by factor of 10 until at least 1% change has been generated.
+    while (abs(J1-J0)/J1 < 0.01) && iCount<10
+        
+        gamma1=gamma1*10 ;
         p1=p-gamma1*dJdp;
         J1=func(p1);
-        
-        iCount=0 ; % sometimes the initial guess is so small that there is almost no change in the cost function
-                   % try to increase gamma by factor of 10 until at least 1% change has been generated.
-        while (abs(J1-J0)/J1 < 0.01) && iCount<10 
-            
-            gamma1=gamma1*10 ;
-            p1=p-gamma1*dJdp;
-            J1=func(p1);
-            iCount=iCount+1; 
-        end
-            
-        gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadradic approx
-        if gamma<0 ; gamma=gamma1; end 
+        iCount=iCount+1;
     end
+    
+    gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadradic approx
+    if gamma<0 ; gamma=gamma1; end
     
 end
 
@@ -125,7 +102,7 @@ while RunInfo.Forward.uvIterations==0
    
     % the gamma step caused so little change in the model paramters that the previous J0 uv solution was accepted.
     % So increase gamma
-    fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model paramters to require a new uv solution.\n")
+    fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model parameters to require a new uv solution.\n")
     fprintf(" gamma increased from %g to %g \n",gamma,gamma*1000)
     gamma=gamma*1000 ; 
     [J1,~,~,~,~,RunInfo]=Func(gamma);
@@ -208,7 +185,7 @@ for It=1:CtrlVar.Inverse.Iterations
     p=kk_proj(p,pub,plb);
     dJdpLast=dJdp;
     % Get new directional derivative
-    [J0,dJdp,Hess,fOuts]=func(p);       
+    [J0,dJdp,~,fOuts]=func(p);       
     nFuncEval=nFuncEval+1; % here J0 and JgammaNew must be (almost) equal
 
     GradNorm=norm(dJdp)/sqrt(numel(dJdp));

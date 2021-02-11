@@ -281,7 +281,11 @@ if isfield(CtrlVar.Inverse.TestAdjoint,'FiniteDifferenceType')
 end
 
 
-
+if isfield(CtrlVar,"InfoLevelAdjoint")
+    fprintf(' Note: CtrlVar.InfoLevelAdjoint no longer used.\n')
+    fprintf('       Use CtrlVar.InfoLevelInverse instead.\n')
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+end
 
 
 

@@ -18,7 +18,7 @@ switch CtrlVar.Inverse.MinimisationMethod
     
     case {"UaOptimization","UaOptimization-Gradient"}
         
-        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CrlVar,RunInfo,MUA,func,p,plb,pub) ;
+        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
         
         
     case "UaOptimization-Hessian"

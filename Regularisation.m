@@ -1,4 +1,4 @@
-function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 RegOuts=[];
@@ -141,23 +141,20 @@ else
     
 end
 
-
-
-if ~(CtrlVar.AGlenisElementBased   &&  CtrlVar.CisElementBased)
-    if ~isfield(MUA,'M')
-        M=MassMatrix2D1dof(MUA);
-    else
-        M=MUA.M;
-    end
-    
-    if ~isfield(MUA,'Dxx')
-        [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
-    else
-        Dxx=MUA.Dxx ;
-        Dyy=MUA.Dyy;
-    end
-    
+if ~isfield(MUA,'M')
+    M=MassMatrix2D1dof(MUA);
+else
+    M=MUA.M;
 end
+
+if ~isfield(MUA,'Dxx')
+    [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
+else
+    Dxx=MUA.Dxx ;
+    Dyy=MUA.Dyy;
+end
+
+
 
 
 %% Now dpX, gsX and gaX have all be defined
@@ -234,48 +231,54 @@ else  % Tikhonov regularization
     
     
     if isA
-        if CtrlVar.AGlenisElementBased
-            
-            MA=gaA.^2*Areas/Area;
-            npA=numel(dpA);
-            NA=sparse(1:npA,1:npA,MA,npA,npA);
-            
-        else
-            
-            NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-            
-        end
+        
+        NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
         RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
-        ddRddAGlen=NA.*dAfactor;
+        
+        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=E")
+            
+            ddRdAA=NA.*dAfactor;
+            
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=I")
+            N=MUA.Nnodes;
+            ddRdAA=speye(N,N);
+        else
+            fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
+            error("Regularisation:IncorrectInputs"," case not found ")
+        end
+        
     else
         RAGlen=0;
         dRdAGlen=[];
-        ddRddAGlen=[]; 
+        ddRdAA=[];
     end
     
     if isC
-        if CtrlVar.CisElementBased
+        
+        NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
+        RC=dpC'*NC*dpC/2;
+        dRdC=(NC*dpC).*dCfactor;
+        
+        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=E")
             
-            MC=gaC.^2*Areas/Area;
-            npC=numel(dpC);
-            NC=sparse(1:npC,1:npC,MC,npC,npC);
+            ddRdCC=NC.*dCfactor;
+            
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=I")
+            N=MUA.Nnodes;
+            ddRdCC=speye(N,N);
             
         else
             
-            NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
+            fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
+            error("Regularisation:IncorrectInputs"," case not found ")
             
         end
-        
-        RC=dpC'*NC*dpC/2;
-        dRdC=(NC*dpC).*dCfactor;
-        ddRddC=NC.*dCfactor;
-        
         
     else
         RC=0;
         dRdC=[];
-        ddRddC=[]; 
+        ddRdCC=[];
     end
     
     
@@ -306,19 +309,19 @@ else  % Tikhonov regularization
     
     
     % Here using the Hessian as a premultiplier
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddAGlen,dRdAGlen);
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddC,dRdC);
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
     
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
     
     
-    [Am,An] = size(ddRddAGlen);
-    [Cm,Cn] = size(ddRddC);
-    ddRddp = spalloc(Am+Cm,An+Cn,nnz(ddRddAGlen)+nnz(ddRddC));
-    ddRddp(1:Am,1:An) = ddRddAGlen;
-    ddRddp(Am+1:Am+Cm,An+1:An+Cn) = ddRddC;
+    [Am,An] = size(ddRdAA);
+    [Cm,Cn] = size(ddRdCC);
+    ddRdpp = spalloc(Am+Cm,An+Cn,nnz(ddRdAA)+nnz(ddRdCC));
+    ddRdpp(1:Am,1:An) = ddRdAA;
+    ddRdpp(Am+1:Am+Cm,An+1:An+Cn) = ddRdCC;
     
     
 end
@@ -326,12 +329,12 @@ end
 
 R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
-ddRddp=CtrlVar.Inverse.Regularize.Multiplier*ddRddp;
+ddRdpp=CtrlVar.Inverse.Regularize.Multiplier*ddRdpp;
 
 
 RegOuts.R=R;
 RegOuts.dRdp=dRdp;
-RegOuts.ddRddp=ddRddp;
+RegOuts.ddRddp=ddRdpp;
 
 
 RegOuts.RAGlen=RAGlen;

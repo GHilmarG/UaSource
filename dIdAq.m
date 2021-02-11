@@ -57,15 +57,15 @@ for Iint=1:MUA.nip
 
     
     [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
-    %dEtadA=dEtadA.*hint; 
-
+    %dEtadA=dEtadA.*hint;
     
-%     if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-%             
-%             dEtadA=log(10)*AGlenInt.*dEtadA;
-%             
-%     end
-%     
+    if ~CtrlVar.DevelopmentVersion
+        if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+            
+            dEtadA=log(10)*AGlenInt.*dEtadA;
+            
+        end
+    end
     
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
@@ -83,13 +83,13 @@ for Inod=1:MUA.nod
     dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-
-if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-    
-    dIdA=log(10)*AGlen.*dIdA;
-    
+if CtrlVar.DevelopmentVersion
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+        
+        dIdA=log(10)*AGlen.*dIdA;
+        
+    end
 end
-
 
 
 Happrox=MUA.M/MUA.Area;

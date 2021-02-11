@@ -97,11 +97,13 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
     CtrlVar.Inverse.dFuvdClambda=false;
     
+    if ~CtrlVar.DevelopmentVersion
+        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+            Ctemp=log(10)*Cint.*Ctemp;
+        end
+        
+    end
     
-%     if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-%        Ctemp=log(10)*Cint.*Ctemp;
-%     end
-%     
     detJw=detJ*weights(Iint);
     for Inod=1:MUA.nod
         
@@ -116,10 +118,12 @@ for Inod=1:MUA.nod
     dIdCtemp=dIdCtemp+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-% change of variables should be done on nodal values!
-% I learned this the hard way by doing extensive tests on dJ/dgamma
-if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    dIdCtemp=log(10)*F.C.*dIdCtemp;
+if CtrlVar.DevelopmentVersion
+    % change of variables should be done on nodal values!
+    % I learned this the hard way by doing extensive tests on dJ/dgamma
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+        dIdCtemp=log(10)*F.C.*dIdCtemp;
+    end
 end
 
 dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdCtemp);
