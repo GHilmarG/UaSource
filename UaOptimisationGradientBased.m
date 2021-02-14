@@ -19,7 +19,7 @@ if isempty(CtrlVar)
     CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=100;
     CtrlVar.Inverse.InfoLevel=1;
     CtrlVar.Inverse.Iterations=4;
-    CtrlVar.Inverse.GradientUpgradeMethod='SteepestDecent' ; %{'SteepestDecent','ConjGrad'}
+    CtrlVar.Inverse.GradientUpgradeMethod="-SteepestDecent-" ; %{'SteepestDecent','ConjGrad'}
     CtrlVar.NewtonAcceptRatio=0.5;
     CtrlVar.NLtol=1e-15;
     CtrlVar.doplots=1;

@@ -106,7 +106,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 Nqm=N.^(qm) ;
                 
                 
-                dFuvdC= He.*Nqm  .*(1./m).*(C+C0).^(-1./m-1)  .*Um;
+                dFuvdC= He.*Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*Um;
                 
             case {"rpCW-N0","Cornford"}
                 

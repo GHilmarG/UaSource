@@ -1,4 +1,4 @@
-function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
+function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
 %
@@ -39,7 +39,7 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %   here D is the total derivative and I use d for the partial derivative
 
-persistent GLgeo GLnodes GLele
+
 
 Area=MUA.Area;
 
@@ -50,7 +50,11 @@ DBI=[];
 DCI=[];
 
 dIdp=[] ;
-ddIddp=sparse(1,1);
+ddIdpp=sparse(1,1);
+
+ddIdAA=[];
+ddIdCC=[];
+
 
 MisfitOuts.dIduv=[];
 MisfitOuts.uAdjoint=[];
@@ -195,7 +199,7 @@ if CtrlVar.Inverse.CalcGradI
                     
                     
                     dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
-                    np=numel(dIdp); ddIddp=sparse(np,np);
+                    np=numel(dIdp); ddIdpp=sparse(np,np);
                     dBJ=0;
                     DBI=dBFuvLambda+dBJ;
                     
@@ -355,63 +359,65 @@ if CtrlVar.Inverse.CalcGradI
         error(' field no longer used ')
     end
     
-    if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=FP")
-        [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=GN")
-        [ddIdCC]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,DCI,F,Meas);
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=M")
-        ddIdCC=MUA.M/MUA.Area;
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=D")
-        ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=O")
-        N=MUA.Nnodes;
-        ddIdCC=sparse(N,N);
-    elseif  contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=1")
-        N=MUA.Nnodes;
-        ddIdCC=speye(N,N);
-    else
-        error('case not found')
+    if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=FP")
+            [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=GN")
+            [ddIdCC]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,DCI,F,Meas);
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=M")
+            ddIdCC=MUA.M/MUA.Area;
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=D")
+            ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=O")
+            N=MUA.Nnodes;
+            ddIdCC=sparse(N,N);
+        elseif  contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=1")
+            N=MUA.Nnodes;
+            ddIdCC=speye(N,N);
+        else
+            error('case not found')
+        end
+        
+        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=FP")
+            [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=GN")
+            ddIdAA=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=M")
+            ddIdAA=MUA.M/MUA.Area;
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=D")
+            ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=O")
+            N=MUA.Nnodes;
+            ddIdAA=sparse(N,N);
+        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=1")
+            N=MUA.Nnodes;
+            ddIdAA=speye(N,N);
+        else
+            error('case not found')
+        end
     end
-    
-    if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=FP")
-        [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=GN")
-        ddIdAA=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=M")
-        ddIdAA=MUA.M/MUA.Area;
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=D")
-        ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=O")
-        N=MUA.Nnodes;
-        ddIdAA=sparse(N,N);
-    elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=1")
-        N=MUA.Nnodes;
-        ddIdAA=speye(N,N);
-    else
-        error('case not found')
-    end
-    
     
     switch CtrlVar.Inverse.InvertForField
         
         case "A"
             dIdp=DAI;
-            ddIddp=ddIdAA ;
+            ddIdpp=ddIdAA ;
         case "b"
             error("fdsa")
         case "B"
             dIdp=DBI;
         case "C"
             dIdp=DCI;
-            ddIddp=ddIdCC ;
+            ddIdpp=ddIdCC ;
         case "AC"
             dIdp=[DAI;DCI];
             
-            N=MUA.Nnodes;
-            ddIddp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
-            ddIddp(1:N,1:N) = ddIdAA;
-            ddIddp(N+1:N+N,N+1:N+N) = ddIdCC;
-            
+            if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+                N=MUA.Nnodes;
+                ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
+                ddIdpp(1:N,1:N) = ddIdAA;
+                ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
+            end
             
         otherwise
             
@@ -431,7 +437,7 @@ I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 if nargout>1
     
     dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
-    ddIddp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIddp;
+    ddIdpp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIdpp;
     
 end
 

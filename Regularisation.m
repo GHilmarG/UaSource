@@ -6,8 +6,16 @@ RegOuts=[];
 
 % Add up field by field
 
+RAGlen=0;
+dRdAGlen=[];
+ddRdAA=[];
 
-[Areas,xEle,yEle,Area]=TriAreaFE(MUA.coordinates,MUA.connectivity);
+RC=0;
+dRdC=[];
+ddRdCC=[];
+
+
+Area=MUA.Area; 
 
 
 %%
@@ -169,7 +177,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         temp=pPriorCovA\dpA;
         RAGlen=dpA'*temp/(2*npA)   ;
         dRdAGlen=temp/npA;
-        %ddRdd=inv(Priors.CovC)/2/N;
+        %ddRdAA=inv(Priors.CovC)/2/N;
         ddRAddpA=[];
     else
         RAGlen=0;
@@ -236,22 +244,21 @@ else  % Tikhonov regularization
         RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
         
-        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=E")
+        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             
-            ddRdAA=NA.*dAfactor;
-            
-        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=I")
-            N=MUA.Nnodes;
-            ddRdAA=speye(N,N);
-        else
-            fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
-            error("Regularisation:IncorrectInputs"," case not found ")
+            if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=E")
+                ddRdAA=NA.*dAfactor;
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=1")
+                N=MUA.Nnodes;
+                ddRdAA=speye(N,N);
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=O")
+                N=MUA.Nnodes;
+                ddRdAA=sparse(N,N);
+            else
+                fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
+                error("Regularisation:IncorrectInputs"," case not found ")
+            end
         end
-        
-    else
-        RAGlen=0;
-        dRdAGlen=[];
-        ddRdAA=[];
     end
     
     if isC
@@ -260,25 +267,25 @@ else  % Tikhonov regularization
         RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
         
-        if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=E")
-            
-            ddRdCC=NC.*dCfactor;
-            
-        elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=I")
-            N=MUA.Nnodes;
-            ddRdCC=speye(N,N);
-            
-        else
-            
-            fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
-            error("Regularisation:IncorrectInputs"," case not found ")
-            
+        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+            if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=E")
+                
+                ddRdCC=NC.*dCfactor;
+                
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=1")
+                N=MUA.Nnodes;
+                ddRdCC=speye(N,N);
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=O") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=0")
+                N=MUA.Nnodes;
+                ddRdCC=sparse(N,N);
+            else
+                
+                fprintf(" CtrlVar.Inverse.DataMisfit.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.DataMisfit.Hessian)
+                error("Regularisation:IncorrectInputs"," case not found ")
+                
+            end
         end
         
-    else
-        RC=0;
-        dRdC=[];
-        ddRdCC=[];
     end
     
     

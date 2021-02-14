@@ -38,7 +38,19 @@ function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
         end
     end
     
-    if ~isempty(q)
+    
+    
+    if isempty(q)
+        
+        pattern=["Budd","W-N0"];
+        if contains(CtrlVar.SlidingLaw,pattern)
+            fprintf("Input Error:  \t For sliding law: %s \n \t \t \t \t q must be defined in DefineSlipperiness.m \n",CtrlVar.SlidingLaw)
+            fprintf("\t \t \t \t and in an inverse run in DefineInputsForInverseRun.m as well. \n")
+            error("Incorrect inputs")
+            
+        end
+        
+    else
         
         if numel(q)==1
             
@@ -48,7 +60,9 @@ function [C,m,q,muk]=TestSlipperinessInputValues(CtrlVar,MUA,C,m,q,muk)
                 q=q+zeros(MUA.Nnodes,1);
             end
         end
+        
     end
+    
     
     
     if isempty(muk)

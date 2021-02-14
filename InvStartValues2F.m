@@ -74,6 +74,11 @@ if  contains(CtrlVar.Inverse.InvertForField,'C')
     end
     
     F.C=InvStartValues.C ;
+    F.n=InvStartValues.n;
+    F.muk=InvStartValues.muk ;
+    F.q=InvStartValues.q;
+    
+    
     F.Cmin=Priors.Cmin;
     F.Cmax=Priors.Cmax;
     

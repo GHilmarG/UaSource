@@ -33,15 +33,29 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap \t  theta (degrees) \n")
 fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g\n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN,NaN)
 
+
+M=MUA.M ;
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ;
 gamma=1;
 
+
+
+
 for Iteration=1:CtrlVar.Inverse.Iterations
     
     J0=J;
+    
+%     Zeros=sparse(MUA.Nnodes,MUA.Nnodes);
+%     pH=[M Zeros ; ...
+%         Zeros M ] ;
+%     lambda=1;
+%     lambda=lambda*mean(abs(diag(Hess)))/mean(abs(diag(pH)));
+%     dp=-(Hess+lambda*pH)\dJdp ;   % Newton system
+%     
     dp=-Hess\dJdp ;   % Newton system
+
     slope0=dJdp'*dp;
     SubOptimality=-dJdp'*dp/2  ;  % sub-optimality at the beginning of the iteration step
 
