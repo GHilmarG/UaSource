@@ -210,7 +210,7 @@ if CtrlVar.InverseRun
     CtrlVar.Inverse.InvertForField=string(sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),"log","") ,"-",""),"AGlen","A")))) ;
     
     
-    if contains(CtrlVar.Inverse.MinimisationMethod,'UaOptimization-Hessian')
+    if contains(CtrlVar.Inverse.MinimisationMethod,'Hessian')
         
         CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
                 

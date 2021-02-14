@@ -298,10 +298,10 @@ if CtrlVar.Inverse.CalcGradI
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
                 dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
+                
+                dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DCI=dCFuvLambda+dCI;
             end
-            dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-            DCI=dCFuvLambda+dCI;
-            
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 

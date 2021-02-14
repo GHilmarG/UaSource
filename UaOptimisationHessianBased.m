@@ -38,7 +38,7 @@ M=MUA.M ;
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ;
-gamma=1;
+gamma=NaN;
 
 
 
@@ -63,6 +63,10 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     if isnan(gamma)
         gamma=-0.01*J0/slope0  ;
         % gamma=-dJdp'*dp/(dp'*Hess*dp);  % or if I beleve in the Hessian then...
+        
+        % gamma*dp/norm<1e-4  -> gamma=1e-4 norm(p)/norm(dp)
+        % gamma=1e-4*norm(p)/norm(dp);
+        
     end
     
     theta=real(acos(-dJdp'*dp/(norm(dJdp)*norm(dp))));

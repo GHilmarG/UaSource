@@ -9,9 +9,11 @@ uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
 
 ddIdAA=((F.ub./uErr).^2+(F.vb./vErr).^2  )./(F.AGlen.^2);
 
+
+
 if contains(lower(CtrlVar.Inverse.InvertFor),'loga')
     
-    ddIdAA=(log(10))^2*((F.ub./uErr).^2+(F.vb./vErr).^2 + CtrlVar.SpeedZero^2 );
+    ddIdAA=(log(10))^2*((F.ub./uErr).^2+(F.vb./vErr).^2 + (CtrlVar.SpeedZero./uErr).^2 );
 end
 
 
