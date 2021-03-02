@@ -1,11 +1,11 @@
-function [stop,Outs] = fminuncOutfun(x,optimValues,state)
+function [stop,Outs] = fminuncOutfun(p,optimValues,state)
 
 persistent pOuts iCounter X StoreSolution
 
 if nargin>0
-    if isfield(x,'Inverse')
-        if isfield(x.Inverse,'StoreSolutionAtEachIteration')
-            if x.Inverse.StoreSolutionAtEachIteration
+    if isfield(p,'Inverse')
+        if isfield(p.Inverse,'StoreSolutionAtEachIteration')
+            if p.Inverse.StoreSolutionAtEachIteration
                 StoreSolution=1;
                 return
             end
@@ -33,7 +33,7 @@ if nargin>0
         pOuts.StepSize(iCounter)=optimValues.stepsize;
     end
     if StoreSolution
-        X{iCounter}=x;
+        X{iCounter}=p;
     else
         X=[];
     end
@@ -46,7 +46,6 @@ else
     Outs.StepSize=Outs.StepSize(~isnan(Outs.StepSize));
     Outs.p=X;
 end
-
 
 
 

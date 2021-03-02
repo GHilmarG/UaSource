@@ -12,25 +12,18 @@ narginchk(8,8)
 nargoutchk(3,3)
 
 
-
-switch CtrlVar.Inverse.MinimisationMethod
+if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     
     
-    case {"UaOptimization","UaOptimization-Gradient"}
-        
-        [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
-        
-        
-    case "UaOptimization-Hessian"
-        
-        [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
-        
-    otherwise
-        
-        
-        error('Case not found')
-        
-        
+    [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+    
+    
+else
+    
+    [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
+    
+    
+    
 end
 
 

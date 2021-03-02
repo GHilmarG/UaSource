@@ -287,7 +287,13 @@ if isfield(CtrlVar,"InfoLevelAdjoint")
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
 
-
+if isfield(CtrlVar.Inverse,"MatlabOptimisationParameters")
+    fprintf(' Note: CtrlVar.Inverse.MatlabOptimisationParameters no longer used.\n')
+    fprintf("       Use \t CtrlVar.Inverse.MatlabOptimisationHessianParameters \n ")
+    fprintf("        or \t CtrlVar.Inverse.MatlabOptimisationGradientParameters \n ")
+    fprintf("        instead. \n")
+    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+end
 
 
 

@@ -248,6 +248,8 @@ else  % Tikhonov regularization
             
             if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=E")
                 ddRdAA=NA.*dAfactor;
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=M")
+                ddRdAA=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHA=1")
                 N=MUA.Nnodes;
                 ddRdAA=speye(N,N);
@@ -271,7 +273,8 @@ else  % Tikhonov regularization
             if contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=E")
                 
                 ddRdCC=NC.*dCfactor;
-                
+            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=M")
+                ddRdCC=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"RHC=1")
                 N=MUA.Nnodes;
                 ddRdCC=speye(N,N);
