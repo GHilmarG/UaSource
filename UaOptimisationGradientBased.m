@@ -32,7 +32,7 @@ p=kk_proj(p,pub,plb);
 
 [J0,dJdp,~,fOuts,~,RunInfo]=func(p);
 dJdp=dJdp(:);
-GradNorm=norm(dJdp);
+GradNorm=norm(dJdp)/sqrt(numel(dJdp));
 RunInfo.Inverse.ConjGradUpdate=0;
 
 if isempty(RunInfo) ||  numel(RunInfo.Inverse.Iterations)<=1

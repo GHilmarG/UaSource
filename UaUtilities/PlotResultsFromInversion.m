@@ -796,9 +796,29 @@ else
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-        ylabel('J')
+        ylabel('J','interpreter','latex')
         
-        if ~isempty(RunInfo.Inverse.I) && ~isempty(RunInfo.Inverse.R)
+        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm))
+
+            hold off
+            yyaxis right
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.GradNorm,'-r+')
+            ylabel('Norm of gradient ($l_2$)','interpreter','latex')
+            legend('Objective function','$\| \hbox{Gradient} \|$','Location','southwest','interpreter','latex')
+            
+        end
+        
+        yyaxis left
+        xlabel('Inverse iteration','interpreter','latex');
+        hold off
+        
+        if ~all(isnan(RunInfo.Inverse.R)) && ~all(isnan(RunInfo.Inverse.R))
+            
+            fig=FindOrCreateFigure('J=I+R');
+            hold off
+            yyaxis left
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
+            ylabel('J','interpreter','latex')
             
             hold on
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
@@ -807,13 +827,12 @@ else
             yyaxis right
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
             ylabel('R')
-            legend('Objective function','I','R','Location','southwest')
-        else
-            legend('Objective function')
+            legend('Objective function','I','R','Location','southwest','interpreter','latex')
+
         end
         
         yyaxis left
-        xlabel('Inverse iteration') ;
+        xlabel('Inverse iteration','interpreter','latex') ;
         hold off
     end
     

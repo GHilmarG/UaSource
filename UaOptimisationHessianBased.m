@@ -19,7 +19,8 @@ p=kk_proj(p,pub,plb);
 [J,dJdp,Hess,fOuts]=func(p); RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
 
 
-GradNorm=norm(dJdp);
+
+GradNorm=norm(dJdp)/sqrt(numel(dJdp));
 RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;RunInfo.Inverse.Iterations(end)+1];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;J];
 RunInfo.Inverse.R=[RunInfo.Inverse.R;fOuts.RegOuts.R];
@@ -34,7 +35,7 @@ fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p|
 fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g\n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN,NaN)
 
 
-M=MUA.M ;
+
 NewtonAcceptRatioMin=0.9 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ;
@@ -107,7 +108,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         
     end
     
-    GradNorm=norm(dJdp); % grad norm at the end of the iteration step
+    GradNorm=norm(dJdp)/sqrt(numel(dJdp));
     CtrlVar.NewtonAcceptRatio= max(J/J0,NewtonAcceptRatioMin) ;
 
     fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \n",...

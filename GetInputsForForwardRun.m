@@ -60,7 +60,7 @@ if ~isempty(CtrlVar.SaveInitialMeshFileName)
     fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
 end
 
-
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
 BCs=BoundaryConditions;
 

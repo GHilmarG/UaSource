@@ -34,6 +34,9 @@ if ~isempty(F.GF)
 end
 
 
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
+
+
 if isfile("DefineGeometryAndDensities.m")
     
     [UserVar,sTemp,bTemp,STemp,BTemp,rhoTemp,rhowTemp,gTemp]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined);

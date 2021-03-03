@@ -191,7 +191,7 @@ else
 end
 
 MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
-
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
@@ -224,9 +224,6 @@ CtrlVar.RunInfoMessage=RunInfo.Message;
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); 
-%GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
-
-
 
 % pointers to the elements of Boundary.Edges where u and v are fixed
 % Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
@@ -376,7 +373,7 @@ while 1
     end
     
     MUA=UpdateMUA(CtrlVar,MUA);
-    
+    F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping 
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
@@ -388,7 +385,7 @@ while 1
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
- 
+        F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
         
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
@@ -642,10 +639,8 @@ while 1
     end   % CtrlVar.TimeDependentRun
     
     %% calculations for this rund step are now done, only some plotting/writing issues do deal with
-    
-    % calculating derived quantities
-    
-    %GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+
+
     
   
     %% plotting results

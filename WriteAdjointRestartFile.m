@@ -12,6 +12,9 @@ save(CtrlVar.Inverse.NameOfRestartOutputFile,...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
 
 
+F.x=MUA.coordinates(:,1) ; 
+F.y=MUA.coordinates(:,2) ; 
+
 if CtrlVar.AGlenisElementBased
     xA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
     yA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,2));
