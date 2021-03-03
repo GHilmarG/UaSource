@@ -7,7 +7,7 @@ TestFunctionParameters.Name=string('sphere') ;
 
 
 CtrlVar.Inverse.InitialLineSearchStepSize=1;
-CtrlVar.Inverse.DataMisfit.HessianEstimate='0';
+CtrlVar.Inverse.HessianEstimate='0';
 CtrlVar.Inverse.MinimumAbsoluteLineSearchStepSize=1e-5;
 CtrlVar.Inverse.MinimumRelativelLineSearchStepSize=1e-4;
 CtrlVar.Inverse.MaximumNumberOfLineSeachSteps=100;

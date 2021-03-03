@@ -740,8 +740,8 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 % advantages and disadvantages. The best initial approach is presumably to use
 % 'I', and then to try out 'M' for comparison.
 
-CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
-CtrlVar.Inverse.DataMisfit.Hessian="HC=M HA=M"; 
+CtrlVar.Inverse.AdjointGradientPreMultiplier="I"; % {'I','M'}
+CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 

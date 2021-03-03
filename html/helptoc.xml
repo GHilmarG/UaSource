@@ -38,7 +38,8 @@
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
-                <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
+                <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
+                <tocitem target="FE_inner_product.html">FE natural inner product and norm of nodal quantities</tocitem>
                 <tocitem target="calcFEderivativesMUA.html">Calculates x and y derivatives of a nodal quantity</tocitem>
                 <tocitem target="DistanceToLineSegment2.html">Determine if a point is close to a line.</tocitem>
                 <tocitem target="ProjectFintOntoNodes.html">Project integration-point values onto nodes.</tocitem>

@@ -363,18 +363,18 @@ if CtrlVar.Inverse.CalcGradI
         
         if contains(CtrlVar.Inverse.InvertForField,"C")
             
-            if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=FP")
+            if contains(CtrlVar.Inverse.Hessian,"IHC=FP")
                 [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=GN")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=GN")
                 [ddIdCC]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,DCI,F,Meas);
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=M")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=M")
                 ddIdCC=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=D")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=D")
                 ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=O")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=0") || contains(CtrlVar.Inverse.Hessian,"IHC=O")
                 N=MUA.Nnodes;
                 ddIdCC=sparse(N,N);
-            elseif  contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHC=1")
+            elseif  contains(CtrlVar.Inverse.Hessian,"IHC=I") || contains(CtrlVar.Inverse.Hessian,"IHC=1")
                 N=MUA.Nnodes;
                 ddIdCC=speye(N,N);
             else
@@ -383,18 +383,18 @@ if CtrlVar.Inverse.CalcGradI
         end
         
         if contains(CtrlVar.Inverse.InvertForField,"A")
-            if contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=FP")
+            if contains(CtrlVar.Inverse.Hessian,"IHA=FP")
                 [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=GN")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=GN")
                 ddIdAA=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=M")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=M")
                 ddIdAA=MUA.M/MUA.Area;
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=D")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=D")
                 ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=0") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=O")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=0") || contains(CtrlVar.Inverse.Hessian,"IHA=O")
                 N=MUA.Nnodes;
                 ddIdAA=sparse(N,N);
-            elseif contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=I") || contains(CtrlVar.Inverse.DataMisfit.Hessian,"IHA=1")
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=I") || contains(CtrlVar.Inverse.Hessian,"IHA=1")
                 N=MUA.Nnodes;
                 ddIdAA=speye(N,N);
             else
