@@ -793,6 +793,7 @@ else
     if ~isempty(RunInfo.Inverse.J)
         
         fig=FindOrCreateFigure('Inverse Parameter Optimisation');
+        clf(fig)
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
@@ -804,7 +805,7 @@ else
             yyaxis right
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.GradNorm,'-r+')
             ylabel('Norm of gradient ($l_2$)','interpreter','latex')
-            legend('Objective function','$\| \hbox{Gradient} \|$','Location','southwest','interpreter','latex')
+            legend('Objective function','$\| \hbox{Gradient} \|$','Location','northeast','interpreter','latex')
             
         end
         
@@ -815,6 +816,7 @@ else
         if ~all(isnan(RunInfo.Inverse.R)) && ~all(isnan(RunInfo.Inverse.R))
             
             fig=FindOrCreateFigure('J=I+R');
+            clf(fig)
             hold off
             yyaxis left
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
@@ -822,8 +824,8 @@ else
             
             hold on
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
-            ylabel('J & I')
-            hold off
+            ylabel('J and I')
+         
             yyaxis right
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
             ylabel('R')
