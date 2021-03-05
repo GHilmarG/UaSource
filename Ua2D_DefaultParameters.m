@@ -632,28 +632,18 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % an issue).
 %
 %
-% The inversion for C and A can be done with C and A defined on nodes or
-% elements. See: 
+% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit
+% initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method
+% is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the
+% adjoint gradients.
 %
+% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good
+% estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right
+% at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient
+% calculation using adjoint
 %
-%   CtrlVar.AGlenisElementBased 
-%   CtrlVar.CisElementBased. 
-%
-% In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element
-% values. By default, the inversion is done on nodal values.
-%
-%
-% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially
-% quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough
-% estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.
-%
-% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint
-% method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one
-% can switch to gradient calculation using adjoint
-%
-% Ua has some inbuilt optimization methods and these are used by default.
-% However, if the matlab optimization toolbox is installed, the matlab routines
-% can be used instead.
+% Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the
+% matlab routines can be used instead.
 %
 % Note #1: Some parameter combinations can be inconsistent. For example inverting
 % for A only and applying regularization on A and C, i.e.
@@ -683,22 +673,43 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='-A-C-'
 %
 %
-% To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:
+%% Inversion algorithim: 
 %
-% Note on Ua versus Matlab optimization: Generally using the Matlab optimization
-% routines has been a bit of a disappointment. For a number of well-known test
-% cases (Rosenbrock function etc.) the Matlab routines are far better than the
-% simple inbuilt UaOptimization methods. For some real-world applications that
-% have been tried, for example an inversion over PIG-TWG, the Matlab routines
-% also tend to perform much better. However, there are other cases where the
-% UaOptimization methods perform better,.
+% The inversion can be done using either only the gradient, or gradient and an estimate of the Hessian
+% 
+% The gradient calculation is exact, well as exact as a numerical method can be expected to be exact.
 %
+% The Hessian of the regularisation term is exact, but the Hessian of the misfit term is approximated (see details in the Ua
+% Compendium)
+%
+% The optimisation step in the inversion can then be done using either the Matlab optimisationo toolbox, or an some Ua optimisation
+% routines.
+% 
+% Default is to use Hessian based optimisation, which uses both the gradient and the Hessian approximation, or gradient-based
+% minimisation, which only uses the gradient and builds up an approximation of the Hessian from the gradient.
+%
+% The default option is Hessian-based optimisation using the matlab optimisation toolbox.
+%
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % Hessian-based, Matlab toolbox
+%                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
+%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimisation toolbox
+%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimisation toolbox
+
+% If a Hessian-based optimisation is used, the the expressions for the Hessians can be selected as follows:
+CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
+% Here R stands for Regularisation and I stands for Misfit.
+% E stands for 'exact' and 'FP' for 'fixed-point'
+%
+% So RHA=E implies that the Hessian (H) for the AGlen (A) regularisation term (R) is based on the exact (E) expression for H. 
+% So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
 
 
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";
-%                                 ="MatlabOptimization-HessianBased";
-%                                 ="UaOptimization-GradientBased";
-%                                 ="UaOptimization-HessianBased";
+% If the gradient-based approach is sued, the gradient of the objective function can be pre-multiplied with the inverse of the mass
+% matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
+% presumably to use 'I', and then to try out 'M' for comparison.
+
+CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
+% If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
@@ -734,14 +745,7 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
-%%
-% The gradient of the objective function can be pre-multiplied with the inverse
-% of the mass matrix. This creates a `mesh independent' gradient. This has both
-% advantages and disadvantages. The best initial approach is presumably to use
-% 'I', and then to try out 'M' for comparison.
 
-CtrlVar.Inverse.AdjointGradientPreMultiplier="I"; % {'I','M'}
-CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 

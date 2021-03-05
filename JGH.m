@@ -42,7 +42,10 @@ end
 
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
-
+if any(isnan(F.C)) 
+    save TestSave ; 
+    error( ' C nan ') ; 
+end
 
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
@@ -70,6 +73,7 @@ if RunInfo.Forward.Converged
     ubP=F.ub;
     vbP=F.vb;
 else
+    warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
     ubP=[];
     vbP=[];
     I=NaN;

@@ -31,12 +31,12 @@ RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;NaN];
 
 
 
-fprintf("   It \t #fEval\t    gamma   \t\t    J \t\t\t\t  J/J0 \t\t\t   |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap \t  theta (degrees) \n")
-fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g\n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN,NaN)
+fprintf("   It \t #fEval\t   gamma   \t\t       J \t\t\t\t  J/J0 \t\t\t     |dp|/|p| \t\t |dJ/dp| \t sub-obtimality gap \t theta (degrees) \n")
+fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g \t %10.5g\n",0,RunInfo.Inverse.nFuncEval,NaN,J,NaN,NaN,GradNorm,NaN,NaN)
 
 
 
-NewtonAcceptRatioMin=0.9 ;
+NewtonAcceptRatioMin=0.8 ;
 CtrlVar.NewtonAcceptRatio=NewtonAcceptRatioMin ;
 CtrlVar.BackTrackMinXfrac=1e-3 ;
 gamma=NaN;
@@ -95,8 +95,15 @@ for Iteration=1:CtrlVar.Inverse.Iterations
         % JQuad=J0+gamma*dJdp'*dp+gamma^2*dp'*Hess*dp/2 ; % must do this before I calculate the new Hessian
     end
     
+ 
+    
     [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
 
+    while (isnan(J) || any(isnan(dJdp))) && ~(any(isnan(p))  || any(isnan(dp)))  
+         warning('UaOptimisationHessianBased:NaNinObjectiveFunction',' Objective function returned a NaN. Trying a new step size.') ;
+         gamma=gamma/100 ; [J,dJdp,Hess,fOuts]=func(p+gamma*dp);  RunInfo.Inverse.nFuncEval=RunInfo.Inverse.nFuncEval+1;
+    end
+    
     BackTrackInfo.Converged=1;
     if J>J0*CtrlVar.NewtonAcceptRatio
         
@@ -111,7 +118,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     GradNorm=norm(dJdp)/sqrt(numel(dJdp));
     CtrlVar.NewtonAcceptRatio= max(J/J0,NewtonAcceptRatioMin) ;
 
-    fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \t\t %10.5g \n",...
+    fprintf("%5i \t %5i \t %7.4g  \t\t %10.5g \t\t  %10.5g \t\t %10.5g \t\t %10.5g \t %10.5g \t\t %10.5g \n",...
         Iteration,RunInfo.Inverse.nFuncEval,gamma,J,J/J0,norm(dp)/norm(p+eps),GradNorm,SubOptimality,theta*180/pi)
     
     

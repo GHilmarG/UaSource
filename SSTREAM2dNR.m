@@ -8,7 +8,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     tStart=tic;
     RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
     
-    
+    Kuv=[] ; Ruv=[]; 
    
     
     % MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -25,8 +25,24 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     end
     
     
-    if any(isnan(F.C)) ; save TestSave ; error( ' C nan ') ; end
-    if any(isnan(F.AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
+    if any(isnan(F.C))
+        save TestSave ;
+        warning('SSTREAM2NR:CisNaN',' nan in C. Returning with NaN in solution.\n ') ;
+        F.ub=F.ub+NaN;
+        F.vb=F.vb+NaN;
+        return
+    end
+    
+    if any(isnan(F.AGlen))
+        save TestSave
+        warning('SSTREAM2NR:CisNaN',' nan in A. Returning with NaN in solution.\n ') ;
+        F.ub=F.ub+NaN;
+        F.vb=F.vb+NaN;
+        return
+    end
+    
+    
+    
     if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
     if any(isnan(F.h)) ; save TestSave  ; error( ' h nan ') ; end
     if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
