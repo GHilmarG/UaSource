@@ -38,7 +38,8 @@
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
-                <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
+                <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
+                <tocitem target="FE_inner_product.html">FE natural inner product and norm of nodal quantities</tocitem>
                 <tocitem target="calcFEderivativesMUA.html">Calculates x and y derivatives of a nodal quantity</tocitem>
                 <tocitem target="DistanceToLineSegment2.html">Determine if a point is close to a line.</tocitem>
                 <tocitem target="ProjectFintOntoNodes.html">Project integration-point values onto nodes.</tocitem>
@@ -58,7 +59,7 @@
                 <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
                 <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
                 <tocitem target="CalcMuaFieldsContourLine.html">Calculates one single contour line of a given field over the (irregular) mesh </tocitem>
-                
+                <tocitem target="HelmholzEquation.html">Solves the Helmholz equation of the MUA mesh. Can also be used for smoothing. </tocitem>
                 
             </tocitem>
         </tocitem>

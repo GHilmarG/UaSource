@@ -286,7 +286,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         
         slope0=-2*r0 ; 
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
 
         RunInfo.BackTrack=BackTrackInfo; 
         
@@ -465,9 +465,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     end
     
     RunInfo.Forward.Iterations=iteration; % May try to get rid of and use the uvhIterations vector instead
-    RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)=iteration ; 
-    RunInfo.Forward.uvhResidual(RunInfo.Forward.iCounter)=r;
-    RunInfo.Forward.uvhBackTrackSteps(RunInfo.Forward.iCounter)=BackTrackSteps ; 
+    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
+    RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
+    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ; 
     
     if CtrlVar.WriteRunInfoFile
         

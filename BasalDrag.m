@@ -49,9 +49,9 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     C0=CtrlVar.Czero;
     u0=CtrlVar.SpeedZero;
     
-    speed=(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)); 
+    speed=(sqrt(ub.*ub+vb.*vb+u0^2)); 
     Um=speed.^(1./m-1) ;
-    beta2i=(C+CtrlVar.Czero).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
+    beta2i=(C+C0).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 
     
     % Dbeta2i is zero for m=1.
@@ -106,7 +106,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 Nqm=N.^(qm) ;
                 
                 
-                dFuvdC= He.*Nqm  .*(1./m).*(C+C0).^(-1./m-1)  .*Um;
+                dFuvdC= He.*Nqm.*(1./m).*(C+C0).^(-1./m-1)  .*Um;
                 
             case {"rpCW-N0","Cornford"}
                 

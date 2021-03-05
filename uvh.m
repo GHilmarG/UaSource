@@ -21,9 +21,9 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
         
         CtrlVar.NumberOfActiveThicknessConstraints=0;
-        RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=NaN ;
-        RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=NaN;
-        RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=NaN;
+        RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=NaN ;
+        RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=NaN;
+        RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=NaN;
         
     else
         %    NodesFixed: holdes the nodal numbers nodes in the active set
@@ -478,8 +478,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     end
     
     
-    RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=iActiveSetIteration-1 ;
-    RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=isActiveSetCyclical;
-    RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=numel(BCs1.hPosNode);
+    RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
+    RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;
+    RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=numel(BCs1.hPosNode);
     
 end

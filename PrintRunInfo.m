@@ -40,7 +40,7 @@ end
 
 
 [status,hostname]=system('hostname');
-if status==0
+ status==0
     fprintf('   Running on: %s ',hostname)
 end
 

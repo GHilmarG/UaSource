@@ -30,13 +30,15 @@ Partition{nW}=i1:i2 ;
 spmd (0,nW) 
     % Build M directly on the workers to avoid communication
     
-        
     M{labindex}=MUA;
+    
+    % all ele based quantities need to be transferred accross the the lab
     M{labindex}.connectivity=MUA.connectivity(Partition{labindex},:);
     M{labindex}.Nele=numel(Partition{labindex});
     M{labindex}.Deriv=MUA.Deriv(Partition{labindex},:,:,:);
     M{labindex}.DetJ=MUA.DetJ(Partition{labindex},:);
-    
+    M{labindex}.EleAreas=MUA.EleAreas(Partition{labindex},:);
+     
     [~,~,rr,kk]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,M{labindex},F0,F1);
 end
 

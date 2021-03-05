@@ -2,10 +2,38 @@ function [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField)
 
 %% Generate FE mesh
 
-narginchk(4,4)
+%% 
+%
+% Accepts two different types of input formats:
+%
+% New input format:
+%
+%    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,F,EleSizeScalarField)
+%
+%
+% Old input format:
+%
+%    [UserVar,MUA]=genmesh2d(UserVar,CtrlVar,MeshBoundaryCoordinates)
+%
+%
+%
+%%
+
+narginchk(2,4)
 nargoutchk(2,2)
 
+if nargin==2
+    F=[];
+    EleSizeScalarField=[];
+end
 
+
+if nargin==3 
+    % Old input format
+    CtrlVar.MeshBoundaryCoordinates=F;
+    EleSizeScalarField=[];
+    F=[]; 
+end
 
 switch lower(CtrlVar.MeshGenerator)
     

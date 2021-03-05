@@ -98,6 +98,8 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 if CtrlVar.MapOldToNew.Test
     FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
     semilogy([1:30],JVector,'-or')
+    
+  
 end
 
 

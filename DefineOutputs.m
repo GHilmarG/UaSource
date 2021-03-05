@@ -6,17 +6,41 @@ function UserVar=DefineOutputs(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Inv
 %
 % Write your own version of this routine and put it in you local run directory.
 % 
-% Inputs:
+%
+%   This is the m-file you use to define/plot your results.
+%
+%   You will find all the outputs in the variable F
+%
+%   The variable F is a structure, and has various fields.
+%
+%   For example:
+%
+%   F.s             The upper glacier surface%   
+%   F.b             The lower glacier surface
+%   F.B             The bedrock
+%   F.rho           The ice density
+%   F.C             Basal slipperiness, i.e. the variable C in the basal sliding law
+%   F.AGlen         The rate factor, i.e. the variable A in Glen's flow law
+%
+%   All these variables are nodal variables, i.e. these are the corresponding values at the nodes of the computational domain.
+%
+%   You find informaton about the computational domain in the variable MUA
+%
+%   For example, the x and y coordinates of the nodes are in the nx2 array MUA.coordinates, where n is the number of nodes.
+%   
+%   MUA.coordinates(:,1)    are the nodal x coordinates 
+%   MUA.coordinates(:,y)    are the nodal y coordinates 
+%
+%
+%
 % 
 %   BCs             Structure with all boundary conditions
-%   UaVars          A structure with fields such as
-%                   s, b, S, B, rho, rhow, ub, vb, ud, vd, AGlen, n , C, m , as, ab, g
 %   l               Lagrange parameters related to the enforcement of boundary
 %                   conditions.
 %   GF              Grounding floating mask for nodes and elements.
 %
-% If preferred to work directly with the variables rather than the respective fields of the structure 
-% `UaVars', then`UaVars' can easily be converted into variables using v2struc.
+%   Note: If preferred to work directly with the variables rather than the respective fields of the structure F, thenF can easily be
+%   converted into variables using v2struc.
 %
 %%
 v2struct(F);

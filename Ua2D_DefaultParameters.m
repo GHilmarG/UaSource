@@ -12,7 +12,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %%
 %  
 %  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
-%  Changing the parameter values from their default values should be done by the user in `Ua2D_InitialUserInput.m'. 
+%  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
 
@@ -52,7 +52,9 @@ CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
 CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
+%% Slope of coordinate system with respect to gravity
 
+CtrlVar.alpha=0 ; 
 %% Sliding law
 %
 % Several sliding laws can be defined. These include *Weertman* (power-law relationship
@@ -121,19 +123,19 @@ CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
 CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
 %
-% Possible values for these stings are any combinations of  "sbSB".  
+% Possible values for these stings are any combinations of  "-s-b-S-B-rho-rhow-g-".  
 %
 % Examples: 
 %
-%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="S";
+%   CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="-S-";
 %
 %  forces an update of the ocean surface, S, within each time step. This could, for example, be used to specify a time varying ocean surface
 %  elevation due to tides. Hence, DefineGeometry will be called at each transient with FieldsToBeDefined='S'
 %
-%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="sbSB";  
+%   CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="-s-b-S-B-rho-rhow-g-";  
 %
 % forces all geometrical variables, i.e. upper ice surface (s), lower ice surface (b), ocean surface (S), and bedrock (B) to be defined in each
-% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='sbSB'
+% diagnostic run step through a call to DefineGeometry with FieldsToBeDefined='-s-b-S-B-rho-rhow-g-'
 %
 % The default option is not to modify any geometrical variables manually within a run step. 
 %
@@ -153,7 +155,7 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 % the run stops.
 
 CtrlVar.TotalTime=1e10;          % maximum model time
-CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the Ua2D_InitialUserInputFile
+CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
 CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnostic step, even if the step is a restart step.
@@ -175,7 +177,7 @@ CtrlVar.WriteRestartFile=1;              % if true, a restart file is written
 CtrlVar.WriteRestartFileInterval=100;    % restart file written at this time-step interval  (note, these are run steps, not model time)
 CtrlVar.ResetTime=0 ;                    % set to 1 to reset (model) time at start of restart run
 CtrlVar.RestartTime=NaN;                 % if ResetTime is true, then this is the model time at the start of the restart run
-CtrlVar.ResetTimeStep=0;                 % true if time step should be reset to dt given in the Ua2D_InitialUserInputFile
+CtrlVar.ResetTimeStep=0;                 % true if time step should be reset to dt given in the DefineInitialUserInputFile
 CtrlVar.ResetRunStepNumber=0;            % if true, RunStepNumber is set to zero at the beginning of a restart run. 
 CtrlVar.NameOfRestartFiletoRead='Ua2D_Restartfile.mat';
 CtrlVar.NameOfRestartFiletoWrite='Ua2D_Restartfile.mat';
@@ -320,8 +322,8 @@ switch lower(CtrlVar.FlowApproximation)
         CtrlVar.Cmin=0; 
 end
 CtrlVar.Cmax=1e50;
-CtrlVar.AGlenmin=100*eps;
-CtrlVar.AGlenmax=1e10;
+CtrlVar.AGlenmin=1e-20;
+CtrlVar.AGlenmax=1e20;
 
 %% Non-linear iteration-loop parameters
 % The non-linear system is considered solved once the residuals are smaller than 
@@ -527,7 +529,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
 %
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
 
-CtrlVar.InfoLevelAdjoint=1; % Overall level of information (inverse runs). 
+CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
                             
@@ -630,28 +632,18 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % an issue).
 %
 %
-% The inversion for C and A can be done with C and A defined on nodes or
-% elements. See: 
+% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit
+% initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method
+% is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the
+% adjoint gradients.
 %
+% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good
+% estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right
+% at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient
+% calculation using adjoint
 %
-%   CtrlVar.AGlenisElementBased 
-%   CtrlVar.CisElementBased. 
-%
-% In the past only inversion for element-based variables was possible, but now (as of Jan 2017) one can invert for either nodal or element
-% values. By default, the inversion is done on nodal values.
-%
-%
-% Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially
-% quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough
-% estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.
-%
-% FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint
-% method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one
-% can switch to gradient calculation using adjoint
-%
-% Ua has some inbuilt optimization methods and these are used by default.
-% However, if the matlab optimization toolbox is installed, the matlab routines
-% can be used instead.
+% Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the
+% matlab routines can be used instead.
 %
 % Note #1: Some parameter combinations can be inconsistent. For example inverting
 % for A only and applying regularization on A and C, i.e.
@@ -681,26 +673,52 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='-A-C-'
 %
 %
-% To select either the inbuilt UaOptimization or the Matlab Optimization toolbox:
+%% Inversion algorithim: 
 %
-% Note on Ua versus Matlab optimization: Generally using the Matlab optimization
-% routines has been a bit of a disappointment. For a number of well-known test
-% cases (Rosenbrock function etc.) the Matlab routines are far better than the
-% simple inbuilt UaOptimization methods. For some real-world applications that
-% have been tried, for example an inversion over PIG-TWG, the Matlab routines
-% also tend to perform much better. However, there are other cases where the
-% UaOptimization methods perform better,.
+% The inversion can be done using either only the gradient, or gradient and an estimate of the Hessian
+% 
+% The gradient calculation is exact, well as exact as a numerical method can be expected to be exact.
 %
+% The Hessian of the regularisation term is exact, but the Hessian of the misfit term is approximated (see details in the Ua
+% Compendium)
+%
+% The optimisation step in the inversion can then be done using either the Matlab optimisationo toolbox, or an some Ua optimisation
+% routines.
+% 
+% Default is to use Hessian based optimisation, which uses both the gradient and the Hessian approximation, or gradient-based
+% minimisation, which only uses the gradient and builds up an approximation of the Hessian from the gradient.
+%
+% The default option is Hessian-based optimisation using the matlab optimisation toolbox.
+%
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % Hessian-based, Matlab toolbox
+%                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
+%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimisation toolbox
+%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimisation toolbox
+
+% If a Hessian-based optimisation is used, the the expressions for the Hessians can be selected as follows:
+CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
+% Here R stands for Regularisation and I stands for Misfit.
+% E stands for 'exact' and 'FP' for 'fixed-point'
+%
+% So RHA=E implies that the Hessian (H) for the AGlen (A) regularisation term (R) is based on the exact (E) expression for H. 
+% So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
 
 
-CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
-CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'; % {'MatlabOptimization','UaOptimization'}
+% If the gradient-based approach is sued, the gradient of the objective function can be pre-multiplied with the inverse of the mass
+% matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
+% presumably to use 'I', and then to try out 'M' for comparison.
+
+CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
+% If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
 CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
+
+CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile=true ;
+CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile=true ;
 CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
 CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 
@@ -727,14 +745,7 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % When inverting for C only, one can also use a gradient based on a `FixPoint'
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
-%%
-% The gradient of the objective function can be pre-multiplied with the inverse
-% of the mass matrix. This creates a `mesh independent' gradient. This has both
-% advantages and disadvantages. The best initial approach is presumably to use
-% 'I', and then to try out 'M' for comparison.
 
-CtrlVar.Inverse.AdjointGradientPreMultiplier='I'; % {'I','M'}
-CtrlVar.Inverse.pPreMultiplier="I" ; % Internal variable, do not change. 
 %%
 % Regularization can be applied on A and C or log(A) and log(C). Also possible
 % to use a covariance matrix for A and C. 
@@ -851,40 +862,13 @@ if license('test','Optimization_Toolbox')
     % toolbox when performing an inversion, i.e if
     % CtrlVar.Inverse.MinimisationMethod='MatlabOptimization'
     %
-    %  The last example is the default 
-    %
-    %  You can copy some of these examples into your own Ua2D_InitialUserInput.m
-    %  file and modify as needed. See Matlab documentation for further information. 
+    %  You can copy some of these examples into your own DefineInitialUserInput.m
+    %  file and modify as needed. See Matlab documentation for further information.
     %
     
-    CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
-        'Algorithm','trust-region',...
-        'MaxIterations',CtrlVar.Inverse.Iterations,...
-        'MaxFunctionEvaluations',1e6,...
-        'Display','iter-detailed',...
-        'OutputFcn',@fminuncOutfun,...
-        'Diagnostics','on',...
-        'OptimalityTolerance',1e-20,...
-        'FunctionTolerance',1e-10,...
-        'StepTolerance',1e-20,...
-        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
-        'SpecifyObjectiveGradient',true,...
-        'HessianFcn','objective');
     
-    CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fminunc',...
-        'Algorithm','quasi-newton',...
-        'MaxIterations',CtrlVar.Inverse.Iterations,...
-        'MaxFunctionEvaluations',1e6,...
-        'Display','iter-detailed',...
-        'OutputFcn',@fminuncOutfun,...
-        'Diagnostics','on',...
-        'OptimalityTolerance',1e-20,...
-        'StepTolerance',1e-20,...
-        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
-        'SpecifyObjectiveGradient',true);
-    
-    
-    CtrlVar.Inverse.MatlabOptimisationParameters = optimoptions('fmincon',...
+    % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
+    CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
         'Algorithm','interior-point',...
         'CheckGradients',false,...
         'ConstraintTolerance',1e-10,...
@@ -911,6 +895,37 @@ if license('test','Optimization_Toolbox')
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
+    
+    
+    % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
+    Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estmation.
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
+        'Algorithm','interior-point',...
+        'CheckGradients',false,...
+        'ConstraintTolerance',1e-10,...
+        'HonorBounds',true,...
+        'Diagnostics','on',...
+        'DiffMaxChange',Inf,...
+        'DiffMinChange',0,...
+        'Display','iter-detailed',...
+        'FunValCheck','off',...
+        'MaxFunctionEvaluations',1e6,...
+        'MaxIterations',CtrlVar.Inverse.Iterations,...,...
+        'OptimalityTolerance',1e-20,...
+        'OutputFcn',@fminuncOutfun,...
+        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
+        'StepTolerance',1e-30,...
+        'FunctionTolerance',1,...
+        'UseParallel',true,...
+        'HessianFcn',Hfunc,...
+        'HessianMultiplyFcn',[],...
+        'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase
+        'ScaleProblem','none',...
+        'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
+        'SpecifyConstraintGradient',false,...
+        'SpecifyObjectiveGradient',true,...
+        'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear whic
+
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end
@@ -921,15 +936,15 @@ end
 %%
 % Some less-often used parameters related to inversion:
 CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R and I for each iteration,
-%%
-% >=2 for additional info on backtracking,
+CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step, only relevant when using UaOptimisation
+
 % >=100 for further info and plots
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
 % CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 
 %% Comparing adjoint gradients with finite-difference gradients
-% 
+%
 % The derivatives obtained with the adjoint method can be
 % compared with those obtained from brute force finite difference calculations.
 % Only do this for small problems!
@@ -940,7 +955,12 @@ CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calcu
 % differences, second-order central differences, or fourth-order central
 % differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType='second-order' ; % {'first-order','second-order','fourth-order'}
+CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ;
+CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
+    ["forward-first-order","central-second-order","forward-second-order"...
+    "central-fourth-order","complex step differentiation"] ;
+% {'-forward-first-order','central-second-order','forward-second-order''fourth-order'}
+
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
 %
 % if left empty, values are calculated for every node/element within the mesh.
@@ -949,7 +969,7 @@ CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which br
 % end, testing adjoint parameters.
 %% Inverse testing parameters (do not change)
 
-CtrlVar.Inverse.DataMisfit.HessianEstimate='0'; % {'0','I','MassMatrix'} Do not use, just for testing.
+
 CtrlVar.Inverse.CalcGradI=true;   % do not change, just for testing
 CtrlVar.Inverse.DataMisfit.FunctionEvaluation='integral';   % do not change, just for testing
 CtrlVar.Inverse.DataGradient.FunctionEvaluation='integral'; % do not change, just for testing
@@ -962,15 +982,10 @@ CtrlVar.sweep=1;              % renumber nodes using a `sweep' plane
 CtrlVar.SweepAngle=0.01;      % angle of sweep plane with respect to x axis
 CtrlVar.CuthillMcKee=0;       % renumber nodes using sparse reverse Cuthill-McKee ordering
 
-%% Creation of a dumpfile
-% Mainly used for testing purposes, but can in principle also be used to generate output data files.
-CtrlVar.WriteDumpFile=0;                      % a dumpfile is created containing all variables
-CtrlVar.WriteDumpFileStepInterval=1000;       % number of time steps between writing a dump file
-CtrlVar.WriteDumpFileTimeInterval=0;          % time interval between writing a dump file
 
 %%  Outputs
 %
-% For outputs Ua calls a routine called 
+% For outputs Ua calls a routine called
 %
 %   DefineOutputs.m
 %
@@ -1001,19 +1016,19 @@ CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % run-step number.
 %
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
-CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals 
+CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %
 % In almost all cases the simplest option tends to be to define the outlines of
-% the computational domain in 
+% the computational domain in
 %
-%   Ua2D_InitialUserInput 
+%   DefineInitialUserInput
 %
 %
 % by setting the variable
 %
-%   MeshBoundaryCoordinates 
+%   MeshBoundaryCoordinates
 %
 % Currently two external mesh generators can be called direclty from Úa:
 %
@@ -1021,7 +1036,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %   mesh2d
 %
 % The external mesh generator "gmsh" is a well known and a well supported open
-% source mesh generator (http://geuz.org/gmsh/) 
+% source mesh generator (http://geuz.org/gmsh/)
 %
 % mesh2d is a matlab based mesh generator (see:
 % https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation)
@@ -1034,13 +1049,13 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 % When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
-% defined by the variable 
+% defined by the variable
 %
-%   MeshBoundaryCoordinates 
-% 
+%   MeshBoundaryCoordinates
+%
 % set in
 %
-%   Ua2D_InitialUserInput.m. 
+%   DefineInitialUserInput.m. 
 %
 % This approach is quite flexible and allows for
 % complicated computational domains containing holes and/or separated domains.
@@ -1072,8 +1087,8 @@ CtrlVar.GmshMeshingMode='create new gmsh .geo input file and mesh domain and loa
 % 
 CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable) directly from a .mat file 
                               % unless the adaptive meshing option is used, no further meshing is done.
-CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';
-CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';
+CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
+CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
 % But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
@@ -1349,7 +1364,7 @@ CtrlVar.RefineMeshOnStart=0;
 % option) or the elements to be refined (explicit:local option), using the user
 % m-file 
 % 
-%   DefineDesireEleSizes.m
+%   DefineDesiredEleSizes.m
 %
 % Note: Adapt meshing can only be done in a combination with a forward run.
 % Adapt meshing can not be done in an inverse run. Usually before starting with

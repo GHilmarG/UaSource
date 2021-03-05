@@ -1,4 +1,7 @@
-function [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
+
+
+
 
 % Calculates objective function, gradient (accurate), Hessian (guessed)
 
@@ -10,6 +13,7 @@ CtrlVar.nargoutJGH=nargout;
 if nargout==1
     CtrlVar.Inverse.CalcGradI=false;
     CtrlVar.Inverse.CalcGradR=false;
+    dJdp=[] ; Hessian=[] ; JGHouts=[] ;
 else
     CtrlVar.Inverse.CalcGradI=true;
     CtrlVar.Inverse.CalcGradR=true;
@@ -27,37 +31,54 @@ if ~isempty(ubP)
 end
 
 
-if CtrlVar.Inverse.MinimisationMethod=="UaOptimization"
-     p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticaed approach (I hope). 
+if contains(CtrlVar.Inverse.MinimisationMethod,"UaOptimization")
+    % p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope).
+    %[~,iU,iL] = kk_proj(p,pub,plb);
+    %numel(find(iU))
+    %numel(find(iL))
 end
 
 % Note: I should consider writing this as F=p2InvValues(CtrlVar,p)
 
-F=p2F(CtrlVar,MUA,p,F,Meas,Priors); 
+F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
+
+if any(isnan(F.C)) 
+    save TestSave ; 
+    error( ' C nan ') ; 
+end
+
+[UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
-
-[UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-
-[R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
-[I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+if nargout==1
+    R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
+    I=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+else
+    [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
+    [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
+end
 
 
 
 if nargout>1
     dJdp=dRdp+dIdp;
-    Hessian=ddRddp+ddIddp;
+    if isempty(ddIddp)
+        Hessian=ddRddp;
+    else
+        Hessian=ddRddp+ddIddp;
+    end
 end
 
 if RunInfo.Forward.Converged
     ubP=F.ub;
     vbP=F.vb;
 else
+    warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
     ubP=[];
     vbP=[];
     I=NaN;
     R=NaN ;
-    dJdp=p*0+NaN; 
+    dJdp=p*0+NaN;
     MisfitOuts.I=NaN;
 end
 

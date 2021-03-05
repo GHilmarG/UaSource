@@ -75,5 +75,9 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
     end
     
     
+    if nargout==0
+        clear fig
+    end
+    
     
 end

@@ -97,14 +97,14 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         end
         
         
-    elseif CtrlVar.AdaptiveTimeStepping && ~isnan(RunInfo.Forward.Iterations)
+    elseif CtrlVar.AdaptiveTimeStepping && CtrlVar.CurrentRunStepNumber>1
         
         
         %         ItVector(2:end)=ItVector(1:end-1) ;
         %         ItVector(1)=RunInfo.Forward.Iterations;
         %        nItVector=numel(find(ItVector<1e10));
         
-        ItVector=RunInfo.Forward.uvhIterations(max(RunInfo.Forward.iCounter-4,1):RunInfo.Forward.iCounter);
+        ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-5,1):CtrlVar.CurrentRunStepNumber-1);
         nItVector=numel(ItVector) ;
         
      
@@ -114,14 +114,14 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         % It TimeStepUpRatio is smaller than 1, the number of non-linear iterations has
         % consistently been below target and time step should potentially be increased.
         
-        if RunInfo.Forward.iCounter>=CtrlVar.ATSintervalUp
-            TimeStepUpRatio=max(RunInfo.Forward.uvhIterations(max(RunInfo.Forward.iCounter-CtrlVar.ATSintervalUp+1,1):RunInfo.Forward.iCounter))/CtrlVar.ATSTargetIterations ;
+        if (CtrlVar.CurrentRunStepNumber-1)>=CtrlVar.ATSintervalUp
+            TimeStepUpRatio=max(RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-1-CtrlVar.ATSintervalUp+1,1):CtrlVar.CurrentRunStepNumber-1))/CtrlVar.ATSTargetIterations ;
         else
             TimeStepUpRatio=NaN ;
         end
         
-        if RunInfo.Forward.iCounter>=CtrlVar.ATSintervalDown
-            TimeStepDownRatio=min(RunInfo.Forward.uvhIterations(max(RunInfo.Forward.iCounter-CtrlVar.ATSintervalDown+1,1):RunInfo.Forward.iCounter))/CtrlVar.ATSTargetIterations ;
+        if (CtrlVar.CurrentRunStepNumber-1)>=CtrlVar.ATSintervalDown
+            TimeStepDownRatio=min(RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-1-CtrlVar.ATSintervalDown+1,1):CtrlVar.CurrentRunStepNumber-1))/CtrlVar.ATSTargetIterations ;
         else
             TimeStepDownRatio=NaN;
         end
@@ -130,7 +130,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping:  #Non-Lin Iterations over last %-i time steps: (max|mean|min)=(%-g|%-g|%-g). Target is %-i. \t TimeStepUpRatio=%-g \n ',...
             nItVector,max(ItVector),mean(ItVector),min(ItVector),CtrlVar.ATSTargetIterations,TimeStepUpRatio);
         
-        if RunInfo.Forward.Iterations==666  % This is a special forced reduction whenever RunInfo.Forward.Iterations has been set to this value
+        if RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)==666  % This is a special forced reduction whenever RunInfo.Forward.Iterations has been set to this value
             
             
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
@@ -138,7 +138,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
             fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
             
             
-        elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)>25
+        elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)>25
             
             % This is also a special case to cover the possibilty that there is a sudden
             % increase in the number of non-linear iterations, or if the initial time step

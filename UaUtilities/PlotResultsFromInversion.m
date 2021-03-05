@@ -628,9 +628,9 @@ else
             tFig1=figure('Name','True and estimated C','NumberTitle','off');
 
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ; title('True C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -665,9 +665,9 @@ else
         if ~isempty(Priors.TrueAGlen)
             tFig1=figure('Name','True and estimated AGlen','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; title('True AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; title('Retrieved AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -708,9 +708,9 @@ else
             
             tFig1=figure('Name','True and estimated B','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB) ; title('True B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B) ; title('Retrieved B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ; 
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.51 0.5 0.4];
             
@@ -793,27 +793,48 @@ else
     if ~isempty(RunInfo.Inverse.J)
         
         fig=FindOrCreateFigure('Inverse Parameter Optimisation');
+        clf(fig)
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-        ylabel('J')
+        ylabel('J','interpreter','latex')
         
-        if ~isempty(RunInfo.Inverse.I) && ~isempty(RunInfo.Inverse.R)
-            
-            hold on
-            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
-            ylabel('J & I')
+        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm))
+
             hold off
             yyaxis right
-            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
-            ylabel('R')
-            legend('Objective function','I','R','Location','southwest')
-        else
-            legend('Objective function')
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.GradNorm,'-r+')
+            ylabel('Norm of gradient ($l_2$)','interpreter','latex')
+            legend('Objective function','$\| \hbox{Gradient} \|$','Location','northeast','interpreter','latex')
+            
         end
         
         yyaxis left
-        xlabel('Inverse iteration') ;
+        xlabel('Inverse iteration','interpreter','latex');
+        hold off
+        
+        if ~all(isnan(RunInfo.Inverse.R)) && ~all(isnan(RunInfo.Inverse.R))
+            
+            fig=FindOrCreateFigure('J=I+R');
+            clf(fig)
+            hold off
+            yyaxis left
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
+            ylabel('J','interpreter','latex')
+            
+            hold on
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
+            ylabel('J and I')
+         
+            yyaxis right
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
+            ylabel('R')
+            legend('Objective function','I','R','Location','southwest','interpreter','latex')
+
+        end
+        
+        yyaxis left
+        xlabel('Inverse iteration','interpreter','latex') ;
         hold off
     end
     

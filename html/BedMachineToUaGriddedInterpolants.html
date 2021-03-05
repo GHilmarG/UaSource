@@ -1,0 +1,490 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>BedMachineToUaGriddedInterpolants</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-11-09"><meta name="DC.source" content="BedMachineToUaGriddedInterpolants.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">Read data</a></li><li><a href="#6">Plot raw data, just to see if all is OK</a></li><li><a href="#7">Check relationship between geometrical variables</a></li><li><a href="#8">Ua variables</a></li><li><a href="#11">Possible subsampling</a></li><li><a href="#12">create gridded interpolants</a></li><li><a href="#13">Test gridded interpolants</a></li><li><a href="#14">Meshboundary coordinates</a></li><li><a href="#15">Testing mesh boundary cooridnates and creating  a new one with different spacing between points and some level of smoothing</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs)
+</pre><p>Reads BedMachine nc file and creates Ua gridded interpolants with s, b, B and rho.</p><p>Note: This is just a rough idea as to how this could be done and most likely will need some modifications for some particular applications.</p><p>filename              name nc of file with the BedMachine data</p><p>N                     subsample options, use every N data point in x and y direction. (N=1 implies no sub-sampling.)</p><p>LakeVostok            logical variable, if set to false, then Lake Vostok is eliminated from the data by raising the bedrock to match the                       lower ice surface over the lake.</p><p>BoundaryResolution    resolution in meters when contouring mask to produce boundary coordinates. This can not be smaller than the                       resolution of the data set itself, which is 500m. And if N is set to, for example N=10, then the smallest                       possible resolution for the boundary is N*500.</p><p>Examples:</p><p>Using default values:</p><pre>     BedMachineToUaGriddedInterpolants ;</pre><p>Full resolution, ie N=1 and boundary resolution equal to the resolution of the data sets, ie 500 meters.</p><pre>     BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,500,true);</pre><pre>     BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",10,false,20e3,false) ;</pre><pre class="codeinput">arguments
+    filename (1,1) string = <span class="string">"BedMachineAntarctica_2020-07-15_v02.nc"</span> ;
+    N (1,1) double = 1
+    LakeVostok (1,1) logical = false
+    BoundaryResolution (1,1) double = 2*N*500;      <span class="comment">% this mush be larger than 500m, and preferrably some interger multiple of that</span>
+    SaveOutputs (1,1) logical = false ;
+<span class="keyword">end</span>
+</pre><h2 id="5">Read data</h2><pre class="codeinput">fprintf(<span class="string">" Reading BedMachine data from file %s "</span>,filename)
+x = ncread(filename,<span class="string">'x'</span>);
+y = ncread(filename,<span class="string">'y'</span>);
+bed = ncread(filename,<span class="string">'bed'</span>)';
+surface = ncread(filename,<span class="string">'surface'</span>)';
+thickness = ncread(filename,<span class="string">'thickness'</span>)';
+firn = ncread(filename,<span class="string">'firn'</span>)';
+mask = ncread(filename,<span class="string">'mask'</span>)'; mask=double(mask) ;
+source = ncread(filename,<span class="string">'source'</span>)';
+geoid = ncread(filename,<span class="string">'geoid'</span>)'; geoid=double(geoid) ;
+errbed = ncread(filename,<span class="string">'errbed'</span>)';
+fprintf(<span class="string">"...done.\n"</span>)
+<span class="comment">% All heights are referenced to mean sea level using the geod EIGEN-6D4</span>
+<span class="comment">%</span>
+<span class="comment">% To obtain height with respect to WGS84 add geod</span>
+<span class="comment">%</span>
+<span class="comment">% Rema= Surface + Firn + Geod</span>
+<span class="comment">%</span>
+<span class="comment">%  ocean/ice/land mask</span>
+<span class="comment">%  0 = ocean</span>
+<span class="comment">%  1 = ice-free land</span>
+<span class="comment">%  2 = grounded</span>
+<span class="comment">%  3 = floating ice</span>
+<span class="comment">%  4 = Lake Vostok</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Apparantly  surface=bed+thickness over the grounded areas</span>
+<span class="comment">%</span>
+<span class="comment">% However this surface is not the REMA surface</span>
+<span class="comment">%</span>
+<span class="comment">% So the actual surface (with respect to sea level) is: s = surface+firn</span>
+<span class="comment">%                                                       b=bed=surface-thickness=s-firn-thickness</span>
+<span class="comment">%                                           therefore   h=s-b=surface+firn-(surface-thickness)=firn+thickness</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+</pre><h2 id="6">Plot raw data, just to see if all is OK</h2><pre class="codeinput">figure(10) ; imagesc(x,y,bed); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([-4000 1800]); title(<span class="string">' bed '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(20) ; imagesc(x,y,thickness); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 4500]); title(<span class="string">' thickness '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(30) ; imagesc(x,y,firn); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 50]); title(<span class="string">' firn '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(40) ; imagesc(x,y,surface); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 4800]); title(<span class="string">' surface '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(50) ; imagesc(x,y,geoid); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([-100 100]); title(<span class="string">' geoid '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(60) ; imagesc(x,y,mask); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 4]); title(<span class="string">' mask '</span> ) ; colorbar ; axis <span class="string">tight</span>
+</pre><h2 id="7">Check relationship between geometrical variables</h2><p>figure(100) ; imagesc(x,y,(mask~=0).*((surface-(bed+thickness+firn)))); axis xy equal;  title('(mask~=0).*(surface-(bed+thickness+firn))' ) ; colorbar ; axis tight ; caxis([-50 50]) figure(110) ; imagesc(x,y,(mask~=0).*(surface-(bed+thickness))); axis xy equal;  title('(mask~=0).*(surface-(bed+thickness))' ) ; colorbar ; axis tight ; caxis([-50 50]) figure(120) ; imagesc(x,y,(firn+thickness)); axis xy equal;  title('firn+thickness' ) ; colorbar ; axis tight ;</p><h2 id="8">Ua variables</h2><p>I'm assuming here that the user wants the variable s to be surface+firn, in which case the vertically averaged ice density must be modfied accordingly.</p><pre class="codeinput">s=surface+firn ;
+b=surface-thickness ;
+h=firn+thickness ; <span class="comment">% or just h=s-b</span>
+B=bed ;
+
+<span class="keyword">if</span> ~LakeVostok
+    IV=mask== 4;
+    B(IV)=b(IV);
+<span class="keyword">end</span>
+
+OceanMask=(mask==0) ;
+
+rhoi=917 ;
+rhof=500;  <span class="comment">% Not even sure if this is correct, but if the density model came from Racmo, then this is most likley the case (must check).</span>
+rhof=1;    <span class="comment">% Apparantly this is not firn thickness but air thickness, therefore the relevant rho is the density of air</span>
+</pre><p>The 'firn' field in the Bedmachine data is not the firn thickness! It is the firn air content</p><p><img src="BedMachineToUaGriddedInterpolants_eq02775067420795880021.png" alt="$$ firn=  \frac{1}{\rho_i}  \int_{firn layer} (\rho_i - \rho_f) \, dz $$" style="width:193px;height:35px;"></p><p><img src="BedMachineToUaGriddedInterpolants_eq17467035999183504765.png" alt="$$e^{\pi i} + 1 = 0$$" style="width:69px;height:15px;"></p><pre class="codeinput">rho=(rhoi*(thickness+eps)+rhof*(firn+eps))./(thickness+firn+2*eps) ;
+rho(OceanMask)=rhoi;  <span class="comment">% be carefull here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.</span>
+
+figure(200) ; imagesc(x,y,s); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 4000]); title(<span class="string">' s '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(210) ; imagesc(x,y,b); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([-2000 4000]); title(<span class="string">' b '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(220) ; imagesc(x,y,h); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([0 4000]); title(<span class="string">' h '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(230) ; imagesc(x,y,B); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([-4000 4000]); title(<span class="string">' B '</span> ) ; colorbar ; axis <span class="string">tight</span>
+figure(240) ; imagesc(x,y,rho); axis <span class="string">xy</span> <span class="string">equal</span>; caxis([500 920]); title(<span class="string">' rho '</span> ) ; colorbar ; axis <span class="string">tight</span>
+</pre><h2 id="11">Possible subsampling</h2><pre class="codeinput">x=x(1:N:end) ;
+y=y(1:N:end) ;
+s=s(1:N:end,1:N:end) ;
+rho=rho(1:N:end,1:N:end) ;
+b=b(1:N:end,1:N:end) ;
+B=B(1:N:end,1:N:end) ;
+mask=mask(1:N:end,1:N:end) ;
+</pre><h2 id="12">create gridded interpolants</h2><pre class="codeinput">[X,Y]=ndgrid(double(x),double(flipud(y))) ;
+
+Fs=griddedInterpolant(X,Y,rot90(s,3));
+Fb=griddedInterpolant(X,Y,rot90(b,3));
+FB=griddedInterpolant(X,Y,rot90(B,3));
+Frho=griddedInterpolant(X,Y,rot90(rho,3));
+
+
+<span class="keyword">if</span> SaveOutputs
+    fprintf(<span class="string">' Saving BedMachineGriddedInterpolants with Fs, Fb, FB and Frho. \n'</span>)
+    save(<span class="string">'BedMachineGriddedInterpolants'</span>,<span class="string">'Fs'</span>,<span class="string">'Fb'</span>,<span class="string">'FB'</span>,<span class="string">'Frho'</span>,<span class="string">'-v7.3'</span>)
+<span class="keyword">end</span>
+</pre><h2 id="13">Test gridded interpolants</h2><pre class="codeinput"><span class="comment">% load in an old mesh of Antarctica and map on this mesh. Just done for testing purposes and to see if the gridded data looks sensible.</span>
+
+load <span class="string">MUA_Antarctica.mat</span>;
+xFE=MUA.coordinates(:,1) ; yFE=MUA.coordinates(:,2) ;
+
+sFE=Fs(xFE,yFE);
+bFE=Fb(xFE,yFE);
+BFE=FB(xFE,yFE);
+rhoFE=Frho(xFE,yFE);
+
+CtrlVar.PlotXYscale=1000;
+
+bfig=FindOrCreateFigure(<span class="string">'b'</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE);
+xlabel(<span class="string">'xps (km)'</span> ) ; xlabel(<span class="string">'yps (km)'</span> ) ; title(<span class="string">'b'</span>) ; title(cbar,<span class="string">'m a.s.l'</span>)
+
+
+sfig=FindOrCreateFigure(<span class="string">'s'</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,sFE);
+xlabel(<span class="string">'xps (km)'</span> ) ; xlabel(<span class="string">'yps (km)'</span> ) ; title(<span class="string">'s'</span>) ; title(cbar,<span class="string">'m a.s.l'</span>)
+
+
+Bfig=FindOrCreateFigure(<span class="string">'B'</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,BFE);
+xlabel(<span class="string">'xps (km)'</span> ) ; xlabel(<span class="string">'yps (km)'</span> ) ; title(<span class="string">'B'</span>) ; title(cbar,<span class="string">'m a.s.l'</span>)
+
+
+rhofig=FindOrCreateFigure(<span class="string">'rho'</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,rhoFE);
+xlabel(<span class="string">'xps (km)'</span> ) ; xlabel(<span class="string">'yps (km)'</span> ) ; title(<span class="string">'rho'</span>) ; title(cbar,<span class="string">'km/m^3'</span>)
+
+rhofig=FindOrCreateFigure(<span class="string">'bFE-BFE'</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE-BFE);
+xlabel(<span class="string">'xps (km)'</span> ) ; xlabel(<span class="string">'yps (km)'</span> ) ; title(<span class="string">'b-B'</span>) ; title(cbar,<span class="string">'m'</span>)
+</pre><h2 id="14">Meshboundary coordinates</h2><p>Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the time.</p><pre class="codeinput">IceMask=(mask~=0) ;  IceMask=double(IceMask);
+DataResolution=N*500 ; <span class="comment">% the resolution of the data set is 500 m</span>
+NN=min([round(BoundaryResolution/DataResolution) 1]) ;
+
+
+fc=FindOrCreateFigure(<span class="string">'contour'</span>) ;
+[M]=contour(x(1:NN:end),y(1:NN:end),IceMask(1:NN:end,1:NN:end),1) ; axis <span class="string">equal</span>
+hold <span class="string">on</span>; plot(M(1,:), M(2, :), <span class="string">'r.'</span>);
+
+<span class="comment">% now find longest contourline</span>
+level=0.5 ;  <span class="comment">% this contour level must be in M</span>
+I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ;
+fprintf(<span class="string">' %i points in the longest contour line segment.\n'</span>,M(2,I(J)) );
+Boundary=M(:,I(J)+1:I(J)+M(2,I(J))) ;
+plot(Boundary(1,:),Boundary(2,:),<span class="string">'o-k'</span>)  ; axis <span class="string">equal</span>
+
+Boundary=Boundary';
+
+<span class="keyword">if</span> SaveOutputs
+
+    fprintf(<span class="string">'Saving MeshBoundaryCoordinates. \n '</span>)
+    save(<span class="string">'MeshBoundaryCoordinatesForAntarcticaBasedOnBedmachine'</span>,<span class="string">'Boundary'</span>)
+<span class="keyword">end</span>
+</pre><h2 id="15">Testing mesh boundary cooridnates and creating  a new one with different spacing between points and some level of smoothing</h2><pre class="codeinput">CtrlVar.GLtension=1e-12; <span class="comment">% tension of spline, 1: no smoothing; 0: straight line</span>
+CtrlVar.GLds=5e3 ;
+
+
+[xB,yB,nx,ny] = Smooth2dPos(Boundary(:,1),Boundary(:,2),CtrlVar);
+MeshBoundaryCoordinates=[xB(:) yB(:)] ;
+fc=FindOrCreateFigure(<span class="string">'MeshBoundaryCoordinates'</span>) ;
+plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),<span class="string">'.-'</span>) ; axis <span class="string">equal</span>
+title(<span class="string">"Example of a smoothed and resampled boundary"</span>)
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs) 
+
+%%  
+% Reads BedMachine nc file and creates Ua gridded interpolants with s, b, B and rho.
+% 
+% Note: This is just a rough idea as to how this could be done and most likely will need some modifications for some particular
+% applications.
+%
+%
+% filename              name nc of file with the BedMachine data
+%
+% N                     subsample options, use every N data point in x and y direction. (N=1 implies no sub-sampling.)
+%
+% LakeVostok            logical variable, if set to false, then Lake Vostok is eliminated from the data by raising the bedrock to match the
+%                       lower ice surface over the lake.
+%
+% BoundaryResolution    resolution in meters when contouring mask to produce boundary coordinates. This can not be smaller than the
+%                       resolution of the data set itself, which is 500m. And if N is set to, for example N=10, then the smallest
+%                       possible resolution for the boundary is N*500.
+%
+%
+% Examples:   
+%
+% Using default values: 
+%
+%       BedMachineToUaGriddedInterpolants ; 
+%
+%  
+% Full resolution, ie N=1 and boundary resolution equal to the resolution of the data sets, ie 500 meters.
+%   
+%       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,500,true);
+%
+%       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",10,false,20e3,false) ; 
+%
+% 
+%
+%% 
+
+
+
+arguments
+    filename (1,1) string = "BedMachineAntarctica_2020-07-15_v02.nc" ;
+    N (1,1) double = 1
+    LakeVostok (1,1) logical = false
+    BoundaryResolution (1,1) double = 2*N*500;      % this mush be larger than 500m, and preferrably some interger multiple of that
+    SaveOutputs (1,1) logical = false ; 
+end
+
+
+%% Read data
+
+fprintf(" Reading BedMachine data from file %s ",filename) 
+x = ncread(filename,'x');
+y = ncread(filename,'y');
+bed = ncread(filename,'bed')'; 
+surface = ncread(filename,'surface')'; 
+thickness = ncread(filename,'thickness')'; 
+firn = ncread(filename,'firn')'; 
+mask = ncread(filename,'mask')'; mask=double(mask) ;
+source = ncread(filename,'source')'; 
+geoid = ncread(filename,'geoid')'; geoid=double(geoid) ; 
+errbed = ncread(filename,'errbed')'; 
+fprintf("...done.\n")
+% All heights are referenced to mean sea level using the geod EIGEN-6D4
+%
+% To obtain height with respect to WGS84 add geod
+%
+% Rema= Surface + Firn + Geod
+%
+%  ocean/ice/land mask
+%  0 = ocean
+%  1 = ice-free land
+%  2 = grounded
+%  3 = floating ice 
+%  4 = Lake Vostok
+%
+%
+% Apparantly  surface=bed+thickness over the grounded areas
+%
+% However this surface is not the REMA surface
+%
+% So the actual surface (with respect to sea level) is: s = surface+firn
+%                                                       b=bed=surface-thickness=s-firn-thickness
+%                                           therefore   h=s-b=surface+firn-(surface-thickness)=firn+thickness
+%
+%
+%% Plot raw data, just to see if all is OK
+%
+figure(10) ; imagesc(x,y,bed); axis xy equal; caxis([-4000 1800]); title(' bed ' ) ; colorbar ; axis tight
+figure(20) ; imagesc(x,y,thickness); axis xy equal; caxis([0 4500]); title(' thickness ' ) ; colorbar ; axis tight
+figure(30) ; imagesc(x,y,firn); axis xy equal; caxis([0 50]); title(' firn ' ) ; colorbar ; axis tight 
+figure(40) ; imagesc(x,y,surface); axis xy equal; caxis([0 4800]); title(' surface ' ) ; colorbar ; axis tight
+figure(50) ; imagesc(x,y,geoid); axis xy equal; caxis([-100 100]); title(' geoid ' ) ; colorbar ; axis tight
+figure(60) ; imagesc(x,y,mask); axis xy equal; caxis([0 4]); title(' mask ' ) ; colorbar ; axis tight
+
+
+
+%% Check relationship between geometrical variables
+% figure(100) ; imagesc(x,y,(mask~=0).*((surface-(bed+thickness+firn)))); axis xy equal;  title('(mask~=0).*(surface-(bed+thickness+firn))' ) ; colorbar ; axis tight ; caxis([-50 50])
+% figure(110) ; imagesc(x,y,(mask~=0).*(surface-(bed+thickness))); axis xy equal;  title('(mask~=0).*(surface-(bed+thickness))' ) ; colorbar ; axis tight ; caxis([-50 50])
+% figure(120) ; imagesc(x,y,(firn+thickness)); axis xy equal;  title('firn+thickness' ) ; colorbar ; axis tight ;
+
+%% Ua variables
+%
+% I'm assuming here that the user wants the variable s to be surface+firn, in which case the vertically averaged ice density must be
+% modfied accordingly.
+%
+% 
+s=surface+firn ;
+b=surface-thickness ;
+h=firn+thickness ; % or just h=s-b 
+B=bed ; 
+
+if ~LakeVostok
+    IV=mask== 4;
+    B(IV)=b(IV);
+end
+
+OceanMask=(mask==0) ; 
+
+rhoi=917 ; 
+rhof=500;  % Not even sure if this is correct, but if the density model came from Racmo, then this is most likley the case (must check).
+rhof=1;    % Apparantly this is not firn thickness but air thickness, therefore the relevant rho is the density of air
+
+%%
+%
+% The 'firn' field in the Bedmachine data is not the firn thickness! It is the firn air content
+%
+% $$ firn=  \frac{1}{\rho_i}  \int_{firn layer} (\rho_i - \rho_f) \, dz $$
+%
+%   
+% 
+% $$e^{\pi i} + 1 = 0$$
+% 
+%
+%
+%%
+
+rho=(rhoi*(thickness+eps)+rhof*(firn+eps))./(thickness+firn+2*eps) ; 
+rho(OceanMask)=rhoi;  % be carefull here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
+
+figure(200) ; imagesc(x,y,s); axis xy equal; caxis([0 4000]); title(' s ' ) ; colorbar ; axis tight
+figure(210) ; imagesc(x,y,b); axis xy equal; caxis([-2000 4000]); title(' b ' ) ; colorbar ; axis tight
+figure(220) ; imagesc(x,y,h); axis xy equal; caxis([0 4000]); title(' h ' ) ; colorbar ; axis tight
+figure(230) ; imagesc(x,y,B); axis xy equal; caxis([-4000 4000]); title(' B ' ) ; colorbar ; axis tight
+figure(240) ; imagesc(x,y,rho); axis xy equal; caxis([500 920]); title(' rho ' ) ; colorbar ; axis tight
+
+%% Possible subsampling
+
+x=x(1:N:end) ;
+y=y(1:N:end) ; 
+s=s(1:N:end,1:N:end) ;
+rho=rho(1:N:end,1:N:end) ;
+b=b(1:N:end,1:N:end) ;
+B=B(1:N:end,1:N:end) ;
+mask=mask(1:N:end,1:N:end) ;
+
+%% create gridded interpolants
+
+
+[X,Y]=ndgrid(double(x),double(flipud(y))) ;
+
+Fs=griddedInterpolant(X,Y,rot90(s,3)); 
+Fb=griddedInterpolant(X,Y,rot90(b,3)); 
+FB=griddedInterpolant(X,Y,rot90(B,3)); 
+Frho=griddedInterpolant(X,Y,rot90(rho,3)); 
+
+
+if SaveOutputs
+    fprintf(' Saving BedMachineGriddedInterpolants with Fs, Fb, FB and Frho. \n')
+    save('BedMachineGriddedInterpolants','Fs','Fb','FB','Frho','-v7.3')
+end
+
+%% Test gridded interpolants
+
+% load in an old mesh of Antarctica and map on this mesh. Just done for testing purposes and to see if the gridded data looks sensible.
+
+load MUA_Antarctica.mat; 
+xFE=MUA.coordinates(:,1) ; yFE=MUA.coordinates(:,2) ; 
+
+sFE=Fs(xFE,yFE);
+bFE=Fb(xFE,yFE);
+BFE=FB(xFE,yFE);
+rhoFE=Frho(xFE,yFE);
+
+CtrlVar.PlotXYscale=1000;
+ 
+bfig=FindOrCreateFigure('b') ; 
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b') ; title(cbar,'m a.s.l')
+
+
+sfig=FindOrCreateFigure('s') ; 
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,sFE);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('s') ; title(cbar,'m a.s.l')
+
+
+Bfig=FindOrCreateFigure('B') ; 
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,BFE);
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('B') ; title(cbar,'m a.s.l')
+
+
+rhofig=FindOrCreateFigure('rho') ; 
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,rhoFE); 
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('rho') ; title(cbar,'km/m^3')
+
+rhofig=FindOrCreateFigure('bFE-BFE') ; 
+[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,bFE-BFE); 
+xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b-B') ; title(cbar,'m')
+
+
+%% Meshboundary coordinates
+% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the
+% situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the
+% time. 
+
+IceMask=(mask~=0) ;  IceMask=double(IceMask);
+DataResolution=N*500 ; % the resolution of the data set is 500 m
+NN=min([round(BoundaryResolution/DataResolution) 1]) ;
+
+
+fc=FindOrCreateFigure('contour') ;  
+[M]=contour(x(1:NN:end),y(1:NN:end),IceMask(1:NN:end,1:NN:end),1) ; axis equal
+hold on; plot(M(1,:), M(2, :), 'r.');
+
+% now find longest contourline
+level=0.5 ;  % this contour level must be in M
+I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ; 
+fprintf(' %i points in the longest contour line segment.\n',M(2,I(J)) );
+Boundary=M(:,I(J)+1:I(J)+M(2,I(J))) ; 
+plot(Boundary(1,:),Boundary(2,:),'o-k')  ; axis equal
+
+Boundary=Boundary';
+
+if SaveOutputs
+    
+    fprintf('Saving MeshBoundaryCoordinates. \n ')
+    save('MeshBoundaryCoordinatesForAntarcticaBasedOnBedmachine','Boundary')
+end
+
+
+%%  Testing mesh boundary cooridnates and creating  a new one with different spacing between points and some level of smoothing
+
+CtrlVar.GLtension=1e-12; % tension of spline, 1: no smoothing; 0: straight line
+CtrlVar.GLds=5e3 ; 
+
+
+[xB,yB,nx,ny] = Smooth2dPos(Boundary(:,1),Boundary(:,2),CtrlVar);
+MeshBoundaryCoordinates=[xB(:) yB(:)] ;
+fc=FindOrCreateFigure('MeshBoundaryCoordinates') ;  
+plot(MeshBoundaryCoordinates(:,1),MeshBoundaryCoordinates(:,2),'.-') ; axis equal
+title("Example of a smoothed and resampled boundary")
+
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>

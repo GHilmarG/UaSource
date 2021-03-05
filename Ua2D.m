@@ -163,7 +163,15 @@ else
         % however:
         CtrlVar.time=CtrlVarInRestartFile.time;
         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
-        CtrlVar.dt=CtrlVarInRestartFile.dt;
+        
+        % Generally, I want dt used in the run to be the dt value in the restart file. However, it is possible that the restart file was
+        % generated in a previous time independent run where dt was not defined, but the restart run is time dependent and the user has defined
+        % dt in the DefineInitialInputs.m for that time dependent run. In that case I do want to use dt as defined in DefineInitialInputs.m
+        if ~(~CtrlVarInRestartFile.TimeDependentRun && CtrlVar.TimeDependentRun)  
+            % Generally the dt used should be the dt in the restart file. 
+            CtrlVar.dt=CtrlVarInRestartFile.dt;
+        end
+        
         CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
         
         clearvars time dt CurrentRunStepNumber
@@ -183,7 +191,7 @@ else
 end
 
 MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
-
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
@@ -216,9 +224,6 @@ CtrlVar.RunInfoMessage=RunInfo.Message;
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); 
-%GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
-
-
 
 % pointers to the elements of Boundary.Edges where u and v are fixed
 % Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
@@ -235,7 +240,7 @@ if CtrlVar.doInverseStep   % -inverse
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
     
-    CtrlVar.DefineOutputsInfostring='Start of inverse run';
+    CtrlVar.DefineOutputsInfostring="Start of inverse run";
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -276,7 +281,7 @@ if CtrlVar.doInverseStep   % -inverse
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
-    CtrlVar.DefineOutputsInfostring='End of Inverse Run';
+    CtrlVar.DefineOutputsInfostring="End of Inverse Run";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
     UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -289,7 +294,7 @@ end
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='First call';
+    CtrlVar.DefineOutputsInfostring="First call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -368,7 +373,7 @@ while 1
     end
     
     MUA=UpdateMUA(CtrlVar,MUA);
-    
+    F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping 
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
@@ -380,7 +385,7 @@ while 1
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
- 
+        F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
         
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
@@ -476,7 +481,7 @@ while 1
         
         % RunInfo
         
-        if  numel(RunInfo.Forward.time)<=RunInfo.Forward.iCounter
+        if  numel(RunInfo.Forward.time)<=CtrlVar.CurrentRunStepNumber
             RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
             RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
             RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
@@ -488,9 +493,9 @@ while 1
             
         end
         
-        RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
-        RunInfo.Forward.time(RunInfo.Forward.iCounter)=CtrlVar.time;
-        RunInfo.Forward.dt(RunInfo.Forward.iCounter)=CtrlVar.dt;
+        % RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
+        RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
+        RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
@@ -528,7 +533,7 @@ while 1
                 
                 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-                    CtrlVar.DefineOutputsInfostring='Diagnostic step';
+                    CtrlVar.DefineOutputsInfostring="Diagnostic step";
                     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
                     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
                     
@@ -630,10 +635,8 @@ while 1
     end   % CtrlVar.TimeDependentRun
     
     %% calculations for this rund step are now done, only some plotting/writing issues do deal with
-    
-    % calculating derived quantities
-    
-    %GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+
+
     
   
     %% plotting results
@@ -641,7 +644,7 @@ while 1
     % DefineOutputs
     
     if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-        CtrlVar.DefineOutputsInfostring='inside transient loop and inside run-step loop';
+        CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0
@@ -687,7 +690,7 @@ end
 
 
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='Last call';
+    CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
         CtrlVar.time=CtrlVar.time+CtrlVar.dt;

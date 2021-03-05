@@ -8,7 +8,7 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
 % varargin is passed onto PlotFEmsh and then onto triplot.
 %
-% hTri is a handle to teh matlab triplot function
+% hTri is a handle to the matlab triplot function
 %
 % *Examples:*
 %

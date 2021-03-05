@@ -110,7 +110,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     if isMeshAdvanceRetreat
         
         [UserVar,RunInfo,MUAnew]=MeshAdvanceRetreat(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,Fold.GF,RuvNew,Lubvb);
-        
+        Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
         if MUAnew.Nele==0
             fprintf('No elements left in mesh! \n ')
             return
@@ -172,7 +172,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
             [UserVar,RunInfo,CtrlVar,MUAnew]=...
                 Remeshing(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,Fnew.GF,...
                 xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
-            
+            Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
             % if MUA changed check here if elements need to be deactivated
             
             if MUAnew.Nele==0
@@ -234,7 +234,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     end
     
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
-    
+    Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
     % I now have done either MeshAdvanceRetreat or MeshAdapt, and I now update the
     % old MUA to the new MUA ahead of any further possible mesh modifications.
     OutsideValue.h=2*CtrlVar.ThickMin ;
@@ -245,6 +245,7 @@ if isMeshAdvanceRetreat ||  isMeshAdapt
     
     % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    
 end
 
 %%
@@ -288,6 +289,7 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
         
         MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
+        
         % The user might need estimates over the full mesh when making decisions, hence a
         % mapping to the new (full domain) mesh ahead of a call to
         % DefineElementsToDeactivate.m
@@ -324,7 +326,7 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     
     MUAnew=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
-    
+    Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
     CtrlVar.MapOldToNew.method="scatteredInterpolant"; % testing
     %
     

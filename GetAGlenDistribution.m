@@ -4,6 +4,9 @@ function [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F)
 narginchk(4,4)
 nargoutchk(2,2)
 
+InputFile="DefineAGlenDistribution.m"; TestIfInputFileInWorkingDirectory(InputFile) ; 
+
+
 N=nargout('DefineAGlenDistribution');
 
 

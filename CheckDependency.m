@@ -1,3 +1,5 @@
+
+%% First run this to find all files that Ua depend on
 [fList,pList] = matlab.codetools.requiredFilesAndProducts('Ua.m');
 
 %%
@@ -11,6 +13,7 @@ end
 
 
 %%
+
 
 mFiles=dir('*.m');
 

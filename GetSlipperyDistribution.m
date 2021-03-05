@@ -3,17 +3,21 @@ function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F)
     narginchk(4,4)
     nargoutchk(2,2)
     
+    InputFile="DefineSlipperyDistribution.m"; TestIfInputFileInWorkingDirectory(InputFile) ; 
+    
     
     N=nargout('DefineSlipperyDistribution');
     
     
-    if CtrlVar.SlidingLaw=="Budd" && N<4
+    if any(CtrlVar.SlidingLaw==["Budd","W-N0"]) && N<4
         error("GetSlipperyDistribution:nargout","When using Budd sliding law, DefineSlipperyDistribution.m must return 4 parameters [UserVar,C,m,q] ")
     end
     
     
-    if CtrlVar.SlidingLaw=="Tsai" && N<5
-        error("GetSlipperyDistribution:nargout","When using Tsai sliding law, DefineSlipperyDistribution.m must return 5 parameters [UserVar,C,m,q,muk] ")
+    if any(CtrlVar.SlidingLaw==["Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0"])  && N<5
+        fprintf("\n \n When using the sliding law %s, DefineSlipperyDistribution.m must return 5 parameters [UserVar,C,m,q,muk]. \n",CtrlVar.SlidingLaw)
+        fprintf(" Note: The sliding law only depends on the parameters C, m, muk. (so you can set, for example, q=NaN.)  \n")
+        error("GetSlipperyDistribution:nargout","Incorrect number of output parameters in DefineSlipperiness ")
     end
     
     

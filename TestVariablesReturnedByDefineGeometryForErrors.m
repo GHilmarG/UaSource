@@ -10,6 +10,9 @@ if ~isa(b,'double') ; save TestSave ; error(' b must be a double floating-point 
 if ~isa(S,'double') ; save TestSave ; error(' S must be a double floating-point variable') ; end
 if ~isa(B,'double') ; save TestSave ; error(' B must be a double floating-point variable') ; end
 
+
+
+
 if numel(s)~=MUA.Nnodes ; save TestSave ; error(' Number of elements in s (%-i) differs from number of nodes (%-i) \n',numel(s),MUA.Nnodes) ; end
 if numel(b)~=MUA.Nnodes ; save TestSave ; error(' Number of elements in b (%-i) differs from number of nodes (%-i) \n',numel(b),MUA.Nnodes) ; end
 if numel(S)~=MUA.Nnodes ; save TestSave ; error(' Number of elements in S (%-i) differs from number of nodes (%-i) \n',numel(S),MUA.Nnodes) ; end

@@ -19,8 +19,9 @@ switch CtrlVar.MapOldToNew.method
         [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,RunInfo,MUAold,MUAnew,varargin{:});
 end
 
+return
 
-%% if testing
+%% if testing, currenlty broken as FEShapeFunction interpolation does not work
 
 if CtrlVar.MapOldToNew.Test
     
@@ -28,14 +29,14 @@ if CtrlVar.MapOldToNew.Test
     
     nVar=length(varargin) ;
     varargout=cell(nVar,1);
-    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,MUAold,MUAnew,OutsideValues,varargin{:}) ;
+    [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin{:}) ;
     tMapOld=toc(tMapOld);
     
     Test=varargout ;
     
     tMapNew=tic;
     varargout=cell(nVar,1);
-    [varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,MUAold,MUAnew,varargin{:});
+    [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,RunInfo,MUAold,MUAnew,varargin{:});
     tMapNew=toc(tMapNew);
     
     fprintf(' tMapOld \t \t tMapNew \n %f \t \t %f \n ',tMapOld,tMapNew)

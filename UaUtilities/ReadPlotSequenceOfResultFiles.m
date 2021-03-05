@@ -37,7 +37,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     % Read only those .mat files that have FileNameSubstring as a part of their name, set the
     % axis limits, and plot a file every 0.1 time units.
     %
-    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",0.1) ;
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",10) ;
     %
     % 
     %
@@ -100,6 +100,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     end
     
     PlotRegion=[];
+    PlotArea=[];
     PlotMinThickLocations=true;
     
     %%
@@ -178,9 +179,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                 nPx=4; nPy=1;
             end
             
-            if isnan(AxisLimits)
-                AxisLimits=[xmin xmax ymin ymax]/CtrlVar.PlotXYscale;
-            end
+            axis equal tight; 
+            
+            if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
             
             switch PlotType
                 
@@ -260,8 +261,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Ice thickness (m)')
                     caxis([-0.1 1])
                     colormap(flipud(othercolor('RdYlBu_11b',2000))) ;
-                    AxisLimits=[-25 25 -25 25] ;
-                    axis(AxisLimits) ;
+                    
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     xlabel('x (km)') ; ylabel('y (km)')
                     hold on
                     plot(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,'wo');
@@ -315,8 +316,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     PlotMuaMesh(CtrlVar,MUA);
                     
                     xlabel('x (km)') ; ylabel('y (km)')
-                    axis(AxisLimits) ;
-                    
+                   
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     sgtitle(sprintf("Cubic element.  time=%3.0f",CtrlVar.time))
                     
                     
@@ -369,7 +370,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
                             ylim([min(y) max(y)]/1e3) ; 
                         else
-                            axis(AxisLimits) ;
+                            if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                         end
                         
                         xlabel('x (km)') ; ylabel('y (km)') ; 
@@ -504,8 +505,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     end
                     xlabel('x (km)') ; ylabel('y (km)') ;
                     axis equal tight
-                    axis(AxisLimits) ;
-                    
+                   
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     title(sprintf('Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                     title(cbar,'(m)')
                     ax = gca;
@@ -530,7 +531,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     hold on
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                     xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
-                    axis equal tight; axis(AxisLimits) ;
+                    axis equal tight; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     ax = gca;
                     outerpos = ax.OuterPosition;
                     ti = ax.TightInset;
@@ -565,7 +567,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     if ~isempty(cbar)
                         title(cbar,'(m/yr)')
                     end
-                    axis equal tight ; axis(AxisLimits) ;
+                    axis equal tight ; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     ax = gca;
                     outerpos = ax.OuterPosition;
                     ti = ax.TightInset;
@@ -596,7 +599,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     if ~isempty(cbar)
                         title(cbar,'(m/yr)')
                     end
-                    axis equal tight ; axis(AxisLimits) ;
+                    axis equal tight ; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                     hold off
                     
                     ax = gca;
@@ -652,12 +656,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     if PlotMinThickLocations
                         plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                     end
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    end
-                    
-                    
-                    
+                                        
                     
                     
                 case '-log10(BasalSpeed)-'
@@ -739,9 +738,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     if PlotMinThickLocations
                         plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                     end
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    end
+                    
                     caxis([min(F.ab) max(F.ab)]) ;
                     
                     
@@ -757,23 +754,15 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     end
                     hold off
                     PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.dhdt,CtrlVar);
+                    caxis([-10 10]) 
                     hold on ;
                     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
                     
-                    title(sprintf('dhdt at t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    title(sprintf('dhdt at t=%-g (yr)',CtrlVar.time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                     title(colorbar,'(m)')
                     if PlotMinThickLocations
                         plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                     end
-                    
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    else
-                        if ~isnan(PlotArea)
-                            axis(PlotArea)
-                        end
-                    end
-                    caxis([-15 15])
                     
                     
                     
@@ -802,9 +791,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                     end
                     
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    end
+                    
                     
                 case '-sbB-'
                     if ~exist('fsbB','var') || ~ishandle(fsbB)
@@ -891,26 +878,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     %                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                     %                 end
                     
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    end
+                                        
                     
-                    
-                case '-Bab-'
-                    
-                    if ~isempty(PlotRegion)
-                        SetRegionalPlotAxis(PlotRegion);
-                    else
-                        if ~isnan(PlotArea)
-                            axis(PlotArea)
-                        end
-                    end
-                    
-                    %drawnow
-                    Sub1.Position=[0.05 0.55 0.35 0.43];
-                    Sub2.Position=[0.55 0.55 0.35 0.43];
-                    Sub3.Position=[0.05 0.05 0.35 0.43];
-                    Sub4.Position=[0.55 0.05 0.35 0.43];
                     
             end
             %

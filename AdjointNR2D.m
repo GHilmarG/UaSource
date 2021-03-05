@@ -9,6 +9,8 @@ function [Cest,AGlenEst,JoptVector,ub,vb,ud,vd,lx,ly,gammaAdjoint]=AdjointNR2D(C
                
     disp(' AdjointNR2D')
 
+    error('No longer used')
+    
     
     switch lower(CtrlVar.MisfitFunction)
         case 'uvwdiscrete'
@@ -28,7 +30,7 @@ function [Cest,AGlenEst,JoptVector,ub,vb,ud,vd,lx,ly,gammaAdjoint]=AdjointNR2D(C
     switch CtrlVar.AdjointMinimisationMethod
         
          
-           case {'QuasiNewtonInversion','QuasiNewtonInversion:HessianGuesstimate','FixPointEstimationOfSlipperiness'}; 
+           case {'QuasiNewtonInversion','QuasiNewtonInversion:HessianGuesstimate','FixPointEstimationOfSlipperiness'}
 
                
                [Cest,AGlenEst,JoptVector,ub,vb,ud,vd,lx,ly,gammaAdjoint]=QuasiNewtonInversion(...

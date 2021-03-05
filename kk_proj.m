@@ -14,15 +14,15 @@ function [x,iU,iL] = kk_proj(x,upper,lower,Eps)
     end
     
     if numel(lower) > 1
-        iU=x<(lower+Eps) ; x(iU)=lower(iU)+Eps;
+        iL=x<(lower+Eps) ; x(iL)=lower(iL)+Eps;
     else
-        iU=x<(lower+Eps) ; x(iU)=lower+Eps;
+        iL=x<(lower+Eps) ; x(iL)=lower+Eps;
     end
     
     if numel(upper)>1
-        iL=x>(upper-Eps) ; x(iL)=upper(iL)-Eps;
+        iU=x>(upper-Eps) ; x(iU)=upper(iU)-Eps;
     else
-        iL=x>(upper-Eps) ; x(iL)=upper-Eps;
+        iU=x>(upper-Eps) ; x(iU)=upper-Eps;
     end
     
 end

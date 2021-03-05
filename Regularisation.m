@@ -1,4 +1,4 @@
-function [R,dRdp,ddRddp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 RegOuts=[];
@@ -6,8 +6,16 @@ RegOuts=[];
 
 % Add up field by field
 
+RAGlen=0;
+dRdAGlen=[];
+ddRdAA=[];
 
-[Areas,xEle,yEle,Area]=TriAreaFE(MUA.coordinates,MUA.connectivity);
+RC=0;
+dRdC=[];
+ddRdCC=[];
+
+
+Area=MUA.Area; 
 
 
 %%
@@ -17,7 +25,7 @@ RegOuts=[];
 %
 
 % C
-if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+if contains(lower(CtrlVar.Inverse.InvertFor),'c')  % this includes both c and logc inversion
     
     isC=1;
     if contains(lower(CtrlVar.Inverse.Regularize.Field),'logc')
@@ -141,23 +149,20 @@ else
     
 end
 
-
-
-if ~(CtrlVar.AGlenisElementBased   &&  CtrlVar.CisElementBased)
-    if ~isfield(MUA,'M')
-        M=MassMatrix2D1dof(MUA);
-    else
-        M=MUA.M;
-    end
-    
-    if ~isfield(MUA,'Dxx')
-        [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
-    else
-        Dxx=MUA.Dxx ;
-        Dyy=MUA.Dyy;
-    end
-    
+if ~isfield(MUA,'M')
+    M=MassMatrix2D1dof(MUA);
+else
+    M=MUA.M;
 end
+
+if ~isfield(MUA,'Dxx')
+    [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
+else
+    Dxx=MUA.Dxx ;
+    Dyy=MUA.Dyy;
+end
+
+
 
 
 %% Now dpX, gsX and gaX have all be defined
@@ -172,7 +177,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         temp=pPriorCovA\dpA;
         RAGlen=dpA'*temp/(2*npA)   ;
         dRdAGlen=temp/npA;
-        %ddRdd=inv(Priors.CovC)/2/N;
+        %ddRdAA=inv(Priors.CovC)/2/N;
         ddRAddpA=[];
     else
         RAGlen=0;
@@ -214,7 +219,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
         RB=dpB'*temp/(2*npB)   ;
         dRdB=temp/npB;
         %ddRdd=inv(Priors.CovC)/2/N;
-        ddRCddpB=[];
+        ddRddpB=[];
     else
         RB=0;
         dRdB=[];
@@ -234,43 +239,56 @@ else  % Tikhonov regularization
     
     
     if isA
-        if CtrlVar.AGlenisElementBased
-            
-            MA=gaA.^2*Areas/Area;
-            npA=numel(dpA);
-            NA=sparse(1:npA,1:npA,MA,npA,npA);
-            
-        else
-            
-            NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-            
-        end
+        
+        NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
         RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
-    else
-        RAGlen=0;
-        dRdAGlen=[];
+        
+        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+            
+            if contains(CtrlVar.Inverse.Hessian,"RHA=E")
+                ddRdAA=NA.*dAfactor;
+            elseif contains(CtrlVar.Inverse.Hessian,"RHA=M")
+                ddRdAA=MUA.M/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"RHA=I") || contains(CtrlVar.Inverse.Hessian,"RHA=1")
+                N=MUA.Nnodes;
+                ddRdAA=speye(N,N);
+            elseif contains(CtrlVar.Inverse.Hessian,"RHA=0") || contains(CtrlVar.Inverse.Hessian,"RHA=O")
+                N=MUA.Nnodes;
+                ddRdAA=sparse(N,N);
+            else
+                fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
+                error("Regularisation:IncorrectInputs"," case not found ")
+            end
+        end
     end
     
     if isC
-        if CtrlVar.CisElementBased
-            
-            MC=gaC.^2*Areas/Area;
-            npC=numel(dpC);
-            NC=sparse(1:npC,1:npC,MC,npC,npC);
-            
-        else
-            
-            NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-            
-        end
         
+        NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
         RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
         
-    else
-        RC=0;
-        dRdC=[];
+        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+            if contains(CtrlVar.Inverse.Hessian,"RHC=E")
+                
+                ddRdCC=NC.*dCfactor;
+            elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
+                ddRdCC=MUA.M/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
+                N=MUA.Nnodes;
+                ddRdCC=speye(N,N);
+            elseif contains(CtrlVar.Inverse.Hessian,"RHC=O") || contains(CtrlVar.Inverse.Hessian,"RHC=0")
+                N=MUA.Nnodes;
+                ddRdCC=sparse(N,N);
+            else
+                
+                fprintf(" CtrlVar.Inverse.Hessian=%s, is incorrect.\n",CtrlVar.Inverse.Hessian)
+                error("Regularisation:IncorrectInputs"," case not found ")
+                
+            end
+        end
+        
     end
     
     
@@ -296,14 +314,24 @@ else  % Tikhonov regularization
     else
         RB=0;
         dRdB=[];
+        ddRddB=[];
     end
     
-    [dRdAGlen,dRdb,dRdB,dRdC]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dRdAGlen,dRdb,dRdB,dRdC); 
-        
+    
+    % Here using the Hessian as a premultiplier
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
+    
     R=RAGlen+Rb+RB+RC;
     dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
-    ddRddp=[];
     
+    
+    [Am,An] = size(ddRdAA);
+    [Cm,Cn] = size(ddRdCC);
+    ddRdpp = spalloc(Am+Cm,An+Cn,nnz(ddRdAA)+nnz(ddRdCC));
+    ddRdpp(1:Am,1:An) = ddRdAA;
+    ddRdpp(Am+1:Am+Cm,An+1:An+Cn) = ddRdCC;
     
     
 end
@@ -311,12 +339,12 @@ end
 
 R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
-ddRddp=CtrlVar.Inverse.Regularize.Multiplier*ddRddp;
+ddRdpp=CtrlVar.Inverse.Regularize.Multiplier*ddRdpp;
 
 
 RegOuts.R=R;
 RegOuts.dRdp=dRdp;
-RegOuts.ddRddp=ddRddp;
+RegOuts.ddRddp=ddRdpp;
 
 
 RegOuts.RAGlen=RAGlen;
