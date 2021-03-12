@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>LakeOrOcean3</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-02-03"><meta name="DC.source" content="LakeOrOcean3.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>LakeOrOcean3</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-03-12"><meta name="DC.source" content="LakeOrOcean3.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,14 +67,54 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF)
-</pre><pre class="language-matlab">[LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
-</pre><p>When calling this to to apply melt, the following syntax is recommended to ensure that melt is applied correctly:</p><pre class="language-matlab">[LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
+</pre><pre class="codeinput">narginchk(3,5)
+nargoutchk(2,4)
+</pre><pre class="codeoutput error">Error using LakeOrOcean3 (line 3)
+Not enough input arguments.
+</pre><pre class="language-matlab">[LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes)
+</pre><p>OceanBoundaryNodes is an optional input that allows the user to specify the node numbers of nodes in their domain that are connected to the ocean, if this input is not provided the code assumes that all floating nodes on the model boundary are connected to the ocean. This is usually a good guess but may break down in certain situations, particularly if there are holes in the model mesh.</p><p>When calling this to apply melt, the following syntax is recommended to ensure that melt is applied correctly:</p><pre class="language-matlab">[LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
 ab(~OceanNodes) = 0;
-</pre><p>This script is designed to be used in conjunction with DefineMassBalance to only assign melt to nodes that should be melted (OceanNodes). Note that this script does not robustly identify all possible lakes in a domain, since it only considers nodes strictly downstream of the grounding line as floating. Thus, floating nodes with an edge that crosses the grounding line, which are not considered floating, will also not be considered as lakes. In this way, very small isolated patches of floating nodes will neither be considered lakes nor ocean.</p><p>Also consider using: LakeOrOcean.m , which uses an alternative approach for the problem.</p><p>Currently, &Uacute;a users are split into LakeOrOcean.m and the LakeOrOcean3.m camps. The LakeOrOcean3.m approach is to consider lake being a lake if it is enclosed by  grounded ice. The LakeOrOcean.m approach is to identify the longest grounding line and consider any floating areas upstream of that grounding line to be lakes and all other floating areas a part of the ocean. Both of these approached can fail. However, arguably the LakeOcean3.m definition of a lake is more likely to be generally accepted by members of a typical university geography department.</p><pre class="codeinput">GF = IceSheetIceShelves(CtrlVar,MUA,GF);
+</pre><p>This script is designed to be used in conjunction with DefineMassBalance to only assign melt to nodes that should be melted (OceanNodes).</p><p>Note that this script does not robustly identify all possible lakes in a domain, since it only considers nodes strictly downstream of the grounding line as floating. Thus, floating nodes with an edge that crosses the grounding line, which are not considered floating, will also not be considered as lakes. In this way, very small isolated patches of floating nodes will neither be considered lakes nor ocean.</p><p>Also consider using: LakeOrOcean.m , which uses an alternative approach for the problem. ... but is painfully slow and will fail to correctly identify lakes within grounded islands</p><p>Currently, &Uacute;a users are split into LakeOrOcean.m and the LakeOrOcean3.m camps. The author of the LakeOrOcean.m prefers using LakeOrOcean3.m</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span> ; CtrlVar=CtrlVarInRestartFile;
+[LakeNodes,OceanNodes,LakeElements,OceanElements]=LakeOrOcean3(CtrlVar,MUA,F.GF) ;
+</pre><pre class="language-matlab">FindOrCreateFigure(<span class="string">"LakeOrOcean3"</span>) ;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+PlotMuaMesh(CtrlVar,MUA) ;
+hold <span class="string">on</span> ; plot(MUA.coordinates(OceanNodes,1)/CtrlVar.PlotXYscale,MUA.coordinates(OceanNodes,2)/CtrlVar.PlotXYscale,<span class="string">'ob'</span>) ;
+PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=<span class="string">'r'</span>) ;
+</pre><pre class="codeinput">GF = IceSheetIceShelves(CtrlVar,MUA,GF);
+
+<span class="comment">% TestIng</span>
+<span class="keyword">if</span> nargin&lt;5 || isempty(NodesDownstreamOfGroundingLines)
+
+    NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+<span class="keyword">else</span>
+    <span class="keyword">if</span> isstring(NodesDownstreamOfGroundingLines)
+        <span class="keyword">if</span> contains(NodesDownstreamOfGroundingLines,<span class="string">"Strickt"</span>)
+            NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+        <span class="keyword">elseif</span> contains(NodesDownstreamOfGroundingLines,<span class="string">"Relaxed"</span>)
+            NodesDownstreamOfGroundingLines=GF.node &lt; 0.5 ;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+
+<span class="comment">% if the user does not provide an OceanBoundaryNodes vector as input,</span>
+<span class="comment">% assume that floating nodes on the Mesh Boundary are ocean nodes</span>
+<span class="keyword">if</span> nargin&lt;4 || isempty(OceanBoundaryNodes)
+    OceanBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)&lt;0.5);
+<span class="keyword">end</span>
+
+<span class="comment">% the graph will be comprised only of fully floating elements</span>
 EleSubset = GF.ElementsDownstreamOfGroundingLines;
 
-FloatingBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)&lt;0.5);
+<span class="comment">% find the node numbers of all of these fully floating elements</span>
+NodeSubset = unique(MUA.connectivity(EleSubset,:));
+
+
+<span class="comment">% don't include floating boundary nodes that are not part of fully floating</span>
+<span class="comment">% elements as these will not be a part of the graph network</span>
+FloatingSubset = intersect(NodeSubset,OceanBoundaryNodes);
 
 TRI=MUA.connectivity(EleSubset,:) ;
 
@@ -84,13 +125,15 @@ bins=conncomp(G) ;
 
 <span class="comment">% initialise arrays</span>
 Nnum = zeros(MUA.Nnodes,1);
-Nnum(FloatingBoundaryNodes) = 1;
-LakeNodes = GF.NodesDownstreamOfGroundingLines;
+
+Nnum(FloatingSubset) = 1;
+LakeNodes = NodesDownstreamOfGroundingLines;
 
 <span class="comment">% loop through ocean boundary nodes until each one has been checked for</span>
 <span class="comment">% connected floating nodes, once this is done for all boundary nodes the</span>
 <span class="comment">% only floating nodes left should be lakes</span>
 <span class="keyword">while</span> sum(Nnum)&gt;0
+
     NodeSeed = find(Nnum,1,<span class="string">'first'</span>);
     ID=bins(NodeSeed) ;
     <span class="comment">% list of all connected nodes to this ocean boundary node</span>
@@ -100,25 +143,45 @@ LakeNodes = GF.NodesDownstreamOfGroundingLines;
     <span class="comment">% also remove these from the list of boundary nodes to save time where</span>
     <span class="comment">% one ice shelf has multiple nodes on the ocean boundary</span>
     Nnum(nodes) = 0;
+
 <span class="keyword">end</span>
 
-OceanNodes = GF.NodesDownstreamOfGroundingLines &amp; ~LakeNodes;
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+OceanNodes = NodesDownstreamOfGroundingLines &amp; ~LakeNodes;
+
+<span class="keyword">if</span> nargout &gt; 2
+    LakeElements=AllElementsContainingGivenNodes(MUA.connectivity,find(LakeNodes)) ;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargout &gt; 3
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ;
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF)
+function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
+
+narginchk(3,5)
+nargoutchk(2,4)
 
 %%
 %
-%   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
+%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes)
 %
-% When calling this to to apply melt, the following syntax is recommended
+% OceanBoundaryNodes is an optional input that allows the user to specify
+% the node numbers of nodes in their domain that are connected to the
+% ocean, if this input is not provided the code assumes that all floating
+% nodes on the model boundary are connected to the ocean. This is usually a
+% good guess but may break down in certain situations, particularly if
+% there are holes in the model mesh.
+%
+% When calling this to apply melt, the following syntax is recommended
 % to ensure that melt is applied correctly:
 %
 %   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
 %   ab(~OceanNodes) = 0;
 %
 % This script is designed to be used in conjunction with DefineMassBalance
-% to only assign melt to nodes that should be melted (OceanNodes).
+% to only assign melt to nodes that should be melted (OceanNodes). 
+%
 % Note that this script does not robustly identify all possible lakes in a 
 % domain, since it only considers nodes strictly downstream of the grounding
 % line as floating. Thus, floating nodes with an edge that crosses the
@@ -127,23 +190,58 @@ function [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF)
 % nodes will neither be considered lakes nor ocean.
 %
 % Also consider using: LakeOrOcean.m , which uses an alternative approach for the problem.
-%
+% ... but is painfully slow and will fail to correctly identify lakes
+% within grounded islands
 %
 % Currently, Úa users are split into LakeOrOcean.m and the LakeOrOcean3.m camps.
-% The LakeOrOcean3.m approach is to consider lake being a lake if it is enclosed
-% by  grounded ice. The LakeOrOcean.m approach is to identify the longest
-% grounding line and consider any floating areas upstream of that grounding line
-% to be lakes and all other floating areas a part of the ocean. Both of these
-% approached can fail. However, arguably the LakeOcean3.m definition of a lake
-% is more likely to be generally accepted by members of a typical university
-% geography department.
+% The author of the LakeOrOcean.m prefers using LakeOrOcean3.m
+%
+%
+%  
+%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
+%   [LakeNodes,OceanNodes,LakeElements,OceanElements]=LakeOrOcean3(CtrlVar,MUA,F.GF) ;
+%
+%   FindOrCreateFigure("LakeOrOcean3") ; 
+%   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   PlotMuaMesh(CtrlVar,MUA) ;
+%   hold on ; plot(MUA.coordinates(OceanNodes,1)/CtrlVar.PlotXYscale,MUA.coordinates(OceanNodes,2)/CtrlVar.PlotXYscale,'ob') ;
+%   PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color='r') ;
 %
 %%
 
 GF = IceSheetIceShelves(CtrlVar,MUA,GF);
+
+% TestIng
+if nargin<5 || isempty(NodesDownstreamOfGroundingLines)
+    
+    NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+else
+    if isstring(NodesDownstreamOfGroundingLines)
+        if contains(NodesDownstreamOfGroundingLines,"Strickt")
+            NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
+        elseif contains(NodesDownstreamOfGroundingLines,"Relaxed")
+            NodesDownstreamOfGroundingLines=GF.node < 0.5 ; 
+        end
+    end
+end
+
+    
+% if the user does not provide an OceanBoundaryNodes vector as input,
+% assume that floating nodes on the Mesh Boundary are ocean nodes
+if nargin<4 || isempty(OceanBoundaryNodes)
+    OceanBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)<0.5);
+end
+
+% the graph will be comprised only of fully floating elements
 EleSubset = GF.ElementsDownstreamOfGroundingLines;
 
-FloatingBoundaryNodes=MUA.Boundary.Nodes(GF.node(MUA.Boundary.Nodes)<0.5);
+% find the node numbers of all of these fully floating elements
+NodeSubset = unique(MUA.connectivity(EleSubset,:));
+
+
+% don't include floating boundary nodes that are not part of fully floating
+% elements as these will not be a part of the graph network
+FloatingSubset = intersect(NodeSubset,OceanBoundaryNodes);
 
 TRI=MUA.connectivity(EleSubset,:) ;
 
@@ -154,13 +252,15 @@ bins=conncomp(G) ;
 
 % initialise arrays
 Nnum = zeros(MUA.Nnodes,1);
-Nnum(FloatingBoundaryNodes) = 1;
-LakeNodes = GF.NodesDownstreamOfGroundingLines;
+
+Nnum(FloatingSubset) = 1;
+LakeNodes = NodesDownstreamOfGroundingLines;
 
 % loop through ocean boundary nodes until each one has been checked for
 % connected floating nodes, once this is done for all boundary nodes the
 % only floating nodes left should be lakes
 while sum(Nnum)>0
+    
     NodeSeed = find(Nnum,1,'first');
     ID=bins(NodeSeed) ;
     % list of all connected nodes to this ocean boundary node
@@ -170,9 +270,20 @@ while sum(Nnum)>0
     % also remove these from the list of boundary nodes to save time where
     % one ice shelf has multiple nodes on the ocean boundary
     Nnum(nodes) = 0;
+    
 end
 
-OceanNodes = GF.NodesDownstreamOfGroundingLines & ~LakeNodes;
+OceanNodes = NodesDownstreamOfGroundingLines & ~LakeNodes;
+
+if nargout > 2
+    LakeElements=AllElementsContainingGivenNodes(MUA.connectivity,find(LakeNodes)) ;
+end
+
+if nargout > 3
+    OceanElements=AllElementsContainingGivenNodes(MUA.connectivity,find(OceanNodes)) ;
+end
+
+
 
 ##### SOURCE END #####
 --></body></html>

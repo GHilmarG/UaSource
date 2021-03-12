@@ -254,6 +254,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         V=vb-va;
         
         
+        
         beta2a=(Ca+CtrlVar.Czero).^(-1./ma).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./ma-1) ;
         
         taubxa=(1-He).*beta2a.*U;
