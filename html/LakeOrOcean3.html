@@ -70,8 +70,6 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 </pre><pre class="codeinput">narginchk(3,5)
 nargoutchk(2,4)
-</pre><pre class="codeoutput error">Error using LakeOrOcean3 (line 3)
-Not enough input arguments.
 </pre><pre class="language-matlab">[LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes)
 </pre><p>OceanBoundaryNodes is an optional input that allows the user to specify the node numbers of nodes in their domain that are connected to the ocean, if this input is not provided the code assumes that all floating nodes on the model boundary are connected to the ocean. This is usually a good guess but may break down in certain situations, particularly if there are holes in the model mesh.</p><p>When calling this to apply melt, the following syntax is recommended to ensure that melt is applied correctly:</p><pre class="language-matlab">[LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
 ab(~OceanNodes) = 0;
