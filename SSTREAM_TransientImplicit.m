@@ -464,7 +464,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         save(filename)
     end
     
-    RunInfo.Forward.Iterations=iteration; % May try to get rid of and use the uvhIterations vector instead
+    
     RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
     RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
     RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ; 
@@ -472,7 +472,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     if CtrlVar.WriteRunInfoFile
         
         fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
+            CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,...
+            RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),tEnd) ;
         
     end
     

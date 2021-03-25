@@ -49,6 +49,8 @@ else
 end
 
 
+
+
 % RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 if CtrlVar.WriteRunInfoFile
@@ -85,6 +87,27 @@ if ~isfield(RunInfo,'Mapping') || isempty(RunInfo.Mapping)
     RunInfo.Mapping.nNotIdenticalNodesOutside=NaN;
     RunInfo.Mapping.nNotIdenticalNodesInside=NaN;
 end
+
+nRunInfo=numel(RunInfo.Forward.time) ; 
+if nRunInfo < CtrlVarInRestartFile.CurrentRunStepNumber
+    nRunInfo = CtrlVarInRestartFile.CurrentRunStepNumber+1000 ;
+    RunInfo.Forward.time=NaN(nRunInfo,1); 
+    RunInfo.Forward.dt=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhIterations=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhResidual=NaN(nRunInfo,1) ; 
+    RunInfo.Forward.uvhBackTrackSteps=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetIterations=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetCyclical=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetConstraints=NaN(nRunInfo,1) ;
+    
+end
+
+
+
+
+
+
+
 
 
 

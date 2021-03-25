@@ -1,11 +1,12 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    LSFMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(54,54)
+narginchk(55,55)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -130,6 +131,18 @@ a1int=as1int+ab1int;
 a0int=as0int+ab0int;
 dadhint=dadhnod*fun;
 
+if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    LM=LSFMasknod*fun;
+    % TestIng
+    a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
+    a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+    hmin=CtrlVar.LevelSetMinIceThickness;    
+    abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
+    dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
+    a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
+end
+
+
 Bint=Bnod*fun;
 Sint=Snod*fun;
 rhoint=rhonod*fun;
@@ -245,6 +258,7 @@ for Inod=1:MUA.nod
     
     
 end
+
 
 
 [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
@@ -475,27 +489,7 @@ for Inod=1:MUA.nod
     
     Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
     Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
-    
-    %qxx= d( uh)/dx
-    
-    % R=T-F
-    
-    % first-order Taylor terms
-    % th=  (theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*fun(Inod);
-    % fh=  ((h0int-hint)/dt+(1-theta)*(a0int+h0barr)+theta*(a1int+h1barr)).*fun(Inod);
-    
-    
-    
-    %         th1=  (theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*fun(Inod);
-    %         th2=  ((h0int-hint)/dt+(1-theta)*h0barr+theta*h1barr).*fun(Inod);
-    %         th=th1-th2;
-    %         fh=  ((1-theta)*a0int+theta*a1int).*fun(Inod);
-    
-    % changed the def of th and fh (jan 2014)
-    
-    % fun(Inod) -> fun(Inod)+theta .* tau.*uint.*Deriv(:,2,Inod)+vint.*Deriv(:,2,Inod))
-    %                    +(1-theta).* tau.*u0int.*Deriv(:,2,Inod)+v0int.*Deriv(:,2,Inod))
-    %
+
     
     SUPG=fun(Inod)+    theta .*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
         +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));

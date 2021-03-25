@@ -98,11 +98,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         
         
     elseif CtrlVar.AdaptiveTimeStepping && CtrlVar.CurrentRunStepNumber>1
-        
-        
-        %         ItVector(2:end)=ItVector(1:end-1) ;
-        %         ItVector(1)=RunInfo.Forward.Iterations;
-        %        nItVector=numel(find(ItVector<1e10));
+
         
         ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-5,1):CtrlVar.CurrentRunStepNumber-1);
         nItVector=numel(ItVector) ;
@@ -130,7 +126,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping:  #Non-Lin Iterations over last %-i time steps: (max|mean|min)=(%-g|%-g|%-g). Target is %-i. \t TimeStepUpRatio=%-g \n ',...
             nItVector,max(ItVector),mean(ItVector),min(ItVector),CtrlVar.ATSTargetIterations,TimeStepUpRatio);
         
-        if RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)==666  % This is a special forced reduction whenever RunInfo.Forward.Iterations has been set to this value
+        if RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)==666  % This is a special forced reduction whenever RunInfo.Forward.uvhIterations has been set to this value
             
             
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;

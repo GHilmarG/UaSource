@@ -78,6 +78,8 @@ classdef UaFields
         g=[];
         alpha=[];
         
+        time=[]; 
+        
         GF=[];
         GFInit=[];
         

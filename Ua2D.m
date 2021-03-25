@@ -161,8 +161,9 @@ else
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
         % however:
-        CtrlVar.time=CtrlVarInRestartFile.time;
+        CtrlVar.time=CtrlVarInRestartFile.time;  F.time=CtrlVar.time ; 
         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
+       
         
         % Generally, I want dt used in the run to be the dt value in the restart file. However, it is possible that the restart file was
         % generated in a previous time independent run where dt was not defined, but the restart run is time dependent and the user has defined
@@ -363,6 +364,22 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
+    
+    nRunInfo=numel(RunInfo.Forward.uvhIterations) ;
+    if nRunInfo < CtrlVar.CurrentRunStepNumber
+        
+        RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
+        RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
+        RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
+        RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
+        RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
+        RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
+        RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
+        RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
+        
+    end
+    
+    
     if CtrlVar.InfoLevel >= 1 
         fprintf('\n \t ----------------------------------------> Current run step: %i <-------------------------------\n',CtrlVar.CurrentRunStepNumber) ;  
     end
@@ -481,17 +498,7 @@ while 1
         
         % RunInfo
         
-        if  numel(RunInfo.Forward.time)<=CtrlVar.CurrentRunStepNumber
-            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
-            RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
-            RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
-            RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
-            RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
-            RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
-            RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
-            
-        end
+    
         
         % RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
@@ -515,7 +522,8 @@ while 1
                 RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
                 fprintf(RunInfo.File.fid,...
                     '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
-                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'),...
+                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),...
+                    RunInfo.Forward.IterationsTotal,datetime('now'),...
                     duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
             end
             
@@ -569,8 +577,10 @@ while 1
             
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            F.time=CtrlVar.time ; 
             
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
@@ -596,7 +606,7 @@ while 1
             
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            
+            F.time=CtrlVar.time ; 
             % Recalulating geometry based on floation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -621,7 +631,7 @@ while 1
             F0=F;
             
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ; 
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             
             
@@ -653,8 +663,10 @@ while 1
         
         if CtrlVar.MassBalanceGeometryFeedback>0
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
+            F.time=CtrlVar.time ; 
             %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
         end
         
@@ -697,9 +709,9 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.Defin
     CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ; 
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt;
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F.time=CtrlVar.time ; 
         %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     

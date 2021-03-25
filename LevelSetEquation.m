@@ -56,44 +56,32 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     
     
     
+    % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
+    [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
     
-    switch CtrlVar.LevelSetSolutionMethod
-        
-        case "Piccard"
-            
-            [UserVar,RunInfo,LSF,lambda]=LevelSetEquationPiccard(UserVar,RunInfo,CtrlVar,MUA,BCs,F0);
-            
-        otherwise
-            
-            % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
+    if ~RunInfo.LevelSet.SolverConverged
+        % oops
+        error('LevelSetEquation:NoConvergence','LSF did not converge')
+        fprintf('LevelSetEquation:  Solver did not converge.\n')
+        dtKeep=CtrlVar.dt;
+        CtrlVar.dt=CtrlVar.dt/10 ;
+        F1.LSF=F0.LSF;
+        LSF=F0.LSF;
+        for iTheta=1:10
+            F1.LSF=LSF ;
             [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
-            
-            if ~RunInfo.LevelSet.SolverConverged
-                % oops
-                error('LevelSetEquation:NoConvergence','LSF did not converge')
-                fprintf('LevelSetEquation:  Solver did not converge.\n')
-                dtKeep=CtrlVar.dt; 
-                CtrlVar.dt=CtrlVar.dt/10 ; 
-                F1.LSF=F0.LSF; 
-                LSF=F0.LSF;
-                for iTheta=1:10
-                    F1.LSF=LSF ;
-                    [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
-                end
-                CtrlVar.dt=dtKeep; 
-            end
-            
-            
-            
+        end
+        CtrlVar.dt=dtKeep;
     end
- 
+    
+    
     
     Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
     
-    dLSF=LSF-F0.LSF; 
+    dLSF=LSF-F0.LSF;
     
     if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
-       
+        
         F1.LSF=LSF ; % here needed for plotting
         [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);
         

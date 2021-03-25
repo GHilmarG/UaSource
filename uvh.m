@@ -6,7 +6,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     dt=CtrlVar.dt;
     
     RunInfo.Forward.ActiveSetConverged=1;
-    RunInfo.Forward.IterationsTotal=0;
+    RunInfo.Forward.uvhIterationsTotal=0;
     iActiveSetIteration=0;
     isActiveSetCyclical=NaN;
     
@@ -142,8 +142,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 
                 
                 [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-                nlIt(iCounter)=RunInfo.Forward.Iterations;  iCounter=iCounter+1;
-                RunInfo.Forward.Iterations=mean(nlIt,'omitnan');
+                nlIt(iCounter)=RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
+                RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
                 
                 % keep a copy of the old active set
                 LastActiveSet=BCs1.hPosNode;
@@ -183,13 +183,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     break
                 end
                 
-                if CtrlVar.DebugMode
-                    warning('FIuvh2D:nonconvergent','uvh2D did not converge')
-                    filename='Dump_FIuvh2D.mat';
-                    fprintf('Saving all data in %s \n',filename)
-                    save(filename)
-                    error('asdf')
-                end
+                
+                warning('uvh:uvhSolutionNotConvergent','uvh2D did not converge')
+                filename='Dump_uvh';
+                fprintf('Saving all local data in %s \n',filename)
+                save(filename)
+                
                 
                 % If not converged try:
                 % 1) Reset variables to values at the beginning of time ste
@@ -197,6 +196,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 % 3) If that does not work reset time step.
                 
                 if ~VariablesReset
+                    
                     
                     VariablesReset=1;
                     if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -427,7 +427,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         
         
         
-        %RunInfo.Iterations=nlIt(1); % here I use the number of NR iterations in the first update as a measure of
+        %RunInfo.uvhIterations=nlIt(1); % here I use the number of NR iterations in the first update as a measure of
         % the nonlinearity of the problem
         
         % To do: I could consider relaxing the convergence criterias while
