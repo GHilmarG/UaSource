@@ -83,6 +83,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             
             frhs=-R-L'*l;
             grhs=Lrhs-L*F1.LSF;
+
             
         else
             frhs=-R;
@@ -150,7 +151,8 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
-        if CtrlVar.LevelSetInfoLevel>=10
+
+        if CtrlVar.LevelSetInfoLevel>=1
             if ~isempty(L)
                 BCsError=norm(Lrhs-L*F1.LSF);
             end
@@ -163,14 +165,14 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     LSF1=F1.LSF ; % Because I don't return F1
     
    
-    if CtrlVar.LevelSetInfoLevel>=1  && CtrlVar.LevelSetInfoLevel<10
-        if ~isempty(L)
-            BCsError=norm(Lrhs-L*F1.LSF);
-        end
-        fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
-            iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
-    end
-    
+%     if CtrlVar.LevelSetInfoLevel>=1  && CtrlVar.LevelSetInfoLevel<10
+%         if ~isempty(L)
+%             BCsError=norm(Lrhs-L*F1.LSF);
+%         end
+%         fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
+%             iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+%     end
+%     
     
     
     

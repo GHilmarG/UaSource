@@ -24,24 +24,34 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
     
     tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);  % TestIng  1
-    % tauSUPG=CalcSUPGtau(CtrlVar,MUA,abs(u0-c0),v0*0 ,dt)  ;  % TestIng  2
-    
-    l=sqrt(MUA.EleAreas) ;
-    
-    speed0=sqrt(u0.*u0+v0.*v0) ; 
-    % V=abs(speed0-c0) ; % TesTing 2 
-    V=speed0; % TestIng 1
-    V=Nodes2EleMean(MUA.connectivity,V) ; % consider doing this a integration points
-    l=10e3 ; 
-    mu=CtrlVar.LevelSetFAB*V.*l;  % looks resonable to me
+
+ 
+ 
     
     %% TestIng
-    u0=zeros(MUA.Nnodes,1) ; v0=zeros(MUA.Nnodes,1) ; 
-    u1=zeros(MUA.Nnodes,1) ; v1=zeros(MUA.Nnodes,1) ; 
-    c0=zeros(MUA.Nnodes,1) ; c1=zeros(MUA.Nnodes,1) ; 
+    %
+    % Augmented equation  =  LSF  + Augment 
+    %
+    %
+  
     mu=1e6; 
-    TR=0; % this gets rid of the dh/dt term
-    DS=1 ; % sign of diffusion term
+    
+    
+    switch CtrlVar.LevelSetPhase
+        case "Initialisation"
+            L=0 ; % The level-set equation only (i.e. without the pertubation term)
+            P=1;    % P is the pertubation term
+        case "Propagation"
+            L=1;
+            P=0;
+        case "Propagation and FAB"
+            L=1;
+            P=1;
+        otherwise
+            error('safd')
+    end
+    
+
     %%
     
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -84,9 +94,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
         [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-        
-        
-        
+
         
         % Deriv : Nele x dof x nod
         %  detJ : Nele
@@ -102,7 +110,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         c1int=c1nod*fun;
         
         
-        tauSUPGint=tauSUPGnod*fun;
+       
         
         
         
@@ -130,7 +138,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;  
         cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
         
+        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy1int,dt); 
         
+        % I need to think about a good def for mu
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
                 
@@ -140,27 +150,29 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         for Inod=1:MUA.nod
             
+            
+            
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
             if nargout>2
                 for Jnod=1:MUA.nod
                     
-                    LHS=TR*fun(Jnod).*SUPGdetJw...
+                    Llhs=fun(Jnod).*SUPGdetJw...
                         +NR*dt*theta*(...
                         (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                         .*SUPGdetJw;
 
-                    
-                    LHSDiffusion=DS*dt*theta*...
+                     
+                    Plhs=dt*theta*...
                         (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                     
                     
-                    LHSterm=LHS+LHSDiffusion; % .*SUPGdetJw ;
+                    LHS=L*Llhs+P*Plhs; % .*SUPGdetJw ;
                     
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHSterm; % +kdf1dx+kdf1dy;
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHS;
                     
                 end
             end
@@ -169,21 +181,19 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
             %         
             %   LSH  \phi  = - RHS
             %
-            RHS=TR*(f1int-f0int).*SUPGdetJw...
-                + dt*theta*(...
-                ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
-                + DS*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
-                ) ...
-                + dt*(1-theta)*(...
-                ((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw...
-                + DS*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw...
-                );
-                
+            Lrhs=(f1int-f0int).*SUPGdetJw...
+                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
+                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw; 
+
             
-   
+            Prhs=...
+                       dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
+                 + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-            b1(:,Inod)=b1(:,Inod)+RHS; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;
+            RHS=L*Lrhs+P*Prhs ;
+            
+            b1(:,Inod)=b1(:,Inod)+RHS; 
             
         end
         

@@ -23,8 +23,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
         grhs=[];
     end
     
-    % frhs=frhs/MUA.Area;
-    % grhs=grhs/MUA.Area; 
+    frhs=frhs/MUA.Area;
+    grhs=grhs/MUA.Area; 
     
     D2=[frhs;grhs]'*[dLSF;dl]; 
     rWork=D2^2;
