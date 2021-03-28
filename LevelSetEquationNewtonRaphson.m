@@ -23,10 +23,6 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     
     
-    % Define calving rate
-    % F.c=zeros(MUA.Nnodes,1)-100e3 ;
-    
-    
     if ~isfield(CtrlVar,'LevelSetReinitializeTimeInterval') || isempty(CtrlVar.LevelSetReinitializeTimeInterval)
         CtrlVar.LevelSetResetInterval=inf;
     end
@@ -81,9 +77,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
         iteration=iteration+1 ;
-        
-        
-        %[UserVar,R,K]=LevelSetEquationAssemblyNR(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+
         [UserVar,R,K]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         if ~isempty(L)
             
@@ -108,10 +102,16 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
         
         slope0=-2*r0 ;
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        
+        if CtrlVar.LevelSetInfoLevel>=100
+            CtrlVar.InfoLevelBackTrack=100 ;
+        end
+        
+        
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
-        if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
+        if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots==1
             nnn=50;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             Upper=2.2;
@@ -143,6 +143,10 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             
         end
         
+        %TestIng
+        FindOrCreateFigure("Changes in LSF")
+        plot(F1.x/1000,dLSF/1000,'.b') ; hold on ; plot(F1.x/1000,F1.LSF/1000,'.r') ;  plot(F1.x/1000,(F1.LSF+gamma*dLSF)/1000,'.g') ;
+        legend('dLSF','Old','New')
         
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;

@@ -41,8 +41,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         LastResetTime=0 ;
     end
     
-    CtrlVar.LevelSetInfoLevel=10 ;  
-    
+
     
     if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval)
         fprintf("LevelSetEquation: Level Set is re-initialized. \n")
@@ -54,7 +53,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         F1.LSF=F0.LSF;  % +dLSF*CtrlVar.dtRatio ;
     end
     
-    
+  
     
     % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
     [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
