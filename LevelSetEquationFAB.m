@@ -98,7 +98,7 @@ switch CtrlVar.LevelSetFABCostFunction
             p=4 ; q=4 ;
         end
         
-    case "Lietal2010"
+    case "Li2010"
         
         LT=x<1 ;
         k=1-1./x ;

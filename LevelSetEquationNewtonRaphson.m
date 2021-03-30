@@ -81,16 +81,19 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         [UserVar,R,K]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         if ~isempty(L)
             
-            frhs=-R-L'*l;
+           % frhs=-R-L'*l;
+           % grhs=Lrhs-L*F1.LSF;
+
+            % This is for linear equations which will always be fullfiled 
+            frhs=-R;
             grhs=Lrhs-L*F1.LSF;
 
-            
         else
             frhs=-R;
             grhs=[];
         end
         
-        [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        [dLSF,l]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
         dLSF=full(dLSF);
         
         if any(isnan(dLSF))
@@ -150,7 +153,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         legend('dLSF','Old','New')
         
         F1.LSF=F1.LSF+gamma*dLSF;
-        l=l+gamma*dl;
+        % l=l+gamma*dl;
 
         if CtrlVar.LevelSetInfoLevel>=1
             if ~isempty(L)

@@ -9,6 +9,15 @@ if isempty(hfixednode) && isempty(hfixedvalue) && isempty(htiedA) && isempty(hti
     return
 end
 
+
+
+if numel(hfixednode) ~= numel(hfixedvalue)
+    numel(hfixednode)
+    numel(hfixedvalue)
+    error(' # of fixed nodes must be equal to # of fixed values ');
+end
+
+
 if numel(htiedA) ~= numel(htiedB)
     numel(htiedA)
     numel(htiedB)

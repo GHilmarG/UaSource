@@ -22,12 +22,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    % theta=0; 
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
-    
-    tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);  % TestIng  1
-
+   
  
- 
-    
+    Epsilon=CtrlVar.LevelSetEpsilon ; 
     %% TestIng
     %
     % Augmented equation  =  LSF  + Augment 
@@ -67,10 +64,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
-    
-    
-    % kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
+   
     
     
     [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -172,7 +166,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                     
                     LHS=L*Llhs+P*Plhs; % .*SUPGdetJw ;
                     
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHS;
+                    Reg=Epsilon*fun(Jnod).*fun(Inod).*detJw ; 
+                    
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHS+Reg;
                     
                 end
             end
@@ -191,7 +187,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-            RHS=L*Lrhs+P*Prhs ;
+             Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
+             
+            RHS=L*Lrhs+P*Prhs+Reg ;
             
             b1(:,Inod)=b1(:,Inod)+RHS; 
             
