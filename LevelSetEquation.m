@@ -55,7 +55,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     
   
     
-    % This will actually also do Piccard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
+    % This will actually also do Picard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
     [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);
     
     if ~RunInfo.LevelSet.SolverConverged

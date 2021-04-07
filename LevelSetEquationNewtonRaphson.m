@@ -85,8 +85,11 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
            % grhs=Lrhs-L*F1.LSF;
 
             % This is for linear equations which will always be fullfiled 
-            frhs=-R;
-            grhs=Lrhs-L*F1.LSF;
+            frhs=-R/MUA.Area ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
+            grhs=Lrhs-L*F1.LSF; % Here the argument is that frhs has the units: [\varphi] area/time
+                                % while grhs has the units [\varphi], where [\varphi] are the untis of 
+                                % the level-set function itself. 
+                                
 
         else
             frhs=-R;
@@ -149,6 +152,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         
         %TestIng
         FindOrCreateFigure("Changes in LSF")
+        hold off
         plot(F1.x/1000,dLSF/1000,'.b') ; hold on ; plot(F1.x/1000,F1.LSF/1000,'.r') ;  plot(F1.x/1000,(F1.LSF+gamma*dLSF)/1000,'.g') ;
         legend('dLSF','Old','New')
         

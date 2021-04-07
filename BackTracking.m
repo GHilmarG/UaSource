@@ -211,7 +211,8 @@ BackTrackInfo.nExtrapolationSteps=0;
 
 if fb<target 
     
-    fmin=fb ; gmin=b ;
+    % fmin=fb ; gmin=b ;  % there is a possibiliyt that fb was smaller then the target, but that fa was smaller still
+    % so just return the smallest value, obtained so far which is fmin at gmin
     
     if CtrlVar.InfoLevelBackTrack>=2
         fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)

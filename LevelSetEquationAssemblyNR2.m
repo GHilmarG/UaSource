@@ -25,13 +25,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    
  
     Epsilon=CtrlVar.LevelSetEpsilon ; 
-    %% TestIng
-    %
-    % Augmented equation  =  LSF  + Augment 
-    %
-    %
-  
-    mu=1e6; 
+
+    mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+
     
     
     switch CtrlVar.LevelSetPhase
@@ -122,8 +118,8 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         end
         
         % Norm of gradient (NG)
-        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+100*eps); % at each integration point for all elements
-        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+100*eps); % at each integration point for all elements
+        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
+        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
         
         
         n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
@@ -147,6 +143,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
             
             
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
             if nargout>2
@@ -181,6 +178,11 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                 +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
                 + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw; 
 
+   % should I possibly write this term as
+   %
+   %    u1int.*dfdx+v1int.*df1dy + c1int.*NG1 
+   %
+            
             
             Prhs=...
                        dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...

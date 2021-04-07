@@ -7,8 +7,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     
     
     F1.LSF=F1.LSF+gamma*dLSF;
-    l=l+gamma*dl;
-    l=dl ; % TestIng
+ 
     
     [UserVar,R]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
     
@@ -19,7 +18,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
         % grhs=Lrhs-L*F1.LSF;
         
         % This is for linear equations which will always be fullfiled 
-        frhs=-R;
+        frhs=-R/MUA.Area ; 
         grhs=Lrhs-L*F1.LSF;
         
         
@@ -35,6 +34,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     rWork=full(D2^2);
     
     rForce=full([frhs;grhs]'*[frhs;grhs]); 
+    
+ 
     
     switch CtrlVar.LSFMinimisationQuantity
         case "Force Residuals"
