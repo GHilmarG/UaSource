@@ -355,6 +355,7 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %  1/3  dN/dX for L -> infty
 %
 
+% Consider doing this within the intergration-point loop.
 tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ; 
 
 % ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
@@ -366,6 +367,9 @@ tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 tau1=CtrlVar.SUPG.beta1*tau;
 
+% These are derivatives of the SUPG term itself with respect to u and v
+% Only needed if SUPG depends on the u and v updates.  Generally I found this to 
+% just add another level of non-linear behaviour and I'm not using this.
 f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
 SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
 SUPGv=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-vint.*vint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
@@ -442,7 +446,9 @@ for Inod=1:MUA.nod
             SUPG=fun(Inod)+theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
                 +(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             
-            
+            % These are derivatives of the SUPG term itself with respect to u and v
+            % Only needed if SUPG depends on the u and v updates.  Generally I found this to
+            % just add another level of non-linear behaviour and I'm not using this.
             dSUPGu=SUPGu.*fun(Jnod).*Deriv(:,1,Inod);
             dSUPGv=SUPGv.*fun(Jnod).*Deriv(:,2,Inod);
             

@@ -98,6 +98,10 @@ x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
 [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
 dhdt=full(dhdt);    
  
-    
+% Now there is an issue here regarding what to do about dhdt<0 when h<=thickmin
+
+I=(F.h<=CtrlVar.ThickMin)  & (dhdt< 0) ;
+dhdt(I)=0 ; 
+
 
 end

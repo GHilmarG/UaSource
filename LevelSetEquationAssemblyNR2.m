@@ -18,24 +18,34 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
-    theta=CtrlVar.theta;
+    theta=CtrlVar.LevelSetTheta;
    % theta=0; 
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
-    
-    tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);  % TestIng  1
-    % tauSUPG=CalcSUPGtau(CtrlVar,MUA,abs(u0-c0),v0*0 ,dt)  ;  % TestIng  2
-    
-    l=sqrt(MUA.EleAreas) ;
-    
-    speed0=sqrt(u0.*u0+v0.*v0) ; 
-    % V=abs(speed0-c0) ; % TesTing 2 
-    V=speed0; % TestIng 1
-    V=Nodes2EleMean(MUA.connectivity,V) ; % consider doing this a integration points
-    l=10e3 ; 
-    mu=CtrlVar.LevelSetFAB*V.*l;  % looks resonable to me
+   
+ 
+    Epsilon=CtrlVar.LevelSetEpsilon ; 
+
+    mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+
     
     
+    switch CtrlVar.LevelSetPhase
+        case "Initialisation"
+            L=0 ; % The level-set equation only (i.e. without the pertubation term)
+            P=1;    % P is the pertubation term
+        case "Propagation"
+            L=1;
+            P=0;
+        case "Propagation and FAB"
+            L=1;
+            P=1;
+        otherwise
+            error('safd')
+    end
+    
+
+    %%
     
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -50,10 +60,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
-    
-    
-    % kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
+   
     
     
     [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -77,9 +84,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
         [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-        
-        
-        
+
         
         % Deriv : Nele x dof x nod
         %  detJ : Nele
@@ -95,7 +100,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         c1int=c1nod*fun;
         
         
-        tauSUPGint=tauSUPGnod*fun;
+       
         
         
         
@@ -113,16 +118,19 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         end
         
         % Norm of gradient (NG)
-        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+100*eps); % at each integration point for all elements
-        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+100*eps); % at each integration point for all elements
+        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
+        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
         
         
         n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
-        %n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
-        %c1xint=c1int.*n1x ; c1yint=c1int.*n1y;  
-        %c0xint=c0int.*n0x ; c0yint=c0int.*n0y;
+        n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
         
+        cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;  
+        cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
         
+        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy1int,dt); 
+        
+        % I need to think about a good def for mu
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
                 
@@ -132,49 +140,63 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         for Inod=1:MUA.nod
             
+            
+            % TestIng:
+            % Did I forget to take the derivatives of the u and v terms in the supg?
+            % Check and compare with uvhAssemblyIntPointImplicitySUPG SUPGu and SUPGv line 371/372
+            %
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
             if nargout>2
                 for Jnod=1:MUA.nod
                     
-                    LHS=fun(Jnod).*SUPGdetJw...
+                    Llhs=fun(Jnod).*SUPGdetJw...
                         +NR*dt*theta*(...
-                        (u1int.*Deriv(:,1,Jnod) + v1int.*Deriv(:,2,Jnod))... 
-                        +c1int.*(df1dx.*Deriv(:,1,Jnod)+df1dy.*Deriv(:,2,Jnod))./NG1)...
+                        (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                         .*SUPGdetJw;
 
-                    
-                    LHSDiffusion=dt*theta*...
+                     
+                    Plhs=dt*theta*...
                         (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                     
                     
-                    LHSterm=LHS+LHSDiffusion; % .*SUPGdetJw ;
+                    LHS=L*Llhs+P*Plhs; % .*SUPGdetJw ;
                     
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHSterm; % +kdf1dx+kdf1dy;
+                    Reg=Epsilon*fun(Jnod).*fun(Inod).*detJw ; 
+                    
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHS+Reg;
                     
                 end
             end
 
-            
-            RHS=(f1int-f0int).*SUPGdetJw...
-                + dt*theta*(...
-                (u1int.*df1dx +v1int.*df1dy).*SUPGdetJw...
-                + kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
-                ) ...
-                + dt*(1-theta)*(...
-                (u0int.*df0dx +v0int.*df0dy).*SUPGdetJw...
-                + kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw...
-                ) ...
-                +dt*(1-theta)*c0int.*NG0.*SUPGdetJw+dt*theta*c1int.*NG1.*SUPGdetJw...    
-                ;
-            
-   
+            % Note, I solve: 
+            %         
+            %   LSH  \phi  = - RHS
+            %
+            Lrhs=(f1int-f0int).*SUPGdetJw...
+                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
+                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw; 
+
+   % should I possibly write this term as
+   %
+   %    u1int.*dfdx+v1int.*df1dy + c1int.*NG1 
+   %
             
             
-            b1(:,Inod)=b1(:,Inod)+RHS; % +udf0dx+vdf0dy+kappadfdx+kappadfdy;
+            Prhs=...
+                       dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
+                 + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
+            
+            
+             Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
+             
+            RHS=L*Lrhs+P*Prhs+Reg ;
+            
+            b1(:,Inod)=b1(:,Inod)+RHS; 
             
         end
         

@@ -98,7 +98,13 @@ if numel(BCs.vbFixedNode) ~=  numel(BCs.vbFixedValue)
     error('GetBoundaryConditions:vb','Number of fixed vb nodes not equal to number of vb fixed values! \n')
 end
 
+if numel(BCs.hFixedValue) ~=  numel(BCs.hFixedNode)
+    error('GetBoundaryConditions:h','Number of fixed h nodes not equal to number of h fixed values! \n')
+end
 
+if numel(BCs.LSFFixedNode) ~=  numel(BCs.LSFFixedValue)
+    error('GetBoundaryConditions:LSF','Number of fixed LSF nodes not equal to number of LSF fixed values! \n')
+end
 
 if CtrlVar.doplots && CtrlVar.PlotBCs
     fig=FindOrCreateFigure("Boundary Conditions");

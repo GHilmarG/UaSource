@@ -6,11 +6,14 @@ function [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F,BCs)
 %
 %   [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
 %
-% uses u=F.ub, and hence only correct for plug flow, e.g. SSA
+% Note: 
+%   -Uses u=F.ub, and hence only correct for plug flow, e.g. SSA
+%   -Does not account for spatially variable density
 %
 % Projects the values directly onto nodes.
 %
-% Uses SUPG, but very doubtfull that this SUPG treatment is required.
+% Uses SUPG, but very doubtfull that this SUPG treatment is required. In fact I'm not really solving for dhdt, 
+% I'm just evaluating the  spatial derivatives terms on the intergration points, and then projecting onto the nodes.
 %
 % see also : ProjectFintOntoNodes
 %
@@ -22,7 +25,17 @@ if nargin<5
     BCs=[];
 end
 
+% I tested various tau options agains the typical Galerkin without upwinding
+% for an glacier peak example, and found taus created oscillations for 
+% small velocities, i.e. too much negative diffusion.
+
 CtrlVar.Tracer.SUPG.tau="tau2";
+% CtrlVar.Tracer.SUPG.tau="taus";      % too much negative diffusion because of the tau=l/(2u)  goes to infinity as u to zero 
+% CtrlVar.Tracer.SUPG.tau="tau1";    % results identical to noSUPG 
+% CtrlVar.Tracer.SUPG.tau="taut";    % results identical to noSUPG 
+% CtrlVar.Tracer.SUPG.tau="tau2";    % results identical to noSUPG 
+
+
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 tauSUPG=CalcSUPGtau(CtrlVar,MUA,F.ub,F.vb,0);
@@ -61,6 +74,7 @@ for Iint=1:MUA.nip
     
     tauSUPGint=tauSUPGnod*fun;
     
+
     
     % derivatives at one integration point for all elements
     for Inod=1:MUA.nod
@@ -128,12 +142,19 @@ end
 Msupg=sparseUA(Iind,Jind,Xval,neq,neq);
 [hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
 
-CtrlVar.SymmSolver='AugmentedLagrangian';
+% CtrlVar.SymmSolver='AugmentedLagrangian';
 x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
 
 
 [dhdt,dhdtlambda]=solveKApe(Msupg,hL,rh,hRhs,x0,y0,CtrlVar);
 dhdt=full(dhdt);
+
+
+% Now there is an issue here regarding what to do about dhdt<0 when h<=thickmin
+
+I=(F.h<=CtrlVar.ThickMin)  & (dhdt< 0) ;
+dhdt(I)=0 ; 
+
 
 
 end
