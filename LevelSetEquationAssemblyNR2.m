@@ -141,7 +141,10 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         for Inod=1:MUA.nod
             
             
-            
+            % TestIng:
+            % Did I forget to take the derivatives of the u and v terms in the supg?
+            % Check and compare with uvhAssemblyIntPointImplicitySUPG SUPGu and SUPGv line 371/372
+            %
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;

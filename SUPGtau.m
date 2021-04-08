@@ -39,6 +39,7 @@ switch tauOption
         
     case "tau2"   %  inversly weighted average of spatial and temporal tau
         % tau=1./(1./taut+1./taus);
+        %    =1./(1./(dt/2)  + 1/(l/2v))
         tau=(dt/2).*1./(1+ECN) ;
         
     case "taus"   % 'spatial' definition, independent of time step
@@ -46,6 +47,9 @@ switch tauOption
         
     case "taut"   % 'temporal' definition, independent of speed
         tau=taut;
+    case "tau0"   % 'temporal' definition, independent of speed
+        
+        tau=zeros(size(v),'like',v);
         
     otherwise
         error("in SUPGtau case not found")
