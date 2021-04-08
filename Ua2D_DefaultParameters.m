@@ -690,7 +690,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is Hessian-based optimisation using the matlab optimisation toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % Hessian-based, Matlab toolbox
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, Matlab toolbox
 %                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimisation toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimisation toolbox
@@ -710,6 +710,9 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
+% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-muliplier,
+% and with respect to the l2 inner product when using the I pre-multiplier.
+%
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
