@@ -293,7 +293,7 @@ qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 l=sqrt(2*MUA.EleAreas);
 
 speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
-speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
+% speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
 %
 % The SUPG adds a term to the weighting function on the form
@@ -355,8 +355,9 @@ speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 %  1/3  dN/dX for L -> infty
 %
 
-% Consider doing this within the intergration-point loop.
+% This is done intergration-point loop.
 tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ; 
+tau0=CtrlVar.SUPG.beta0*tau;
 
 % ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
 % kappa=coth(ECN)-1./ECN;
@@ -364,23 +365,31 @@ tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
 % tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 % tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
 
-tau0=CtrlVar.SUPG.beta0*tau;
-tau1=CtrlVar.SUPG.beta1*tau;
+
+% tau1=CtrlVar.SUPG.beta1*tau;
 
 % These are derivatives of the SUPG term itself with respect to u and v
 % Only needed if SUPG depends on the u and v updates.  Generally I found this to 
 % just add another level of non-linear behaviour and I'm not using this.
-f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
-SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
-SUPGv=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-vint.*vint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
+%f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
+%SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
+%SUPGv=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-vint.*vint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
 
 
 detJw=detJ*MUA.weights(Iint);
 
 
 for Inod=1:MUA.nod
+    
+    SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    funI=fun(Inod) ; 
+    % funI=SUPG ;  % TestIng, this is towards consistent SUPG
+    
+    
     if ~Ronly
         for Jnod=1:MUA.nod
+            
+            
             
             Deu=Eint.*((2*exx+eyy).*Deriv(:,1,Jnod)+exy.*Deriv(:,2,Jnod));
             Dev=Eint.*((2*eyy+exx).*Deriv(:,2,Jnod)+exy.*Deriv(:,1,Jnod));
@@ -395,40 +404,37 @@ for Inod=1:MUA.nod
                 +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +E11...
-                +dtauxdu.*fun(Jnod).*fun(Inod)...   % +beta2int.*fun(Jnod).*fun(Inod)+Dbeta2Duuint.*fun(Jnod).*fun(Inod)...
+                +dtauxdu.*fun(Jnod).*funI...   
                 ).*detJw;
             
             Kyv(:,Inod,Jnod)=Kyv(:,Inod,Jnod)...
                 +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +E22...
-                +dtauydv.*fun(Jnod).*fun(Inod)...   % +beta2int.*fun(Jnod).*fun(Inod)+Dbeta2Dvvint.*fun(Jnod).*fun(Inod)...
+                +dtauydv.*fun(Jnod).*funI...   
                 ).*detJw ;
             
             Kxv(:,Inod,Jnod)=Kxv(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
                 +E12...
-                +dtauxdv.*fun(Jnod).*fun(Inod)...   % +Dbeta2Duvint.*fun(Jnod).*fun(Inod)...    % beta derivative
+                +dtauxdv.*fun(Jnod).*funI...   
                 ).*detJw;
             
             
             Kyu(:,Inod,Jnod)=Kyu(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
                 +E21...
-                +dtauydu.*fun(Jnod).*fun(Inod)...    % +Dbeta2Duvint*fun(Jnod).*fun(Inod)...
+                +dtauydu.*fun(Jnod).*funI...    % +Dbeta2Duvint*fun(Jnod).*fun(Inod)...
                 ).*detJw;
-            
-            %   t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*fun(Inod)+ rhoint.*g.*hint.*sa.*fun(Inod);
-            %  t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
-            %  Dddhint=HEint.*rhoint/rhow+deltaint.*Hposint-Deltaint.*hint.*rhoint/rhow;
+
             
             Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
                 +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
-                +dtauxdh.*fun(Inod).*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
-                +ca*g*rhoint.*Heint.*dBdx.*fun(Inod).*fun(Jnod)...                           % t1
-                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*fun(Inod).*fun(Jnod)... ; % t1
-                -sa*g*rhoint.*fun(Inod).*fun(Jnod)...                                        % t1
+                +dtauxdh.*funI.*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
+                +ca*g*rhoint.*Heint.*dBdx.*funI.*fun(Jnod)...                           % t1
+                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*funI.*fun(Jnod)... ; % t1
+                -sa*g*rhoint.*funI.*fun(Jnod)...                                        % t1
                 -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,1,Inod).*fun(Jnod)...  ;    % t2
                 ).*detJw;
             
@@ -437,29 +443,30 @@ for Inod=1:MUA.nod
             Kyh(:,Inod,Jnod)=Kyh(:,Inod,Jnod)...
                 +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
-                +dtauydh.*fun(Inod).*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
-                +ca*g*rhoint.*Heint.*dBdy.*fun(Inod).*fun(Jnod)...                           % t1
-                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*fun(Inod).*fun(Jnod)... ; % t1
+                +dtauydh.*funI.*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
+                +ca*g*rhoint.*Heint.*dBdy.*funI.*fun(Jnod)...                           % t1
+                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*funI.*fun(Jnod)... ; % t1
                 -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
                 ).*detJw;
             
-            SUPG=fun(Inod)+theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
-                +(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+           % SUPG=fun(Inod)+theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
+           %     +(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            
             
             % These are derivatives of the SUPG term itself with respect to u and v
             % Only needed if SUPG depends on the u and v updates.  Generally I found this to
             % just add another level of non-linear behaviour and I'm not using this.
-            dSUPGu=SUPGu.*fun(Jnod).*Deriv(:,1,Inod);
-            dSUPGv=SUPGv.*fun(Jnod).*Deriv(:,2,Inod);
+            %dSUPGu=SUPGu.*fun(Jnod).*Deriv(:,1,Inod);
+            %dSUPGv=SUPGv.*fun(Jnod).*Deriv(:,2,Inod);
             
             Khu(:,Inod,Jnod)=Khu(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdx.*fun(Jnod)+drhodx.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,1,Jnod))...
-                .*SUPG.*detJw*dt+dSUPGu.*detJw*dt;
+                .*SUPG.*detJw*dt; % +dSUPGu.*detJw*dt;
             
             
             Khv(:,Inod,Jnod)=Khv(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdy.*fun(Jnod)+drhody.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,2,Jnod))...
-                .*SUPG.*detJw*dt+dSUPGv.*detJw*dt;
+                .*SUPG.*detJw*dt; % +dSUPGv.*detJw*dt;
             
             
             
@@ -478,27 +485,30 @@ for Inod=1:MUA.nod
     %  dR/dh  dh = -R
     %  dT/dh-dF/dh=-T+F  or dF/dh-dT/dh=T-F
     
-    t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*fun(Inod)+ rhoint.*g.*hint.*sa.*fun(Inod);
+    t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*funI+ rhoint.*g.*hint.*sa.*funI;
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
     t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
     t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
-    t5=taux.*fun(Inod); % beta2int.*uint.*fun(Inod);
+    t5=taux.*funI; % beta2int.*uint.*fun(Inod);
     
     Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
     Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
     
-    t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdy.*fun(Inod);
+    t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdy.*funI;
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,2,Inod);
     t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
     t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-    t5=tauy.*fun(Inod); % beta2int.*vint.*fun(Inod);
+    t5=tauy.*funI; % beta2int.*vint.*fun(Inod);
     
     Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
     Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
-
     
-    SUPG=fun(Inod)+    theta .*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
-        +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    
+    %SUPG=fun(Inod)+    theta .*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
+    %    +(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    
+    % SUPG=fun(Inod)+(1-theta).* tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));  % already defined above, and only depends on outer
+    % loop index
     
     
     qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;

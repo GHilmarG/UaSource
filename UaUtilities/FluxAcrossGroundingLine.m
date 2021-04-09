@@ -4,6 +4,10 @@ function [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo,ubGL,vbGL]=FluxAcrossGroun
 %
 % Calculates flux across grounding line.
 %
+% Very simple routine. Use this as a template, you will most likely need to do some modification for your own purpose.
+%
+% Also, this routine is an utility routine and has not been tested and optimized in a similar way as typical Ua routines.
+% 
 % On return qGL is the vertically and horizontally integrated flux 
 % over the depth h=s-b and the width dsGL=sqrt((GLgeo(:,3)-GLgeo(:,4)).^2+(GLgeo(:,5)-GLgeo(:,6)).^2);
 % at xy-location (GLgeo(:,7),GLgeo(:,8)) 
