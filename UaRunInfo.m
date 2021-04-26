@@ -61,6 +61,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.hIterations=NaN(N,1);
             obj.Forward.hResidual=NaN(N,1);
 
+
             obj.Forward.ubvbRecalculatedOnNewMesh=false; 
             
             obj.Forward.ActiveSetConverged=NaN;
