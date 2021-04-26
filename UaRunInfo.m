@@ -41,7 +41,6 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.hConverged=0;
 
             
-            
             obj.Forward.Converged=0;
             
             
