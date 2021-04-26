@@ -39,7 +39,8 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvResidual=NaN;
             
             obj.Forward.hConverged=0;
-            obj.Forward.hIterations=NaN;
+
+            
             
             obj.Forward.Converged=0;
             
@@ -57,6 +58,9 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
             obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
             
+            obj.Forward.hIterations=NaN(N,1);
+            obj.Forward.hResidual=NaN(N,1);
+
             obj.Forward.ubvbRecalculatedOnNewMesh=false; 
             
             obj.Forward.ActiveSetConverged=NaN;
