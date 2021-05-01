@@ -106,6 +106,80 @@ if numel(BCs.LSFFixedNode) ~=  numel(BCs.LSFFixedValue)
     error('GetBoundaryConditions:LSF','Number of fixed LSF nodes not equal to number of LSF fixed values! \n')
 end
 
+%% Check for duplicate nodes in boundary conditions and do some basic corrections (although is this not really the job of the modeller...)
+%  Also, I am not checking for all possible such cases and combinations.
+
+if numel(BCs.ubTiedNodeA) ~= numel(BCs.ubTiedNodeB)
+    
+    fprintf('# ub A ties =%i \n ',  numel(BCs.ubTiedNodeA))
+    fprintf('# ub B ties =%i \n ',  numel(BCs.ubTiedNodeB))
+    
+    error("Ua:BoundaryConditions","Number of A and B ub ties not the same")
+    
+end
+
+if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB)
+    
+    fprintf('# vb A ties =%i \n ',  numel(BCs.vbTiedNodeA))
+    fprintf('# vb B ties =%i \n ',  numel(BCs.vbTiedNodeB))
+    
+    error("Ua:BoundaryConditions","Number of A and B vb ties not the same")
+    
+end
+
+
+if ~isempty(BCs.ubTiedNodeA)
+    % eliminate dublications in nodal ties
+    % this needs to be done for both A and B ties, and then
+    % dublicates in A deleted from B, and duplicates in B deleted from A.
+    [BCs.ubTiedNodeA,ia]=unique(BCs.ubTiedNodeA);
+    BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ; 
+    
+    [BCs.ubTiedNodeB,ia]=unique(BCs.ubTiedNodeB);
+    BCs.ubTiedNodeA=BCs.ubTiedNodeA(ia) ;
+
+end
+
+if ~isempty(BCs.vbTiedNodeA)
+    % eliminate dublications in nodal ties
+    [BCs.vbTiedNodeA,ia]=unique(BCs.vbTiedNodeA);
+    BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia) ;
+    
+    [BCs.vbTiedNodeB,ia]=unique(BCs.vbTiedNodeB);
+    BCs.vbTiedNodeA=BCs.vbTiedNodeA(ia) ;
+
+end
+
+if ~isempty(BCs.ubFixedNode)
+    [BCs.ubFixedNode,ia]=unique(BCs.ubFixedNode);
+    BCs.ubFixedValue=BCs.ubFixedValue(ia) ;
+end
+
+if ~isempty(BCs.vbFixedNode)
+    [BCs.vbFixedNode,ia]=unique(BCs.vbFixedNode);
+    BCs.vbFixedValue=BCs.vbFixedValue(ia) ;
+end
+
+if ~isempty(BCs.hFixedNode)
+    [BCs.hFixedNode,ia]=unique(BCs.hFixedNode);
+    BCs.hFixedValue=BCs.hFixedValue(ia) ;
+end
+
+if ~isempty(BCs.vbFixedNode) && ~isempty(BCs.vbTiedNodeA)
+    % If a degree of freedom is both 'fixed' and 'tied', only 'fix' it and get rid of the 'tie'
+    [BCs.vbTiedNodeA,ia]=setdiff(BCs.vbTiedNodeA,BCs.vbFixedNode) ;
+     BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia); 
+                     
+end
+
+if ~isempty(BCs.ubFixedNode) && ~isempty(BCs.ubTiedNodeA)
+    % If a degree of freedom is both 'fixed' and 'tied', only 'fix' it and get rid of the 'tie'
+    [BCs.ubTiedNodeA,ia]=setdiff(BCs.ubTiedNodeA,BCs.ubFixedNode) ;
+     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia); 
+                     
+end
+%%
+
 if CtrlVar.doplots && CtrlVar.PlotBCs
     fig=FindOrCreateFigure("Boundary Conditions");
     clf(fig) 

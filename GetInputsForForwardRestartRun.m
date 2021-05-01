@@ -48,7 +48,7 @@ else
     
 end
 
-
+F.time=CtrlVar.time ; 
 
 
 % RunInfo=UaRunInfo;

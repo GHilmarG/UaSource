@@ -79,7 +79,7 @@ if CtrlVar.TimeDependentRun
         
         CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
         
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
         
         
         if CtrlVar.MapOldToNew.Test
@@ -90,12 +90,12 @@ if CtrlVar.TimeDependentRun
             [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.s,Fold.b);
             CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
             
-            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
             
             FTest=Fold; FTest.GF=[];
             [RunInfo,FTest.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.h);
             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
-            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
+            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,"-S-B-rho-");
             
             % now plot
             

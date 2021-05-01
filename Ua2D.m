@@ -192,7 +192,7 @@ else
 end
 
 MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
-F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; F.time=CtrlVar.time ; 
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;

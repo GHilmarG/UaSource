@@ -14,6 +14,7 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
 fprintf(CtrlVar.fidlog,' done \n ');
 
 F.GF=GF;
+F.time=CtrlVar.time ; 
 
 LastRunInfo=RunInfo;
 
