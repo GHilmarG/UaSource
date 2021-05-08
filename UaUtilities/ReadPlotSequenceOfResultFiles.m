@@ -28,8 +28,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %
     %   DataCollect=ReadPlotSequenceOfResultFiles("FileNameSubstring","-Ice1r-","PlotType","-collect-");
     %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ;
-    %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,
-    %   DataCollect.GroundedArea/1e6,'-or'); xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
+    %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,'-or'); 
+    %   xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
     %
     %
     % Examples:
