@@ -22,6 +22,8 @@ w=[5.0/9.0,8.0/9.0,5.0/9.0];       % 3 elements
 v=[5.0/9.0*w,8.0/9.0*w,5.0/9.0*w]; % 9 elements
 
 
+
+
 switch element
     case 'line'
         switch  nip
@@ -454,6 +456,7 @@ switch element
                 
             otherwise
                 disp('wrong number of integrating points for a triangle')
+                error('sfda')
         end
     case 'quadrilateral'
         switch nip

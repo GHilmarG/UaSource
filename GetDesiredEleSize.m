@@ -1,4 +1,4 @@
-function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)
+function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)
 
 
 persistent nCalls
@@ -17,7 +17,12 @@ nCalls=nCalls+1;
 
 N=nargout('DefineDesiredEleSize');
 
-
+if contains(lower(CtrlVar.MeshRefinementMethod),"local")
+    x=MUA.xEle ; y=MUA.yEle;
+else
+    x=MUA.coordinates(:,1) ;
+    y=MUA.coordinates(:,2) ;
+end
 
 InputEleSizeDesired=EleSizeDesired;
 InputElementsToBeRefined=ElementsToBeRefined;
@@ -62,7 +67,33 @@ if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
         end
     end
     
-    
+    % just some basic check here, not covering all possibilies, just the most likely input mistakes
+
+    if islogical(ElementsToBeRefined)
+        
+        if numel(ElementsToBeRefined) ~= MUA.Nele
+            
+            fprintf("Number of elements in the logical list ElementsToBeRefined (%i) not equal to number of elements in mesh (%i) \n ",...
+                numel(ElementsToBeRefined),MUA.Nele)
+            error("Ua:IncorectUserInput","Incorrect DefineDesiredEleSize user input")
+        end
+        
+    end
+
+   if islogical(ElementsToBeCoarsened)
+        
+        if numel(ElementsToBeCoarsened) ~= MUA.Nele
+            
+            fprintf("Number of elements in the logical list ElementsToBeCoarsened (%i) not equal to number of elements in mesh (%i) \n ",...
+                numel(ElementsToBeCoarsened),MUA.Nele)
+            error("Ua:IncorectUserInput","Incorrect DefineDesiredEleSize user input")
+        end
+        
+    end
+
+
+
+
 elseif contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     
     if ~isequal(InputElementsToBeRefined,ElementsToBeRefined)

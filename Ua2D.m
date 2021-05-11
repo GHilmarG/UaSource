@@ -240,7 +240,7 @@ if CtrlVar.doInverseStep   % -inverse
     
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
-    
+     CtrlVar.CurrentRunStepNumber=1; 
     CtrlVar.DefineOutputsInfostring="Start of inverse run";
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;

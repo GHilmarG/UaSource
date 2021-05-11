@@ -127,28 +127,31 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB)
     
 end
 
-
-if ~isempty(BCs.ubTiedNodeA)
-    % eliminate dublications in nodal ties
-    % this needs to be done for both A and B ties, and then
-    % dublicates in A deleted from B, and duplicates in B deleted from A.
-    [BCs.ubTiedNodeA,ia]=unique(BCs.ubTiedNodeA);
-    BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ; 
-    
-    [BCs.ubTiedNodeB,ia]=unique(BCs.ubTiedNodeB);
-    BCs.ubTiedNodeA=BCs.ubTiedNodeA(ia) ;
-
-end
-
-if ~isempty(BCs.vbTiedNodeA)
-    % eliminate dublications in nodal ties
-    [BCs.vbTiedNodeA,ia]=unique(BCs.vbTiedNodeA);
-    BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia) ;
-    
-    [BCs.vbTiedNodeB,ia]=unique(BCs.vbTiedNodeB);
-    BCs.vbTiedNodeA=BCs.vbTiedNodeA(ia) ;
-
-end
+%% This is a questionable approach.
+%  Even if a node is twice in list A, it can be unique if it is tied 
+%  to two different freedome of degrees
+% if ~isempty(BCs.ubTiedNodeA)
+%     % eliminate dublications in nodal ties
+%     % this needs to be done for both A and B ties, and then
+%     % dublicates in A deleted from B, and duplicates in B deleted from A.
+%     [BCs.ubTiedNodeA,ia]=unique(BCs.ubTiedNodeA);
+%     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ; 
+%     
+%     [BCs.ubTiedNodeB,ia]=unique(BCs.ubTiedNodeB);
+%     BCs.ubTiedNodeA=BCs.ubTiedNodeA(ia) ;
+% 
+% end
+% 
+% if ~isempty(BCs.vbTiedNodeA)
+%     % eliminate dublications in nodal ties
+%     [BCs.vbTiedNodeA,ia]=unique(BCs.vbTiedNodeA);
+%     BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia) ;
+%     
+%     [BCs.vbTiedNodeB,ia]=unique(BCs.vbTiedNodeB);
+%     BCs.vbTiedNodeA=BCs.vbTiedNodeA(ia) ;
+% 
+% end
+%%
 
 if ~isempty(BCs.ubFixedNode)
     [BCs.ubFixedNode,ia]=unique(BCs.ubFixedNode);

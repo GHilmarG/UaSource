@@ -29,6 +29,8 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
 
     persistent nCalls  nipLast niphLast
    
+
+
     if isempty(nCalls) ; nCalls=0 ; end
     
     nCalls=nCalls+1; 
