@@ -136,6 +136,7 @@ if CtrlVar.InverseRun %  inverse run
         
         RunInfo.Message="Getting inputs for a new inverse run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
+        CtrlVar.CurrentRunStepNumber=1; 
         % First get the usual input for a forward run
         
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);

@@ -13,6 +13,7 @@ if CtrlVar.doInverseStep
         fprintf(CtrlVar.fidlog,'   Inverse-modelling run.  \n ');
     end
     
+    fprintf('\tCtrlVar.Inverse.MinimisationMethod=''%s''\n' ,CtrlVar.Inverse.MinimisationMethod)
     fprintf('\tCtrlVar.Inverse.InvertFor=''%s''\n',CtrlVar.Inverse.InvertFor)
     fprintf('\tCtrlVar.Inverse.Measurements=''%s''\n',CtrlVar.Inverse.Measurements)
     fprintf('\tCtrlVar.Inverse.Regularize.Field=''%s''\n',CtrlVar.Inverse.Regularize.Field)
