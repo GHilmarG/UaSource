@@ -63,7 +63,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    
     
     
-    [points,weights]=sample('triangle',MUA.nip,ndim);
+  %  [points,weights]=sample('triangle',MUA.nip,ndim);
     
     
     d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -82,7 +82,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         
         
-        fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+        fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
         [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
 
         
@@ -134,7 +134,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
                 
-        detJw=detJ*weights(Iint);
+        detJw=detJ*MUA.weights(Iint);
         
         
         

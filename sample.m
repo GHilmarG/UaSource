@@ -9,6 +9,10 @@ function [s,wt] = sample(element,nip,ndim)
 %           http://people.sc.fsu.edu/~jburkardt/m_src/triangle_wandzura_rule/triangle_wandzura_rule.html
 %           https://arxiv.org/abs/1411.5631
 %
+
+
+error('Ua:sample:DoNotUse','Try not to use sample') 
+
 s=zeros(nip,ndim)     ; % coordinates of integration points
 wt=zeros(nip,1) ;       % weights
 

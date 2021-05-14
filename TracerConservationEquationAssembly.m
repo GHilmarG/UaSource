@@ -27,7 +27,7 @@ kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
 tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 
 d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -38,7 +38,7 @@ for Iint=1:MUA.nip
     
     
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     
     
     
@@ -89,7 +89,7 @@ for Iint=1:MUA.nip
         
     end
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     % dt theta ( d(u1 h1)/dx    + d(v1 h1)/dy) + h1=
     %  h0+dt { (1-theta) a0+theta a1-(1-theta) (d(u0 h0)/dx+d(v0 h0)/dy}

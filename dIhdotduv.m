@@ -17,7 +17,7 @@ hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 bx=zeros(MUA.Nele,MUA.nod);
 by=zeros(MUA.Nele,MUA.nod);
@@ -26,7 +26,7 @@ by=zeros(MUA.Nele,MUA.nod);
 for Iint=1:MUA.nip
     
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     
     
     Deriv=MUA.Deriv(:,:,:,Iint);
@@ -54,7 +54,7 @@ for Iint=1:MUA.nip
         
     end
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     for Inod=1:MUA.nod
         

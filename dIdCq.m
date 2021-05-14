@@ -58,12 +58,12 @@ uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
     
     
@@ -104,7 +104,7 @@ for Iint=1:MUA.nip
         
     end
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
         
         T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
