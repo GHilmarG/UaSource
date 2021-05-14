@@ -3,6 +3,38 @@
 
 
 %%
+%
+% *Release Notes* _June 2021_
+%
+% * Default inverse algorithim has changed. Now the defaul options is a Hessian-based inversion.  The older-approach is still available
+% by selecting a Gradien-based inversion. This is specificed using the CtrlVar field:
+%
+%       CtrlVar.Inverse.MinimisationMethod
+%
+% When using this Hessian-based inversion, there is no need to specify the value of 
+%
+%       CtrlVar.Inverse.AdjointGradientPreMultiplier 
+%
+% and this field is not used.
+%   
+% * Ocean and wind-indued drag can be included. This is defined in 
+%
+%   DefineSeaIceParameters.m
+%
+% and you need to switch this option on by setting
+%
+%   CtrlVar.IncludeMelangeModelPhysics=true;
+%
+% in DefineInitialInputs.m
+%
+% * The quadrature degree can now be directly specified, and one can now used any degree up to 25.  You specify this using
+%
+%   CtrlVar.QuadratureRuleDegree
+%
+% Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining
+% second-order convergence of the Newton-Raphson system.
+%
+%
 % *Release Notes*
 % _June 2020_
 %
