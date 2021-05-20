@@ -26,8 +26,9 @@
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="DefineOutputs.html">Output </tocitem>
         <tocitem target="Utilities.html">Utilities 
-            <tocitem target="PlotAndDataGather.html">Files and Data Gather
+            <tocitem target="PlotAndDataGather.html">Files and Data Manipulations
                 <tocitem target="ReadPlotSequenceOfResultFiles.html">Plot and/or gather data from sequence of result files</tocitem>
+                <tocitem target="BedMachineToUaGriddedInterpolants.html">Read BedMachine data and create gridded interpolants and boundary coordinates</tocitem>
             </tocitem>
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>

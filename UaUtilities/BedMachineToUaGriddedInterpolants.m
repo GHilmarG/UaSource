@@ -258,7 +258,7 @@ if SaveOutputs
 end
 
 
-%%  Testing mesh boundary cooridnates and creating  a new one with different spacing between points and some level of smoothing
+%%  Testing mesh boundary coordinates and creating  a new one with different spacing between points and some level of smoothing
 
 CtrlVar.GLtension=1e-12; % tension of spline, 1: no smoothing; 0: straight line
 CtrlVar.GLds=5e3 ; 
