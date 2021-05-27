@@ -2,7 +2,7 @@
 
 
 
-![logo](UaLogo.png)
+![logo](UaLogo.png){width=50%}
 
 <p align="center">
   <img src = "UaLogo.png">
@@ -46,12 +46,6 @@ in the MATLAB command line.
 You will then find the documentation for Úa to be a part of the MATLAB
 documentation system where Úa appears as a seperate toolbox.
 
-To set up your own runs you should also download the Examples which
-are in a seperate repository.  Download this into another folder, and
-then you will have several different subfolders, each containing a
-particular example of a model setup.
-
-
 You can, for example, set the path as:
 
 ```
@@ -77,13 +71,17 @@ You can quickly test if everything is OK by going into the UaSource directory an
     Ua [return]
 ```
 
-
 No special toolboxes are required, however, some optional features can
 only be used with toolboxes such as the Optimisation and the Machine
 Learning toolboxes.
 
-Installing Úa is as simple as copying the source files into a folder
-and then adding that folder, and its sub-folders, to the MATLAB path.
+
+To set up your own runs you should also download the Examples which
+are in a seperate repository.  Download this into another folder, and
+then you will have several different subfolders, each containing a
+particular example of a model setup.
+
+
 
 
 **Note:** Úa uses the mesh generator 'mesh2d' and no further steps are required if you just want to use that mesh generator.
