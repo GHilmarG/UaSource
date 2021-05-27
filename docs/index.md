@@ -2,19 +2,15 @@
 
 
 
-![logo](UaLogo.png width="200")
+![logo](UaLogo.png)
 
 <p align="center">
   <img src = "UaLogo.png">
 </p>
 
-Refer to the Wiki pages for a brief description and on how to install.
 
-The flow model is MATLAB based. You will need a matlab installation to run it.
 
-Documentation and help can be accessed through the MATLAB doc/help.
-## A finite-element ice-flow model.
-##   
+
 
 
 Úa is a finite-element ice-flow model developed at the University of
@@ -29,6 +25,77 @@ A weekly-long international user meeting and workshop is held annually, usually 
 
 Examples of simulations using this code can be found in our [YouTube
 channel](https://www.youtube.com/channel/UCO8NHJqmgg_bwJx0xKJDwcA).
+
+## Installation
+
+
+The flow model is MATLAB based and you will need a matlab installation to run it.
+
+Installing Úa is simple: Just download/clone the code for github. Put
+all the files into one folder and make sure that this folder is on the
+MATLAB path.
+
+You can then test if it runs by writing
+
+```
+Ua [Ret]
+```
+
+in the MATLAB command line.
+
+You will then find the documentation for Úa to be a part of the MATLAB
+documentation system where Úa appears as a seperate toolbox.
+
+To set up your own runs you should also download the Examples which
+are in a seperate repository.  Download this into another folder, and
+then you will have several different subfolders, each containing a
+particular example of a model setup.
+
+
+You can, for example, set the path as:
+
+```
+     addpath(genpath('MyUaSourceFileFolder'))
+```
+
+So for example if you have cloned the source directory from github into a local folder on your own computer with the name:
+
+```
+     C:\Users\Hilmar\Ua\UaSource
+```
+
+then add that folder to the MATLAB path as:
+
+```
+addpath(genpath('C:\Users\Hilmar\Ua\UaSource')
+```
+
+You can quickly test if everything is OK by going into the UaSource directory and at the MATLAB command line do:
+
+
+```
+    Ua [return]
+```
+
+
+No special toolboxes are required, however, some optional features can
+only be used with toolboxes such as the Optimisation and the Machine
+Learning toolboxes.
+
+Installing Úa is as simple as copying the source files into a folder
+and then adding that folder, and its sub-folders, to the MATLAB path.
+
+
+**Note:** Úa uses the mesh generator 'mesh2d' and no further steps are required if you just want to use that mesh generator.
+
+There are many different ways of copying/cloning a repository from GitHub. You can for example download it as zip file.    
+While not strictly necessary, it is presumably best to have git installed locally. You can install git from:
+ 
+     https://git-scm.com/downloads
+
+You can the write on the git command line:
+
+     git clone https://github.com/GHilmarG/UaSource.git
 
 
 
@@ -65,47 +132,6 @@ Compendium](https://github.com/GHilmarG/UaSource/blob/master/UaCompendium.pdf),
 provides a description of various mathematical and technical aspects
 of the model.
 
-
-## Installing Úa
- 
-The code is written in MATLAB and to run the model you need a Matlab
-installation.
-
-No special toolboxes are required, however, some optional features can
-only be used with toolboxes such as the Optimisation and the Machine
-Learning toolboxes.
-
-Installing Úa is as simple as copying the source files into a folder
-and then adding that folder, and its sub-folders, to the MATLAB path.
-
-You can, for example, do this from the MATLAB COMMAND LINE AS:
-
-     addpath(genpath('MyUaSourceFileFolder'))
- 
-So for example if you have cloned the source directory from github into a local folder on your own computer with the name:
-
-     C:\Users\Hilmar\Ua\UaSource
-
-then add that folder to the MATLAB path as:
-
-     addpath(genpath('C:\Users\Hilmar\Ua\UaSource')
-
-
-You can quickly test if everything is OK by going into the UaSource directory and at the MATLAB command line do:
-
-    Ua [return]
-
-
-Note: Úa uses the mesh generator 'mesh2d' and no further steps are required if you just want to use that mesh generator.
-
-There are many different ways of copying/cloning a repository from GitHub. You can for example download it as zip file.    
-While not strictly necessary, it is presumably best to have git installed locally. You can install git from:
- 
-     https://git-scm.com/downloads
-
-You can the write on the git command line:
-
-     git clone https://github.com/GHilmarG/UaSource.git
 
 ##  External mesh generator
 If in addition to 'mesh2d' you also want to use the external mesh generator `gmsh' then define the Matlab environmental variable 'GmshHomeDirectory' as:
