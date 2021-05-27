@@ -60,7 +60,7 @@ So for example if you have cloned the source directory from github into a local 
 then add that folder to the MATLAB path as:
 
 ```
-addpath(genpath('C:\Users\Hilmar\Ua\UaSource')
+addpath(genpath('C:\Users\Hilmar\Ua\UaSource'))
 ```
 
 You can quickly test if everything is OK by going into the UaSource directory and at the MATLAB command line do:
