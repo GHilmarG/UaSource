@@ -130,9 +130,11 @@ provides a description of various mathematical and technical aspects
 of the model.
 
 
-## External mesh generator If in addition to 'mesh2d' you also want to
-use the external mesh generator `gmsh' then define the MATLAB
-environmental variable 'GmshHomeDirectory' as:
+## External mesh generator
+
+If in addition to 'mesh2d' you also want to use the external mesh
+generator `gmsh' then define the MATLAB environmental variable
+'GmshHomeDirectory' as:
 
 
 ```
