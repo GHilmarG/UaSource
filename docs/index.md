@@ -4,10 +4,8 @@
 
 
 <p align="center">
-  <img src = "UaLogo.png" width-"200">
+  <img src = "UaLogo.png" width="200">
 </p>
-
-
 
 
 
