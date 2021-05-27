@@ -2,7 +2,7 @@
 
 
 
-![](https://github.com/GHilmarG/UaSource/blob/alpha/Data/UaLogo.png)
+![logo](UaLogo.png width="200")
 
 <p align="center">
   <img src = "UaLogo.png">
@@ -136,7 +136,7 @@ Most m-files that are part of the Úa program have some inbuild help text, for e
 
     doc Ua2D_DefaultParameters
  
-![](https://github.com/GHilmarG/UaSource/blob/master/Data/AntarcticaMesh.png)
+![](AntarcticaMesh.png)
 
 
 
