@@ -2,10 +2,9 @@
 
 
 
-![logo](UaLogo.png){width=50%}
 
 <p align="center">
-  <img src = "UaLogo.png">
+  <img src = "UaLogo.png" width-"200">
 </p>
 
 
@@ -16,7 +15,9 @@
 Úa is a finite-element ice-flow model developed at the University of
 Northumbria, Newcastle, UK, by [Hilmar
 Gudmundsson](https://www.northumbria.ac.uk/about-us/our-staff/g/hilmar-gudmundsson/)
-(hilmar.gudmundsson@northumbria.ac.uk).
+
+
+
 
 A weekly-long international user meeting and workshop is held annually, usually in early June. 
 
@@ -131,16 +132,23 @@ provides a description of various mathematical and technical aspects
 of the model.
 
 
-##  External mesh generator
-If in addition to 'mesh2d' you also want to use the external mesh generator `gmsh' then define the Matlab environmental variable 'GmshHomeDirectory' as:
- 
+## External mesh generator If in addition to 'mesh2d' you also want to
+use the external mesh generator `gmsh' then define the Matlab
+environmental variable 'GmshHomeDirectory' as:
+
+
+```
     setenv('GmshHomeDirectory','MyDrive/Ua/Source/gmsh-4.4.1-Windows')
- 
- ## Running Úa
+```
+
+
+## Running Úa
 
 You run Ua from the Matlab command line by writing:
 
+```
 Ua [Ret]
+```
 
 All run-specific input files should be in the local directory. 
 
@@ -150,11 +158,15 @@ All run-specific input files should be in the local directory.
   You can get help on the use of Úa in the same way as you would get help on
   various in-build matlab commands by writing 
 
+```
      help Ua  
+```
 
 in the matlab command line,  or 
 
+```
     doc Ua 
+```
 
 Most m-files that are part of the Úa program have some inbuild help text, for example try 
 
@@ -166,5 +178,5 @@ Most m-files that are part of the Úa program have some inbuild help text, for e
 
 
 
-
+[Hilmar Gudmundsson](mailto:hilmar.gudmundsson@northumbria.ac.uk)
 
