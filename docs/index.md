@@ -4,7 +4,7 @@
 
 
 <p align="center">
-  <img src = "UaLogo.png" width="200">
+  <img src = "UaLogo.png" width="300">
 </p>
 
 
@@ -28,9 +28,9 @@ channel](https://www.youtube.com/channel/UCO8NHJqmgg_bwJx0xKJDwcA).
 ## Installation
 
 
-The flow model is MATLAB based and you will need a matlab installation to run it.
+The flow model is MATLAB based and you will need a MATLAB installation to run it.
 
-Installing Úa is simple: Just download/clone the code for github. Put
+Installing Úa is simple: Just download/clone the code from github. Put
 all the files into one folder and make sure that this folder is on the
 MATLAB path.
 
@@ -43,7 +43,7 @@ Ua [Ret]
 in the MATLAB command line.
 
 You will then find the documentation for Úa to be a part of the MATLAB
-documentation system where Úa appears as a seperate toolbox.
+documentation system where Úa appears as a separate toolbox.
 
 You can, for example, set the path as:
 
@@ -76,7 +76,7 @@ Learning toolboxes.
 
 
 To set up your own runs you should also download the Examples which
-are in a seperate repository.  Download this into another folder, and
+are in a separate repository.  Download this into another folder, and
 then you will have several different subfolders, each containing a
 particular example of a model setup.
 
@@ -131,7 +131,7 @@ of the model.
 
 
 ## External mesh generator If in addition to 'mesh2d' you also want to
-use the external mesh generator `gmsh' then define the Matlab
+use the external mesh generator `gmsh' then define the MATLAB
 environmental variable 'GmshHomeDirectory' as:
 
 
@@ -142,7 +142,7 @@ environmental variable 'GmshHomeDirectory' as:
 
 ## Running Úa
 
-You run Ua from the Matlab command line by writing:
+You run Ua from the MATLAB command line by writing:
 
 ```
 Ua [Ret]
@@ -154,19 +154,19 @@ All run-specific input files should be in the local directory.
 ##  Getting help
 
   You can get help on the use of Úa in the same way as you would get help on
-  various in-build matlab commands by writing 
+  various in-build MATLAB commands by writing 
 
 ```
      help Ua  
 ```
 
-in the matlab command line,  or 
+in the MATLAB command line,  or 
 
 ```
     doc Ua 
 ```
 
-Most m-files that are part of the Úa program have some inbuild help text, for example try 
+Most m-files that are part of the Úa program have some inbuilt help text, for example try 
 
     doc Ua2D_DefaultParameters
  
