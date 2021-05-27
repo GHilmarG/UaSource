@@ -17,7 +17,7 @@ Gudmundsson](https://www.northumbria.ac.uk/about-us/our-staff/g/hilmar-gudmundss
 
 
 
-A weekly-long international user meeting and workshop is held annually, usually in early June. 
+A week-long international user meeting and workshop is held annually, usually in early June. 
 
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3706624.svg)](https://doi.org/10.5281/zenodo.3706624)
