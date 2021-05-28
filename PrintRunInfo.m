@@ -2,7 +2,7 @@
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');
-fprintf(CtrlVar.fidlog,' **************************     Úa version: beta 28 May, 2021  ********************** \n');
+fprintf(CtrlVar.fidlog,' **************************     Úa version: 28 May, 2021  (beta) ********************** \n');
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datestr(now));
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
@@ -13,6 +13,7 @@ if CtrlVar.doInverseStep
         fprintf(CtrlVar.fidlog,'   Inverse-modelling run.  \n ');
     end
     
+    fprintf('\tCtrlVar.Inverse.MinimisationMethod=''%s''\n' ,CtrlVar.Inverse.MinimisationMethod)
     fprintf('\tCtrlVar.Inverse.InvertFor=''%s''\n',CtrlVar.Inverse.InvertFor)
     fprintf('\tCtrlVar.Inverse.Measurements=''%s''\n',CtrlVar.Inverse.Measurements)
     fprintf('\tCtrlVar.Inverse.Regularize.Field=''%s''\n',CtrlVar.Inverse.Regularize.Field)

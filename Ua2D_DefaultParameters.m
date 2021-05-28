@@ -387,6 +387,7 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-6];
 
 
 
+
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
@@ -508,7 +509,7 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 % These variables are only for testing purposes. Do not change from default
 % values.
 CtrlVar.GroupRepresentation=0;
-%% Number of integration points
+%% Number of integration points and/or quadrature rule degree
 % if left empty, the number of integration points is set automatically
 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
@@ -520,6 +521,9 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % nip=16 and niph=16 for cubic elements (ten node elements)
                    % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
+
+CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
+
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
 % Generally the higher the number, the more information is given.
@@ -690,7 +694,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is Hessian-based optimisation using the matlab optimisation toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";      % Hessian-based, Matlab toolbox
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, Matlab toolbox
 %                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimisation toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimisation toolbox
@@ -710,6 +714,9 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
+% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-muliplier,
+% and with respect to the l2 inner product when using the I pre-multiplier.
+%
 
 CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
 
@@ -1444,13 +1451,15 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
-CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Piccard"] ;  
+CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 
 CtrlVar.LevelSetFAB=1;  % multiplier, 1 use full forward an backwards (FAB) diffusion, 0 no FAB
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
+CtrlVar.LevelSetFABmu=1; 
 
 CtrlVar.LevelSetInfoLevel=1;
 
@@ -1903,8 +1912,10 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 %% Internal variables 
 %%
-CtrlVar.DevelopmentVersion=0;  % Internal variable, always set to 0 
+CtrlVar.DevelopmentVersion=true;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
+CtrlVar.DevelopmentTestingQuadRules=true;  % Internal variable, always set to 0 
+
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change

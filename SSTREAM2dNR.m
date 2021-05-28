@@ -6,7 +6,9 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     
     tStart=tic;
-    RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
+    RunInfo.Forward.Converged=1; 
+    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
+    RunInfo.Forward.Residual=NaN;
     
     Kuv=[] ; Ruv=[]; 
    

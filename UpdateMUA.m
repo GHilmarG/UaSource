@@ -19,16 +19,22 @@ end
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
 
 
-CtrlVar=NrOfIntegrationPoints(CtrlVar);
+if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')
 
-if ~isfield(MUA,'niph')
-    MUA.niph=CtrlVar.niph;
+    if CtrlVar.DevelopmentTestingQuadRules
+        Degree=QuadratureRuleDegree(CtrlVar);
+        Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+        MUA.nip=size(Q.Points,1);
+        MUA.niph=size(Q.Points,1);
+        MUA.points=Q.Points;
+        MUA.weights=Q.Weights;
+    else
+        CtrlVar=NrOfIntegrationPoints(CtrlVar);
+        MUA.niph=CtrlVar.niph;
+        MUA.nip=CtrlVar.nip;
+    end
+
 end
-
-if ~isfield(MUA,'nip')
-    MUA.nip=CtrlVar.nip;
-end
-
 
 if ~isfield(CtrlVar,'MUA')
     CtrlVar.MUA.MassMatrix=0;
@@ -64,11 +70,7 @@ end
 MeshHasChanged = ...
     MUA.nod~=size(MUA.connectivity,2) || ...
     MUA.Nele~=size(MUA.connectivity,1) || ...
-    MUA.Nnodes~=size(MUA.coordinates,1) || ...
-    MUA.nip~=CtrlVar.nip && MUA.niph~=CtrlVar.niph ;
-
-%    all(MUA.points==points) && ...
-%    all(MUA.weights==weights) ;Ct
+    MUA.Nnodes~=size(MUA.coordinates,1) ;
 
 if MeshHasChanged
     if CtrlVar.InfoLevel>=10
@@ -77,17 +79,27 @@ if MeshHasChanged
         fprintf('UpdateMUA: Calculating mesh derivatives \n ')
     end
     MUA.ndim=2;
-    
-    CtrlVar=NrOfIntegrationPoints(CtrlVar);
-    MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
-    
+    MUA.nod=size(MUA.connectivity,2);
     MUA.Nele=size(MUA.connectivity,1);
     MUA.Nnodes=size(MUA.coordinates,1);
-    MUA.nod=size(MUA.connectivity,2);
-    [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
     
-    
-    
+    if CtrlVar.DevelopmentTestingQuadRules
+        
+        Degree=QuadratureRuleDegree(CtrlVar);
+        Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+        MUA.nip=size(Q.Points,1);
+        MUA.niph=size(Q.Points,1);
+        MUA.points=Q.Points;
+        MUA.weights=Q.Weights;
+
+    else
+        
+        CtrlVar=NrOfIntegrationPoints(CtrlVar);
+        MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
+        [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
+    end
+
+
     if CtrlVar.FindMUA_Boundary
         [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
     else
@@ -96,7 +108,7 @@ if MeshHasChanged
     end
     
     if CtrlVar.CalcMUA_Derivatives
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
     else
         MUA.Deriv=[];
         MUA.DetJ=[];
@@ -147,7 +159,8 @@ end
 
 if CtrlVar.CalcMUA_Derivatives
     if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+        
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
     end
 end
 
@@ -155,7 +168,8 @@ end
 
 if CtrlVar.CalcMUA_Derivatives
     if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+
+        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
     end
 end
 

@@ -173,7 +173,9 @@ if isempty(B)
     end
 else
     if norm(f)>1000*eps
-        res1=norm(A*x+B'*y-f)/norm(f);
+        res1=norm(A*x+B'*y-f)/norm(B'*y-f);
+    elseif norm(f)==0  && (norm(x) > 0 || norm(y)>0) 
+        res1=norm(A*x+B'*y)/norm(B'*y);
     else
         res1=norm(A*x+B'*y-f);
     end

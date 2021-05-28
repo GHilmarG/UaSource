@@ -14,13 +14,13 @@ vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     
     if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
         detJ=MUA.DetJ(:,Iint);
@@ -53,7 +53,7 @@ for Iint=1:MUA.nip
     end
     
 
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
 
     
     [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);

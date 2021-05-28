@@ -1,4 +1,6 @@
-function [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint)
+function [Deriv,detJ]=derivVector(coordinates,connectivity,nip,points,Iint)
+
+narginchk(5,5)
 
 % calculates the derivatives of form functions with respect to x and y and the Jacobian
 % at a given integration point (This function must be called within a loop over integration points)
@@ -31,7 +33,7 @@ function [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint)
 
 
 [Nele,nod]=size(connectivity); ndim=2; dof=2;
-[points,weights]=sample('triangle',nip,ndim);
+%[points,weights]=sample('triangle',nip,ndim);
 
 
 if Nele==0

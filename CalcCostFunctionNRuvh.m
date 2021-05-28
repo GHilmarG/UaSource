@@ -49,23 +49,25 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
     
     D2=[frhs;grhs]'*[dub;dvb;dh;dl];
-    rWork=full(D2^2); 
+    rWork=full(D2^2);
     
     % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
-    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps); 
-    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps)); 
-        
+    % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
+    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
+    
     switch CtrlVar.uvhMinimisationQuantity
         case "Force Residuals"
             r=rForce;
         case "Work Residuals"
             r=rWork;
+        otherwise
+            error("CalcCostFunctionNRuvh:CaseNotFound","case not found")
     end
     
-%     if nargout>=7
-%         Inodes=[]; 
-%         [ruv,rh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
-%     end
+    %     if nargout>=7
+    %         Inodes=[];
+    %         [ruv,rh]=CalcIncrementsNorm(CtrlVar,MUA,L,Inodes,F1.ub,dub,F1.vb,dvb,F1.h,dh);
+    %     end
     
 end
 

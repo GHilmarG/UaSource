@@ -9,6 +9,10 @@ function [s,wt] = sample(element,nip,ndim)
 %           http://people.sc.fsu.edu/~jburkardt/m_src/triangle_wandzura_rule/triangle_wandzura_rule.html
 %           https://arxiv.org/abs/1411.5631
 %
+
+
+error('Ua:sample:DoNotUse','Try not to use sample') 
+
 s=zeros(nip,ndim)     ; % coordinates of integration points
 wt=zeros(nip,1) ;       % weights
 
@@ -20,6 +24,8 @@ r15=0.774596669241483 ;    % 0.2*sqrt(15.0);
 
 w=[5.0/9.0,8.0/9.0,5.0/9.0];       % 3 elements
 v=[5.0/9.0*w,8.0/9.0*w,5.0/9.0*w]; % 9 elements
+
+
 
 
 switch element
@@ -454,6 +460,7 @@ switch element
                 
             otherwise
                 disp('wrong number of integrating points for a triangle')
+                error('sfda')
         end
     case 'quadrilateral'
         switch nip

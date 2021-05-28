@@ -21,10 +21,15 @@
             <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
             <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
             <tocitem target="DefineCalving.html">Define level set and calving rate fields</tocitem>
+            <tocitem target="DefineSeaIceParameters.html">Define ocean and wind induced drag</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="DefineOutputs.html">Output </tocitem>
         <tocitem target="Utilities.html">Utilities 
+            <tocitem target="PlotAndDataGather.html">Files and Data Manipulations
+                <tocitem target="ReadPlotSequenceOfResultFiles.html">Plot and/or gather data from sequence of result files</tocitem>
+                <tocitem target="BedMachineToUaGriddedInterpolants.html">Read BedMachine data and create gridded interpolants and boundary coordinates</tocitem>
+            </tocitem>
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
                 <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable</tocitem>
@@ -59,7 +64,9 @@
                 <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
                 <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
                 <tocitem target="CalcMuaFieldsContourLine.html">Calculates one single contour line of a given field over the (irregular) mesh </tocitem>
-                <tocitem target="HelmholzEquation.html">Solves the Helmholz equation of the MUA mesh. Can also be used for smoothing. </tocitem>
+                <tocitem target="HelmholtzEquation.html">Solves the Helmholz equation of the MUA mesh. Can also be used for smoothing. </tocitem>
+                <tocitem target="FluxAcrossGroundingLine.html">Calculates flux across grounding lines. </tocitem>
+                <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
                 
             </tocitem>
         </tocitem>

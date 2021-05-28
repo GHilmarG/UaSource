@@ -24,7 +24,7 @@ b=b+zeros(MUA.Nnodes,1);
 anod=reshape(a(MUA.connectivity,1),MUA.Nele,MUA.nod);
 bnod=reshape(b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 
 ElementMatrix=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -33,14 +33,20 @@ ElementMatrix=zeros(MUA.Nele,MUA.nod,MUA.nod);
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    % values at integration point
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    
+    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+        % Deriv=MUA.Deriv(:,:,:,Iint);
+        detJ=MUA.DetJ(:,Iint);
+    else
+        [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+    end
+
     
     aint=anod*fun;
     bint=bnod*fun;
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     for Inod=1:MUA.nod
         

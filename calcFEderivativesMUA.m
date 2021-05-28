@@ -21,7 +21,7 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 
 
 ndim=2;
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -52,7 +52,7 @@ if nargout>2
     cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
     
     for Iint=1:MUA.nip
-        fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+        fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
         
         xint(:,Iint)=coox*fun;
         yint(:,Iint)=cooy*fun;

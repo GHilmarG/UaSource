@@ -61,6 +61,7 @@ else
             error('DefineGeometry must have either 5 or 6 inputs arguments.')
     end
     
+    
     [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
     
 end

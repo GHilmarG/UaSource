@@ -28,7 +28,14 @@ exy=zeros(MUA.Nele,MUA.nip);
 
 for Iint=1:MUA.nip
     
-    Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+
+    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+        Deriv=MUA.Deriv(:,:,:,Iint);
+       % detJ=MUA.DetJ(:,Iint);
+    else
+        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+    end
+
     
     for I=1:MUA.nod
         exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*unod(:,I);

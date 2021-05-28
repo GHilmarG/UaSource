@@ -1,0 +1,1827 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>ReadPlotSequenceOfResultFiles</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-05-07"><meta name="DC.source" content="ReadPlotSequenceOfResultFiles.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#4">Parse inputs</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> DataCollect=ReadPlotSequenceOfResultFiles(varargin)
+</pre><p>A simple plotting routine to plot a sequence of results files. This is just a template and will needed to be adjusted to suite a given situation.</p><p>Approach:</p><p>1) look for files containing a given substring in a current directory</p><p>2) assume the first N letters of the filenames contain the time (multiplied by 100)</p><p>3) loop over results files, read the results and create plots</p><p>Example:</p><p>Read in all .mat file in current directory and use default plot settings for plotting</p><pre class="language-matlab">ReadPlotSequenceOfResultFiles();
+</pre><p>Example:</p><p>Read only those .mat files that have FileNameSubstring as a part of their name, collect some data and plot VAF and grounded area as function of time.</p><pre class="language-matlab">DataCollect=ReadPlotSequenceOfResultFiles(<span class="string">"FileNameSubstring"</span>,<span class="string">"-Ice1r-"</span>,<span class="string">"PlotType"</span>,<span class="string">"-collect-"</span>);
+figure ; plot(DataCollect.time, DataCollect.VAF/1e9,<span class="string">'-or'</span>); xlabel(<span class="string">"time (yr)"</span>) ;
+ylabel(<span class="string">" VAF (Gt)"</span>) figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,<span class="string">'-or'</span>);
+xlabel(<span class="string">"time (yr)"</span>) ; ylabel(<span class="string">" Grounded area(km^2)"</span>)
+</pre><p>Examples:</p><p>Read only those .mat files that have FileNameSubstring as a part of their name, set the axis limits, and plot a file every 0.1 time units.</p><pre>  ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",10) ;</pre><pre class="language-matlab">ReadPlotSequenceOfResultFiles(<span class="string">"FileNameSubstring"</span>,<span class="string">"TravellingFront-1dAnalyticalIceShelf"</span>,<span class="string">"PlotType"</span>,<span class="string">"-1dIceShelf-"</span>,<span class="string">"PlotTimestep"</span>,1,<span class="string">"PlotTimeInterval"</span>,[0 200])
+ReadPlotSequenceOfResultFiles(<span class="string">"FileNameSubstring"</span>,<span class="string">"TravellingFront-1dAnalyticalIceShelf-MBice0-SUPGtaus-Adapt1"</span>,<span class="string">"PlotType"</span>,<span class="string">"-1dIceShelf-"</span>,<span class="string">"PlotTimestep"</span>,1,<span class="string">"PlotTimeInterval"</span>,[0 200])
+ReadPlotSequenceOfResultFiles(<span class="string">"FileNameSubstring"</span>,<span class="string">"Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1"</span>,<span class="string">"PlotType"</span>,<span class="string">"-1dIceShelf-"</span>,<span class="string">"PlotTimestep"</span>,1,<span class="string">"PlotTimeInterval"</span>,[0 200])
+</pre><pre>  ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-Level Set-","PlotTimestep",10,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])</pre><pre>  ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)</pre><pre>  ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1)</pre><h2 id="4">Parse inputs</h2><pre class="codeinput">    defaultPlotType=<span class="string">"-mesh-speed-s-ab-"</span>;
+    defaultPlotType=<span class="string">"-mesh-speed-calving-level set-"</span>;
+    expectedPlotTypes = {<span class="string">'-mesh-speed-s-ab-'</span>,<span class="string">'-mesh-speed-calving-level set-'</span>,<span class="string">'-mesh-'</span>,<span class="keyword">...</span>
+        <span class="string">'-h-'</span>,<span class="string">'-sbB-'</span>,<span class="string">'-dhdt-'</span>,<span class="string">'-log10(BasalSpeed)-'</span>,<span class="string">'-VAF-'</span>,<span class="keyword">...</span>
+        <span class="string">'-1dIceShelf-'</span>,<span class="string">'-hPositive-'</span>,<span class="string">'-Level Set-'</span>,<span class="keyword">...</span>
+        <span class="string">'-collect-'</span>};
+
+    IP = inputParser;
+
+
+    addParameter(IP,<span class="string">"FileNameSubstring"</span>,<span class="string">""</span>,@isstring);
+    addParameter(IP,<span class="string">"AxisLimits"</span>,NaN,@isnumeric);
+    addParameter(IP,<span class="string">"N"</span>,7,@isnumeric);
+    addParameter(IP,<span class="string">"PlotType"</span>,defaultPlotType,@(x) any(validatestring(x,expectedPlotTypes)));
+    addParameter(IP,<span class="string">"PlotScreenPosition"</span>,NaN,@isnumeric);
+    addParameter(IP,<span class="string">"PlotTimeInterval"</span>,[0 1e10],@isnumeric);
+    addParameter(IP,<span class="string">"PlotTimestep"</span>,1,@isnumeric);
+
+
+
+    parse(IP,varargin{:});
+
+    FileNameSubstring=IP.Results.FileNameSubstring ;
+    PlotType=IP.Results.PlotType ;
+    N=IP.Results.N ;
+    AxisLimits=IP.Results.AxisLimits;
+    PlotScreenPosition=IP.Results.PlotScreenPosition;
+    PlotTimeInterval=IP.Results.PlotTimeInterval;
+    PlotTimestep=IP.Results.PlotTimestep;
+</pre><pre class="codeinput">    <span class="keyword">if</span> isnan(PlotScreenPosition)
+
+        ScreenSize=get(0,<span class="string">'ScreenSize'</span>)+10;
+        HW=min(ScreenSize(3),ScreenSize(4));
+        PlotScreenPosition=[5 5 HW-10 HW-10];  <span class="comment">% creates a square plot window</span>
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">if</span> contains(PlotType,<span class="string">"-collect-"</span>)
+        CreateVideo=0;
+    <span class="keyword">else</span>
+        CreateVideo=0;
+    <span class="keyword">end</span>
+
+    PlotRegion=[];
+    PlotArea=[];
+    PlotMinThickLocations=true;
+</pre><pre class="codeinput">    CurDir=pwd;
+
+    <span class="keyword">if</span> CreateVideo
+
+        vidObj = VideoWriter(<span class="string">"VideoResultsFile"</span>+FileNameSubstring+PlotType);
+        vidObj.FrameRate=10;   <span class="comment">% frames per sec</span>
+        open(vidObj);
+    <span class="keyword">end</span>
+
+    <span class="comment">% assume results files have been saved in a subdirectory named 'ResultsFiles' (modify as needed)</span>
+    <span class="comment">% cd ./ResultsFiles/</span>
+    <span class="keyword">if</span> ~contains(FileNameSubstring,<span class="string">".mat"</span>)
+        SearchString=<span class="string">"*"</span>+FileNameSubstring+<span class="string">"*.mat"</span>;
+    <span class="keyword">else</span>
+                SearchString=<span class="string">"*"</span>+FileNameSubstring;
+    <span class="keyword">end</span>
+    SearchString=replace(SearchString,<span class="string">"**"</span>,<span class="string">"*"</span>);
+    list=dir(SearchString);   <span class="comment">% get names of all .mat files containing a given substring</span>
+
+
+
+    <span class="comment">% cd ..   ; % go back up into working directory</span>
+
+
+    CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
+    nFiles=length(list);
+    iFile=1; iFrame=1;
+    iCount=0;
+    DataCollect=[];
+    DataCollect.FileNameSubstring=FileNameSubstring;
+    LSFScale=[];
+
+    <span class="keyword">while</span> iFile&lt;=nFiles   <span class="comment">% loop over files</span>
+
+
+        time=str2double(list(iFile).name(1:N))/100;  <span class="comment">% get the model time, assuming that the first N letters of filename are the model time*100</span>
+        <span class="comment">%time=str2double(list(iFile).name(1:4));</span>
+        <span class="keyword">if</span> mod(time,PlotTimestep)==0 &amp;&amp; time&lt;=PlotTimeInterval(2) &amp;&amp; time&gt;=PlotTimeInterval(1)   <span class="comment">% only do plots at given time intervals and up to a max time specifed</span>
+
+            <span class="keyword">try</span>   <span class="comment">% go back into subdirectory containing result files and load one result file</span>
+
+                load(list(iFile).name)
+
+                fprintf(<span class="string">' %s \n '</span>,list(iFile).name)
+            <span class="keyword">catch</span>
+                fprintf(<span class="string">'could not load %s \n '</span>,list(iFile).name)
+            <span class="keyword">end</span>
+
+            CtrlVar.PlotXYscale=1000;
+            [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar);
+
+            TRI=[]; DT=[]; xGL=[];yGL=[];
+            x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
+            ih=F.h&lt;=CtrlVar.ThickMin;
+
+
+
+
+            <span class="comment">% if creaing 4 subplots, try to arrange them based on the aspect ratio</span>
+
+            xmin=min(MUA.coordinates(:,1)) ;
+            xmax=max(MUA.coordinates(:,1)) ;
+            ymin=min(MUA.coordinates(:,2)) ;
+            ymax=max(MUA.coordinates(:,2)) ;
+
+            XYratio=(xmax-xmin)/(ymax-ymin) ;
+
+            <span class="keyword">if</span> XYratio&gt;0.5 &amp;&amp; XYratio&lt;1.5
+                nPx=2 ; nPy=2;
+            <span class="keyword">elseif</span> XYratio&lt;=0.5
+                nPx=1; nPy=4;
+            <span class="keyword">else</span>
+                nPx=4; nPy=1;
+            <span class="keyword">end</span>
+
+            axis <span class="string">equal</span> <span class="string">tight</span>;
+
+            <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+
+            <span class="keyword">switch</span> PlotType
+
+                <span class="keyword">case</span> <span class="string">"-collect-"</span>
+</pre><pre class="codeinput">                    <span class="comment">% collect data across all result files</span>
+
+                    <span class="keyword">if</span> ~isfield(DataCollect,<span class="string">'time'</span>)
+                        DataCollect.time=zeros(nFiles,1)+NaN;
+                        DataCollect.VAF=zeros(nFiles,1)+NaN;
+                        DataCollect.GroundedArea=zeros(nFiles,1)+NaN;
+                        DataCollect.IceVolume=zeros(nFiles,1)+NaN;
+                        DataCollect.Lx=zeros(nFiles,1)+NaN;
+
+                        DataCollect.LSFmax=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmin=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmean=zeros(nFiles,1)+NaN;
+
+                    <span class="keyword">end</span>
+
+                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+
+                    iCount=iCount+1;
+                    DataCollect.time(iCount)=CtrlVar.time;
+                    DataCollect.VAF(iCount)=VAF.Total ;
+                    DataCollect.GroundedArea(iCount)=GroundedArea.Total;
+                    DataCollect.IceVolume(iCount)=IceVolume.Total;
+
+                    DataCollect.Lx(iCount)=max(F.x(F.h&gt;10)) ;
+
+
+                    <span class="keyword">if</span> ~isempty(F.LSF)
+                        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+
+                        DataCollect.LSFmax(iCount)=max(xc,[],<span class="string">'omitnan'</span>) ;
+                        DataCollect.LSFmin(iCount)=min(xc,[],<span class="string">'omitnan'</span>) ;
+                        DataCollect.LSFmean(iCount)=mean(xc,<span class="string">'omitnan'</span>) ;
+                    <span class="keyword">end</span>
+</pre><pre class="codeinput">                <span class="keyword">case</span> <span class="string">"-hPositive-"</span>
+
+                    figV=FindOrCreateFigure(<span class="string">'-hPositive-'</span>,[100 100 1500 1500]) ;
+                    [TotalIceVolume,ElementIceVolume]=CalcIceVolume(CtrlVar,MUA,F.h);
+                    I=F.h&lt;=(CtrlVar.ThickMin+100*eps);
+                    Reactions=CalculateReactions(CtrlVar,MUA,BCs,l);
+
+                    subplot(2,2,1)
+                    TRI = delaunay(x,y);
+                    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,F.h,100*F.s+100,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>) ; hold <span class="string">on</span>
+
+                    plot3(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,F.h(I),<span class="string">'ko'</span>);
+
+                    view(45,25); lightangle(-45,10) ; lighting <span class="string">phong</span> ;
+                    xlabel(<span class="string">'y (km)'</span>) ; ylabel(<span class="string">'x (km)'</span>) ; zlabel(<span class="string">'ice thickness (m)'</span>) ;
+                    <span class="comment">%colorbar ; title(colorbar,'(m)')</span>
+                    colormap(flipud(othercolor(<span class="string">'RdYlBu_11b'</span>,2000)))
+                    hold <span class="string">on</span>
+
+                    nThickConstraints=numel(find(I));
+                    title(sprintf(<span class="string">' Volume=%#8.3f (m^3)  #Contraints=%i'</span>,TotalIceVolume/1e9,nThickConstraints))
+                    axis <span class="string">normal</span>
+                    zlim([0 110])
+                    <span class="comment">%axis equal ; tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/80]); axis tight</span>
+                    hold <span class="string">off</span>
+
+                    subplot(2,2,2)
+                    hold <span class="string">off</span>
+<span class="comment">%                     if ~isempty(Reactions.h)</span>
+<span class="comment">%                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Reactions.h./F.rho) ;</span>
+<span class="comment">%                         title(cbar,'Reactions (m)')</span>
+<span class="comment">%                         colormap(flipud(othercolor('RdYlBu_11b',2000))) ;</span>
+<span class="comment">%                     end</span>
+
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,<span class="string">'Ice thickness (m)'</span>)
+                    caxis([-0.1 1])
+                    colormap(flipud(othercolor(<span class="string">'RdYlBu_11b'</span>,2000))) ;
+
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>)
+                    hold <span class="string">on</span>
+                    plot(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,<span class="string">'wo'</span>);
+                    hold <span class="string">off</span>
+
+                    subplot(2,2,3)
+                    hold <span class="string">on</span>
+                    yyaxis <span class="string">left</span>
+
+                    plot(CtrlVar.time,TotalIceVolume/1e9,<span class="string">'o'</span>) ;
+                    ylabel(<span class="string">'Ice Volume (m^3)'</span>)
+                    ylim([3.7e3 4e3])
+
+                    rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
+                    [temp,I]=min(rDist);
+                    hCentre=F.s(I)-F.b(I);
+                    yyaxis <span class="string">right</span>
+                    plot(CtrlVar.time,hCentre,<span class="string">'o'</span>) ;
+                    ylabel(<span class="string">"Centre ice thickness (m)"</span>)
+                    ylim([0 10]) ; <span class="comment">% ylim([0 101])</span>
+
+
+                    xlabel(<span class="string">'time (yr)'</span>) ;
+                    xlim(PlotTimeInterval)
+
+                    subplot(2,2,4)
+                    hold <span class="string">off</span> ;
+
+                    <span class="keyword">if</span> isempty(Reactions.h)
+                        Reactions.h=zeros(MUA.Nnodes,1);
+                    <span class="keyword">end</span>
+
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h.*Reactions.h./F.rho) ;
+                    caxis([min(F.h.*Reactions.h./F.rho)-eps max(F.h.*Reactions.h./F.rho)+eps])
+
+                    colormap(flipud(othercolor(<span class="string">'RdYlBu_11b'</span>,1000))) ;
+                    ModifyColormap ;
+                    title(cbar,<span class="string">'$\lambda h$ ($m^2$)'</span>,<span class="string">'Interpreter'</span>,<span class="string">'latex'</span>)
+
+
+                    hold <span class="string">on</span>
+
+                    plot(x(BCs.hPosNode)/CtrlVar.PlotXYscale,y(BCs.hPosNode)/CtrlVar.PlotXYscale,<span class="string">'*b'</span>);
+                    <span class="keyword">if</span> numel(BCs.hPosNode) &gt;0
+                        scale=1000;
+
+                        Ir=Reactions.h&gt;0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,+scale*Reactions.h(Ir)./F.rho(Ir),<span class="string">'r'</span>)
+                        Ir=Reactions.h&lt;0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,-scale*Reactions.h(Ir)./F.rho(Ir),<span class="string">'b'</span>)
+
+                    <span class="keyword">end</span>
+                    PlotMuaMesh(CtrlVar,MUA);
+
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>)
+
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    sgtitle(sprintf(<span class="string">"Cubic element.  time=%3.0f"</span>,CtrlVar.time))
+
+
+                <span class="keyword">case</span> <span class="string">"-Level Set-"</span>
+
+                    <span class="keyword">if</span> ~isempty(F.LSF)
+
+
+                        fMeshLSF=FindOrCreateFigure(<span class="string">"Mesh and LSF"</span>);
+
+
+                        <span class="comment">% fMeshLSF.Position=[100 650 1100 570] ;</span>
+
+                        <span class="comment">%[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Thickness (m)') ; caxis([0 50])</span>
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,<span class="string">'LSF (km)'</span>) ; caxis([-10 10])
+                        colormap(flipud(othercolor(<span class="string">'RdYlBu_11b'</span>,2000)))
+
+                        hold <span class="string">on</span>
+                        PlotMuaMesh(CtrlVar,MUA,<span class="string">'k'</span>); hold <span class="string">on</span>
+
+
+                        <span class="keyword">if</span> ~isempty(F.LSFMask)
+                            plot(MUA.coordinates(F.LSFMask.NodesOut,1)/1000,MUA.coordinates(F.LSFMask.NodesOut,2)/1000,<span class="string">'*r'</span>)
+                        <span class="keyword">end</span>
+
+
+                        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+                        <span class="keyword">if</span> ~isempty(xGL)
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{<span class="string">"Grounding line in red"</span>}];
+                        <span class="keyword">end</span>
+
+                        <span class="keyword">if</span> ~isempty(F.LSF) &amp;&amp; CtrlVar.LevelSetMethod
+                            hold <span class="string">on</span> ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,<span class="string">'b'</span>,<span class="string">'LineWidth'</span>,2) ;
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{<span class="string">"Level-set zero line in blue"</span>}];
+
+                            [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
+                            plot(xf/1000,yf/1000,<span class="string">'m'</span>,<span class="string">'LineWidth'</span>,2);
+
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{<span class="string">"Blue: LSF zero-line. Magneta:Ice cliff front"</span>}];
+
+                        <span class="keyword">end</span>
+
+                        <span class="comment">% Par.RelativeVelArrowSize=10 ;</span>
+                        <span class="comment">% QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;</span>
+
+
+<span class="comment">%                         if contains(FileNameSubstring,'-1dIceShelf-')</span>
+<span class="comment">%                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)</span>
+<span class="comment">%                             ylim([min(y) max(y)]/1e3) ;</span>
+<span class="comment">%                         else</span>
+<span class="comment">%                             if ~isnan(AxisLimits) ; axis(AxisLimits) ; end</span>
+<span class="comment">%                         end</span>
+
+                        xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>) ;
+                        drawnow
+                    <span class="keyword">end</span>
+
+                <span class="keyword">case</span> <span class="string">"-1dIceShelf-"</span>
+</pre><pre class="codeinput">                    [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
+                    yProfile=0 ;
+
+                    FigureName=<span class="string">'flowline'</span>;
+                    FigFL=FindOrCreateFigure(FigureName) ;
+                    clf(FigFL)
+                    FigFL.InnerPosition=[100 700 939 665];
+                    hold <span class="string">on</span>
+                    <span class="comment">% point selection</span>
+                    Iy=abs(MUA.coordinates(:,2)-yProfile)&lt; 10000 ;
+
+                    xProfile=MUA.coordinates(Iy,1) ;
+                    [xProfile,Ix]=sort(xProfile) ;
+
+                    sProfile=F.s(Iy);
+                    bProfile=F.b(Iy);
+                    uProfile=F.ub(Iy) ;
+
+
+
+                    uProfile=uProfile(Ix) ;
+                    sProfile=sProfile(Ix);
+                    bProfile=bProfile(Ix);
+
+                    <span class="keyword">if</span> isfield(F,<span class="string">'c'</span>) &amp;&amp; ~isempty(F.c)
+                        cProfile=F.c(Iy);
+                        cProfile=cProfile(Ix);
+                    <span class="keyword">else</span>
+                        cProfile=[];
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">if</span> isfield(F,<span class="string">'LSF'</span>) &amp;&amp; ~isempty(F.LSF)
+                        LSFProfile=F.LSF(Iy);
+                        LSFProfile=LSFProfile(Ix);
+                    <span class="keyword">else</span>
+                        LSFProfile=[];
+                    <span class="keyword">end</span>
+
+                    yyaxis <span class="string">left</span>
+                    plot(xProfile/1000,sProfile,<span class="string">'bo-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'$s$'</span>)
+                    hold <span class="string">on</span>
+                    plot(xProfile/1000,bProfile,<span class="string">'go-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'$b$'</span>)
+
+                    <span class="keyword">if</span> contains(CtrlVar.Experiment,<span class="string">'analytical'</span>)
+                        plot(x/1000,s,<span class="string">'b-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'$s$ analytical'</span>)
+                        plot(x/1000,b,<span class="string">'g-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'$b$ analytical'</span>)
+                    <span class="keyword">end</span>
+
+                    LSFmean=NaN;
+                    <span class="keyword">if</span> ~isempty(LSFProfile)
+
+                        <span class="keyword">if</span> isempty(LSFScale)
+                            LSFScale=(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)) ;
+                        <span class="keyword">end</span>
+
+                        plot(xProfile/1000,LSFProfile*LSFScale,<span class="string">'m.-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'$\varphi$ (scaled)'</span>)
+
+
+                        <span class="keyword">if</span> ~isempty(F.LSF)
+                            [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                            LSFmax=max(xc) ;
+                            LSFmin=min(xc) ;
+                            LSFmean=mean(xc) ;
+                        <span class="keyword">end</span>
+
+
+                    <span class="keyword">end</span>
+
+                    ylabel(<span class="string">'$z$ (m)'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>)
+
+                    yyaxis <span class="string">right</span>
+
+                    plot(xProfile/1000,uProfile,<span class="string">'ro-'</span>,<span class="string">'DisplayName'</span>,<span class="string">'$u$'</span>)
+                    hold <span class="string">on</span>
+                    <span class="keyword">if</span> contains(CtrlVar.Experiment,<span class="string">'analytical'</span>)
+                        plot(x/1000,u,<span class="string">'r-'</span>,<span class="string">'LineWidth'</span>,2,<span class="string">'DisplayName'</span>,<span class="string">'$u$ analytical'</span>)
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">if</span> ~isempty(cProfile)
+                        plot(xProfile/1000,cProfile,<span class="string">'-k'</span>,<span class="string">'DisplayName'</span>,<span class="string">'$c$'</span>)
+                    <span class="keyword">end</span>
+
+
+                    ylabel(<span class="string">'$u$ (m/a)'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>)
+
+                    title(sprintf(<span class="string">'Profile along the medial line at t=%g'</span>,CtrlVar.time))
+                    xlabel(<span class="string">'$x$ (km)'</span>,<span class="string">'interpreter'</span>,<span class="string">'latex'</span>) ;
+                    legend(<span class="string">'interpreter'</span>,<span class="string">'latex'</span>,<span class="string">'Location'</span>,<span class="string">'SouthEast'</span>)
+                    xlim([min(x)/1000 max(x)/1000]);
+
+                    ytt=ylim;
+
+                    plot([LSFmean,LSFmean]/1000,[ytt(1) ytt(2)],<span class="string">'k--'</span>)
+
+                    hold <span class="string">off</span>
+</pre><pre class="codeinput">                <span class="keyword">case</span> {<span class="string">"-mesh-speed-s-ab-"</span>,<span class="string">"-mesh-speed-calving-level set-"</span>}
+</pre><pre class="codeinput">                    f4=FindOrCreateFigure(<span class="string">"-mesh-speed-s-ab-"</span>,PlotScreenPosition);
+                    clf(f4)
+                    hold <span class="string">off</span>
+
+
+
+                    <span class="comment">% SP=tight_subplot(nPx,nPy) ;</span>
+                    subplot(nPx,nPy,1)
+
+
+
+                    hold <span class="string">off</span>
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h);
+
+                    hold <span class="string">on</span>
+                    PlotMuaMesh(CtrlVar,MUA,[],<span class="string">'w'</span>);
+
+                    hold <span class="string">on</span> ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+                    <span class="keyword">if</span> contains(PlotType,<span class="string">"-calving-"</span>)
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,<span class="string">'b'</span>,<span class="string">'LineWidth'</span>,2) ;
+                    <span class="keyword">end</span>
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>) ;
+                    axis <span class="string">equal</span> <span class="string">tight</span>
+
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    title(sprintf(<span class="string">'Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i'</span>,time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    title(cbar,<span class="string">'(m)'</span>)
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+
+                    hold <span class="string">off</span>
+
+
+                    subplot(nPx,nPy,2);
+
+
+                    speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                    hold <span class="string">off</span>
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf(<span class="string">'speed at t=%-g'</span>,time))
+                    <span class="comment">%QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);</span>
+                    hold <span class="string">on</span>
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>) ; title(cbar,<span class="string">'(m/yr)'</span>)
+                    axis <span class="string">equal</span> <span class="string">tight</span>;
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+                    <span class="keyword">if</span> contains(PlotType,<span class="string">"-calving-"</span>)
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,<span class="string">'b'</span>,<span class="string">'LineWidth'</span>,2) ;
+                    <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+
+                    subplot(nPx,nPy,3);
+
+
+                    hold <span class="string">off</span>
+
+                    <span class="keyword">if</span> contains(PlotType,<span class="string">"-calving-"</span>)
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
+                        title(sprintf(<span class="string">'Calving Rate Field at t=%g'</span>,time))
+                        hold <span class="string">on</span>
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,<span class="string">'b'</span>,<span class="string">'LineWidth'</span>,2) ;
+                    <span class="keyword">else</span>
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
+                        title(sprintf(<span class="string">'surface at t=%-g'</span>,time))
+                    <span class="keyword">end</span>
+
+                    hold <span class="string">on</span>
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>) ;
+                    <span class="keyword">if</span> ~isempty(cbar)
+                        title(cbar,<span class="string">'(m/yr)'</span>)
+                    <span class="keyword">end</span>
+                    axis <span class="string">equal</span> <span class="string">tight</span> ;
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+
+                    subplot(nPx,nPy,4);
+
+
+                    hold <span class="string">off</span>
+
+                    <span class="keyword">if</span> contains(PlotType,<span class="string">"-level set-"</span>)
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF);
+                        title(sprintf(<span class="string">'Level Set Field at t=%-g'</span>,time))
+                        hold <span class="string">on</span>
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,<span class="string">'b'</span>,<span class="string">'LineWidth'</span>,2) ;
+                    <span class="keyword">else</span>
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
+                        title(sprintf(<span class="string">'Basal melt at t=%-g'</span>,time))
+                    <span class="keyword">end</span>
+
+                    hold <span class="string">on</span>
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2);
+                    xlabel(<span class="string">'x (km)'</span>) ; ylabel(<span class="string">'y (km)'</span>) ;
+                    <span class="keyword">if</span> ~isempty(cbar)
+                        title(cbar,<span class="string">'(m/yr)'</span>)
+                    <span class="keyword">end</span>
+                    axis <span class="string">equal</span> <span class="string">tight</span> ;
+                    <span class="keyword">if</span> ~isnan(AxisLimits) ; axis(AxisLimits) ; <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+
+                    sgtitle(FileNameSubstring)
+</pre><pre class="codeinput">                <span class="keyword">case</span> <span class="string">'-mesh-'</span>
+</pre><pre class="codeinput">                    fmesh=FindOrCreateFigure(<span class="string">'Mesh'</span>,PlotScreenPosition);
+
+                    PlotMuaMesh(CtrlVar,MUA);
+                    title(sprintf(<span class="string">'t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i'</span>,time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    hold <span class="string">on</span> ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>);
+                    hold <span class="string">off</span>
+</pre><pre class="codeinput">                <span class="keyword">case</span> <span class="string">'-ubvb-'</span>
+</pre><pre class="codeinput">                    <span class="comment">% plotting horizontal velocities</span>
+</pre><pre class="codeinput">                    fubvb=FindOrCreateFigure(<span class="string">'fubvb'</span>,PlotScreenPosition);
+
+                    N=1;
+                    <span class="comment">%speed=sqrt(ub.*ub+vb.*vb);</span>
+                    <span class="comment">%CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %</span>
+                    CtrlVar.VelPlotIntervalSpacing=<span class="string">'log10'</span>;
+                    <span class="comment">%CtrlVar.VelColorMap='hot';</span>
+                    <span class="comment">%CtrlVar.RelativeVelArrowSize=10;</span>
+                    CtrlVar.QuiverColorSpeedLimits=[1 5000];
+
+                    PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,<span class="string">'b'</span>)
+                    hold <span class="string">on</span>
+                    QuiverColorGHG(x(1:N:end),y(1:N:end),F.ub(1:N:end),F.vb(1:N:end),CtrlVar);
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+                    hold <span class="string">on</span> ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'k'</span>);
+                    title(sprintf(<span class="string">'(ub,vb) t=%-g (yr)'</span>,time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+</pre><pre class="codeinput">                    <span class="keyword">if</span> PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>);
+                    <span class="keyword">end</span>
+</pre><pre class="codeinput">                <span class="keyword">case</span> <span class="string">'-log10(BasalSpeed)-'</span>
+</pre><pre class="codeinput">                    <span class="comment">%us=ub+ud;  vs=vb+vd;</span>
+
+
+                    SurfSpeed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
+                    hold <span class="string">on</span> ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'k'</span>);
+
+                    title(sprintf(<span class="string">'log_{10}(Basal speed) t=%-g (yr)'</span>,time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+                    title(colorbar,<span class="string">'log_{10}(m/yr)'</span>)
+                    <span class="keyword">if</span> PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>);
+                    <span class="keyword">end</span>
+                    caxis([1 4])
+</pre><pre class="codeinput">                <span class="keyword">case</span> <span class="string">"-VAF-"</span>
+
+
+                    figlogSpeed=FindOrCreateFigure(<span class="string">'VAF'</span>,PlotScreenPosition);
+
+                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+
+                    <span class="keyword">if</span> iCount==0
+                        vaf=[];
+                    <span class="keyword">end</span>
+
+
+                    vaf.value(iCount)=VAF.Total ;
+                    vaf.time(iCount)=CtrlVar.time;
+                    hold <span class="string">off</span>
+                    plot(vaf.time,vaf.value/1e9,<span class="string">'or'</span>)
+                    xlabel(<span class="string">' time (yr)'</span>) ; ylabel(<span class="string">' VAF (Gt)'</span>)
+
+
+                <span class="keyword">case</span> <span class="string">'-ab-'</span>
+                    <span class="keyword">if</span> ~exist(<span class="string">'fab'</span>,<span class="string">'var'</span>) || ~ishandle(fab)
+                        fab=figure;
+                        fab.NextPlot=<span class="string">'replacechildren'</span>;
+                    <span class="keyword">else</span>
+                        close(fab)
+                        fab=figure;
+
+                    <span class="keyword">end</span>
+
+                    <span class="comment">%set(gcf,'nextplot','replacechildren')</span>
+                    <span class="comment">%set(gca,'nextplot','replace')</span>
+                    <span class="comment">%fab.NextPlot='replacechildren';</span>
+                    <span class="comment">%fab.NextPlot</span>
+
+                    fig=gcf;
+                    ax=gca;
+
+                    <span class="keyword">if</span> CreateVideo
+                        fab.Position=PlotScreenPosition;
+                        <span class="comment">%fab.NextPlot='replacechildren';  % slows things down</span>
+                    <span class="keyword">end</span>
+
+                    <span class="comment">%ax.NextPlot='replace';</span>
+
+                    F.ab(F.GF.node&gt;0.5)=NaN;
+
+                    hold <span class="string">off</span>
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.ab,CtrlVar);
+
+                    hold <span class="string">on</span>
+
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'k'</span>);
+                    hold <span class="string">on</span>
+                    PlotMuaBoundary(CtrlVar,MUA,<span class="string">'b'</span>)
+                    hold <span class="string">on</span>
+                    title(sprintf(<span class="string">'Basal melt at t=%-g (yr)'</span>,time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+                    title(colorbar,<span class="string">'(m/yr)'</span>)
+                    <span class="keyword">if</span> PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>);
+                    <span class="keyword">end</span>
+
+                    caxis([min(F.ab) max(F.ab)]) ;
+
+
+
+                <span class="keyword">case</span> <span class="string">'-dhdt-'</span>
+                    <span class="keyword">if</span> ~exist(<span class="string">'fas'</span>,<span class="string">'var'</span>) || ~ishandle(fas)
+                        fas=figure;
+                    <span class="keyword">else</span>
+                        figure(fas)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> CreateVideo
+                        fas.Position=PlotScreenPosition;
+                    <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.dhdt,CtrlVar);
+                    caxis([-10 10])
+                    hold <span class="string">on</span> ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'k'</span>);
+
+                    title(sprintf(<span class="string">'dhdt at t=%-g (yr)'</span>,CtrlVar.time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+                    title(colorbar,<span class="string">'(m)'</span>)
+                    <span class="keyword">if</span> PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>);
+                    <span class="keyword">end</span>
+
+
+
+                <span class="keyword">case</span> <span class="string">'-h-'</span>
+
+                    <span class="keyword">if</span> ~exist(<span class="string">'fh'</span>,<span class="string">'var'</span>) || ~ishandle(fh)
+                        fh=figure;
+                    <span class="keyword">else</span>
+                        figure(fh)
+                    <span class="keyword">end</span>
+
+                    <span class="keyword">if</span> CreateVideo
+                        fh.Position=PlotScreenPosition;
+                    <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.h,CtrlVar);
+                    hold <span class="string">on</span> ;
+
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'k'</span>);
+                    title(sprintf(<span class="string">'ice thickness at t=%-g (yr)'</span>,CtrlVar.time)) ;
+                    title(colorbar,<span class="string">'(m)'</span>)
+
+                    xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+                    <span class="keyword">if</span> PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>);
+                    <span class="keyword">end</span>
+
+
+
+                <span class="keyword">case</span> <span class="string">'-sbB-'</span>
+                    <span class="keyword">if</span> ~exist(<span class="string">'fsbB'</span>,<span class="string">'var'</span>) || ~ishandle(fsbB)
+                        fsbB=figure;
+                    <span class="keyword">else</span>
+                        figure(fsbB)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> CreateVideo
+                        fsbB.Position=[100 100 2000 1300];
+                    <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+
+                    CtrlVar.PlotGLs=0;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],<span class="string">'LineWidth'</span>,2);
+                    Fs=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),F.s,<span class="string">'natural'</span>);
+                    zGL=Fs(xGL,yGL);
+                    speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                    minSpeed=0 ; maxSpeed=4000;
+                    speed(speed&lt;(minSpeed+eps))=minSpeed;
+                    speed(speed&gt;maxSpeed)=maxSpeed;
+
+                    sCol=jet(numel(F.s));
+                    sCol=parula(numel(F.s));
+                    ColorIndex=Variable2ColorIndex(speed,[minSpeed maxSpeed]);
+                    sCol(:,:)=sCol(ColorIndex,:);
+                    sCol(speed&lt;minSpeed,:)=sCol(speed&lt;minSpeed,:)*0+[0.9 0.9 0.9];
+                    <span class="comment">%bCol=jet(numel(s))*0+[0 0 1];</span>
+
+                    brown=[0.59 0.29 0.00];
+                    BCol=jet(numel(F.s))*0+brown; <span class="comment">% [0.9 0.9 0.9];</span>
+                    bCol=BCol;
+                    AspectRatio=1; ViewAndLight=[-45 25 -45 50];
+                    LightHandle=[];
+                    [TRI,DT]=Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
+                    xlabel(<span class="string">'x (km)'</span> ) ; ylabel(<span class="string">'y (km)'</span> )
+                    hold <span class="string">on</span>
+                    plot3(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,zGL,<span class="string">'color'</span>,<span class="string">'r'</span>,<span class="string">'LineWidth'</span>,2)
+                    <span class="comment">%colormap(jet)</span>
+                    colormap(parula)
+
+                    cbar=colorbar;
+
+                    <span class="keyword">for</span> I=1:numel(cbar.TickLabels)
+                        cbar.TickLabels{I}=str2double(cbar.TickLabels{I})*(max(speed)-min(speed))+min(speed);
+                    <span class="keyword">end</span>
+
+                    title(cbar,<span class="string">'(m/yr)'</span>)
+
+                    fsbB.CurrentAxes.DataAspectRatio=[1 1 20];
+                    view(-55,35)
+                    <span class="comment">%axis([-1700 -1300 -600 -100 -2000  3000]) % small</span>
+
+                    camproj(<span class="string">'perspective'</span>)
+                    title(sprintf(<span class="string">'t=%-g (yr)'</span>,time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+
+
+                <span class="keyword">case</span> <span class="string">'-MeltNodes-'</span>
+
+                    <span class="keyword">if</span> ~exist(<span class="string">'MN'</span>,<span class="string">'var'</span>) || ~ishandle(MN)
+                        MN=figure;
+                    <span class="keyword">else</span>
+                        figure(MN)
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> CreateVideo
+                        MN.Position=PlotScreenPosition;
+                    <span class="keyword">end</span>
+                    hold <span class="string">off</span>
+
+                    CtrlVar.MeltNodesDefinition=<span class="string">'Node-Wise'</span>;
+                    [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele);
+                    PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+                    hold <span class="string">on</span>
+                    plot(x(MeltNodes)/CtrlVar.PlotXYscale,y(MeltNodes)/CtrlVar.PlotXYscale,<span class="string">'o'</span>,<span class="keyword">...</span>
+                        <span class="string">'MarkerSize'</span>,3,<span class="string">'MarkerFaceColor'</span>,<span class="string">'g'</span>)
+                    hold <span class="string">on</span>
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,<span class="string">'r'</span>);
+                    xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel) ;
+                    title([<span class="string">'Melt nodes: time='</span>,num2str(CtrlVar.time)])
+
+
+                    title(sprintf(<span class="string">'Melt Nodes at t=%-g (yr)'</span>,time)) ; xlabel(<span class="string">'xps (km)'</span>) ; ylabel(<span class="string">'yps (km)'</span>)
+
+                    <span class="comment">%                 if PlotMinThickLocations</span>
+                    <span class="comment">%                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');</span>
+                    <span class="comment">%                 end</span>
+
+
+
+
+            <span class="keyword">end</span>
+            <span class="comment">%</span>
+            <span class="comment">%             if PlotType~="-1dIceShelf-"</span>
+            <span class="comment">%                 axis equal tight ; axis(AxisLimits) ;</span>
+            <span class="comment">%             end</span>
+
+            <span class="keyword">if</span> CreateVideo
+                iFrame=iFrame+1;
+                <span class="keyword">if</span> iFrame&gt;1
+                    Frame = getframe(gcf);
+                    <span class="comment">%Frame = hardcopy(hFig, '-opengl', '-r0');</span>
+                    writeVideo(vidObj,Frame);
+                    hold <span class="string">off</span>
+                <span class="keyword">end</span>
+
+            <span class="keyword">end</span>
+
+            <span class="keyword">if</span> ~contains(PlotType,<span class="string">"-collect-"</span>)
+                PlotArea=axis;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+        iFile=iFile+1;
+
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> CreateVideo
+        close(vidObj);
+        fprintf(<span class="string">'\n video file closed \n'</span>)
+    <span class="keyword">end</span>
+
+    close <span class="string">all</span>
+
+    cd(CurDir)
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
+    
+    
+    %%
+    % A simple plotting routine to plot a sequence of results files. This is just a template
+    % and will needed to be adjusted to suite a given situation.
+    %
+    %%
+    % Approach:
+    %
+    % 1) look for files containing a given substring in a current directory
+    %
+    % 2) assume the first N letters of the filenames contain the time (multiplied by 100)
+    %
+    % 3) loop over results files, read the results and create plots
+    %
+    % Example:
+    %
+    %
+    % Read in all .mat file in current directory and use default plot settings for plotting
+    %
+    %   ReadPlotSequenceOfResultFiles();
+    %
+    % Example:
+    %
+    % Read only those .mat files that have FileNameSubstring as a part of their name, collect
+    % some data and plot VAF and grounded area as function of time.
+    %
+    %   DataCollect=ReadPlotSequenceOfResultFiles("FileNameSubstring","-Ice1r-","PlotType","-collect-");
+    %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ;
+    %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,'-or'); 
+    %   xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
+    %
+    %
+    % Examples:
+    %
+    % Read only those .mat files that have FileNameSubstring as a part of their name, set the
+    % axis limits, and plot a file every 0.1 time units.
+    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward","AxisLimits",[480 494 -2296 -2280],"PlotTimestep",10) ;
+    %
+    % 
+    %
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","TravellingFront-1dAnalyticalIceShelf","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","TravellingFront-1dAnalyticalIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %   ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-1dIceShelf-","PlotTimestep",1,"PlotTimeInterval",[0 200])
+    %                                                                   
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Ex-Calving-1dIceShelf-MBice0-SUPGtaus-Adapt1","PlotType","-Level Set-","PlotTimestep",10,"PlotTimeInterval",[0 2000],"PlotScreenPosition",[100 650 1100 570])
+    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)
+    %
+    %    ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1)
+    
+    %% Parse inputs
+    
+    defaultPlotType="-mesh-speed-s-ab-";
+    defaultPlotType="-mesh-speed-calving-level set-";
+    expectedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
+        '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
+        '-1dIceShelf-','-hPositive-','-Level Set-',...
+        '-collect-'};
+    
+    IP = inputParser;
+    
+    
+    addParameter(IP,"FileNameSubstring","",@isstring);
+    addParameter(IP,"AxisLimits",NaN,@isnumeric);
+    addParameter(IP,"N",7,@isnumeric);
+    addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,expectedPlotTypes)));
+    addParameter(IP,"PlotScreenPosition",NaN,@isnumeric);
+    addParameter(IP,"PlotTimeInterval",[0 1e10],@isnumeric);
+    addParameter(IP,"PlotTimestep",1,@isnumeric);
+    
+    
+    
+    parse(IP,varargin{:});
+    
+    FileNameSubstring=IP.Results.FileNameSubstring ;
+    PlotType=IP.Results.PlotType ;
+    N=IP.Results.N ;
+    AxisLimits=IP.Results.AxisLimits;
+    PlotScreenPosition=IP.Results.PlotScreenPosition;
+    PlotTimeInterval=IP.Results.PlotTimeInterval;
+    PlotTimestep=IP.Results.PlotTimestep;
+    %%
+    
+    
+    if isnan(PlotScreenPosition)
+        
+        ScreenSize=get(0,'ScreenSize')+10;
+        HW=min(ScreenSize(3),ScreenSize(4));
+        PlotScreenPosition=[5 5 HW-10 HW-10];  % creates a square plot window
+    end
+
+    
+    if contains(PlotType,"-collect-")
+        CreateVideo=0;
+    else
+        CreateVideo=0;
+    end
+    
+    PlotRegion=[];
+    PlotArea=[];
+    PlotMinThickLocations=true;
+    
+    %%
+    CurDir=pwd;
+    
+    if CreateVideo
+        
+        vidObj = VideoWriter("VideoResultsFile"+FileNameSubstring+PlotType);
+        vidObj.FrameRate=10;   % frames per sec
+        open(vidObj);
+    end
+    
+    % assume results files have been saved in a subdirectory named 'ResultsFiles' (modify as needed)
+    % cd ./ResultsFiles/
+    if ~contains(FileNameSubstring,".mat")
+        SearchString="*"+FileNameSubstring+"*.mat";
+    else
+                SearchString="*"+FileNameSubstring;
+    end
+    SearchString=replace(SearchString,"**","*");
+    list=dir(SearchString);   % get names of all .mat files containing a given substring
+    
+    
+    
+    % cd ..   ; % go back up into working directory
+    
+    
+    CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
+    nFiles=length(list);
+    iFile=1; iFrame=1;
+    iCount=0;
+    DataCollect=[];
+    DataCollect.FileNameSubstring=FileNameSubstring;
+    LSFScale=[]; 
+    
+    while iFile<=nFiles   % loop over files
+        
+        
+        time=str2double(list(iFile).name(1:N))/100;  % get the model time, assuming that the first N letters of filename are the model time*100
+        %time=str2double(list(iFile).name(1:4));
+        if mod(time,PlotTimestep)==0 && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specifed
+            
+            try   % go back into subdirectory containing result files and load one result file
+                
+                load(list(iFile).name)
+                
+                fprintf(' %s \n ',list(iFile).name)
+            catch
+                fprintf('could not load %s \n ',list(iFile).name)
+            end
+            
+            CtrlVar.PlotXYscale=1000;
+            [GLgeo,GLnodes,GLele]=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar);
+            
+            TRI=[]; DT=[]; xGL=[];yGL=[];
+            x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
+            ih=F.h<=CtrlVar.ThickMin;
+            
+            
+            
+            
+            % if creaing 4 subplots, try to arrange them based on the aspect ratio
+            
+            xmin=min(MUA.coordinates(:,1)) ;
+            xmax=max(MUA.coordinates(:,1)) ;
+            ymin=min(MUA.coordinates(:,2)) ;
+            ymax=max(MUA.coordinates(:,2)) ;
+            
+            XYratio=(xmax-xmin)/(ymax-ymin) ;
+            
+            if XYratio>0.5 && XYratio<1.5
+                nPx=2 ; nPy=2;
+            elseif XYratio<=0.5
+                nPx=1; nPy=4;
+            else
+                nPx=4; nPy=1;
+            end
+            
+            axis equal tight; 
+            
+            if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+            
+            switch PlotType
+                
+                case "-collect-"
+                    
+                    % collect data across all result files
+                    
+                    if ~isfield(DataCollect,'time')
+                        DataCollect.time=zeros(nFiles,1)+NaN;
+                        DataCollect.VAF=zeros(nFiles,1)+NaN;
+                        DataCollect.GroundedArea=zeros(nFiles,1)+NaN;
+                        DataCollect.IceVolume=zeros(nFiles,1)+NaN;
+                        DataCollect.Lx=zeros(nFiles,1)+NaN;
+                        
+                        DataCollect.LSFmax=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmin=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmean=zeros(nFiles,1)+NaN;
+                        
+                    end
+                    
+                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+                               
+                    iCount=iCount+1;
+                    DataCollect.time(iCount)=CtrlVar.time;
+                    DataCollect.VAF(iCount)=VAF.Total ;
+                    DataCollect.GroundedArea(iCount)=GroundedArea.Total;
+                    DataCollect.IceVolume(iCount)=IceVolume.Total;
+
+                    DataCollect.Lx(iCount)=max(F.x(F.h>10)) ; 
+                    
+                    
+                    if ~isempty(F.LSF)
+                        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                    
+                        DataCollect.LSFmax(iCount)=max(xc,[],'omitnan') ;
+                        DataCollect.LSFmin(iCount)=min(xc,[],'omitnan') ;
+                        DataCollect.LSFmean(iCount)=mean(xc,'omitnan') ;
+                    end
+                    
+                    %%
+                    
+                case "-hPositive-"
+                    
+                    figV=FindOrCreateFigure('-hPositive-',[100 100 1500 1500]) ;
+                    [TotalIceVolume,ElementIceVolume]=CalcIceVolume(CtrlVar,MUA,F.h);
+                    I=F.h<=(CtrlVar.ThickMin+100*eps);
+                    Reactions=CalculateReactions(CtrlVar,MUA,BCs,l);
+                    
+                    subplot(2,2,1)
+                    TRI = delaunay(x,y);
+                    trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,F.h,100*F.s+100,'EdgeColor','none') ; hold on
+                    
+                    plot3(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,F.h(I),'ko');
+                    
+                    view(45,25); lightangle(-45,10) ; lighting phong ;
+                    xlabel('y (km)') ; ylabel('x (km)') ; zlabel('ice thickness (m)') ;
+                    %colorbar ; title(colorbar,'(m)')
+                    colormap(flipud(othercolor('RdYlBu_11b',2000)))
+                    hold on
+                    
+                    nThickConstraints=numel(find(I));
+                    title(sprintf(' Volume=%#8.3f (m^3)  #Contraints=%i',TotalIceVolume/1e9,nThickConstraints))
+                    axis normal
+                    zlim([0 110])
+                    %axis equal ; tt=daspect ; daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/80]); axis tight
+                    hold off
+                    
+                    subplot(2,2,2)
+                    hold off
+%                     if ~isempty(Reactions.h)
+%                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Reactions.h./F.rho) ;
+%                         title(cbar,'Reactions (m)')
+%                         colormap(flipud(othercolor('RdYlBu_11b',2000))) ;
+%                     end
+                    
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Ice thickness (m)')
+                    caxis([-0.1 1])
+                    colormap(flipud(othercolor('RdYlBu_11b',2000))) ;
+                    
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    xlabel('x (km)') ; ylabel('y (km)')
+                    hold on
+                    plot(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,'wo');
+                    hold off
+                    
+                    subplot(2,2,3)
+                    hold on
+                    yyaxis left
+                    
+                    plot(CtrlVar.time,TotalIceVolume/1e9,'o') ;
+                    ylabel('Ice Volume (m^3)')
+                    ylim([3.7e3 4e3])
+                    
+                    rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
+                    [temp,I]=min(rDist);
+                    hCentre=F.s(I)-F.b(I);
+                    yyaxis right
+                    plot(CtrlVar.time,hCentre,'o') ;
+                    ylabel("Centre ice thickness (m)")
+                    ylim([0 10]) ; % ylim([0 101])
+                    
+                    
+                    xlabel('time (yr)') ;
+                    xlim(PlotTimeInterval)
+                    
+                    subplot(2,2,4)
+                    hold off ;
+                    
+                    if isempty(Reactions.h)
+                        Reactions.h=zeros(MUA.Nnodes,1);
+                    end
+                    
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h.*Reactions.h./F.rho) ;
+                    caxis([min(F.h.*Reactions.h./F.rho)-eps max(F.h.*Reactions.h./F.rho)+eps])
+                    
+                    colormap(flipud(othercolor('RdYlBu_11b',1000))) ;
+                    ModifyColormap ;
+                    title(cbar,'$\lambda h$ ($m^2$)','Interpreter','latex')
+                    
+                    
+                    hold on
+                    
+                    plot(x(BCs.hPosNode)/CtrlVar.PlotXYscale,y(BCs.hPosNode)/CtrlVar.PlotXYscale,'*b');
+                    if numel(BCs.hPosNode) >0
+                        scale=1000;
+                        
+                        Ir=Reactions.h>0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,+scale*Reactions.h(Ir)./F.rho(Ir),'r')
+                        Ir=Reactions.h<0; scatter(x(Ir)/CtrlVar.PlotXYscale,y(Ir)/CtrlVar.PlotXYscale,-scale*Reactions.h(Ir)./F.rho(Ir),'b')
+
+                    end
+                    PlotMuaMesh(CtrlVar,MUA);
+                    
+                    xlabel('x (km)') ; ylabel('y (km)')
+                   
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    sgtitle(sprintf("Cubic element.  time=%3.0f",CtrlVar.time))
+                    
+                    
+                case "-Level Set-"
+                    
+                    if ~isempty(F.LSF)
+                        
+                        
+                        fMeshLSF=FindOrCreateFigure("Mesh and LSF");
+                     
+                        
+                        % fMeshLSF.Position=[100 650 1100 570] ;
+                        
+                        %[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Thickness (m)') ; caxis([0 50])
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,'LSF (km)') ; caxis([-10 10])
+                        colormap(flipud(othercolor('RdYlBu_11b',2000)))
+                        
+                        hold on 
+                        PlotMuaMesh(CtrlVar,MUA,'k'); hold on
+                     
+                              
+                        if ~isempty(F.LSFMask)
+                            plot(MUA.coordinates(F.LSFMask.NodesOut,1)/1000,MUA.coordinates(F.LSFMask.NodesOut,2)/1000,'*r')
+                        end
+                        
+                        
+                        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
+                        if ~isempty(xGL)
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Grounding line in red"}];
+                        end
+                        
+                        if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
+                            hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                            Temp=fMeshLSF.CurrentAxes.Title.String;
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in blue"}];
+                            
+                            [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
+                            plot(xf/1000,yf/1000,'m','LineWidth',2); 
+                            
+                            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Blue: LSF zero-line. Magneta:Ice cliff front"}];
+                            
+                        end
+                        
+                        % Par.RelativeVelArrowSize=10 ;
+                        % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
+                  
+                        
+%                         if contains(FileNameSubstring,'-1dIceShelf-')
+%                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
+%                             ylim([min(y) max(y)]/1e3) ; 
+%                         else
+%                             if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+%                         end
+                        
+                        xlabel('x (km)') ; ylabel('y (km)') ; 
+                        drawnow
+                    end
+                    
+                case "-1dIceShelf-"
+                    %%
+                    
+                    
+                   
+                    [s,b,u,x]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
+                    yProfile=0 ;
+                    
+                    FigureName='flowline';
+                    FigFL=FindOrCreateFigure(FigureName) ; 
+                    clf(FigFL)
+                    FigFL.InnerPosition=[100 700 939 665];
+                    hold on 
+                    % point selection
+                    Iy=abs(MUA.coordinates(:,2)-yProfile)< 10000 ;
+                    
+                    xProfile=MUA.coordinates(Iy,1) ;
+                    [xProfile,Ix]=sort(xProfile) ;
+                    
+                    sProfile=F.s(Iy);
+                    bProfile=F.b(Iy);
+                    uProfile=F.ub(Iy) ;
+                    
+                    
+                    
+                    uProfile=uProfile(Ix) ;
+                    sProfile=sProfile(Ix);
+                    bProfile=bProfile(Ix);
+                    
+                    if isfield(F,'c') && ~isempty(F.c)
+                        cProfile=F.c(Iy);
+                        cProfile=cProfile(Ix);
+                    else
+                        cProfile=[];
+                    end
+              
+                    if isfield(F,'LSF') && ~isempty(F.LSF)
+                        LSFProfile=F.LSF(Iy);
+                        LSFProfile=LSFProfile(Ix);
+                    else
+                        LSFProfile=[];
+                    end
+            
+                    yyaxis left
+                    plot(xProfile/1000,sProfile,'bo-','DisplayName','$s$')
+                    hold on
+                    plot(xProfile/1000,bProfile,'go-','DisplayName','$b$')
+                    
+                    if contains(CtrlVar.Experiment,'analytical')
+                        plot(x/1000,s,'b-','LineWidth',2,'DisplayName','$s$ analytical')
+                        plot(x/1000,b,'g-','LineWidth',2,'DisplayName','$b$ analytical')
+                    end
+                    
+                    LSFmean=NaN;
+                    if ~isempty(LSFProfile)
+                        
+                        if isempty(LSFScale)
+                            LSFScale=(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)) ;
+                        end
+                        
+                        plot(xProfile/1000,LSFProfile*LSFScale,'m.-','DisplayName','$\varphi$ (scaled)')
+                        
+                        
+                        if ~isempty(F.LSF)
+                            [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                            LSFmax=max(xc) ;
+                            LSFmin=min(xc) ;
+                            LSFmean=mean(xc) ;
+                        end
+                        
+                        
+                    end
+                    
+                    ylabel('$z$ (m)','interpreter','latex')
+                    
+                    yyaxis right
+                    
+                    plot(xProfile/1000,uProfile,'ro-','DisplayName','$u$')
+                    hold on
+                    if contains(CtrlVar.Experiment,'analytical')
+                        plot(x/1000,u,'r-','LineWidth',2,'DisplayName','$u$ analytical')
+                    end
+                    
+                    if ~isempty(cProfile)
+                        plot(xProfile/1000,cProfile,'-k','DisplayName','$c$')
+                    end
+                    
+                    
+                    ylabel('$u$ (m/a)','interpreter','latex')
+                    
+                    title(sprintf('Profile along the medial line at t=%g',CtrlVar.time))
+                    xlabel('$x$ (km)','interpreter','latex') ;
+                    legend('interpreter','latex','Location','SouthEast')
+                    xlim([min(x)/1000 max(x)/1000]);
+                    
+                    ytt=ylim;
+                    
+                    plot([LSFmean,LSFmean]/1000,[ytt(1) ytt(2)],'kREPLACE_WITH_DASH_DASH')
+                    
+                    hold off
+                    
+                    
+                case {"-mesh-speed-s-ab-","-mesh-speed-calving-level set-"}
+                    
+                    f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
+                    clf(f4)
+                    hold off
+                    
+                    
+                    
+                    % SP=tight_subplot(nPx,nPy) ;
+                    subplot(nPx,nPy,1)
+                    
+                    
+                    
+                    hold off
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h);
+                    
+                    hold on
+                    PlotMuaMesh(CtrlVar,MUA,[],'w');
+                    
+                    hold on ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    if contains(PlotType,"-calving-")
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    end
+                    xlabel('x (km)') ; ylabel('y (km)') ;
+                    axis equal tight
+                   
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    title(sprintf('Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    title(cbar,'(m)')
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+                    
+                    hold off
+                    
+                    
+                    subplot(nPx,nPy,2);
+                    
+                    
+                    speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                    hold off
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%-g',time))
+                    %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
+                    hold on
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                    axis equal tight; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+                    if contains(PlotType,"-calving-")
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    end
+                    hold off
+                    
+                    subplot(nPx,nPy,3);
+                    
+                    
+                    hold off
+                    
+                    if contains(PlotType,"-calving-")
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
+                        title(sprintf('Calving Rate Field at t=%g',time))
+                        hold on
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    else
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
+                        title(sprintf('surface at t=%-g',time))
+                    end
+                    
+                    hold on
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    xlabel('x (km)') ; ylabel('y (km)') ;
+                    if ~isempty(cbar)
+                        title(cbar,'(m/yr)')
+                    end
+                    axis equal tight ; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+                    
+                    subplot(nPx,nPy,4);
+                    
+                    
+                    hold off
+                    
+                    if contains(PlotType,"-level set-")
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF);
+                        title(sprintf('Level Set Field at t=%-g',time))
+                        hold on
+                        [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ; 
+                    else
+                        [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
+                        title(sprintf('Basal melt at t=%-g',time))
+                    end
+                    
+                    hold on
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                    xlabel('x (km)') ; ylabel('y (km)') ;
+                    if ~isempty(cbar)
+                        title(cbar,'(m/yr)')
+                    end
+                    axis equal tight ; 
+                    if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+                    hold off
+                    
+                    ax = gca;
+                    outerpos = ax.OuterPosition;
+                    ti = ax.TightInset;
+                    left = outerpos(1) + ti(1);
+                    bottom = outerpos(2) + ti(2);
+                    ax_width = outerpos(3) - ti(1) - ti(3);
+                    ax_height = outerpos(4) - ti(2) - ti(4);
+                    ax.Position = [left bottom ax_width ax_height];
+                    
+                    sgtitle(FileNameSubstring)
+                    
+                    %%
+                    
+                    
+                case '-mesh-'
+                    
+                    fmesh=FindOrCreateFigure('Mesh',PlotScreenPosition);
+                    
+                    PlotMuaMesh(CtrlVar,MUA);
+                    title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                    hold on ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+                    hold off
+                    
+                    
+                    
+                    %%
+                    
+                case '-ubvb-'
+                    % plotting horizontal velocities
+                    %%
+                    
+                    fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition);
+                    
+                    N=1;
+                    %speed=sqrt(ub.*ub+vb.*vb);
+                    %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
+                    CtrlVar.VelPlotIntervalSpacing='log10';
+                    %CtrlVar.VelColorMap='hot';
+                    %CtrlVar.RelativeVelArrowSize=10;
+                    CtrlVar.QuiverColorSpeedLimits=[1 5000];
+                    
+                    PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
+                    hold on
+                    QuiverColorGHG(x(1:N:end),y(1:N:end),F.ub(1:N:end),F.vb(1:N:end),CtrlVar);
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+                    hold on ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
+                    title(sprintf('(ub,vb) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    %%
+                    if PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    end
+                                        
+                    
+                    
+                case '-log10(BasalSpeed)-'
+                    %%
+                    %us=ub+ud;  vs=vb+vd;
+                    
+                    
+                    SurfSpeed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                    
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
+                    hold on ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
+                    
+                    title(sprintf('log_{10}(Basal speed) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    title(colorbar,'log_{10}(m/yr)')
+                    if PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    end
+                    caxis([1 4])
+                    %%
+                    
+                case "-VAF-"
+                    
+                    
+                    figlogSpeed=FindOrCreateFigure('VAF',PlotScreenPosition);
+                    
+                    [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+                    
+                    if iCount==0
+                        vaf=[];
+                    end
+                    
+                    
+                    vaf.value(iCount)=VAF.Total ;
+                    vaf.time(iCount)=CtrlVar.time;
+                    hold off
+                    plot(vaf.time,vaf.value/1e9,'or')
+                    xlabel(' time (yr)') ; ylabel(' VAF (Gt)')
+                    
+                    
+                case '-ab-'
+                    if ~exist('fab','var') || ~ishandle(fab)
+                        fab=figure;
+                        fab.NextPlot='replacechildren';
+                    else
+                        close(fab)
+                        fab=figure;
+                        
+                    end
+                    
+                    %set(gcf,'nextplot','replacechildren')
+                    %set(gca,'nextplot','replace')
+                    %fab.NextPlot='replacechildren';
+                    %fab.NextPlot
+                    
+                    fig=gcf;
+                    ax=gca;
+                    
+                    if CreateVideo
+                        fab.Position=PlotScreenPosition;
+                        %fab.NextPlot='replacechildren';  % slows things down
+                    end
+                    
+                    %ax.NextPlot='replace';
+                    
+                    F.ab(F.GF.node>0.5)=NaN;
+                    
+                    hold off
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.ab,CtrlVar);
+                    
+                    hold on
+                    
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
+                    hold on
+                    PlotMuaBoundary(CtrlVar,MUA,'b')
+                    hold on
+                    title(sprintf('Basal melt at t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    title(colorbar,'(m/yr)')
+                    if PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    end
+                    
+                    caxis([min(F.ab) max(F.ab)]) ;
+                    
+                    
+                    
+                case '-dhdt-'
+                    if ~exist('fas','var') || ~ishandle(fas)
+                        fas=figure;
+                    else
+                        figure(fas)
+                    end
+                    if CreateVideo
+                        fas.Position=PlotScreenPosition;
+                    end
+                    hold off
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.dhdt,CtrlVar);
+                    caxis([-10 10]) 
+                    hold on ;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
+                    
+                    title(sprintf('dhdt at t=%-g (yr)',CtrlVar.time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    title(colorbar,'(m)')
+                    if PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    end
+                    
+                    
+                    
+                case '-h-'
+                    
+                    if ~exist('fh','var') || ~ishandle(fh)
+                        fh=figure;
+                    else
+                        figure(fh)
+                    end
+                    
+                    if CreateVideo
+                        fh.Position=PlotScreenPosition;
+                    end
+                    hold off
+                    
+                    PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,F.h,CtrlVar);
+                    hold on ;
+                    
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
+                    title(sprintf('ice thickness at t=%-g (yr)',CtrlVar.time)) ;
+                    title(colorbar,'(m)')
+                    
+                    xlabel('xps (km)') ; ylabel('yps (km)')
+                    if PlotMinThickLocations
+                        plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    end
+                    
+                    
+                    
+                case '-sbB-'
+                    if ~exist('fsbB','var') || ~ishandle(fsbB)
+                        fsbB=figure;
+                    else
+                        figure(fsbB)
+                    end
+                    if CreateVideo
+                        fsbB.Position=[100 100 2000 1300];
+                    end
+                    hold off
+                    
+                    CtrlVar.PlotGLs=0;
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'LineWidth',2);
+                    Fs=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),F.s,'natural');
+                    zGL=Fs(xGL,yGL);
+                    speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                    minSpeed=0 ; maxSpeed=4000;
+                    speed(speed<(minSpeed+eps))=minSpeed;
+                    speed(speed>maxSpeed)=maxSpeed;
+                    
+                    sCol=jet(numel(F.s));
+                    sCol=parula(numel(F.s));
+                    ColorIndex=Variable2ColorIndex(speed,[minSpeed maxSpeed]);
+                    sCol(:,:)=sCol(ColorIndex,:);
+                    sCol(speed<minSpeed,:)=sCol(speed<minSpeed,:)*0+[0.9 0.9 0.9];
+                    %bCol=jet(numel(s))*0+[0 0 1];
+                    
+                    brown=[0.59 0.29 0.00];
+                    BCol=jet(numel(F.s))*0+brown; % [0.9 0.9 0.9];
+                    bCol=BCol;
+                    AspectRatio=1; ViewAndLight=[-45 25 -45 50];
+                    LightHandle=[];
+                    [TRI,DT]=Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
+                    xlabel('x (km)' ) ; ylabel('y (km)' )
+                    hold on
+                    plot3(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,zGL,'color','r','LineWidth',2)
+                    %colormap(jet)
+                    colormap(parula)
+                    
+                    cbar=colorbar;
+                    
+                    for I=1:numel(cbar.TickLabels)
+                        cbar.TickLabels{I}=str2double(cbar.TickLabels{I})*(max(speed)-min(speed))+min(speed);
+                    end
+                    
+                    title(cbar,'(m/yr)')
+                    
+                    fsbB.CurrentAxes.DataAspectRatio=[1 1 20];
+                    view(-55,35)
+                    %axis([-1700 -1300 -600 -100 -2000  3000]) % small
+                    
+                    camproj('perspective')
+                    title(sprintf('t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    
+                    
+                case '-MeltNodes-'
+                    
+                    if ~exist('MN','var') || ~ishandle(MN)
+                        MN=figure;
+                    else
+                        figure(MN)
+                    end
+                    if CreateVideo
+                        MN.Position=PlotScreenPosition;
+                    end
+                    hold off
+                    
+                    CtrlVar.MeltNodesDefinition='Node-Wise';
+                    [MeltNodes,NotMeltNodes]=SpecifyMeltNodes(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele);
+                    PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+                    hold on
+                    plot(x(MeltNodes)/CtrlVar.PlotXYscale,y(MeltNodes)/CtrlVar.PlotXYscale,'o',...
+                        'MarkerSize',3,'MarkerFaceColor','g')
+                    hold on
+                    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+                    xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel) ;
+                    title(['Melt nodes: time=',num2str(CtrlVar.time)])
+                    
+                    
+                    title(sprintf('Melt Nodes at t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                    
+                    %                 if PlotMinThickLocations
+                    %                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
+                    %                 end
+                    
+                                        
+                    
+                    
+            end
+            %
+            %             if PlotType~="-1dIceShelf-"
+            %                 axis equal tight ; axis(AxisLimits) ;
+            %             end
+            
+            if CreateVideo
+                iFrame=iFrame+1;
+                if iFrame>1
+                    Frame = getframe(gcf);
+                    %Frame = hardcopy(hFig, '-opengl', '-r0');
+                    writeVideo(vidObj,Frame);
+                    hold off
+                end
+                
+            end
+            
+            if ~contains(PlotType,"-collect-")
+                PlotArea=axis;
+            end
+        end
+        iFile=iFile+1;
+        
+    end
+    
+    if CreateVideo
+        close(vidObj);
+        fprintf('\n video file closed \n')
+    end
+    
+    close all
+    
+    cd(CurDir)
+    
+end
+
+
+##### SOURCE END #####
+--></body></html>

@@ -5,13 +5,14 @@ function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
 %  Calculates nodal based tau values to be used in the SUPG method.
 %
 % Area=l^2/2 -> l=sqrt( 2 Area) 
-l=sqrt(2*TriAreaFE(MUA.coordinates,MUA.connectivity));
-[M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-l=M*l;
-speed=sqrt(u.*u+v.*v);
 
-%dt=l./speed;
-dt=dt+zeros(MUA.Nnodes,1);
+l=sqrt(2*MUA.EleAreas) ;
+if numel(u)==MUA.Nnodes  % this could be called over nodes or elements (i.e. integration points)
+    M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
+    l=M*l;
+end
+
+speed=sqrt(u.*u+v.*v);
 
 ECN=speed.*dt./l;  % non-dimentional
 
@@ -32,7 +33,7 @@ tau1=K.*l./speed/2;
 % And now I must consider the possibility that speed is zero, in which case
 % the above expression fails and must be replaced by the correct limit which is
 % tau1 -> dt/6 as speed -> 0
-I=speed<100*eps ; tau1(I)=dt(I)/6;
+I=speed<100*eps ; tau1(I)=dt/6;
 
 taut=dt/2+eps;
 taus=0.5*l./(speed+CtrlVar.SpeedZero);  % Now this must go down to zero gracefully...
@@ -47,7 +48,7 @@ switch CtrlVar.Tracer.SUPG.tau
     case 'taus'   % 'spatial' definition, independent of time step
         tau=taus;
     case 'taut'   % 'temporal' definition, indepenent of speed
-        tau=taut;
+        tau=taut+zeros(size(u),'like',u);
     otherwise
         error('in CalcSUPGtau case not found')
 end

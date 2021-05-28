@@ -1,9 +1,9 @@
-function [MeshDeriv,MeshDetJ]=CalcMeshDerivatives(CtrlVar,connectivity,coordinates)
+function [MeshDeriv,MeshDetJ]=CalcMeshDerivatives(CtrlVar,connectivity,coordinates,nip,points)
 
+
+narginchk(5,5)
 
 dof=2; [Nele,nod]=size(connectivity);
-CtrlVar=NrOfIntegrationPoints(CtrlVar);
-nip=CtrlVar.nip;
 MeshDeriv=zeros(Nele,dof,nod,nip);
 MeshDetJ=zeros(Nele,nip);
 
@@ -19,8 +19,10 @@ if Nele==0
         return
 end
 
+% ndim=2;  points=sample('triangle',nip,ndim);
+
 parfor Iint=1:nip
-    [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
+    [Deriv,detJ]=derivVector(coordinates,connectivity,nip,points,Iint);
     MeshDeriv(:,:,:,Iint)=Deriv;
     MeshDetJ(:,Iint)=detJ;
 end

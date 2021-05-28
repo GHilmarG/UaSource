@@ -6,9 +6,12 @@
 IsUsed="DesiredEleSizes.m";
 IsUsed="FindBestGamma2D.m";
 IsUsed="FindBestGamma2Dbacktracking.m";
+IsUsed="LevelSetEquationAssemblyNR2.m" ; 
 
 if ~any(contains(fList,"\"+IsUsed))
     fprintf("%s is not used by Ua \n",IsUsed)
+else
+    fprintf("%s is used by Ua \n",IsUsed)
 end
 
 

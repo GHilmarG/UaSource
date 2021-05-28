@@ -17,13 +17,12 @@ ndim=2; neq=MUA.Nnodes;
 hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 snod=reshape(s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.AGlenisElementBased
-    AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-end
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
+
 bx=zeros(MUA.Nele,MUA.nod);
 by=zeros(MUA.Nele,MUA.nod);
 
@@ -35,7 +34,7 @@ Ludvd=MLC.udvdL ; Ludvdrhs=MLC.udvdRhs;
 % vector over all elements for each integartion point
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     
     if isfield(MUA,'Deriv') && isfield(MUA,'DetJ')
         Deriv=MUA.Deriv(:,:,:,Iint);
@@ -68,7 +67,7 @@ for Iint=1:MUA.nip
     end
     
     gradSurf=sqrt(abs(dsdx.*dsdx+dsdy.*dsdy));
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     %T=gradSurf.^(n-1).*(rhoint.*g.*hint).^n;
     

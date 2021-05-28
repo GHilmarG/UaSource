@@ -56,12 +56,15 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     
     % Dbeta2i is zero for m=1.
     Dbeta2i=(1./m-1).*(C+C0).^(-1./m).*(ub.^2+vb.^2+u0^2).^((1-3*m)./(2*m));
-        
+    
     
     if ~isfield(CtrlVar,"SlidingLaw")
         CtrlVar.SlidingLaw="Weertman";
     end
     
+    if ~isfield(CtrlVar.Inverse,'dFuvdClambda')
+        CtrlVar.Inverse.dFuvdClambda=false;
+    end
     
     if CtrlVar.Inverse.dFuvdClambda
         
@@ -252,6 +255,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         
         U=ub-ua;
         V=vb-va;
+        
         
         
         beta2a=(Ca+CtrlVar.Czero).^(-1./ma).*(sqrt(U.*U+V.*V+CtrlVar.SpeedZero^2)).^(1./ma-1) ;

@@ -5,7 +5,7 @@ narginchk(4,4)
 %%
 % Calculates strains and devitoric stresses.
 %
-% [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,AGlen,n,C,m,GF,s,b,ub,vb,ud,vd)
+% [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F) 
 %
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
 % On output all variables are nodal variables.
@@ -32,7 +32,8 @@ narginchk(4,4)
 % 
 %   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
 %   CtrlVar=CtrlVarInRestartFile;
-%   [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e]=CalcNodalStrainRatesAndStresses(CtrlVar,MUA,F.AGlen,F.n,F.C,F.m,GF,F.s,F.b,F.ub,F.vb,F.ud,F.vd);
+%   UserVar=UserVarInRestartFile
+%   [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
 %   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
 %   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
@@ -60,7 +61,7 @@ snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 tbxnod=reshape(tbx(MUA.connectivity,1),MUA.Nele,MUA.nod);
 tbynod=reshape(tby(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 
 Tx=zeros(MUA.Nele,MUA.nod);
@@ -70,14 +71,10 @@ Ty=zeros(MUA.Nele,MUA.nod);
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    Deriv=MUA.Deriv(:,:,:,Iint);
+    detJ=MUA.DetJ(:,Iint);
     
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ')
-        Deriv=MUA.Deriv(:,:,:,Iint);
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
     
     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
     dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
@@ -100,7 +97,7 @@ for Iint=1:MUA.nip
     txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;
     tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     for Inod=1:MUA.nod
         

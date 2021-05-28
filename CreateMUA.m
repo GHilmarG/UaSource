@@ -27,28 +27,32 @@ MUA.Nnodes=size(MUA.coordinates,1);
 MUA.Nele=size(MUA.connectivity,1);
 MUA.nod=size(MUA.connectivity,2);
 
-CtrlVar=NrOfIntegrationPoints(CtrlVar);
-MUA.nip=CtrlVar.nip ;
-MUA.niph=CtrlVar.niph;
+if CtrlVar.DevelopmentTestingQuadRules
+    
+    Degree=QuadratureRuleDegree(CtrlVar);
+    Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+    MUA.nip=size(Q.Points,1);
+    MUA.niph=size(Q.Points,1);
+    CtrlVar.nip=MUA.nip;
+    CtrlVar.niph=MUA.niph;
+    MUA.points=Q.Points;
+    MUA.weights=Q.Weights;
+else
+    CtrlVar=NrOfIntegrationPoints(CtrlVar);
+    MUA.nip=CtrlVar.nip ;
+    MUA.niph=CtrlVar.niph;
+    ndim=2;
+    [MUA.points,MUA.weights]=sample('triangle',MUA.nip,ndim);
+end
 
 
-ndim=2;
-[MUA.points,MUA.weights]=sample('triangle',MUA.nip,ndim);
-
-
-MUA.DetJ=[];
+[MUA.connectivity]=TestAndCorrectForInsideOutElements(CtrlVar,MUA.coordinates,MUA.connectivity);
 
 if CtrlVar.CalcMUA_Derivatives
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
+    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
 else
     MUA.Deriv=[];
     MUA.DetJ=[];
-end
-
-[MUA.connectivity,isChanged]=TestAndCorrectForInsideOutElements(CtrlVar,MUA.coordinates,MUA.connectivity);
-
-if isChanged && CtrlVar.CalcMUA_Derivatives
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates);
 end
 
 if CtrlVar.FindMUA_Boundary

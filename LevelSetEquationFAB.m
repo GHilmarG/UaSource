@@ -1,4 +1,4 @@
-function [k,dkdx]=LevelSetEquationFAB(CtrlVar,x,mu)
+function [k,dkdx,J]=LevelSetEquationFAB(CtrlVar,x,mu)
 
 
 
@@ -38,6 +38,7 @@ switch CtrlVar.LevelSetFABCostFunction
         if nargout>1
             dkdx=1./x.^2;
             dkdx=mu.*dkdx;
+            p=2 ; q=1 ;
         end
         
     case "p2q2"
@@ -50,6 +51,7 @@ switch CtrlVar.LevelSetFABCostFunction
         if nargout>1
             dkdx=2*x;
             dkdx=mu.*dkdx;
+            p=2 ; q=2 ;
         end
         
     case "p4q2"
@@ -62,6 +64,7 @@ switch CtrlVar.LevelSetFABCostFunction
         if nargout>1
             dkdx=6*(x.^2-xa.^2).^2 .*x ;
             dkdx=mu.*dkdx;
+            p=4 ; q=2 ;
         end
         
     case "p2q4"
@@ -74,6 +77,7 @@ switch CtrlVar.LevelSetFABCostFunction
         if nargout>1
             dkdx=(x.^4-xa.^4).*2.*x + 4*x.^3.*x.^2 ;
             dkdx=mu.*dkdx;
+            p=2 ; q=4 ;
         end
         
     case "p4q4"
@@ -91,9 +95,10 @@ switch CtrlVar.LevelSetFABCostFunction
         if nargout>1
             dkdx=3.*(x.^4-xa.^4).^2 .*4.*x.^3 .* x.^2 + (x.^4-xa.^4).^3.*2.*x ;
             dkdx=mu.*dkdx;
+            p=4 ; q=4 ;
         end
         
-    case "Lietal2010"
+    case "Li2010"
         
         LT=x<1 ;
         k=1-1./x ;
@@ -111,6 +116,14 @@ switch CtrlVar.LevelSetFABCostFunction
         
         
 end
+
+
+if nargout>2
+    J=(x.^q-1).^p /(p*q) ;
+end
+
+
+
 
 
 end

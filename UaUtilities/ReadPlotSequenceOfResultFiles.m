@@ -28,8 +28,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     %
     %   DataCollect=ReadPlotSequenceOfResultFiles("FileNameSubstring","-Ice1r-","PlotType","-collect-");
     %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ;
-    %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,
-    %   DataCollect.GroundedArea/1e6,'-or'); xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
+    %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,'-or'); 
+    %   xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
     %
     %
     % Examples:
@@ -96,7 +96,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
     if contains(PlotType,"-collect-")
         CreateVideo=0;
     else
-        CreateVideo=1;
+        CreateVideo=0;
     end
     
     PlotRegion=[];
@@ -194,10 +194,12 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         DataCollect.VAF=zeros(nFiles,1)+NaN;
                         DataCollect.GroundedArea=zeros(nFiles,1)+NaN;
                         DataCollect.IceVolume=zeros(nFiles,1)+NaN;
-                        DataCollect.hCentre=zeros(nFiles,1)+NaN;  
-                        DataCollect.LSFmax=zeros(nFiles,1)+NaN;  
-                        DataCollect.LSFmin=zeros(nFiles,1)+NaN;  
-                        DataCollect.LSFmean=zeros(nFiles,1)+NaN;  
+                        DataCollect.Lx=zeros(nFiles,1)+NaN;
+                        
+                        DataCollect.LSFmax=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmin=zeros(nFiles,1)+NaN;
+                        DataCollect.LSFmean=zeros(nFiles,1)+NaN;
+                        
                     end
                     
                     [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
@@ -207,16 +209,13 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                     DataCollect.VAF(iCount)=VAF.Total ;
                     DataCollect.GroundedArea(iCount)=GroundedArea.Total;
                     DataCollect.IceVolume(iCount)=IceVolume.Total;
-                    
-                    
-                    rDist=(MUA.coordinates(:,1).^2+MUA.coordinates(:,2).^2);
-                    [temp,I]=min(rDist);
-                    hCentre=F.s(I)-F.b(I);
-                    DataCollect.hCentre(iCount)=hCentre;
+
+                    DataCollect.Lx(iCount)=max(F.x(F.h>10)) ; 
                     
                     
                     if ~isempty(F.LSF)
                         [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+                    
                         DataCollect.LSFmax(iCount)=max(xc,[],'omitnan') ;
                         DataCollect.LSFmin(iCount)=min(xc,[],'omitnan') ;
                         DataCollect.LSFmean(iCount)=mean(xc,'omitnan') ;
@@ -327,9 +326,9 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         
                         
                         fMeshLSF=FindOrCreateFigure("Mesh and LSF");
-                        clf(fMeshLSF) ;
+                     
                         
-                        fMeshLSF.Position=[100 650 1100 570] ;
+                        % fMeshLSF.Position=[100 650 1100 570] ;
                         
                         %[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Thickness (m)') ; caxis([0 50])
                         [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,'LSF (km)') ; caxis([-10 10])
@@ -366,12 +365,12 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
                         % QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F.ub,F.vb,Par) ;
                   
                         
-                        if contains(FileNameSubstring,'-1dIceShelf-')
-                            xlim([min(xc)-50e3  max(xc)+50e3]/1000)
-                            ylim([min(y) max(y)]/1e3) ; 
-                        else
-                            if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
-                        end
+%                         if contains(FileNameSubstring,'-1dIceShelf-')
+%                             xlim([min(xc)-50e3  max(xc)+50e3]/1000)
+%                             ylim([min(y) max(y)]/1e3) ; 
+%                         else
+%                             if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
+%                         end
                         
                         xlabel('x (km)') ; ylabel('y (km)') ; 
                         drawnow

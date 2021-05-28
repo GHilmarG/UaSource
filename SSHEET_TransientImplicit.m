@@ -32,6 +32,14 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n uvh2DSSHEET \n '
 % [Lh   0 ] [dlambdah]     [  Lhrhs-Lh h]
 
 
+rVector.gamma=zeros(CtrlVar.NRitmax+1,1)+NaN;
+rVector.ruv=zeros(CtrlVar.NRitmax+1,1)+NaN;
+rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
+rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
+rVector.D2=zeros(CtrlVar.NRitmax+1,1)+NaN;
+
+
+
 if any(h0<0) ; warning('MATLAB:uvh2DSSHEET',' thickness negative ') ; end
 
 tStart=tic;
@@ -44,7 +52,7 @@ if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
 dlambdah=lambdah*0;
 dh=h0*0;
 iteration=0 ; 
-diffVector=zeros(CtrlVar.NRitmax,1) ;
+
 gamma=1;  rWork=inf ; rForce=inf ; 
 
 while true
@@ -131,21 +139,37 @@ while true
     %% calculate  residuals at beginnin and for full Newton step
     
     Func=@(gamma) CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0,ch);
-               
+    
     gamma=0; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
     gamma=1; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
     
-    
+    if iteration==1  % save the first r value for plotting, etc
+        rVector.gamma(1)=gamma;
+        rVector.ruv(1)=NaN;
+        rVector.rWork(1)=rWork0;
+        rVector.rForce(1)=rForce0 ;
+        rVector.D2(1)=D20 ;
+    end
     
     %% either accept full Newton step or do a line search
     
     Slope0=-2*r0 ;  % using the inner product def
     [gamma,r,BackTrackInfo]=BackTracking(Slope0,1,r0,r1,Func,CtrlVar);
-
+    
     RunInfo.BackTrack=BackTrackInfo;
-
+    
+    
     
     [rTest,~,~,rForce,rWork,D2]=Func(gamma);
+    rVector.gamma(iteration+1)=gamma;
+    rVector.ruv(iteration+1)=NaN;
+    rVector.rWork(iteration+1)=rWork;
+    rVector.rForce(iteration+1)=rForce ;
+    rVector.D2(iteration+1)=D2 ;
+    if ~isequal(r,rTest)
+        fprintf("r=%g \t rTest=%g \t \n",r,rTest)
+        error('SSHEET_TransientImplicit:expecting r and rTest to be equal')
+    end
     
     %% If desired, plot residual along search direction
     if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
@@ -197,10 +221,7 @@ while true
         BCsNorm=0;
     end
 
-    diffVector(iteration)=r0;   % override last value, because it was just an (very accurate) estimate
-    diffVector(iteration+1)=r;
 
-    
     
     %% plot and print info
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
@@ -224,19 +245,33 @@ h1=h ; lambdah1=lambdah;
 
 tEnd=toc(tStart);
 
+RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
+
+if RunInfo.BackTrack.Converged==0
+    RunInfo.Forward.Converged=0;
+end
+
+
 %% print/plot some info
-if CtrlVar.InfoLevelNonLinIt>=1 && r < CtrlVar.NLtol 
-    fprintf(CtrlVar.fidlog,' SSHEET(h) converged to given tolerance of %-g with r=%-g in %-i iterations and in %-g  sec \n',CtrlVar.NLtol,r,iteration,tEnd) ;
+if CtrlVar.InfoLevelNonLinIt>=1
+    fprintf(CtrlVar.fidlog,' NR-SSHEET(h) converged to given tolerance with r=%-g in %-i iterations and in %-g  sec \n',r,iteration,tEnd) ;
 end
 
 if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
     
-    N=max([1,iteration-5]);
+    FindOrCreateFigure("NR-h r");
+    yyaxis left
+    semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
+    ylabel('rForce^2')
+    yyaxis right
+    semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
+    ylabel('rWork^2')
     
-    [~,~,a1]=detrend_xt(log10(diffVector(N:iteration)),N:iteration);
-    fprintf(CtrlVar.fidlog,' slope NR : %14.7g \n',a1);
-    figure; semilogy(0:iteration,diffVector(1:iteration+1),'x-r') ; title('NR SSHEET h implicit') ; xlabel('Iteration') ; ylabel('Residual')
+    title('Force and Work residuals (NR h SHEET diagnostic step)') ; xlabel('Iteration') ;
+    
+    
 end
+
 
 if iteration > CtrlVar.NRitmax
     fprintf(CtrlVar.fidlog,'Warning: maximum number of NRh iterations %-i reached \n',CtrlVar.NRitmax);
@@ -244,8 +279,8 @@ if iteration > CtrlVar.NRitmax
     RunInfo.Forward.hConverged=0;
 end
 
-RunInfo.Forward.hIterations=iteration;   
-RunInfo.Forward.hResidual=r;
+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=iteration;
+RunInfo.Forward.hResidual(CtrlVar.CurrentRunStepNumber)=r;
 
 
 end
