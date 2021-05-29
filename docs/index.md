@@ -9,6 +9,16 @@
 
 
 
+\begin{equation}
+\frac{x^2}{\sin x}
+\end{equation}
+
+$$
+x^2
+$$
+
+
+
 
 Úa is a finite-element ice-flow model developed at the University of
 Northumbria, Newcastle, UK, by [Hilmar
@@ -187,7 +197,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   Naughten, K. A., De Rydt, J., Rosier, S. H. R., Jenkins, A.,
   Holland, P. R., & Ridley, J. K. (2021). Two-timescale response of a
   large Antarctic ice shelf to climate change. Nature Communications,
-  12(1), 1991. https://doi.org/10.1038/s41467-021-22259-0
+  12(1).  https://doi.org/10.1038/s41467-021-22259-0
 
 
   Jones, R. S., Gudmundsson, G. H., Mackintosh, A. N., McCormack,
