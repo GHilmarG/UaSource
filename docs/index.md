@@ -9,17 +9,6 @@
 
 
 
-\begin{equation}
-\frac{x^2}{\sin x}
-\end{equation}
-
-$$
-x^2
-$$
-
-
-
-
 Úa is a finite-element ice-flow model developed at the University of
 Northumbria, Newcastle, UK, by [Hilmar
 Gudmundsson](https://www.northumbria.ac.uk/about-us/our-staff/g/hilmar-gudmundsson/)

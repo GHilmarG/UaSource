@@ -16,9 +16,9 @@ h0=s0-b0;
 h1=s1-b1;
 
 
-ndim=2; neq=MUA.Nnodes;
+neq=MUA.Nnodes;
 
-theta=CtrlVar.theta;
+
 
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(h1(MUA.connectivity,1),MUA.Nele,MUA.nod);
