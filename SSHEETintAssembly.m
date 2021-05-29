@@ -34,8 +34,11 @@ AGlenint=AGlen*fun;
 nint=n*fun;
 
 
-D=2*AGlenint.*(rhoint.*g).^nint./(nint+2);
+Dd=2*AGlenint.*(rhoint.*g).^nint./(nint+2);
 
+% Db=Cint.*(rhoint.*g).^mint;
+Db=0 ; 
+mint=1; 
 ds0dx=zeros(MUA.Nele,1); ds0dy=zeros(MUA.Nele,1);
 ds1dx=zeros(MUA.Nele,1); ds1dy=zeros(MUA.Nele,1);
 
@@ -60,31 +63,38 @@ for I=1:MUA.nod
     if ~OnlyR
         for J=1:MUA.nod
             
+            
+            % the weight function is index I, the perturbation in h is index I
+            % so replace \Delta h with fun(I) and \p_x \Delta h with Deriv(:,1,J) 
+            
             deltahterm=fun(I).*fun(J);
             
-            lf1=dt*theta*(nint+2).*D.*(gradSurf1.^(nint-1)).*(h1int.^(nint+1))...
-                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);
+            lf1d=dt*theta*Dd.*(nint+2).*(gradSurf1.^(nint-1)).*(h1int.^(nint+1))...
+                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);    % (2) 
+            lf2d=dt*theta*Dd.*h1int.^(nint+2).*(gradSurf1.^(nint-1)).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));    % (1) 
+            lf3d=dt*theta.*Dd.*(nint-1).*h1int.^(nint+2).* gradSurf1.^(nint-3) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*(ds1dx.*Deriv(:,1,J)+ds1dy.*Deriv(:,2,J)) ;  % (3) 
+
             
-            temp=dt*theta*D.*h1int.^(nint+2).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
             
-            lf2=(gradSurf1.^(nint-1)).* temp;
-            lf3=(nint-1).*(gradSurf1.^(nint-3)).* temp.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)) ;
+            lf1b=dt*theta*Db.*(mint+1).*(gradSurf1.^(mint-1)).*(h1int.^mint)...
+                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);   % (2) 
+            lf2b=dt*theta*Db.*h1int.^(mint+1).*(gradSurf1.^(mint-1)).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));    % (1)
+            lf3b=dt*theta*Db.*(mint-1).*h1int.^(mint+1).* gradSurf1.^(mint-3) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*(ds1dx.*Deriv(:,1,J)+ds1dy.*Deriv(:,2,J)) ;  % (3)
+
+
             
-            %             lf2=dt*theta*D.*(gradSurf1.^(nint-1)).*(h1int.^(nint+2))...
-            %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
-            %
-            %             lf3=dt*theta*(nint-1)*D.*(gradSurf1.^(nint-3)).*(h1int.^(nint+2))...
-            %                 .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I))...
-            %                 .*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));
-            
-            d1d1(:,I,J)=d1d1(:,I,J)+(deltahterm+lf1+lf2+lf3).*detJw;
+            d1d1(:,I,J)=d1d1(:,I,J)+(deltahterm+lf1d+lf2d+lf3d+lf1b+lf2b+lf3b).*detJw;
             
         end
     end
+    
     dhterm=(h1int-h0int).*fun(I);
     
-    q0term=dt*(1-theta)*D.*gradSurf0.^(nint-1).*h0int.^(nint+2).*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
-    q1term=dt*theta*    D.*gradSurf1.^(nint-1).*h1int.^(nint+2).*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
+    qd0term=dt*(1-theta)*Dd.*gradSurf0.^(nint-1).*h0int.^(nint+2).*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
+    qd1term=dt*theta*    Dd.*gradSurf1.^(nint-1).*h1int.^(nint+2).*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
+    
+    qb0term=dt*(1-theta)*Db.*gradSurf0.^(mint-1).*h0int.^mint.*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
+    qb1term=dt*theta*    Db.*gradSurf1.^(mint-1).*h1int.^mint.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
     
     a0term=-dt*(1-theta)*a0int.*fun(I);
     a1term=-dt*theta*a1int.*fun(I);
@@ -93,7 +103,7 @@ for I=1:MUA.nod
     % K du = -R
     %b1(:,I)=b1(:,I)+(dhterm+a0term+a1term+q0term+q1term).*detJw;
     t1(:,I)=t1(:,I)+ dhterm.*detJw;
-    f1(:,I)=f1(:,I)-(a0term+a1term+q0term+q1term).*detJw;
+    f1(:,I)=f1(:,I)-(a0term+a1term+qd0term+qd1term+qb0term+qb1term).*detJw;
     
 end
 
