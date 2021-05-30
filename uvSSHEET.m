@@ -1,7 +1,7 @@
-function [ud,vd]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,rho,g,s,h)
+function [ud,vd,ub,vb]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,C,m,rho,g,s,h)
 
 
-%  calculates deformational velocity based on the SSHEET (SIA) approximation
+%  calculates deformational and basal velocity based on the SSHEET (SIA) approximation
 %
 %  u and v are nodal velocities
 %
@@ -10,7 +10,9 @@ function [ud,vd]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,rho,g,s,h)
 %  N_p N_q u_q = -N_p (2A/(n+1)) (rho g)^n | grad_{xy} s|^(n-1) h^(n+1) \p_x s
 %
 
-narginchk(9,9)
+narginchk(11,11)
+nargoutchk(4,4)
+
 
 ndim=2; neq=MUA.Nnodes;
 
@@ -19,15 +21,20 @@ snod=reshape(s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
+Cnod=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 % [points,weights]=sample('triangle',MUA.nip,ndim);
 
-bx=zeros(MUA.Nele,MUA.nod);
-by=zeros(MUA.Nele,MUA.nod);
+bxd=zeros(MUA.Nele,MUA.nod);
+byd=zeros(MUA.Nele,MUA.nod);
+bxb=zeros(MUA.Nele,MUA.nod);
+byb=zeros(MUA.Nele,MUA.nod);
+
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Ludvd=MLC.udvdL ; Ludvdrhs=MLC.udvdRhs;
+Lubvb=MLC.ubvbL ; Lubvbrhs=MLC.ubvbRhs;
 
 
 
@@ -51,10 +58,12 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     rhoint=rhonod*fun;
     
-    if ~CtrlVar.AGlenisElementBased
-        AGlen=AGlennod*fun;
-        n=nnod*fun;
-    end
+    
+    AGlen=AGlennod*fun;
+    n=nnod*fun;
+      
+    C=Cnod*fun;
+    m=mnod*fun;
     
     
     
@@ -71,43 +80,80 @@ for Iint=1:MUA.nip
     
     %T=gradSurf.^(n-1).*(rhoint.*g.*hint).^n;
     
-    D=2*AGlen.*gradSurf.^(n-1).*hint.^(n+1).*(rhoint.*g).^n./(n+1);
+    Dd=2*AGlen.* (gradSurf.^(n-1)) .* (hint.^(n+1)) .* ((rhoint.*g).^n) ./(n+1);
+    
+    Db=C.*(gradSurf.^(m-1)) .* ((rhoint.*g.*hint).^m) ;
     
     for Inod=1:MUA.nod
         
+        % Deformational
+        rhsd=Dd.*fun(Inod);
+        rhsxd=-rhsd.*dsdx;
+        rhsyd=-rhsd.*dsdy;
         
-        rhs=D.*fun(Inod);
-        rhsx=-rhs.*dsdx;
-        rhsy=-rhs.*dsdy;
+        bxd(:,Inod)=bxd(:,Inod)+rhsxd.*detJw;
+        byd(:,Inod)=byd(:,Inod)+rhsyd.*detJw;
         
-        bx(:,Inod)=bx(:,Inod)+rhsx.*detJw;
-        by(:,Inod)=by(:,Inod)+rhsy.*detJw;
+        
+        % basal
+        rhsb=Db.*fun(Inod);
+        rhsxb=-rhsb.*dsdx;
+        rhsyb=-rhsb.*dsdy;
+        
+        bxb(:,Inod)=bxb(:,Inod)+rhsxb.*detJw;
+        byb(:,Inod)=byb(:,Inod)+rhsyb.*detJw;
         
     end
 end
 
 % assemble right-hand side
 
-rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
+rhxd=sparseUA(neq,1); rhyd=sparseUA(neq,1);
+rhxb=sparseUA(neq,1); rhyb=sparseUA(neq,1);
 for Inod=1:MUA.nod
-    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bx(:,Inod),neq,1);
-    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),by(:,Inod),neq,1);
+    rhxd=rhxd+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxd(:,Inod),neq,1);
+    rhyd=rhyd+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byd(:,Inod),neq,1);
+    rhxb=rhxb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),bxb(:,Inod),neq,1);
+    rhyb=rhyb+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),byb(:,Inod),neq,1);
 end
 
 
-M=MassMatrix2D1dof(MUA);
+%M=MassMatrix2D1dof(MUA);
+M=MUA.M; 
 
+
+% Deformational
 if isempty(Ludvd)
-    sol=M\[rhx rhy] ;  % solve this for two right-hand sides
+    sol=M\[rhxd rhyd] ;  % solve this for two right-hand sides
     ud=full(sol(:,1)) ; vd=full(sol(:,2));
+    
+    
 else
     
     Z=sparse(MUA.Nnodes,MUA.Nnodes);
-    M=[ M Z ; Z M ];
+    MZ=[ M Z ; Z M ];
     udvdLambda=zeros(size(Ludvd,1),1) ;
-    [sol,udvdLambda]=solveKApeSymmetric(M,Ludvd,[rhx ; rhy],Ludvdrhs,[],udvdLambda,CtrlVar);
+    sol=solveKApeSymmetric(MZ,Ludvd,[rhxd ; rhyd],Ludvdrhs,[],udvdLambda,CtrlVar);
     ud=full(sol(1:MUA.Nnodes));
     vd=full(sol(MUA.Nnodes+1:2*MUA.Nnodes));
+    
+end
+
+
+% Basal
+if isempty(Lubvb)
+    sol=M\[rhxb rhyb] ;  % solve this for two right-hand sides
+    ub=full(sol(:,1)) ; vb=full(sol(:,2));
+    
+    
+else
+    
+    Z=sparse(MUA.Nnodes,MUA.Nnodes);
+    MZ=[ M Z ; Z M ];
+    ubvbLambda=zeros(size(Lubvb,1),1) ;
+    sol=solveKApeSymmetric(MZ,Lubvb,[rhxb ; rhyb],Lubvbrhs,[],ubvbLambda,CtrlVar);
+    ub=full(sol(1:MUA.Nnodes));
+    vb=full(sol(MUA.Nnodes+1:2*MUA.Nnodes));
     
 end
 

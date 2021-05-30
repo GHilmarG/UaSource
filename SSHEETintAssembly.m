@@ -1,5 +1,7 @@
-function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,rhonod,g,s0nod,h0nod,s1nod,h1nod,a0nod,a1nod,dt,OnlyR)
+function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,C,m,rhonod,g,s0nod,h0nod,s1nod,h1nod,a0nod,a1nod,dt,OnlyR)
 
+
+narginchk(17,17)
 ndim=2;
 theta=CtrlVar.theta;
 %    [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -33,12 +35,13 @@ rhoint=rhonod*fun;
 AGlenint=AGlen*fun;
 nint=n*fun;
 
+Cint=C*fun;
+mint=m*fun;
 
 Dd=2*AGlenint.*(rhoint.*g).^nint./(nint+2);
+Db=Cint.*(rhoint.*g).^mint;
 
-% Db=Cint.*(rhoint.*g).^mint;
-Db=0 ; 
-mint=1; 
+
 ds0dx=zeros(MUA.Nele,1); ds0dy=zeros(MUA.Nele,1);
 ds1dx=zeros(MUA.Nele,1); ds1dy=zeros(MUA.Nele,1);
 

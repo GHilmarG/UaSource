@@ -73,16 +73,16 @@ switch lower(CtrlVar.FlowApproximation)
         
     case 'ssheet'
         
-        BCs.ubFixedNode=[];
-        BCs.ubFixedValue=[];
-        BCs.vbFixedNode=[];
-        BCs.vbFixedValue=[];
-        BCs.ubTiedNodeA=[];
-        BCs.ubTiedNodeB=[];
-        BCs.vbTiedNodeA=[];
-        BCs.vbTiedNodeB=[];
-        BCs.ubvbFixedNormalNode=[];
-        BCs.ubvbFixedNormalValue=[];
+%         BCs.ubFixedNode=[];
+%         BCs.ubFixedValue=[];
+%         BCs.vbFixedNode=[];
+%         BCs.vbFixedValue=[];
+%         BCs.ubTiedNodeA=[];
+%         BCs.ubTiedNodeB=[];
+%         BCs.vbTiedNodeA=[];
+%         BCs.vbTiedNodeB=[];
+%         BCs.ubvbFixedNormalNode=[];
+%         BCs.ubvbFixedNormalValue=[];
         
 end
 

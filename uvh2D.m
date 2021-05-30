@@ -18,11 +18,9 @@ switch lower(CtrlVar.FlowApproximation)
     case 'ssheet'
         
         
-        [UserVar,F1.ud,F1.vd,F1.h,F1.s,F1.GF,l1.h,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs1,CtrlVar.dt,F1.h,F0.h,F1.S,F1.B,F0.as,F0.ab,F1.as,F1.ab,l1.h,F1.AGlen,F1.n,F1.rho,F1.rhow,F1.g);
-     
-        
-        F1.ub=zeros(MUA.Nnodes,1) ; 
-        F1.vb=zeros(MUA.Nnodes,1) ; 
+        %[UserVar,F1.ud,F1.vd,F1.h,F1.s,F1.GF,l1.h,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs1,CtrlVar.dt,F1.h,F0.h,F1.S,F1.B,F0.as,F0.ab,F1.as,F1.ab,l1.h,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.rhow,F1.g);
+        [UserVar,RunInfo,F1,l1,BCs1]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+
         
     case 'hybrid'
         
