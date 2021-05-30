@@ -83,7 +83,8 @@ while true
                 fprintf(' SSHEET(h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
             end
-            RunInfo.Forward.hConverged=1;
+            RunInfo.Forward.Converged=1;  RunInfo.Forward.hConverged=1;
+            
             break
             
         end
@@ -101,7 +102,8 @@ while true
                 fprintf(RunInfo.File.fid,' Exiting h iteration after %-i iterations with r=%-g \n',iteration,r);
             end
             
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
+            
             break
         end
 
@@ -254,7 +256,7 @@ tEnd=toc(tStart);
 RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
 
 if RunInfo.BackTrack.Converged==0
-    RunInfo.Forward.Converged=0;
+    RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
 end
 
 
