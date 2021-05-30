@@ -142,8 +142,16 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 
                 
                 [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-                nlIt(iCounter)=RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
-                RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
+                
+                
+                switch CtrlVar.FlowApproximation
+                    case "SSTREAM"
+                        nlIt(iCounter)=RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
+                        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
+                    case "SSHEET"
+                        nlIt(iCounter)=RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
+                        RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
+                end
                 
                 % keep a copy of the old active set
                 LastActiveSet=BCs1.hPosNode;
@@ -208,7 +216,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     %                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                     
                     dtOld=dt;
-                    dt=dt/2; CtrlVar.dt=dt;
+                    dt=dt/2; CtrlVar.dt=dt;  F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
                     fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                     
                     F0.h(F0.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ; F0.h(BCs1.hPosNode)=CtrlVar.ThickMin;
@@ -229,6 +237,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     ReduceTimeStep=1;
                     dtOld=CtrlVar.dt;
                     dt=dt/2; CtrlVar.dt=dt;
+                    F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
                     
                     fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                     fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
@@ -424,12 +433,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         end   % active set loop
         
         
-        
-        
-        
-        %RunInfo.uvhIterations=nlIt(1); % here I use the number of NR iterations in the first update as a measure of
-        % the nonlinearity of the problem
-        
+
         % To do: I could consider relaxing the convergence criterias while
         % within the active set loop, and only fully converge once the active
         % set have been found, of course this assumes that as the final

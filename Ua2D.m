@@ -162,7 +162,7 @@ else
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
         % however:
-        CtrlVar.time=CtrlVarInRestartFile.time;  F.time=CtrlVar.time ; 
+        CtrlVar.time=CtrlVarInRestartFile.time;   
         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
        
         
@@ -174,6 +174,7 @@ else
             CtrlVar.dt=CtrlVarInRestartFile.dt;
         end
         
+        F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
         
         clearvars time dt CurrentRunStepNumber
@@ -193,7 +194,7 @@ else
 end
 
 MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
-F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; F.time=CtrlVar.time ; 
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;  
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
@@ -578,10 +579,10 @@ while 1
             
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
-            F.time=CtrlVar.time ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
@@ -607,7 +608,7 @@ while 1
             
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            F.time=CtrlVar.time ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             % Recalulating geometry based on floation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -632,7 +633,7 @@ while 1
             F0=F;
             
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ; 
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             
             
@@ -664,10 +665,10 @@ while 1
         
         if CtrlVar.MassBalanceGeometryFeedback>0
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
-            F.time=CtrlVar.time ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
         end
         
@@ -710,9 +711,9 @@ if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.Defin
     CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ; 
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F.time=CtrlVar.time ; 
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     

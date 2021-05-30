@@ -1,4 +1,6 @@
-function [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,rho,g,s0,b0,s1,b1,a0,a1,dt)
+function [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt)
+
+narginchk(15,15)
 
 if nargout==1  
     OnlyR=1 ; 
@@ -12,9 +14,11 @@ if CtrlVar.InfoLevelCPU>=10 ;   tCPU=tic; end
 %      I solve for \Delta h.
 %      If the thing converges then \Delta h -> 0 as i->\infty
 
-h0=s0-b0;
-h1=s1-b1;
+% h0=s0-b0;
+% h1=s1-b1;
 
+s0=h0+b0;
+s1=h1+b1;
 
 neq=MUA.Nnodes;
 
@@ -28,10 +32,11 @@ a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-if ~CtrlVar.AGlenisElementBased
-    AGlen=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    n=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-end
+AGlen=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+n=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+C=reshape(C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+m=reshape(m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 % can I not just use h0 for h0MUA.nod, ie reuse variable?
@@ -50,16 +55,17 @@ t1=zeros(MUA.Nele,MUA.nod); f1=zeros(MUA.Nele,MUA.nod);
 
 % vector over all elements for each integartion point
 
-if CtrlVar.Parallel.uvhAssembly.parfor.isOn
+if CtrlVar.Parallel.hAssembly.parfor.isOn
     poolobj = gcp;
     Mworkers=poolobj.NumWorkers;
 else
     Mworkers=1;
 end
 
-parfor (Iint=1:MUA.nip,Mworkers)
+%parfor (Iint=1:MUA.nip,Mworkers)
+for Iint=1:MUA.nip
     
-    [tt,ff,dddd]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,rhonod,g,s0nod,h0nod,s1nod,h1nod,a0nod,a1nod,dt,OnlyR);
+    [tt,ff,dddd]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,C,m,rhonod,g,s0nod,h0nod,s1nod,h1nod,a0nod,a1nod,dt,OnlyR);
     t1=t1+tt;
     f1=f1+ff;
     d1d1=d1d1+dddd;

@@ -27,13 +27,18 @@
 %
 % in DefineInitialInputs.m
 %
-% * The quadrature degree can now be directly specified, and one can now used any degree up to 25.  You specify this using
+% * The quadrature degree can now be directly specified up to degree 25.  You specify this using
 %
 %   CtrlVar.QuadratureRuleDegree
 %
 % Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining
 % second-order convergence of the Newton-Raphson system.
 %
+% * The shallow-ice sheet (SIA/SSTREAM) option now includes basal sliding.
+%
+% The SSHEET option uses the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to the thickneess
+% using the NR method.  When using SSTREAM you will, in general, need to specify boundary conditions for both the deformational and the
+% basal sliding velocities.
 %
 % *Release Notes*
 % _June 2020_
