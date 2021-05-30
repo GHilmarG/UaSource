@@ -181,14 +181,15 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
 ------------------
 
 
-<details> ## Recent Papers
-  <summary> Expand </summary>
+<details> 
+  <summary> Recent Papers </summary>
 
 
   Naughten, K. A., De Rydt, J., Rosier, S. H. R., Jenkins, A.,
   Holland, P. R., & Ridley, J. K. (2021). Two-timescale response of a
   large Antarctic ice shelf to climate change. Nature Communications,
-  12(1).  https://doi.org/10.1038/s41467-021-22259-0
+  12(1).  https://doi.org/10.1038/s41467-021-22259-0 \
+  
 
 
 
@@ -196,19 +197,22 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   F. S., & Whitmore, R. J. (2021). Ocean‐Driven and
   Topography‐Controlled Nonlinear Glacier Retreat During the Holocene:
   Southwestern Ross Sea, Antarctica. Geophysical Research Letters,
-  48(5), 1–10. https://doi.org/10.1029/2020GL091454
+  48(5), 1–10. https://doi.org/10.1029/2020GL091454 \
+  
 
 
   De Rydt, J., Reese, R., Paolo, F. S., & Gudmundsson,
   G. H. (2021). Drivers of Pine Island Glacier speed-up between 1996
   and 2016. The Cryosphere, 15(1),
   113–132. https://doi.org/10.5194/tc-15-113-2021
+  
 
 
  Rosier, S. H. R., Reese, R., Donges, J. F., De Rydt, J., Gudmundsson,
  G. H., & Winkelmann, R. (2021). The tipping points and early warning
  indicators for Pine Island Glacier, West Antarctica. The Cryosphere,
  15(3), 1501–1516. https://doi.org/10.5194/tc-15-1501-2021
+ 
 
 
 
@@ -216,6 +220,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   H. M. (2020). Twenty-first century response of Petermann Glacier,
   northwest Greenland to ice shelf loss. Journal of Glaciology,
   1–11. https://doi.org/10.1017/jog.2020.97
+  
 
 
   Ranganathan, M., Minchew, B., Meyer, C. R., & Gudmundsson,
@@ -223,12 +228,14 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   rheology in ice streams, with applications to West Antarctic Ice
   Streams. Journal of Glaciology,
   1–14. https://doi.org/10.1017/jog.2020.95
+  
 
 
   De Rydt, J., Gudmundsson, G. H., Nagler, T., & Wuite,
   J. (2019). Calving cycle of the Brunt Ice Shelf, Antarctica, driven
   by changes in ice shelf geometry. The Cryosphere, 13(10),
   2771–2787. https://doi.org/10.5194/tc-13-2771-2019
+  
 
 
   Gudmundsson, G. H., Paolo, F. S., Adusumilli, S., & Fricker,
@@ -247,6 +254,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   R. (2018). The far reach of ice-shelf thinning in Antarctica. Nature
   Climate Change, 8(1),
   53–57. https://doi.org/10.1038/s41558-017-0020-x
+  
 
 
   Reese, R., Winkelmann, R., & Gudmundsson,
@@ -254,6 +262,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   condition in numerical simulations fails for buttressed Antarctic
   ice streams. The Cryosphere, 12(10),
   3229–3242. https://doi.org/10.5194/tc-12-3229-2018
+  
 
 
 </details>
