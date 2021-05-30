@@ -188,7 +188,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   Naughten, K. A., De Rydt, J., Rosier, S. H. R., Jenkins, A.,
   Holland, P. R., & Ridley, J. K. (2021). Two-timescale response of a
   large Antarctic ice shelf to climate change. Nature Communications,
-  12(1).  https://doi.org/10.1038/s41467-021-22259-0 \
+  12(1).  https://doi.org/10.1038/s41467-021-22259-0 <br />
   
 
 
@@ -197,21 +197,21 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   F. S., & Whitmore, R. J. (2021). Ocean‐Driven and
   Topography‐Controlled Nonlinear Glacier Retreat During the Holocene:
   Southwestern Ross Sea, Antarctica. Geophysical Research Letters,
-  48(5), 1–10. https://doi.org/10.1029/2020GL091454 \
+  48(5), 1–10. https://doi.org/10.1029/2020GL091454 <br />
   
 
 
   De Rydt, J., Reese, R., Paolo, F. S., & Gudmundsson,
   G. H. (2021). Drivers of Pine Island Glacier speed-up between 1996
   and 2016. The Cryosphere, 15(1),
-  113–132. https://doi.org/10.5194/tc-15-113-2021
+  113–132. https://doi.org/10.5194/tc-15-113-2021 <br />
   
 
 
  Rosier, S. H. R., Reese, R., Donges, J. F., De Rydt, J., Gudmundsson,
  G. H., & Winkelmann, R. (2021). The tipping points and early warning
  indicators for Pine Island Glacier, West Antarctica. The Cryosphere,
- 15(3), 1501–1516. https://doi.org/10.5194/tc-15-1501-2021
+ 15(3), 1501–1516. https://doi.org/10.5194/tc-15-1501-2021 <br />
  
 
 
