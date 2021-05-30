@@ -215,11 +215,10 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
  
 
 
-
   Hill, E. A., Gudmundsson, G. H., Carr, J. R., Stokes, C. R., & King,
   H. M. (2020). Twenty-first century response of Petermann Glacier,
   northwest Greenland to ice shelf loss. Journal of Glaciology,
-  1–11. https://doi.org/10.1017/jog.2020.97
+  1–11. https://doi.org/10.1017/jog.2020.97 <br />
   
 
 
@@ -227,41 +226,41 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
   G. H. (2020). A new approach to inferring basal drag and ice
   rheology in ice streams, with applications to West Antarctic Ice
   Streams. Journal of Glaciology,
-  1–14. https://doi.org/10.1017/jog.2020.95
+  1–14. https://doi.org/10.1017/jog.2020.95 <br />
   
 
 
   De Rydt, J., Gudmundsson, G. H., Nagler, T., & Wuite,
   J. (2019). Calving cycle of the Brunt Ice Shelf, Antarctica, driven
   by changes in ice shelf geometry. The Cryosphere, 13(10),
-  2771–2787. https://doi.org/10.5194/tc-13-2771-2019
+  2771–2787. https://doi.org/10.5194/tc-13-2771-2019  <br />
   
 
 
   Gudmundsson, G. H., Paolo, F. S., Adusumilli, S., & Fricker,
   H. A. (2019). Instantaneous Antarctic ice sheet mass loss driven by
   thinning ice shelves. Geophysical Research Letters, 46(23),
-  13903–13909. https://doi.org/10.1029/2019GL085027
+  13903–13909. https://doi.org/10.1029/2019GL085027 <br />
 
 
-  De Rydt, J., Gudmundsson, G. H., Nagler, T., Wuite, J., & King,
+  -De Rydt, J., Gudmundsson, G. H., Nagler, T., Wuite, J., & King,
   E. C. (2018). Recent rift formation and impact on the structural
   integrity of the Brunt Ice Shelf, East Antarctica. The Cryosphere,
-  12(2), 505–520. https://doi.org/10.5194/tc-12-505-2081
+  12(2), 505–520. https://doi.org/10.5194/tc-12-505-2081 <br />
 
 
-  Reese, R., Gudmundsson, G. H., Levermann, A., & Winkelmann,
+  -Reese, R., Gudmundsson, G. H., Levermann, A., & Winkelmann,
   R. (2018). The far reach of ice-shelf thinning in Antarctica. Nature
   Climate Change, 8(1),
-  53–57. https://doi.org/10.1038/s41558-017-0020-x
+  53–57. https://doi.org/10.1038/s41558-017-0020-x <br />
   
 
 
-  Reese, R., Winkelmann, R., & Gudmundsson,
+  -Reese, R., Winkelmann, R., & Gudmundsson,
   G. H. (2018). Grounding-line flux formula applied as a flux
   condition in numerical simulations fails for buttressed Antarctic
   ice streams. The Cryosphere, 12(10),
-  3229–3242. https://doi.org/10.5194/tc-12-3229-2018
+  3229–3242. https://doi.org/10.5194/tc-12-3229-2018 <br />
   
 
 
