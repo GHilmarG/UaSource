@@ -1,6 +1,6 @@
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt,Lh,lh,dlh,fext0,ch,Test)
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt,Lh,lh,dlh,fext0,ch)
     
-    narginchk(25,25)
+    narginchk(24,24)
     
     %s1=s1+gamma*dh;
     %h=s1-b1;
@@ -9,7 +9,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionSSHEET(UserVar,RunI
     lh=lh+gamma*dlh;
     
  
-    R=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt,Test);
+    R=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt);
     
     
     if ~isempty(Lh)

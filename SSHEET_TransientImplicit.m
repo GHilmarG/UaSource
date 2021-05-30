@@ -108,9 +108,9 @@ while true
     
     iteration=iteration+1;
     
-    Test=NaN; 
+    
     if ~isequal(F1.dt,CtrlVar.dt) ; error("Ua:SSHEET_TransientImplict","F.dt not equal to CtrlVar.dt") ; end 
-    [R,K,FF,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt,Test);
+    [R,K,FF,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt);
     
     if iteration==1
         FF0=FF ;  % There is a potential issue here which is that F0 is zero if the accumulation
@@ -143,8 +143,8 @@ while true
     
     
     %% calculate  residuals at beginnin and for full Newton step
-    Test=NaN; 
-    Func=@(gamma) CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt,Lh,l1.h,dlambdah,FF0,ch,Test);
+    
+    Func=@(gamma) CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt,Lh,l1.h,dlambdah,FF0,ch);
     
     gamma=0; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
     gamma=1; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);

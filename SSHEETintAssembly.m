@@ -1,6 +1,13 @@
 function [t1,f1,d1d1]=SSHEETintAssembly(Iint,CtrlVar,MUA,AGlen,n,C,m,rhonod,g,s0nod,h0nod,s1nod,h1nod,a0nod,a1nod,dt,OnlyR)
 
 
+
+% Notes:
+%
+%   -The natural BCs are no-flux
+%   -Here the density has not (yet) been included in the mass conservation equation. (Doing so would be very simple, just multiply all terms by rho)
+%
+
 narginchk(17,17)
 ndim=2;
 theta=CtrlVar.theta;
@@ -68,23 +75,23 @@ for I=1:MUA.nod
             
             
             % the weight function is index I, the perturbation in h is index I
-            % so replace \Delta h with fun(I) and \p_x \Delta h with Deriv(:,1,J) 
+            % so replace \Delta h with fun(I) and \p_x \Delta h with Deriv(:,1,J)
             
             deltahterm=fun(I).*fun(J);
             
             lf1d=dt*theta*Dd.*(nint+2).*(gradSurf1.^(nint-1)).*(h1int.^(nint+1))...
-                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);    % (2) 
-            lf2d=dt*theta*Dd.*h1int.^(nint+2).*(gradSurf1.^(nint-1)).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));    % (1) 
-            lf3d=dt*theta.*Dd.*(nint-1).*h1int.^(nint+2).* gradSurf1.^(nint-3) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*(ds1dx.*Deriv(:,1,J)+ds1dy.*Deriv(:,2,J)) ;  % (3) 
-
+                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);    % (2)
+            lf2d=dt*theta*Dd.*h1int.^(nint+2).*(gradSurf1.^(nint-1)).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));    % (1)
+            lf3d=dt*theta.*Dd.*(nint-1).*h1int.^(nint+2).* gradSurf1.^(nint-3) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*(ds1dx.*Deriv(:,1,J)+ds1dy.*Deriv(:,2,J)) ;  % (3)
+            
             
             
             lf1b=dt*theta*Db.*(mint+1).*(gradSurf1.^(mint-1)).*(h1int.^mint)...
-                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);   % (2) 
+                .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*fun(J);   % (2)
             lf2b=dt*theta*Db.*h1int.^(mint+1).*(gradSurf1.^(mint-1)).*(Deriv(:,1,I).*Deriv(:,1,J)+Deriv(:,2,I).*Deriv(:,2,J));    % (1)
             lf3b=dt*theta*Db.*(mint-1).*h1int.^(mint+1).* gradSurf1.^(mint-3) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I)).*(ds1dx.*Deriv(:,1,J)+ds1dy.*Deriv(:,2,J)) ;  % (3)
-
-
+            
+            
             
             d1d1(:,I,J)=d1d1(:,I,J)+(deltahterm+lf1d+lf2d+lf3d+lf1b+lf2b+lf3b).*detJw;
             
@@ -93,11 +100,11 @@ for I=1:MUA.nod
     
     dhterm=(h1int-h0int).*fun(I);
     
-    qd0term=dt*(1-theta)*Dd.*gradSurf0.^(nint-1).*h0int.^(nint+2).*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
-    qd1term=dt*theta*    Dd.*gradSurf1.^(nint-1).*h1int.^(nint+2).*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
+    qd0term=dt*(1-theta)*Dd.* (gradSurf0.^(nint-1)) .* (h0int.^(nint+2)) .*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
+    qd1term=dt*theta*    Dd.* (gradSurf1.^(nint-1)) .* (h1int.^(nint+2)) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
     
-    qb0term=dt*(1-theta)*Db.*gradSurf0.^(mint-1).*h0int.^mint.*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
-    qb1term=dt*theta*    Db.*gradSurf1.^(mint-1).*h1int.^mint.*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
+    qb0term=dt*(1-theta)*Db.* (gradSurf0.^(mint-1)) .* (h0int.^(mint+1)) .*(ds0dx.*Deriv(:,1,I)+ds0dy.*Deriv(:,2,I));
+    qb1term=dt*theta*    Db.* (gradSurf1.^(mint-1)) .* (h1int.^(mint+1)) .*(ds1dx.*Deriv(:,1,I)+ds1dy.*Deriv(:,2,I));
     
     a0term=-dt*(1-theta)*a0int.*fun(I);
     a1term=-dt*theta*a1int.*fun(I);

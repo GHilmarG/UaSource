@@ -1,6 +1,6 @@
-function [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt,Test)
+function [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,C,m,rho,g,h0,b0,h1,b1,a0,a1,dt)
 
-narginchk(16,16)
+narginchk(15,15)
 
 if nargout==1  
     OnlyR=1 ; 
