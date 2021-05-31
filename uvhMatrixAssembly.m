@@ -182,49 +182,35 @@ if CtrlVar.IncludeMelangeModelPhysics
 end
 
 
-if ~CtrlVar.CisElementBased
-    Cnod=reshape(F1.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    mnod=reshape(F1.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
-    if ~isempty(F1.q)
-        qnod=reshape(F1.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    else
-        qnod=[];
-    end
-    
-    if ~isempty(F1.muk)
-        muknod=reshape(F1.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    else
-        muknod=[];
-    end
-    
-    
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        
-        Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        
-    end
-    
+
+Cnod=reshape(F1.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(F1.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+if ~isempty(F1.q)
+    qnod=reshape(F1.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
 else
-    Cnod=F1.C;
-    mnod=F1.m;
+    qnod=[];
+end
+
+if ~isempty(F1.muk)
+    muknod=reshape(F1.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
+else
+    muknod=[];
 end
 
 
 
-if ~CtrlVar.AGlenisElementBased
-    AGlennod=reshape(F1.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    nnod=reshape(F1.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-else
-    AGlennod=F1.AGlen;
-    nnod=F1.n;
+if CtrlVar.IncludeMelangeModelPhysics
+    
+    Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    
 end
 
-
+AGlennod=reshape(F1.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F1.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Snod=reshape(F1.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F1.B(MUA.connectivity,1),MUA.Nele,MUA.nod);

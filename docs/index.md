@@ -184,6 +184,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
 <details> 
   <summary> Recent Papers </summary>
 
+<br /> <br />
 
   Naughten, K. A., De Rydt, J., Rosier, S. H. R., Jenkins, A.,
   Holland, P. R., & Ridley, J. K. (2021). Two-timescale response of a

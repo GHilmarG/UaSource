@@ -54,23 +54,23 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     Lubvb=[];
     
     %% force C and AGlen to be within given max and min limits
-    [F.C,iU,iL]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
-    [F.AGlen,iU,iL]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
+    [F.C,iUC,iLC]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
+    [F.AGlen,iUA,iLA]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
     
     if CtrlVar.InfoLevel>=10
-        if any(iU)
+        if any(iUC)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values greater than Cmax=%-g \n ',numel(find(iU)),CtrlVar.Cmax) ;
         end
         
-        if any(iL)
+        if any(iLC)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values less than Cmin=%-g \n ',numel(find(iL)),CtrlVar.Cmin) ;
         end
         
-        if any(iU)
+        if any(iUA)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values greater than AGlenmax=%-g \n ',numel(find(iU)),CtrlVar.AGlenmax) ;
         end
         
-        if any(iL)
+        if any(iLA)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values less than AGlenmin=%-g \n ',numel(find(iL)),CtrlVar.AGlenmin) ;
         end
     end

@@ -11,9 +11,7 @@ narginchk(55,55)
 
 % I've added here the rho terms in the mass-conservation equation
 %
-%
 %  despite their names,  unod and Cnod can be either nodal or element variables
-%
 %
 
 theta=CtrlVar.theta;
@@ -65,58 +63,36 @@ if CtrlVar.IncludeMelangeModelPhysics
     
 end
 
-if CtrlVar.CisElementBased
-    Cint=Cnod;
-    mint=mnod;
-    qint=qnod;
-    mukint=muknod;
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        Coint=Conod;
-        moint=monod;
-        
-        Caint=Canod;
-        maint=manod;
-    end
-    
-    
-    
+
+Cint=Cnod*fun;
+Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+mint=mnod*fun;
+
+if ~isempty(qnod)
+    qint=qnod*fun;
 else
-    Cint=Cnod*fun;
-    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
-    mint=mnod*fun;
-    
-    if ~isempty(qnod)
-        qint=qnod*fun;
-    else
-        qint=[];
-    end
-    
-      
-    if ~isempty(muknod)
-        mukint=muknod*fun;
-    else
-        mukint=[];
-    end
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        Coint=Conod*fun;
-        moint=monod*fun;
-        
-        Caint=Canod*fun;
-        maint=manod*fun;
-    end
+    qint=[];
 end
 
 
-if CtrlVar.AGlenisElementBased
-    AGlenint=AGlennod;
-    nint=nnod;
+if ~isempty(muknod)
+    mukint=muknod*fun;
 else
-    AGlenint=AGlennod*fun;
-    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
-    nint=nnod*fun;
+    mukint=[];
 end
+
+if CtrlVar.IncludeMelangeModelPhysics
+    Coint=Conod*fun;
+    moint=monod*fun;
+    
+    Caint=Canod*fun;
+    maint=manod*fun;
+end
+
+AGlenint=AGlennod*fun;
+AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+nint=nnod*fun;
+
 
 
 h0int=h0nod*fun;
@@ -136,7 +112,7 @@ if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
     % TestIng
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
-    hmin=CtrlVar.LevelSetMinIceThickness;    
+    hmin=CtrlVar.LevelSetMinIceThickness;
     abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
     dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
@@ -265,22 +241,12 @@ end
 
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
-BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
-
-
-% figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')
-% figure ; plot3(MUA.xEle,MUA.yEle,deltaint,'.b') ; title('deltaint')
-
+    BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
 
 
 
 CtrlVar.GroupRepresentation=0;
 
-
-qx1dx=rhoint.*exx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
-qy1dy=rhoint.*eyy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
-qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
-qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 
 
 
@@ -356,33 +322,24 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 
 % This is done intergration-point loop.
-tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ; 
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 
-% ECN=speed0.*dt./l+eps; % This is the `Element Courant Number' ECN
-% kappa=coth(ECN)-1./ECN;
 
-% tau0=CtrlVar.SUPG.beta0*kappa.*l./speed0 ; % sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
-% tau1=CtrlVar.SUPG.beta1*kappa.*l./speed1 ; % sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
-
-
-% tau1=CtrlVar.SUPG.beta1*tau;
-
-% These are derivatives of the SUPG term itself with respect to u and v
-% Only needed if SUPG depends on the u and v updates.  Generally I found this to 
-% just add another level of non-linear behaviour and I'm not using this.
-%f=rhoint.*(hint-h0int-dt*(1-theta)*h0barr-dt*theta*h1barr)+dt*theta*qx1dx+dt*(1-theta)*qx0dx+dt*theta*qy1dy+dt*(1-theta)*qy0dy-dt*rhoint.*((1-theta)*a0int+theta*a1int);
-%SUPGu=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-uint.*uint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
-%SUPGv=theta*CtrlVar.SUPG.beta1*l.*f.*(1./sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2)-vint.*vint./(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2).^(3/2));
 
 
 detJw=detJ*MUA.weights(Iint);
+
+qx1dx=rhoint.*exx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
+qy1dy=rhoint.*eyy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
+qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
+qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 
 
 for Inod=1:MUA.nod
     
     SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-    funI=fun(Inod) ; 
+    funI=fun(Inod) ;
     % funI=SUPG ;  % TestIng, this is towards consistent SUPG
     
     
@@ -404,20 +361,20 @@ for Inod=1:MUA.nod
                 +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +E11...
-                +dtauxdu.*fun(Jnod).*funI...   
+                +dtauxdu.*fun(Jnod).*funI...
                 ).*detJw;
             
             Kyv(:,Inod,Jnod)=Kyv(:,Inod,Jnod)...
                 +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                 +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                 +E22...
-                +dtauydv.*fun(Jnod).*funI...   
+                +dtauydv.*fun(Jnod).*funI...
                 ).*detJw ;
             
             Kxv(:,Inod,Jnod)=Kxv(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
                 +E12...
-                +dtauxdv.*fun(Jnod).*funI...   
+                +dtauxdv.*fun(Jnod).*funI...
                 ).*detJw;
             
             
@@ -426,7 +383,7 @@ for Inod=1:MUA.nod
                 +E21...
                 +dtauydu.*fun(Jnod).*funI...    % +Dbeta2Duvint*fun(Jnod).*fun(Inod)...
                 ).*detJw;
-
+            
             
             Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
                 +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
@@ -449,8 +406,8 @@ for Inod=1:MUA.nod
                 -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
                 ).*detJw;
             
-           % SUPG=fun(Inod)+theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
-           %     +(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            % SUPG=fun(Inod)+theta.*tau1.*(uint.*Deriv(:,1,Inod)+vint.*Deriv(:,2,Inod))...
+            %     +(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             
             
             % These are derivatives of the SUPG term itself with respect to u and v
