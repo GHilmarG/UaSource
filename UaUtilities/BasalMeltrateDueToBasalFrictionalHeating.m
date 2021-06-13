@@ -16,7 +16,7 @@ function ab=BasalMeltrateDueToBasalFrictionalHeating(ub,taub,rho,L)
 %                  =m/yr  kJ/m^3 m^3/kJ
 %                  =m/yr
 %
-% Calculating basal melt rates due to frictional heatin in Ua is simple: 
+% Calculating basal melt rates due to frictional heating in Ua is simple: 
 %
 %   tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,F.C,F.m,F.GF);
 %   L=333.44 ; % Enthalpy of fusion = L = [J/gramm = kJ/kg]

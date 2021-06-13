@@ -659,7 +659,8 @@ while 1
     
     % DefineOutputs
     
-    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/CtrlVar.DefineOutputsDt/2)) || CtrlVar.DefineOutputsDt==0 
+        %(ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
         CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
