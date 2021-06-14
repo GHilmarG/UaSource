@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>FEintegrate2D</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-28"><meta name="DC.source" content="FEintegrate2D.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>FEintegrate2D</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-14"><meta name="DC.source" content="FEintegrate2D.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -68,28 +69,28 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> Int=FEintegrate2D(CtrlVar,MUA,f)
 </pre><pre>Int=FEintegrate2D(CtrlVar,MUA,f) calculates the integral of a nodal variable
-f over each of the elements of the FE mesh.</pre><pre>CtrlVar can be entered as an empty variable.</pre><p>Examples:</p><p>Calculate volume of ice:</p><pre class="language-matlab">Int=FEintegrate2D([],MUA,h);
+f over each of the elements of the FE mesh.</pre><pre>CtrlVar can be entered as an empty variable.</pre><p><b>Examples:</b></p><p>Ice volume:</p><pre class="language-matlab">Int=FEintegrate2D([],MUA,h);
 TotalIceVolume=sum(Int)
-</pre><p>Calculate grounded area:</p><pre class="language-matlab">Int=FEintegrate2D([],MUA,GF.node); GroundedArea=sum(Int);
-</pre><pre class="codeinput">ndim=2;
+</pre><p>Grounded area:</p><pre class="language-matlab">Int=FEintegrate2D([],MUA,GF.node); GroundedArea=sum(Int);
+</pre><p>Integrated surface mass balance over grounded areas (i.e. upstream of grounding lines):</p><pre>M=sum(FEintegrate2D(CtrlVar,MUA,F.as.*F.GF.node)) ;</pre><pre class="codeinput">ndim=2;
 
 fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample(<span class="string">'triangle'</span>,MUA.nip,ndim);
+<span class="comment">% [points,weights]=sample('triangle',MUA.nip,ndim);</span>
 
 Int=zeros(MUA.Nele,1);
 
 <span class="keyword">for</span> Iint=1:MUA.nip
 
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     fint=fnod*fun;
     Int=Int+fint.*detJw;
 
 <span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function Int=FEintegrate2D(CtrlVar,MUA,f)
 %%
@@ -98,32 +99,37 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 %
 %  CtrlVar can be entered as an empty variable.
 %
-% Examples: 
+% *Examples:*
 % 
-% Calculate volume of ice:
+% Ice volume:
 %
 %   Int=FEintegrate2D([],MUA,h); 
 %   TotalIceVolume=sum(Int)
 % 
-% Calculate grounded area:
+% Grounded area:
 %
 %   Int=FEintegrate2D([],MUA,GF.node); GroundedArea=sum(Int);
 % 
+% Integrated surface mass balance over grounded areas (i.e. upstream of grounding lines):
+%
+%  M=sum(FEintegrate2D(CtrlVar,MUA,F.as.*F.GF.node)) ;
+%
+%
 %% 
 
 ndim=2; 
 
 fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; 
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; 
     detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     fint=fnod*fun;
     Int=Int+fint.*detJw;
 

@@ -26,7 +26,13 @@ F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 % p is the vector of the control variables, currenty p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
+
+% Make sure initial point is feasable
+F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
+F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
+
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
+
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
 [J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
