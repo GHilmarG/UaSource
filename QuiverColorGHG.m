@@ -277,7 +277,7 @@ else
     Par.RelativeVelArrowSize=1; % larger value makes vel arrows larger
     Par.VelArrowColorSteps=50;
     Par.uvPlotScale=[];
-    Par.VelColorBarTitle='(m a^{-1})' ;
+    Par.VelColorBarTitle="($\mathrm{m \, yr^{-1}}$)" ; 
     Par.PlotXYscale=1;
     Par.VelColorMap='jet';
     Par.MaxPlottedSpeed=max(speed(:));
