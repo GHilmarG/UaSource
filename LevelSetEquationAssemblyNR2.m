@@ -25,6 +25,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    
  
     Epsilon=CtrlVar.LevelSetEpsilon ; 
+    Epsilon=1;
 
     mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
 
@@ -32,7 +33,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     switch CtrlVar.LevelSetPhase
         case "Initialisation"
-            L=0 ; % The level-set equation only (i.e. without the pertubation term)
+            L=0 ;   % The level-set equation only (i.e. without the pertubation term)
             P=1;    % P is the pertubation term
         case "Propagation"
             L=1;
@@ -83,8 +84,12 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         
         
         fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-
+        %[Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+        
+        Deriv=MUA.Deriv(:,:,:,Iint);
+        detJ=MUA.DetJ(:,Iint);
+        
+        
         
         % Deriv : Nele x dof x nod
         %  detJ : Nele
@@ -118,33 +123,44 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         end
         
         % Norm of gradient (NG)
-        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
-        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
+        NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
+        NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
         
+        if any(NG0<1000*eps) || any(NG1<1000*eps)  
+            
+            error('sdaf')
+        end
         
         n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
         n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
         
+        
+        
         cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;  
         cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
         
-        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy1int,dt); 
+        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
         
         % I need to think about a good def for mu
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
-                
+        
+        % test linear diffusion
+        kappaint0=mu ; 
+        kappaint1=mu ; 
+        dkappa=0; 
+        
         detJw=detJ*MUA.weights(Iint);
         
-        
+        if any(~isfinite(n0x)) ||any(~isfinite(n1x)) || any(~isfinite(kappaint1)) || any(~isfinite(dkappa))
+            
+            error('sdaf')
+        end
+
         
         for Inod=1:MUA.nod
             
-            
-            % TestIng:
-            % Did I forget to take the derivatives of the u and v terms in the supg?
-            % Check and compare with uvhAssemblyIntPointImplicitySUPG SUPGu and SUPGv line 371/372
-            %
+   
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
@@ -152,23 +168,24 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
             if nargout>2
                 for Jnod=1:MUA.nod
                     
+                    
+                    
                     Llhs=fun(Jnod).*SUPGdetJw...
                         +NR*dt*theta*(...
                         (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                         .*SUPGdetJw;
 
                      
+                    % Pertubation term
                     Plhs=dt*theta*...
-                        (kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
+                        +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
-                    
-                    
-                    LHS=L*Llhs+P*Plhs; % .*SUPGdetJw ;
+               
                     
                     Reg=Epsilon*fun(Jnod).*fun(Inod).*detJw ; 
                     
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+LHS+Reg;
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+L*Llhs+P*Plhs+Reg;
                     
                 end
             end
@@ -186,13 +203,13 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    %    u1int.*dfdx+v1int.*df1dy + c1int.*NG1 
    %
             
-            
+            % Pertubation term
             Prhs=...
                        dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-             Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
+            Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
              
             RHS=L*Lrhs+P*Prhs+Reg ;
             

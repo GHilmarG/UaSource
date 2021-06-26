@@ -29,10 +29,15 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
-    l=Lrhs*0; 
-    dl=l ; 
+    l=Lrhs*0;
+    dl=l ;
     dLSF=F1.LSF*0;
     BCsError=0;
+    
+    % make sure initial point is feasable
+    F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
+        
+    
     
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
     RunInfo.LevelSet.SolverConverged=false;
@@ -61,7 +66,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             break
         end
         
-        if (ResidualsCriteria  &&  (r/r0>0.75)) || rForce<1e-15
+        if (ResidualsCriteria  &&  (r/r0>0.75)) || rForce<1e-25
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
             RunInfo.LevelSet.SolverConverged=true;
             break
@@ -80,23 +85,17 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
 
         [UserVar,R,K]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         if ~isempty(L)
-            
-           % frhs=-R-L'*l;
-           % grhs=Lrhs-L*F1.LSF;
-
-            % This is for linear equations which will always be fullfiled 
-            frhs=-R/MUA.Area ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
+   
+            frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
             grhs=Lrhs-L*F1.LSF; % Here the argument is that frhs has the units: [\varphi] area/time
                                 % while grhs has the units [\varphi], where [\varphi] are the untis of 
                                 % the level-set function itself. 
-                                
-
         else
             frhs=-R;
             grhs=[];
         end
         
-        [dLSF,l]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
         dLSF=full(dLSF);
         
         if any(isnan(dLSF))
@@ -105,6 +104,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
         Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl);
+
         gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
         
@@ -114,15 +114,14 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             CtrlVar.InfoLevelBackTrack=100 ;
         end
         
-        
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
         if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots==1
-            nnn=50;
+            nnn=30;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             Upper=2.2;
-            Lower=-1 ;
+            Lower=-0.5 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
             parfor I=1:nnn
                 gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
@@ -138,7 +137,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             
             [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
             [gammaTestVector,ind]=sort(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ; rD2Testvector=rD2Testvector(ind) ;
-            [temp,I0]=min(abs(gammaTestVector)) ;
+            
             
             SlopeForce=-2*rForce0;
             SlopeWork=-2*rWork0;
@@ -151,13 +150,13 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
         %TestIng
-        FindOrCreateFigure("Changes in LSF")
+        FindOrCreateFigure("Changes in F1.LSF during NR solve")
         hold off
         plot(F1.x/1000,dLSF/1000,'.b') ; hold on ; plot(F1.x/1000,F1.LSF/1000,'.r') ;  plot(F1.x/1000,(F1.LSF+gamma*dLSF)/1000,'.g') ;
         legend('dLSF','Old','New')
         
         F1.LSF=F1.LSF+gamma*dLSF;
-        % l=l+gamma*dl;
+        l=l+gamma*dl;
 
         if CtrlVar.LevelSetInfoLevel>=1
             if ~isempty(L)

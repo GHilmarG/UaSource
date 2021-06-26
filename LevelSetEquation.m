@@ -45,6 +45,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     
     if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval)
         fprintf("LevelSetEquation: Level Set is re-initialized. \n")
+        % This is a distance based regularisation, consider deleting and only use the perturbed level-set equation
         [F0.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F0.LSF)  ;
         F1.LSF=F0.LSF ;  % helps with convergence
         LastResetTime=CtrlVar.time ;
@@ -53,7 +54,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         F1.LSF=F0.LSF;  % +dLSF*CtrlVar.dtRatio ;
     end
     
-  
+ 
     
     % This will actually also do Picard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
     [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);

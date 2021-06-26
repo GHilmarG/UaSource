@@ -8,9 +8,10 @@ clc ; clear ; clear all force ; close all
 % also clear all persistent variables potentially defined in user input files
 clear DefineSlipperyDistribution
 clear DefineAGlenDistribution
-clear DefineGeometry
 clear DefineInputsForInverseRun
+clear DefineGeometry
 clear DefineDensities
+clear DefineGeometryAndDensities
 clear DefineDesiredEleSize
 clear DefineBoundaryConditions
 clear DefineMassBalance

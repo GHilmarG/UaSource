@@ -22,9 +22,11 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 %
 % Example: Create a mask based on ice thickness above and below 100. 
 %
+%   load PIG-TWG-RestartFile.mat
+%   CtrlVar=CtrlVarInRestartFile;
 %   Mask=CalcMeshMask(CtrlVar,MUA,F.h,100); 
 % 
-%   FindOrCreateFigure("Level Set Mask") ; 
+%   FindOrCreateFigure("Nodal Mask") ; 
 %   CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 %   PlotMuaMesh(CtrlVar,MUA) ; 
 %   hold on ; 

@@ -7,19 +7,15 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     
     
     F1.LSF=F1.LSF+gamma*dLSF;
- 
+    l=l+gamma*dl;
     
     [UserVar,R]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
     
     
     if ~isempty(L)
         
-        % frhs=-R-L'*l;
-        % grhs=Lrhs-L*F1.LSF;
-        
-        % This is for linear equations which will always be fullfiled 
-        frhs=-R/MUA.Area ; 
-        grhs=Lrhs-L*F1.LSF;
+         frhs=-R-L'*l;
+         grhs=Lrhs-L*F1.LSF;
         
         
     else
@@ -27,8 +23,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
         grhs=[];
     end
     
-    frhs=frhs/MUA.Area;
-    % grhs=grhs;           % This has the units \varphi and there is no intergration over the domain
+    
            
     D2=[frhs;grhs]'*[dLSF;dl]; 
     rWork=full(D2^2);
