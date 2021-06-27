@@ -25,26 +25,13 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
    
  
     Epsilon=CtrlVar.LevelSetEpsilon ; 
-    Epsilon=1;
+    
 
     mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
 
-    
-    
-    switch CtrlVar.LevelSetPhase
-        case "Initialisation"
-            L=0 ;   % The level-set equation only (i.e. without the pertubation term)
-            P=1;    % P is the pertubation term
-        case "Propagation"
-            L=1;
-            P=0;
-        case "Propagation and FAB"
-            L=1;
-            P=1;
-        otherwise
-            error('safd')
-    end
-    
+    L=CtrlVar.LSF.L ; P=CtrlVar.LSF.P ; 
+
+  
 
     %%
     
@@ -146,9 +133,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
         
         % test linear diffusion
-        kappaint0=mu ; 
-        kappaint1=mu ; 
-        dkappa=0; 
+      
         
         detJw=detJ*MUA.weights(Iint);
         

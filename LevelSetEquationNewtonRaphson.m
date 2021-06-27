@@ -66,7 +66,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             break
         end
         
-        if (ResidualsCriteria  &&  (r/r0>0.75)) || rForce<1e-25
+        if ResidualsCriteria 
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
             RunInfo.LevelSet.SolverConverged=true;
             break
@@ -88,8 +88,8 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
             grhs=Lrhs-L*F1.LSF; % Here the argument is that frhs has the units: [\varphi] area/time
-                                % while grhs has the units [\varphi], where [\varphi] are the untis of 
-                                % the level-set function itself. 
+                                % while grhs has the units [\varphi], where [\varphi] are the units of 
+                                % the level-set function itself, ie [\varphi]
         else
             frhs=-R;
             grhs=[];
