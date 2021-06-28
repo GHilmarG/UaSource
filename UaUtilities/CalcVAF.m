@@ -26,7 +26,7 @@ nargoutchk(1,3)
 % 
 % or simply: 
 hfPos=(S>B).*rhow.*(S-B)./rho ; % (positive) flotation thickness
-hAF= (h-hfPos) ;                % ice thickness above floatation
+hAF= (h>hfPos).*(h-hfPos) ;                % ice thickness above floatation
 
 
 VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq. 
