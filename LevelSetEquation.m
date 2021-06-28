@@ -24,13 +24,14 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     if ~CtrlVar.LevelSetMethod
         LSF=F0.LSF;
         lambda=[];
+        Mask=[] ; 
         return
     end
     
     if CtrlVar.CalvingLaw=="-No Ice Shelves-" 
          
          % I think this could be simplified, arguably no need to calculate signed distance
-         % in this case. Presumably could just define the LSF as distance from flotaion, ie
+         % in this case. Presumably could just define the LSF as distance from flotation, ie
          % h-hf. 
         [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
         Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
@@ -49,6 +50,11 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
             CtrlVar.LevelSetTheta=1;  
             CtrlVar.LevelSetEpsilon=0 ;
             
+            % First do a rough re-initialisation using signed distance function.
+            % After this I then do a full non-linear FAB solve with the level-set fixed 
+            % as boundary conditions on the LSF.
+            [F1.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF); 
+            F0.LSF=F1.LSF ;
             Mask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
             BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];   % fix the LSF field for all nodes of elements around the level.
             BCs.LSFFixedValue=[BCs.LSFFixedValue ; F1.LSF(Mask.NodesOn) ];

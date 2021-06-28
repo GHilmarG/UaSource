@@ -149,15 +149,11 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             
         end
         
-        %TestIng
-        FindOrCreateFigure("Changes in F1.LSF during NR solve")
-        hold off
-        plot(F1.x/1000,dLSF/1000,'.b') ; hold on ; plot(F1.x/1000,F1.LSF/1000,'.r') ;  plot(F1.x/1000,(F1.LSF+gamma*dLSF)/1000,'.g') ;
-        legend('dLSF','Old','New')
         
+                
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
-
+       
         if CtrlVar.LevelSetInfoLevel>=1
             if ~isempty(L)
                 BCsError=norm(Lrhs-L*F1.LSF);
