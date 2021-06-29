@@ -17,7 +17,7 @@ if nargin<2 || isempty(dlat)
 end
 
 if nargin<3 || isempty(dlon)
-    dlon=5;
+    dlon=10;
 end
 
 if nargin<4 || isempty(LabelSpacing)

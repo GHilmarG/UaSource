@@ -18,6 +18,19 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   hAF       :  (postive) ice thickness above floation
 %   hfPOs     :  (positive) flotation thickness (also somtimes referred to as floation profile). Where h>fhPos, the ice is grounded.
 %
+% Example:
+%
+%   load("PIG-TWG-RestartFile.mat") 
+%   [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+%   CtrlVar=CtrlVarInRestartFile;
+%   FindOrCreateFigure("VAF") ; 
+%   [~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ; 
+%   axis tight
+%   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+%   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
+%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
+%   fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
+%   fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
 %%
 
 narginchk(7,8)

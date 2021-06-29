@@ -73,6 +73,17 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 IceVolume :  Total ice <span class="string">volume</span> <span class="string">withing</span> <span class="string">the</span> <span class="string">domain</span>, i.e. including areas <span class="string">that</span> <span class="string">are</span> <span class="string">afloat.</span>
 hAF       :  (postive) ice <span class="string">thickness</span> <span class="string">above</span> <span class="string">floation</span>
 hfPOs     :  (positive) flotation <span class="string">thickness</span> <span class="string">(also somtimes referred to as floation profile).</span> <span class="string">Where</span> <span class="string">h&gt;fhPos</span>, the <span class="string">ice</span> <span class="string">is</span> <span class="string">grounded.</span>
+</pre><p>Example:</p><pre class="language-matlab">load(<span class="string">"PIG-TWG-RestartFile.mat"</span>)
+[VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+CtrlVar=CtrlVarInRestartFile;
+FindOrCreateFigure(<span class="string">"VAF"</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ;
+axis <span class="string">tight</span>
+hold <span class="string">on</span> ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+hold <span class="string">on</span> ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],<span class="string">'r'</span>);
+fprintf(<span class="string">"VAF=%f (Gt/yr)\n"</span>,VAF.Total/1e9)   ;
+fprintf(<span class="string">"GroundedArea=%-7.2f (times the area of iceland)\n"</span>,GroundedArea.Total/1e6/103e3) ;
+xlabel(<span class="string">"xps (km)"</span>) ; ylabel(<span class="string">"yps (km)"</span>) ; title(cbar,<span class="string">"(m)"</span>) ; title(<span class="string">"ice thickness above flotation"</span>)
 </pre><pre class="codeinput">narginchk(7,8)
 nargoutchk(1,5)
 
@@ -127,6 +138,19 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   hAF       :  (postive) ice thickness above floation
 %   hfPOs     :  (positive) flotation thickness (also somtimes referred to as floation profile). Where h>fhPos, the ice is grounded.
 %
+% Example:
+%
+%   load("PIG-TWG-RestartFile.mat") 
+%   [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+%   CtrlVar=CtrlVarInRestartFile;
+%   FindOrCreateFigure("VAF") ; 
+%   [~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ; 
+%   axis tight
+%   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+%   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
+%   fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
+%   fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
+%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
 %%
 
 narginchk(7,8)
