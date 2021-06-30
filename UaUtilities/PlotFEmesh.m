@@ -154,12 +154,12 @@ end
 
 if isempty(CtrlVar.FEmeshPlotTitle)
     if isnan(CtrlVar.time)
-        title(sprintf('#Ele=%-i, #Nodes=%-i, #nod=%-i',Nele,Nnodes,nod))
+        title(sprintf(' Ele=%-i,  Nodes=%-i,  nod=%-i',Nele,Nnodes,nod))
     else
-        title(sprintf('time=%-g \t #Ele=%-i, #Nodes=%-i, #nod=%-i',CtrlVar.time,Nele,Nnodes,nod))
+        title(sprintf('time=%-g \t  Ele=%-i,  Nodes=%-i,  nod=%-i',CtrlVar.time,Nele,Nnodes,nod))
     end
 else    
-    title(sprintf('time=%-g \t #Ele=%-i, #Nodes=%-i, #nod=%-i',CtrlVar.time,Nele,Nnodes,nod))
+    title(sprintf('time=%-g \t  Ele=%-i,  Nodes=%-i,  nod=%-i',CtrlVar.time,Nele,Nnodes,nod))
 end
 
 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel)

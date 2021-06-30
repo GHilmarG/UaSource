@@ -4,6 +4,29 @@
 %
 % *Release Notes* _June 2021_
 %
+% * Geometry and densities can now be defined in the same m-file, using 
+%
+%      DefineGeometryAndDensities.m 
+%
+% The previous approach of using seperate m-files to define geometry (DefineGeometry.m) and densitites (DefineDensities.m) still works.
+% But if you have a "DefineGeometryAndDensities.m" in the run folder, only "DefineGeometryAndDensities.m"  is used and
+% "DefineGeometry.m" and "DefineDensities.m" ignored. 
+%
+% * x and y nodal values now a field of F, ie F.x and F.y
+%
+% The (x,y) coordinates of the nodes are now also accessible through F as
+%
+%   (F.x,F.y)
+%
+% These are always identical to MUA.coordinates, that is
+%
+%   F.x=MUA.coordinates(:,1)
+%   F.y=MUA.coordinates(:,2)
+%
+% This was simply done for convenience, and now one can, for example, create a plot showing the upper surface, s, as a function of x as
+%
+%   plot(F.x.F,s,'.')
+%
 % * Default inverse algorithim has changed. Now the defaul options is a Hessian-based inversion.  The older-approach is still available
 % by selecting a Gradien-based inversion. This is specificed using the CtrlVar field:
 %
@@ -25,13 +48,19 @@
 %
 % in DefineInitialInputs.m
 %
-% * The quadrature degree can now be directly specified, and one can now used any degree up to 25.  You specify this using
+% * The quadrature degree can now be directly specified using
 %
-%   CtrlVar.QuadratureRuleDegree
+%   CtrlVar.QuadratureRuleDegree=N
 %
-% Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining
-% second-order convergence of the Newton-Raphson system.
+% where N is a number that can be as high as 25 (Previously the highest possible degree was 13). Generally, the default option should
+% be fine, but there might be instances were increasing the degree could help with obtaining second-order convergence of the
+% Newton-Raphson system.
 %
+% * The shallow-ice sheet (SIA/SSTREAM) option now includes basal sliding.
+%
+% The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to
+% the thickneess using the NR method.  When using SSTREAM you will, in general, need to specify boundary conditions for both the
+% deformational and the basal sliding velocities.
 %
 % *Release Notes*
 % _June 2020_

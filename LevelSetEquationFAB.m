@@ -119,7 +119,7 @@ end
 
 
 if nargout>2
-    J=(x.^q-1).^p /(p*q) ;
+    J=(x.^q-CtrlVar.LSFslope).^p /(p*q) ;
 end
 
 

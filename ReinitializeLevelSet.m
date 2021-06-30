@@ -23,17 +23,13 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     
     % 2) Distance 
     if numel(xc)>0
-        
-        %Dist=pdist2(MUA.coordinates(Mask.NodesOn,:),MUA.coordinates,'euclidean','Smallest',1) ;
+  
         Dist=pdist2([xc(:) yc(:)],MUA.coordinates,'euclidean','Smallest',1) ;
         Dist=Dist(:) ;
     
         PM=sign(LSF) ; 
-        
-     % 3) Replace LSF with signed distance 
-        TH = TopHatApprox(1/10e3,LSF,50e3) ;
-     
-        LSF=PM.*Dist.*TH+(1-TH).*LSF; 
+        LSF=PM.*Dist;
+  
         
         
     else

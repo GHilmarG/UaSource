@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcVAF</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-09-27"><meta name="DC.source" content="CalcVAF.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>CalcVAF</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-29"><meta name="DC.source" content="CalcVAF.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,18 +67,45 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
-</pre><p>Calculates volume above flotation, and optionally ice volume and grounded area</p><p>GF is only needed to calculate volume and grounded area.</p><pre class="codeinput">narginchk(7,8)
-nargoutchk(1,3)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
+</pre><pre class="language-matlab">[VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
+</pre><p>Calculates volume above flotation, and optionally ice volume and grounded area</p><p>GF is only needed to calculate grounded area.</p><p>To calculate a rough estimate of resulting change in mean sea level, divide the change in VAF with the area of the ocean (3.625e14 m^2).</p><pre class="language-matlab">VAF       :  Volume above <span class="string">flotation</span>
+IceVolume :  Total ice <span class="string">volume</span> <span class="string">withing</span> <span class="string">the</span> <span class="string">domain</span>, i.e. including areas <span class="string">that</span> <span class="string">are</span> <span class="string">afloat.</span>
+hAF       :  (postive) ice <span class="string">thickness</span> <span class="string">above</span> <span class="string">floation</span>
+hfPOs     :  (positive) flotation <span class="string">thickness</span> <span class="string">(also somtimes referred to as floation profile).</span> <span class="string">Where</span> <span class="string">h&gt;fhPos</span>, the <span class="string">ice</span> <span class="string">is</span> <span class="string">grounded.</span>
+</pre><p>Example:</p><pre class="language-matlab">load(<span class="string">"PIG-TWG-RestartFile.mat"</span>)
+[VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+CtrlVar=CtrlVarInRestartFile;
+FindOrCreateFigure(<span class="string">"VAF"</span>) ;
+[~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ;
+axis <span class="string">tight</span>
+hold <span class="string">on</span> ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+hold <span class="string">on</span> ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],<span class="string">'r'</span>);
+fprintf(<span class="string">"VAF=%f (Gt/yr)\n"</span>,VAF.Total/1e9)   ;
+fprintf(<span class="string">"GroundedArea=%-7.2f (times the area of iceland)\n"</span>,GroundedArea.Total/1e6/103e3) ;
+xlabel(<span class="string">"xps (km)"</span>) ; ylabel(<span class="string">"yps (km)"</span>) ; title(cbar,<span class="string">"(m)"</span>) ; title(<span class="string">"ice thickness above flotation"</span>)
+</pre><pre class="codeinput">narginchk(7,8)
+nargoutchk(1,5)
 
-hf=(S-B).*rhow./rho ;       <span class="comment">% if h&gt; hf, then ice is grounded  (but note that hf is negative for B&gt;S)</span>
-hf(hf&lt;0)=0;                 <span class="comment">% this is the positive flotation thickness</span>
 
-VAF.node=(h-hf).*GF.node ;  <span class="comment">% thickness above flotation over grounded nodes</span>
-<span class="comment">% VAF.node=(h-hf).*heaviside(h-hf)</span>
+<span class="comment">% One option:</span>
+<span class="comment">%</span>
+<span class="comment">% hf=rhow*(S-B)./rho ;</span>
+<span class="comment">% hAF=h*0 ;                                   % hAF : ice-thickness above flotation.</span>
+<span class="comment">%</span>
+<span class="comment">% isBgtS= B &gt; S ;  hAF(isBgtS)=h(isBgtS) ;    % grounded above sea level, full contribution to hAF</span>
+<span class="comment">% I=~isBgtS &amp; ~ishlthf ; hAF(I)=h(I)-hf(I) ;  % grounded below sea level some contribution to hAF</span>
+<span class="comment">% ishlthf = (h &lt; hf)  ; hAF(ishlthf)=0   ;    % not grounded, no contribution to hAF</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% or simply:</span>
+hfPos=(S&gt;B).*rhow.*(S-B)./rho ;            <span class="comment">% (positive) flotation thickness</span>
+hAF= (h&gt;hfPos).*(h-hfPos) ;                <span class="comment">% (positive) ice thickness above floatation</span>
 
-VAF.ele=FEintegrate2D([],MUA,VAF.node);
-VAF.Total=sum(VAF.ele);
+
+VAF.node=hAF.*rho./rhow ;               <span class="comment">% thickness above flotation in water eq.</span>
+VAF.ele=FEintegrate2D([],MUA,VAF.node); <span class="comment">% VAF for each element (m^3)</span>
+VAF.Total=sum(VAF.ele);                 <span class="comment">% total volume above flotation over the whole model domain</span>
 
 
 <span class="keyword">if</span> nargout&gt;1
@@ -88,29 +116,65 @@ VAF.Total=sum(VAF.ele);
     GroundedArea.Total=sum(GroundedArea.Ele);
 <span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
+function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
 
 %%
+%
+%   [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhow,GF)
+%
 % Calculates volume above flotation, and optionally ice volume and grounded area
 %
-% GF is only needed to calculate volume and grounded area. 
+% GF is only needed to calculate grounded area.
 %
 %
+% To calculate a rough estimate of resulting change in mean sea level, divide the change
+% in VAF with the area of the ocean (3.625e14 m^2).
+%
+%
+%   VAF       :  Volume above flotation
+%   IceVolume :  Total ice volume withing the domain, i.e. including areas that are afloat.
+%   hAF       :  (postive) ice thickness above floation
+%   hfPOs     :  (positive) flotation thickness (also somtimes referred to as floation profile). Where h>fhPos, the ice is grounded.
+%
+% Example:
+%
+%   load("PIG-TWG-RestartFile.mat") 
+%   [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
+%   CtrlVar=CtrlVarInRestartFile;
+%   FindOrCreateFigure("VAF") ; 
+%   [~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ; 
+%   axis tight
+%   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+%   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
+%   fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
+%   fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
+%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
 %%
 
 narginchk(7,8)
-nargoutchk(1,3)
+nargoutchk(1,5)
 
-hf=(S-B).*rhow./rho ;       % if h> hf, then ice is grounded  (but note that hf is negative for B>S)
-hf(hf<0)=0;                 % this is the positive flotation thickness 
 
-VAF.node=(h-hf).*GF.node ;  % thickness above flotation over grounded nodes
-% VAF.node=(h-hf).*heaviside(h-hf) 
+% One option:
+%
+% hf=rhow*(S-B)./rho ;
+% hAF=h*0 ;                                   % hAF : ice-thickness above flotation.
+%
+% isBgtS= B > S ;  hAF(isBgtS)=h(isBgtS) ;    % grounded above sea level, full contribution to hAF
+% I=~isBgtS & ~ishlthf ; hAF(I)=h(I)-hf(I) ;  % grounded below sea level some contribution to hAF
+% ishlthf = (h < hf)  ; hAF(ishlthf)=0   ;    % not grounded, no contribution to hAF
+%
+%
+% or simply:
+hfPos=(S>B).*rhow.*(S-B)./rho ;            % (positive) flotation thickness
+hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floatation
 
-VAF.ele=FEintegrate2D([],MUA,VAF.node);
-VAF.Total=sum(VAF.ele);
+
+VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq.
+VAF.ele=FEintegrate2D([],MUA,VAF.node); % VAF for each element (m^3)
+VAF.Total=sum(VAF.ele);                 % total volume above flotation over the whole model domain
 
 
 if nargout>1
@@ -120,6 +184,7 @@ if nargout>1
     GroundedArea.Ele=FEintegrate2D([],MUA,GF.node);
     GroundedArea.Total=sum(GroundedArea.Ele);
 end
+
 
 
 

@@ -379,11 +379,11 @@ CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1000 1e-6];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[100 1e-6];
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-10 1e-3];
+CtrlVar.LSFDesiredWorkOrForceTolerances=[1e-12 1e-3];
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-6];
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-2];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-2];
 
 
 
@@ -391,7 +391,7 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-6];
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
-CtrlVar.LSFMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+CtrlVar.LSFMinimisationQuantity="Work Residuals";     
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -1838,7 +1838,7 @@ CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers ava
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.isTest=false;
-
+CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 
 %% Tracers

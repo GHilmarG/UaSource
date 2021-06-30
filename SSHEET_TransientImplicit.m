@@ -1,19 +1,24 @@
-function [UserVar,u1,v1,h1,s1,GF1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,rho,rhow,g)
+function [UserVar,RunInfo,F1,l1,BCs]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs)
+
+% [UserVar,ud1,vd1,h1,s1,GF1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,C,m,rho,rhow,g)
+
+
 
 %  s and h are the initial estimates for s1 and h1
 %  these are then updated, once convergent, I set s1=s and h1=h
 
 
-nargoutchk(8,8)
-narginchk(20,20)
-
-
-[b0,s0,h0,~]=Calc_bs_From_hBS(CtrlVar,MUA,h0,S,B,rho,rhow);
-[b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h1,S,B,rho,rhow);
+nargoutchk(5,5)
+narginchk(8,8)
 
 
 
-a0=as0+ab0 ; a1=as1+ab1;
+[F0.b,F0.s,F0.h,F0.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F0.h,F0.S,F0.B,F0.rho,F0.rhow);
+[F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+
+
+
+a0=F0.as+F0.ab ; a1=F1.as+F1.ab;
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n uvh2DSSHEET \n ') ; end
 
 %%
@@ -40,17 +45,17 @@ rVector.D2=zeros(CtrlVar.NRitmax+1,1)+NaN;
 
 
 
-if any(h0<0) ; warning('MATLAB:uvh2DSSHEET',' thickness negative ') ; end
+if any(F0.h<0) ; warning('MATLAB:uvh2DSSHEET',' thickness negative ') ; end
 
 tStart=tic;
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Lh=MLC.hL ; ch=MLC.hRhs ;
 
-if numel(lambdah)~=numel(ch) ; lambdah=zeros(numel(ch),1) ; end
+if numel(l1.h)~=numel(ch) ; l1.h=zeros(numel(ch),1) ; end
 
-dlambdah=lambdah*0;
-dh=h0*0;
+dlambdah=l1.h*0;
+dh=F0.h*0;
 iteration=0 ; 
 
 gamma=1;  rWork=inf ; rForce=inf ; 
@@ -78,7 +83,8 @@ while true
                 fprintf(' SSHEET(h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
             end
-            RunInfo.Forward.hConverged=1;
+            RunInfo.Forward.Converged=1;  RunInfo.Forward.hConverged=1;
+            
             break
             
         end
@@ -96,7 +102,8 @@ while true
                 fprintf(RunInfo.File.fid,' Exiting h iteration after %-i iterations with r=%-g \n',iteration,r);
             end
             
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
+            
             break
         end
 
@@ -104,10 +111,11 @@ while true
     iteration=iteration+1;
     
     
-    [R,K,F,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt);
+    if ~isequal(F1.dt,CtrlVar.dt) ; error("Ua:SSHEET_TransientImplict","F.dt not equal to CtrlVar.dt") ; end 
+    [R,K,FF,T]=MatrixAssemblySSHEETtransient2HD(CtrlVar,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt);
     
     if iteration==1
-        F0=F ;  % There is a potential issue here which is that F0 is zero if the accumulation
+        FF0=FF ;  % There is a potential issue here which is that F0 is zero if the accumulation
                 % and grad q is everywhere zero. However, if this happens dh/dt will also automatically be
                 % zero. 
                 % F0 is used as a normalisation factor when calculating the residual,
@@ -119,8 +127,8 @@ while true
     
     %% solve the linear system
     if ~isempty(Lh)
-        frhs=-R-Lh'*lambdah;
-        grhs=ch-Lh*h;
+        frhs=-R-Lh'*l1.h;
+        grhs=ch-Lh*F1.h;
     else
         frhs=-R;
         grhs=[];
@@ -138,7 +146,7 @@ while true
     
     %% calculate  residuals at beginnin and for full Newton step
     
-    Func=@(gamma) CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,AGlen,n,rho,g,s0,b0,s,b1,a0,a1,dt,Lh,lambdah,dlambdah,F0,ch);
+    Func=@(gamma) CalcCostFunctionSSHEET(UserVar,RunInfo,CtrlVar,gamma,dh,MUA,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F0.h,F0.b,F1.h,F1.b,a0,a1,F1.dt,Lh,l1.h,dlambdah,FF0,ch);
     
     gamma=0; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
     gamma=1; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
@@ -203,20 +211,20 @@ while true
    
     
     %% update variables
-    h=h+gamma*dh ; lambdah=lambdah+gamma*dlambdah;
+    F1.h=F1.h+gamma*dh ; l1.h=l1.h+gamma*dlambdah;
     
     temp=CtrlVar.ResetThicknessToMinThickness;
     if ~CtrlVar.ResetThicknessInNonLinLoop
         CtrlVar.ResetThicknessToMinThickness=0;
     end
-    [b1,s,h,~]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow);
+    [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
     CtrlVar.ResetThicknessToMinThickness=temp;
     %[b1,s,h]=Calc_bs_From_hBS(h,S,B,rho,rhow,CtrlVar,MUA.coordinates);
 
 
 
     if~isempty(Lh)
-        BCsNorm=norm(ch-Lh*h);
+        BCsNorm=norm(ch-Lh*F1.h);
     else
         BCsNorm=0;
     end
@@ -225,7 +233,7 @@ while true
     
     %% plot and print info
     if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
-        PlotForceResidualVectors('h-only',R,Lh,lambdah,MUA.coordinates,CtrlVar) ; axis equal tight
+        PlotForceResidualVectors('h-only',R,Lh,l1.h,MUA.coordinates,CtrlVar) ; axis equal tight
     end
     
     
@@ -238,17 +246,17 @@ while true
 end
 
 %% return calculated values at the end of the time step
-h1=h ; lambdah1=lambdah;
-[~,s1,h1,GF1]=Calc_bs_From_hBS(CtrlVar,MUA,h1,S,B,rho,rhow);
-%[b1,s1,h1]=Calc_bs_From_hBS(h1,S,B,rho,rhow,CtrlVar,MUA.coordinates);
-[u1,v1]=uvSSHEET(CtrlVar,MUA,BCs,AGlen,n,rho,g,s1,h1);
+% F1.h=h ;  lambdah1=l1.h;
+[~,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+
+[F1.ud,F1.vd,F1.ub,F1.vb]=uvSSHEET(CtrlVar,MUA,BCs,F1.AGlen,F1.n,F1.C,F1.m,F1.rho,F1.g,F1.s,F1.h);
 
 tEnd=toc(tStart);
 
 RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
 
 if RunInfo.BackTrack.Converged==0
-    RunInfo.Forward.Converged=0;
+    RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
 end
 
 

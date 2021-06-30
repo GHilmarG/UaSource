@@ -24,13 +24,14 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
     if ~CtrlVar.LevelSetMethod
         LSF=F0.LSF;
         lambda=[];
+        Mask=[] ; 
         return
     end
     
     if CtrlVar.CalvingLaw=="-No Ice Shelves-" 
          
          % I think this could be simplified, arguably no need to calculate signed distance
-         % in this case. Presumably could just define the LSF as distance from flotaion, ie
+         % in this case. Presumably could just define the LSF as distance from flotation, ie
          % h-hf. 
         [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
         Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
@@ -41,19 +42,38 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         LastResetTime=0 ;
     end
     
-
     
-    if CtrlVar.time>( LastResetTime+CtrlVar.LevelSetReinitializeTimeInterval)
-        fprintf("LevelSetEquation: Level Set is re-initialized. \n")
-        [F0.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F0.LSF)  ;
-        F1.LSF=F0.LSF ;  % helps with convergence
-        LastResetTime=CtrlVar.time ;
-    elseif ~isempty(dLSF)  && ( numel(F0.LSF) == numel(dLSF))
-        
-        F1.LSF=F0.LSF;  % +dLSF*CtrlVar.dtRatio ;
+    switch CtrlVar.LevelSetPhase
+        case "Initialisation"
+            CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
+            CtrlVar.LSF.P=1 ;   % % P is the pertubation term
+            CtrlVar.LevelSetTheta=1;  
+            CtrlVar.LevelSetEpsilon=0 ;
+            
+            % First do a rough re-initialisation using signed distance function.
+            % After this I then do a full non-linear FAB solve with the level-set fixed 
+            % as boundary conditions on the LSF.
+            [F1.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF); 
+            F0.LSF=F1.LSF ;
+            Mask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+            BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];   % fix the LSF field for all nodes of elements around the level.
+            BCs.LSFFixedValue=[BCs.LSFFixedValue ; F1.LSF(Mask.NodesOn) ];
+            
+        case "Propagation"
+            CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
+            CtrlVar.LSF.P=0 ;
+        case "Propagation and FAB"
+            CtrlVar.LevelSetTheta=0.5;
+            CtrlVar.LSF.L=1 ;
+            CtrlVar.LSF.P=1 ;
+        otherwise
+            error('safd')
     end
     
-  
+    
+    
+    
+
     
     % This will actually also do Picard unless CtrlVar.LevelSetSolutionMethod="Newton-Raphson" ;
     [UserVar,RunInfo,LSF,lambda]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1);

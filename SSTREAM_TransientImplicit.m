@@ -120,17 +120,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %% assemble global Lagrange constraint matrix
     MLC=BCs2MLC(CtrlVar,MUA,BCs1);
     
-    % Luv=MLC.ubvbL;
-    % cuv=MLC.ubvbRhs;
-    % Lh=MLC.hL;
-    % ch=MLC.hRhs;
+ 
     
     if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
     if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
     nlubvb=numel(l1.ubvb) ;
     
-    
-    %[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
     [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
     dl=luvh*0;
     

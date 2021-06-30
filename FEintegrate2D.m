@@ -5,19 +5,20 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 %
 %  CtrlVar can be entered as an empty variable.
 %
-% Examples: 
+% *Examples:*
 % 
-% Calculate volume of ice:
+% Ice volume:
 %
 %   Int=FEintegrate2D([],MUA,h); 
 %   TotalIceVolume=sum(Int)
 % 
-% Calculate grounded area:
+% Grounded area:
 %
 %   Int=FEintegrate2D([],MUA,GF.node); GroundedArea=sum(Int);
 % 
-%   
+% Integrated surface mass balance over grounded areas (i.e. upstream of grounding lines):
 %
+%  M=sum(FEintegrate2D(CtrlVar,MUA,F.as.*F.GF.node)) ;
 %
 %
 %% 
