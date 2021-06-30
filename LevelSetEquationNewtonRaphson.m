@@ -36,6 +36,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     % make sure initial point is feasable
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
+    F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
         
     
     

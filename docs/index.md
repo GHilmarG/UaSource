@@ -170,9 +170,9 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
     doc Ua2D_DefaultParameters
 
 
-```
-    Ice-Ocean coupling 
-```
+
+## Ice-Ocean coupling 
+
 
 Úa has been coupled with MITgcm
 ([ÚaMIT](https://github.com/knaughten/UaMITgcm)) and a plume model (

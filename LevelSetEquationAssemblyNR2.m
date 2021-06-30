@@ -24,12 +24,12 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
    
  
-    Epsilon=CtrlVar.LevelSetEpsilon ; 
+ 
     
 
     mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
 
-    L=CtrlVar.LSF.L ; P=CtrlVar.LSF.P ; 
+    isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
 
   
 
@@ -168,9 +168,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                         .*detJw;
                
                     
-                    Reg=Epsilon*fun(Jnod).*fun(Inod).*detJw ; 
+                    Trhs=fun(Jnod).*fun(Inod).*detJw ; 
                     
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+L*Llhs+P*Plhs+Reg;
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Trhs;
                     
                 end
             end
@@ -194,9 +194,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-            Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
+            Trhs=(f1int-f0int).*fun(Inod).*detJw ; 
              
-            RHS=L*Lrhs+P*Prhs+Reg ;
+            RHS=isL*Lrhs+isP*Prhs+isT*Trhs ;
             
             b1(:,Inod)=b1(:,Inod)+RHS; 
             

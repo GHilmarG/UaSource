@@ -1,5 +1,5 @@
 
-function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,LSF,Threshold)
+function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,LSF,Threshold,xc,yc)
     
     
     %%
@@ -16,10 +16,11 @@ function [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,
     if nargin < 6  || isempty(Threshold)
         Threshold=0 ;
     end
-
-    CtrlVar.LineUpGLs=false ; 
-    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Threshold);
     
+    if nargin <7 || (isempty(xc) || isempty(yc)) 
+        CtrlVar.LineUpGLs=false ;
+        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Threshold);
+    end
     
     % 2) Distance 
     if numel(xc)>0
