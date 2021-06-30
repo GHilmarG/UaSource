@@ -168,7 +168,18 @@ in the MATLAB command line,  or
 Most m-files that are part of the Úa program have some inbuilt help text, for example try 
 
     doc Ua2D_DefaultParameters
- 
+
+
+```
+    Ice-Ocean coupling 
+```
+
+Úa has been coupled with MITgcm
+([ÚaMIT](https://github.com/knaughten/UaMITgcm)) and a plume model (
+[ÚaPICO](https://github.com/shrrosier/PICO_Ua)).
+
+
+
 ![](AntarcticaMesh.png)
 
 

@@ -52,6 +52,7 @@ hfPos=(S>B).*rhow.*(S-B)./rho ;            % (positive) flotation thickness
 hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floatation
 
 
+
 VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq.
 VAF.ele=FEintegrate2D([],MUA,VAF.node); % VAF for each element (m^3)
 VAF.Total=sum(VAF.ele);                 % total volume above flotation over the whole model domain
