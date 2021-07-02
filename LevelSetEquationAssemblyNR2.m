@@ -19,7 +19,6 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
     theta=CtrlVar.LevelSetTheta;
-   % theta=0; 
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
    

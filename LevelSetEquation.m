@@ -47,6 +47,7 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         case "Initialisation"
             CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
             CtrlVar.LSF.P=1 ;   % % P is the pertubation term
+            CtrlVar.LSF.T=0 ;
             CtrlVar.LevelSetTheta=1;  
             CtrlVar.LevelSetEpsilon=0 ;
             
@@ -62,10 +63,12 @@ function [UserVar,RunInfo,LSF,Mask,lambda]=LevelSetEquation(UserVar,RunInfo,Ctrl
         case "Propagation"
             CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
             CtrlVar.LSF.P=0 ;
+            CtrlVar.LSF.T=1 ;
         case "Propagation and FAB"
             CtrlVar.LevelSetTheta=0.5;
             CtrlVar.LSF.L=1 ;
             CtrlVar.LSF.P=1 ;
+            CtrlVar.LSF.T=1 ;
         otherwise
             error('safd')
     end
