@@ -1,25 +1,11 @@
-function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
+function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
     
-    
-    %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
-    %
-    %
-    % Treat the c norm(grad f0) term explicitly
-    %
-    % f1-f0  + dt theta ( v0 grad f0  )  + dt (1-theta) (v0 grad f1)  = dt  c norm(grad f0)
-    % ->  f1 + dt (1-theta) v0 grad f1   = f0 + dt  c  norm(grad f0) - dt theta ( v0 grad f0  )
-    %
-    %
-    %
-    
-    % norm grad f
-    
+  
     narginchk(11,11)
     
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
     theta=CtrlVar.LevelSetTheta;
-   % theta=0; 
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
    
@@ -55,7 +41,10 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     
     d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
-    b1=zeros(MUA.Nele,MUA.nod);
+    %b1=zeros(MUA.Nele,MUA.nod);
+    T=zeros(MUA.Nele,MUA.nod);
+    P=zeros(MUA.Nele,MUA.nod);
+    L=zeros(MUA.Nele,MUA.nod);
     
     
     if CtrlVar.LevelSetSolutionMethod=="Newton Raphson"
@@ -113,7 +102,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
         
-        if any(NG0<1000*eps) || any(NG1<1000*eps)  
+        if any(NG0<eps) || any(NG1<eps)  
             
             error('sdaf')
         end
@@ -196,9 +185,14 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
             
             Trhs=(f1int-f0int).*fun(Inod).*detJw ; 
              
-            RHS=isL*Lrhs+isP*Prhs+isT*Trhs ;
+            %RHS=isL*Lrhs+isP*Prhs+isT*Trhs ;
             
-            b1(:,Inod)=b1(:,Inod)+RHS; 
+            %b1(:,Inod)=b1(:,Inod)+RHS; 
+            
+            P(:,Inod)=P(:,Inod)+Prhs; 
+            L(:,Inod)=L(:,Inod)+Lrhs; 
+            T(:,Inod)=T(:,Inod)+Trhs; 
+            
             
         end
         
@@ -207,10 +201,23 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     % assemble right-hand side
     
-    rh=sparseUA(neq,1);
+%     rh=sparseUA(neq,1);
+%     for Inod=1:MUA.nod
+%         rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b1(:,Inod),neq,1);
+%     end
+%     
+    
+    Pv=sparseUA(neq,1);
+    Lv=sparseUA(neq,1);
+    Tv=sparseUA(neq,1);
     for Inod=1:MUA.nod
-        rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b1(:,Inod),neq,1);
+        Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),P(:,Inod),neq,1);
+        Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),L(:,Inod),neq,1);
+        Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),neq,1);
     end
+    
+    rh=isL*Lv+isP*Pv+isT*Tv; 
+    
     
     
     if nargout>2

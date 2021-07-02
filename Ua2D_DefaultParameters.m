@@ -378,20 +378,19 @@ CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
+
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-10 1e-3];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[1e-12 1e-3];
+CtrlVar.LSFDesiredWorkAndForceTolerances=[Inf 1e-15];  % just use the fore tolerance
+CtrlVar.LSFDesiredWorkOrForceTolerances=[Inf 1e-15];
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-2];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-2];
-
-
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
 
 
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
-CtrlVar.LSFMinimisationQuantity="Work Residuals";     
+CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 

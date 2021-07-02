@@ -13,9 +13,9 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     
     
     if ~isempty(L)
-        
-         frhs=-R-L'*l;
-         grhs=Lrhs-L*F1.LSF;
+     
+         frhs=-R-L'*l;        % Units: Area  [\varphi] / time 
+         grhs=Lrhs-L*F1.LSF;  % Units: [\varphi]=distance, but this should always be zero anyhow if initial point is feasable
         
         
     else
@@ -23,6 +23,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
         grhs=[];
     end
     
+    frhs=frhs/MUA.Area;  % It's OK to do this only here, because I scale frhs and grhs equally.
+    grhs=grhs/MUA.Area;
     
            
     D2=[frhs;grhs]'*[dLSF;dl]; 
