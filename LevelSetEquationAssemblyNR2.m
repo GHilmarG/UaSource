@@ -99,7 +99,7 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
         NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
         
-        if any(NG0<1000*eps) || any(NG1<1000*eps)  
+        if any(NG0<eps) || any(NG1<eps)  
             
             error('sdaf')
         end
