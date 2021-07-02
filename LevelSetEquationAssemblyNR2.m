@@ -1,19 +1,6 @@
 function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
     
-    
-    %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
-    %
-    %
-    % Treat the c norm(grad f0) term explicitly
-    %
-    % f1-f0  + dt theta ( v0 grad f0  )  + dt (1-theta) (v0 grad f1)  = dt  c norm(grad f0)
-    % ->  f1 + dt (1-theta) v0 grad f1   = f0 + dt  c  norm(grad f0) - dt theta ( v0 grad f0  )
-    %
-    %
-    %
-    
-    % norm grad f
-    
+
     narginchk(11,11)
     
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
