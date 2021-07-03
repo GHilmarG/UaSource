@@ -1,9 +1,13 @@
-function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
+function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
     %%
     %
     %
     %  %  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
     %
+    % Note: Tv, Lv and Pv are calculated only at the beginning of the NR iteration.
+    %
+    
+    narginchk(7,8)
     
     persistent iCalls
     
@@ -29,13 +33,16 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
-    l=Lrhs*0;
-    dl=l ;
+    if nargin==7 || isempty(l) 
+        l=Lrhs*0 ; 
+    end
+    dl=l*0 ;
     dLSF=F1.LSF*0;
     BCsError=0;
     
     % make sure initial point is feasable
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
+    F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
         
     
     
@@ -66,6 +73,7 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
             break
         end
         
+        
         if ResidualsCriteria 
             fprintf('LevelSetEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
             RunInfo.LevelSet.SolverConverged=true;
@@ -82,8 +90,8 @@ function [UserVar,RunInfo,LSF1,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,
         end
         
         iteration=iteration+1 ;
-
-        [UserVar,R,K]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+        
+        [UserVar,R,K,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
         if ~isempty(L)
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation

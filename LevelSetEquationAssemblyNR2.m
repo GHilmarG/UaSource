@@ -1,6 +1,6 @@
-function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
+function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1)
     
-
+  
     narginchk(11,11)
     
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
@@ -10,12 +10,12 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
    
  
-    Epsilon=CtrlVar.LevelSetEpsilon ; 
+ 
     
 
     mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
 
-    L=CtrlVar.LSF.L ; P=CtrlVar.LSF.P ; 
+    isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
 
   
 
@@ -41,7 +41,10 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     
     d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
-    b1=zeros(MUA.Nele,MUA.nod);
+    %b1=zeros(MUA.Nele,MUA.nod);
+    T=zeros(MUA.Nele,MUA.nod);
+    P=zeros(MUA.Nele,MUA.nod);
+    L=zeros(MUA.Nele,MUA.nod);
     
     
     if CtrlVar.LevelSetSolutionMethod=="Newton Raphson"
@@ -140,8 +143,9 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                 for Jnod=1:MUA.nod
                     
                     
-                    
-                    Llhs=fun(Jnod).*SUPGdetJw...
+                    Tlhs=fun(Jnod).*SUPGdetJw ; 
+                        
+                    Llhs=...
                         +NR*dt*theta*(...
                         (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                         .*SUPGdetJw;
@@ -153,10 +157,8 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                
-                    
-                    Reg=Epsilon*fun(Jnod).*fun(Inod).*detJw ; 
-                    
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+L*Llhs+P*Plhs+Reg;
+           
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs;
                     
                 end
             end
@@ -165,14 +167,14 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
             %         
             %   LSH  \phi  = - RHS
             %
-            Lrhs=(f1int-f0int).*SUPGdetJw...
-                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
-                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw; 
+            
+            Trhs=(f1int-f0int).*SUPGdetJw ; 
 
-   % should I possibly write this term as
-   %
-   %    u1int.*dfdx+v1int.*df1dy + c1int.*NG1 
-   %
+            Lrhs= ...
+                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
+                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw;
+
+ 
             
             % Pertubation term
             Prhs=...
@@ -180,11 +182,12 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-            Reg=Epsilon*(f1int-f0int).*fun(Inod).*detJw ; 
-             
-            RHS=L*Lrhs+P*Prhs+Reg ;
+    
             
-            b1(:,Inod)=b1(:,Inod)+RHS; 
+            P(:,Inod)=P(:,Inod)+Prhs; 
+            L(:,Inod)=L(:,Inod)+Lrhs; 
+            T(:,Inod)=T(:,Inod)+Trhs; 
+            
             
         end
         
@@ -193,10 +196,23 @@ function [UserVar,rh,kv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,f0,c0,u
     
     % assemble right-hand side
     
-    rh=sparseUA(neq,1);
+%     rh=sparseUA(neq,1);
+%     for Inod=1:MUA.nod
+%         rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b1(:,Inod),neq,1);
+%     end
+%     
+    
+    Pv=sparseUA(neq,1);
+    Lv=sparseUA(neq,1);
+    Tv=sparseUA(neq,1);
     for Inod=1:MUA.nod
-        rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b1(:,Inod),neq,1);
+        Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),P(:,Inod),neq,1);
+        Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),L(:,Inod),neq,1);
+        Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),neq,1);
     end
+    
+    rh=isL*Lv+isP*Pv+isT*Tv; 
+    
     
     
     if nargout>2
