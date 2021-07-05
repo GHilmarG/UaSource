@@ -7,7 +7,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     % Note: Tv, Lv and Pv are calculated only at the beginning of the NR iteration.
     %
     
-    narginchk(8,8)
+    narginchk(7,8)
     
     persistent iCalls
     
@@ -33,7 +33,9 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
-    if isempty(l) ; l=Lrhs*0 ; end
+    if nargin==7 || isempty(l) 
+        l=Lrhs*0 ; 
+    end
     dl=l*0 ;
     dLSF=F1.LSF*0;
     BCsError=0;

@@ -1,7 +1,5 @@
 
 
-
-
 %%
 %
 % *Release Notes* _June 2021_

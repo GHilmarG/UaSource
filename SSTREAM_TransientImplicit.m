@@ -385,7 +385,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                 F1.ab=(1-rdamp)*F1.ab+rdamp*ab1Old;
             end
         end
-        
+
         
         if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
             PlotForceResidualVectors('uvh',Ruvh,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight

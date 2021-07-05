@@ -13,7 +13,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
  
     
 
-    mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+    
 
     isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
 
@@ -118,11 +118,30 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
         
         % I need to think about a good def for mu
+        %
+        % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
+        %
+        
+        if isnumeric(CtrlVar.LevelSetFABmu)
+            
+            mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+        elseif isstring(CtrlVar.LevelSetFABmu)
+            
+            switch CtrlVar.LevelSetFABmu
+                case "ucl"
+                    mu=sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
+                otherwise
+                    error('safd')
+            end
+            
+        end
+        
+        
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
         
         % test linear diffusion
-      
+        
         
         detJw=detJ*MUA.weights(Iint);
         
@@ -143,8 +162,9 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
                 for Jnod=1:MUA.nod
                     
                     
-                    
-                    Llhs=fun(Jnod).*SUPGdetJw...
+                    Tlhs=fun(Jnod).*SUPGdetJw ; 
+                        
+                    Llhs=...
                         +NR*dt*theta*(...
                         (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                         .*SUPGdetJw;
@@ -156,10 +176,8 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                
-                    
-                    Trhs=fun(Jnod).*fun(Inod).*detJw ; 
-                    
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Trhs;
+           
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs;
                     
                 end
             end
@@ -168,14 +186,14 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
             %         
             %   LSH  \phi  = - RHS
             %
-            Lrhs=(f1int-f0int).*SUPGdetJw...
-                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
-                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw; 
+            
+            Trhs=(f1int-f0int).*SUPGdetJw ; 
 
-   % should I possibly write this term as
-   %
-   %    u1int.*dfdx+v1int.*df1dy + c1int.*NG1 
-   %
+            Lrhs= ...
+                +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*SUPGdetJw...
+                + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*SUPGdetJw;
+
+ 
             
             % Pertubation term
             Prhs=...
@@ -183,11 +201,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
             
-            Trhs=(f1int-f0int).*fun(Inod).*detJw ; 
-             
-            %RHS=isL*Lrhs+isP*Prhs+isT*Trhs ;
-            
-            %b1(:,Inod)=b1(:,Inod)+RHS; 
+    
             
             P(:,Inod)=P(:,Inod)+Prhs; 
             L(:,Inod)=L(:,Inod)+Lrhs; 
