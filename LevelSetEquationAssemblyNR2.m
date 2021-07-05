@@ -13,7 +13,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
  
     
 
-    mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+    
 
     isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
 
@@ -118,11 +118,30 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
         
         % I need to think about a good def for mu
+        %
+        % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
+        %
+        
+        if isnumeric(CtrlVar.LevelSetFABmu)
+            
+            mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
+        elseif isstring(CtrlVar.LevelSetFABmu)
+            
+            switch CtrlVar.LevelSetFABmu
+                case "ucl"
+                    mu=sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
+                otherwise
+                    error('safd')
+            end
+            
+        end
+        
+        
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
         
         % test linear diffusion
-      
+        
         
         detJw=detJ*MUA.weights(Iint);
         
