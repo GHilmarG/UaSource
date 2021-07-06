@@ -1452,13 +1452,14 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 
-CtrlVar.LevelSetFAB=1;  % multiplier, 1 use full forward an backwards (FAB) diffusion, 0 no FAB
+
+CtrlVar.LevelSetFABmu.Value=1e7 ; CtrlVar.LevelSetFABmu.Scale="constant"; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
-CtrlVar.LevelSetFABmu=1; 
+
 
 CtrlVar.LevelSetInfoLevel=1;
 

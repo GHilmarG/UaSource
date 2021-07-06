@@ -312,7 +312,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %  1/3  dN/dX for L -> infty
 %
 
-% This is done intergration-point loop.
+% This is done integration-point loop.
 tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 

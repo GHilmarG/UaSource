@@ -8,19 +8,9 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
     theta=CtrlVar.LevelSetTheta;
     dt=CtrlVar.dt;
     CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
-   
- 
- 
-    
-
-    
 
     isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
 
-  
-
-    %%
-    
     f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
@@ -33,12 +23,6 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
     
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
-   
-    
-    
-  %  [points,weights]=sample('triangle',MUA.nip,ndim);
-    
     
     d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
     %b1=zeros(MUA.Nele,MUA.nod);
@@ -54,24 +38,18 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
     end
     
     
-    % vector over all elements for each integration point
-    for Iint=1:MUA.nip  % intergration points
+    % vector over all elements for each  integration point
+    for Iint=1:MUA.nip  %Integration points
         
         
         
         fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-        %[Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+        
         
         Deriv=MUA.Deriv(:,:,:,Iint);
         detJ=MUA.DetJ(:,Iint);
         
-        
-        
-        % Deriv : Nele x dof x nod
-        %  detJ : Nele
-        
-        % values at integration point
-        
+  
         f0int=f0nod*fun;
         f1int=f1nod*fun;
         
@@ -80,10 +58,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         c0int=c0nod*fun;
         c1int=c1nod*fun;
         
-        
-       
-        
-        
+   
         
         % derivatives at one integration point for all elements
         df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
@@ -109,9 +84,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         
         n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
         n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
-        
-        
-        
+  
         cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;  
         cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
         
@@ -122,32 +95,30 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
         %
         
-        if isnumeric(CtrlVar.LevelSetFABmu)
+        
+        switch CtrlVar.LevelSetFABmu.Scale
             
-            mu=CtrlVar.LevelSetFABmu; % This had the dimention l^2/t
-        elseif isstring(CtrlVar.LevelSetFABmu)
-            
-            switch CtrlVar.LevelSetFABmu
-                case "ucl"
-                    mu=sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
-                otherwise
-                    error('safd')
-            end
-            
+            case "constant"
+                Scale=1 ;
+            case "ucl"
+                Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+            otherwise
+                
+                error(adsf')
         end
+        
+        mu=Scale*CtrlVar.LevelSetFABmu.Value;  % This had the dimention l^2/t
         
         
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
         [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
-        
-        % test linear diffusion
-        
+   
         
         detJw=detJ*MUA.weights(Iint);
         
         if any(~isfinite(n0x)) ||any(~isfinite(n1x)) || any(~isfinite(kappaint1)) || any(~isfinite(dkappa))
-            
-            error('sdaf')
+            save TestSaveLSFnotFinite
+            error("LevelSetEquationAssemblyNR2:notfinite","n0x, n1x kappa not finite")
         end
 
         
@@ -200,27 +171,13 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
                        dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
                  + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
             
-            
-    
-            
             P(:,Inod)=P(:,Inod)+Prhs; 
             L(:,Inod)=L(:,Inod)+Lrhs; 
             T(:,Inod)=T(:,Inod)+Trhs; 
             
-            
         end
-        
-        
     end
-    
-    % assemble right-hand side
-    
-%     rh=sparseUA(neq,1);
-%     for Inod=1:MUA.nod
-%         rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b1(:,Inod),neq,1);
-%     end
-%     
-    
+
     Pv=sparseUA(neq,1);
     Lv=sparseUA(neq,1);
     Tv=sparseUA(neq,1);
@@ -231,8 +188,6 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
     end
     
     rh=isL*Lv+isP*Pv+isT*Tv; 
-    
-    
     
     if nargout>2
         Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
@@ -249,8 +204,5 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         
         kv=sparseUA(Iind,Jind,Xval,neq,neq);
     end
-    
-    
-    
     
 end

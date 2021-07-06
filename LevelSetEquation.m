@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1)
+function [UserVar,RunInfo,LSF,Mask,l]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -6,12 +6,11 @@ function [UserVar,RunInfo,LSF,Mask,l]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
 %
 %
 
-
-narginchk(7,7)
+narginchk(7,8)
 nargoutchk(4,5)
 
-persistent LastResetTime 
 
+persistent LastResetTime 
 
 if ~CtrlVar.DevelopmentVersion
     
@@ -19,7 +18,7 @@ if ~CtrlVar.DevelopmentVersion
     
 end
 
-l=[];
+
 
 if ~CtrlVar.LevelSetMethod
     LSF=F0.LSF;
@@ -27,6 +26,12 @@ if ~CtrlVar.LevelSetMethod
     Mask=[] ;
     return
 end
+
+if nargin<8 
+    l=[];
+end
+    
+
 
 if CtrlVar.CalvingLaw=="-No Ice Shelves-"
     
@@ -47,16 +52,25 @@ switch CtrlVar.LevelSetPhase
     case "Initialisation"
         
         
-        
-        Mask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        Threshold=0 ;
+        Mask=CalcMeshMask(CtrlVar,MUA,F1.LSF,Threshold);
         BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];   % fix the LSF field for all nodes of elements around the level.
         BCs.LSFFixedValue=[BCs.LSFFixedValue ; F1.LSF(Mask.NodesOn) ];
         
         % After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
         % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
-        % xC=F1.x(Mask.NodesOn ) ; yC=F1.y(Mask.NodesOn ) ;
-        [F1.LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF);
-
+        
+        
+        
+        if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
+            xC=F1.x(Mask.NodesOn ) ; yC=F1.y(Mask.NodesOn) ;
+        else
+            CtrlVar.LineUpGLs=false ;
+            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F1.LSF,Threshold);
+        end
+        
+        
+        [F1.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xC,yC);
         F0.LSF=F1.LSF ;
         
         % Fixed-point solution
@@ -64,10 +78,11 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LSF.P=1 ;   % % P is the pertubation term
         CtrlVar.LSF.T=0 ;
         CtrlVar.LevelSetTheta=1;
-
-       
-        if ~RunInfo.LevelSet.SolverConverged 
-
+        [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+        F1.LSF=LSF ;
+        
+        
+        if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
 
             % If fixed-point solution did not converge, do a pseudo-forward time stepping
             CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
@@ -122,7 +137,10 @@ if ~RunInfo.LevelSet.SolverConverged
     fprintf('LevelSetEquation:  Returning last iterate.\n')
 end
 
+
+
 Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+
 
 
 if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots

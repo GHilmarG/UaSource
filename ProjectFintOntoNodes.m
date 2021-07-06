@@ -18,7 +18,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 %  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
 %
-% where exx, eyy, exy, e, are defined at intergration points gives
+% where exx, eyy, exy, e, are defined at integration points gives
 % corresponding fields defined at nodes.
 %
 % Note: This projection will not always preserve positivity! 

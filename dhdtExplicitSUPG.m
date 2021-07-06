@@ -13,7 +13,7 @@ function [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F,BCs)
 % Projects the values directly onto nodes.
 %
 % Uses SUPG, but very doubtfull that this SUPG treatment is required. In fact I'm not really solving for dhdt, 
-% I'm just evaluating the  spatial derivatives terms on the intergration points, and then projecting onto the nodes.
+% I'm just evaluating the  spatial derivatives terms on the integration points, and then projecting onto the nodes.
 %
 % see also : ProjectFintOntoNodes
 %
