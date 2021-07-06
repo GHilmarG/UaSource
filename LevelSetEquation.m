@@ -52,10 +52,11 @@ switch CtrlVar.LevelSetPhase
     case "Initialisation"
         
         
+        % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
         Threshold=0 ;
-        Mask=CalcMeshMask(CtrlVar,MUA,F1.LSF,Threshold);
+        Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
         BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];   % fix the LSF field for all nodes of elements around the level.
-        BCs.LSFFixedValue=[BCs.LSFFixedValue ; F1.LSF(Mask.NodesOn) ];
+        BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
         
         % After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
         % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
@@ -63,15 +64,15 @@ switch CtrlVar.LevelSetPhase
         
         
         if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
-            xC=F1.x(Mask.NodesOn ) ; yC=F1.y(Mask.NodesOn) ;
+            xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
         else
             CtrlVar.LineUpGLs=false ;
-            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F1.LSF,Threshold);
+            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
         end
         
         
-        [F1.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xC,yC);
-        F0.LSF=F1.LSF ;
+        [F0.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+        F1.LSF=F0.LSF ;
         
         % Fixed-point solution
         CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
