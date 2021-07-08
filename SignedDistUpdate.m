@@ -9,10 +9,16 @@ if numel(xc)>0
     Dist=pdist2([xc(:) yc(:)],MUA.coordinates,'euclidean','Smallest',1) ;
     Dist=Dist(:) ;
     
-    PM=sign(LSF) ;
+    if contains(CtrlVar.LevelSetTestString,"-xc sign-")
+        
+        PM=sign(mean(xc)-MUA.coordinates(:,1)) ; 
+        
+    else
+        PM=sign(LSF) ;
+        
+    end
+    
     LSF=PM.*Dist;
-    
-    
     
 else
     

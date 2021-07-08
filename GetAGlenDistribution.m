@@ -26,6 +26,11 @@ switch N
         
 end
 
+F.AGlenmax=CtrlVar.AGlenmax;
+F.AGlenmin=CtrlVar.AGlenmin;
+
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+
+
 
 end

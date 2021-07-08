@@ -46,10 +46,12 @@ function [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F)
             
     end
     
-    
+    F.Cmax=CtrlVar.Cmax;
+    F.Cmin=CtrlVar.Cmin;
     
     [F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
-    [F.C,iU,iL]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
+    
+  
     
     
 end
