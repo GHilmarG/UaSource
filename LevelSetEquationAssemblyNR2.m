@@ -76,17 +76,34 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         % Norm of gradient (NG)
         NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
-        
-        if any(NG0<eps) || any(NG1<eps)  
-            
-            error('sdaf')
-        end
-        
         n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
         n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
-  
-        cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;  
+        
+      % if gradient is very small, set normal to zero, and with it the cx and cy components
+        I0=NG0< eps^2 ;
+        I1=NG1< eps^2 ;
+        n1x(I1)=0 ; n1y(I1)=0;
+        n0x(I0)=0 ; n0y(I0)=0;
+
+        
+        cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
         cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
+        
+        %% limit cx-u and cy-v where it is suffiently far away from the zero level
+        
+        if contains(CtrlVar.LevelSetTestString,"-limit c-")
+           
+            I=abs(f0)>20e3 ; 
+            
+            UC=sqrt((u0int-cx0int).^2+(v0int-cy0int).^2);
+            UCmax=max(UC(~I)) ; 
+            UCtop=min(UC,UCmax) ;
+            F=UCtop./(UC+eps) ; % this is one where UC<UCmax
+            cx0int=cx0int.*F ; cy0int=cy0int.*F;
+            cx1int=cx1int.*F ; cy1int=cy1int.*F;
+        end
+        
+        %%
         
         tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
         

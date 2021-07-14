@@ -51,12 +51,15 @@ end
 switch CtrlVar.LevelSetPhase
     case "Initialisation"
         
-        
-        % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
         Threshold=0 ;
-        Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
-        BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];   % fix the LSF field for all nodes of elements around the level.
-        BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+        % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
+        % fix the LSF field for all nodes of elements around the level.
+        if CtrlVar.LSF.BCsZeroLevel
+            
+            Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
+            BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];
+            BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+        end
         
         % After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
         % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
@@ -71,8 +74,8 @@ switch CtrlVar.LevelSetPhase
         end
         
         
-        [F0.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
-        F1.LSF=F0.LSF ;
+       [F1.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+        %F1.LSF=F0.LSF ;
         
         % Fixed-point solution
         CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
@@ -110,8 +113,7 @@ switch CtrlVar.LevelSetPhase
             %%
         end
         
-        
-        
+      
         
     case "Propagation"
         CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
@@ -144,7 +146,7 @@ Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
 
 
 
-if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots
+if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
     
     F1.LSF=LSF ; % here needed for plotting
     [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);

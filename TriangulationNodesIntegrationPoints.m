@@ -1,5 +1,4 @@
-function [DTxy,tri,DTint,DTintTriInside,Xint,Yint,xint,yint,Iint]=...
-        TriangulationNodesIntegrationPoints(MUA)
+function [DTxy,tri,DTint,DTintTriInside,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA)
     
     
     % Triangulation which is needed for plotting and interpolation purposes
@@ -19,7 +18,8 @@ function [DTxy,tri,DTint,DTintTriInside,Xint,Yint,xint,yint,Iint]=...
     
     
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-    DTxy = DelaunayTri(x,y);
+    % DTxy = DelaunayTri(x,y);
+    DTxy = delaunayTriangulation(x,y);
     
     %ic=incenters(DTxy);
     %[cnNodes,on] = inpoly(ic,[x(BoundaryEdgeCornerNodes) y(BoundaryEdgeCornerNodes)]);
@@ -31,15 +31,16 @@ function [DTxy,tri,DTint,DTintTriInside,Xint,Yint,xint,yint,Iint]=...
     
     
     if nargout > 2
-        [xint,yint] = CalcIntegrationPointsCoordinates(MUA.coordinates,MUA.connectivity,MUA.nip);
+        [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
         
         % create vectors Xint and Yint of unique integration points and triangulise that set of points
         Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],'first','rows'); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
-        DTint = DelaunayTri(Xint,Yint);
+        %DTint = DelaunayTri(Xint,Yint);
+        DTint = delaunayTriangulation(Xint,Yint);
         
         % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
         ic=incenters(DTint);
-        [cnInt,on] = inpoly(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+        [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
         
         DTintTriInside=DTint.Triangulation(cnInt,:);
         

@@ -33,7 +33,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
-    if nargin==7 || isempty(l) 
+    if nargin==7 || isempty(l) || (numel(l)~=numel(Lrhs))
         l=Lrhs*0 ; 
     end
     dl=l*0 ;
@@ -125,7 +125,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
-        if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots==1
+        if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots==1
             nnn=30;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             Upper=2.2;

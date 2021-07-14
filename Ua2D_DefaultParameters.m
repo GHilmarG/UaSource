@@ -380,8 +380,8 @@ CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[Inf 1e-15];  % just use the force tolerance
-CtrlVar.LSFDesiredWorkOrForceTolerances=[Inf 1e-15];
+CtrlVar.LSFDesiredWorkAndForceTolerances=[Inf 1e-13];  % just use the force tolerance
+CtrlVar.LSFDesiredWorkOrForceTolerances=[Inf 1e-13];
 CtrlVar.LSFExitBackTrackingStepLength=1e-4;
 CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
 CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
