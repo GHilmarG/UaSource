@@ -91,17 +91,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         
         %% limit cx-u and cy-v where it is suffiently far away from the zero level
         
-        if contains(CtrlVar.LevelSetTestString,"-limit c-")
-           
-            I=abs(f0)>20e3 ; 
-            
-            UC=sqrt((u0int-cx0int).^2+(v0int-cy0int).^2);
-            UCmax=max(UC(~I)) ; 
-            UCtop=min(UC,UCmax) ;
-            F=UCtop./(UC+eps) ; % this is one where UC<UCmax
-            cx0int=cx0int.*F ; cy0int=cy0int.*F;
-            cx1int=cx1int.*F ; cy1int=cy1int.*F;
-        end
+   
         
         %%
         

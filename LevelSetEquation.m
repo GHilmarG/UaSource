@@ -51,10 +51,11 @@ end
 switch CtrlVar.LevelSetPhase
     case "Initialisation"
         
+        F0.LSF=F1.LSF ; 
         Threshold=0 ;
         % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
         % fix the LSF field for all nodes of elements around the level.
-        if CtrlVar.LSF.BCsZeroLevel
+        if CtrlVar.LSF.InitBCsZeroLevel
             
             Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
             BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];
@@ -74,8 +75,9 @@ switch CtrlVar.LevelSetPhase
         end
         
         
-       [F1.LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
-        %F1.LSF=F0.LSF ;
+        [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+        F0.LSF=LSF ;
+        F1.LSF=LSF ;
         
         % Fixed-point solution
         CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
@@ -84,7 +86,7 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LevelSetTheta=1;
         [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
         F1.LSF=LSF ;
-        
+        F0.LSF=F1.LSF ;
         
         if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
 
