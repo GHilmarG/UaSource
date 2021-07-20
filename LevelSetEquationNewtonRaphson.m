@@ -81,7 +81,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
         end
         
         
-        if RunInfo.BackTrack.Converged==0 || gamma<1e-10
+        if RunInfo.BackTrack.Converged==0 || gamma<CtrlVar.LSFExitBackTrackingStepLength 
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf('LevelSetEquationNewtonRaphson: Backtracking stagnated or step too small. Exiting after %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             end
@@ -118,10 +118,12 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
         
         slope0=-2*r0 ;
         
-        if CtrlVar.LevelSetInfoLevel>=100
-            CtrlVar.InfoLevelBackTrack=100 ;
+        if CtrlVar.LevelSetInfoLevel>=1000
+            CtrlVar.InfoLevelBackTrack=1000 ;
         end
         
+       
+        CtrlVar.BacktrackingGammaMin=CtrlVar.LSFExitBackTrackingStepLength; 
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         

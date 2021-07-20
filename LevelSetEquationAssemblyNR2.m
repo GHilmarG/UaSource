@@ -96,6 +96,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         %%
         
         tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
+        %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt); 
         
         % I need to think about a good def for mu
         %
@@ -131,9 +132,9 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
         
         for Inod=1:MUA.nod
             
-   
-            SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+          
+            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
             if nargout>2

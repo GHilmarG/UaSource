@@ -84,6 +84,7 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LSF.P=1 ;   % % P is the pertubation term
         CtrlVar.LSF.T=0 ;
         CtrlVar.LevelSetTheta=1;
+        
         [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
         F1.LSF=LSF ;
         F0.LSF=F1.LSF ;
