@@ -32,7 +32,8 @@
             </tocitem>
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
-                <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable</tocitem>
+                <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable (plan-view) </tocitem>
+                <tocitem target="PlotMeshScalarVariableAsSurface.html">Plot scalar variable as a 3D surface</tocitem>
                 <tocitem target="QuiverColorGHG.html">QuiverColorGHG</tocitem>
                 <tocitem target="PlotTensor.html">Plot tensor quantity such as strain rates</tocitem>
                 <tocitem target="PlotMuaBoundary.html">Plot MUA boundary</tocitem>

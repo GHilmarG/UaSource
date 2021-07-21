@@ -1,6 +1,24 @@
 function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,AspectRatio,Col)
 
-
+%%
+%
+% Plot a scalar nodal variable as a 3D surface.
+%
+%   PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,AspectRatio,Col)
+%
+%
+% Note: The triangulation used when plotting will only be identical to the FE triangulation for
+% 3-node elements.
+%
+% Example:
+%
+%    load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+%    Fig=FindOrCreateFigure("PIG-TWG Surface") ;
+%    CtrlVar=CtrlVarInRestartFile ;
+%    AspectRatio=50 ; 
+%    PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
+%    colormap(othercolor('Blues4',1024));
+%
 %
 %
 %  To change the colormap use for example:   
@@ -9,6 +27,16 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %   colormap(othercolor('BuOr_12',1024));
 %
 %
+% An example of how to specify  the colormap
+%
+%   Col=copper(numel(Variable));      
+%   ColorIndex=Variable2ColorIndex(Variable);
+%   Col(:,:)=Col(ColorIndex,:);
+%
+% And then give this as the input variable Col in the call.
+%%
+
+
 
 if nargin<5
     Col=[];
@@ -21,17 +49,6 @@ end
 TRI=TriFE(MUA.connectivity);
 x=MUA.coordinates(:,1) ;
 y=MUA.coordinates(:,2) ;
-
-
-% An example of how to change the colormap
-% if ~isempty(Variable)
-%     if isempty(Col)
-%         Col=copper(numel(Variable));
-%         ColorIndex=Variable2ColorIndex(Variable);
-%         Col(:,:)=Col(ColorIndex,:);
-%     end
-% end
-
 
 if isempty(Col)
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;

@@ -73,6 +73,10 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MU
             df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
         end
         
+        
+        
+        
+        
         % Norm of gradient (NG)
         NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
         NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
