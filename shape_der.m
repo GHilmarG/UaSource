@@ -67,25 +67,36 @@ switch ndim
         e2m1=two*eta-one;
         switch nod
             case 3
+                % N1=x ; N2=1-x-y ; N3=y ;  (local coordinates)
                 der(1,1)=one;
-                der(1,3)=zero;
                 der(1,2)=-one;
+                der(1,3)=zero;
+                
                 der(2,1)=zero;
-                der(2,3)=one;
                 der(2,2)=-one;
+                der(2,3)=one;
+                
             case 6
+                
+                % N1= (2 x-1) x  = 2 x^2 -x 
+                % N2=4 (1-x-y) x
+                %
+                %
+                %
                 der(1,1)=d4*c1-one ;
-                der(1,6)=d4*c2;
-                der(1,5)=zero  ;
-                der(1,4)=-d4*c2;
-                der(1,3)=-(d4*c3-one);
                 der(1,2)=d4*(c3-c1);
+                der(1,3)=-(d4*c3-one);
+                der(1,4)=-d4*c2;
+                der(1,5)=zero  ;
+                der(1,6)=d4*c2;
+                
                 der(2,1)=zero;
-                der(2,6)=d4*c1 ;
-                der(2,5)=d4*c2-one;
-                der(2,4)=d4*(c3-c2);
-                der(2,3)=-(d4*c3-one)  ;
                 der(2,2)=-d4*c1;
+                der(2,3)=-(d4*c3-one)  ;
+                der(2,4)=d4*(c3-c2);
+                der(2,5)=d4*c2-one;
+                der(2,6)=d4*c1 ;
+                
             case 10
                 der(1,1)=(d27*c1.^2-d18*c1+two)/two;
                 der(1,9)=(d9*(d6*c1-one)*c2)/two;

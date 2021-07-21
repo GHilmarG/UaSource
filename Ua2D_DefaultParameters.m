@@ -1912,9 +1912,9 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 %% Internal variables 
 %%
-CtrlVar.DevelopmentVersion=true;  % Internal variable, always set to 0 
+CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DevelopmentTestingQuadRules=true;  % Internal variable, always set to 0 
+CtrlVar.DevelopmentTestingQuadRules=false;  % Internal variable, always set to 0 
 
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
