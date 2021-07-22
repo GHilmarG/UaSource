@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcVAF</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-29"><meta name="DC.source" content="CalcVAF.m"><style type="text/css">
+      --><title>CalcVAF</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-30"><meta name="DC.source" content="CalcVAF.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -81,9 +81,9 @@ FindOrCreateFigure(<span class="string">"VAF"</span>) ;
 axis <span class="string">tight</span>
 hold <span class="string">on</span> ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
 hold <span class="string">on</span> ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],<span class="string">'r'</span>);
+xlabel(<span class="string">"xps (km)"</span>) ; ylabel(<span class="string">"yps (km)"</span>) ; title(cbar,<span class="string">"(m)"</span>) ; title(<span class="string">"ice thickness above flotation"</span>)
 fprintf(<span class="string">"VAF=%f (Gt/yr)\n"</span>,VAF.Total/1e9)   ;
 fprintf(<span class="string">"GroundedArea=%-7.2f (times the area of iceland)\n"</span>,GroundedArea.Total/1e6/103e3) ;
-xlabel(<span class="string">"xps (km)"</span>) ; ylabel(<span class="string">"yps (km)"</span>) ; title(cbar,<span class="string">"(m)"</span>) ; title(<span class="string">"ice thickness above flotation"</span>)
 </pre><pre class="codeinput">narginchk(7,8)
 nargoutchk(1,5)
 
@@ -101,6 +101,7 @@ nargoutchk(1,5)
 <span class="comment">% or simply:</span>
 hfPos=(S&gt;B).*rhow.*(S-B)./rho ;            <span class="comment">% (positive) flotation thickness</span>
 hAF= (h&gt;hfPos).*(h-hfPos) ;                <span class="comment">% (positive) ice thickness above floatation</span>
+
 
 
 VAF.node=hAF.*rho./rhow ;               <span class="comment">% thickness above flotation in water eq.</span>
@@ -148,9 +149,9 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   axis tight
 %   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
 %   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
+%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
 %   fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
 %   fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
-%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
 %%
 
 narginchk(7,8)
@@ -170,6 +171,7 @@ nargoutchk(1,5)
 % or simply:
 hfPos=(S>B).*rhow.*(S-B)./rho ;            % (positive) flotation thickness
 hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floatation
+
 
 
 VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq.
