@@ -65,7 +65,7 @@
                 <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
                 <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
                 <tocitem target="CalcMuaFieldsContourLine.html">Calculates one single contour line of a given field over the (irregular) mesh </tocitem>
-                <tocitem target="HelmholtzEquation.html">Solves the Helmholz equation of the MUA mesh. Can also be used for smoothing. </tocitem>
+                <tocitem target="HelmholtzEquation.html">Solves the Helmholz equation over the MUA mesh. Can also be used for smoothing. </tocitem>
                 <tocitem target="FluxAcrossGroundingLine.html">Calculates flux across grounding lines. </tocitem>
                 <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
                 <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
