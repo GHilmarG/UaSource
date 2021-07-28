@@ -44,7 +44,7 @@ documentation system where Úa appears as a separate toolbox.
 
 If you want to be able to run Úa from another folder than just the
 installation folder (a good idea) then you need to add the source
-folder to the MATPLAB path. You can, for example, set the path as:
+folder to the MATLAB path. You can, for example, set the path as:
 
 ```
      addpath(genpath('MyUaSourceFileFolder'))
@@ -74,11 +74,11 @@ particular example of a model setup.
 
 
 **Note:** Úa uses the mesh generator 'mesh2d' and no further steps are
-  required if you just want to use that mesh generator. Howerver, one
+  required if you just want to use that mesh generator. However, one
   can optionally also use the well-known mesh generator
-  [Gmsh](http://gmsh.info//) which then must be installed separately. 
+  [Gmsh](http://gmsh.info) which then must be installed separately. 
 
-**Cloning from GitHub** There are many different ways of
+**Cloning from GitHub:** There are many different ways of
 copying/cloning a repository from GitHub. You can for example download
 it as zip file.  While not strictly necessary, it is presumably best
 to have git installed locally. You can install git from:
@@ -176,13 +176,7 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
 ([ÚaMIT](https://github.com/knaughten/UaMITgcm)) and a plume model (
 [ÚaPICO](https://github.com/shrrosier/PICO_Ua)).
 
-
-
 ![](AntarcticaMesh.png)
-
-
-
-
 
 [Hilmar Gudmundsson](mailto:hilmar.gudmundsson@northumbria.ac.uk)
 
