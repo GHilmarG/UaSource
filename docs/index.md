@@ -67,10 +67,11 @@ only be used with toolboxes such as the Optimisation and the Machine
 Learning toolboxes.
 
 
-To set up your own runs you should also download the Examples which
-are in a separate repository.  Download this into another folder, and
-then you will have several different subfolders, each containing a
-particular example of a model setup.
+To set up your own runs you should also download the
+[Examples](https://github.com/GHilmarG/UaExamples) which are in a
+separate repository.  Download this into another folder, and then you
+will have several different subfolders, each containing a particular
+example of a model setup.
 
 
 **Note:** Úa uses the mesh generator 'mesh2d' and no further steps are
