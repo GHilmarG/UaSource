@@ -20,11 +20,11 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 %
 % $$  a ( f - \tilde{f} ) - \nabla \cdot (b \nabla (f-\tilde{f})) = 0 $$
 %
-% where $\tilde{f}$ is a given function
+% where  $c= -a \tilde{f}$ and $d= -b \tilde{f}$, and $\tilde{f}$ is a given function
 %
 % Examples:  
 %
-% Smooth a give field over a FE mesh:
+% Smooth a given field over a FE mesh:
 %
 %    load('PIG-TWG-RestartFile.mat') ; CtrlVar=CtrlVarInRestartFile;
 %    L=1e3 ;  % Smoothing length scale 
