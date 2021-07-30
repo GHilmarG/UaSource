@@ -38,6 +38,10 @@ function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,L
 %   
 %       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,1000,true);
 %
+%
+% NOTE: The BEDMACHINE data compilation assumes ocean density of 1027 kg/m^3. So you MUST set 
+%       rhow=1027 in your own user input DefineDensity.m or DefineGeometryAndDensities.m m-files.
+%
 %% 
 
 
