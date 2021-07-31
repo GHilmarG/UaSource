@@ -9,7 +9,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionLevelSetEquation(Us
     F1.LSF=F1.LSF+gamma*dLSF;
     l=l+gamma*dl;
     
-    [UserVar,R]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+    [UserVar,R]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,F1.LSFqx,F1.LSFqy);
     
     
     if ~isempty(L)

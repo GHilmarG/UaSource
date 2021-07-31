@@ -173,9 +173,10 @@ Most m-files that are part of the Úa program have some inbuilt help text, for e
 ## Ice-Ocean coupling 
 
 
-Úa has been coupled with MITgcm
-([ÚaMIT](https://github.com/knaughten/UaMITgcm)) and a plume model (
-[ÚaPICO](https://github.com/shrrosier/PICO_Ua)).
+Úa has been coupled with the ocean circulation model MITgcm
+([ÚaMIT](https://github.com/knaughten/UaMITgcm)), an ocean plume model
+([ÚaPICO](https://github.com/shrrosier/PICO_Ua)), and the ocean circulation model Fesom
+([ÚaFesom](https://github.com/kuechenrole/ua-fesom/tree/master)).
 
 ![](AntarcticaMesh.png)
 

@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
     %%
     %
     %
@@ -8,6 +8,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     %
     
     narginchk(7,8)
+    nargoutchk(6,6)
     
     persistent iCalls
     
@@ -43,7 +44,9 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     % make sure initial point is feasable
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
     F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
-        
+    
+    LSF1qx=F1.LSFqx;
+    LSF1qy=F1.LSFqy;
     
     
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
@@ -91,7 +94,7 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
         
         iteration=iteration+1 ;
         
-        [UserVar,R,K,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb);
+        [UserVar,R,K,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,LSF1qx,LSF1qy);
         if ~isempty(L)
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
@@ -105,6 +108,14 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
         
         [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
         dLSF=full(dLSF);
+        
+        if ~isempty(Qx)
+            LSF1qx=MUA.dM\Qx ;
+            LSF1qy=MUA.dM\Qy ;
+            Residual=MUA.dM\Rv ;
+        else
+            LSF1qx=[] ; LSF1qy=[] ; Residual=[] ;
+        end
         
         if any(isnan(dLSF))
             save TestSave
@@ -175,6 +186,25 @@ function [UserVar,RunInfo,LSF1,l,R,Tv,Lv,Pv]=LevelSetEquationNewtonRaphson(UserV
     end
     
     LSF1=F1.LSF ; % Because I don't return F1
+    
+    RunInfo.LevelSet.iCount=RunInfo.LevelSet.iCount+1;
+    
+    if numel(RunInfo.LevelSet.time) < RunInfo.LevelSet.iCount
+       RunInfo.LevelSet.time=[RunInfo.LevelSet.time;RunInfo.LevelSet.time+NaN];
+       RunInfo.LevelSet.Iterations=[RunInfo.LevelSet.Iterations;RunInfo.LevelSet.Iterations+NaN];
+       RunInfo.LevelSet.Residual=[RunInfo.LevelSet.Residual;RunInfo.LevelSet.Residual+NaN];
+       RunInfo.LevelSet.BackTrackSteps=[RunInfo.LevelSet.BackTrackSteps;RunInfo.LevelSet.BackTrackSteps+NaN];
+       RunInfo.LevelSet.Phase=[RunInfo.LevelSet.Phase;strings(size(RunInfo.LevelSet.Phase))]; 
+    end
+    
+    
+    
+    RunInfo.LevelSet.time(RunInfo.LevelSet.iCount)=CtrlVar.time;   
+    RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount)=iteration ; 
+    RunInfo.LevelSet.Residual(RunInfo.LevelSet.iCount)=r;
+    RunInfo.LevelSet.BackTrackSteps( RunInfo.LevelSet.iCount)=BackTrackInfo.iarm ; 
+    RunInfo.LevelSet.Phase(RunInfo.LevelSet.iCount)=CtrlVar.LevelSetPhase;
+    
     
    
 %     if CtrlVar.LevelSetInfoLevel>=1  && CtrlVar.LevelSetInfoLevel<10

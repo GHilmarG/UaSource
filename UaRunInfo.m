@@ -68,17 +68,19 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.AdaptiveTimeSteppingResetCounter=0;
             obj.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
             
+           
             obj.BackTrack.Converged=NaN;
             obj.BackTrack.iarm=0;
             obj.BackTrack.Infovector=NaN;
             obj.BackTrack.nFuncEval=NaN;
             obj.BackTrack.nExtrapolationSteps=NaN;
             
-            
-            obj.LevelSet.SolverConverged=0;
-            obj.LevelSet.Iterations=NaN;
-            obj.LevelSet.rForce=NaN;
-            obj.LevelSet.rWork=NaN;
+            obj.LevelSet.iCount=0; 
+            obj.LevelSet.time=zeros(N,1)+NaN;
+            obj.LevelSet.Iterations=zeros(N,1)+NaN;
+            obj.LevelSet.Residual=zeros(N,1)+NaN;
+            obj.LevelSet.BackTrackSteps=zeros(N,1)+NaN;
+            obj.LevelSet.Phase=strings(N,1);
             
             obj.CPU.Total=0;
             obj.CPU.Assembly.uv=0;

@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -7,7 +7,7 @@ function [UserVar,RunInfo,LSF,Mask,l]=LevelSetEquation(UserVar,RunInfo,CtrlVar,M
 %
 
 narginchk(7,8)
-nargoutchk(4,5)
+nargoutchk(7,7)
 
 
 persistent LastResetTime 
@@ -85,9 +85,7 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LSF.T=0 ;
         CtrlVar.LevelSetTheta=1;
         
-        [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-        F1.LSF=LSF ;
-        F0.LSF=F1.LSF ;
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
         
         if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
 
@@ -95,13 +93,13 @@ switch CtrlVar.LevelSetPhase
             CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
             CtrlVar.LevelSetTheta=1;
             N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
-            
+            F1.LSF=LSF ; F0.LSF=LSF ;
             Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
             while true
                 N=N+1;
                 F0.LSF=F1.LSF ;
                 CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
-                [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+                [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 F1.LSF=LSF;
                 
                 dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
@@ -128,7 +126,7 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LSF.L=1 ;
         CtrlVar.LSF.P=1 ;
         CtrlVar.LSF.T=1 ;
-        [UserVar,RunInfo,LSF,l]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     otherwise
         error('safd')
 end

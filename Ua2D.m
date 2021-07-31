@@ -19,7 +19,7 @@ SetUaPath() %%
 
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
-
+warning('off','MATLAB:decomposition:SaveNotSupported')
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;

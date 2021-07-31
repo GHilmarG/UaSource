@@ -1,7 +1,7 @@
-function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx1,qy1)
+function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
     
   
-    narginchk(11,11)
+    narginchk(15,53)
     
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
@@ -24,6 +24,9 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
+    qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
     qx1nod=reshape(qx1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
     
@@ -72,11 +75,12 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
         c0int=c0nod*fun;
         c1int=c1nod*fun;
         
-       
+        
         
         % derivatives at one integration point for all elements
         df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
         df1dx=zeros(MUA.Nele,1); df1dy=zeros(MUA.Nele,1);
+        dqx0dx=zeros(MUA.Nele,1); dqy0dy=zeros(MUA.Nele,1);
         dqx1dx=zeros(MUA.Nele,1); dqy1dy=zeros(MUA.Nele,1);
         
         for Inod=1:MUA.nod
@@ -88,10 +92,11 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
             df1dx=df1dx+Deriv(:,1,Inod).*f1nod(:,Inod);
             df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
             
+            dqx0dx=dqx1dx+Deriv(:,1,Inod).*qx0nod(:,Inod);
+            dqy0dy=dqy1dy+Deriv(:,2,Inod).*qy0nod(:,Inod);
+            
             dqx1dx=dqx1dx+Deriv(:,1,Inod).*qx1nod(:,Inod);
             dqy1dy=dqy1dy+Deriv(:,2,Inod).*qy1nod(:,Inod);
-            
-            
         end
         
         
@@ -156,9 +161,8 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
 
         
         for Inod=1:MUA.nod
-            
           
-            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+            
             SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
@@ -185,21 +189,22 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
                         - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                
-                    dResidual=fun(Jnod) ...
-                        + NR*dt*theta*(u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))... 
                     
-                    
-                    
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs;
+                     PGlhs = isT*fun(Jnod) + ...
+                         +isL*dt*theta*((u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod));
+                     PGlhs=SUPGdetJw.*PGlhs; 
+                     % The dqx1dx and dqy1dy terms are calcualted from the
+                     % previous interative solution, and therefore do not
+                     % depend on phi at this iteration step
+                                        
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+PGlhs;
                     
                 end
             end
 
-            % Note, I solve: 
-            %         
-            %   LSH  \phi  = - RHS
-            %
-            
+            % Note, I solve: LSH  \phi  = - RHS
+
+            %% Galerkin
             % (time derivative)
             Trhs=(f1int-f0int).*fun(Inod).*detJw ; 
 
@@ -208,32 +213,33 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
                 +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*fun(Inod).*detJw ...
                 + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*fun(Inod).*detJw ; 
 
- 
-            
             % Pertubation term (diffusion)
             Prhs=...
-                       dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
-                 + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
-             
-             
-             Residual=(f1int-f0int)+...
-                 + dt*  theta   * ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy)....
-                 + dt*(1-theta) * ((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy)...
-                 - dt*  theta   * (dqx1dx+ dqy1dy)...
-                 - dt*(1-theta) * (dqx0dx+ dqy0dy) ; 
-             
-             
-            ResidualSUPGweighted=Residual.*SUPGdetJw; 
+                dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
+                + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
+            
+
+            %% Petrov
+            ResidualStrong=isT*(f1int-f0int)+...
+                + isL*dt*  theta   * ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy)....
+                + isL*dt*(1-theta) * ((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy)...
+                - isP*dt*  theta   * (dqx1dx+ dqy1dy)...
+                - isP*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
+
+            
+            ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw; 
+            %%
+            
             % qx= kappaint0.*df0dx ; 
             % qu= kappaint0.*df0dy) ; 
-            qx1(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ; 
-            qy1(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ; 
+            qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ; 
+            qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ; 
              
             PG(:,Inod)=PG(:,Inod)+Prhs; 
             LG(:,Inod)=LG(:,Inod)+Lrhs; 
             TG(:,Inod)=TG(:,Inod)+Trhs; 
-            R(:,Inod)=R(:,Inod)+Residual; 
-            RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualSUPGweighted; 
+            R(:,Inod)=R(:,Inod)+ResidualStrong;
+            RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted; 
             
             
         end
@@ -257,7 +263,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy]=LevelSetEquationAssemblyNR2consistent(Us
         Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
     end
     
-    rh=isL*Lv+isP*Pv+isT*Tv; 
+    rh=isL*Lv+isP*Pv+isT*Tv+RSUPGv; 
     
     if nargout>2
         Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
