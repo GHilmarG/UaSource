@@ -69,8 +69,7 @@ switch CtrlVar.LevelSetPhase
             CtrlVar.LineUpGLs=false ;
             [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
         end
-        
-        
+
         
         [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
         F0.LSF=LSF ;
