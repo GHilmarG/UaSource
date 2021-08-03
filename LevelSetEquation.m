@@ -82,6 +82,8 @@ switch CtrlVar.LevelSetPhase
         CtrlVar.LSF.T=0 ;
         CtrlVar.LevelSetTheta=1;
         
+        
+        
         [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
         
         if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
