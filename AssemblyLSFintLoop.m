@@ -76,20 +76,8 @@ n0x(I0)=0 ; n0y(I0)=0;
 cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
 cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
 
-%% limit cx-u and cy-v where it is suffiently far away from the zero level
-
-
-
-%%
 
 tauSUPGint=CalcSUPGtau(CtrlVar,EleAreas,u0int-cx0int,v0int-cy0int,dt);
-%tauSUPGint=1; % testing
-%tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt);
-
-% I need to think about a good def for mu
-%
-% Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
-%
 
 
 switch lower(CtrlVar.LevelSetFABmu.Scale)
@@ -186,10 +174,7 @@ for Inod=1:nod
     
     
     ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
-    %%
-    
-    % qx= kappaint0.*df0dx ;
-    % qu= kappaint0.*df0dy) ;
+  
     qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ;
     qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ;
     

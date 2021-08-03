@@ -4,13 +4,13 @@ function [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,C
 %
 %    df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
 %
+%    df/dt + (u-cx) df/dx + (v-cy) df/dy - div (kappa grad f) = 0
+%
 %
 
 narginchk(7,8)
 nargoutchk(7,7)
 
-
-persistent LastResetTime 
 
 if ~CtrlVar.DevelopmentVersion
     
@@ -30,7 +30,6 @@ end
 if nargin<8 
     l=[];
 end
-    
 
 
 if CtrlVar.CalvingLaw=="-No Ice Shelves-"
@@ -43,9 +42,6 @@ if CtrlVar.CalvingLaw=="-No Ice Shelves-"
     return
 end
 
-if isempty(LastResetTime)
-    LastResetTime=0 ;
-end
 
 
 switch CtrlVar.LevelSetPhase
@@ -90,6 +86,10 @@ switch CtrlVar.LevelSetPhase
         if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
 
             % If fixed-point solution did not converge, do a pseudo-forward time stepping
+            %
+            % But, the fix-point approach works fine and I don't think this
+            % is ever needed, keep it in here just in case.
+            %
             CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
             CtrlVar.LevelSetTheta=1;
             N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))

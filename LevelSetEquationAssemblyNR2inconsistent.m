@@ -96,19 +96,8 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
         cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
         cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
         
-        %% limit cx-u and cy-v where it is suffiently far away from the zero level
-        
-   
-        
-        %%
-        
+                
         tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt); 
-        %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt); 
-        
-        % I need to think about a good def for mu
-        %
-        % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
-        %
         
         
         switch CtrlVar.LevelSetFABmu.Scale
