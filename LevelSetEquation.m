@@ -55,7 +55,7 @@ switch CtrlVar.LevelSetPhase
         Threshold=0 ;
         % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
         % fix the LSF field for all nodes of elements around the level.
-        if CtrlVar.LSF.InitBCsZeroLevel
+        if CtrlVar.LSFInitBCsZeroLevel
             
             Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
             BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];

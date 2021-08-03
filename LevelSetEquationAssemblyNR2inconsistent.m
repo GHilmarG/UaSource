@@ -102,7 +102,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
         
         %%
         
-        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
+        tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt); 
         %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt); 
         
         % I need to think about a good def for mu
@@ -139,10 +139,8 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
         
         for Inod=1:MUA.nod
             
-          
-            %SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-            SUPGdetJw=SUPG.*detJw;
+            SUPGdetJw=SUPG.*detJw*isL; % if there is no advection term, set to zero, ie use Galerkin weighting
             
             if nout>2
                 for Jnod=1:MUA.nod

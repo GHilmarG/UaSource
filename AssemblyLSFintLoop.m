@@ -82,8 +82,8 @@ cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
 
 %%
 
-tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt);
-tauSUPGint=1; % testing
+tauSUPGint=CalcSUPGtau(CtrlVar,EleAreas,u0int-cx0int,v0int-cy0int,dt);
+%tauSUPGint=1; % testing
 %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt);
 
 % I need to think about a good def for mu
@@ -122,7 +122,7 @@ for Inod=1:nod
     
     
     SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-    SUPGdetJw=SUPG.*detJw;
+    SUPGdetJw=SUPG.*detJw*isL;
     
     if nargout>2
         for Jnod=1:nod

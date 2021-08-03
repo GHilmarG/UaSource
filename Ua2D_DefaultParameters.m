@@ -386,6 +386,7 @@ CtrlVar.LSFExitBackTrackingStepLength=1e-4;
 CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
 CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
 
+CtrlVar.LSFInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
 
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.

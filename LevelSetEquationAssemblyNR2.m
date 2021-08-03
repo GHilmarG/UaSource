@@ -21,16 +21,25 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,C
                 [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
             end
             
-             CtrlVar.Parallel.isTest=true; 
+            
             if CtrlVar.Parallel.isTest
+                % This is here to test the parfor option
+                % Generally, using the parfor option slows things down,
+                % often massivly so. For large problems, a slight gain can
+                % be achieved. Clearly something is not optimal...
                 tic;
-                [UserVar,rhT,kvT,TvT,LvT,PvT,QxT,QyT,RvT]=LevelSetEquationAssemblyNR2consistentParfor(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
-                tSeq=toc;
+                for K=1:1
+                    [UserVar,rhT,kvT,TvT,LvT,PvT,QxT,QyT,RvT]=LevelSetEquationAssemblyNR2consistentParfor(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
+                    
+                end
+                tPar=toc;
                 
                 tic;
-                [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
-                tPar=toc;
-               
+                for K=1:1
+                    [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1);
+                end
+                tSeq=toc;
+                
                 fprintf("Testing: norm(full(rh-rhT))=%g \n ",norm(full(rh-rhT))/norm(rh))
                 fprintf("Testing: norm(full(diag(kv)-diag(kvT)))=%g \n ",norm(diag(kv)-diag(kvT))/norm(diag(kv)))
                 
