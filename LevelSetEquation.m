@@ -71,7 +71,6 @@ switch CtrlVar.LevelSetPhase
         end
 
         
-        
         [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
         F0.LSF=LSF ;
         F1.LSF=LSF ;
