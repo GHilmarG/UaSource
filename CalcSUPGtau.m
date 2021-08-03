@@ -1,4 +1,4 @@
-function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
+function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,EleAreas,u,v,dt,MUA)
 
 
 %
@@ -6,10 +6,19 @@ function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
 %
 % Area=l^2/2 -> l=sqrt( 2 Area) 
 
-l=sqrt(2*MUA.EleAreas) ;
-if numel(u)==MUA.Nnodes  % this could be called over nodes or elements (i.e. integration points)
-    M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-    l=M*l;
+narginchk(5,6)
+
+if nargin==5
+    MUA=[];
+end
+
+
+if numel(u)~=numel(EleAreas)  % this could be called over nodes or elements (i.e. integration points)
+    error('afsd')
+    M=Ele2Nodes(MUA.connectivity,MUA.Nnodes);  % this is for a call over nodes, try to get rid of this use 
+    l=M*sqrt(2*EleAreas) ;
+else
+    l=sqrt(2*EleAreas) ;
 end
 
 speed=sqrt(u.*u+v.*v);
@@ -54,7 +63,7 @@ switch CtrlVar.Tracer.SUPG.tau
 end
 
 
-if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter
+if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
     figure
     subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
     subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')

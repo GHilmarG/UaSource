@@ -49,12 +49,6 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
     end
     
     
-    
-    
-    
-    
-    
-    
     % vector over all elements for each  integration point
     for Iint=1:MUA.nip  %Integration points
         
@@ -125,7 +119,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
         
         %%
         
-        tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int-cx0int,v0int-cy0int,dt); 
+        tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt); 
         %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt); 
         
         % I need to think about a good def for mu
@@ -134,7 +128,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
         %
         
         
-        switch CtrlVar.LevelSetFABmu.Scale
+        switch lower(CtrlVar.LevelSetFABmu.Scale)
             
             case "constant"
                 Scale=1 ;

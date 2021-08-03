@@ -3,6 +3,9 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
   
     narginchk(11,11)
     
+    nout=nargout; 
+    
+    
     ndim=2; dof=1; neq=dof*MUA.Nnodes;
     
     theta=CtrlVar.LevelSetTheta;
@@ -141,7 +144,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv]=LevelSetEquationAssemblyNR2inconsistent(UserVa
             SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
             SUPGdetJw=SUPG.*detJw;
             
-            if nargout>2
+            if nout>2
                 for Jnod=1:MUA.nod
                     
                     
