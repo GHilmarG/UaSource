@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -11,6 +11,12 @@ function [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,C
 narginchk(7,8)
 nargoutchk(7,7)
 
+
+persistent nCallCounter
+
+if isempty(nCallCounter)
+    nCallCounter=0;
+end
 
 if ~CtrlVar.DevelopmentVersion
     
@@ -27,7 +33,7 @@ if ~CtrlVar.LevelSetMethod
     return
 end
 
-if nargin<8 
+if nargin<8
     l=[];
 end
 
@@ -42,95 +48,114 @@ if CtrlVar.CalvingLaw=="-No Ice Shelves-"
     return
 end
 
-
-
-switch CtrlVar.LevelSetPhase
-    case "Initialisation"
+if isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
+    % So the Level Set Phase was not prescribed in the call, 
+    if  mod(nCallCounter,CtrlVar.LevelSetInitialisationInterval)==0
+        CtrlVar.LevelSetPhase="Initialisation and Propagation and FAB" ;
+    else
+        CtrlVar.LevelSetPhase="Propagation and FAB" ;
+    end
+    
+end
+%% Initialisation phase
+if  contains(CtrlVar.LevelSetPhase,"Initialisation")
+    
+    
+    F0.LSF=F1.LSF ;  % update F0
+    Threshold=0 ;    % Level Set value
+    % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
+    % fix the LSF field for all nodes of elements around the level.
+    if CtrlVar.LSFInitBCsZeroLevel
+        % Use BCs to fix the level set over all elements that the level
+        % goes through. This ensures that the level can not shift during
+        % initialisation.
+        Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
+        BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];  % add the nodes of the "On" elements, ie all elements containing the zero level
+        BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+    end
+    
+    %% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
+    % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
+    % This will in most cases not be needed, but
+    
+    if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
+        xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
+    else
+        CtrlVar.LineUpGLs=false ;
+        [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+    end
+    
+    
+    [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+    F0.LSF=LSF ;
+    F1.LSF=LSF ;
+    %%
+    
+    
+    %% Now use the Fixed-point approach. That is, solve the level-set equation using only the non-linear FAB diffusion term
+    CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
+    CtrlVar.LSF.P=1 ;   % P is the pertubation term (i.e. the FAB term)
+    CtrlVar.LSF.T=0 ;
+    CtrlVar.LevelSetTheta=1;  % Here use backward Euler to ensure that the final level set is not affected by the initial guess
+    
+    [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    F1.LSF=LSF ; F1.LSFqx=LSFqx; F1.LSFqy=LSFqy;
+    F0.LSF=LSF ; F0.LSFqx=LSFqx; F0.LSFqy=LSFqy;
+    
+    
+    if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
         
-        F0.LSF=F1.LSF ; 
-        Threshold=0 ;
-        % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
-        % fix the LSF field for all nodes of elements around the level.
-        if CtrlVar.LSFInitBCsZeroLevel
-            
-            Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
-            BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];
-            BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
-        end
-        
-        % After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
-        % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
-        
-        
-        
-        if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
-            xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
-        else
-            CtrlVar.LineUpGLs=false ;
-            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
-        end
-
-        
-        [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
-        F0.LSF=LSF ;
-        F1.LSF=LSF ;
-        
-        % Fixed-point solution
-        CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
-        CtrlVar.LSF.P=1 ;   % % P is the pertubation term
-        CtrlVar.LSF.T=0 ;
+        % If fixed-point solution did not converge, do a pseudo-forward time stepping
+        %
+        % But, the fix-point approach works fine and I don't think this
+        % is ever needed, keep it in here just in case.
+        %
+        CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
         CtrlVar.LevelSetTheta=1;
-        
-        
-        
-        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-        
-        if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
-
-            % If fixed-point solution did not converge, do a pseudo-forward time stepping
-            %
-            % But, the fix-point approach works fine and I don't think this
-            % is ever needed, keep it in here just in case.
-            %
-            CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
-            CtrlVar.LevelSetTheta=1;
-            N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
-            F1.LSF=LSF ; F0.LSF=LSF ;
-            Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
-            while true
-                N=N+1;
-                F0.LSF=F1.LSF ;
-                CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
-                [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-                F1.LSF=LSF;
-                
-                dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
-                fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
-                
-                if dlsf < tol || N>Nmax
-                    break
-                end
-                
+        N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+        F1.LSF=LSF ; F0.LSF=LSF ;
+        Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
+        while true
+            N=N+1;
+            F0.LSF=F1.LSF ;
+            CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
+            [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+            F1.LSF=LSF;
+            
+            dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
+            fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+            
+            if dlsf < tol || N>Nmax
+                break
             end
-            CtrlVar.dt=dtOld;
-            %%
+            
         end
+        CtrlVar.dt=dtOld;
+        F1.LSF=LSF ; F0.LSF=LSF ;
+        %%
+    end
+    
+end
+
+%% Propagation phase, with or without FAB
+if contains(CtrlVar.LevelSetPhase,"Propagation")
+    
+    CtrlVar.LevelSetTheta=0.5;
+    
+    if contains(CtrlVar.LevelSetPhase,"Propagation and FAB")
         
-      
-        
-    case "Propagation"
-        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
-        CtrlVar.LSF.P=0 ;
-        CtrlVar.LSF.T=1 ;
-        CtrlVar.LevelSetTheta=0.5;
-    case "Propagation and FAB"
-        CtrlVar.LevelSetTheta=0.5;
         CtrlVar.LSF.L=1 ;
         CtrlVar.LSF.P=1 ;
         CtrlVar.LSF.T=1 ;
-        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-    otherwise
-        error('safd')
+    else % Propagation only
+        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
+        CtrlVar.LSF.P=0 ;
+        CtrlVar.LSF.T=1 ;
+        
+    end
+    
+    [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    
 end
 
 

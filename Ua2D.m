@@ -14,7 +14,6 @@ end
 
 
 
-
 SetUaPath() %% 
 
 
@@ -642,7 +641,7 @@ while 1
         
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
-            [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            [UserVar,RunInfo,F.LSF,F.LSFMask,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
         end
     end   % CtrlVar.TimeDependentRun
     
