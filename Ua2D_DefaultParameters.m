@@ -386,7 +386,7 @@ CtrlVar.LSFExitBackTrackingStepLength=1e-4;
 CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
 CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
 
-CtrlVar.LSFInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
+
 
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
@@ -1460,8 +1460,8 @@ CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
-
-
+CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
+CtrlVar.LevelSetAssembly="consistent" ;
 CtrlVar.LevelSetInfoLevel=1;
 
 CtrlVar.CalvingLaw="-User Defined-"; 

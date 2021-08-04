@@ -48,7 +48,7 @@ if CtrlVar.CalvingLaw=="-No Ice Shelves-"
     return
 end
 
-if isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
+if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
     % So the Level Set Phase was not prescribed in the call, 
     if  mod(nCallCounter,CtrlVar.LevelSetInitialisationInterval)==0
         CtrlVar.LevelSetPhase="Initialisation and Propagation and FAB" ;
@@ -65,7 +65,7 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     Threshold=0 ;    % Level Set value
     % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
     % fix the LSF field for all nodes of elements around the level.
-    if CtrlVar.LSFInitBCsZeroLevel
+    if CtrlVar.LevelSetInitBCsZeroLevel
         % Use BCs to fix the level set over all elements that the level
         % goes through. This ensures that the level can not shift during
         % initialisation.
@@ -78,7 +78,7 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
     % This will in most cases not be needed, but
     
-    if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
+    if  isfield(CtrlVar,'CtrlVar.LevelSetTestString') &&  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
         xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
     else
         CtrlVar.LineUpGLs=false ;
