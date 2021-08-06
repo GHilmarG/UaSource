@@ -27,11 +27,6 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     iCalls=iCalls+1;
     
     
-    
-    if ~isfield(CtrlVar,'LevelSetReinitializeTimeInterval') || isempty(CtrlVar.LevelSetReinitializeTimeInterval)
-        CtrlVar.LevelSetResetInterval=inf;
-    end
-    
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
     if nargin==7 || isempty(l) || (numel(l)~=numel(Lrhs))
@@ -45,32 +40,67 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
     F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
     
+    if isempty(F1.LSFqx) || numel(F1.LSFqx)~=MUA.Nnodes
+        F1.LSFqx=zeros(MUA.Nnodes,1);
+        F1.LSFqy=zeros(MUA.Nnodes,1);
+    end
+    
+    if isempty(F0.LSFqx)  || numel(F0.LSFqx)~=MUA.Nnodes
+        F0.LSFqx=zeros(MUA.Nnodes,1);
+        F0.LSFqy=zeros(MUA.Nnodes,1);
+    end
+    
+    
     LSF1qx=F1.LSFqx;
     LSF1qy=F1.LSFqy;
     
     
-    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; 
+    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
     RunInfo.LevelSet.SolverConverged=false;
     
     while true
-     
         
-        if gamma > max(CtrlVar.LSFExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
+        
+        % exit criterion
+        % First check if iteration>1, and backstep small and rRatio
+        % small. There could be a good reason for this. For example we have
+        % already reached the NR minimum and no further reduction is
+        % possible due to rounding effect or becuase the cost function is
+        % scaled in some ways that make further reduction irrelevant for
+        % the solution.
+        
+        
+        if rRatio<0.8
+            
+            ResidualsCriteria=false; % If there was a significant reduction in last iteration, do continue.
+            
+        elseif iteration>1 ...
+                && (gamma < max(CtrlVar.LSFExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin) ...
+                || rRatio>0.99)
+            
+            % This exist criterion applies if in last iteration either
+            % backstep or the reduction was very small. This indicates
+            % difficulties with convergence, but this might simply be
+            % due to rounding errors making a further reduction
+            % impossible.
             
             ResidualsCriteria=(rWork<CtrlVar.LSFDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFDesiredWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.LSFDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFDesiredWorkOrForceTolerances(2))...
                 && iteration >= CtrlVar.NRitmin;
             
+            
         else
-            % gamma very small
+            
+            % This is the otherwise default exit criterion
             ResidualsCriteria=(rWork<CtrlVar.LSFAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.LSFAcceptableWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.LSFAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.LSFAcceptableWorkOrForceTolerances(2))...
                 && iteration >= CtrlVar.NRitmin;
             
+            
         end
         
-           
-        if iteration>=CtrlVar.LevelSetSolverMaxIterations && (r/r0>0.9) 
+        
+        if iteration>=CtrlVar.LevelSetSolverMaxIterations && (rRatio>0.9) 
             fprintf('LevelSetEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.LevelSetSolverMaxIterations)
             RunInfo.LevelSet.SolverConverged=false;
             break
@@ -110,6 +140,11 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         dLSF=full(dLSF);
         
         if ~isempty(Qx)
+            
+            if ~isfield(MUA,'dM')
+                MUA.dM=decomposition(MUA.M,'chol','upper') ;
+            end
+            
             LSF1qx=MUA.dM\Qx ;
             LSF1qy=MUA.dM\Qy ;
             Residual=MUA.dM\Rv ;
@@ -144,6 +179,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
             Upper=2.2;
             Lower=-0.5 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
+            parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
             parfor I=1:nnn
                 gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
@@ -171,16 +207,19 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         end
         
         
-                
+        
         F1.LSF=F1.LSF+gamma*dLSF;
         l=l+gamma*dl;
-       
+        
+        rRatio=r/r0; 
         if CtrlVar.LevelSetInfoLevel>=1
             if ~isempty(L)
                 BCsError=norm(Lrhs-L*F1.LSF);
             end
-            fprintf(CtrlVar.fidlog,'Level-Set:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
-                iteration,BackTrackInfo.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+           
+            fprintf(CtrlVar.fidlog,'Level-Set(TLP/%i%i%i):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
+                 CtrlVar.LSF.T,CtrlVar.LSF.L,CtrlVar.LSF.P,...
+                iteration,BackTrackInfo.iarm,gamma,rRatio,r0,r,rForce,rWork,BCsError);
         end
         
     end

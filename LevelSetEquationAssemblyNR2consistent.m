@@ -23,6 +23,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
     
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
     
     qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -136,10 +137,10 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
                 Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
             otherwise
                 
-                error(adsf')
+                error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
         end
         
-        mu=Scale*CtrlVar.LevelSetFABmu.Value;  % This had the dimention l^2/t
+        mu=Scale*CtrlVar.LevelSetFABmu.Value;  % This has the dimention l^2/t
         
         
         [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
@@ -153,12 +154,12 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
             error("LevelSetEquationAssemblyNR2:notfinite","n0x, n1x kappa not finite")
         end
 
-        
+        isPG=isL ; 
         for Inod=1:MUA.nod
           
             
             SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-            SUPGdetJw=SUPG.*detJw*isL ; % if there is no advection term, set to zero, ie use Galerkin weighting
+            SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
             
             if nargout>2
                 for Jnod=1:MUA.nod
@@ -180,18 +181,18 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
                     % Pertubation term (diffusion) 
                     Plhs=dt*theta*...
                         +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
-                        - NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
+                        -NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
                         .*detJw;
                
                     
                      PGlhs = isT*fun(Jnod) + ...
                          +isL*dt*theta*((u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod));
                      PGlhs=SUPGdetJw.*PGlhs; 
-                     % The dqx1dx and dqy1dy terms are calcualted from the
+                     % The dqx1dx and dqy1dy terms are calculated from the
                      % previous interative solution, and therefore do not
                      % depend on phi at this iteration step
                                         
-                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+PGlhs;
+                    d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+isPG*PGlhs;
                     
                 end
             end
@@ -257,7 +258,7 @@ function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistent
         Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
     end
     
-    rh=isL*Lv+isP*Pv+isT*Tv+RSUPGv; 
+    rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv; 
     
     if nargout>2
         Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);

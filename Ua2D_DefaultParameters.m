@@ -380,9 +380,9 @@ CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[Inf 1e-13];  % just use the force tolerance
-CtrlVar.LSFDesiredWorkOrForceTolerances=[Inf 1e-13];
-CtrlVar.LSFExitBackTrackingStepLength=1e-4;
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-10]; 
+CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-13];
+CtrlVar.LSFExitBackTrackingStepLength=1e-3;
 CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
 CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
 
@@ -1188,7 +1188,7 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=false ;
+CtrlVar.MUA.DecomposeMassMatrix=true ;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1453,8 +1453,12 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 
+CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=1e7 ; CtrlVar.LevelSetFABmu.Scale="constant"; 
+CtrlVar.LevelSetFABmu.Value=1 ; 
+CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
+
+ CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;

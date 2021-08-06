@@ -55,13 +55,13 @@ if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || Ctr
     else
         CtrlVar.LevelSetPhase="Propagation and FAB" ;
     end
-    
+    nCallCounter=nCallCounter+1; 
 end
 %% Initialisation phase
 if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     
-    
-    F0.LSF=F1.LSF ;  % update F0
+    % Don't redefine F0.LSF as F1.LSF, doing so would push the solution back in tiem
+    F1.LSF=F0.LSF ;  
     Threshold=0 ;    % Level Set value
     % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
     % fix the LSF field for all nodes of elements around the level.
@@ -70,8 +70,12 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
         % goes through. This ensures that the level can not shift during
         % initialisation.
         Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
-        BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];  % add the nodes of the "On" elements, ie all elements containing the zero level
-        BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+        
+        LSFFixedNodeUnmodified=BCs.LSFFixedNode ;
+        LSFFixedValueUnmodified=BCs.LSFFixedValue ;
+        
+        BCs.LSFFixedNode= [LSFFixedNodeUnmodified ; find(Mask.NodesOn)];  % add the nodes of the "On" elements, ie all elements containing the zero level
+        BCs.LSFFixedValue=[LSFFixedValueUnmodified ; F0.LSF(Mask.NodesOn) ];
     end
     
     %% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
@@ -85,7 +89,9 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
         [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
     end
     
-    
+    % It should be OK to do this with LSF at both 0 and 1 as I have already
+    % found the location of the level set for F0 and this will be enforced
+    % throught the BCs.
     [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
     F0.LSF=LSF ;
     F1.LSF=LSF ;
@@ -98,6 +104,8 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     CtrlVar.LSF.T=0 ;
     CtrlVar.LevelSetTheta=1;  % Here use backward Euler to ensure that the final level set is not affected by the initial guess
     
+    % This step does not advance the solution forward in time, just solves
+    % the diffusion term
     [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     F1.LSF=LSF ; F1.LSFqx=LSFqx; F1.LSFqy=LSFqy;
     F0.LSF=LSF ; F0.LSFqx=LSFqx; F0.LSFqy=LSFqy;
@@ -134,7 +142,8 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
         F1.LSF=LSF ; F0.LSF=LSF ;
         %%
     end
-    
+    BCs.LSFFixedNode=LSFFixedNodeUnmodified;
+    BCs.LSFFixedValue=LSFFixedValueUnmodified;
 end
 
 %% Propagation phase, with or without FAB
@@ -159,7 +168,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
 end
 
 
-
+% figure ; yyaxis left ; plot(F1.x,LSF,'.c') ; hold on ; plot(F1.x,F1.LSF,'ob') ; yyaxis right ; plot(F1.x,F1.LSF-LSF,'.r')
 
 if ~RunInfo.LevelSet.SolverConverged
     % oops
