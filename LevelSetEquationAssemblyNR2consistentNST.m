@@ -114,8 +114,8 @@ for Iint=1:MUA.nip  %Integration points
     n0x(I0)=0 ; n0y(I0)=0;
     
     
-    cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
-    cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
+    cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
+    cx0int=c0int.*n0x ; cy0int=c0int.*n0y;
     
     %% limit cx-u and cy-v where it is suffiently far away from the zero level
     
