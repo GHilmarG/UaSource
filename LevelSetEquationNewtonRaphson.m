@@ -70,7 +70,10 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         % the solution.
         
         
-        if rRatio<0.8
+        if rRatio<0.01 && rWork>1e-20 % OK I'm hardwiring in here an option of addional iteration
+                                      % The argument being that we might most likely still be in the second-order convergence
+                                      % and not limited by numerical rounding errors. (Consider taking this out once
+                                      % all is fine.)
             
             ResidualsCriteria=false; % If there was a significant reduction in last iteration, do continue.
             
