@@ -19,6 +19,7 @@ SetUaPath() %%
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
+warning('off','MATLAB:decomposition:genericError')
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
 %% initialize some variables
 RunInfo=UaRunInfo; 

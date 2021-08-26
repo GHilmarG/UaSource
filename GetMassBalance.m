@@ -4,20 +4,43 @@ narginchk(4,4)
 nargoutchk(2,2)
 
 
+InputFile="DefineMassBalance.m" ;
+TestIfInputFileInWorkingDirectory(InputFile) ;
+
+
 N=nargout('DefineMassBalance');
 
 switch N
-         
+    
     case 3
         
-        [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+        
+        if nargin("DefineInitialInputs.m")>4
+            
+            [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+            
+        else
+            
+            [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F);
+            
+        end
+        
+        
         F.dasdh=F.as*0 ;  F.dabdh=F.ab*0 ;
-         
+        
     case 5
         
-        [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+        if nargin("DefineInitialInputs.m")>4
+            
+            [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+            
+        else
+            
+            [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
+            
+        end
         
-    otherwise 
+    otherwise
         
         fprintf('DefineMassBalance must return either 3 or 5 outputs\n')
         fprintf('The outputs must be either: \n')

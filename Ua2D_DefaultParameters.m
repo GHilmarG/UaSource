@@ -1441,8 +1441,8 @@ CtrlVar.LevelSetMethod=0;
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
-CtrlVar.LevelSetMethodSourceTermFomulation=0;
 
+CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
@@ -1467,6 +1467,7 @@ CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
 CtrlVar.LevelSetAssembly="consistent" ;
+CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
 
 CtrlVar.CalvingLaw="-User Defined-"; 
