@@ -4,8 +4,7 @@ narginchk(4,4)
 nargoutchk(2,2)
 
 
-InputFile="DefineMassBalance.m" ;
-TestIfInputFileInWorkingDirectory(InputFile) ;
+InputFile="DefineMassBalance.m" ; TestIfInputFileInWorkingDirectory(InputFile) ;
 
 
 N=nargout('DefineMassBalance');
