@@ -115,14 +115,12 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
         
         % If fixed-point solution did not converge, do a pseudo-forward time stepping
         %
-        % But, the fix-point approach works fine and I don't think this
-        % is ever needed, keep it in here just in case.
         %
-        CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
+        CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;  % Pseudo-forward, using T and P term (no time update and backward Euler)
         CtrlVar.LevelSetTheta=1;
         N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
         F1.LSF=LSF ; F0.LSF=LSF ;
-        Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
+        Nmax=20; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
         while true
             N=N+1;
             F0.LSF=F1.LSF ;
@@ -164,6 +162,35 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
     end
     
     [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    
+    if ~RunInfo.LevelSet.SolverConverged
+        
+        % save TestSaveLSE
+        
+        % OK so this did not converge...
+        % This appears often to simply be an issue of a too large time step, so try reducing it before giving up...
+        
+        N=10;
+        dtOld=CtrlVar.dt ;
+        CtrlVar.dt=dtOld/N ;
+        
+        F1.LSF=F0.LSF;
+        for I=1:N
+            
+            F0.LSF=F1.LSF ;
+            [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt ;
+            
+            F1.LSF=LSF;
+            
+        end
+        
+        CtrlVar.dt=dtOld ;
+        
+        
+        
+    end
+    
     
 end
 

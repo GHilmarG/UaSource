@@ -259,10 +259,11 @@ for Iint=1:MUA.nip  %Integration points
        
         
         %% Petrov
+        isC=0;
         ResidualStrong=isT*TR+...
             + isL*LR ... 
-            - isP*dt*  theta   * (dqx1dx+ dqy1dy)...
-            - isP*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
+            - isP*isC*dt*  theta   * (dqx1dx+ dqy1dy)...
+            - isP*isC*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
         
         
         ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;

@@ -144,7 +144,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         
         if ~isempty(Qx)
             
-            if ~isfield(MUA,'dM')
+            if ~isfield(MUA,'dM') || isempty(MUA.dM) 
                 MUA.dM=decomposition(MUA.M,'chol','upper') ;
             end
             
@@ -175,6 +175,12 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         CtrlVar.BacktrackingGammaMin=CtrlVar.LSFExitBackTrackingStepLength; 
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
+        
+        
+        % Testing
+        if gamma<1e-5 
+           fprintf(" hm \n ") 
+        end
         
         if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots==1
             nnn=30;
