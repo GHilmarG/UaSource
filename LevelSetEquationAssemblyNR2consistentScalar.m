@@ -1,10 +1,11 @@
-function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+function [UserVar,rh,kv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
 
 %% Level Set Equation with a source term
 %
 % $$ \partial \varphi/\partial t + v \cdot \nabla \varphi - \nabla \cdot (\kappa \nabla \varphi ) + c \| \nabla \varphi \| = 0$$
 %
 narginchk(15,53)
+nargoutchk(2,6)
 
 nOut=nargout;
 
@@ -14,7 +15,10 @@ theta=CtrlVar.LevelSetTheta;
 dt=CtrlVar.dt;
 CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
 
-isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
+isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ; isC=CtrlVar.LSF.C; 
+isPG=isL ;
+
+
 
 f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -39,14 +43,9 @@ qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
 %b1=zeros(MUA.Nele,MUA.nod);
-TG=zeros(MUA.Nele,MUA.nod);
-PG=zeros(MUA.Nele,MUA.nod);
-LG=zeros(MUA.Nele,MUA.nod);
-R=zeros(MUA.Nele,MUA.nod);
-RSUPG=zeros(MUA.Nele,MUA.nod);
 qx=zeros(MUA.Nele,MUA.nod);
 qy=zeros(MUA.Nele,MUA.nod);
-
+RTest=zeros(MUA.Nele,MUA.nod);
 
 if CtrlVar.LevelSetSolutionMethod=="Newton Raphson"
     NR=1;
@@ -175,8 +174,8 @@ for Iint=1:MUA.nip  %Integration points
         error("LevelSetEquationAssemblyNR2:notfinite","n0x, n1x kappa not finite")
     end
     
-    isPG=isL ;
-    %isPG=0 ; % checking
+    
+    
     
     
     nod=MUA.nod ; 
@@ -186,16 +185,14 @@ for Iint=1:MUA.nip  %Integration points
         
         %SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
         SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-        SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
+        %SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
         
         if nOut>2
             for Jnod=1:nod
                 
                 
                 TL=fun(Jnod);
-                %Tlhs=TL.*fun(Inod).*detJw;
-                
-                
+
                 n1xDeriv1Jnod=n1x.*Deriv(:,1,Jnod);
                 n1yDeriv2Jnod=n1y.*Deriv(:,2,Jnod);
                 
@@ -205,31 +202,19 @@ for Iint=1:MUA.nip  %Integration points
                     -c1int.*(n1xDeriv1Jnod + n1yDeriv2Jnod)...
                     );
                 
-                %Llhs=LL.*fun(Inod).*detJw;
-                
-                
                 % Pertubation term (diffusion)
-                %Plhs=dt*theta*...
-                %    +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
-                %    -NR*dkappa.*(n1xDeriv1Jnod+n1yDeriv2Jnod).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
-                %    .*detJw;
                 
-                Plhs2=dt*theta*...
+                Plhs=dt*theta*...
                     +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
                     -NR*dkappa.*(n1xDeriv1Jnod+n1yDeriv2Jnod).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)));
+
                 
+                AddUp=((isT*TL+isL*LL).*(fun(Inod)+isPG.*SUPG)+isP*Plhs).*detJw ;
+
                 
-                %PGlhs = isT*TL +isL*LL;
-                %PGlhs=SUPGdetJw.*PGlhs;
-                
-                AddUp=((isT*TL+isL*LL).*(fun(Inod)+isPG.*SUPG)+isP*Plhs2).*detJw ;
-                %Test2=isL*Llhs+isP*Plhs+isT*Tlhs+isPG*PGlhs;
-                %norm(AddUp-Test2)
                 % The dqx1dx and dqy1dy terms are calculated from the
                 % previous interative solution, and therefore do not
                 % depend on phi at this iteration step
-                
-                %d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+isPG*PGlhs;
                 
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+AddUp;
                 
@@ -241,7 +226,7 @@ for Iint=1:MUA.nip  %Integration points
         %% Galerkin
         % (time derivative)
         TR=f1int-f0int;
-        Trhs=TR.*fun(Inod).*detJw ;
+        %Trhs=TR.*fun(Inod).*detJw ;
         
         % (advection+source term)
         LR= dt*(...
@@ -249,24 +234,19 @@ for Iint=1:MUA.nip  %Integration points
             + (1-theta)*(u0int.*df0dx +v0int.*df0dy)...
             + theta*c1int.*NG1+(1-theta)*c0int.*NG0...
             );
-        Lrhs=LR.*fun(Inod).*detJw ;
+        %Lrhs=LR.*fun(Inod).*detJw ;
         
         % Pertubation term (diffusion)
         Prhs=...
-            dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
-            + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
+            dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))...
+            + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod));
         
-       
+        % Second-order from of the diffusion term
+        D2=...
+            - dt*  theta   * (dqx1dx+ dqy1dy)...
+            - dt*(1-theta) * (dqx0dx+ dqy0dy) ;
         
-        %% Petrov
-        isC=0;
-        ResidualStrong=isT*TR+...
-            + isL*LR ... 
-            - isP*isC*dt*  theta   * (dqx1dx+ dqy1dy)...
-            - isP*isC*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
-        
-        
-        ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
+%        ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
         %%
         
         % qx= kappaint0.*df0dx ;
@@ -274,35 +254,43 @@ for Iint=1:MUA.nip  %Integration points
         qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ;
         qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ;
         
-        PG(:,Inod)=PG(:,Inod)+Prhs;
-        LG(:,Inod)=LG(:,Inod)+Lrhs;
-        TG(:,Inod)=TG(:,Inod)+Trhs;
-        R(:,Inod)=R(:,Inod)+ResidualStrong;
-        RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted;
+        %PG(:,Inod)=PG(:,Inod)+Prhs.*detJw;
+        %LG(:,Inod)=LG(:,Inod)+Lrhs;
+        %TG(:,Inod)=TG(:,Inod)+Trhs;
+        %R(:,Inod)=R(:,Inod)+ResidualStrong;
+ %       RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted;
+        
+        RTest(:,Inod)=RTest(:,Inod)+((isT*TR+isL*LR ).*(fun(Inod)+isPG*SUPG)+isP*(Prhs+isC*D2)).*detJw; 
         
         
     end
 end
 
-Pv=sparseUA(neq,1);
-Lv=sparseUA(neq,1);
-Tv=sparseUA(neq,1);
+%Pv=sparseUA(neq,1);
+%Lv=sparseUA(neq,1);
+%Tv=sparseUA(neq,1);
 Qx=sparseUA(neq,1);
 Qy=sparseUA(neq,1);
 Rv=sparseUA(neq,1);
-RSUPGv=sparseUA(neq,1);
+%RSUPGv=sparseUA(neq,1);
+
+Rh=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
-    Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
-    Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
-    Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
-    Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
-    RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
+    %Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
+    %Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
+    %Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
+    %Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
+    %RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
     Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
     Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+    Rh=Rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RTest(:,Inod),neq,1);
 end
 
-rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
+% rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
+% norm(rh-Rh)/norm(rh);
+rh=Rh; 
+
 
 if nargout>2
     Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);

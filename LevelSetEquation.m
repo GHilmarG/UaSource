@@ -49,19 +49,19 @@ if CtrlVar.CalvingLaw=="-No Ice Shelves-"
 end
 
 if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
-    % So the Level Set Phase was not prescribed in the call, 
+    % So the Level Set Phase was not prescribed in the call,
     if  mod(nCallCounter,CtrlVar.LevelSetInitialisationInterval)==0
         CtrlVar.LevelSetPhase="Initialisation and Propagation and FAB" ;
     else
         CtrlVar.LevelSetPhase="Propagation and FAB" ;
     end
-    nCallCounter=nCallCounter+1; 
+    nCallCounter=nCallCounter+1;
 end
 %% Initialisation phase
 if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     
     % Don't redefine F0.LSF as F1.LSF, doing so would push the solution back in tiem
-    F1.LSF=F0.LSF ;  
+    F1.LSF=F0.LSF ;
     Threshold=0 ;    % Level Set value
     % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
     % fix the LSF field for all nodes of elements around the level.
@@ -112,36 +112,48 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     
     
     if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
+
         
         % If fixed-point solution did not converge, do a pseudo-forward time stepping
         %
         %
         CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;  % Pseudo-forward, using T and P term (no time update and backward Euler)
         CtrlVar.LevelSetTheta=1;
-        N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+        N=0;
+        
         F1.LSF=LSF ; F0.LSF=LSF ;
-        Nmax=20; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
+        Nmax=200;  dtOld=CtrlVar.dt ; dtFactor=2;
         while true
             N=N+1;
             F0.LSF=F1.LSF ;
-            CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
+            
+            
+            
             [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
             F1.LSF=LSF;
             
-            dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
-            fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+            dtBefore=CtrlVar.dt;
+            dtNew=CtrlVar.dt*dtFactor ;
+            CtrlVar.dt=min(dtNew,1000*dtOld);
             
-            if dlsf < tol || N>Nmax
+            dLSFdtMax=max(F1.LSF-F0.LSF)/CtrlVar.dt ;
+            
+            
+            if N>5 && dLSFdtMax < CtrlVar.LevelSetPseudoForwardTolerance
                 break
             end
             
+            if N>Nmax
+                fprintf("Level set solver did not converge despite repeated atempts. \n")
+                fprintf("Returning last iterate. Level-set solution might be inaccurate. \n")
+                break
+            end
+            fprintf("time=%f \t dtNew=%g \t dtBefore=%g \t dt=%f \n",CtrlVar.time,dtNew,dtBefore,CtrlVar.dt)
+          
         end
-        CtrlVar.dt=dtOld;
-        F1.LSF=LSF ; F0.LSF=LSF ;
-        %%
+        BCs.LSFFixedNode=LSFFixedNodeUnmodified;
+        BCs.LSFFixedValue=LSFFixedValueUnmodified;
     end
-    BCs.LSFFixedNode=LSFFixedNodeUnmodified;
-    BCs.LSFFixedValue=LSFFixedValueUnmodified;
 end
 
 %% Propagation phase, with or without FAB
@@ -161,36 +173,83 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
         
     end
     
-    [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     
-    if ~RunInfo.LevelSet.SolverConverged
+    dtOriginal=CtrlVar.dt ;  tEnd=CtrlVar.time+CtrlVar.dt ;
+    dtFactor=2; NitDesired=4;  Ntries=0 ;  NtriesMax=20;
+    
+    
+    
+    
+    while true
         
-        % save TestSaveLSE
         
-        % OK so this did not converge...
-        % This appears often to simply be an issue of a too large time step, so try reducing it before giving up...
+        [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
         
-        N=10;
-        dtOld=CtrlVar.dt ;
-        CtrlVar.dt=dtOld/N ;
-        
-        F1.LSF=F0.LSF;
-        for I=1:N
+        if RunInfo.LevelSet.SolverConverged
             
-            F0.LSF=F1.LSF ;
-            [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt ;
+            % OK, it converged, advance solution, update time
             
-            F1.LSF=LSF;
+            F1.LSF=LSF;                              % updating solution
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt ;   % advancing time
+            
+            if CtrlVar.time >= tEnd
+                % end of time step reached, break out of loop
+                break
+            end
+        
+            F0.LSF=LSF ;  % because I will now be doing another sub-forward step
+            
+            % OK, the step converged but end time of the current time step has not yet been reached (this will happen if previously the
+            % time step needed to be reduced due to loss of convergence).
+            % Now selecting a new time step based on numer of NR iterations
+            dtBefore=CtrlVar.dt;
+            dtNew=CtrlVar.dt*(NitDesired/RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount));
+            CtrlVar.dt=max(min(dtBefore*dtFactor,dtNew),dtBefore/dtFactor);
+            
+            if (CtrlVar.time+CtrlVar.dt) > tEnd  % don't overstep
+                CtrlVar.dt=tEnd-CtrlVar.time;
+            end
+            
+            
+            
+        else
+            
+            Ntries=Ntries+1;
+            
+            if Ntries>NtriesMax
+                
+                fprintf("Level set solver did not converge despite repeated atempts. \n")
+                fprintf("Returning last iterate. Level-set solution might be inaccurate. \n")
+                break
+                
+            elseif Ntries==1
+                
+                % before reducing time step, first try backward Euler
+                CtrlVar.LevelSetTheta=1;
+                dtBefore=CtrlVar.dt;
+                dtNew=CtrlVar.dt ;
+                
+                
+            else
+                % oops, did not converge, so decrease time step and do not advance solution or time,
+                % and try again.
+                CtrlVar.LevelSetTheta=1;  % Backward Euler
+                dtBefore=CtrlVar.dt;
+                dtNew=dtBefore/10 ;
+                CtrlVar.dt=dtNew;
+                fprintf("Level set solver did not converge. Reducing time step and attempting solve again. \n")
+                
+            end
             
         end
         
-        CtrlVar.dt=dtOld ;
-        
+        fprintf("time=%f \t tEnd=%f \t dtNew=%g \t dtOld=%g \t dt=%g  \n",CtrlVar.time,tEnd,dtNew,dtBefore,CtrlVar.dt)
         
         
     end
     
+    CtrlVar.dt=dtOriginal ;
+    fprintf("LSF: time=%f \t tEnd=%f  \t dt=%g  \n",CtrlVar.time,tEnd,CtrlVar.dt)
     
 end
 
