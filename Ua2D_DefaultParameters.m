@@ -380,11 +380,11 @@ CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-10]; 
-CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-13];
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-15]; 
+CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-15];
 CtrlVar.LSFExitBackTrackingStepLength=1e-3;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[Inf 1e-10];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-10];
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[1e-10 1e-12];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
@@ -1464,6 +1464,8 @@ CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
+% CtrlVar.LevelSetReinitialize=
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
 CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)
