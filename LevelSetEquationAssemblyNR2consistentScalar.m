@@ -16,8 +16,12 @@ dt=CtrlVar.dt;
 CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
 
 isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ; isC=CtrlVar.LSF.C; 
-isPG=isL ;
 
+if  ~isfield(CtrlVar.LSF,"PG") ||  isnan(CtrlVar.LSF.PG)
+    isPG=isL ;
+else
+    isPG=CtrlVar.LSF.PG;
+end
 
 
 f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -114,7 +118,7 @@ for Iint=1:MUA.nip  %Integration points
     %n1x(I1)=0 ; n1y(I1)=0;
     n0x(I0)=0 ; n0y(I0)=0;
     
-    
+ 
     %cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
     
@@ -134,7 +138,7 @@ for Iint=1:MUA.nip  %Integration points
     %%
     
     tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
-    %tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
+    % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
     
     
     % I need to think about a good def for mu
@@ -183,8 +187,8 @@ for Iint=1:MUA.nip  %Integration points
     for Inod=1:MUA.nod
         
         
-        %SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+         SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+        % SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
         %SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
         
         if nOut>2
