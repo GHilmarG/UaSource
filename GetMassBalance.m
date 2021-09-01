@@ -7,14 +7,16 @@ nargoutchk(2,2)
 InputFile="DefineMassBalance.m" ; TestIfInputFileInWorkingDirectory(InputFile) ;
 
 
+
 N=nargout('DefineMassBalance');
+NargInputFile=nargin(InputFile);
 
 switch N
     
     case 3
         
         
-        if nargin("DefineInitialInputs.m")>4
+        if NargInputFile>4
             
             [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
             
@@ -29,7 +31,7 @@ switch N
         
     case 5
         
-        if nargin("DefineInitialInputs.m")>4
+        if NargInputFile>4
             
             [UserVar,F.as,F.ab,F.dasdh,F.dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
             

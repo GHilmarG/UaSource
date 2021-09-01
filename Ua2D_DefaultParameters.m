@@ -523,7 +523,9 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % integration points improves convergence of the Newton-Raphson iteration.
 
 CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-
+CtrlVar.QuadRules2021=false ; % Use the new quad rules implemented in 2021
+                             % This option allows for greater flexibility in selecting quad points.
+                             
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
 % Generally the higher the number, the more information is given.
@@ -532,7 +534,7 @@ CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
-
+ 
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
@@ -1928,8 +1930,6 @@ CtrlVar.MapOldToNew.Test=false;   %
 %%
 CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DevelopmentTestingQuadRules=false;  % Internal variable, always set to 0 
-
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change

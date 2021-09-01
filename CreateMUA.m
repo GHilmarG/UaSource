@@ -27,8 +27,9 @@ MUA.Nnodes=size(MUA.coordinates,1);
 MUA.Nele=size(MUA.connectivity,1);
 MUA.nod=size(MUA.connectivity,2);
 
-if CtrlVar.DevelopmentTestingQuadRules
-    
+if CtrlVar.QuadRules2021
+    % This uses the new quad rules implemented in 2021
+    % The old onews are there for comparision and compatability
     Degree=QuadratureRuleDegree(CtrlVar);
     Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
     MUA.nip=size(Q.Points,1);
