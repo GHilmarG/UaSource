@@ -1,0 +1,257 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>PlotMeshScalarVariable</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-06"><meta name="DC.source" content="PlotMeshScalarVariable.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
+</pre><p>Plots a scalar variable over the mesh domain as a patch (see help patch)</p><p>PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)</p><p>variable can be either nodal, element variable (i.e. single value per element) or an integration-point variable.</p><p>If variable is empty, nothing is plotted and no warning given.</p><p>If 'Variable' not empty, but is not nodal, element or integration-point variable, I complain a bit.</p><p>vararing is passed on to the patch command</p><p><b>Examples:</b></p><p>Plot element sizes</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title(<span class="string">'Element sizes'</span>)
+</pre><p>Plot a nodal variable (here as an example, the x coordinates of the nodes)</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+x=MUA.coordinates(:,1);
+figure ; PlotMeshScalarVariable([],MUA,x) ;
+</pre><p>Plot the floating mask:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
+x=MUA.coordinates(:,1);
+figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title(<span class="string">'The nodal floating mask (floating=0, grounded=1)'</span>)
+</pre><pre class="codeinput"><span class="keyword">persistent</span> NodTri EleTri Nele Nnodes nod DTintTriInside DTint
+
+<span class="keyword">if</span> islogical(Variable)
+
+    Variable=double(Variable);
+
+<span class="keyword">end</span>
+
+
+[N,M]=size(Variable);
+
+<span class="keyword">if</span> N==MUA.Nnodes &amp;&amp; M==1   <span class="comment">% nodal variable</span>
+
+    <span class="keyword">if</span> isempty(NodTri) || isempty(Nnodes)
+        NodTri=MUA.connectivity;
+    <span class="keyword">elseif</span> MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+        NodTri=MUA.connectivity;
+    <span class="keyword">end</span>
+
+    [FigHandle,ColorbarHandle,NodTri]=PlotNodalBasedQuantities(NodTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
+
+<span class="keyword">elseif</span> N==MUA.Nele &amp;&amp; M==1 <span class="comment">% element variable</span>
+
+    <span class="keyword">if</span> isempty(EleTri) || isempty(Nele)
+        EleTri=MUA.connectivity;
+    <span class="keyword">elseif</span> MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+        EleTri=MUA.connectivity;
+    <span class="keyword">end</span>
+
+    [FigHandle,ColorbarHandle,EleTri]=PlotElementBasedQuantities(EleTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
+
+<span class="keyword">elseif</span> N==MUA.Nele &amp;&amp; M==MUA.nip <span class="comment">% integration-point  variable</span>
+
+
+    <span class="comment">% This case is slighly more complicated, because the set of integration point can have duplicates if integration points fall on the</span>
+    <span class="comment">% element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.</span>
+
+    <span class="keyword">if</span> isempty(DTint) || isempty(Nele) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+
+        x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+        [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
+
+        <span class="comment">% create vectors Xint and Yint of unique integration points and triangulise that set of points</span>
+        Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],<span class="string">'first'</span>,<span class="string">'rows'</span>); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
+        DTint = delaunayTriangulation(Xint,Yint);
+
+        <span class="comment">% get rid of triangles outside of the polygon define by MeshBoundaryCoordinates</span>
+        ic=incenter(DTint);
+        [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+        DTintTriInside=DTint.ConnectivityList(cnInt,:);
+
+    <span class="keyword">end</span>
+
+    [FigHandle,ColorbarHandle]=PlotIntegrationPointBasedQuantities(CtrlVar,DTintTriInside,DTint.Points,Variable,varargin{:}) ;
+
+
+
+<span class="keyword">elseif</span> ~isempty(Variable)
+
+    fprintf(<span class="string">'PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n'</span>)
+    warning(<span class="string">'Ua:PlotMeshScalarVariable:Inconsistentdimensions'</span>,<span class="string">'Inconsistent dimensions'</span>)
+    FigHandle=[] ;
+    ColorbarHandle=[] ;
+
+<span class="keyword">end</span>
+
+Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod;
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
+
+%%
+% Plots a scalar variable over the mesh domain as a patch (see help patch)
+%
+% PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
+%
+% variable can be either nodal, element variable (i.e. single value per element) or an integration-point variable.
+%
+% If variable is empty, nothing is plotted and no warning given.
+%
+% If 'Variable' not empty, but is not nodal, element or integration-point variable, I complain a bit. 
+%
+% vararing is passed on to the patch command
+%
+% *Examples:*
+%
+% Plot element sizes
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,Tlength) ; title('Element sizes')
+%
+%
+% Plot a nodal variable (here as an example, the x coordinates of the nodes)
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
+%   x=MUA.coordinates(:,1);
+%   figure ; PlotMeshScalarVariable([],MUA,x) ; 
+%
+% Plot the floating mask:
+%
+%   load('MUA-PIG-TWG-Example.mat','MUA','GF','CtrlVar')
+%   x=MUA.coordinates(:,1);
+%   figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title('The nodal floating mask (floating=0, grounded=1)')
+%%
+
+persistent NodTri EleTri Nele Nnodes nod DTintTriInside DTint
+
+if islogical(Variable)
+    
+    Variable=double(Variable);
+    
+end
+
+
+[N,M]=size(Variable);
+
+if N==MUA.Nnodes && M==1   % nodal variable
+    
+    if isempty(NodTri) || isempty(Nnodes) 
+        NodTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod 
+        NodTri=MUA.connectivity;
+    end
+    
+    [FigHandle,ColorbarHandle,NodTri]=PlotNodalBasedQuantities(NodTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
+    
+elseif N==MUA.Nele && M==1 % element variable
+    
+    if isempty(EleTri) || isempty(Nele) 
+        EleTri=MUA.connectivity;
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+        EleTri=MUA.connectivity;
+    end
+    
+    [FigHandle,ColorbarHandle,EleTri]=PlotElementBasedQuantities(EleTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
+    
+elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
+    
+   
+    % This case is slighly more complicated, because the set of integration point can have duplicates if integration points fall on the
+    % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
+    
+    if isempty(DTint) || isempty(Nele) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
+        
+        x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+        [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
+        
+        % create vectors Xint and Yint of unique integration points and triangulise that set of points
+        Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],'first','rows'); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
+        DTint = delaunayTriangulation(Xint,Yint);
+        
+        % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
+        ic=incenter(DTint);
+        [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+        DTintTriInside=DTint.ConnectivityList(cnInt,:);
+
+    end
+    
+    [FigHandle,ColorbarHandle]=PlotIntegrationPointBasedQuantities(CtrlVar,DTintTriInside,DTint.Points,Variable,varargin{:}) ;
+    
+    
+    
+elseif ~isempty(Variable)
+    
+    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
+    warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
+    FigHandle=[] ; 
+    ColorbarHandle=[] ; 
+    
+end
+
+Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod; 
+
+end
+##### SOURCE END #####
+--></body></html>
