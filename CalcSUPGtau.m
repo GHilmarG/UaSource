@@ -14,9 +14,14 @@ end
 
 
 if numel(u)~=numel(EleAreas)  % this could be called over nodes or elements (i.e. integration points)
-    error('afsd')
-    M=Ele2Nodes(MUA.connectivity,MUA.Nnodes);  % this is for a call over nodes, try to get rid of this use 
-    l=M*sqrt(2*EleAreas) ;
+    %    error('afsd')  % ; I've got rid of almost these cases, but still used in dhdtExplicitSUPG
+    % Here MUA must be given as an input
+    if ~nargin==6
+        error("CalcSUPGtau:IncorrectNumberOfInputArguments","Incorrect number of input arguements")
+    end
+    
+    M=Ele2Nodes(MUA.connectivity,MUA.Nnodes);  % this is for a call over nodes, try to get rid of this use
+    l=M*sqrt(2*MUA.EleAreas) ;
 else
     l=sqrt(2*EleAreas) ;
 end

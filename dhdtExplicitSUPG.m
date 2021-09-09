@@ -38,7 +38,8 @@ CtrlVar.Tracer.SUPG.tau="tau2";
 
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
-tauSUPG=CalcSUPGtau(CtrlVar,MUA,F.ub,F.vb,0);
+EleAreas=[];
+tauSUPG=CalcSUPGtau(CtrlVar,EleAreas,F.ub,F.vb,CtrlVar.dt,MUA);
 
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);
