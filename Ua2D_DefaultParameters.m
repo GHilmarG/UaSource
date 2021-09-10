@@ -523,7 +523,7 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % integration points improves convergence of the Newton-Raphson iteration.
 
 CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-CtrlVar.QuadRules2021=false ; % Use the new quad rules implemented in 2021
+CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
                              % This option allows for greater flexibility in selecting quad points.
                              
 %% Level of information given during a run
