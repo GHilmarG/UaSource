@@ -2,6 +2,7 @@ function [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,
     
     nargoutchk(3,3)
     
+    error('no no no')
     
     % Set ice thickness where the level set is smaller than 1 to minimum thickness
     

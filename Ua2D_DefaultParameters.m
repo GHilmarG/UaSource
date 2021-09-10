@@ -1438,8 +1438,13 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 % Calving using the level-set method is currently experimental.
 % For the time being use other options such as the manual element deactivation
 %
-CtrlVar.ManuallyDeactivateElements=0; 
+
 CtrlVar.LevelSetMethod=0; 
+
+CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
+
+CtrlVar.ManuallyDeactivateElements=0; 
+
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
