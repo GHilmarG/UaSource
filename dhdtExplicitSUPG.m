@@ -13,7 +13,7 @@ function [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F,BCs)
 % Projects the values directly onto nodes.
 %
 % Uses SUPG, but very doubtfull that this SUPG treatment is required. In fact I'm not really solving for dhdt, 
-% I'm just evaluating the  spatial derivatives terms on the intergration points, and then projecting onto the nodes.
+% I'm just evaluating the  spatial derivatives terms on the integration points, and then projecting onto the nodes.
 %
 % see also : ProjectFintOntoNodes
 %
@@ -38,7 +38,8 @@ CtrlVar.Tracer.SUPG.tau="tau2";
 
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
-tauSUPG=CalcSUPGtau(CtrlVar,MUA,F.ub,F.vb,0);
+EleAreas=[];
+tauSUPG=CalcSUPGtau(CtrlVar,EleAreas,F.ub,F.vb,CtrlVar.dt,MUA);
 
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);

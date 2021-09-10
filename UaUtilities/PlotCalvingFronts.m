@@ -23,7 +23,7 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     end
     
     
-    
+    CtrlVar.LineUpGLs=true ; 
    
     GF.node=LSF ;
     

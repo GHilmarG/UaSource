@@ -239,7 +239,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         temp=dtOut;
         dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
         if abs(temp-dtOut)>100*eps
-            fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accomondate user output requirements and set to %-g \n ',dtOut);
+            fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accommodate user output requirements and set to %-g \n ',dtOut);
             RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=1; 
         end
     end

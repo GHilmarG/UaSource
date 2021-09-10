@@ -1,10 +1,12 @@
-function PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
+function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %%
 %  PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %
 %  Gives a graphical representation of boundary conditions. 
 %
 %  varargin is passed on to PlotMuaMesh
+%
+%   lgd :    legend object
 %
 % Example:
 %
@@ -156,7 +158,9 @@ elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
 end
 
 if ~isempty(L)
-    legend(L{:},'interpreter','latex')
+    lgd=legend(L{:},'interpreter','latex');
+else
+    lgd=[]; 
 end
 
 

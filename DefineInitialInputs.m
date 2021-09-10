@@ -46,7 +46,7 @@ CtrlVar.SlidingLaw="W" ;
     % For description of further options and definitions, see Ua2D_DefaultParameters and
     % the UaCompendium.pdf 
 %% time and time step
-CtrlVar.dt=0.01; 
+CtrlVar.dt=0.001; 
 CtrlVar.time=0; 
 
 CtrlVar.DefineOutputsDt=0; % interval between calling DefineOutputs. 0 implies call it at each and every run step.

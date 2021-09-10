@@ -21,7 +21,7 @@ end
 
 if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')
 
-    if CtrlVar.DevelopmentTestingQuadRules
+    if CtrlVar.QuadRules2021
         Degree=QuadratureRuleDegree(CtrlVar);
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
         MUA.nip=size(Q.Points,1);
@@ -83,7 +83,7 @@ if MeshHasChanged
     MUA.Nele=size(MUA.connectivity,1);
     MUA.Nnodes=size(MUA.coordinates,1);
     
-    if CtrlVar.DevelopmentTestingQuadRules
+    if CtrlVar.QuadRules2021
         
         Degree=QuadratureRuleDegree(CtrlVar);
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;

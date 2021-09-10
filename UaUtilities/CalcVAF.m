@@ -28,9 +28,12 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   axis tight
 %   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
 %   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
-%   xlabel("xps (km)") ; ylabel("yps (km)") ; title(cbar,"(m)") ; title("ice thickness above flotation")
+%   xlabel("xps (km)",interpreter="latex") ; ylabel("yps (km)",interpreter="latex") ; 
+%   title(cbar,"(m)") ; title("ice thickness above flotation")
 %   fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
 %   fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
+%   colormap(othercolor('Blues7',1024));
+%
 %%
 
 narginchk(7,8)
@@ -50,6 +53,7 @@ nargoutchk(1,5)
 % or simply:
 hfPos=(S>B).*rhow.*(S-B)./rho ;            % (positive) flotation thickness
 hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floatation
+
 
 
 VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq.

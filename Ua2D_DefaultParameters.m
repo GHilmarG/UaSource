@@ -378,20 +378,20 @@ CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 
-CtrlVar.LevelSetSolverMaxIterations=100;
-CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-10 1e-3];
-CtrlVar.LSFDesiredWorkOrForceTolerances=[1e-12 1e-3];
-CtrlVar.LSFExitBackTrackingStepLength=1e-4;
-CtrlVar.LSFAcceptableWorkAndForceTolerances=[inf 1e-2];
-CtrlVar.LSFAcceptableWorkOrForceTolerances=[100 1e-2];
 
+CtrlVar.LevelSetSolverMaxIterations=100;
+CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-15]; 
+CtrlVar.LSFDesiredWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.LSFExitBackTrackingStepLength=1e-3;
+CtrlVar.LSFAcceptableWorkAndForceTolerances=[1e-10 1e-12];
+CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
 CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
 CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
 CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
-CtrlVar.LSFMinimisationQuantity="Work Residuals";     
+CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
 CtrlVar.MustBe.uvMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -523,7 +523,9 @@ CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % integration points improves convergence of the Newton-Raphson iteration.
 
 CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-
+CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
+                             % This option allows for greater flexibility in selecting quad points.
+                             
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
 % Generally the higher the number, the more information is given.
@@ -532,7 +534,7 @@ CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
-
+ 
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
                             % Note: generally good to combine with CtrlVar.InfoLevelNonLinIt=0;
                             % CtrlVar.InfoLevel=0; to suppress information related to the forward step. 
@@ -1188,7 +1190,7 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=false ;
+CtrlVar.MUA.DecomposeMassMatrix=true ;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1442,6 +1444,7 @@ CtrlVar.LevelSetMethod=0;
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 
+CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
@@ -1453,15 +1456,28 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 
-CtrlVar.LevelSetFAB=1;  % multiplier, 1 use full forward an backwards (FAB) diffusion, 0 no FAB
+CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
+
+CtrlVar.LevelSetFABmu.Value=1 ; 
+CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
+
+ CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetReinitializeTimeInterval=inf;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
-CtrlVar.LevelSetFABmu=1; 
+% CtrlVar.LevelSetReinitialize=
 
+CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
+CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)
+CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
+
+CtrlVar.LevelSetPseudoForwardTolerance=1; % tolerance on max(d\varphi/dt) in the pseudo-forward stepping phase.
+                                          % This parameter has the untis distance/time. If the units are meters and years,
+                                          % then the pseudo-forward step initialisation will be continued until max change in 
+                                          % any element is smaller than this prescribed tolerance.
 
 CtrlVar.CalvingLaw="-User Defined-"; 
 CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
@@ -1840,7 +1856,7 @@ CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers avai
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
-
+CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 %% Tracers
 %
 % If required that m-File 'TracerConservationEquation.m' can be used to
@@ -1912,10 +1928,8 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 %% Internal variables 
 %%
-CtrlVar.DevelopmentVersion=true;  % Internal variable, always set to 0 
+CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DevelopmentTestingQuadRules=true;  % Internal variable, always set to 0 
-
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change

@@ -5,60 +5,49 @@ function [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F)
 narginchk(5,5)
 nargoutchk(2,2)
 
+% Only allow the use of the (not so new anymore) DefineBoundaryConditions.m file
 
-% does DefineBoundaryConditions.m exist in the run directory?
-% if so then use that instead of DefineBCs.m
+InputFile="DefineBoundaryConditions.m" ; TestIfInputFileInWorkingDirectory(InputFile) ;
+NargInputFile=nargin(InputFile);
 
+if CtrlVar.InfoLevel>=10
+    fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
+end
 
-if exist(fullfile(cd,'DefineBoundaryConditions.m'),'file')
+N=nargout('DefineBoundaryConditions');
+
+switch N
     
-    if CtrlVar.InfoLevel>=10
-        fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
-    end
-    
-    N=nargout('DefineBoundaryConditions');
-    
-    switch N
+    case 1
         
-        case 1
+        if NargInputFile
             
             BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
+        else
             
-        case 2
+            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,F,BCs);
+            
+        end
+        
+    case 2
+        
+        if NargInputFile
             
             [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
+        else
             
-    end
-    
-    
-else
-    
-    fprintf(' Using DefineBCs.m to define boundary conditions \n')
-    [ubFixedNode,ubFixedValue,vbFixedNode,vbFixedValue,...
-        ubTiedNodeA,ubTiedNodeB,vbTiedNodeA,vbTiedNodeB,...
-        hFixedNode,hFixedValue,hTiedNodeA,hTiedNodeB]=...
-        DefineBCs(CtrlVar.Experiment,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
-    
-    BCs.ubFixedNode=ubFixedNode;
-    BCs.ubFixedValue=ubFixedValue;
-    BCs.vbFixedNode=vbFixedNode;
-    BCs.vbFixedValue=vbFixedValue;
-    
-    BCs.ubTiedNodeA=ubTiedNodeA;
-    BCs.ubTiedNodeB=ubTiedNodeB;
-    BCs.vbTiedNodeA=vbTiedNodeA;
-    BCs.vbTiedNodeB=vbTiedNodeB;
-    
-    BCs.hFixedNode=hFixedNode;
-    BCs.hFixedValue=hFixedValue;
-    BCs.hTiedNodeA=hTiedNodeA;
-    BCs.hTiedNodeB=hTiedNodeB;
-    
+            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,F,BCs);
+            
+        end
+        
 end
+
 
 switch lower(CtrlVar.FlowApproximation)
     
     case 'sstream'
+        
+        % sstream only uses the ud boundary conditions, so set ub to empty.
         
         BCs.udFixedNode=[];
         BCs.udFixedValue=[];
@@ -73,16 +62,18 @@ switch lower(CtrlVar.FlowApproximation)
         
     case 'ssheet'
         
-%         BCs.ubFixedNode=[];
-%         BCs.ubFixedValue=[];
-%         BCs.vbFixedNode=[];
-%         BCs.vbFixedValue=[];
-%         BCs.ubTiedNodeA=[];
-%         BCs.ubTiedNodeB=[];
-%         BCs.vbTiedNodeA=[];
-%         BCs.vbTiedNodeB=[];
-%         BCs.ubvbFixedNormalNode=[];
-%         BCs.ubvbFixedNormalValue=[];
+        % ssheet can now have both ud and ub boundary conditions, so do not set to empty
+        
+        %         BCs.ubFixedNode=[];
+        %         BCs.ubFixedValue=[];
+        %         BCs.vbFixedNode=[];
+        %         BCs.vbFixedValue=[];
+        %         BCs.ubTiedNodeA=[];
+        %         BCs.ubTiedNodeB=[];
+        %         BCs.vbTiedNodeA=[];
+        %         BCs.vbTiedNodeB=[];
+        %         BCs.ubvbFixedNormalNode=[];
+        %         BCs.ubvbFixedNormalValue=[];
         
 end
 
@@ -106,7 +97,7 @@ if numel(BCs.LSFFixedNode) ~=  numel(BCs.LSFFixedValue)
     error('GetBoundaryConditions:LSF','Number of fixed LSF nodes not equal to number of LSF fixed values! \n')
 end
 
-%% Check for duplicate nodes in boundary conditions and do some basic corrections (although is this not really the job of the modeller...)
+%% Check for duplicate nodes in boundary conditions and do some basic corrections (although is this not really the job of the modeller...?)
 %  Also, I am not checking for all possible such cases and combinations.
 
 if numel(BCs.ubTiedNodeA) ~= numel(BCs.ubTiedNodeB)
@@ -128,28 +119,28 @@ if numel(BCs.vbTiedNodeA) ~= numel(BCs.vbTiedNodeB)
 end
 
 %% This is a questionable approach.
-%  Even if a node is twice in list A, it can be unique if it is tied 
+%  Even if a node is twice in list A, it can be unique if it is tied
 %  to two different freedome of degrees
 % if ~isempty(BCs.ubTiedNodeA)
 %     % eliminate dublications in nodal ties
 %     % this needs to be done for both A and B ties, and then
 %     % dublicates in A deleted from B, and duplicates in B deleted from A.
 %     [BCs.ubTiedNodeA,ia]=unique(BCs.ubTiedNodeA);
-%     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ; 
-%     
+%     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ;
+%
 %     [BCs.ubTiedNodeB,ia]=unique(BCs.ubTiedNodeB);
 %     BCs.ubTiedNodeA=BCs.ubTiedNodeA(ia) ;
-% 
+%
 % end
-% 
+%
 % if ~isempty(BCs.vbTiedNodeA)
 %     % eliminate dublications in nodal ties
 %     [BCs.vbTiedNodeA,ia]=unique(BCs.vbTiedNodeA);
 %     BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia) ;
-%     
+%
 %     [BCs.vbTiedNodeB,ia]=unique(BCs.vbTiedNodeB);
 %     BCs.vbTiedNodeA=BCs.vbTiedNodeA(ia) ;
-% 
+%
 % end
 %%
 
@@ -171,21 +162,21 @@ end
 if ~isempty(BCs.vbFixedNode) && ~isempty(BCs.vbTiedNodeA)
     % If a degree of freedom is both 'fixed' and 'tied', only 'fix' it and get rid of the 'tie'
     [BCs.vbTiedNodeA,ia]=setdiff(BCs.vbTiedNodeA,BCs.vbFixedNode) ;
-     BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia); 
-                     
+    BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia);
+    
 end
 
 if ~isempty(BCs.ubFixedNode) && ~isempty(BCs.ubTiedNodeA)
     % If a degree of freedom is both 'fixed' and 'tied', only 'fix' it and get rid of the 'tie'
     [BCs.ubTiedNodeA,ia]=setdiff(BCs.ubTiedNodeA,BCs.ubFixedNode) ;
-     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia); 
-                     
+    BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia);
+    
 end
 %%
 
 if CtrlVar.doplots && CtrlVar.PlotBCs
     fig=FindOrCreateFigure("Boundary Conditions");
-    clf(fig) 
+    clf(fig)
     hold off
     PlotBoundaryConditions(CtrlVar,MUA,BCs,'k');
 end

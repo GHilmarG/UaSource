@@ -14,12 +14,14 @@ end
 
 
 
-
 SetUaPath() %% 
 
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
-
+warning('off','MATLAB:decomposition:SaveNotSupported')
+warning('off','MATLAB:decomposition:genericError')
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;
@@ -642,7 +644,7 @@ while 1
         
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
-            [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            [UserVar,RunInfo,F.LSF,F.LSFMask,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
         end
     end   % CtrlVar.TimeDependentRun
     
@@ -655,7 +657,7 @@ while 1
     
     % DefineOutputs
     
-    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/CtrlVar.DefineOutputsDt/2)) || CtrlVar.DefineOutputsDt==0 
+    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/(10*CtrlVar.DefineOutputsDt))) || CtrlVar.DefineOutputsDt==0 
         %(ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
         CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;

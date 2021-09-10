@@ -37,12 +37,14 @@ You can then test if it runs by writing
 Ua [Ret]
 ```
 
-in the MATLAB command line.
+in the MATLAB command line, and you are done! Úa is installed!
 
 You will then find the documentation for Úa to be a part of the MATLAB
 documentation system where Úa appears as a separate toolbox.
 
-You can, for example, set the path as:
+If you want to be able to run Úa from another folder than just the
+installation folder (a good idea) then you need to add the source
+folder to the MATLAB path. You can, for example, set the path as:
 
 ```
      addpath(genpath('MyUaSourceFileFolder'))
@@ -60,30 +62,27 @@ then add that folder to the MATLAB path as:
 addpath(genpath('C:\Users\Hilmar\Ua\UaSource'))
 ```
 
-You can quickly test if everything is OK by going into the UaSource directory and at the MATLAB command line do:
-
-
-```
-    Ua [return]
-```
-
 No special toolboxes are required, however, some optional features can
 only be used with toolboxes such as the Optimisation and the Machine
 Learning toolboxes.
 
 
-To set up your own runs you should also download the Examples which
-are in a separate repository.  Download this into another folder, and
-then you will have several different subfolders, each containing a
-particular example of a model setup.
+To set up your own runs you should also download the
+[Examples](https://github.com/GHilmarG/UaExamples) which are in a
+separate repository.  Download this into another folder, and then you
+will have several different subfolders, each containing a particular
+example of a model setup.
 
 
+**Note:** Úa uses the mesh generator 'mesh2d' and no further steps are
+  required if you just want to use that mesh generator. However, one
+  can optionally also use the well-known mesh generator
+  [Gmsh](http://gmsh.info) which then must be installed separately. 
 
-
-**Note:** Úa uses the mesh generator 'mesh2d' and no further steps are required if you just want to use that mesh generator.
-
-There are many different ways of copying/cloning a repository from GitHub. You can for example download it as zip file.    
-While not strictly necessary, it is presumably best to have git installed locally. You can install git from:
+**Cloning from GitHub:** There are many different ways of
+copying/cloning a repository from GitHub. You can for example download
+it as zip file.  While not strictly necessary, it is presumably best
+to have git installed locally. You can install git from:
  
      https://git-scm.com/downloads
 
@@ -168,12 +167,18 @@ in the MATLAB command line,  or
 Most m-files that are part of the Úa program have some inbuilt help text, for example try 
 
     doc Ua2D_DefaultParameters
- 
+
+
+
+## Ice-Ocean coupling 
+
+
+Úa has been coupled with the ocean circulation model MITgcm
+([ÚaMIT](https://github.com/knaughten/UaMITgcm)), an ocean plume model
+([ÚaPICO](https://github.com/shrrosier/PICO_Ua)), and the ocean circulation model Fesom
+([ÚaFesom](https://github.com/kuechenrole/ua-fesom/tree/master)).
+
 ![](AntarcticaMesh.png)
-
-
-
-
 
 [Hilmar Gudmundsson](mailto:hilmar.gudmundsson@northumbria.ac.uk)
 

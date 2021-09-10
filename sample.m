@@ -11,7 +11,7 @@ function [s,wt] = sample(element,nip,ndim)
 %
 
 
-error('Ua:sample:DoNotUse','Try not to use sample') 
+warning('Ua:sample:DoNotUse','Try not to use sample') 
 
 s=zeros(nip,ndim)     ; % coordinates of integration points
 wt=zeros(nip,1) ;       % weights
