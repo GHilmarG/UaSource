@@ -1,18 +1,27 @@
 function PlotRunInfo(RunInfo)
     
     %%
-    figure ;
-    semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; ylabel(' dt ' ) ; xlabel(' time ' )
-    title('time step as a function of time')
-    
-%     figure ; 
-%     histogram(RunInfo.Forward.dt) ; xlabel('dt')
-%     title('dt Histogram')
     
     
-    figure ; 
-    plot(RunInfo.Forward.time,RunInfo.Forward.uvhIterations) ; 
-    xlabel('time') ; ylabel('uvh iterations')
-    title('uvh iterations as a function of time')
+    FindOrCreateFigure("RunInfo uvh: time step and iterations")
+    yyaxis left
+    semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; 
+    ylabel('time step')
+    
+
+    
+    yyaxis right 
+    stairs(RunInfo.Forward.time,RunInfo.Forward.uvhIterations) ; 
+    ylabel('uvh iterations')
+
+    
+    xlabel('time') ; 
+    legend("time step","#uvh iterations")
+    
+     FindOrCreateFigure("RunInfo uvh: time step histogram and iterations")
+     histogram(RunInfo.Forward.dt) ; xlabel('dt')
+     title('dt Histogram')
+    
+    
     
 end

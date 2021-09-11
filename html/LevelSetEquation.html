@@ -1,0 +1,386 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>LevelSetEquation</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-08-03"><meta name="DC.source" content="LevelSetEquation.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+</pre><pre>  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)</pre><pre>  df/dt + (u0cx) df/dx + (v0cx) df/dy - div (kappa grad f) = 0</pre><pre class="codeinput">narginchk(7,8)
+nargoutchk(7,7)
+
+
+<span class="keyword">persistent</span> LastResetTime
+
+<span class="keyword">if</span> ~CtrlVar.DevelopmentVersion
+
+    error(<span class="string">'LevelSetEquation:Development'</span>,<span class="string">'LevelSetEquation is in deveopment. Do not use.'</span>)
+
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">if</span> ~CtrlVar.LevelSetMethod
+    LSF=F0.LSF;
+    l=[];
+    Mask=[] ;
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin&lt;8
+    l=[];
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">if</span> CtrlVar.CalvingLaw==<span class="string">"-No Ice Shelves-"</span>
+
+    <span class="comment">% I think this could be simplified, arguably no need to calculate signed distance</span>
+    <span class="comment">% in this case. Presumably could just define the LSF as distance from flotation, ie</span>
+    <span class="comment">% h-hf.</span>
+    [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
+    Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(LastResetTime)
+    LastResetTime=0 ;
+<span class="keyword">end</span>
+
+
+<span class="keyword">switch</span> CtrlVar.LevelSetPhase
+    <span class="keyword">case</span> <span class="string">"Initialisation"</span>
+
+        F0.LSF=F1.LSF ;
+        Threshold=0 ;
+        <span class="comment">% Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF</span>
+        <span class="comment">% fix the LSF field for all nodes of elements around the level.</span>
+        <span class="keyword">if</span> CtrlVar.LSFInitBCsZeroLevel
+
+            Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
+            BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];
+            BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+        <span class="keyword">end</span>
+
+        <span class="comment">% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full</span>
+        <span class="comment">% non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.</span>
+
+
+
+        <span class="keyword">if</span>  contains(CtrlVar.LevelSetTestString,<span class="string">"-xc/yc nodes-"</span>)
+            xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
+        <span class="keyword">else</span>
+            CtrlVar.LineUpGLs=false ;
+            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+        <span class="keyword">end</span>
+
+
+        [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+        F0.LSF=LSF ;
+        F1.LSF=LSF ;
+
+        <span class="comment">% Fixed-point solution</span>
+        CtrlVar.LSF.L=0 ;   <span class="comment">% The level-set equation only (i.e. without the pertubation term)</span>
+        CtrlVar.LSF.P=1 ;   <span class="comment">% % P is the pertubation term</span>
+        CtrlVar.LSF.T=0 ;
+        CtrlVar.LevelSetTheta=1;
+
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+
+        <span class="keyword">if</span> ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString==<span class="string">"-pseudo-forward-"</span>
+</pre><pre class="codeinput">            <span class="comment">% If fixed-point solution did not converge, do a pseudo-forward time stepping</span>
+            CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
+            CtrlVar.LevelSetTheta=1;
+            N=0; fprintf(<span class="string">"N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n "</span>,N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+            F1.LSF=LSF ; F0.LSF=LSF ;
+            Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
+            <span class="keyword">while</span> true
+                N=N+1;
+                F0.LSF=F1.LSF ;
+                CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
+                [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+                F1.LSF=LSF;
+
+                dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
+                fprintf(<span class="string">"N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n "</span>,N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+
+                <span class="keyword">if</span> dlsf &lt; tol || N&gt;Nmax
+                    <span class="keyword">break</span>
+                <span class="keyword">end</span>
+
+            <span class="keyword">end</span>
+            CtrlVar.dt=dtOld;
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+
+
+
+    <span class="keyword">case</span> <span class="string">"Propagation"</span>
+        CtrlVar.LSF.L=1 ;   <span class="comment">% The level-set equation only (i.e. without the pertubation term)</span>
+        CtrlVar.LSF.P=0 ;
+        CtrlVar.LSF.T=1 ;
+        CtrlVar.LevelSetTheta=0.5;
+    <span class="keyword">case</span> <span class="string">"Propagation and FAB"</span>
+        CtrlVar.LevelSetTheta=0.5;
+        CtrlVar.LSF.L=1 ;
+        CtrlVar.LSF.P=1 ;
+        CtrlVar.LSF.T=1 ;
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    <span class="keyword">otherwise</span>
+        error(<span class="string">'safd'</span>)
+<span class="keyword">end</span>
+
+
+
+
+<span class="keyword">if</span> ~RunInfo.LevelSet.SolverConverged
+    <span class="comment">% oops</span>
+    warning(<span class="string">'LevelSetEquation:NoConvergence'</span>,<span class="string">'LSF did not converge'</span>)
+    fprintf(<span class="string">'LevelSetEquation:  Solver did not converge.\n'</span>)
+    fprintf(<span class="string">'LevelSetEquation:  Returning last iterate.\n'</span>)
+<span class="keyword">end</span>
+
+
+
+Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+
+
+
+<span class="keyword">if</span> CtrlVar.LevelSetInfoLevel&gt;=10 &amp;&amp; CtrlVar.doplots
+
+    F1.LSF=LSF ; <span class="comment">% here needed for plotting</span>
+    [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using LevelSetEquation (line 11)
+Not enough input arguments.
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [UserVar,RunInfo,LSF,Mask,l,qx1,qy1]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+%%
+%
+%
+%    df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
+%
+%    df/dt + (u0cx) df/dx + (v0cx) df/dy - div (kappa grad f) = 0
+%
+%
+
+narginchk(7,8)
+nargoutchk(7,7)
+
+
+persistent LastResetTime 
+
+if ~CtrlVar.DevelopmentVersion
+    
+    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
+    
+end
+
+
+
+if ~CtrlVar.LevelSetMethod
+    LSF=F0.LSF;
+    l=[];
+    Mask=[] ;
+    return
+end
+
+if nargin<8 
+    l=[];
+end
+    
+
+
+if CtrlVar.CalvingLaw=="-No Ice Shelves-"
+    
+    % I think this could be simplified, arguably no need to calculate signed distance
+    % in this case. Presumably could just define the LSF as distance from flotation, ie
+    % h-hf.
+    [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
+    Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+    return
+end
+
+if isempty(LastResetTime)
+    LastResetTime=0 ;
+end
+
+
+switch CtrlVar.LevelSetPhase
+    case "Initialisation"
+        
+        F0.LSF=F1.LSF ; 
+        Threshold=0 ;
+        % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
+        % fix the LSF field for all nodes of elements around the level.
+        if CtrlVar.LSFInitBCsZeroLevel
+            
+            Mask=CalcMeshMask(CtrlVar,MUA,F0.LSF,Threshold);
+            BCs.LSFFixedNode=[BCs.LSFFixedNode ; find(Mask.NodesOn)];
+            BCs.LSFFixedValue=[BCs.LSFFixedValue ; F0.LSF(Mask.NodesOn) ];
+        end
+        
+        % After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
+        % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
+        
+        
+        
+        if  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
+            xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
+        else
+            CtrlVar.LineUpGLs=false ;
+            [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+        end
+        
+        
+        [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+        F0.LSF=LSF ;
+        F1.LSF=LSF ;
+        
+        % Fixed-point solution
+        CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
+        CtrlVar.LSF.P=1 ;   % % P is the pertubation term
+        CtrlVar.LSF.T=0 ;
+        CtrlVar.LevelSetTheta=1;
+        
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+        
+        if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
+
+            % If fixed-point solution did not converge, do a pseudo-forward time stepping
+            CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;
+            CtrlVar.LevelSetTheta=1;
+            N=0; fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+            F1.LSF=LSF ; F0.LSF=LSF ;
+            Nmax=100; tol=1e-4; factor=2;  dtOld=CtrlVar.dt ;
+            while true
+                N=N+1;
+                F0.LSF=F1.LSF ;
+                CtrlVar.dt=min([CtrlVar.dt*factor,dtOld*1000]);
+                [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+                F1.LSF=LSF;
+                
+                dlsf=norm(F1.LSF-F0.LSF)/norm(F0.LSF);
+                fprintf("N:%i norm(F1.LSF-F0.LSF)/norm(F0.LSF)=%g \n ",N,norm(F1.LSF-F0.LSF)/norm(F0.LSF))
+                
+                if dlsf < tol || N>Nmax
+                    break
+                end
+                
+            end
+            CtrlVar.dt=dtOld;
+            %%
+        end
+        
+      
+        
+    case "Propagation"
+        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
+        CtrlVar.LSF.P=0 ;
+        CtrlVar.LSF.T=1 ;
+        CtrlVar.LevelSetTheta=0.5;
+    case "Propagation and FAB"
+        CtrlVar.LevelSetTheta=0.5;
+        CtrlVar.LSF.L=1 ;
+        CtrlVar.LSF.P=1 ;
+        CtrlVar.LSF.T=1 ;
+        [UserVar,RunInfo,LSF,l,qx1,qy1]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    otherwise
+        error('safd')
+end
+
+
+
+
+if ~RunInfo.LevelSet.SolverConverged
+    % oops
+    warning('LevelSetEquation:NoConvergence','LSF did not converge')
+    fprintf('LevelSetEquation:  Solver did not converge.\n')
+    fprintf('LevelSetEquation:  Returning last iterate.\n')
+end
+
+
+
+Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+
+
+
+if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
+    
+    F1.LSF=LSF ; % here needed for plotting
+    [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);
+    
+end
+
+
+end
+
+
+
+
+##### SOURCE END #####
+--></body></html>

@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineCalving</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-06-22"><meta name="DC.source" content="DefineCalving.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>DefineCalving</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-11"><meta name="DC.source" content="DefineCalving.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -69,136 +69,46 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
 </pre><pre class="language-matlab">[UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
-</pre><p>Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)</p><p>Both the Level-Set Field (LSF) and the Calving-Rate Field (c) must be defined over the whole computational domain.</p><p>The LSF should, in general, only be defined in the beginning of the run and set the initial value for the LSF. However, if required, the user can change LSF at any time step. The LSF is evolved by solving the Level-Set equation, so any changes done to LSF in this m-file will overwrite/replace the previously calculated values for LSF.</p><p>The calving-rate field, c, is an input field to the Level-Set equation and needs to be defined in this m-file in each call.</p><p>The variable F has F.LSF and F.c as subfields. In a transient run, these will be the corresponding values from the previous time step.</p><p>If you do not want to modify LSF,  set</p><pre class="language-matlab">LSF=F.LSF
-</pre><p>Also, if you do not want to modify c, you could in prinicple set</p><pre class="language-matlab">c=F.c
-</pre><p>However, note that in contrast to LSF, c is never evolved by &Uacute;a.  (Think of c as an input variable similar to the input as and ab for upper and lower surface balance, etc.)</p><p>Initilizing the LSF is the task of the user and needs to be done in this m-file. Typically LSF is defined as a signed distance function from the initial calving front position. There are various ways of doing this and you might find the matlab function</p><pre class="language-matlab">pdist2
-</pre><p>usefull to do this. Also look at</p><pre class="language-matlab">ReinitializeLevelSet.m
-</pre><p>for ideas on how to initialize the level set.</p><pre class="codeinput">    LSF=F.LSF ;  <span class="comment">% always do this if you do not want to modify the LSF</span>
-
-    <span class="keyword">if</span> CtrlVar.CurrentRunStepNumber&lt; 2  <span class="comment">% initialize the Level-Set-Field</span>
-
-        <span class="comment">% LSF set equal to signed distance from x=xc</span>
-        xc=200e3;  <span class="comment">% this is the initial calving front</span>
-        LSF=xc-MUA.coordinates(:,1) ;
-
-    <span class="keyword">end</span>
-
-    q=-2;
-    k=86322275.9814533 ;
-
-    <span class="keyword">switch</span> UserVar.Calving
-
-        <span class="keyword">case</span> <span class="string">"Function of analytical thickness"</span>
-            <span class="comment">% First for testing, define calving rate as a function of the analytical thickness</span>
-            <span class="comment">% profile.</span>
-
-            [s,b]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
-            h=s-b;
-
-
-            c=k*h.^q;
-
-        <span class="keyword">case</span> <span class="string">"Function of numerical thickness"</span>
-
-            c=k*F.h.^q;
-            <span class="comment">% The issue is that this goes to infinity with h to zero.</span>
-            <span class="comment">%</span>
-            c(c&gt;2000)=2000;
-    <span class="keyword">end</span>
-
-    c=c(:) ;
-    c=c.*(1-F.GF.node) ;
+</pre><p>Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)</p><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>Think of the LSF as a ice/ocean mask where positive number indicates ice and negative number ocean.</p><p>LSF is a nodal variable.</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
+       NodesSelected=MUA.coordinates(:,1)&gt;500e3 &amp; F.GF.NodesDownstreamOfGroundingLines;
+       LSF=zeros(MUA.Nnodes,1)+ 1 ;
+       LSF(NodesSelected)=-1;</pre><pre class="codeinput">LSF=[];
+c=[];
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
     
-    
-    %%
-    %
-    %   [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
-    %
-    % Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)
-    %
-    % Both the Level-Set Field (LSF) and the Calving-Rate Field (c) must be defined over
-    % the whole computational domain.
-    % 
-    %
-    % The LSF should, in general, only be defined in the beginning of the run and set the
-    % initial value for the LSF. However, if required, the user can change LSF at any time
-    % step. The LSF is evolved by solving the Level-Set equation, so any changes done to
-    % LSF in this m-file will overwrite/replace the previously calculated values for LSF.
-    %
-    % The calving-rate field, c, is an input field to the Level-Set equation and needs to
-    % be defined in this m-file in each call.
-    %
-    % The variable F has F.LSF and F.c as subfields. In a transient run, these will be the
-    % corresponding values from the previous time step.
-    % 
-    % If you do not want to modify LSF,  set
-    %
-    %   LSF=F.LSF
-    %
-    %
-    % Also, if you do not want to modify c, you could in prinicple set
-    %
-    %   c=F.c
-    %
-    % However, note that in contrast to LSF, c is never evolved by Úa.  (Think of c as an
-    % input variable similar to the input as and ab for upper and lower surface balance,
-    % etc.)
-    %
-    % Initilizing the LSF is the task of the user and needs to be done in this m-file.
-    % Typically LSF is defined as a signed distance function from the initial calving
-    % front position. There are various ways of doing this and you might find the matlab
-    % function
-    % 
-    %   pdist2
-    %
-    % usefull to do this. Also look at
-    %
-    %   ReinitializeLevelSet.m
-    %
-    % for ideas on how to initialize the level set.
-    %
-    %%
-    
-    
-    LSF=F.LSF ;  % always do this if you do not want to modify the LSF
-    
-    if CtrlVar.CurrentRunStepNumber< 2  % initialize the Level-Set-Field
-        
-        % LSF set equal to signed distance from x=xc
-        xc=200e3;  % this is the initial calving front
-        LSF=xc-MUA.coordinates(:,1) ;
-        
-    end
-    
-    q=-2;
-    k=86322275.9814533 ;
-    
-    switch UserVar.Calving
-        
-        case "Function of analytical thickness"
-            % First for testing, define calving rate as a function of the analytical thickness
-            % profile.
-            
-            [s,b]=AnalyticalOneDimentionalIceShelf(CtrlVar,MUA);
-            h=s-b;
-            
-            
-            c=k*h.^q;
-            
-        case "Function of numerical thickness"
-            
-            c=k*F.h.^q;
-            % The issue is that this goes to infinity with h to zero. 
-            % 
-            c(c>2000)=2000; 
-    end
-    
-    c=c(:) ;
-    c=c.*(1-F.GF.node) ;
+
+%%
+%
+%   [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
+%
+% Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)
+%
+%
+% NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step
+%
+% Think of the LSF as a ice/ocean mask where positive number indicates ice and negative number ocean.
+%
+% LSF is a nodal variable.
+%
+% If you wanted, for example to get rid of all floating ice for x>500e3, do:
+%
+%
+%
+%
+%         F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
+%         NodesSelected=MUA.coordinates(:,1)>500e3 & F.GF.NodesDownstreamOfGroundingLines;
+%         LSF=zeros(MUA.Nnodes,1)+ 1 ;
+%         LSF(NodesSelected)=-1;
+%
+%
+%     
+%%
+
+LSF=[];
+c=[];
 
 end
 

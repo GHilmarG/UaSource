@@ -147,18 +147,19 @@ classdef (ConstructOnLoad) UaRunInfo
                 
             end
             
-            if ~isfield(s.Forward,'iCounter')
-                
-                N=1000; % initial memory allocation
-                obj.Forward.time=zeros(N,1)+NaN;
-                obj.Forward.dt=zeros(N,1)+NaN;
-                obj.Forward.uvhIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhResidual=zeros(N,1)+NaN;
-                obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
-            end
+%             I got rid of this counter, if I keep this in here, these fields will always be set to zero on load  
+%             if ~isfield(s.Forward,'iCounter')
+%                 
+%                 N=1000; % initial memory allocation
+%                 obj.Forward.time=zeros(N,1)+NaN;
+%                 obj.Forward.dt=zeros(N,1)+NaN;
+%                 obj.Forward.uvhIterations=zeros(N,1)+NaN;
+%                 obj.Forward.uvhResidual=zeros(N,1)+NaN;
+%                 obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+%             end
             
             if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
                 obj.Forward.ubvbRecalculatedOnNewMesh=false;
