@@ -22,6 +22,7 @@
             <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
             <tocitem target="DefineCalving.html">Define level set and calving rate fields</tocitem>
             <tocitem target="DefineSeaIceParameters.html">Define ocean and wind induced drag</tocitem>
+            <tocitem target="DefineCalving.html">Define ice-ocean mask which can be updated at each time step (by the user)</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="DefineOutputs.html">Output </tocitem>

@@ -454,9 +454,9 @@ while 1
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
-    if CtrlVar.LevelSetMethod % Level Set
-       [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
-    end
+   % if CtrlVar.LevelSetMethod % Level Set
+   %    [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
+   % end
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
@@ -558,8 +558,7 @@ while 1
                 end
             end
             
-            % put this here because now the velocity has been calculated, even if this is
-            % the first
+            % Now that the velocity has been calculated, we can ask for the calving parameters
            [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
             
             F0=F;  %

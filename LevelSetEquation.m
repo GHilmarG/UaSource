@@ -18,6 +18,15 @@ if isempty(nCallCounter)
     nCallCounter=0;
 end
 
+if CtrlVar.LevelSetEvolution=="-prescribed-"  % LSF is prescribed by the user, do not update or solve anything
+    LSF=F1.LSF;
+    Mask=[];
+    l=[];
+    LSFqx=[];
+    LSFqy=[]; 
+    return
+end
+
 if ~CtrlVar.DevelopmentVersion
     
     error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')

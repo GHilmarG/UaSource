@@ -9,7 +9,7 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % If variable is empty, nothing is plotted and no warning given.
 %
-% If 'Variable' not empty, but is not nodal, element or integration-point variable, I complain a bit. 
+% If 'Variable' not empty, but is not nodal, element or integration-point variable, I complain a bit.
 %
 % vararing is passed on to the patch command
 %
@@ -26,7 +26,7 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %   x=MUA.coordinates(:,1);
-%   figure ; PlotMeshScalarVariable([],MUA,x) ; 
+%   figure ; PlotMeshScalarVariable([],MUA,x) ;
 %
 % Plot the floating mask:
 %
@@ -45,12 +45,14 @@ end
 
 
 [N,M]=size(Variable);
+FigHandle=[] ;
+ColorbarHandle=[] ;
 
 if N==MUA.Nnodes && M==1   % nodal variable
     
-    if isempty(NodTri) || isempty(Nnodes) 
+    if isempty(NodTri) || isempty(Nnodes)
         NodTri=MUA.connectivity;
-    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod 
+    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         NodTri=MUA.connectivity;
     end
     
@@ -58,7 +60,7 @@ if N==MUA.Nnodes && M==1   % nodal variable
     
 elseif N==MUA.Nele && M==1 % element variable
     
-    if isempty(EleTri) || isempty(Nele) 
+    if isempty(EleTri) || isempty(Nele)
         EleTri=MUA.connectivity;
     elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
         EleTri=MUA.connectivity;
@@ -68,7 +70,7 @@ elseif N==MUA.Nele && M==1 % element variable
     
 elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     
-   
+    
     % This case is slighly more complicated, because the set of integration point can have duplicates if integration points fall on the
     % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
     
@@ -85,7 +87,7 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
         ic=incenter(DTint);
         [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
         DTintTriInside=DTint.ConnectivityList(cnInt,:);
-
+        
     end
     
     [FigHandle,ColorbarHandle]=PlotIntegrationPointBasedQuantities(CtrlVar,DTintTriInside,DTint.Points,Variable,varargin{:}) ;
@@ -94,13 +96,13 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     
 elseif ~isempty(Variable)
     
-    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n') 
+    fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n')
     warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
-    FigHandle=[] ; 
-    ColorbarHandle=[] ; 
+    FigHandle=[] ;
+    ColorbarHandle=[] ;
     
 end
 
-Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod; 
+Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod;
 
 end
