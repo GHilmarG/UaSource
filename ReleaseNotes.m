@@ -122,7 +122,7 @@
 %
 % and this field is not used.
 %   
-% * Ocean and wind-indued drag can be included. This is defined in 
+% * Ocean and wind-indued drag over floating ice can be included. This is defined in 
 %
 %   DefineSeaIceParameters.m
 %
