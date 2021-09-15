@@ -141,7 +141,7 @@
 % be instances were increasing the degree could help with obtaining second-order
 % convergence of the Newton-Raphson system.
 %
-% * The shallow-ice sheet (SIA/SSTREAM) option now includes basal sliding.
+% * The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.
 %
 % The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to
 % the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the

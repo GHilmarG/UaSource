@@ -1451,7 +1451,7 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 
