@@ -8,7 +8,7 @@ function [UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 theta=CtrlVar.theta;
-tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
+tauSUPG=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0,v0,dt,MUA);
 
 
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
