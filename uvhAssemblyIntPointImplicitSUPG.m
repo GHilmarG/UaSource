@@ -35,16 +35,19 @@ end
 fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
 
 
+% if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
 Deriv=MUA.Deriv(:,:,:,Iint);
 detJ=MUA.DetJ(:,Iint);
-
+% else
+% [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+% end
 
 %Deriv=MeshProp.Deriv{Iint} ; detJ=MeshProp.detJ{Iint};
 % Deriv : MUA.Nele x dof x nod
 %  detJ : MUA.Nele
 
 % values at integration this point
-Hnod=Snod-Bnod;
+% Hnod=Snod-Bnod;
 
 hint=hnod*fun;
 uint=unod*fun;
@@ -200,16 +203,16 @@ drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
 
 % derivatives at integration points
 
-Deriv1=squeeze(Deriv(:,1,:)) ; 
-Deriv2=squeeze(Deriv(:,2,:)) ; 
+Deriv1=squeeze(Deriv(:,1,:)) ;
+Deriv2=squeeze(Deriv(:,2,:)) ;
 
 for Inod=1:MUA.nod
     
     dhdx=dhdx+Deriv1(:,Inod).*hnod(:,Inod);
     dhdy=dhdy+Deriv2(:,Inod).*hnod(:,Inod);
     
-%    dHdx=dHdx+Deriv1(:,Inod).*Hnod(:,Inod);
-%    dHdy=dHdy+Deriv2(:,Inod).*Hnod(:,Inod);
+    %    dHdx=dHdx+Deriv1(:,Inod).*Hnod(:,Inod);
+    %    dHdy=dHdy+Deriv2(:,Inod).*Hnod(:,Inod);
     
     dBdx=dBdx+Deriv1(:,Inod).*Bnod(:,Inod);
     dBdy=dBdy+Deriv2(:,Inod).*Bnod(:,Inod);
@@ -247,7 +250,7 @@ CtrlVar.GroupRepresentation=0;
 
 %l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
 
-l=sqrt(2*MUA.EleAreas);
+l=sqrt(2*MUA.EleAreas);  % this I could take outside the int loop
 
 speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 % speed1=sqrt(uint.*uint+vint.*vint+CtrlVar.SpeedZero^2);
@@ -312,7 +315,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %  1/3  dN/dX for L -> infty
 %
 
-% This is done integration-point loop.
+% This is done within the integration-point loop.
 tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 
@@ -357,7 +360,7 @@ switch lower(CtrlVar.FlowApproximation)
         
         
     case "sstreamTest"
-     error('not finalized')     
+        error('not finalized')
         
         [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
             uvhNodalLoopSSTREAMtest(detJw,nod,theta,tau0,Ronly,...

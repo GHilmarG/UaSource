@@ -72,7 +72,7 @@ while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2
         %RunInfo.Forward.uvhIterations=max([10*CtrlVar.ATSTargetIterations ; RunInfo.Forward.Iterations]);
         RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=666;
     end
-    [Du Dv Dh]
+   % [Du Dv Dh]
     
 end
 
