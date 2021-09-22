@@ -1,5 +1,5 @@
 
-function [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub0,vb0,a0,da0dh0,rho0,h1,ub1,vb1,a1,da1dh1,rho1)
+function [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub0,vb0,a0,da0dh0,rho,h1,ub1,vb1,a1,da1dh1)
 
 % Assembly
 
@@ -16,27 +16,16 @@ theta=CtrlVar.hTheta;
 dt=CtrlVar.dt;
 CtrlVar.Tracer.SUPG.tau=CtrlVar.hSUPGtau;
 
-
-
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(h1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-q0x=rho0.*h0.*ub0 ;  q0y=rho0.*h0.*vb0; 
-q1x=rho1.*h1.*ub1 ;  q1y=rho1.*h1.*vb1; 
-
-
-q0xnod=reshape(q0x(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
-q0ynod=reshape(q0y(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
-q1xnod=reshape(q1x(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
-q1ynod=reshape(q1y(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
-
-
 
 a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
+
+Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
 
@@ -45,14 +34,9 @@ l=sqrt(2*MUA.EleAreas);
 
 for Iint=1:MUA.nip  %Integration points
     
-    
-    
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    
-    
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
     
     h0int=h0nod*fun;
     h1int=h1nod*fun;
@@ -65,28 +49,55 @@ for Iint=1:MUA.nip  %Integration points
     
     
     % derivatives at one integration point for all elements
-
-    dq0xdx=zeros(MUA.Nele,1); dq0ydy=zeros(MUA.Nele,1);
-    dq1xdx=zeros(MUA.Nele,1); dq1ydy=zeros(MUA.Nele,1);
+    Deriv1=squeeze(Deriv(:,1,:)) ;
+    Deriv2=squeeze(Deriv(:,2,:)) ;
+    
+    
+    exx0=zeros(MUA.Nele,1);
+    eyy0=zeros(MUA.Nele,1);
+    
+    exx1=zeros(MUA.Nele,1);
+    eyy1=zeros(MUA.Nele,1);
+    
+    drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
     
     for Inod=1:MUA.nod
         
-        dq0xdx=dq0xdx+Deriv(:,1,Inod).*q0xnod(:,Inod);
-        dq0ydy=dq0ydy+Deriv(:,2,Inod).*q0ynod(:,Inod);
-        dq1xdx=dq1xdx+Deriv(:,1,Inod).*q1xnod(:,Inod);
-        dq1ydy=dq1ydy+Deriv(:,2,Inod).*q1ynod(:,Inod);
-      
+        dhdx=dhdx+Deriv1(:,Inod).*h1nod(:,Inod);
+        dhdy=dhdy+Deriv2(:,Inod).*h1nod(:,Inod);
+        dh0dx=dh0dx+Deriv1(:,Inod).*h0nod(:,Inod);
+        dh0dy=dh0dy+Deriv2(:,Inod).*h0nod(:,Inod);
+        
+        exx0=exx0+Deriv1(:,Inod).*u0nod(:,Inod);  % exx0
+        eyy0=eyy0+Deriv2(:,Inod).*v0nod(:,Inod);
+        
+        
+        drhodx=drhodx+Deriv1(:,Inod).*rhonod(:,Inod);
+        drhody=drhody+Deriv2(:,Inod).*rhonod(:,Inod);
+        
+        exx1=exx1+Deriv1(:,Inod).*u1nod(:,Inod);
+        eyy1=eyy1+Deriv2(:,Inod).*v1nod(:,Inod);
+        
+        
+        
     end
     
-        
+    
     detJw=detJ*MUA.weights(Iint);
     
-        
+    
     speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
     tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.h.SUPG.tau) ;
     tauSUPGint=CtrlVar.SUPG.beta0*tau;
     
-    nod=MUA.nod ;
+    
+    
+    qx1dx=rhoint.*exx.*h1int+rhoint.*u1int.*dh1dx+drhodx.*u1int.*hint;
+    qy1dy=rhoint.*eyy.*h1int+rhoint.*v1int.*dh1dy+drhody.*v1int.*hint;
+    qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*h0int;
+    qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
+    
+    
     
     for Inod=1:MUA.nod
         
@@ -95,24 +106,15 @@ for Iint=1:MUA.nip  %Integration points
         
         
         if nOut>2
-            for Jnod=1:nod
+            for Jnod=1:MUA.nod
                 
+                Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
+                    +(rhoint.*fun(Jnod)...
+                    -dt*theta*rhoint.*dadhint.*fun(Jnod)...
+                    +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
+                    rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
+                    .*SUPG.*detJw;
                 
-                TL=fun(Jnod);
-
-      
-                LL=dt*theta*(...
-                    u1int.*Deriv(:,1,Jnod) + v1int.*Deriv(:,2,Jnod)...
-                    -a1int.*(n1xDeriv1Jnod + n1yDeriv2Jnod)...
-                    );
-                
-                % Pertubation term (diffusion)
-       
-                
-                AddUp=((isT*TL+isL*LL).*(fun(Inod)+isPG.*SUPG)+isP*Plhs).*detJw ;
-
-         
-                d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+AddUp;
                 
             end
         end
@@ -123,12 +125,12 @@ for Iint=1:MUA.nip  %Integration points
         accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int);
         
         rh= accterm - dhdt - qterm;
-                
+        
         % I solve K h = -R
         
         %
         Rh(:,Inod)=Rh(:,Inod)+rh.*SUPG.*detJw;
-       
+        
         
     end
 end
