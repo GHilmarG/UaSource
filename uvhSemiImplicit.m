@@ -59,7 +59,9 @@ while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2
     h1=F1.h ; u1=F1.ub ; v1=F1.vb;
     
     % 3) calculate new ice thickness implicitly with respect to h.
-    [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
+    %[UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
+    [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    
     % Make sure to update s and b too.
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 

@@ -8,8 +8,8 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,M
 %
 %
 
-narginchk(7,8)
-nargoutchk(7,7)
+narginchk(8,8)
+nargoutchk(4,4)
 
 
 [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);

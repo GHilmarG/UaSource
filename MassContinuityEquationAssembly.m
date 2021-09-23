@@ -1,11 +1,13 @@
 
-function [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub0,vb0,a0,da0dh0,rho,h1,ub1,vb1,a1,da1dh1)
+function [UserVar,f0,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub0,vb0,a0,da0dh,rho,h1,ub1,vb1,a1,da1dh)
 
 % Assembly
+%
+%   K dh =-f0 
+%
 
 
-
-narginchk(15,15)
+narginchk(14,14)
 nargoutchk(2,3)
 
 nOut=nargout;
@@ -14,13 +16,21 @@ ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 theta=CtrlVar.hTheta;
 dt=CtrlVar.dt;
-CtrlVar.Tracer.SUPG.tau=CtrlVar.hSUPGtau;
 
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(h1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+da1dhnod=reshape(da1dh(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+ub0nod=reshape(ub0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+ub1nod=reshape(ub1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+vb0nod=reshape(vb0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vb1nod=reshape(vb1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -41,12 +51,13 @@ for Iint=1:MUA.nip  %Integration points
     h0int=h0nod*fun;
     h1int=h1nod*fun;
     
-    u0int=u0nod*fun; v0int=v0nod*fun;
-    u1int=u1nod*fun; v1int=v1nod*fun;
+    ub0int=ub0nod*fun; vb0int=vb0nod*fun;
+    ub1int=ub1nod*fun; vb1int=vb1nod*fun;
     a0int=a0nod*fun;
     a1int=a1nod*fun;
+    da1dhint=da1dhnod*fun;
     
-    
+    rhoint=rhonod*fun;
     
     % derivatives at one integration point for all elements
     Deriv1=squeeze(Deriv(:,1,:)) ;
@@ -60,23 +71,25 @@ for Iint=1:MUA.nip  %Integration points
     eyy1=zeros(MUA.Nele,1);
     
     drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
+    dh1dx=zeros(MUA.Nele,1); dh1dy=zeros(MUA.Nele,1);
+    dh0dx=zeros(MUA.Nele,1); dh0dy=zeros(MUA.Nele,1);
     
     for Inod=1:MUA.nod
         
-        dhdx=dhdx+Deriv1(:,Inod).*h1nod(:,Inod);
-        dhdy=dhdy+Deriv2(:,Inod).*h1nod(:,Inod);
+        dh1dx=dh1dx+Deriv1(:,Inod).*h1nod(:,Inod);
+        dh1dy=dh1dy+Deriv2(:,Inod).*h1nod(:,Inod);
         dh0dx=dh0dx+Deriv1(:,Inod).*h0nod(:,Inod);
         dh0dy=dh0dy+Deriv2(:,Inod).*h0nod(:,Inod);
         
-        exx0=exx0+Deriv1(:,Inod).*u0nod(:,Inod);  % exx0
-        eyy0=eyy0+Deriv2(:,Inod).*v0nod(:,Inod);
+        exx0=exx0+Deriv1(:,Inod).*ub0nod(:,Inod);
+        eyy0=eyy0+Deriv2(:,Inod).*vb0nod(:,Inod);
         
         
         drhodx=drhodx+Deriv1(:,Inod).*rhonod(:,Inod);
         drhody=drhody+Deriv2(:,Inod).*rhonod(:,Inod);
         
-        exx1=exx1+Deriv1(:,Inod).*u1nod(:,Inod);
-        eyy1=eyy1+Deriv2(:,Inod).*v1nod(:,Inod);
+        exx1=exx1+Deriv1(:,Inod).*ub1nod(:,Inod);
+        eyy1=eyy1+Deriv2(:,Inod).*vb1nod(:,Inod);
         
         
         
@@ -86,23 +99,23 @@ for Iint=1:MUA.nip  %Integration points
     detJw=detJ*MUA.weights(Iint);
     
     
-    speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
+    speed0=sqrt(ub0int.*ub0int+vb0int.*vb0int+CtrlVar.SpeedZero^2);
     tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.h.SUPG.tau) ;
     tauSUPGint=CtrlVar.SUPG.beta0*tau;
     
     
     
-    qx1dx=rhoint.*exx.*h1int+rhoint.*u1int.*dh1dx+drhodx.*u1int.*hint;
-    qy1dy=rhoint.*eyy.*h1int+rhoint.*v1int.*dh1dy+drhody.*v1int.*hint;
-    qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*h0int;
-    qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
+    q1xdx=rhoint.*exx1.*h1int+rhoint.*ub1int.*dh1dx+drhodx.*ub1int.*h1int;
+    q1ydy=rhoint.*eyy1.*h1int+rhoint.*vb1int.*dh1dy+drhody.*vb1int.*h1int;
+    q0xdx=rhoint.*exx0.*h0int+rhoint.*ub0int.*dh0dx+drhodx.*ub0int.*h0int;
+    q0ydy=rhoint.*eyy0.*h0int+rhoint.*vb0int.*dh0dy+drhody.*vb0int.*h0int;
     
     
     
     for Inod=1:MUA.nod
         
         
-        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+        SUPG=CtrlVar.h.SUPG.Use*tauSUPGint.*(ub0int.*Deriv(:,1,Inod)+vb0int.*Deriv(:,2,Inod));
         
         
         if nOut>2
@@ -110,9 +123,9 @@ for Iint=1:MUA.nip  %Integration points
                 
                 Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
                     +(rhoint.*fun(Jnod)...
-                    -dt*theta*rhoint.*dadhint.*fun(Jnod)...
-                    +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
-                    rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
+                    -dt*theta*rhoint.*da1dhint.*fun(Jnod)...
+                    +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv(:,1,Jnod)+...
+                    rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv(:,2,Jnod)))...
                     .*SUPG.*detJw;
                 
                 
@@ -121,7 +134,7 @@ for Iint=1:MUA.nip  %Integration points
         
         % Note, I solve: LSH  \phi  = - RHS
         qterm=  dt*(theta*q1xdx+(1-theta)*q0xdx+theta*q1ydy+(1-theta)*q0ydy);
-        dhdt=  rhoint.*(h0int-hint);
+        dhdt=  rhoint.*(h0int-h1int);
         accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int);
         
         rh= accterm - dhdt - qterm;
@@ -136,14 +149,14 @@ for Iint=1:MUA.nip  %Integration points
 end
 %% assemble right-hand side
 
-Rint=sparseUA(neq,1); Fext=sparseUA(neq,1);
+f0=sparseUA(neq,1); 
 
 for Inod=1:MUA.nod
-    Rint=Rint+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Rh(:,Inod),neq,1);
+    f0=f0+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Rh(:,Inod),neq,1);
 end
 %%
 
-Rh=Rint-Fext;
+
 
 
 if nargout>2
@@ -154,12 +167,12 @@ if nargout>2
         for Jnod=1:MUA.nod
             Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
             Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-            Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
+            Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
             istak=istak+MUA.Nele;
         end
     end
     
-    kv=sparseUA(Iind,Jind,Xval,neq,neq);
+    K=sparseUA(Iind,Jind,Xval,neq,neq);
 end
 
 end

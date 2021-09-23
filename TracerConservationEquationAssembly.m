@@ -2,8 +2,16 @@
 
 function [UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,h0,u0,v0,a0,u1,v1,a1,kappa)
 
-% Note: This only solves a linear tracer equation
+% Note: Assembly for the linear tracer equationU
 %  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a
+
+%%
+%
+% $$ \partial c/\partial t + \partial  ( u c)/ \partial x + \partial  ( v c)/\partial y - \nabla \cdot (\kappa \nabla c ) = a$$
+%
+%
+%    
+%%
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
@@ -132,7 +140,7 @@ for Iint=1:MUA.nip
             kdxh1=dt*theta.*kappaint.*Deriv(:,1,Jnod).*Deriv(:,1,Inod).*detJw;
             kdyh1=dt*theta.*kappaint.*Deriv(:,2,Jnod).*Deriv(:,2,Inod).*detJw;
             
-            d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+h1term+hdxu1+udxh1+hdyv1+vdyh1+kdxh1+kdyh1+a1term; 
+            d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+h1term+hdxu1+udxh1+hdyv1+vdyh1+kdxh1+kdyh1;
             
         end
         

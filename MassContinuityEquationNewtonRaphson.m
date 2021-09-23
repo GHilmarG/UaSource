@@ -7,8 +7,8 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
 %
 %
 %    
-    narginchk(7,8)
-    nargoutchk(6,6)
+    narginchk(8,8)
+    nargoutchk(4,4)
 
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -26,7 +26,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     
      
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
-    RunInfo.h.SolverConverged=false;
+%    RunInfo.h.SolverConverged=false;
     
     while true
         
@@ -97,7 +97,11 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         
         iteration=iteration+1 ;
         
-        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.a,F0.dadh,F1.h,F1.c,F1.ub,F1.vb,F1.a,F1.dadh);
+        a1=F1.as+F1.ab;
+        a0=F0.as+F0.ab;
+        da0dh=F0.dasdh+F0.dabdh;
+        da1dh=F1.dasdh+F1.dabdh;
+        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,a0,da0dh,F1.h,F1.ub,F1.vb,a1,da1dh);
         
         if ~isempty(L)
    
