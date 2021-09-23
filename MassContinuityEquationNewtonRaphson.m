@@ -13,10 +13,10 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.hL ; Lrhs=MLC.hRhs ;
-    if nargin==7 || isempty(l) || (numel(l)~=numel(Lrhs))
-        l=Lrhs*0 ; 
+    if nargin==7 || isempty(l.h) || (numel(l.h)~=numel(Lrhs))
+        l.h=Lrhs*0 ; 
     end
-    dl=l*0 ;
+    dl=l.h*0 ;
     dh=F1.h*0;
     BCsError=0;
     
@@ -26,7 +26,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     
      
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
-%    RunInfo.h.SolverConverged=false;
+    RunInfo.Forward.hConverged=false;
     
     while true
         
@@ -75,14 +75,14 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         
         if iteration>=CtrlVar.hSolverMaxIterations && (rRatio>0.9) 
             fprintf('hEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.hSolverMaxIterations)
-            RunInfo.h.SolverConverged=false;
+            RunInfo.Forward.hConverged=false;
             break
         end
         
         
         if ResidualsCriteria 
             fprintf('hEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
-            RunInfo.h.SolverConverged=true;
+            RunInfo.Forward.hConverged=true;
             break
         end
         
@@ -91,21 +91,18 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf('hEquationNewtonRaphson: Backtracking stagnated or step too small. Exiting after %i iterations with rWork=%g and rForce=%g \n',iteration,rWork,rForce)
             end
-            RunInfo.h.SolverConverged=false;
+            RunInfo.Forward.hConverged=false;
             break
         end
         
         iteration=iteration+1 ;
         
-        a1=F1.as+F1.ab;
-        a0=F0.as+F0.ab;
-        da0dh=F0.dasdh+F0.dabdh;
-        da1dh=F1.dasdh+F1.dabdh;
-        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,a0,da0dh,F1.h,F1.ub,F1.vb,a1,da1dh);
+        
+        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
         
         if ~isempty(L)
    
-            frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionhEquation
+            frhs=-R-L'*l.h        ;  % This needs to be identical to what is defined in the CalcCostFunctionhEquation
             grhs=Lrhs-L*F1.h; % Here the argument is that frhs has the units: [\varphi] area/time
                                 % while grhs has the units [\varphi], where [\varphi] are the units of 
                                 % the level-set function itself, ie [\varphi]
@@ -123,7 +120,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
             error('hEquationNewtonRaphson:NaNinSolution','NaN in the solution for dh')
         end
         
-        Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dh,dl);
+        Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l.h,dh,dl);
 
         gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
@@ -181,7 +178,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         
         
         F1.h=F1.h+gamma*dh;
-        l=l+gamma*dl;
+        l.h=l.h+gamma*dl;
         
         rRatio=r/r0; 
         if CtrlVar.hInfoLevel>=1
@@ -189,32 +186,33 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
                 BCsError=norm(Lrhs-L*F1.h);
             end
            
-            fprintf(CtrlVar.fidlog,'Level-Set(TLP/%i%i%i):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
-                 CtrlVar.h.T,CtrlVar.h.L,CtrlVar.h.P,...
+            fprintf(CtrlVar.fidlog,'NR-h:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
                 iteration,BackTrackInfo.iarm,gamma,rRatio,r0,r,rForce,rWork,BCsError);
         end
         
+
+
+        % Now that F1.h has been updated, I need to update the mass balance if using mass-balance feedback
+        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
     end
     
     h1=F1.h ; % Because I don't return F1
     
-    RunInfo.h.iCount=RunInfo.h.iCount+1;
+    RunInfo.Forward.hiCount=RunInfo.Forward.hiCount+1;
     
-    if numel(RunInfo.h.time) < RunInfo.h.iCount
-       RunInfo.h.time=[RunInfo.h.time;RunInfo.h.time+NaN];
-       RunInfo.h.Iterations=[RunInfo.h.Iterations;RunInfo.h.Iterations+NaN];
-       RunInfo.h.Residual=[RunInfo.h.Residual;RunInfo.h.Residual+NaN];
-       RunInfo.h.BackTrackSteps=[RunInfo.h.BackTrackSteps;RunInfo.h.BackTrackSteps+NaN];
-       RunInfo.h.Phase=[RunInfo.h.Phase;strings(size(RunInfo.h.Phase))]; 
+    if numel(RunInfo.Forward.time) < RunInfo.Forward.hiCount
+       RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
+       RunInfo.Forward.hIterations=[RunInfo.Forward.hIterations;RunInfo.Forward.hIterations+NaN];
+       RunInfo.Forward.hResidual=[RunInfo.Forward.hResidual;RunInfo.Forward.hResidual+NaN];
+       RunInfo.Forward.hBackTrackSteps=[RunInfo.Forward.hBackTrackSteps;RunInfo.Forward.hBackTrackSteps+NaN];
     end
     
     
     
-    RunInfo.h.time(RunInfo.h.iCount)=CtrlVar.time;   
-    RunInfo.h.Iterations(RunInfo.h.iCount)=iteration ; 
-    RunInfo.h.Residual(RunInfo.h.iCount)=r;
-    RunInfo.h.BackTrackSteps( RunInfo.h.iCount)=BackTrackInfo.iarm ; 
-    RunInfo.h.Phase(RunInfo.h.iCount)=CtrlVar.hPhase;
+    RunInfo.Forward.time(RunInfo.Forward.hiCount)=CtrlVar.time;   
+    RunInfo.Forward.hIterations(RunInfo.Forward.hiCount)=iteration ; 
+    RunInfo.Forward.hResidual(RunInfo.Forward.hiCount)=r;
+    RunInfo.Forward.hBackTrackSteps( RunInfo.Forward.hiCount)=BackTrackInfo.iarm ;
     
     
     

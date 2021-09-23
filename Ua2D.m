@@ -618,21 +618,28 @@ while 1
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
             
-            
+
             fprintf(...
                 '\n =========> Semi-Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
-            
+
             tSemiImplicit=tic;                  % -uv
-            
-            
+
+
             F0=F;
-            
+
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+
+
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
-            
+
             
             tSemiImplicit=toc(tSemiImplicit);
             if CtrlVar.InfoLevelCPU>=1

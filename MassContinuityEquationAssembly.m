@@ -1,5 +1,5 @@
 
-function [UserVar,f0,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub0,vb0,a0,da0dh,rho,h1,ub1,vb1,a1,da1dh)
+function [UserVar,f0,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,rho,ub0,vb0,as0,ab0,h1,ub1,vb1,as1,ab1,das1dh,dab1dh)
 
 % Assembly
 %
@@ -7,7 +7,7 @@ function [UserVar,f0,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,ub
 %
 
 
-narginchk(14,14)
+narginchk(16,16)
 nargoutchk(2,3)
 
 nOut=nargout;
@@ -16,6 +16,14 @@ ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 theta=CtrlVar.hTheta;
 dt=CtrlVar.dt;
+
+
+
+
+a1=as1+ab1;
+a0=as0+ab0;
+da1dh=das1dh+dab1dh;
+
 
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(h1(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -36,6 +44,7 @@ rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
+dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
 
@@ -115,8 +124,9 @@ for Iint=1:MUA.nip  %Integration points
     for Inod=1:MUA.nod
         
         
-        SUPG=CtrlVar.h.SUPG.Use*tauSUPGint.*(ub0int.*Deriv(:,1,Inod)+vb0int.*Deriv(:,2,Inod));
-        
+        SUPG=fun(Inod)+CtrlVar.h.SUPG.Use*tauSUPGint.*(ub0int.*Deriv1(:,Inod)+vb0int.*Deriv2(:,Inod));
+          
+    
         
         if nOut>2
             for Jnod=1:MUA.nod
@@ -124,22 +134,30 @@ for Iint=1:MUA.nip  %Integration points
                 Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
                     +(rhoint.*fun(Jnod)...
                     -dt*theta*rhoint.*da1dhint.*fun(Jnod)...
-                    +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv(:,1,Jnod)+...
-                    rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv(:,2,Jnod)))...
+                    +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
+                    +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
                     .*SUPG.*detJw;
-                
-                
+             
+%   
+%                 dFdt(:,Inod,Jnod)=dFdt(:,Inod,Jnod)...
+%                     +(...
+%                     +theta*rhoint.*da1dhint.*fun(Jnod)...
+%                     -theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
+%                     -rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
+%                     .*SUPG.*detJw./rhoint;
+             
+
             end
         end
         
         % Note, I solve: LSH  \phi  = - RHS
         qterm=  dt*(theta*q1xdx+(1-theta)*q0xdx+theta*q1ydy+(1-theta)*q0ydy);
-        dhdt=  rhoint.*(h0int-h1int);
-        accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int);
+        dhdt=  rhoint.*(h1int-h0int);
+        accterm=  -dt*rhoint.*((1-theta)*a0int+theta*a1int);
         
-        rh= accterm - dhdt - qterm;
+        rh= dhdt + qterm + accterm ;
         
-        % I solve K h = -R
+        % I solve K h = -Rh
         
         %
         Rh(:,Inod)=Rh(:,Inod)+rh.*SUPG.*detJw;

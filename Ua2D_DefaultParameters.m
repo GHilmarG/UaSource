@@ -266,7 +266,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-
+CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -377,6 +377,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -400,7 +402,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-
+CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -582,7 +584,7 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
                               % then increasing this number will give further information. G
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-                              
+CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implicit uv/h approach
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;

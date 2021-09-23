@@ -38,7 +38,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvIterations=NaN;
             obj.Forward.uvResidual=NaN;
             
-            obj.Forward.hConverged=0;
+            
 
             
             obj.Forward.Converged=0;
@@ -59,7 +59,9 @@ classdef (ConstructOnLoad) UaRunInfo
             
             obj.Forward.hIterations=NaN(N,1);
             obj.Forward.hResidual=NaN(N,1);
-
+            obj.Forward.hBackTrackSteps=zeros(N,1)+NaN;
+            obj.Forward.hiCount=0; 
+            obj.Forward.hConverged=0;
 
             obj.Forward.ubvbRecalculatedOnNewMesh=false; 
             
@@ -143,10 +145,14 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.BackTrack.Infovector=NaN;
                 obj.BackTrack.nFuncEval=NaN;
                 obj.BackTrack.nExtrapolationSteps=NaN;
-                
-                
+
+
             end
-            
+
+            if ~isfield(s.Forward,'hiCount')
+                obj.Forward.hiCount=0;
+            end
+
 %             I got rid of this counter, if I keep this in here, these fields will always be set to zero on load  
 %             if ~isfield(s.Forward,'iCounter')
 %                 
