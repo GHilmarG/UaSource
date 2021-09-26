@@ -25,7 +25,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     F0.h(BCs.hFixedNode)=BCs.hFixedValue;
     
      
-    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
+    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1; r=Inf; 
     RunInfo.Forward.hConverged=false;
     
     while true
@@ -137,11 +137,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
         
-        % Testing
-        if gamma<1e-5 
-           fprintf(" hm \n ") 
-        end
-        
+ 
         if CtrlVar.hInfoLevel>=100 && CtrlVar.doplots==1
             nnn=30;
             gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
