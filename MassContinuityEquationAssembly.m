@@ -155,6 +155,17 @@ for Iint=1:MUA.nip  %Integration points
                     .*SUPG.*detJw./rhoint;
 
 
+                % dFdt = ( rho a - div ( rho v)   )/rho
+                %
+                %  A dh/dt = F 
+                %
+                %   rho (h1 - h0)/dt  =   rho a - div (rho v) 
+                %    
+                %  < rho (h1 - h0)/dt  , \phi > =  < rho a - div (rho v)  , \phi > 
+                %
+                %    
+                %
+
             end
         end
 
