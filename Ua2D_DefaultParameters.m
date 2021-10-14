@@ -1445,7 +1445,7 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.LevelSetMethod=0; 
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
-
+CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
 
 
@@ -1473,7 +1473,7 @@ CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"];
  CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
+CtrlVar.LevelSetInitialisationInterval=inf ; 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
 % CtrlVar.LevelSetReinitialize=
