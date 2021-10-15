@@ -22,23 +22,23 @@ end
 
 if  CtrlVar.LevelSetReinitializePDist
 
-%% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
-% non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
-% This will in most cases not be needed, but
+    %% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
+    % non-linear FAB solve with the level-set fixed as boundary conditions on the LSF.
+    % This will in most cases not be needed, but
 
-if  isfield(CtrlVar,'CtrlVar.LevelSetTestString') &&  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
-    xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
-else
-    CtrlVar.LineUpGLs=false ;
-    [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
-end
+    if  isfield(CtrlVar,'CtrlVar.LevelSetTestString') &&  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
+        xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
+    else
+        CtrlVar.LineUpGLs=false ;
+        [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+    end
 
-% It should be OK to do this with LSF at both 0 and 1 as I have already
-% found the location of the level set for F0 and this will be enforced
-% throught the BCs.
-[LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
-F0.LSF=LSF ;
-F1.LSF=LSF ;
+    % It should be OK to do this with LSF at both 0 and 1 as I have already
+    % found the location of the level set for F0 and this will be enforced
+    % throught the BCs.
+    [LSF,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F0.LSF,xC,yC);
+    F0.LSF=LSF ;
+    F1.LSF=LSF ;
 end
 %%
 

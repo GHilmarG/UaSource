@@ -24,34 +24,34 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
     PlotMeshScalarVariable(CtrlVar,MUA,F1.LSF) ; 
     hold on ; 
     PlotCalvingFronts(CtrlVar,MUA,F1,'r') ;
-    title(sprintf("%s F1.LSF at time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+    title(sprintf("%s F1.LSF at time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
     
     FindOrCreateFigure("F1.LSF surface") ; 
     hold off
     PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,F1.LSF/CtrlVar.PlotXYscale,500) ; 
     colormap(othercolor('BuOr_12',1024));
     zlabel("$\varphi_1$",interpreter="latex")
-    title(sprintf("%s F1.LSF at time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+    title(sprintf("%s F1.LSF at time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
     
     FigC=FindOrCreateFigure("Calving rate");
     PlotMeshScalarVariable(CtrlVar,MUA,F1.c) ;
     xlabel("$x\,(\mathrm{km})$",interpreter="latex")
     ylabel("$y\,(\mathrm{km})$",interpreter="latex")
-    title(sprintf("Calving rate c at time=%3.1f ",CtrlVar.time))
+    title(sprintf("Calving rate c at time=%5.2f ",CtrlVar.time))
     
     speed=sqrt(F1.ub.^2+F1.vb.^2);
     FigC=FindOrCreateFigure("speed");
     PlotMeshScalarVariable(CtrlVar,MUA,speed) ;
     xlabel("$x\,(\mathrm{km})$",interpreter="latex")
     ylabel("$y\,(\mathrm{km})$",interpreter="latex")
-    title(sprintf("speed at time=%3.1f ",CtrlVar.time))
+    title(sprintf("speed at time=%5.2f ",CtrlVar.time))
     
     
     FigC=FindOrCreateFigure("speedc");
     PlotMeshScalarVariable(CtrlVar,MUA,speed+F1.c) ;
     xlabel("$x\,(\mathrm{km})$",interpreter="latex")
     ylabel("$y\,(\mathrm{km})$",interpreter="latex")
-    title(sprintf("speed+c at time=%3.1f ",CtrlVar.time))
+    title(sprintf("speed+c at time=%5.2f ",CtrlVar.time))
     
     
     if ~isempty(F1)
@@ -62,7 +62,7 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
         hold on ; 
         hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'k',LineWidth=2);
         colormap(othercolor('BuOr_12',1024));
-        title(sprintf("%s F1.LSF at time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+        title(sprintf("%s F1.LSF at time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
         xlabel("$x\,(\mathrm{km})$",interpreter="latex")
         ylabel("$y\,(\mathrm{km})$",interpreter="latex")
         title(ColorbarHandle,"$\varphi_1\,\mathrm{(km)}$",interpreter="latex")
@@ -76,7 +76,7 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
         [~,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,F0.LSF/CtrlVar.PlotXYscale); 
         hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F0,'k',LineWidth=2);
         colormap(othercolor('BuOr_12',1024));
-        title(sprintf("%s F0.LSF at time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+        title(sprintf("%s F0.LSF at time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
         title(ColorbarHandle,"$\varphi_0\, \mathrm{(km)}$",interpreter="latex")
         xlabel("$x\,(\mathrm{km})$",interpreter="latex")
         ylabel("$y\,(\mathrm{km})$",interpreter="latex")
@@ -89,7 +89,7 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
         [~,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,(F1.LSF-F0.LSF)/CtrlVar.PlotXYscale); title('dLSF1')
         hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'k',LineWidth=2);
         colormap(othercolor('BuOr_12',1024));
-        title(sprintf("%s F1.LSF-F0.LSF at time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+        title(sprintf("%s F1.LSF-F0.LSF at time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
         xlabel("$x\,(\mathrm{km})$",interpreter="latex")
         ylabel("$y\,(\mathrm{km})$",interpreter="latex")
         title(ColorbarHandle,"$\varphi_1-\varphi_0$",interpreter="latex")
@@ -110,19 +110,19 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],'r','LineWidth',2);
         if ~isempty(xGL)
             Temp=fMeshLSF.CurrentAxes.Title.String;
-            fMeshLSF.CurrentAxes.Title.String={Temp,"Grounding line in red"};
+            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Grounding line in red"}];
         end
         if ~isempty(F1.LSF) && CtrlVar.LevelSetMethod
             hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F1,'b','LineWidth',2) ;
             Temp=fMeshLSF.CurrentAxes.Title.String;
-            fMeshLSF.CurrentAxes.Title.String={Temp,"Calving front in blue"};
+            fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Calving front in blue"}];
         end
         Par.RelativeVelArrowSize=10 ;
         QuiverColorGHG(MUA.coordinates(:,1)/1000,MUA.coordinates(:,2)/1000,F1.ub,F1.vb,Par) ;
         if KeepAxes
             xlim(xL) ; ylim(yL) ;
         end
-        title(sprintf("%s time=%3.1f ",CtrlVar.LevelSetPhase,CtrlVar.time))
+        title(sprintf("%s time=%5.2f ",CtrlVar.LevelSetPhase,CtrlVar.time))
     end
     
     

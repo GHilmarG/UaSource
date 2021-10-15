@@ -107,8 +107,8 @@ for Iint=1:MUA.nip  %Integration points
     
     
     % Norm of gradient (NG)
-    NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
-    NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
+    NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy+eps); % at each integration point for all elements
+    NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
     n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
     n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
     
