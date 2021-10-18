@@ -68,7 +68,7 @@ if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || Ctr
 end
 %% Initialisation phase
 if  contains(CtrlVar.LevelSetPhase,"Initialisation")
-    CtrlVar.LevelSetReinitializePDist=false ; 
+    % CtrlVar.LevelSetReinitializePDist=false ; 
     [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     F0.LSF=LSF ; F1.LSF=LSF ;
 end

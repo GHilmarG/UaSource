@@ -1,11 +1,11 @@
-function [UserVar,rh,kv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+function [UserVar,rh,kv,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
 
 %% Level Set Equation with a source term
 %
 % $$ \partial \varphi/\partial t + v \cdot \nabla \varphi - \nabla \cdot (\kappa \nabla \varphi ) + c \| \nabla \varphi \| = 0$$
 %
 narginchk(15,53)
-nargoutchk(2,6)
+nargoutchk(2,4)
 
 nOut=nargout;
 
@@ -38,12 +38,13 @@ c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+if isC
+    qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-qx1nod=reshape(qx1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
+    qx1nod=reshape(qx1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
 
 d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
 %b1=zeros(MUA.Nele,MUA.nod);
@@ -95,13 +96,18 @@ for Iint=1:MUA.nip  %Integration points
         df1dx=df1dx+Deriv(:,1,Inod).*f1nod(:,Inod);
         df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
         
-        dqx0dx=dqx1dx+Deriv(:,1,Inod).*qx0nod(:,Inod);
-        dqy0dy=dqy1dy+Deriv(:,2,Inod).*qy0nod(:,Inod);
-        
-        dqx1dx=dqx1dx+Deriv(:,1,Inod).*qx1nod(:,Inod);
-        dqy1dy=dqy1dy+Deriv(:,2,Inod).*qy1nod(:,Inod);
     end
-    
+
+    if isC  % consistent formulation 
+        for Inod=1:MUA.nod
+            dqx0dx=dqx1dx+Deriv(:,1,Inod).*qx0nod(:,Inod);
+            dqy0dy=dqy1dy+Deriv(:,2,Inod).*qy0nod(:,Inod);
+
+            dqx1dx=dqx1dx+Deriv(:,1,Inod).*qx1nod(:,Inod);
+            dqy1dy=dqy1dy+Deriv(:,2,Inod).*qy1nod(:,Inod);
+        end
+    end
+
     
     
     
@@ -119,23 +125,8 @@ for Iint=1:MUA.nip  %Integration points
     n0x(I0)=0 ; n0y(I0)=0;
     
  
-    %cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
+    cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
-    
-    %% limit cx-u and cy-v where it is suffiently far away from the zero level
-    % Testing!!!
-    % can't see that this does anything
-%     c0intZero=-(u0int.*df0dx+v0int.*df0dy)./NG0 ; 
-%     c1intZero=-(u1int.*df1dx+v1int.*df1dy)./NG1 ; 
-%     cMax=10000; 
-%   
-%     I=(c0int>(c0intZero+cMax)) | (c0int<(c0intZero-cMax)) ; c0int(I)=c0intZero(I) ;        
-%     I=(c1int>(c1intZero+cMax)) | (c1int<(c1intZero-cMax)) ; c1int(I)=c1intZero(I) ;        
-%     
-%     
-    
-    
-    %%
     
     tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
     % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
@@ -152,8 +143,24 @@ for Iint=1:MUA.nip  %Integration points
         case "constant"
             Scale=1 ;
         case "ucl"
-            %Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
-            Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+            % Various options
+
+            % 1)
+            Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
+            % This makes the scale independent of the solution and there is no impact on the NR solution
+
+
+             % 2) 
+             % Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+             % Here the solution will depend on f0. There is no contribution to the NR terms,  but if I solve again using backward Euler I
+             % will not get the same solution if I advance both F0 and F1. This is acceptable in a transient theta=0.5 solution, but less
+             % so if using a backward Euler when solving the fix point problem. 
+
+             % 3)
+             % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
+                                                                                           % the solution which is currenlty not included in the NR terms 
+            % Scale=1e5;                                                                    
+
         otherwise
             
             error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
@@ -245,7 +252,7 @@ for Iint=1:MUA.nip  %Integration points
             dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))...
             + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod));
         
-        % Second-order from of the diffusion term
+        % Second-order form of the diffusion term
         D2=...
             - dt*  theta   * (dqx1dx+ dqy1dy)...
             - dt*(1-theta) * (dqx0dx+ dqy0dy) ;
@@ -270,25 +277,21 @@ for Iint=1:MUA.nip  %Integration points
     end
 end
 
-%Pv=sparseUA(neq,1);
-%Lv=sparseUA(neq,1);
-%Tv=sparseUA(neq,1);
-Qx=sparseUA(neq,1);
-Qy=sparseUA(neq,1);
-Rv=sparseUA(neq,1);
-%RSUPGv=sparseUA(neq,1);
 
 Rh=sparseUA(neq,1);
 
 for Inod=1:MUA.nod
-    %Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
-    %Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
-    %Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
-    %Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
-    %RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
-    Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
-    Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
     Rh=Rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RTest(:,Inod),neq,1);
+end
+
+if isC
+    Qx=sparseUA(neq,1); Qy=sparseUA(neq,1);
+    for Inod=1:MUA.nod
+        Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
+        Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+    end
+else
+    Qx=[] ; Qy=[] ; 
 end
 
 % rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
