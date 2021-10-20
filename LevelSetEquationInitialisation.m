@@ -22,7 +22,7 @@ if CtrlVar.LevelSetInitBCsZeroLevel
    % figure ;  lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
 end
 
-
+CtrlVar.LevelSetReinitializePDist=1;
 if  CtrlVar.LevelSetReinitializePDist
 
     %% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
@@ -50,68 +50,5 @@ end
 % var her
 return
 
-
-%% Now use the Fixed-point approach. That is, solve the level-set equation using only the non-linear FAB diffusion term
-CtrlVar.LSF.L=0 ;   % The level-set equation only (i.e. without the pertubation term)
-CtrlVar.LSF.P=1 ;   % P is the pertubation term (i.e. the FAB term)
-CtrlVar.LSF.T=0 ;
-CtrlVar.LevelSetTheta=1;  % Here use backward Euler to ensure that the final level set is not affected by the initial guess
-
-% This step does not advance the solution forward in time, just solves
-% the diffusion term
-l=[] ;  % Here I'm solving a different system potentially, so don't use previous l values
-[UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-F1.LSF=LSF ; % F1.LSFqx=LSFqx; F1.LSFqy=LSFqy;
-F0.LSF=LSF ; % F0.LSFqx=LSFqx; F0.LSFqy=LSFqy;
-
-
-if ~RunInfo.LevelSet.SolverConverged || CtrlVar.LevelSetTestString=="-pseudo-forward-"
-    
-    
-    % If fixed-point solution did not converge, do a pseudo-forward time stepping
-    %
-    %
-    CtrlVar.LSF.T=1 ;CtrlVar.LSF.L=0 ;  CtrlVar.LSF.P=1 ;  % Pseudo-forward, using T and P term (no time update and backward Euler)
-    CtrlVar.LevelSetTheta=1;
-    N=0;
-    
-    F1.LSF=LSF ; F0.LSF=LSF ;
-    Nmax=200;  dtOld=CtrlVar.dt ; dtFactor=1.5;  dtMax=100*dtOld ; l=[] ; 
-    while true
-        N=N+1;
-        F0.LSF=F1.LSF ;
-        
-        
-        
-        [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-        F1.LSF=LSF;
-        
-        dtBefore=CtrlVar.dt;
-        dtNew=CtrlVar.dt*dtFactor ;
-        CtrlVar.dt=min(dtNew,dtMax);
-        
-        dLSFdtMax=max(F1.LSF-F0.LSF)/CtrlVar.dt ;
-        
-        
-        if N>5 && dLSFdtMax < CtrlVar.LevelSetPseudoForwardTolerance
-            break
-        end
-
-        if N > 20  && ~RunInfo.LevelSet.SolverConverged
-            CtrlVar.LevelSetTheta=1;  % I would like to use backward Euler, but this occasionally does not converge
-
-        end
-
-        if N>Nmax
-            fprintf("Level set solver did not converge despite repeated atempts. \n")
-            fprintf("Returning last iterate. Level-set solution might be inaccurate. \n")
-            break
-        end
-        fprintf("time=%f \t dtNew=%g \t dtBefore=%g \t dt=%f \t max rate-of-change=%g \n",CtrlVar.time,dtNew,dtBefore,CtrlVar.dt,dLSFdtMax)
-        
-    end
-    BCs.LSFFixedNode=LSFFixedNodeUnmodified;
-    BCs.LSFFixedValue=LSFFixedValueUnmodified;
-end
 
 end

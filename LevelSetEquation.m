@@ -145,9 +145,11 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
                 CtrlVar.LevelSetTheta=1;
                 dtBefore=CtrlVar.dt;
                 dtNew=CtrlVar.dt ;
-                
+                fprintf("Level set solver did not converge. Trying backward Euler. \n")
+
             elseif Ntries==2
                 
+                fprintf("Level set solver did not converge. Performing a new re-initialisation \n")
                 CtrlVar.LevelSetReinitializePDist=false ; 
                 [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 F0.LSF=LSF ; F1.LSF=LSF ;

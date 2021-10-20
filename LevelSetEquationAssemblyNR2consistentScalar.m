@@ -130,49 +130,50 @@ for Iint=1:MUA.nip  %Integration points
     
     tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
     % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
-    
-    
+
+
+    if CtrlVar.LevelSetFABmu.Value==0 && isP && ~isT && ~isL
+        CtrlVar.LevelSetFABmu.Value=1;
+    end
+
+    % This has the dimention l^2/t
     % I need to think about a good def for mu
     %
     % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
     %
-    
-    
-    switch lower(CtrlVar.LevelSetFABmu.Scale)
-        
-        case "constant"
-            Scale=1 ;
-        case "ucl"
-            % Various options
 
-            % 1)
-            Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
-            % This makes the scale independent of the solution and there is no impact on the NR solution
+    % The Scale (or \mu in the UaCompendium) has the units m^2/t
+    %
+    if contains(lower(CtrlVar.LevelSetFABmu.Scale),"constant")
+
+        Scale =1 ;
+        mu=Scale*CtrlVar.LevelSetFABmu.Value;
+
+    elseif contains(lower(CtrlVar.LevelSetFABmu.Scale),"ucl")
+        % Various options
+
+        % 1)
+        Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
+        % This makes the scale independent of the solution and there is no impact on the NR solution
 
 
-             % 2) 
-             % Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
-             % Here the solution will depend on f0. There is no contribution to the NR terms,  but if I solve again using backward Euler I
-             % will not get the same solution if I advance both F0 and F1. This is acceptable in a transient theta=0.5 solution, but less
-             % so if using a backward Euler when solving the fix point problem. 
+        % 2)
+        % Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+        % Here the solution will depend on f0. There is no contribution to the NR terms,  but if I solve again using backward Euler I
+        % will not get the same solution if I advance both F0 and F1. This is acceptable in a transient theta=0.5 solution, but less
+        % so if using a backward Euler when solving the fix point problem.
 
-             % 3)
-             % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
-                                                                                           % the solution which is currenlty not included in the NR terms 
-            % Scale=1e5;                                                                    
+        % 3)
+        % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
+        % the solution which is currenlty not included in the NR terms
+        % Scale=1e5;
+        mu=Scale*CtrlVar.LevelSetFABmu.Value;
+    else
 
-        otherwise
-            
-            error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
+        error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
     end
-    
-    if CtrlVar.LevelSetFABmu.Value==0 && isP && ~isT && ~isL
-        CtrlVar.LevelSetFABmu.Value=1;
-    end
-    % This has the dimention l^2/t
-    
-    mu=Scale*CtrlVar.LevelSetFABmu.Value;  % This has the dimention l^2/t
- 
+
+
     
     [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
     [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
@@ -193,9 +194,11 @@ for Iint=1:MUA.nip  %Integration points
     
     for Inod=1:MUA.nod
         
-        
-         SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-        % SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+       % This feels like a more logical choice, but this does cause convergence problems
+       % SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+
+
+        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
         %SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
         
         if nOut>2
