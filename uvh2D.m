@@ -8,7 +8,7 @@ nargoutchk(4,5)
 switch lower(CtrlVar.FlowApproximation)
     
     
-    case 'sstream'
+    case {"sstream","sstream-rho"}
         
         [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 

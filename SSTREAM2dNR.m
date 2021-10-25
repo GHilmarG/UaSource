@@ -136,6 +136,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 %             
 %         end
         
+
         if ResidualsCriteria
             
             tEnd=toc(tStart);

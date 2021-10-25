@@ -8,36 +8,41 @@ nargoutchk(2,2)
 % Only allow the use of the (not so new anymore) DefineBoundaryConditions.m file
 
 InputFile="DefineBoundaryConditions.m" ; TestIfInputFileInWorkingDirectory(InputFile) ;
-NargInputFile=nargin(InputFile);
+InputFileNargIn=nargin(InputFile);
+InputFileNargOut=nargout('DefineBoundaryConditions');
 
 if CtrlVar.InfoLevel>=10
+
     fprintf(' Using DefineBoundaryConditions.m to define boundary conditions \n')
+    
 end
 
-N=nargout('DefineBoundaryConditions');
 
-switch N
+
+switch InputFileNargOut
     
     case 1
         
-        if NargInputFile
-            
-            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
-        else
+        if InputFileNargIn==5
             
             BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,F,BCs);
-            
+
+        else
+
+            BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
+                
         end
         
     case 2
         
-        if NargInputFile
-            
-            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
-        else
-            
+        if InputFileNargIn==5
+        
             [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,F,BCs);
-            
+        
+        else
+
+            [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.GF);
+        
         end
         
 end

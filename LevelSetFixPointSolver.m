@@ -11,7 +11,7 @@ fprintf("\n LSF: fix point solver \n")
 
 FixPointConverged=0 ; 
 CtrlVar.LevelSetFixPointSolverApproach="-initial fix point (IFP) then pseudo time stepping (PTS) followed by final fix point (FFP)-";
-CtrlVar.LevelSetFixPointSolverApproach="-pseudo time stepping (PTS) followed by final fix point (FFP)-";
+% CtrlVar.LevelSetFixPointSolverApproach="-pseudo time stepping (PTS) followed by final fix point (FFP)-";
 CtrlVar.LevelSetFixPointSolverApproach="-pseudo time stepping (PTS)-";
 
 RunInfo.LevelSet.SolverConverged=false ;
@@ -41,8 +41,10 @@ if ~FixPointConverged && contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS")
 
     dtOld=CtrlVar.dt ;
 
-    N=0 ; Factor=5 ; TotalTime=0 ; dLSFdt=inf ;
-    Nmax=50;
+    N=0 ; 
+    FactorUp=1.2 ; FactorDown=2 ; iUpLast=true ; 
+    TotalTime=0 ; dLSFdt=inf ;
+    Nmax=150;
     dLSFdtMax= 1 ;  TotalTimeMax=1e8*CtrlVar.dt;
 
     while N<=Nmax  && dLSFdt > dLSFdtMax  && TotalTime<TotalTimeMax
@@ -60,10 +62,17 @@ if ~FixPointConverged && contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS")
             dLSFdt=max(F1.LSF-LSF)/CtrlVar.dt ;
             F1.LSF=LSF ; F0.LSF=F1.LSF ;
             if RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount)<5
-                CtrlVar.dt=Factor*CtrlVar.dt;
+
+                if iUpLast
+                    iUpLast=false;
+                else
+                    CtrlVar.dt=FactorUp*CtrlVar.dt;
+                    iUpLast=true;
+                end
             end
+
         else
-            CtrlVar.dt=CtrlVar.dt/Factor;
+            CtrlVar.dt=CtrlVar.dt/FactorDown;
             dLSFdt=inf ;
         end
 
