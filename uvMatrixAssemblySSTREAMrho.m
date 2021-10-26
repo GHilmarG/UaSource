@@ -288,28 +288,30 @@ for Iint=1:MUA.nip
 
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
-    
+
     detJw=detJ*MUA.weights(Iint);
-    
-    
+
+    % [d1d1  d1d2 ]  [du]
+    % [d2d1  d2d2 ]  [dv]
+
     for Inod=1:MUA.nod
         if ~Ronly
             for Jnod=1:MUA.nod
                 
                 
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)...
-                    +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
-                    +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
+                    +(4*hint.*etaint.*Deriv(:,1,Jnod).*Deriv(:,1,Inod)...
+                    +hint.*etaint.*Deriv(:,2,Jnod).*Deriv(:,2,Inod)...
                     +2*hint.*etaint.*fun(Jnod).*(drhodx./rhoint).*Deriv(:,1,Inod)...
                     +dtauxdu.*fun(Jnod).*fun(Inod)...
                     ).*detJw;  
                 
                 
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)...
-                    +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
-                    +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
+                    +(4*hint.*etaint.*Deriv(:,2,Jnod).*Deriv(:,2,Inod)...
+                    +hint.*etaint.*Deriv(:,1,Jnod).*Deriv(:,1,Inod)...
                     +2*hint.*etaint.*fun(Jnod).*(drhody./rhoint).*Deriv(:,2,Inod)...
-                    +dtauydv.*fun(Jnod).*fun(Inod)...   %+beta2int.*fun(Jnod).*fun(Inod)+Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... 
+                    +dtauydv.*fun(Jnod).*fun(Inod)...  
                     ).*detJw ;
                
                 
@@ -317,14 +319,14 @@ for Iint=1:MUA.nip
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
                     +2*hint.*etaint.*fun(Jnod).*(drhody./rhoint).*Deriv(:,1,Inod)...
-                    +dtauxdv.*fun(Jnod).*fun(Inod)...   % Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod))...    % beta derivative, uv
+                    +dtauxdv.*fun(Jnod).*fun(Inod)...  
                     ).*detJw;
                 
                 
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
                     +2*hint.*etaint.*fun(Jnod).*(drhodx./rhoint).*Deriv(:,2,Inod)...
-                    +dtauydu.*fun(Jnod).*fun(Inod)...    %+Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative, uv
+                    +dtauydu.*fun(Jnod).*fun(Inod)...   
                     ).*detJw;
                 
                 %                dxu=E (2 exx+eyy)
@@ -332,25 +334,26 @@ for Iint=1:MUA.nip
                 %                dyv=E (2 eyy + exx )
                 %                dxv=E exy = dyu
  
+                % These are derivatives of the viscosity with respect to u and v.
                 Deu=Eint.*((2*exx+eyy).*Deriv(:,1,Jnod)+exy.*Deriv(:,2,Jnod));
                 Dev=Eint.*((2*eyy+exx).*Deriv(:,2,Jnod)+exy.*Deriv(:,1,Jnod));
                 
                 % E11=h Deu (4 p_x u + 2 p_y v)   + h Deu  ( p_x v + p_y u) p_y N_p
                 
-%                 E11=  hint.*(4.*exx+2.*eyy).*Deu.*Deriv(:,1,Inod)...
+%                 E11t=  hint.*(4.*exx+2.*eyy).*Deu.*Deriv(:,1,Inod)...
 %                     +2*hint.*exy.*Deu.*Deriv(:,2,Inod);
 %                 
-%                 E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
+%                 E12t=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
 %                     +2*hint.*exy.*Dev.*Deriv(:,2,Inod);
 % 
-%                 E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)...
+%                 E22t=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)...
 %                     +2*hint.*exy.*Dev.*Deriv(:,1,Inod);
 % 
-%                 E21= hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)...
+%                 E21t= hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)...
 %                     +2*hint.*exy.*Deu.*Deriv(:,1,Inod);               
 
-                Ex =hint.*(4.*exx+2.*eyy+2*hint.*(uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,1,Inod)+2*hint.*exy.*Deriv(:,2,Inod);
-                Ey =hint.*(4.*eyy+2.*exx+2*hint.*(uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,2,Inod)+2*hint.*exy.*Deriv(:,1,Inod);
+                Ex =hint.*(4.*exx+2.*eyy+2*(uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,1,Inod)+2*hint.*exy.*Deriv(:,2,Inod);
+                Ey =hint.*(4.*eyy+2.*exx+2*(uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,2,Inod)+2*hint.*exy.*Deriv(:,1,Inod);
 
                 E11=  Deu.*Ex;
                 E12=  Dev.*Ex;
@@ -373,7 +376,7 @@ for Iint=1:MUA.nip
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod); 
-        t6=2*hint.*etaint.*(uint.*drhodx+vint.*drhody)./rhoint.*Deriv(:,1,Inod); 
+        t6=2*hint.*etaint.*((uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,1,Inod); 
 
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5+t6).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
@@ -384,7 +387,7 @@ for Iint=1:MUA.nip
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
         t5=tauy.*fun(Inod); 
-        t6=2*hint.*etaint.*(uint.*drhodx+vint.*drhody)./rhoint.*Deriv(:,2,Inod); 
+        t6=2*hint.*etaint.*((uint.*drhodx+vint.*drhody)./rhoint).*Deriv(:,2,Inod); 
 
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5+t6).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
@@ -445,6 +448,12 @@ if ~Ronly
         end
         % nzmax=size(unique([Iind Jind],'rows'),1) ; K=sparse(Iind,Jind,Xval,neq,neq,nzmax); not sure why this
         % does not work
+
+
+        % [d1d1  d1d2 ]
+        % [d2d1  d2d2 ]
+        %
+        %
         
         Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
         
@@ -461,11 +470,12 @@ if ~Ronly
         end
     end
     
-    if CtrlVar.TestForRealValues
-        Kuv=(Kuv+Kuv.')/2 ;
-    else
-        Kuv=(Kuv+Kuv')/2 ;
-    end
+% with rho gradients on the left-hand side the system is no longer symmetric
+%     if CtrlVar.TestForRealValues
+%         Kuv=(Kuv+Kuv.')/2 ;
+%     else
+%         Kuv=(Kuv+Kuv')/2 ;
+%     end
     
     
     % I know that the matrix must be symmetric, but numerically this may not be strickly so
