@@ -5,6 +5,9 @@ function [UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F)
 narginchk(4,4)
 nargoutchk(2,2)
 
+InputFile="DefineDensities.m" ;
+TestIfInputFileInWorkingDirectory(InputFile) ;
+
 
 N=nargout('DefineDensities');
 

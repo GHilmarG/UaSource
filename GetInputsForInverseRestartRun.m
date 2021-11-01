@@ -14,6 +14,7 @@ load(CtrlVar.Inverse.NameOfRestartInputFile,...
 fprintf(CtrlVar.fidlog,' done \n ');
 
 F.GF=GF;
+F.time=CtrlVar.time ; 
 
 LastRunInfo=RunInfo;
 
@@ -68,7 +69,7 @@ isCorrectDimensions=DoPriorsHaveCorrectDimensions(CtrlVar,MUA,Priors);
 
 if ~isCorrectDimensions
     
-    [UserVar,~,Priors,~,~,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,~,Priors,~,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
     %[UserVar,~,Priors,~,~]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,InvStartValues,Priors,Meas,BCsAdjoint,CtrlVar.time,AGlen,C,n,m,s,b,S,B,rho,rhow,GF);
     
 end
@@ -80,5 +81,18 @@ if ~ isCorrectDimensions
     error('Ua:GetInputForInverseRestartRun:incorrectdimensions','incorrect dimensions')
     
 end
+
+
+% %% TestIng
+% BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ;   BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
+% BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ;   BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
+% figure ; PlotBoundaryConditions(CtrlVar,MUA,BCsAdjoint) ;
+% %%
+
+
+
+
+
+
 
 end

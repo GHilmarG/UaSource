@@ -70,7 +70,7 @@ h5=quiver(x(1:istep:end),y(1:istep:end),u(1:istep:end,1:istep:end)',v(1:istep:en
 axis equal tight
 axis([-30 30 -30 30])
 set(h5,'Color','k')
-xlabel('x (h)') ; ylabel('y (h)') ; title('Flow over a Gauss peak');
+xlabel('x (h)') ; ylabel('y (h)') ; title('Flow over a Gaussian peak');
 %colorbar
 %axis equal
 

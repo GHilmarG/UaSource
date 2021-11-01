@@ -48,6 +48,8 @@ else
     
 end
 
+F.time=CtrlVar.time ; F.dt=CtrlVar.dt ; 
+
 
 % RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
@@ -86,6 +88,27 @@ if ~isfield(RunInfo,'Mapping') || isempty(RunInfo.Mapping)
     RunInfo.Mapping.nNotIdenticalNodesInside=NaN;
 end
 
+nRunInfo=numel(RunInfo.Forward.time) ; 
+if nRunInfo < CtrlVarInRestartFile.CurrentRunStepNumber
+    nRunInfo = CtrlVarInRestartFile.CurrentRunStepNumber+1000 ;
+    RunInfo.Forward.time=NaN(nRunInfo,1); 
+    RunInfo.Forward.dt=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhIterations=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhResidual=NaN(nRunInfo,1) ; 
+    RunInfo.Forward.uvhBackTrackSteps=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetIterations=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetCyclical=NaN(nRunInfo,1) ;
+    RunInfo.Forward.uvhActiveSetConstraints=NaN(nRunInfo,1) ;
+    
+end
+
+
+
+
+
+
+
+
 
 
 if CtrlVar.ResetTime==1
@@ -103,6 +126,8 @@ if CtrlVar.ResetTimeStep==1
     fprintf(CtrlVar.fidlog,' Time-step reset to CtrlVar.dt=%-g \n',CtrlVarInRestartFile.dt);
 end
 
+
+
 if CtrlVar.ResetRunStepNumber
     CtrlVarInRestartFile.CurrentRunStepNumber=0;
     fprintf(' RunStepNumber reset to 0 \n')
@@ -113,6 +138,7 @@ CtrlVar.RestartTime=CtrlVarInRestartFile.time;
 CtrlVar.dt=CtrlVarInRestartFile.dt;
 CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
 
+F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
 
 fprintf(CtrlVar.fidlog,' Starting restart run at t=%-g with dt=%-g \n',...
     CtrlVarInRestartFile.time,CtrlVarInRestartFile.dt);

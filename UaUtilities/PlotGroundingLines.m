@@ -85,6 +85,11 @@ if isempty(CtrlVar)
     CtrlVar.PlotGLs=1;
 end
 
+if isempty(GF)
+    xGL=[]; yGL=[] ; GLgeo=[] ; 
+    return
+end
+
 if ~isfield(CtrlVar,'PlotXYscale') ; CtrlVar.PlotXYscale=1 ; end
 if ~isfield(CtrlVar,'PlotGLs') ; CtrlVar.PlotGLs=1 ; end
 if ~isfield(CtrlVar,'PlotIndividualGLs') ; CtrlVar.PlotIndividualGLs=0 ; end

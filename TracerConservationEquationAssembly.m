@@ -2,13 +2,21 @@
 
 function [UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,h0,u0,v0,a0,u1,v1,a1,kappa)
 
-
+% Note: Assembly for the linear tracer equationU
 %  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a
+
+%%
+%
+% $$ \partial c/\partial t + \partial  ( u c)/ \partial x + \partial  ( v c)/\partial y - \nabla \cdot (\kappa \nabla c ) = a$$
+%
+%
+%    
+%%
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 theta=CtrlVar.theta;
-tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
+%tauSUPG=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0,v0,dt,MUA);
 
 
 h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -24,21 +32,25 @@ if numel(kappa)==1
 end
 
 kappanod=reshape(kappa(MUA.connectivity,1),MUA.Nele,MUA.nod);
-tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
+%tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 
 d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
 b1=zeros(MUA.Nele,MUA.nod);
 
+l=sqrt(2*MUA.EleAreas);
+
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
     
     
+ 
+
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     
     
     
@@ -69,8 +81,11 @@ for Iint=1:MUA.nip
     v1int=v1nod*fun;
     a1int=a1nod*fun;
     
+
+    
+    
     kappaint=kappanod*fun;
-    tauSUPGint=tauSUPGnod*fun;
+    %tauSUPGint=tauSUPGnod*fun;
     
     du1dx=zeros(MUA.Nele,1); du0dx=zeros(MUA.Nele,1); dh0dx=zeros(MUA.Nele,1);
     dv1dy=zeros(MUA.Nele,1); dv0dy=zeros(MUA.Nele,1); dh0dy=zeros(MUA.Nele,1);
@@ -89,12 +104,20 @@ for Iint=1:MUA.nip
         
     end
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     % dt theta ( d(u1 h1)/dx    + d(v1 h1)/dy) + h1=
     %  h0+dt { (1-theta) a0+theta a1-(1-theta) (d(u0 h0)/dx+d(v0 h0)/dy}
     
-  
+    
+    % SUPG parameter calculation taken inside int-loop on 20 Sept, 2021
+    
+    speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
+    tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.Tracer.SUPG.tau) ; 
+    tauSUPGint=CtrlVar.SUPG.beta0*tau;
+    
+   
+    
     
     for Inod=1:MUA.nod
         
@@ -106,6 +129,8 @@ for Iint=1:MUA.nip
             
             h1term=fun(Jnod).*SUPGdetJw;
             
+            
+                  
             hdxu1=dt*theta*du1dx.*fun(Jnod).*SUPGdetJw;
             udxh1=dt*theta*u1int.*Deriv(:,1,Jnod).*SUPGdetJw;
             

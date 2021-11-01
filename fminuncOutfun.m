@@ -1,11 +1,11 @@
-function [stop,Outs] = fminuncOutfun(x,optimValues,state)
+function [stop,Outs] = fminuncOutfun(p,optimValues,state)
 
 persistent pOuts iCounter X StoreSolution
 
 if nargin>0
-    if isfield(x,'Inverse')
-        if isfield(x.Inverse,'StoreSolutionAtEachIteration')
-            if x.Inverse.StoreSolutionAtEachIteration
+    if isfield(p,'Inverse')
+        if isfield(p.Inverse,'StoreSolutionAtEachIteration')
+            if p.Inverse.StoreSolutionAtEachIteration
                 StoreSolution=1;
                 return
             end
@@ -18,6 +18,7 @@ if isempty(pOuts)
     pOuts.fval=zeros(1000,1)+NaN;
     pOuts.iteration=zeros(1000,1)+NaN;
     pOuts.StepSize=zeros(1000,1)+NaN;
+    pOuts.GradNorm=zeros(1000,1)+NaN;
     iCounter=1;
 end
 
@@ -31,9 +32,10 @@ if nargin>0
         pOuts.StepSize(iCounter)=NaN;
     else
         pOuts.StepSize(iCounter)=optimValues.stepsize;
+        pOuts.GradNorm(iCounter)=norm(optimValues.gradient)/sqrt(numel(optimValues.gradient));
     end
     if StoreSolution
-        X{iCounter}=x;
+        X{iCounter}=p;
     else
         X=[];
     end
@@ -44,9 +46,9 @@ else
     Outs.iteration=Outs.iteration(~isnan(Outs.iteration));
     Outs.fval=Outs.fval(~isnan(Outs.fval));
     Outs.StepSize=Outs.StepSize(~isnan(Outs.StepSize));
+    Outs.GradNorm=Outs.GradNorm(~isnan(Outs.GradNorm));
     Outs.p=X;
 end
-
 
 
 

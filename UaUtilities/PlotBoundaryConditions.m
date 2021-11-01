@@ -1,10 +1,12 @@
-function PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
+function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %%
 %  PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %
 %  Gives a graphical representation of boundary conditions. 
 %
 %  varargin is passed on to PlotMuaMesh
+%
+%   lgd :    legend object
 %
 % Example:
 %
@@ -16,7 +18,7 @@ function PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 
 
 CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-
+I=0; L=[];
 PlotMuaMesh(CtrlVar,MUA,[],varargin{:})  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
@@ -131,8 +133,17 @@ end
 
 if ~isempty(BCs.hPosNode)
     xfixed=x(BCs.hPosNode); yfixed=y(BCs.hPosNode);
-    plot(xfixed,yfixed,'*b','MarkerFaceColor','b')
+    I=I+1 ; L{I}=plot(xfixed,yfixed,'*b','MarkerFaceColor','b','DisplayName','$h$'); 
 end
+
+
+if ~isempty(BCs.LSFFixedNode)
+    xfixed=x(BCs.LSFFixedNode); yfixed=y(BCs.LSFFixedNode);
+    I=I+1; L{I}=plot(xfixed,yfixed,'or','MarkerFaceColor','b','DisplayName','$\varphi$'); 
+end
+
+
+
 
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
 title(...
@@ -145,5 +156,12 @@ elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
     numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
     'FontSize',9)
 end
+
+if ~isempty(L)
+    lgd=legend([L{:}],'interpreter','latex');
+else
+    lgd=[]; 
+end
+
 
 end

@@ -1,5 +1,6 @@
+
 function AGlen=AGlenVersusTemp(T)
-    
+
     % Gives A as a function of temperatur (degrees Celcius) in the units a^{-1} kPa^{-3}
     
     T=T+273.15;

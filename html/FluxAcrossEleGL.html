@@ -1,0 +1,290 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>FluxAcrossEleGL</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-09"><meta name="DC.source" content="FluxAcrossEleGL.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [qGL,qGLx,qGLy,xEdge,yEdge,nxGL,nyGL,dsGL,xGLele,yGLele,iE,EN]=FluxAcrossEleGL(CtrlVar,MUA,GF,ub,vb,rho,h,DoPlots,iE,EN)
+</pre><p>Calculates flux across grounding lines, with grounding lines defined as the free boundary (or free edges) of grounded elements.</p><pre>  [qGL,qGLx,qGLy,xEdge,yEdge,nxGL,nyGL,dsGL,xGLele,yGLele,iE,EN]=FluxAcrossEleGL(CtrlVar,MUA,GF,ub,vb,rho,h,DoPlots,iE,EN)</pre><p>Inputs: DoPlots : If true, some plots are created. (optional)  iE     : Corner nodes of grounding line edges. (optional)  EN     : Nodes of grounding line edges, including nodes along the edge.   (optional)</p><pre>iE and EN can be left empty, in which case they will be calculated and
+returned as outputs. To speed things up, use iE and EN from a previous call
+if calling this routine again for the same MUA and GF.</pre><p>Outputs:  qGL            : vertically and horizontally integrated flux over each element edge defining the grounding line.  qGLx, qGLy     : the x, y components of a vector with the length qGL and normal to the grounding line (i.e. these are not x and y components of qGL)  xEdge, yEdge   : x and y coordinates of a center point of each GL edge.  nxGL, nyGL     : unit normal to GL edges  dsGL           : length of GL edges  xGLele, yGLele : ordered list of all corner points of GL edges, with NaN                   between individual GL segments. Useful for plotting GL.  iE             : Corner nodes of grounding line edges.  EN             : Nodes of grounding line edges, including nodes along the edge.</p><p>Note: For 3-node elements, iE and EN are not needed.</p><p>Note: qGL has the units: speed x ice-thickness x ice-density width = m/yr m kg/m^3 m = kg/yr (if using m, yr, kg as units for distance, time and mass.)</p><p>Note: If using repeatedly for higher-order elements and the same MUA and GF,       give returned iE and EN from previous calls as inputs.</p><p>Note: This routine uses a (slightly) different representation of the grounding line as that given by, for example, PlotGroundingLine.m which is based on interpolation of the GF nodal mask.</p><p>Note: Currently only implemented for 3 and 6 node elements.</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;8  || isempty(DoPlots)
+    DoPlots=0;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin&lt;9
+    iE=[] ;
+    EN=[];
+<span class="keyword">end</span>
+
+
+[xGLele,yGLele,triGR,FB,xEdge,yEdge,nxGL,nyGL,dsGL]=EleBasedGL(CtrlVar,MUA,GF,DoPlots);
+
+
+<span class="keyword">switch</span> MUA.nod
+
+    <span class="keyword">case</span> 3
+
+        uhr=ub.*h.*rho;
+        vhr=vb.*h.*rho;
+        qxS=dsGL.*mean(uhr(FB),2) ;  <span class="comment">% for a linear triangle element this is correct</span>
+        qyS=dsGL.*mean(vhr(FB),2) ;
+        qGL=qxS.*nxGL+qyS.*nyGL; <span class="comment">% units: m m (m/yr) * kg/m^3 =kg/yr</span>
+        qGLx=qGL.*nxGL ;
+        qGLy=qGL.*nyGL ;
+        EN=[FB(:,1) FB(:,2)];
+    <span class="keyword">case</span> 6
+
+        <span class="comment">% a bit more accurate estimate for 6-node elements. Here I used the two corner</span>
+        <span class="comment">% nodes and the side node and integrate with Simpson's rule, which is second order</span>
+        <span class="comment">% just like the form functions. So this should be pretty much exact.</span>
+
+        <span class="keyword">if</span> nargin &lt;10 || isempty(EN)
+            <span class="keyword">if</span> nargin&lt;9 || isempty(iE)
+                iE=FindEdgeNodesGivenTwoCornerNodes(MUA,FB);  <span class="comment">% this can be slow</span>
+            <span class="keyword">end</span>
+
+            <span class="keyword">if</span> size(iE,1)~=size(FB,1)
+                fprintf(<span class="string">'iE given as input does have a number of elements that is consistent with MUA, iE is therefore recalculated.\n'</span>)
+                iE=FindEdgeNodesGivenTwoCornerNodes(MUA,FB);  <span class="comment">% this can be slow</span>
+            <span class="keyword">end</span>
+
+            EN=[FB(:,1) iE(:) FB(:,2)];
+
+        <span class="keyword">end</span>
+
+        uhr=ub.*h.*rho;
+        vhr=vb.*h.*rho;
+        qxS=dsGL.*(uhr(EN(:,1))+4*uhr(EN(:,2))+uhr(EN(:,3)))/6;  <span class="comment">% Simpson's rule</span>
+        qyS=dsGL.*(vhr(EN(:,1))+4*vhr(EN(:,2))+vhr(EN(:,3)))/6;
+
+        <span class="comment">% I'm integrating the flux in x and y directions</span>
+        <span class="comment">% and then projecting along normal and tangential directions.</span>
+        <span class="comment">% This will only be correct for straight edges within each triangle</span>
+        <span class="comment">%</span>
+
+        qGL=qxS.*nxGL+qyS.*nyGL;
+
+        qGLx=qGL.*nxGL ;
+        qGLy=qGL.*nyGL ;
+
+    <span class="keyword">case</span> 10
+
+        error(<span class="string">'Case for 10 node elements not yet implemented'</span>)
+
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> DoPlots
+</pre><pre class="codeinput">    figure
+    plot(xGLele,yGLele)
+    hold <span class="string">on</span>
+    Par.VelPlotIntervalSpacing=<span class="string">'log10'</span>;
+    Par.RelativeVelArrowSize=10;
+    Par.QuiverColorPowRange=2;
+    <span class="comment">% assuming units: m/yr, m, kg/m^3  for velocity, distance and density</span>
+    <span class="comment">% q calculated has the units:  m/yr m m kg/m^3 = kg/yr</span>
+    <span class="comment">% To get Gt divide by 1e9</span>
+    cbar=QuiverColorGHG(xEdge,yEdge,qGLx/1e9,qGLy/1e9,Par);
+    title(cbar,<span class="string">'kg/yr'</span>)   ;
+    axis <span class="string">equal</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in FluxAcrossEleGL (line 53)
+[xGLele,yGLele,triGR,FB,xEdge,yEdge,nxGL,nyGL,dsGL]=EleBasedGL(CtrlVar,MUA,GF,DoPlots);
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [qGL,qGLx,qGLy,xEdge,yEdge,nxGL,nyGL,dsGL,xGLele,yGLele,iE,EN]=FluxAcrossEleGL(CtrlVar,MUA,GF,ub,vb,rho,h,DoPlots,iE,EN)
+
+%%
+% Calculates flux across grounding lines, with grounding lines defined as
+% the free boundary (or free edges) of grounded elements.
+%
+%    [qGL,qGLx,qGLy,xEdge,yEdge,nxGL,nyGL,dsGL,xGLele,yGLele,iE,EN]=FluxAcrossEleGL(CtrlVar,MUA,GF,ub,vb,rho,h,DoPlots,iE,EN)
+%
+% Inputs:
+% DoPlots : If true, some plots are created. (optional)
+%  iE     : Corner nodes of grounding line edges. (optional)
+%  EN     : Nodes of grounding line edges, including nodes along the edge.   (optional)
+%
+%  iE and EN can be left empty, in which case they will be calculated and
+%  returned as outputs. To speed things up, use iE and EN from a previous call
+%  if calling this routine again for the same MUA and GF.
+%
+% Outputs:
+%  qGL            : vertically and horizontally integrated flux over each element edge defining the grounding line.
+%  qGLx, qGLy     : the x, y components of a vector with the length qGL and normal to the grounding line (i.e. these are not x and y components of qGL)
+%  xEdge, yEdge   : x and y coordinates of a center point of each GL edge.
+%  nxGL, nyGL     : unit normal to GL edges
+%  dsGL           : length of GL edges
+%  xGLele, yGLele : ordered list of all corner points of GL edges, with NaN
+%                   between individual GL segments. Useful for plotting GL.
+%  iE             : Corner nodes of grounding line edges.
+%  EN             : Nodes of grounding line edges, including nodes along the edge.
+%
+% Note: For 3-node elements, iE and EN are not needed.
+%
+% Note: qGL has the units: speed x ice-thickness x ice-density width = m/yr m kg/m^3 m = kg/yr
+% (if using m, yr, kg as units for distance, time and mass.)
+%
+% Note: If using repeatedly for higher-order elements and the same MUA and GF,
+%       give returned iE and EN from previous calls as inputs.
+%
+% Note: This routine uses a (slightly) different representation of the grounding line as that
+% given by, for example, PlotGroundingLine.m which is based on interpolation of
+% the GF nodal mask.
+%
+% Note: Currently only implemented for 3 and 6 node elements.
+
+if nargin<8  || isempty(DoPlots)
+    DoPlots=0;
+end
+
+if nargin<9
+    iE=[] ;
+    EN=[];
+end
+
+
+[xGLele,yGLele,triGR,FB,xEdge,yEdge,nxGL,nyGL,dsGL]=EleBasedGL(CtrlVar,MUA,GF,DoPlots);
+
+
+switch MUA.nod
+    
+    case 3
+        
+        uhr=ub.*h.*rho;
+        vhr=vb.*h.*rho;
+        qxS=dsGL.*mean(uhr(FB),2) ;  % for a linear triangle element this is correct
+        qyS=dsGL.*mean(vhr(FB),2) ;
+        qGL=qxS.*nxGL+qyS.*nyGL; % units: m m (m/yr) * kg/m^3 =kg/yr
+        qGLx=qGL.*nxGL ;
+        qGLy=qGL.*nyGL ;
+        EN=[FB(:,1) FB(:,2)];
+    case 6
+        
+        % a bit more accurate estimate for 6-node elements. Here I used the two corner
+        % nodes and the side node and integrate with Simpson's rule, which is second order
+        % just like the form functions. So this should be pretty much exact.
+        
+        if nargin <10 || isempty(EN)
+            if nargin<9 || isempty(iE)
+                iE=FindEdgeNodesGivenTwoCornerNodes(MUA,FB);  % this can be slow
+            end
+            
+            if size(iE,1)~=size(FB,1)
+                fprintf('iE given as input does have a number of elements that is consistent with MUA, iE is therefore recalculated.\n')
+                iE=FindEdgeNodesGivenTwoCornerNodes(MUA,FB);  % this can be slow
+            end
+            
+            EN=[FB(:,1) iE(:) FB(:,2)];
+            
+        end
+        
+        uhr=ub.*h.*rho;
+        vhr=vb.*h.*rho;
+        qxS=dsGL.*(uhr(EN(:,1))+4*uhr(EN(:,2))+uhr(EN(:,3)))/6;  % Simpson's rule
+        qyS=dsGL.*(vhr(EN(:,1))+4*vhr(EN(:,2))+vhr(EN(:,3)))/6;
+        
+        % I'm integrating the flux in x and y directions
+        % and then projecting along normal and tangential directions.
+        % This will only be correct for straight edges within each triangle
+        %
+        
+        qGL=qxS.*nxGL+qyS.*nyGL;
+        
+        qGLx=qGL.*nxGL ;
+        qGLy=qGL.*nyGL ;
+        
+    case 10
+        
+        error('Case for 10 node elements not yet implemented')
+        
+end
+
+
+if DoPlots
+    %%
+    figure
+    plot(xGLele,yGLele)
+    hold on
+    Par.VelPlotIntervalSpacing='log10';
+    Par.RelativeVelArrowSize=10;
+    Par.QuiverColorPowRange=2;
+    % assuming units: m/yr, m, kg/m^3  for velocity, distance and density
+    % q calculated has the units:  m/yr m m kg/m^3 = kg/yr
+    % To get Gt divide by 1e9
+    cbar=QuiverColorGHG(xEdge,yEdge,qGLx/1e9,qGLy/1e9,Par);
+    title(cbar,'kg/yr')   ;
+    axis equal
+    
+end
+
+end
+
+##### SOURCE END #####
+--></body></html>

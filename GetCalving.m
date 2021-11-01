@@ -9,13 +9,7 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
         return
     end
     
-    if CtrlVar.CalvingLaw=="-No Ice Shelves-"
-        if isempty(F.LSF) && ~isempty(F.GF.node)
-            F.LSF=ReinitializeLevelSet([],[],CtrlVar,MUA,F.GF.node,CtrlVar.GLthreshold);
-        end
-        return
-    end
-    
+ 
      
     [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
     
@@ -52,12 +46,21 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
         F.c=F.c+zeros(MUA.Nnodes,1);
     end
     
-    if numel(F.c)~=MUA.Nnodes
-        errorStruct.identifier = 'GetCalving:CalvingFieldInvalid';
-        errorStruct.message = 'number of elements in the calving field must equal number of nodes';
-        error(errorStruct)
+    if numel(F.LSF)==1
+        F.LSF=F.LSF+zeros(MUA.Nnodes,1);
     end
     
+    
+      
+    if CtrlVar.LevelSetEvolution=="-prescribed-"
+        F.c=[];
+    else
+        if numel(F.c)~=MUA.Nnodes
+            errorStruct.identifier = 'GetCalving:CalvingFieldInvalid';
+            errorStruct.message = 'number of elements in the calving field must equal number of nodes';
+            error(errorStruct)
+        end
+    end
     %% Modify c away from calving front
     %
     %

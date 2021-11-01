@@ -1,0 +1,237 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>FluxAcrossGroundingLine</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-04-09"><meta name="DC.source" content="FluxAcrossGroundingLine.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo,ubGL,vbGL]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
+</pre><pre class="codeinput"><span class="comment">%  [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)</span>
+<span class="comment">%</span>
+<span class="comment">% Calculates flux across grounding line.</span>
+<span class="comment">%</span>
+<span class="comment">% Very simple routine. Use this as a template, you will most likely need to do some modification for your own purpose.</span>
+<span class="comment">%</span>
+<span class="comment">% Also, this routine is an utility routine and has not been tested and optimized in a similar way as typical Ua routines.</span>
+<span class="comment">%</span>
+<span class="comment">% On return qGL is the vertically and horizontally integrated flux</span>
+<span class="comment">% over the depth h=s-b and the width dsGL=sqrt((GLgeo(:,3)-GLgeo(:,4)).^2+(GLgeo(:,5)-GLgeo(:,6)).^2);</span>
+<span class="comment">% at xy-location (GLgeo(:,7),GLgeo(:,8))</span>
+<span class="comment">%</span>
+<span class="comment">% the units of flux are: velocity x thickness x width x density = m/s m m kg/m^3=kg/s (SI units)</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Fub, Fvb, Fr, Fh and LakeNodes are all optional inputs, and if not given are calculated and returned</span>
+<span class="comment">%</span>
+<span class="comment">% If called several times for the same MUA, GF, ub, vb, ud, vd, h, and rho:</span>
+<span class="comment">% Give the Fub, Fvb, Fr, Fh, LakeNodes outputs from first call as inputs for all subsequent calls.</span>
+<span class="comment">% This has no effect on the results, but avoids recalculations and speeds things up</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+
+<span class="keyword">if</span> nargin&lt;10
+    Fub=[]; Fvb=[];Fr=[];Fh=[];LakeNodes=[];
+<span class="keyword">end</span>
+
+CtrlVar.GLsubdivide=1;
+
+<span class="keyword">if</span> isempty(Fub)
+    Fub=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),ub);
+    Fvb=Fub; Fr=Fub; Fh=Fub;
+    Fvb.Values=vb;
+    Fr.Values=rho;
+    Fh.Values=h;
+<span class="comment">%     Fvb=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),vb);</span>
+<span class="comment">%     Fr=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),rho);</span>
+<span class="comment">%     Fh=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),h);</span>
+
+<span class="keyword">end</span>
+
+
+<span class="comment">% get rid of grounding lines around lakes</span>
+<span class="keyword">if</span> nargin&gt;13
+    fprintf(<span class="string">'Getting read of lake nodes (note: this is not a robust general approach, do check results.\n'</span>)
+    <span class="keyword">if</span> isempty(LakeNodes)
+        [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,MUA.Boundary,MUA.connectivity,MUA.coordinates);
+        GF.node(LakeNodes)=1;
+    <span class="keyword">end</span>
+<span class="keyword">else</span>
+    LakeNodes=[] ; OceanNodes=[];
+<span class="keyword">end</span>
+
+<span class="comment">%GF.node(MUA.Boundary.Nodes)=0;</span>
+
+
+GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+xGL=GLgeo(:,7) ; yGL=GLgeo(:,8);
+nxGL=GLgeo(:,9); nyGL=GLgeo(:,10);
+
+rhoGL=Fr(xGL,yGL);
+ubGL=Fub(xGL,yGL);
+vbGL=Fvb(xGL,yGL);
+hGL=Fh(xGL,yGL);
+dsGL=sqrt((GLgeo(:,3)-GLgeo(:,4)).^2+(GLgeo(:,5)-GLgeo(:,6)).^2);
+qGL=dsGL.*hGL.*(ubGL.*nxGL+vbGL.*nyGL).*rhoGL;  <span class="comment">% units: m m (m/yr) * kg/m^3 =kg/yr</span>
+qGLx=qGL.*nxGL ; qGLy=qGL.*nyGL ;
+
+<span class="keyword">return</span>
+</pre><pre class="codeoutput error">Not enough input arguments.
+
+Error in FluxAcrossGroundingLine (line 33)
+    Fub=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),ub);
+</pre><pre class="codeinput">figure ;
+PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar);  hold <span class="string">on</span> ;
+plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,<span class="string">'g'</span>,<span class="string">'LineWidth'</span>,2);
+scale=1; hold <span class="string">on</span> ;
+quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,qGLx,qGLy,scale,<span class="string">'color'</span>,<span class="string">'r'</span>)
+axis <span class="string">equal</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo,ubGL,vbGL]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
+
+%  [qGL,qGLx,qGLy,Fub,Fvb,Fr,Fh,LakeNodes,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,GF,ub,vb,ud,vd,h,rho,Fub,Fvb,Fr,Fh,LakeNodes)
+%
+% Calculates flux across grounding line.
+%
+% Very simple routine. Use this as a template, you will most likely need to do some modification for your own purpose.
+%
+% Also, this routine is an utility routine and has not been tested and optimized in a similar way as typical Ua routines.
+% 
+% On return qGL is the vertically and horizontally integrated flux 
+% over the depth h=s-b and the width dsGL=sqrt((GLgeo(:,3)-GLgeo(:,4)).^2+(GLgeo(:,5)-GLgeo(:,6)).^2);
+% at xy-location (GLgeo(:,7),GLgeo(:,8)) 
+%
+% the units of flux are: velocity x thickness x width x density = m/s m m kg/m^3=kg/s (SI units)
+%
+%
+% Fub, Fvb, Fr, Fh and LakeNodes are all optional inputs, and if not given are calculated and returned
+% 
+% If called several times for the same MUA, GF, ub, vb, ud, vd, h, and rho: 
+% Give the Fub, Fvb, Fr, Fh, LakeNodes outputs from first call as inputs for all subsequent calls. 
+% This has no effect on the results, but avoids recalculations and speeds things up
+% 
+%
+
+if nargin<10
+    Fub=[]; Fvb=[];Fr=[];Fh=[];LakeNodes=[];
+end
+    
+CtrlVar.GLsubdivide=1;
+
+if isempty(Fub)
+    Fub=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),ub);
+    Fvb=Fub; Fr=Fub; Fh=Fub;
+    Fvb.Values=vb;
+    Fr.Values=rho;
+    Fh.Values=h;
+%     Fvb=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),vb);
+%     Fr=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),rho);
+%     Fh=scatteredInterpolant(MUA.coordinates(:,1),MUA.coordinates(:,2),h);
+    
+end
+
+
+% get rid of grounding lines around lakes
+if nargin>13
+    fprintf('Getting read of lake nodes (note: this is not a robust general approach, do check results.\n')
+    if isempty(LakeNodes)
+        [OceanNodes,LakeNodes]=LakeOrOcean(CtrlVar,GF,MUA.Boundary,MUA.connectivity,MUA.coordinates);
+        GF.node(LakeNodes)=1;
+    end
+else
+    LakeNodes=[] ; OceanNodes=[];
+end
+
+%GF.node(MUA.Boundary.Nodes)=0;
+
+
+GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
+xGL=GLgeo(:,7) ; yGL=GLgeo(:,8);
+nxGL=GLgeo(:,9); nyGL=GLgeo(:,10);
+
+rhoGL=Fr(xGL,yGL);
+ubGL=Fub(xGL,yGL);
+vbGL=Fvb(xGL,yGL);
+hGL=Fh(xGL,yGL);
+dsGL=sqrt((GLgeo(:,3)-GLgeo(:,4)).^2+(GLgeo(:,5)-GLgeo(:,6)).^2);
+qGL=dsGL.*hGL.*(ubGL.*nxGL+vbGL.*nyGL).*rhoGL;  % units: m m (m/yr) * kg/m^3 =kg/yr
+qGLx=qGL.*nxGL ; qGLy=qGL.*nyGL ;
+
+return
+%%
+figure ; 
+PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar);  hold on ;
+plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'g','LineWidth',2);
+scale=1; hold on ; 
+quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,qGLx,qGLy,scale,'color','r')
+axis equal
+%%
+    
+    
+    
+end
+##### SOURCE END #####
+--></body></html>

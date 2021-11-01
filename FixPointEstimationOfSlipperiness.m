@@ -22,7 +22,7 @@ end
 nIt=CtrlVar.MaxAdjointIterations;
 
 
-if CtrlVar.AdjointRestart==0;
+if CtrlVar.AdjointRestart==0
     JoptVector=zeros(nIt+1,6)+NaN; iJ=0;
 else
     iJ=size(JoptVector,1)-1;

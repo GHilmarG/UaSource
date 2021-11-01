@@ -39,7 +39,9 @@ subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ; 
 hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+
+xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');  
+ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('us Meas on numerical grid') ;
 
 Kplot=Kplot+1;
@@ -47,7 +49,9 @@ subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.vs) ; hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+
+xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');  
+ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('vs Meas on numerical grid') ;
 
 if ~isempty(Meas.dhdt)
@@ -55,7 +59,9 @@ if ~isempty(Meas.dhdt)
     subplot(Iplot,Jplot,Kplot)
     PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
+    ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
     title('dh/dt Meas on numerical grid') ;
 end
 
@@ -101,18 +107,18 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     
     fig=FindOrCreateFigure('A at the beginning of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
-    title('log10(Astart)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    title('log10(Astart)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     fig=FindOrCreateFigure('Change in A during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
-    title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '(a^{-1} kPa^{-3})');
+    title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -128,18 +134,21 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title('log10(InvFinalValues.C)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    title('log10(InvFinalValues.C)','interpreter','latex');
+    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     
     fig=FindOrCreateFigure('C at the beginning of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
-    title('log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    title('log10(Cstart)') ; 
+    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     fig=FindOrCreateFigure('Change in C during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
-    title('log10(InvFinalValues.C)-log10(Cstart)') ; cbar=colorbar; title(cbar, '(m/a/kPa^m)');
+    title('log10(InvFinalValues.C)-log10(Cstart)') ; 
+    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -207,7 +216,8 @@ F.C=InvFinalValues.C; % this should already have been updated internally in Ua
 [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
 fig=FindOrCreateFigure('Basal traction') ;
 PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
-title(' tb ') ; cbar=colorbar; title(cbar, '(kPa)');
+title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
+cbar=colorbar; title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
 hold on
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
@@ -362,7 +372,7 @@ fig=FindOrCreateFigure('dh/dt calculated') ;
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
-title('Calculated dh/dt (assuming plug flow)') ;
+title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
 %%  % Difference in speed
@@ -461,7 +471,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-        title('dJdC Brute force gradient')
+        title('$dJ/dC$ Brute force gradient','interpreter','latex')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
@@ -597,21 +607,24 @@ else
     if ~isempty(InvFinalValues.dJdAGlen)
         
         fig=FindOrCreateFigure('dJdA');
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; title('dJdAGlen')
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; 
+        title('$dJ/dA$','interpreter','latex')
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdC)
         
         fig=FindOrCreateFigure('dJdC');
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; title('dJdC')
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; 
+        title('$dJ/dC$','interpreter','latex');
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdB)
         
         fig=FindOrCreateFigure('dJdB');
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ; title('dJdB')
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
+        title('$dJ/dC$','interpreter','latex');
         hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     end
     
@@ -628,9 +641,9 @@ else
             tFig1=figure('Name','True and estimated C','NumberTitle','off');
 
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ; title('True C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -665,9 +678,9 @@ else
         if ~isempty(Priors.TrueAGlen)
             tFig1=figure('Name','True and estimated AGlen','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; title('True AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; title('Retrieved AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -708,9 +721,9 @@ else
             
             tFig1=figure('Name','True and estimated B','NumberTitle','off');
             subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB) ; title('True B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
             subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B) ; title('Retrieved B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w')
+            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ; 
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.51 0.5 0.4];
             
@@ -793,27 +806,48 @@ else
     if ~isempty(RunInfo.Inverse.J)
         
         fig=FindOrCreateFigure('Inverse Parameter Optimisation');
+        clf(fig)
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-        ylabel('J')
+        ylabel('J','interpreter','latex')
         
-        if ~isempty(RunInfo.Inverse.I) && ~isempty(RunInfo.Inverse.R)
-            
-            hold on
-            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
-            ylabel('J & I')
+        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm))
+
             hold off
             yyaxis right
-            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
-            ylabel('R')
-            legend('Objective function','I','R','Location','southwest')
-        else
-            legend('Objective function')
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.GradNorm,'-r+')
+            ylabel('Norm of gradient ($l_2$)','interpreter','latex')
+            legend('Objective function','$\| \hbox{Gradient} \|$','Location','northeast','interpreter','latex')
+            
         end
         
         yyaxis left
-        xlabel('Inverse iteration') ;
+        xlabel('Inverse iteration','interpreter','latex');
+        hold off
+        
+        if ~all(isnan(RunInfo.Inverse.R)) && ~all(isnan(RunInfo.Inverse.R))
+            
+            fig=FindOrCreateFigure('J=I+R');
+            clf(fig)
+            hold off
+            yyaxis left
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
+            ylabel('J','interpreter','latex')
+            
+            hold on
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
+            ylabel('J and I')
+         
+            yyaxis right
+            semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
+            ylabel('R','interpreter','latex')
+            legend('Objective function','I','R','Location','southwest','interpreter','latex')
+
+        end
+        
+        yyaxis left
+        xlabel('Inverse iteration','interpreter','latex') ;
         hold off
     end
     

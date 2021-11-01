@@ -9,7 +9,7 @@ if contains(CtrlVar.MeshRefinementMethod,'local','IgnoreCase',true)
     
 elseif contains(CtrlVar.MeshRefinementMethod,'global','IgnoreCase',true)
     
-    
+    F.x=MUAold.coordinates(:,1); F.y=MUAold.coordinates(:,2);
     [UserVar,RunInfo,MUAnew]=GlobalRemeshing(UserVar,RunInfo,CtrlVar,MUAold,xNod,yNod,EleSizeDesired,F);
     
 else

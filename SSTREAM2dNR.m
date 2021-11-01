@@ -6,9 +6,11 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     
     tStart=tic;
-    RunInfo.Forward.Converged=1; RunInfo.Forward.Iterations=NaN;  RunInfo.Forward.Residual=NaN;
+    RunInfo.Forward.Converged=1; 
+    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
+    RunInfo.Forward.Residual=NaN;
     
-    
+    Kuv=[] ; Ruv=[]; 
    
     
     % MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -25,8 +27,24 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     end
     
     
-    if any(isnan(F.C)) ; save TestSave ; error( ' C nan ') ; end
-    if any(isnan(F.AGlen)) ; save TestSave ;error( ' AGlen nan ') ; end
+    if any(isnan(F.C))
+        save TestSave ;
+        warning('SSTREAM2NR:CisNaN',' nan in C. Returning with NaN in solution.\n ') ;
+        F.ub=F.ub+NaN;
+        F.vb=F.vb+NaN;
+        return
+    end
+    
+    if any(isnan(F.AGlen))
+        save TestSave
+        warning('SSTREAM2NR:CisNaN',' nan in A. Returning with NaN in solution.\n ') ;
+        F.ub=F.ub+NaN;
+        F.vb=F.vb+NaN;
+        return
+    end
+    
+    
+    
     if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
     if any(isnan(F.h)) ; save TestSave  ; error( ' h nan ') ; end
     if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
@@ -102,7 +120,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 
         
         ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce,rWork,iteration,gamma) ; 
-            
+        % ResidualsCriteria=false ; 
 %         if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
 %             
 %             ResidualsCriteria=(rWork<CtrlVar.uvDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvDesiredWorkAndForceTolerances(2))...
@@ -118,6 +136,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 %             
 %         end
         
+
         if ResidualsCriteria
             
             tEnd=toc(tStart);
@@ -167,7 +186,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
         
-        if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+        if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
             CtrlVar.TestForRealValues=false;
         end
         
@@ -226,12 +245,14 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             rVector.rWork(1)=rWork0;
             rVector.rForce(1)=rForce0 ;
             if ResidualsCriteria
+                iteration=iteration-1 ; % reset to zero as the iteration was never performed 
                 tEnd=toc(tStart);
                 if CtrlVar.InfoLevelNonLinIt>=1
                     fprintf(' SSTREAM(uv) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
-                        CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration-1,tEnd) ;
+                        CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration,tEnd) ;
                 end
                 RunInfo.Forward.uvConverged=1;
+                
                 break
             end
         end
@@ -245,7 +266,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
 %        [UserVar,r,gamma,infovector,BackTrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,fext0,r0,r1,L,l,cuv,dub,dvb,dl);
         slope0=-2*r0 ;
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         
         RunInfo.BackTrack=BackTrackInfo;
         
@@ -314,13 +335,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         if CtrlVar.InfoLevelNonLinIt>=1
             
-            fprintf(CtrlVar.fidlog,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
+            fprintf(CtrlVar.fidlog,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
                 stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork);
         end
         
         if CtrlVar.WriteRunInfoFile
             
-            fprintf(RunInfo.File.fid,'%sNR-STREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rWork=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
+            fprintf(RunInfo.File.fid,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rWork=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
                 stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rWork,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
         end
         
@@ -350,8 +371,10 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     end
     
     
-    RunInfo.Forward.Iterations=iteration;  RunInfo.Forward.Residual=r;
-    RunInfo.Forward.IterationsTotal=RunInfo.Forward.IterationsTotal+RunInfo.Forward.Iterations;
+    RunInfo.Forward.uvIterations=iteration;  
+    RunInfo.Forward.uvResidual=r;
+    
+    
     
     if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     

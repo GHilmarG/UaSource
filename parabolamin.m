@@ -22,6 +22,13 @@ if nargin==2
     fa=fvec(1) ; fb=fvec(2) ; fc=fvec(3);
 end
 
+if c < b
+    ctemp=c ; fctemp=fc ; 
+    c=b ; fc=fb ;
+    b=ctemp ; fb=fctemp ; 
+end
+
+
 if ~(a < b && b < c)
     if InfoLevel>=10
         fprintf(' a=%-g \t b=%-g \t c=%-g \n',a,b,c)
@@ -32,7 +39,7 @@ if ~(a < b && b < c)
     return
 end
 
-if isinf(fa) && isinf(fb) && isinf(fc) ;
+if isinf(fa) && isinf(fb) && isinf(fc) 
     status=1;
     xmin=a/100;
     warning('parabolamin:NaN',' On input fa, fb and fc are all NaN ')
@@ -69,7 +76,7 @@ end
 if isnan(xmin) || (fa+(b-a)*(fc-fa)/(c-a)<fb)  %  not convex
     
     if InfoLevel>=10
-        fprintf(' parabolic fit not successful, try to improve  ')
+        fprintf(' parabolic fit not successful, try to improve.\n  ')
     end
     if fc < fb && fb < fa      % decreasing values
         xmin=5*c;    % extrapolate

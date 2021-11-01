@@ -9,9 +9,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     
     tdiagnostic=tic;
     
-    if CtrlVar.LevelSetMethod % Level Set
-        [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ;
-    end
+
 
     
     F.h=F.s-F.b;
@@ -54,23 +52,23 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     Lubvb=[];
     
     %% force C and AGlen to be within given max and min limits
-    [F.C,iU,iL]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
-    [F.AGlen,iU,iL]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
+    [F.C,iUC,iLC]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
+    [F.AGlen,iUA,iLA]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
     
     if CtrlVar.InfoLevel>=10
-        if any(iU)
+        if any(iUC)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values greater than Cmax=%-g \n ',numel(find(iU)),CtrlVar.Cmax) ;
         end
         
-        if any(iL)
+        if any(iLC)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values less than Cmin=%-g \n ',numel(find(iL)),CtrlVar.Cmin) ;
         end
         
-        if any(iU)
+        if any(iUA)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values greater than AGlenmax=%-g \n ',numel(find(iU)),CtrlVar.AGlenmax) ;
         end
         
-        if any(iL)
+        if any(iLA)
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values less than AGlenmin=%-g \n ',numel(find(iL)),CtrlVar.AGlenmin) ;
         end
     end
@@ -79,7 +77,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     switch lower(CtrlVar.FlowApproximation)
         
         
-        case 'sstream'
+        case {'sstream','sstream-rho'}
             
             if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
             
@@ -96,7 +94,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
             if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' start SSHEET diagnostic. \n') ;  end
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             
-            [F.ud,F.vd]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.rho,F.g,F.s,F.h);
+            [F.ud,F.vd,F.ub,F.vb]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.C,F.m,F.rho,F.g,F.s,F.h);
             l.ubvb=[] ; Kuv=[] ; Ruv=[];
             RunInfo.Forward.Converged=1;
             RunInfo.Forward.Iterations=NaN;
@@ -130,7 +128,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     end
     
     
-    if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+    if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
         CtrlVar.TestForRealValues=false;
     end
     

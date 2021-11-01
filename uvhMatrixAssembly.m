@@ -114,7 +114,7 @@ end
 CtrlVar.ResetThicknessToMinThickness=temp;
 
 if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
-    %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
+    
     rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
     if rdamp~=0
         as1Old=F1.as ; ab1Old=F1.ab;
@@ -141,40 +141,22 @@ else
     dadh=zeros(MUA.Nnodes,1);
 end
 
+LSFMask=zeros(MUA.Nnodes,1) ;
+
 if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0) && ~ZeroFields
-    
-    % Cubic model: ab=a1*h + a3 h^3 with
-    %
-    %       h1=1; h2=10 ; f1=1 ; f2=100 ; [a1,a3]=CubicMelt(h1,f1,h2,f2);
-    %     
-    % a1=0.909090909090909;  a3=a1/10
-    
-    
-    abLSF=zeros(MUA.Nnodes,1) ;
-    dadhLSF=zeros(MUA.Nnodes,1) ;
+
     
     if isempty(F1.dabdh)
         F1.dabdh=zeros(MUA.Nnodes,1) ;
     end
     
-    F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-    
     if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
         
-        a1=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
-        a3=CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
-        
-        hmin=CtrlVar.LevelSetMinIceThickness;
-        hTemp=F1.h ;
-        abTemp=a1*(hTemp-hmin)+ a3*(hTemp-hmin).^3 ;
-        dabdhTemp=a1+3*a3*(hTemp-hmin).^2 ;
-        abLSF(F1.LSFMask.NodesOut)=abTemp(F1.LSFMask.NodesOut);
-        dadhLSF(F1.LSFMask.NodesOut)=dabdhTemp(F1.LSFMask.NodesOut);
+        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        LSFMask=F1.LSFMask.NodesOut ; 
+
     end
-    
-    F1.ab=F1.ab+abLSF;
-    dadh=dadh+dadhLSF;
-    
+       
 end
 
 
@@ -184,6 +166,8 @@ neqx=MUA.Nnodes ;
 hnod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(F1.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 
@@ -198,49 +182,35 @@ if CtrlVar.IncludeMelangeModelPhysics
 end
 
 
-if ~CtrlVar.CisElementBased
-    Cnod=reshape(F1.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    mnod=reshape(F1.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
-    if ~isempty(F1.q)
-        qnod=reshape(F1.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    else
-        qnod=[];
-    end
-    
-    if ~isempty(F1.muk)
-        muknod=reshape(F1.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    else
-        muknod=[];
-    end
-    
-    
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        
-        Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        
-    end
-    
+
+Cnod=reshape(F1.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(F1.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+if ~isempty(F1.q)
+    qnod=reshape(F1.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
 else
-    Cnod=F1.C;
-    mnod=F1.m;
+    qnod=[];
+end
+
+if ~isempty(F1.muk)
+    muknod=reshape(F1.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
+else
+    muknod=[];
 end
 
 
 
-if ~CtrlVar.AGlenisElementBased
-    AGlennod=reshape(F1.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    nnod=reshape(F1.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-else
-    AGlennod=F1.AGlen;
-    nnod=F1.n;
+if CtrlVar.IncludeMelangeModelPhysics
+    
+    Conod=reshape(F1.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    monod=reshape(F1.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    Canod=reshape(F1.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    manod=reshape(F1.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    
 end
 
-
+AGlennod=reshape(F1.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F1.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Snod=reshape(F1.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F1.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -290,6 +260,7 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
@@ -312,6 +283,7 @@ else
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);

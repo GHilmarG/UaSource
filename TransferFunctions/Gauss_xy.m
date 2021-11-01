@@ -1,4 +1,4 @@
-function [s,u,v,w,db,dc]=Gauss_xy(x,dx,y,dy,alpha,C,ampl_b,sigma_bx,sigma_by,ampl_c,sigma_cx,sigma_cy,theta);
+function [s,u,v,w,db,dc]=Gauss_xy(x,dx,y,dy,alpha,C,ampl_b,sigma_bx,sigma_by,ampl_c,sigma_cx,sigma_cy,theta)
 
 % Calculates surface shape (s) and velocity (u,w) as linear medium
 % flows over a Gaussian shaped bedrock and slipperiness perturbations.

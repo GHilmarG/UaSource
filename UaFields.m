@@ -78,12 +78,17 @@ classdef UaFields
         g=[];
         alpha=[];
         
+        time=[]; 
+        dt=[] ; 
+        
         GF=[];
         GFInit=[];
         
         LSF=[] % Level Set Field
         LSFMask=[]; 
         c=[] ; % calving rate
+        LSFqx=[] ;
+        LSFqy=[] ; 
         
     end
     

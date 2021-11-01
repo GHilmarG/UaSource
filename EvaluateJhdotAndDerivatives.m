@@ -11,7 +11,7 @@ vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dhdtMeasnod=reshape(Meas.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 JhdotIntSum=zeros(MUA.Nele,1);
 duJhdotIntSum=zeros(MUA.Nele,MUA.nod);
@@ -27,7 +27,7 @@ dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
 for Iint=1:MUA.nip
     
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
     
@@ -53,7 +53,7 @@ for Iint=1:MUA.nip
         
     end
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     JhdotIntSum=JhdotIntSum+((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; % element variable
     

@@ -6,6 +6,8 @@ nargoutchk(6,6)
 F=UaFields;
 EleSizeScalarField=[]; 
 
+F.time=CtrlVar.time ; 
+
 if CtrlVar.ReadInitialMesh==1
     
     fprintf(CtrlVar.fidlog,' loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);
@@ -60,7 +62,7 @@ if ~isempty(CtrlVar.SaveInitialMeshFileName)
     fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
 end
 
-
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
 BCs=BoundaryConditions;
 
@@ -80,7 +82,7 @@ end
 
 
 [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
-TestVariablesReturnedByDefineGeometryForErrors(MUA,F.s,F.b,F.S,F.B);
+
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);

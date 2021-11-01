@@ -11,7 +11,9 @@ function [UserVar,F,l,InvFinalValues,xAdjoint,yAdjoint,RunInfo,gammaAdjoint]=...
 %[UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,l,xAdjoint,yAdjoint,gammaAdjoint]=...
     %UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info)
 
-
+error('No longer used')
+    
+    
 xAdjoint=[] ;yAdjoint=[];
 
 iA=strfind(CtrlVar.AdjointGrad,'A');

@@ -29,7 +29,8 @@ lnew=UaLagrangeVariables;
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
              % density and the new geometry has been interpolated onto the new mesh. 
 
-x=MUAnew.coordinates(:,1); y=MUAnew.coordinates(:,2);
+Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
+Fold.x=MUAold.coordinates(:,1); Fold.y=MUAold.coordinates(:,2);
 
 
 if CtrlVar.TimeDependentRun
@@ -63,6 +64,7 @@ if CtrlVar.TimeDependentRun
                 % I don't really need to map b from old to new, but I use this later as an initial
                 % guess.
                 
+                % Var her [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUAnew,Fnew.s,Fnew.B,Fnew.S,Fnew.rho,rhow)
                 
             case "bs-FROM-hBS"
                 
@@ -76,7 +78,8 @@ if CtrlVar.TimeDependentRun
         end
         
         CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+        
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
         
         
         if CtrlVar.MapOldToNew.Test
@@ -86,12 +89,13 @@ if CtrlVar.TimeDependentRun
             OutsideValue=[];
             [RunInfo,Fnew.s,Fnew.b]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.s,Fold.b);
             CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
-            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'SB');
+            
+            [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
             
             FTest=Fold; FTest.GF=[];
             [RunInfo,FTest.h]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue,Fold.h);
             CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
-            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,'SB');
+            [UserVar,FTest]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,FTest,"-S-B-rho-");
             
             % now plot
             
@@ -127,12 +131,13 @@ else
     fprintf('        When mapping quantities from an old to a new mesh, all geometrical variables (s, b, S, and B) of the new mesh \n')
     fprintf('        are defined through a call to DefineGeometry.m and not through interpolation from the old mesh.\n')
     
+ 
     [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'-s-b-S-B-rho-rhow-g-');
 
     
 end
 
-
+Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ; 
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 [UserVar,Fnew]=GetAGlenDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 [UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew);

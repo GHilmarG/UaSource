@@ -5,6 +5,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 % Projects element variables defined at integration points onto nodes.
 % Does this by solving:
+%
 %          min_{Fnod_p} || Fnod_p N_P - Fint||_{L2}
 %
 %  ->  <Fnod_p N_p - Fint , N_q >_{L2}=0
@@ -17,7 +18,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 %  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
 %
-% where exx, eyy, exy, e, are defined at intergration points gives
+% where exx, eyy, exy, e, are defined at integration points gives
 % corresponding fields defined at nodes.
 %
 % Note: This projection will not always preserve positivity! 

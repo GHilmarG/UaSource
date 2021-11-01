@@ -85,7 +85,7 @@ if ~isempty(I)
     
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
     %  IN = inpolygon(x(I),y(I),xGL,yGL);  % for some reason this standard matlab routine is much slower than inpoly
-    [IN,ON] = inpoly([x(I) y(I)],[xGL1 yGL1],[],1);
+    [IN,ON] = inpoly2([x(I) y(I)],[xGL1 yGL1],[],1);
     
     % There is a bit of a question here what to do with nodes that are
     % directly on the grounding line. I've here decided to consider them part of

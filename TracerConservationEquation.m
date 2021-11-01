@@ -1,7 +1,7 @@
 function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
 
 %%
-% Solves the tracer conservation equation for the tracer c on the form:
+% Solves the linear tracer conservation equation for the tracer c on the form:
 % 
 % $$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$
 % 

@@ -3,24 +3,17 @@ function [UserVar,CtrlVar]=GetInitialInputs(UserVar,CtrlVar,varargin)
     
     
     OldInputFile="Ua2D_InitialUserInput.m" ; 
-    NewINputFile="DefineInitialInputs.m" ; 
+    NewInputFile="DefineInitialInputs.m" ; 
     
-    if exist(OldInputFile,'file')==2  && ~(exist(NewINputFile,'file')==2)
+    if exist(OldInputFile,'file')==2  && ~(exist(NewInputFile,'file')==2)
         
         warning("OldInputFormat:Ua2D_InitialUserInput","Ua2D_InitialUserInput.m  no longer used. Rename that file to DefineInitialInputs.m")
         
     end
     
     
-    
-    if ~exist(fullfile(cd,'DefineInitialInputs.m'),'file')
-        
-        fprintf('The input-file DefineInitialInputs.m not found in the working directory (%s).\n',pwd)
-        fprintf('This input-file is required for Ua to run.\n')
-        error('Ua2D:InputFileNotFound','DefineInitialInputs.m not found in working directory.')
-        
-    end
-    
+    InputFile="DefineInitialInputs.m" ;
+    TestIfInputFileInWorkingDirectory(InputFile) ;
     
     
     

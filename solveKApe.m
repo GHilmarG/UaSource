@@ -172,12 +172,14 @@ if isempty(B)
         fprintf('solveKApe: Solution residual appears too large! %g \n',res)
     end
 else
-    if norm(f)>1000*eps
-        res1=norm(A*x+B'*y-f)/norm(f);
+    if norm(f)>1e-10
+        res1=norm(A*x+B'*y-f)/norm(B'*y-f);
+    elseif norm(f)==0  && (norm(x) > 0 || norm(y)>0) 
+        res1=norm(A*x+B'*y)/norm(B'*y);
     else
         res1=norm(A*x+B'*y-f);
     end
-    if norm(g)>1000*eps
+    if norm(g)>1e-10
         res2=norm(B*x-g)/norm(g);
     else
         res2=norm(B*x-g);

@@ -46,15 +46,6 @@ end
 %
 %   f=M^{1/2) p
 %
-if CtrlVar.Inverse.pPreMultiplier=="M"
-    Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
-    
-    if isA ;  p(IA1:IA2)=Area*(MUA.M\p(IA1:IA2)); end
-    if isb ;  p(Ib1:Ib2)=Area*(MUA.M\p(Ib1:Ib2)); end
-    if isB ;  p(IB1:IB2)=Area*(MUA.M\p(IB1:IB2)); end
-    if isC ;  p(IC1:IC2)=Area*(MUA.M\p(IC1:IC2)); end
-    
-end
 
 
 if isA

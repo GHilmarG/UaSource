@@ -6,8 +6,9 @@ function [connectivity,isChanged]=TestAndCorrectForInsideOutElements(CtrlVar,coo
 %
 % If connectivity is changed, the logical variable isChanges is true on return. 
 
+points=[1/3 1/3];
 if nargin<4 || isempty(detJ)
-    [~,detJ]=derivVector(coordinates,connectivity,1,1); % Nele x dof x nod
+    [~,detJ]=derivVector(coordinates,connectivity,1,points,1); % Nele x dof x nod
 end
 
 isChanged=1;
@@ -25,7 +26,7 @@ end
 if all(detJ<0) 
     fprintf(' All elements are inside-out. All elements therefore flipped. \n  ') ;
     connectivity=FlipElements(connectivity);
-    [~,detJ]=derivVector(coordinates,connectivity,1,1); % Nele x dof x nod
+    [~,detJ]=derivVector(coordinates,connectivity,1,points,1); % Nele x dof x nod
     if all(detJ<0) 
         fprintf(' All elements still inside-out. \n  ') ;
         save DumpFileTestAndCorrectForInsideOutElements
@@ -47,7 +48,8 @@ if any(detJ<0)   %
     connectivity=FlipElements(connectivity,InsideOutElements);
     
     
-    [~,detJ]=derivVector(coordinates,connectivity,1,1); % Nele x dof x nod
+    
+    [~,detJ]=derivVector(coordinates,connectivity,1,points,1); % Nele x dof x nod
     if any(detJ<0) 
         InsideOutElements=find(detJ<0);
         fprintf('Out of %-i %-i-nod elements, %-i are still inside-out.\n  ',...

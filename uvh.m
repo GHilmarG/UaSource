@@ -6,14 +6,14 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     dt=CtrlVar.dt;
     
     RunInfo.Forward.ActiveSetConverged=1;
-    RunInfo.Forward.IterationsTotal=0;
+    RunInfo.Forward.uvhIterationsTotal=0;
     iActiveSetIteration=0;
     isActiveSetCyclical=NaN;
     
-    if CtrlVar.LevelSetMethod % Level Set
-        [RunInfo,CtrlVar,F1]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F1) ;
-    end
-    
+%     if CtrlVar.LevelSetMethod % Level Set
+%         [RunInfo,CtrlVar,F1]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F1) ;
+%     end
+%     
     
     if ~CtrlVar.ThicknessConstraints
         
@@ -21,9 +21,9 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
         
         CtrlVar.NumberOfActiveThicknessConstraints=0;
-        RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=NaN ;
-        RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=NaN;
-        RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=NaN;
+        RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=NaN ;
+        RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=NaN;
+        RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=NaN;
         
     else
         %    NodesFixed: holdes the nodal numbers nodes in the active set
@@ -142,8 +142,16 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 
                 
                 [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-                nlIt(iCounter)=RunInfo.Forward.Iterations;  iCounter=iCounter+1;
-                RunInfo.Forward.Iterations=mean(nlIt,'omitnan');
+                
+                
+                switch CtrlVar.FlowApproximation
+                    case "SSTREAM"
+                        nlIt(iCounter)=RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
+                        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
+                    case "SSHEET"
+                        nlIt(iCounter)=RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber);  iCounter=iCounter+1;
+                        RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=mean(nlIt,'omitnan');
+                end
                 
                 % keep a copy of the old active set
                 LastActiveSet=BCs1.hPosNode;
@@ -183,13 +191,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     break
                 end
                 
-                if CtrlVar.DebugMode
-                    warning('FIuvh2D:nonconvergent','uvh2D did not converge')
-                    filename='Dump_FIuvh2D.mat';
-                    fprintf('Saving all data in %s \n',filename)
-                    save(filename)
-                    error('asdf')
-                end
+                
+                warning('uvh:uvhSolutionNotConvergent','uvh2D did not converge')
+                filename='Dump_uvh';
+                fprintf('Saving all local data in %s \n',filename)
+                save(filename)
+                
                 
                 % If not converged try:
                 % 1) Reset variables to values at the beginning of time ste
@@ -197,6 +204,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 % 3) If that does not work reset time step.
                 
                 if ~VariablesReset
+                    
                     
                     VariablesReset=1;
                     if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -208,7 +216,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     %                 l1.ubvb=l1.ubvb*0 ; l1.udvd=l1.udvd*0; l1.h=l1.h*0;
                     
                     dtOld=dt;
-                    dt=dt/2; CtrlVar.dt=dt;
+                    dt=dt/2; CtrlVar.dt=dt;  F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
                     fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                     
                     F0.h(F0.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ; F0.h(BCs1.hPosNode)=CtrlVar.ThickMin;
@@ -229,6 +237,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     ReduceTimeStep=1;
                     dtOld=CtrlVar.dt;
                     dt=dt/2; CtrlVar.dt=dt;
+                    F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
                     
                     fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                     fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
@@ -424,12 +433,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         end   % active set loop
         
         
-        
-        
-        
-        %RunInfo.Iterations=nlIt(1); % here I use the number of NR iterations in the first update as a measure of
-        % the nonlinearity of the problem
-        
+
         % To do: I could consider relaxing the convergence criterias while
         % within the active set loop, and only fully converge once the active
         % set have been found, of course this assumes that as the final
@@ -478,8 +482,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     end
     
     
-    RunInfo.Forward.uvhActiveSetIterations(RunInfo.Forward.iCounter)=iActiveSetIteration-1 ;
-    RunInfo.Forward.uvhActiveSetCyclical(RunInfo.Forward.iCounter)=isActiveSetCyclical;
-    RunInfo.Forward.uvhActiveSetConstraints(RunInfo.Forward.iCounter)=numel(BCs1.hPosNode);
+    RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
+    RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;
+    RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=numel(BCs1.hPosNode);
     
 end

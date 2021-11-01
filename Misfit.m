@@ -1,4 +1,4 @@
-function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
+function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
 %
@@ -21,7 +21,7 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %
 %  Notation:
-%  J = Juv   + Jdot    + JA    +   JB   + JC
+%  I = Iuv   + Idot    + IA    +   IB   + IC
 %
 %  I need:
 %
@@ -33,26 +33,28 @@ function [I,dIdp,ddIddp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 %   Adjoint Eqs:  duvFuv lambda = duvJ
 %
-%       DAJ     = dAFuv lambda + dAJ
-%       DBJ     = dBFuv lambda + dBJ
-%       DCJ     = dCFuv lambda + dCJ
+%       DAI     = dAFuv lambda + dAI
+%       DBI     = dBFuv lambda + dBI
+%       DCI     = dCFuv lambda + dCI
 %
+%   here D is the total derivative and I use d for the partial derivative
 
 
-persistent GLgeo GLnodes GLele
 
-Area=TriAreaTotalFE(MUA.coordinates,MUA.connectivity);
+Area=MUA.Area;
 
-dAFuvLambda=[];
-dBFuvLambda=[];
-dCFuvLambda=[];
 
-DAJ=[];
-DBJ=[];
-DCJ=[];
+
+DAI=[];
+DBI=[];
+DCI=[];
 
 dIdp=[] ;
-ddIddp=sparse(1,1);
+ddIdpp=sparse(1,1);
+
+ddIdAA=[];
+ddIdCC=[];
+
 
 MisfitOuts.dIduv=[];
 MisfitOuts.uAdjoint=[];
@@ -65,7 +67,7 @@ vs=F.vb+F.vd ;
 
 %% Do some test on inputs, check if error covariance matrices are correctly defined
 % calculate residual terms, i.e. difference between meas and calc values.
-if contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
+if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
     
     if isempty(Meas.us)
         fprintf('Meas.us is empty! \n')
@@ -99,8 +101,6 @@ end
 
 %% Data misfit terms and derivatives
 if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
-    
-    
     
     if isempty(Meas.dhdt)
         fprintf('Meas.dhdt is empty! \n')
@@ -137,50 +137,36 @@ duJhdot=zeros(MUA.Nnodes,1);
 dvJhdot=zeros(MUA.Nnodes,1);
 dhJhdot=zeros(MUA.Nnodes,1) ;
 
-switch lower(CtrlVar.Inverse.DataMisfit.FunctionEvaluation)
-    
-    case 'uvdiscrete'  % this is here for comparision and testing, do not use, it's wrong!
-        
-        N=numel(us);
-        Juv=full(usres'*usres+vsres'*vsres)/2/N;
-        duJdu=usres./uErr/N;
-        dvJdv=vsres./vErr/N;
-        
-        
-    case 'integral' % always evaluate the continuous approximation
-        
-        if ~isfield(MUA,'M')
-            MUA.M=MassMatrix2D1dof(MUA);
-        end
-        
-        if contains(CtrlVar.Inverse.Measurements,'-uv-')
-            
-            duJdu=(MUA.M*usres)./uErr/Area;
-            dvJdv=(MUA.M*vsres)./vErr/Area;
-            Juv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
-            
-        end
-        
-        
-        if contains(CtrlVar.Inverse.Measurements,'-dhdt-')
-            
-            [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
-            
-        end
-        
-        
-        
+
+if ~isfield(MUA,"M")
+    MUA.M=MassMatrix2D1dof(MUA);
 end
+
+if contains(CtrlVar.Inverse.Measurements,"-uv-")
+    
+    duJdu=(MUA.M*usres)./uErr/Area;
+    dvJdv=(MUA.M*vsres)./vErr/Area;
+    Juv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+    
+end
+
+
+if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+    
+    [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
+    
+end
+
 
 I=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
 duvJduv=[duJdu(:)+duJhdot(:);dvJdv(:)+dvJhdot(:)];
 
-if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
     CtrlVar.TestForRealValues=false;
 end
 
 if ~isreal(duvJduv)  && CtrlVar.TestForRealValues
-    save TestSave ; error('MisfitFunction:dIduvNoReal','dIduv is not real! Possibly a problem with covariance of data.')
+    save TestSave ; error("MisfitFunction:dIduvNoReal","dIduv is not real! Possibly a problem with covariance of data.")
 end
 
 
@@ -199,37 +185,35 @@ if CtrlVar.Inverse.CalcGradI
     
     switch lower(CtrlVar.Inverse.DataMisfit.GradientCalculation)
         
-        case {'fixpoint','fixpointc','-fixpoint-','-fixpointc-'}
+        case {"fixpoint","fixpointc","-fixpoint-","-fixpointc-"}
             
             switch CtrlVar.Inverse.InvertForField
                 
-                case 'C'
+                case "C"
                     
-                    %dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,MUA,F.C,F.m,F.GF,F.ub,F.vb,Meas.us,Meas.vs);
-                    dCFuvLambda=Calc_FixPoint_deltaC(CtrlVar,UserVar,MUA,F,Meas);
-                    np=numel(dIdp); ddIddp=sparse(np,np);
-                    dCJ=0 ;
-                    DCJ=dCFuvLambda+dCJ;
                     
-                case 'B'
+                    DCI=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+                    
+                    
+                case "B"
                     
                     
                     dBFuvLambda=Calc_FixPoint_deltaB(CtrlVar,MUA,F,Meas);
-                    np=numel(dIdp); ddIddp=sparse(np,np);
+                    np=numel(dIdp); ddIdpp=sparse(np,np);
                     dBJ=0;
-                    DBJ=dBFuvLambda+dBJ;
+                    DBI=dBFuvLambda+dBJ;
                     
                 otherwise
                     
-                    fprintf(' CtrlVar.Inverse.InvertFor has an invalid value.\ n ')
-                    fprintf(' CtrlVar.Inverse.InvertFor = %s \n ',CtrlVar.Inverse.InvertFor)
-                    fprintf(' Fixpoint inversion only possible for C and B inversion. \n')
-                    error('Misfit:IncorrectInputParameterCombination','Fixpoint inversion only possible for C and B inversion')
+                    fprintf(" CtrlVar.Inverse.InvertFor has an invalid value.\ n ")
+                    fprintf(" CtrlVar.Inverse.InvertFor = %s \n ",CtrlVar.Inverse.InvertFor)
+                    fprintf(" Fixpoint inversion only possible for C and B inversion. \n")
+                    error("Misfit:IncorrectInputParameterCombination","Fixpoint inversion only possible for C and B inversion")
                     
             end
             
             
-        case 'adjoint'
+        case {"adjoint","-adjoint-"}
             %% Inverse problem
             %
             % Forward model:
@@ -267,12 +251,12 @@ if CtrlVar.Inverse.CalcGradI
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
-            if CtrlVar.Inverse.TestAdjoint.FiniteDifferenceType=="complex step differentiation"
+            if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
                 CtrlVar.TestForRealValues=false;
             end
             
             if CtrlVar.TestForRealValues && ~isreal(lAdjoint)
-                save TestSave ; error('When solving adjoint equation Lagrange parmeters complex ')
+                save TestSave ; error("When solving adjoint equation Lagrange parmeters complex ")
             end
             
             uAdjoint=real(lambda(1:MUA.Nnodes)) ;
@@ -289,7 +273,7 @@ if CtrlVar.Inverse.CalcGradI
                 figure
                 hold off
                 subplot(2,2,1)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title('dIdu')
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title("dIdu")
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,2)
@@ -311,110 +295,50 @@ if CtrlVar.Inverse.CalcGradI
             % For p=A and p=C, d_p I =0 because I is not an explicit function of A and C
             % But for b, d_b I = p_x (u db)
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'c')
+            if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
-                switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
-                    
-                    case 'discrete' % Direct gradient evaluated from nodal points.
-                        
-                        if CtrlVar.CisElementBased
-                            M = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-                            Cnode=M*F.C;
-                        else
-                            Cnode=F.C;
-                        end
-                        
-                        dCFuvLambda = -(1./F.m)*F.GF.node.*(Cnode+CtrlVar.CAdjointZero).^(-1./F.m-1).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1).*(F.ub.*uAdjoint+F.vb.*vAdjoint);
-                        
-                        if contains(lower(CtrlVar.Inverse.InvertFor),'-logc-')
-                            dCFuvLambda=log(10)*Cnode.*dCFuvLambda;
-                        end
-                        
-                        if CtrlVar.CisElementBased
-                            dCFuvLambda=Nodes2EleMean(MUA.connectivity,dCFuvLambda);
-                        end
-                        
-                        np=numel(dCFuvLambda);
-                        ddIddp=sparse(np,np);
-                        
-                    case 'integral'
-                        
-                        if CtrlVar.CisElementBased
-                            dCFuvLambda=dIdCqEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                            np=numel(F.C); ddIddp=sparse(ones(np,1),1:np,1:np);
-                        else
-                            
-                             dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint);
-                            %dCFuvLambda=dIdCq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                        end
-                end
-                dCJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-                DCJ=dCFuvLambda+dCJ;
+                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
+                
+                dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DCI=dCFuvLambda+dCI;
             end
             
-            if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+            if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
-                switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
-                    
-                    case 'discrete' % Direct gradient evaluated from nodal points.
-                        
-                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inversion.\n')
-                        error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
-                        
-                    case 'integral'
-                        
-                        if CtrlVar.AGlenisElementBased
-                            
-                            dAFuvLambda=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                            np=numel(dIdp); ddIddp=sparse(ones(np,1),1:np,1:np);
-                            
-                        else
-                            dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
-                        end
-                end
-                dAJ=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-                DAJ=dAFuvLambda+dAJ;
+                dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                
+                dAI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                DAI=dAFuvLambda+dAI;
             end
             
             
-            if contains(CtrlVar.Inverse.InvertFor,'-B-')
+            if contains(CtrlVar.Inverse.InvertFor,"-B-")
                 
-                switch lower(CtrlVar.Inverse.DataGradient.FunctionEvaluation)
-                    
-                    case 'discrete' % Direct gradient evaluated from nodal points.
-                        
-                        fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with b inversion.\n')
-                        error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
-                        
-                    case 'integral'
-                        
-                        %  p= B ;
-                        
-                        dBdp=  1+zeros(MUA.Nnodes,1);
-                        %dBdp=  F.GF.node ; %
-                        dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
-                        dhdp= -F.GF.node ;
-                        
-                        % dIdB= dhF^* \lambda + dhJ
-                        % if only -dhdt- meas and no regularisation
-                        % then dJdB=dh/db*dhJhdot
-                        
-                        dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
-                        dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
-                        %dBFuvLambda=dBFuvLambda2; 
-                        
-                        
-                        
-                end
-                dBJ=dhdp.*dhJhdot;
-                DBJ=dBFuvLambda+dBJ;
+                %  p= B ;
+                
+                dBdp=  1+zeros(MUA.Nnodes,1);
+                %dBdp=  F.GF.node ; %
+                dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
+                dhdp= -F.GF.node ;
+                
+                % dIdB= dhF^* \lambda + dhJ
+                % if only -dhdt- meas and no regularisation
+                % then dJdB=dh/db*dhJhdot
+                
+                dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
+                dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                %dBFuvLambda=dBFuvLambda2;
+                
+                
+                dBI=dhdp.*dhJhdot;
+                DBI=dBFuvLambda+dBI;
                 
                 if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
                     [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
-                    DBJ(~F.GF.NodesUpstreamOfGroundingLines)=0;
+                    DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
                 end
                 
-
+                
                 
             end
             
@@ -422,60 +346,88 @@ if CtrlVar.Inverse.CalcGradI
             
         otherwise
             
-            fprintf(' CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
-            fprintf(' but the only allowed values are ''fixpoint'' and ''adjoint'' \n')
-            error(' which case? ')
+            fprintf(" CtrlVar.Inverse.DataMisfit.GradientCalculation has the value %s \n",CtrlVar.Inverse.DataMisfit.GradientCalculation)
+            fprintf(" but the only allowed values are ''fixpoint'' and ''adjoint'' \n")
+            error(" which case? ")
             
     end
+ 
     
+    % Hessians
     
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
-% [I,L,U,C] = isoutlier(DBJ,'gesd'); factor=1 ; DBJ(DBJ>(factor*U))=factor*U ; DBJ(DBJ<(L/factor))=L/factor ; 
-%figure ; PlotMeshScalarVariable(CtrlVar,MUA,DBJ) ; title('DBJ')
-    
-% Hessians
-    
-    switch lower(CtrlVar.Inverse.InvertFor)
-        
-        case {'c','-c-'}
-            Hscale=1/(mean(F.C)^2);
-        case {'aglen','-aglen-'}
-            Hscale=1/(mean(F.AGlen)^2);
-        case {'logc','-logc-'}
-            Hscale=1/(log10(mean(F.C)^2));
-        case {'logaglen','-logaglen-'}
-            Hscale=1/(log10(mean(F.AGlen)^2));
+    if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
+        error(' field no longer used ')
     end
     
-    switch upper(CtrlVar.Inverse.DataMisfit.HessianEstimate)
+    if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
         
+        if contains(CtrlVar.Inverse.InvertForField,"C")
+            
+            if contains(CtrlVar.Inverse.Hessian,"IHC=FP")
+                [~,ddIdCC]=FixPointGradHessianC(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=GN")
+                [ddIdCC]=GaussNewtonHessianC(UserVar,CtrlVar,MUA,DCI,F,Meas);
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=M")
+                ddIdCC=MUA.M/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=D")
+                ddIdCC=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"IHC=0") || contains(CtrlVar.Inverse.Hessian,"IHC=O")
+                N=MUA.Nnodes;
+                ddIdCC=sparse(N,N);
+            elseif  contains(CtrlVar.Inverse.Hessian,"IHC=I") || contains(CtrlVar.Inverse.Hessian,"IHC=1")
+                N=MUA.Nnodes;
+                ddIdCC=speye(N,N);
+            else
+                error('case not found')
+            end
+        end
         
-        case {'0','O'}
-            np=numel(dIdp);
-            ddIddp=sparse(np,np);
-        case {'1','I'}
-            np=numel(dIdp);
-            ddIddp=Hscale*sparse(ones(np,1),1:np,1:np);
-        case 'M'
-            ddIddp=Hscale*MUA.M;
+        if contains(CtrlVar.Inverse.InvertForField,"A")
+            if contains(CtrlVar.Inverse.Hessian,"IHA=FP")
+                [~,ddIdAA]=FixPointGradHessianA(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo);
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=GN")
+                ddIdAA=GaussNewtonHessianA(UserVar,CtrlVar,MUA,DAI,F,Meas);
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=M")
+                ddIdAA=MUA.M/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=D")
+                ddIdAA=(MUA.Dxx+MUA.Dyy)/MUA.Area;
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=0") || contains(CtrlVar.Inverse.Hessian,"IHA=O")
+                N=MUA.Nnodes;
+                ddIdAA=sparse(N,N);
+            elseif contains(CtrlVar.Inverse.Hessian,"IHA=I") || contains(CtrlVar.Inverse.Hessian,"IHA=1")
+                N=MUA.Nnodes;
+                ddIdAA=speye(N,N);
+            else
+                error('case not found')
+            end
+        end
     end
-    
     
     switch CtrlVar.Inverse.InvertForField
         
-        case 'A'
-            dIdp=DAJ;
-        case 'b'
-            error('fdsa')
-        case 'B'
-            dIdp=DBJ;
-        case 'C'
-            dIdp=DCJ;
-        case 'AC'
-            dIdp=[DAJ;DCJ];
+        case "A"
+            dIdp=DAI;
+            ddIdpp=ddIdAA ;
+        case "b"
+            error("fdsa")
+        case "B"
+            dIdp=DBI;
+        case "C"
+            dIdp=DCI;
+            ddIdpp=ddIdCC ;
+        case "AC"
+            dIdp=[DAI;DCI];
+            
+            if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+                N=MUA.Nnodes;
+                ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
+                ddIdpp(1:N,1:N) = ddIdAA;
+                ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
+            end
+            
         otherwise
             
-            error('sdfsa')
+            error("sdfsa")
             
     end
     
@@ -491,16 +443,16 @@ I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 if nargout>1
     
     dIdp=CtrlVar.Inverse.DataMisfit.Multiplier*dIdp;
-    ddIddp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIddp;
+    ddIdpp=CtrlVar.Inverse.DataMisfit.Multiplier*ddIdpp;
     
 end
 
 
 if nargout>3
     MisfitOuts.I=I;
-    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCJ;
-    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAJ;
-    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBJ;
+    MisfitOuts.dIdC=CtrlVar.Inverse.DataMisfit.Multiplier*DCI;
+    MisfitOuts.dIdAGlen=CtrlVar.Inverse.DataMisfit.Multiplier*DAI;
+    MisfitOuts.dIdB=CtrlVar.Inverse.DataMisfit.Multiplier*DBI;
 end
 
 end

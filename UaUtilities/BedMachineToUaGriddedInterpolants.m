@@ -38,6 +38,10 @@ function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,L
 %   
 %       BedMachineToUaGriddedInterpolants("BedMachineAntarctica_2020-07-15_v02.nc",1,false,1000,true);
 %
+%
+% NOTE: The BEDMACHINE data compilation assumes ocean density of 1027 kg/m^3. So you MUST set 
+%       rhow=1027 in your own user input DefineDensity.m or DefineGeometryAndDensities.m m-files.
+%
 %% 
 
 
@@ -117,6 +121,7 @@ h=firn+thickness ; % or just h=s-b
 B=bed ; 
 
 if ~LakeVostok
+    % get rid of Lake Vostok by setting lower ice surface (b) equal to bedrock elevation (B) over the lake as defined my mask.
     IV=mask== 4;
     B(IV)=b(IV);
 end
@@ -257,7 +262,7 @@ if SaveOutputs
 end
 
 
-%%  Testing mesh boundary cooridnates and creating  a new one with different spacing between points and some level of smoothing
+%%  Testing mesh boundary coordinates and creating  a new one with different spacing between points and some level of smoothing
 
 CtrlVar.GLtension=1e-12; % tension of spline, 1: no smoothing; 0: straight line
 CtrlVar.GLds=5e3 ; 

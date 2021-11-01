@@ -120,22 +120,21 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %% assemble global Lagrange constraint matrix
     MLC=BCs2MLC(CtrlVar,MUA,BCs1);
     
-    % Luv=MLC.ubvbL;
-    % cuv=MLC.ubvbRhs;
-    % Lh=MLC.hL;
-    % ch=MLC.hRhs;
+ 
     
     if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
     if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
     nlubvb=numel(l1.ubvb) ;
     
-    
-    %[L,cuvh,luvh]=AssembleLuvh(Luv,Lh,cuv,ch,l1.ubvb,l1.h,MUA.Nnodes);
     [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
     dl=luvh*0;
     
     if ~isempty(L)
-        BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/norm(cuvh+1000*eps);
+        cuvhNorm=norm(cuvh);
+        if cuvhNorm<eps 
+            cuvhNorm=1;
+        end
+        BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/cuvhNorm;
     else
         BCsRelativeError=0;
     end
@@ -286,7 +285,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         
         slope0=-2*r0 ; 
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func);
+        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
 
         RunInfo.BackTrack=BackTrackInfo; 
         
@@ -464,15 +463,16 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         save(filename)
     end
     
-    RunInfo.Forward.Iterations=iteration; % May try to get rid of and use the uvhIterations vector instead
-    RunInfo.Forward.uvhIterations(RunInfo.Forward.iCounter)=iteration ; 
-    RunInfo.Forward.uvhResidual(RunInfo.Forward.iCounter)=r;
-    RunInfo.Forward.uvhBackTrackSteps(RunInfo.Forward.iCounter)=BackTrackSteps ; 
+    
+    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
+    RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
+    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ; 
     
     if CtrlVar.WriteRunInfoFile
         
         fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-            CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,RunInfo.Forward.Iterations,tEnd) ;
+            CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,...
+            RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),tEnd) ;
         
     end
     

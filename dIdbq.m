@@ -48,7 +48,7 @@ nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
 
@@ -56,14 +56,11 @@ hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    %der=shape_der(Iint,ndim,MUA.nod,points);
-    
-    
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     detJ=MUA.DetJ(:,Iint);
     Deriv=MUA.Deriv(:,:,:,Iint);
     
-    %[Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+    
     
     
     hint=hnod*fun;
@@ -158,7 +155,7 @@ for Iint=1:MUA.nip
     
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     
     

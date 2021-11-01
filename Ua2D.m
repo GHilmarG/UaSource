@@ -14,12 +14,14 @@ end
 
 
 
-
 SetUaPath() %% 
 
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
-
+warning('off','MATLAB:decomposition:SaveNotSupported')
+warning('off','MATLAB:decomposition:genericError')
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;
@@ -136,6 +138,7 @@ if CtrlVar.InverseRun %  inverse run
         
         RunInfo.Message="Getting inputs for a new inverse run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
+        CtrlVar.CurrentRunStepNumber=1; 
         % First get the usual input for a forward run
         
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
@@ -161,9 +164,19 @@ else
         
         % When reading the restart file the restart values of CtrlVar are all discarded,
         % however:
-        CtrlVar.time=CtrlVarInRestartFile.time;
+        CtrlVar.time=CtrlVarInRestartFile.time;   
         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
-        CtrlVar.dt=CtrlVarInRestartFile.dt;
+       
+        
+        % Generally, I want dt used in the run to be the dt value in the restart file. However, it is possible that the restart file was
+        % generated in a previous time independent run where dt was not defined, but the restart run is time dependent and the user has defined
+        % dt in the DefineInitialInputs.m for that time dependent run. In that case I do want to use dt as defined in DefineInitialInputs.m
+        if ~(~CtrlVarInRestartFile.TimeDependentRun && CtrlVar.TimeDependentRun)  
+            % Generally the dt used should be the dt in the restart file. 
+            CtrlVar.dt=CtrlVarInRestartFile.dt;
+        end
+        
+        F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         CtrlVar.CurrentRunStepNumber=CtrlVarInRestartFile.CurrentRunStepNumber;
         
         clearvars time dt CurrentRunStepNumber
@@ -183,7 +196,7 @@ else
 end
 
 MUA=UpdateMUA(CtrlVar,MUA); % Just in case something about the def of MUA has changed since creation of restart files
-
+F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;  
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
@@ -216,9 +229,6 @@ CtrlVar.RunInfoMessage=RunInfo.Message;
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); 
-%GF=GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
-
-
 
 % pointers to the elements of Boundary.Edges where u and v are fixed
 % Boundary.uFixedEdgesAllPtrs=logical(prod(double(ismember(Boundary.Edges,ufixednode)')));
@@ -234,8 +244,8 @@ if CtrlVar.doInverseStep   % -inverse
     
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
-    
-    CtrlVar.DefineOutputsInfostring='Start of inverse run';
+     CtrlVar.CurrentRunStepNumber=1; 
+    CtrlVar.DefineOutputsInfostring="Start of inverse run";
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -276,7 +286,7 @@ if CtrlVar.doInverseStep   % -inverse
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
-    CtrlVar.DefineOutputsInfostring='End of Inverse Run';
+    CtrlVar.DefineOutputsInfostring="End of Inverse Run";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
     UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -289,7 +299,7 @@ end
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='First call';
+    CtrlVar.DefineOutputsInfostring="First call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -358,6 +368,22 @@ while 1
     
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
+    
+    nRunInfo=numel(RunInfo.Forward.uvhIterations) ;
+    if nRunInfo < CtrlVar.CurrentRunStepNumber
+        
+        RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
+        RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
+        RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
+        RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
+        RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
+        RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
+        RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
+        RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
+        
+    end
+    
+    
     if CtrlVar.InfoLevel >= 1 
         fprintf('\n \t ----------------------------------------> Current run step: %i <-------------------------------\n',CtrlVar.CurrentRunStepNumber) ;  
     end
@@ -368,7 +394,7 @@ while 1
     end
     
     MUA=UpdateMUA(CtrlVar,MUA);
-    
+    F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping 
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
@@ -380,7 +406,7 @@ while 1
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
- 
+        F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
         
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
@@ -428,9 +454,9 @@ while 1
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
-    if CtrlVar.LevelSetMethod % Level Set
-       [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
-    end
+   % if CtrlVar.LevelSetMethod % Level Set
+   %    [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
+   % end
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
@@ -454,7 +480,7 @@ while 1
     %%  -------------------------------------------------------------------------------------]
     
     
-    if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic steo).
+    if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
         
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
@@ -476,21 +502,11 @@ while 1
         
         % RunInfo
         
-        if  numel(RunInfo.Forward.time)<=RunInfo.Forward.iCounter
-            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
-            RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
-            RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
-            RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
-            RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
-            RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
-            RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
-            
-        end
+    
         
-        RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
-        RunInfo.Forward.time(RunInfo.Forward.iCounter)=CtrlVar.time;
-        RunInfo.Forward.dt(RunInfo.Forward.iCounter)=CtrlVar.dt;
+        % RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
+        RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
+        RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
         if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
             
@@ -510,7 +526,8 @@ while 1
                 RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
                 fprintf(RunInfo.File.fid,...
                     '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
-                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.Iterations,RunInfo.Forward.IterationsTotal,datetime('now'),...
+                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),...
+                    RunInfo.Forward.IterationsTotal,datetime('now'),...
                     duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
             end
             
@@ -528,7 +545,7 @@ while 1
                 
                 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-                    CtrlVar.DefineOutputsInfostring='Diagnostic step';
+                    CtrlVar.DefineOutputsInfostring="Diagnostic step";
                     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
                     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
                     
@@ -541,8 +558,7 @@ while 1
                 end
             end
             
-            % put this here because now the velocity has been calculated, even if this is
-            % the first
+            % Now that the velocity has been calculated, we can ask for the calving parameters
            [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
             
             F0=F;  %
@@ -564,8 +580,10 @@ while 1
             
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
@@ -587,7 +605,7 @@ while 1
             
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             % Recalulating geometry based on floation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -600,21 +618,28 @@ while 1
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
             
-            
+
             fprintf(...
                 '\n =========> Semi-Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
-            
+
             tSemiImplicit=tic;                  % -uv
-            
-            
+
+
             F0=F;
-            
+
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+
+
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
-            
+
             
             tSemiImplicit=toc(tSemiImplicit);
             if CtrlVar.InfoLevelCPU>=1
@@ -625,29 +650,30 @@ while 1
         
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
-            [UserVar,RunInfo,F.LSF,F.LSFMask]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            [UserVar,RunInfo,F.LSF,F.LSFMask,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
         end
     end   % CtrlVar.TimeDependentRun
     
     %% calculations for this rund step are now done, only some plotting/writing issues do deal with
-    
-    % calculating derived quantities
-    
-    %GF = GL2d(F.B,F.S,F.h,F.rhow,F.rho,MUA.connectivity,CtrlVar);
+
+
     
   
     %% plotting results
     
     % DefineOutputs
     
-    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-        CtrlVar.DefineOutputsInfostring='inside transient loop and inside run-step loop';
+    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/(10*CtrlVar.DefineOutputsDt))) || CtrlVar.DefineOutputsDt==0 
+        %(ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+        CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
         end
         
@@ -687,12 +713,12 @@ end
 
 
 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
-    CtrlVar.DefineOutputsInfostring='Last call';
+    CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt;
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
     end
     

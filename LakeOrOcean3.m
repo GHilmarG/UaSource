@@ -36,6 +36,18 @@ nargoutchk(2,4)
 %
 % Currently, Úa users are split into LakeOrOcean.m and the LakeOrOcean3.m camps.
 % The author of the LakeOrOcean.m prefers using LakeOrOcean3.m
+%
+%
+%  
+%   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
+%   [LakeNodes,OceanNodes,LakeElements,OceanElements]=LakeOrOcean3(CtrlVar,MUA,F.GF) ;
+%
+%   FindOrCreateFigure("LakeOrOcean3") ; 
+%   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+%   PlotMuaMesh(CtrlVar,MUA) ;
+%   hold on ; plot(MUA.coordinates(OceanNodes,1)/CtrlVar.PlotXYscale,MUA.coordinates(OceanNodes,2)/CtrlVar.PlotXYscale,'ob') ;
+%   PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color='r') ;
+%
 %%
 
 GF = IceSheetIceShelves(CtrlVar,MUA,GF);

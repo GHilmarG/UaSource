@@ -251,7 +251,7 @@ if nargin>4 && ~isempty(Par)
     end
     
     if ~isfield(Par,'VelColorBarTitle')
-        Par.VelColorBarTitle='(m a^{-1})' ;
+        Par.VelColorBarTitle="($\mathrm{m \, yr^{-1}}$)" ; 
     end
     
     
@@ -277,7 +277,7 @@ else
     Par.RelativeVelArrowSize=1; % larger value makes vel arrows larger
     Par.VelArrowColorSteps=50;
     Par.uvPlotScale=[];
-    Par.VelColorBarTitle='(m a^{-1})' ;
+    Par.VelColorBarTitle="($\mathrm{m \, yr^{-1}}$)" ; 
     Par.PlotXYscale=1;
     Par.VelColorMap='jet';
     Par.MaxPlottedSpeed=max(speed(:));
@@ -420,7 +420,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
 if verLessThan('matlab','8.4')
     
     %pre 2014b version
-    cbar=colorbar; title(cbar,Par.VelColorBarTitle)   ;
+    cbar=colorbar; title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
     
     if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
         
@@ -525,7 +525,7 @@ end
 
 
 cbar=colorbar ;
-title(cbar,Par.VelColorBarTitle)   ;
+title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
 

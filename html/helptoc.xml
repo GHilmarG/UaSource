@@ -21,13 +21,20 @@
             <tocitem target="DefineFinalReturnedValueOfUserVar.html">Define any final modification to UserVar at the end of run</tocitem>
             <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
             <tocitem target="DefineCalving.html">Define level set and calving rate fields</tocitem>
+            <tocitem target="DefineSeaIceParameters.html">Define ocean and wind induced drag</tocitem>
+            <tocitem target="DefineCalving.html">Define ice-ocean mask which can be updated at each time step (by the user)</tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="DefineOutputs.html">Output </tocitem>
         <tocitem target="Utilities.html">Utilities 
+            <tocitem target="PlotAndDataGather.html">Files and Data Manipulations
+                <tocitem target="ReadPlotSequenceOfResultFiles.html">Plot and/or gather data from sequence of result files</tocitem>
+                <tocitem target="BedMachineToUaGriddedInterpolants.html">Read BedMachine data and create gridded interpolants and boundary coordinates</tocitem>
+            </tocitem>
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
-                <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable</tocitem>
+                <tocitem target="PlotMeshScalarVariable.html">Plot scalar variable (plan-view) </tocitem>
+                <tocitem target="PlotMeshScalarVariableAsSurface.html">Plot scalar variable as a 3D surface</tocitem>
                 <tocitem target="QuiverColorGHG.html">QuiverColorGHG</tocitem>
                 <tocitem target="PlotTensor.html">Plot tensor quantity such as strain rates</tocitem>
                 <tocitem target="PlotMuaBoundary.html">Plot MUA boundary</tocitem>
@@ -38,7 +45,8 @@
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
-                <tocitem target="FEintegrate2D.html">Integrate nodal quantities</tocitem>
+                <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
+                <tocitem target="FE_inner_product.html">FE natural inner product and norm of nodal quantities</tocitem>
                 <tocitem target="calcFEderivativesMUA.html">Calculates x and y derivatives of a nodal quantity</tocitem>
                 <tocitem target="DistanceToLineSegment2.html">Determine if a point is close to a line.</tocitem>
                 <tocitem target="ProjectFintOntoNodes.html">Project integration-point values onto nodes.</tocitem>
@@ -58,8 +66,10 @@
                 <tocitem target="MuaElementsContainingGivenNodes.html">Find elements containing specific nodes</tocitem>
                 <tocitem target="EleFlooding.html">Finds all elements within an element subset connected to a given node</tocitem>
                 <tocitem target="CalcMuaFieldsContourLine.html">Calculates one single contour line of a given field over the (irregular) mesh </tocitem>
-                
-                
+                <tocitem target="HelmholtzEquation.html">Solves the Helmholz equation over the MUA mesh. Can also be used for smoothing. </tocitem>
+                <tocitem target="FluxAcrossGroundingLine.html">Calculates flux across grounding lines. </tocitem>
+                <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
+                <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

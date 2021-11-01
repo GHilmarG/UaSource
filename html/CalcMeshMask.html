@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcMeshMask</title><meta name="generator" content="MATLAB 9.8"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2020-05-01"><meta name="DC.source" content="CalcMeshMask.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>CalcMeshMask</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-25"><meta name="DC.source" content="CalcMeshMask.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -69,8 +69,10 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 </pre><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
-</pre><p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p><p>Here the Mask is returned is defined slighly differently or as logical array where:</p><p>Mask.NodesOn  :  True for nodes belonging to elements where some of the nodal values are above and some below the Threshold Mask.NodesIn  :  True for nodes belonging to elements where all of the nodal values are above the Threshold Mask.NodesOut :  True for nodes belonging to elements where all of the nodal values are below the Threshold</p><p>A corresponding element mask is also returned.</p><p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strickly' below a given threshold value.</p><p>Example: Create a mask based on ice thickness above and below 100.</p><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.h,100);
-</pre><pre class="language-matlab">FindOrCreateFigure(<span class="string">"Level Set Mask"</span>) ;
+</pre><p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p><p>Here the Mask is returned is defined slighly differently or as logical array where:</p><p>Mask.NodesOn  :  True for nodes belonging to elements where some of the nodal values are above and some below the Threshold Mask.NodesIn  :  True for nodes belonging to elements where all of the nodal values are above the Threshold Mask.NodesOut :  True for nodes belonging to elements where all of the nodal values are below the Threshold</p><p>A corresponding element mask is also returned.</p><p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strickly' below a given threshold value.</p><p>Example: Create a mask based on ice thickness above and below 100.</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span>
+CtrlVar=CtrlVarInRestartFile;
+Mask=CalcMeshMask(CtrlVar,MUA,F.h,100);
+</pre><pre class="language-matlab">FindOrCreateFigure(<span class="string">"Nodal Mask"</span>) ;
 CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 PlotMuaMesh(CtrlVar,MUA) ;
 hold <span class="string">on</span> ;
@@ -110,7 +112,7 @@ Mask.NodesIn=Mask.NodesIn &amp; ~Mask.NodesOn;
 
 <span class="keyword">return</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 
@@ -136,9 +138,11 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 %
 % Example: Create a mask based on ice thickness above and below 100. 
 %
+%   load PIG-TWG-RestartFile.mat
+%   CtrlVar=CtrlVarInRestartFile;
 %   Mask=CalcMeshMask(CtrlVar,MUA,F.h,100); 
 % 
-%   FindOrCreateFigure("Level Set Mask") ; 
+%   FindOrCreateFigure("Nodal Mask") ; 
 %   CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 %   PlotMuaMesh(CtrlVar,MUA) ; 
 %   hold on ; 

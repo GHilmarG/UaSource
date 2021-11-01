@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>FindOrCreateFigure</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-12-10"><meta name="DC.source" content="FindOrCreateFigure.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>FindOrCreateFigure</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-25"><meta name="DC.source" content="FindOrCreateFigure.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,68 +67,147 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> fig=FindOrCreateFigure(FigureName,Position)
-</pre><p>Creates a new figure if a figure with the FigureName has not already been defined, otherwise finds the figure with the given name and makes that figure the current active figure.</p><p>Very usefull utility with a proven negative grumpiness impact.</p><p>Example:</p><pre class="language-matlab">FindOrCreateFigure(<span class="string">"TestingMapping"</span>,[100 100 1000 1000]);
-</pre><pre class="codeinput"><span class="keyword">if</span> nargin&lt;1 || isempty(FigureName)
-    error(<span class="string">"FindOrCreateFigure:NoFigureNameGiven"</span>,<span class="string">"FigureName is a required input"</span>)
-<span class="keyword">end</span>
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
+</pre><p>Creates a new figure if a figure with the FigureName has not already been defined, otherwise finds the figure with the given name and makes that figure the current active figure.</p><p>If no Position is given, or left empty, new figure will be put on somewhere on a Nx times Ny grid (default: Nx=4, Ny=3)</p><p>Very usefull utility with a proven negative grumpiness impact.</p><p>Example:</p><pre class="language-matlab">FindOrCreateFigure(<span class="string">"TestingMapping"</span>,[100 100 1000 1000]);
+</pre><pre class="language-matlab">fig=FindOrCreateFigure(<span class="string">"ThisIsMyFigureAndIWantToFindItAgainLaterAndReuse"</span>)  ;
+</pre><pre class="language-matlab">Note:  To keep <span class="string">the</span> <span class="string">figure</span> <span class="string">frame</span> <span class="string">but</span> <span class="string">to</span> <span class="string">clear</span> <span class="string">everything</span> <span class="string">else</span> <span class="string">use</span>
+</pre><pre>     clf(fig)</pre><pre class="codeinput">    <span class="keyword">persistent</span> nFigs
 
 
-fig=findobj(0,<span class="string">'name'</span>,FigureName);
-
-<span class="keyword">if</span> isempty(fig)
-    fig=figure(<span class="string">'name'</span>,FigureName);
-    <span class="keyword">if</span> nargin&gt;1 &amp;&amp; ~isempty(Position)
-        fig.Position=Position;
+    <span class="keyword">if</span> isempty(nFigs)
+        nFigs=0;
     <span class="keyword">end</span>
-<span class="keyword">else</span>
-    fig=figure(fig);
-    Position=fig.Position;
-    <span class="comment">% clf(fig)</span>
-    fig.Position=Position;
-    hold <span class="string">off</span>
-<span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
-##### SOURCE BEGIN #####
-function fig=FindOrCreateFigure(FigureName,Position)
-
-%%
-%
-% Creates a new figure if a figure with the FigureName has not already been
-% defined, otherwise finds the figure with the given name and makes that figure
-% the current active figure.
-%
-% Very usefull utility with a proven negative grumpiness impact.
-%
-% Example:    
-% 
-%
-%   FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);
-% 
-%
-%%
-
-if nargin<1 || isempty(FigureName)
-    error("FindOrCreateFigure:NoFigureNameGiven","FigureName is a required input")
-end
 
 
-fig=findobj(0,'name',FigureName);
 
-if isempty(fig)
-    fig=figure('name',FigureName);
-    if nargin>1 && ~isempty(Position) 
+    <span class="keyword">if</span> nargin&lt;1 || isempty(FigureName)
+        error(<span class="string">"FindOrCreateFigure:NoFigureNameGiven"</span>,<span class="string">"FigureName is a required input"</span>)
+    <span class="keyword">end</span>
+
+
+    <span class="keyword">if</span> nargin&lt; 3 || isempty(Nx) || isempty(Ny)
+        Nx=4;
+        Ny=3;
+    <span class="keyword">end</span>
+
+    screensize = get( groot, <span class="string">'Screensize'</span> ) ;
+
+    fig=findobj(0,<span class="string">'name'</span>,FigureName);
+
+    <span class="keyword">if</span> isempty(fig)
+        fig=figure(<span class="string">'name'</span>,FigureName);
+        <span class="keyword">if</span> nargin&gt;1 &amp;&amp; ~isempty(Position)
+            fig.Position=Position;
+        <span class="keyword">else</span>
+
+
+            figWidth=screensize(3)/Nx;
+            figHeight=screensize(4)/Ny;
+            nx=mod(floor(nFigs/Ny),Nx) ;
+            ny=mod(mod(nFigs,Nx*Ny),Ny);
+
+
+
+            fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
+            nFigs=nFigs+1;
+        <span class="keyword">end</span>
+    <span class="keyword">else</span>
+        fig=figure(fig);
+        Position=fig.Position;
+
         fig.Position=Position;
-    end
-else
-    fig=figure(fig);
-    Position=fig.Position;
-    % clf(fig)
-    fig.Position=Position;
-    hold off
-end
+        hold <span class="string">off</span>
+    <span class="keyword">end</span>
 
+
+    <span class="keyword">if</span> nargout==0
+        clear <span class="string">fig</span>
+    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
+    
+    %%
+    %
+    % Creates a new figure if a figure with the FigureName has not already been defined,
+    % otherwise finds the figure with the given name and makes that figure the current
+    % active figure.
+    %
+    % If no Position is given, or left empty, new figure will be put on somewhere on a Nx
+    % times Ny grid (default: Nx=4, Ny=3)
+    %
+    % Very usefull utility with a proven negative grumpiness impact.
+    %
+    %   
+    %
+    % Example:
+    %
+    %   FindOrCreateFigure("TestingMapping",[100 100 1000 1000]);
+    %
+    %   fig=FindOrCreateFigure("ThisIsMyFigureAndIWantToFindItAgainLaterAndReuse")  ;
+    %
+    %
+    %   Note:  To keep the figure frame but to clear everything else use
+    %       
+    %       clf(fig)
+    %
+    %%
+    
+    persistent nFigs
+    
+    
+    if isempty(nFigs)
+        nFigs=0;
+    end
+    
+    
+    
+    if nargin<1 || isempty(FigureName)
+        error("FindOrCreateFigure:NoFigureNameGiven","FigureName is a required input")
+    end
+    
+    
+    if nargin< 3 || isempty(Nx) || isempty(Ny)
+        Nx=4;
+        Ny=3;
+    end
+    
+    screensize = get( groot, 'Screensize' ) ;
+    
+    fig=findobj(0,'name',FigureName);
+    
+    if isempty(fig)
+        fig=figure('name',FigureName);
+        if nargin>1 && ~isempty(Position)
+            fig.Position=Position;
+        else
+            
+            
+            figWidth=screensize(3)/Nx;
+            figHeight=screensize(4)/Ny;
+            nx=mod(floor(nFigs/Ny),Nx) ;
+            ny=mod(mod(nFigs,Nx*Ny),Ny);
+            
+            
+            
+            fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
+            nFigs=nFigs+1;
+        end
+    else
+        fig=figure(fig);
+        Position=fig.Position;
+ 
+        fig.Position=Position;
+        hold off
+    end
+    
+    
+    if nargout==0
+        clear fig
+    end
+    
+    
 end
 ##### SOURCE END #####
 --></body></html>

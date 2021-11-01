@@ -29,25 +29,24 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Inverse.R = NaN ;
             obj.Inverse.StepSize = NaN ;
             obj.Inverse.GradNorm = NaN ;
-            obj.Inverse.GradNorm = NaN ;
+            obj.Inverse.nFuncEval = 0 ;
             obj.Inverse.ConjGradUpdate = 0 ;
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
             
             obj.Forward.uvConverged=false;
             obj.Forward.uvIterations=NaN;
+            obj.Forward.uvResidual=NaN;
+            
+            
 
-            obj.Forward.hConverged=0;
-            obj.Forward.hIterations=NaN;
             
             obj.Forward.Converged=0;
-            obj.Forward.Iterations=NaN;
-            obj.Forward.IterationsTotal=0;
-            obj.Forward.Residual=NaN;
+            
             
             obj.Forward.dtRestart=NaN;
             
-            obj.Forward.iCounter=0;
+            
             N=1000; % initial memory allocation
             obj.Forward.time=zeros(N,1)+NaN;
             obj.Forward.dt=zeros(N,1)+NaN;
@@ -58,6 +57,12 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
             obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
             
+            obj.Forward.hIterations=NaN(N,1);
+            obj.Forward.hResidual=NaN(N,1);
+            obj.Forward.hBackTrackSteps=zeros(N,1)+NaN;
+            obj.Forward.hiCount=0; 
+            obj.Forward.hConverged=0;
+
             obj.Forward.ubvbRecalculatedOnNewMesh=false; 
             
             obj.Forward.ActiveSetConverged=NaN;
@@ -65,17 +70,19 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.AdaptiveTimeSteppingResetCounter=0;
             obj.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
             
+           
             obj.BackTrack.Converged=NaN;
             obj.BackTrack.iarm=0;
             obj.BackTrack.Infovector=NaN;
             obj.BackTrack.nFuncEval=NaN;
             obj.BackTrack.nExtrapolationSteps=NaN;
             
-            
-            obj.LevelSet.SolverConverged=0;
-            obj.LevelSet.Iterations=NaN;
-            obj.LevelSet.rForce=NaN;
-            obj.LevelSet.rWork=NaN;
+            obj.LevelSet.iCount=0; 
+            obj.LevelSet.time=zeros(N,1)+NaN;
+            obj.LevelSet.Iterations=zeros(N,1)+NaN;
+            obj.LevelSet.Residual=zeros(N,1)+NaN;
+            obj.LevelSet.BackTrackSteps=zeros(N,1)+NaN;
+            obj.LevelSet.Phase=strings(N,1);
             
             obj.CPU.Total=0;
             obj.CPU.Assembly.uv=0;
@@ -138,22 +145,27 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.BackTrack.Infovector=NaN;
                 obj.BackTrack.nFuncEval=NaN;
                 obj.BackTrack.nExtrapolationSteps=NaN;
-                
-                
+
+
             end
-            
-            if ~isfield(s.Forward,'iCounter')
-                obj.Forward.iCounter=0;
-                N=1000; % initial memory allocation
-                obj.Forward.time=zeros(N,1)+NaN;
-                obj.Forward.dt=zeros(N,1)+NaN;
-                obj.Forward.uvhIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhResidual=zeros(N,1)+NaN;
-                obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+
+            if ~isfield(s.Forward,'hiCount')
+                obj.Forward.hiCount=0;
             end
+
+%             I got rid of this counter, if I keep this in here, these fields will always be set to zero on load  
+%             if ~isfield(s.Forward,'iCounter')
+%                 
+%                 N=1000; % initial memory allocation
+%                 obj.Forward.time=zeros(N,1)+NaN;
+%                 obj.Forward.dt=zeros(N,1)+NaN;
+%                 obj.Forward.uvhIterations=zeros(N,1)+NaN;
+%                 obj.Forward.uvhResidual=zeros(N,1)+NaN;
+%                 obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
+%                 obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+%             end
             
             if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
                 obj.Forward.ubvbRecalculatedOnNewMesh=false;
@@ -166,7 +178,9 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.LevelSet.rWork=NaN;
             end
             
-            
+            if ~isfield(s.Inverse,'nFuncEval')
+                obj.Inverse.nFuncEval = 0 ;
+            end
             
             
         end

@@ -1,17 +1,32 @@
-function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,MUA,u,v,dt)
+function [tau,tau1,tau2,taus,taut,ECN,K,l]=CalcSUPGtau(CtrlVar,EleAreas,u,v,dt,MUA)
 
 
 %
 %  Calculates nodal based tau values to be used in the SUPG method.
 %
 % Area=l^2/2 -> l=sqrt( 2 Area) 
-l=sqrt(2*TriAreaFE(MUA.coordinates,MUA.connectivity));
-[M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-l=M*l;
-speed=sqrt(u.*u+v.*v);
 
-%dt=l./speed;
-dt=dt+zeros(MUA.Nnodes,1);
+narginchk(5,6)
+
+if nargin==5
+    MUA=[];
+end
+
+
+if numel(u)~=numel(EleAreas)  % this could be called over nodes or elements (i.e. integration points)
+    %    error('afsd')  % ; I've got rid of almost these cases, but still used in dhdtExplicitSUPG
+    % Here MUA must be given as an input
+    if ~nargin==6
+        error("CalcSUPGtau:IncorrectNumberOfInputArguments","Incorrect number of input arguements")
+    end
+    
+    M=Ele2Nodes(MUA.connectivity,MUA.Nnodes);  % this is for a call over nodes, try to get rid of this use
+    l=M*sqrt(2*MUA.EleAreas) ;
+else
+    l=sqrt(2*EleAreas) ;
+end
+
+speed=sqrt(u.*u+v.*v);
 
 ECN=speed.*dt./l;  % non-dimentional
 
@@ -32,7 +47,7 @@ tau1=K.*l./speed/2;
 % And now I must consider the possibility that speed is zero, in which case
 % the above expression fails and must be replaced by the correct limit which is
 % tau1 -> dt/6 as speed -> 0
-I=speed<100*eps ; tau1(I)=dt(I)/6;
+I=speed<100*eps ; tau1(I)=dt/6;
 
 taut=dt/2+eps;
 taus=0.5*l./(speed+CtrlVar.SpeedZero);  % Now this must go down to zero gracefully...
@@ -47,13 +62,13 @@ switch CtrlVar.Tracer.SUPG.tau
     case 'taus'   % 'spatial' definition, independent of time step
         tau=taus;
     case 'taut'   % 'temporal' definition, indepenent of speed
-        tau=taut;
+        tau=taut+zeros(size(u),'like',u);
     otherwise
         error('in CalcSUPGtau case not found')
 end
 
 
-if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter
+if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
     figure
     subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
     subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
