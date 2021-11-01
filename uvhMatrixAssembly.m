@@ -114,7 +114,7 @@ end
 CtrlVar.ResetThicknessToMinThickness=temp;
 
 if CtrlVar.MassBalanceGeometryFeedback>=2  && ~ZeroFields
-    %GF = GL2d(F1.B,F1.S,F1.h,F1.rhow,F1.rho,MUA.connectivity,CtrlVar);
+    
     rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
     if rdamp~=0
         as1Old=F1.as ; ab1Old=F1.ab;

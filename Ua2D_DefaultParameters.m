@@ -51,7 +51,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
-CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho"] ;  
 %% Slope of coordinate system with respect to gravity
 
 CtrlVar.alpha=0 ; 
@@ -197,11 +197,12 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %
 
 CtrlVar.doplots=1;          % if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots
+CtrlVar.PlotXYscale=1000;     % used to scale x and y axis of some of the figures, only used for plotting purposes
 CtrlVar.PlotWaitBar=1;      % a waitbar is plotted
 CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
 CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
+
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
 CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
@@ -266,7 +267,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-
+CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -377,6 +378,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -400,7 +403,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-
+CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -582,7 +585,7 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
                               % then increasing this number will give further information. G
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-                              
+CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implicit uv/h approach
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
@@ -1442,7 +1445,7 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.LevelSetMethod=0; 
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
-
+CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
 
 
@@ -1451,7 +1454,8 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+
+ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 
@@ -1469,7 +1473,7 @@ CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"];
  CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
+CtrlVar.LevelSetInitialisationInterval=inf ; 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
 % CtrlVar.LevelSetReinitialize=

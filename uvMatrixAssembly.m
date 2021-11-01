@@ -14,10 +14,9 @@ switch lower(CtrlVar.FlowApproximation)
         
         [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
         
-    case "sstream-rhotest"
+    case "sstream-rho"
         
-        
-        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrhoTest(CtrlVar,MUA,F) ;
+        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrho(CtrlVar,MUA,F) ;
         
     otherwise
         

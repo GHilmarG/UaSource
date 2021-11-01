@@ -42,14 +42,18 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     
     RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0 ;
     
+    time=CtrlVar.time;
+    dtIn=CtrlVar.dt ;
+    
     
     if ~CtrlVar.Implicituvh
         % adaptive time-stepping only implemented for a transient uvh setp
+        dtOut=dtIn; 
+        dtRatio=dtOut/dtIn;
         return
     end
     
-    time=CtrlVar.time;
-    dtIn=CtrlVar.dt ;
+
     
     if isempty(dtModifiedOutside)
         dtModifiedOutside=false;

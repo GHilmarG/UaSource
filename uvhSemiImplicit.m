@@ -52,29 +52,31 @@ if CtrlVar.InfoLevel>=10
     fprintf("uvhSemiImplicit:Solving for h at t=t1, implicitly.\n")
 end
 
-iCount=0 ; Du=inf ; Dv=inf ; Dh=inf ; 
-while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2 
+%iCount=0 ; Du=inf ; Dv=inf ; Dh=inf ; 
+% while ( Du>0.1 || Dv>0.1 || Dh> 0.1 ) && iCount < 2 
     
-    iCount=iCount+1; 
-    h1=F1.h ; u1=F1.ub ; v1=F1.vb;
+   % iCount=iCount+1; 
+   % h1=F1.h ; u1=F1.ub ; v1=F1.vb;
     
     % 3) calculate new ice thickness implicitly with respect to h.
-    [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
+    %[UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,F0.h,F0.ub,F0.vb,F0.dubdt,F0.dvbdt,F0.as+F0.ab,dadt,F1.ub,F1.vb,F1.as+F1.ab,dadt,F1.dubdt,F1.dvbdt);
+    [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    
     % Make sure to update s and b too.
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 
     % 4) And finally calculate uv based on the new geometry.
     [UserVar,RunInfo,F1,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F1,l);
 
-    du=u1-F1.ub; dv=v1-F1.vb ; dh=h1-F1.h;
-    Du=norm(du)/norm(F1.ub) ; Dv=norm(dv)/norm(F1.vb) ; Dh=norm(dh)/norm(F1.h);
-    if Du > 0.25 || Dv > 0.25 || Dh> 0.05  % if so, then force a reduction in dt
-        %RunInfo.Forward.uvhIterations=max([10*CtrlVar.ATSTargetIterations ; RunInfo.Forward.Iterations]);
-        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=666;
-    end
-    [Du Dv Dh]
+  %  du=u1-F1.ub; dv=v1-F1.vb ; dh=h1-F1.h;
+  %  Du=norm(du)/norm(F1.ub) ; Dv=norm(dv)/norm(F1.vb) ; Dh=norm(dh)/norm(F1.h);
+  %  if Du > 0.25 || Dv > 0.25 || Dh> 0.05  % if so, then force a reduction in dt
+  %      %RunInfo.Forward.uvhIterations=max([10*CtrlVar.ATSTargetIterations ; RunInfo.Forward.Iterations]);
+  %      RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=666;
+  %  end
+   % [Du Dv Dh]
     
-end
+% end
 
 
 if CtrlVar.InfoLevel>=10 

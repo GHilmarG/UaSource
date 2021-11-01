@@ -9,9 +9,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     
     tdiagnostic=tic;
     
-%     if CtrlVar.LevelSetMethod % Level Set
-%         [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ;
-%     end
+
 
     
     F.h=F.s-F.b;
@@ -79,7 +77,7 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
     switch lower(CtrlVar.FlowApproximation)
         
         
-        case 'sstream'
+        case {'sstream','sstream-rho'}
             
             if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
             

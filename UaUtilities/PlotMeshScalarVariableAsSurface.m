@@ -41,14 +41,20 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 if nargin<5
     Col=[];
 end
+x=MUA.coordinates(:,1) ;
+y=MUA.coordinates(:,2) ;
 
 if nargin<4 || isempty(AspectRatio)
     AspectRatio=1;
+    xL=max(x)-min(x) ;
+    yL=max(y)-min(y) ;
+    xyL=min(xL,yL);
+    VL=max(Variable)-min(Variable) ;
+    AspectRatio=xyL/VL;
 end
 
 TRI=TriFE(MUA.connectivity);
-x=MUA.coordinates(:,1) ;
-y=MUA.coordinates(:,2) ;
+
 
 if isempty(Col)
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;

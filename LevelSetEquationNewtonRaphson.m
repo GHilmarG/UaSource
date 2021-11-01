@@ -8,7 +8,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     %
     
     narginchk(7,8)
-    nargoutchk(6,6)
+    nargoutchk(4,7)
     
     persistent iCalls
     
@@ -39,22 +39,25 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     % make sure initial point is feasable
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
     F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
-    
-    if isempty(F1.LSFqx) || numel(F1.LSFqx)~=MUA.Nnodes
-        F1.LSFqx=zeros(MUA.Nnodes,1);
-        F1.LSFqy=zeros(MUA.Nnodes,1);
+
+    if CtrlVar.LSF.C
+        if isempty(F1.LSFqx) || numel(F1.LSFqx)~=MUA.Nnodes
+            F1.LSFqx=zeros(MUA.Nnodes,1);
+            F1.LSFqy=zeros(MUA.Nnodes,1);
+        end
+
+        if isempty(F0.LSFqx)  || numel(F0.LSFqx)~=MUA.Nnodes
+            F0.LSFqx=zeros(MUA.Nnodes,1);
+            F0.LSFqy=zeros(MUA.Nnodes,1);
+        end
+
+
+        LSF1qx=F1.LSFqx;
+        LSF1qy=F1.LSFqy;
+    else
+         LSF1qx=[] ; LSF1qy=[] ; 
     end
-    
-    if isempty(F0.LSFqx)  || numel(F0.LSFqx)~=MUA.Nnodes
-        F0.LSFqx=zeros(MUA.Nnodes,1);
-        F0.LSFqy=zeros(MUA.Nnodes,1);
-    end
-    
-    
-    LSF1qx=F1.LSFqx;
-    LSF1qy=F1.LSFqy;
-    
-    
+
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
     RunInfo.LevelSet.SolverConverged=false;
     
@@ -131,9 +134,9 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         if ~isempty(L)
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
-            grhs=Lrhs-L*F1.LSF; % Here the argument is that frhs has the units: [\varphi] area/time
-                                % while grhs has the units [\varphi], where [\varphi] are the units of 
-                                % the level-set function itself, ie [\varphi]
+            grhs=Lrhs-L*F1.LSF  ;  % Here the argument is that frhs has the units: [\varphi] area/time
+                                   % while grhs has the units [\varphi], where [\varphi] are the units of 
+                                   % the level-set function itself, ie [\varphi]
         else
             frhs=-R;
             grhs=[];
@@ -142,7 +145,8 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
         dLSF=full(dLSF);
         
-        if ~isempty(Qx)
+        
+        if CtrlVar.LSF.C  && ~isempty(Qx)  % consistent formulation
             
             if ~isfield(MUA,'dM') || isempty(MUA.dM) 
                 MUA.dM=decomposition(MUA.M,'chol','upper') ;
@@ -176,11 +180,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
         [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
-        
-        % Testing
-        if gamma<1e-5 
-           fprintf(" hm \n ") 
-        end
+    
         
         if CtrlVar.LevelSetInfoLevel>=100 && CtrlVar.doplots==1
             nnn=30;

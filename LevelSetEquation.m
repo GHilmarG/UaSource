@@ -67,8 +67,15 @@ if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || Ctr
     nCallCounter=nCallCounter+1;
 end
 %% Initialisation phase
-if  contains(CtrlVar.LevelSetPhase,"Initialisation")
-    CtrlVar.LevelSetReinitializePDist=false ; 
+CtrlVar.LineUpGLs=false ; Threshold=0 ; 
+[xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+[SignedDist,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xc,yc);
+Slope=abs(F1.LSF./SignedDist);
+DistMin=50e3 ; MinSlope=min(Slope(abs(SignedDist)>DistMin));
+fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
+
+if  contains(CtrlVar.LevelSetPhase,"Initialisation") || MinSlope < 0.1
+    % CtrlVar.LevelSetReinitializePDist=false ; 
     [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     F0.LSF=LSF ; F1.LSF=LSF ;
 end
@@ -145,9 +152,11 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
                 CtrlVar.LevelSetTheta=1;
                 dtBefore=CtrlVar.dt;
                 dtNew=CtrlVar.dt ;
-                
+                fprintf("Level set solver did not converge. Trying backward Euler. \n")
+
             elseif Ntries==2
                 
+                fprintf("Level set solver did not converge. Performing a new re-initialisation \n")
                 CtrlVar.LevelSetReinitializePDist=false ; 
                 [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 F0.LSF=LSF ; F1.LSF=LSF ;

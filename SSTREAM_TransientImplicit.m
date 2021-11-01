@@ -130,7 +130,11 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     dl=luvh*0;
     
     if ~isempty(L)
-        BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/norm(cuvh+1000*eps);
+        cuvhNorm=norm(cuvh);
+        if cuvhNorm<eps 
+            cuvhNorm=1;
+        end
+        BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/cuvhNorm;
     else
         BCsRelativeError=0;
     end

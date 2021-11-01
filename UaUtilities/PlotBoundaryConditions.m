@@ -158,7 +158,7 @@ elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
 end
 
 if ~isempty(L)
-    lgd=legend(L{:},'interpreter','latex');
+    lgd=legend([L{:}],'interpreter','latex');
 else
     lgd=[]; 
 end
