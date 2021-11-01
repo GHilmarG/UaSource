@@ -44,8 +44,8 @@ if ~FixPointConverged && contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS")
     N=0 ; 
     FactorUp=1.2 ; FactorDown=2 ; iUpLast=true ; 
     TotalTime=0 ; dLSFdt=inf ;
-    Nmax=150;
-    dLSFdtMax= 1 ;  TotalTimeMax=1e8*CtrlVar.dt;
+    Nmax=100;
+    dLSFdtMax= 10 ;  TotalTimeMax=1e8*CtrlVar.dt;
 
     while N<=Nmax  && dLSFdt > dLSFdtMax  && TotalTime<TotalTimeMax
 
