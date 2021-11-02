@@ -1,5 +1,5 @@
 
-function [x,y]=CreatePIGprofile(dx)
+function [x,y,d]=CreatePIGprofile(dx)
 
 %%
 
@@ -26,7 +26,7 @@ XY=1000* [ -1623.00220069374         -361.310893841788     ;
 CtrlVar.GLtension=1; 
 CtrlVar.GLds=dx ; 
 
-[x,y] = Smooth2dPos(XY(:,1),XY(:,2),CtrlVar);
+[x,y,~,~,d] = Smooth2dPos(XY(:,1),XY(:,2),CtrlVar);
 
 % hold on ; plot(x/1000,y/1000,'or') ;
 
