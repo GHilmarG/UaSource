@@ -180,6 +180,8 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % When generating several separate meshed domains with holes, make sure
 % to specify the outer boundary first, then the holes, and indicate to which mesh a given boundary belongs
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
@@ -194,10 +196,12 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: Mesh with several holes and islands
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.MeshGenerator='gmsh';  
+% CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSize=0.1;
-CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=10 ;
+CtrlVar.MeshSizeMin=0.1; CtrlVar.TriNodes=3 ;
 CtrlVar.MeshBoundaryCoordinates=...
     [1 NaN ; -1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 -1 ; ...     % outer boundary of mesh 1
     1 NaN ; 0.5 -0.5 ; 0.5 0 ; 0.1 0 ; 0.1 -0.5 ; ...         % inner boundary of mesh 1
@@ -213,7 +217,7 @@ CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
 figure ; PlotMuaMesh(CtrlVar,MUA); 
-
+hold on
 % also calculate and plot normals
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
@@ -285,41 +289,122 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
 %% Example: two separate meshes in contact
-
+% This can be done using both gmsh and mesh2d, but the format for MeshBoundaryCoordinates is different!
 
 CtrlVar=Ua2D_DefaultParameters();
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
-CtrlVar.MeshGenerator='gmsh';  % this option only works with gmsh...
-%CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.MeshGenerator="gmsh";  % this option only works with gmsh...
+CtrlVar.MeshGenerator="mesh2d";  
 UserVar=[];
-CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; ...      
-                         2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
+
+if CtrlVar.MeshGenerator=="gmsh"
+    CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 1 ; 1 1 ; 1 0 ; ...
+        2 NaN ; -1 0  ; -1 1.001 ; 0 1.001 ; 0 0 ];
+elseif CtrlVar.MeshGenerator=="mesh2d"
+    CtrlVar.MeshBoundaryCoordinates=[0 0  ; 0  1 ; 1 1  ; 1 0 ; ...
+                                     0 0  ; -1 0 ; -1 1 ; 0 1 ] ;
+end
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
 figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
-%% Example: Internal boundaries
+%% Example: Internal boundaries # 1
 
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar=Ua2D_DefaultParameters();
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+CtrlVar.PlotXYscale=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
 CtrlVar.GmshInputFormat=1;
 UserVar=[];
-CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  0 0  ; 0 0.25 ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
-                         2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
+CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  0 0    ; 0 0.25  ; 0.25 0.25 ; 0.25 0.75 ; 0 0.75 ; 0 1 ; 1 1 ; 1 0;   ...      
+                                 2 NaN ;  0 0.25 ; 0. 0.75 ; 0.25 0.75 ; 0.25 0.25 ];
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
 figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 
+
+%%  Example: Internal boundaries # 2
+% For example internal calving front 
+
+CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.PlotXYscale=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.GmshInputFormat=1;
+UserVar=[];
+Cxy=[0.00 0.00 ; 0.25 0.25 ; 0.20 0.75 ; 0.00 0.75]  ;  % internal calving front
+
+CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  Cxy ; 0 1 ; 1 1 ; 1 0;   ...      
+                                 2 NaN ;  flipud(Cxy)];
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
+figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+%%  Example: Internal boundaries #3
+% For example internal calving front 
+
+CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.PlotXYscale=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.GmshInputFormat=1;
+UserVar=[];
+Cxy=[0.00 0.00 ; 0.25 0.10 ; 0.10 0.20 ; 0.60 0.30 ; 0.35 0.40 ; 0.1 0.50 ; 0.40 0.60 ; 0.20 0.90 ; 0.10 0.75]  ;  % internal calving front
+
+CtrlVar.MeshBoundaryCoordinates=[1 NaN ;  Cxy ; 0 1 ; 1 1 ; 1 0;   ...      
+                                 2 NaN ;  flipud(Cxy)];
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
+figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+%%  Example: Internal boundaries #4 
+%   Here only one boundary line is used to generate external and internal boundaries within the mesh
+%   This is done by traversing the in clock-wise direction around the internal boundary and then the external one
+%   This method only works with mesh2d 
+
+CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='mesh2d';  
+
+CtrlVar.PlotXYscale=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.GmshInputFormat=1;
+UserVar=[];
+Boundary=[0.00 0.00 ; 0.25 0.10  ;  0.25 1.00 ; 1.00 1.00 ; 1.00  0.00  ; ....     % first loop
+          0.00 0.00 ; 0.00 0.50  ;  0.20 1.00 ; 0.25 1.00 ; 0.25 0.10   ;  ...     % second loop (here the last point must be equal to the second in the line before)
+          0.00 0.00 ; -0.10 0.00 ; -0.10 0.50 ;  0.00 0.90 ; 0.20 1.00 ; 0.00 0.50] ;           % third loop  (here the last point must be equal to the second in the line before)
+
+CtrlVar.MeshBoundaryCoordinates=Boundary ; 
+                                 
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
+figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: Two subdomains sharing a common boundary.
 %
 % This example uses GmshInputFormat 2.
@@ -485,6 +570,43 @@ CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+
+
+%%  Example: two seperate domains generated with mesh2d
+
+CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.PlotXYscale=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.GmshInputFormat=1;
+UserVar=[];
+
+
+CtrlVar.MeshBoundaryCoordinates=[0 0 ; 0 1 ; 1 1 ; 1 0 ; ...
+                                 2 0.5 ; 2 1 ; 3 1 ; 3 0 ; 2 0.5 ; 1 0 ; 0 0 ; ...
+                                 0.1 0.1 ; 0.1 0.3 ; 0.3 0.3 ; 0.3 0.1  ; 0.1 0.1 ; 0  0 ];
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
+figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Example: Meshing the Brunt Ice Shelf with an internal boundary and a `fill-in'
 
 load BruntMeshBoundaryCoordinates.mat

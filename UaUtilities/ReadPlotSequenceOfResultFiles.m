@@ -117,7 +117,10 @@ CurDir=pwd;
 
 if CreateVideo
     
-    vidObj = VideoWriter("VideoResultsFile"+FileNameSubstring+PlotType);
+    VideoFileName = "VideoResultsFile-"+FileNameSubstring+PlotType;
+    VideoFileName = replace(VideoFileName,".mat","");
+    VideoFileName = replace(VideoFileName," ","");
+    vidObj = VideoWriter(VideoFileName);
     vidObj.FrameRate=10;   % frames per sec
     open(vidObj);
 end
@@ -381,14 +384,14 @@ while iFile<=nFiles   % loop over files
                     end
                     
                     if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
-                        hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                        hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                         Temp=fMeshLSF.CurrentAxes.Title.String;
-                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in blue"}];
+                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in white"}];
                         
                         [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
                         plot(xf/1000,yf/1000,'m','LineWidth',2);
                         
-                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Blue: LSF zero-line. Magneta:Ice cliff front"}];
+                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"White: LSF zero-line. Magneta:Ice cliff front"}];
                         
                     end
                     
@@ -531,7 +534,7 @@ while iFile<=nFiles   % loop over files
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 end
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 axis equal tight
@@ -572,7 +575,7 @@ while iFile<=nFiles   % loop over files
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
                 if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 end
                 hold off
                 
@@ -585,7 +588,7 @@ while iFile<=nFiles   % loop over files
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
                     title(sprintf('Calving Rate Field at t=%g',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
                     title(sprintf('surface at t=%-g',time))
@@ -614,10 +617,10 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 if contains(PlotType,"-level set-")
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF);
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);
                     title(sprintf('Level Set Field at t=%-g',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
                     title(sprintf('Basal melt at t=%-g',time))
@@ -627,7 +630,7 @@ while iFile<=nFiles   % loop over files
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 if ~isempty(cbar)
-                    title(cbar,'(m/yr)')
+                    title(cbar,'(km)')
                 end
                 axis equal tight ;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
