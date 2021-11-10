@@ -164,7 +164,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
             error('LevelSetEquationNewtonRaphson:NaNinSolution','NaN in the solution for dLSF')
         end
         
-        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl);
+        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl,BCs);
 
         gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
