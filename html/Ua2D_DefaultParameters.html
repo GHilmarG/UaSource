@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-14"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-17"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -99,7 +99,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 </pre><h2 id="7">Ice flow approximation</h2><pre class="codeinput">CtrlVar.FlowApproximation=<span class="string">"SSTREAM"</span> ;  <span class="comment">% any of ['SSTREAM'|'SSHEET'|'Hybrid']</span>
                                        <span class="comment">% Note, both SSTREAM and SSHEET are implemented.</span>
                                        <span class="comment">% But Hybrid is still in development and should not be used for the time being.</span>
-CtrlVar.MustBe.FlowApproximation=[<span class="string">"SSTREAM"</span>,<span class="string">"SSHEET"</span>,<span class="string">"Hybrid"</span>] ;
+CtrlVar.MustBe.FlowApproximation=[<span class="string">"SSTREAM"</span>,<span class="string">"SSHEET"</span>,<span class="string">"Hybrid"</span>,<span class="string">"SSTREAM-rho"</span>] ;
 </pre><h2 id="8">Slope of coordinate system with respect to gravity</h2><pre class="codeinput">CtrlVar.alpha=0 ;
 </pre><h2 id="9">Sliding law</h2><p>Several sliding laws can be defined. These include <b>Weertman</b> (power-law relationship between basal drag and velocity, i.e. u=C tau^m ) and <b>Coulomb</b> friction (basal drag equal a constant times effective pressure, i.e. tau = mu N).  When using Columb friction define mu in DefineSlipperiness.m instead of C.</p><p>The other sliding laws are all just different ways of combining Weertman and Coulomb.</p><p>If the drag calculated using Weertman law is TauW and that calculated using Coulomb law is TauC, while Tau is the drag used, then</p><p><b>Tsai:</b>   Tau=min(TauC,TauW)</p><p><b>Conford:</b>  1/Tau^m = 1/TauC^m + 1/TauW^m</p><p>The <b>Budd</b> sliding law is a simple extension of the Weertman sliding law where:</p><p>u = C tau^m/N^q</p><p>The effective pressure is currently only calculated using a 'zeroth-order' hydrology model, where N=rho g (h-h_f) where h_f is the flotation thickness.</p><pre class="codeinput">CtrlVar.SlidingLaw=<span class="string">"Weertman"</span> ;
 CtrlVar.MustBe.SlidingLaw=[<span class="string">"Weertman"</span>,<span class="string">"Budd"</span>,<span class="string">"Tsai"</span>,<span class="string">"Coulomb"</span>,<span class="string">"Cornford"</span>,<span class="string">"Umbi"</span>,<span class="string">"W"</span>,<span class="string">"W-N0"</span>,<span class="string">"minCW-N0"</span>,<span class="string">"C"</span>,<span class="string">"rpCW-N0"</span>,<span class="string">"rCW-N0"</span>]  ;
@@ -166,11 +166,12 @@ CtrlVar.NameOfRestartFiletoWrite=<span class="string">'Ua2D_Restartfile.mat'</sp
 </pre><pre class="codeinput">CtrlVar.SaveAdaptMeshFileName=[];          <span class="comment">% file name for saving adapt mesh. If left empty, no file is written</span>
 </pre><h2 id="18">Plotting</h2><p>Most plotting is typically done by the user using his own version of the m-file</p><pre class="language-matlab">DefineOutputs.m
 </pre><p>or in a separate post-processing step.</p><p>However, some basic plots can be generated directly from within Ua.</p><pre class="codeinput">CtrlVar.doplots=1;          <span class="comment">% if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots</span>
+CtrlVar.PlotXYscale=1000;     <span class="comment">% used to scale x and y axis of some of the figures, only used for plotting purposes</span>
 CtrlVar.PlotWaitBar=1;      <span class="comment">% a waitbar is plotted</span>
 CtrlVar.doAdaptMeshPlots=1; <span class="comment">% if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing</span>
 CtrlVar.PlotOceanLakeNodes=0;        <span class="comment">% Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean</span>
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.PlotXYscale=1;     <span class="comment">% used to scale x and y axis of some of the figures, only used for plotting purposes</span>
+
                            <span class="comment">% (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)</span>
 CtrlVar.PlotsXaxisLabel=<span class="string">'x'</span> ; CtrlVar.PlotsYaxisLabel=<span class="string">'y'</span> ; <span class="comment">%</span>
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    <span class="comment">% when plotting vel arrows with smaller speed are scaled so that their speed its</span>
@@ -211,7 +212,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=[<span class="string">"TG3"</sp
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; <span class="comment">% parameters related to the SUPG method.</span>
 CtrlVar.theta=0.5;    <span class="comment">% theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate</span>
-
+CtrlVar.hTheta=0.5;
 <span class="comment">% Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.</span>
 <span class="comment">% It has not been fully tested but seems to work very well for fully implicit transient calculation.</span>
 <span class="comment">% This option that can be obtained by setting:</span>
@@ -274,6 +275,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -297,6 +300,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=[<span class="string">"Force Residuals"</
 
 
 CtrlVar.uvh.SUPG.tau=<span class="string">"taus"</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
+CtrlVar.h.SUPG.tau=<span class="string">"taus"</span>;  CtrlVar.h.SUPG.Use=1;
 </pre><h2 id="26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</h2><p>When solving the non-linear system (forward model) the recommended option is is to use the full Newton-Raphson method</p><p>One can also use the modified Newton-Raphson or the Picard iteration.</p><p>Modified Newton-Raphson only evaluates the left-hand side (the stiffness matrix) if certain criteria are fulfilled. This will reduced time spend with matrix assembly but also reduced the rate of convergence. Depending on the problem using the modified NR method may, or may not, lead to an overall reduction in computational time.</p><p>When using the modified Newton-Raphson method, there are two criteria that determine if the left-hand side is updated or not: 1) interval and 2) (residual) reduction criteria. The interval criteria determines the number of iterations between updates. (The matrix is always updated at the beginning of the non-linear iteration.) The reduction criteria forces re-assembly if the reduction in last iteration was not greater than a given fraction.</p><p>Note:Most of the following parameters related to the NR iteration do, in general, not to be modified and the default values should in most situation be OK.</p><pre class="codeinput">CtrlVar.NR=1;                             <span class="comment">% 1 gives Newton-Raphson (use Newton-Raphson whenever possible)</span>
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  <span class="comment">% interval between matrix updates, always a positive integer number.</span>
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; <span class="comment">% fractional reduction forcing an update</span>
@@ -418,7 +422,7 @@ CtrlVar.InfoLevelLinSolve=0;  <span class="comment">% If the linear solver does 
                               <span class="comment">% then increasing this number will give further information. G</span>
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-
+CtrlVar.hInfoLevel=1;         <span class="comment">% Infolevel for the h solve when using semi-implicit uv/h approach</span>
 CtrlVar.InfoLevelThickMin=0 ; <span class="comment">% if &gt;=1 prints out info related to resetting thickness to min thick</span>
                               <span class="comment">% if &gt;=10, plots locations of min thickness within mesh</span>
 CtrlVar.SymmSolverInfoLevel=0 ;
@@ -426,7 +430,7 @@ CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.InfoLevelCPU=0;  <span class="comment">% if 1 then some info on CPU time usage is given</span>
 CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard output is directed to a logfile</span>
 <span class="comment">% name of logfile is  $Experiment.log</span>
-</pre><h2 id="32">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq08369003733283222926.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq12181943583103488439.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq12924131073447543161.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq15019012425984498030.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq13887426895847926300.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:405px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq04487584478622693718.png" alt="$K_C$" style="width:20px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq09497593338882125070.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq06301708164122530744.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:365px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq09941021013676836398.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq05147331747641807187.png" alt="$A$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04475604477142801974.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq03986222445007418011.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04408148735986522086.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'-logA-'</span> ;
+</pre><h2 id="32">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq07719450564690685999.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq05807929389032372116.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq10024211797872095766.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq01878602293849951994.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq01765491164605855405.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:405px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq06066998096614611954.png" alt="$K_C$" style="width:20px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq11690864388985667333.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq10296661230749944397.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:365px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq03729901751903020778.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq08772416954200330719.png" alt="$A$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq14208478268740022418.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq08596374860807106346.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq06488775577432398857.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'-logA-'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'-logA-logC-'</span>
 </pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPoint' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPoint'}</span>
 CtrlVar.Inverse.InvertFor=<span class="string">'-logA-logC-'</span> ; <span class="comment">% {'-C-','-logC-','-AGlen-','-logA-','-logA-logC-'}</span>
@@ -820,7 +824,7 @@ CtrlVar.MustBe.MeshRefinementMethod=[<span class="string">"explicit:global"</spa
 </pre><h2 id="58">Calving :  including Level Set Method</h2><p>Calving using the level-set method is currently experimental. For the time being use other options such as the manual element deactivation</p><pre class="codeinput">CtrlVar.LevelSetMethod=0;
 
 CtrlVar.LevelSetEvolution=<span class="string">"-prescribed-"</span>  ; <span class="comment">% "-prescribed-", "-By solving the level set equation-"</span>
-
+CtrlVar.LevelSetPhase=<span class="string">""</span> ;
 CtrlVar.ManuallyDeactivateElements=0;
 
 
@@ -829,7 +833,8 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;
+
+ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0;
 
 
@@ -847,7 +852,7 @@ CtrlVar.LevelSetFABmu.Scale=<span class="string">"ucl"</span> ; <span class="com
  CtrlVar.LevelSetTestString=<span class="string">""</span> ;
 CtrlVar.LevelSetSUPGtau=<span class="string">"taus"</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
+CtrlVar.LevelSetInitialisationInterval=inf ;
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;
 
 <span class="comment">% CtrlVar.LevelSetReinitialize=</span>
@@ -1124,7 +1129,7 @@ CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; <span class="comment">% Test</span>
 CtrlVar.nargoutJGH=[];   <span class="comment">% internal variable, do not change</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function CtrlVar=Ua2D_DefaultParameters
 
@@ -1179,7 +1184,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
-CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho"] ;  
 %% Slope of coordinate system with respect to gravity
 
 CtrlVar.alpha=0 ; 
@@ -1325,11 +1330,12 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %
 
 CtrlVar.doplots=1;          % if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots
+CtrlVar.PlotXYscale=1000;     % used to scale x and y axis of some of the figures, only used for plotting purposes
 CtrlVar.PlotWaitBar=1;      % a waitbar is plotted
 CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
 CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
+
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
 CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
@@ -1394,7 +1400,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-
+CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -1505,6 +1511,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -1528,7 +1536,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-
+CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -1710,7 +1718,7 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
                               % then increasing this number will give further information. G
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-                              
+CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implicit uv/h approach
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
@@ -2570,7 +2578,7 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.LevelSetMethod=0; 
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
-
+CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
 
 
@@ -2579,7 +2587,8 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+
+ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 
@@ -2597,7 +2606,7 @@ CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"];
  CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
+CtrlVar.LevelSetInitialisationInterval=inf ; 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
 % CtrlVar.LevelSetReinitialize=
