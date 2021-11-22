@@ -114,6 +114,11 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
             [F.ud,F.vd]=uvSSHEETplus(CtrlVar,MUA,BCs,F.AGlen,F.n,F.h,txzb,tyzb);
             if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Hybrid done \n') ;  end
             
+
+        case "uvhprescribed"
+
+            [UserVar,RunInfo,F,l]=uvhPrescibed(UserVar,RunInfo,CtrlVar,MUA,F,F,l,BCs);
+            Kuv=[] ; Ruv=[] ; 
         otherwise
             
             fprintf('CtrlVar.FlowApproximation %s \n',CtrlVar.FlowApproximation)
