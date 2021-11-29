@@ -26,9 +26,16 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     end
     iCalls=iCalls+1;
     
-    
-    MLC=BCs2MLC(CtrlVar,MUA,BCs);
-    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+
+    if ~isempty(BCs.LSFL)
+        L=BCs.LSFL;
+        Lrhs=BCs.LSFrhs ;
+    else
+        MLC=BCs2MLC(CtrlVar,MUA,BCs);
+        L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+    end
+
+
     if nargin==7 || isempty(l) || (numel(l)~=numel(Lrhs))
         l=Lrhs*0 ; 
     end

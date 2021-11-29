@@ -55,7 +55,9 @@ classdef BoundaryConditions
         LSFFixedValue=[];
         LSFTiedNodeA=[];
         LSFTiedNodeB=[];
-        
+        LSFL=[] ; 
+        LSFrhs=[] ; 
+
         % rate of thickness change - only used when using calculating dh/dt in combination with the ajoint methods
         %                            for example when using measurements of dh/dt in an inversion
         dhdtFixedNode=[];
