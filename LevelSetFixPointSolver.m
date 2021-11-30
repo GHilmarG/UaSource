@@ -10,9 +10,8 @@ function [UserVar,RunInfo,LSF,l]=LevelSetFixPointSolver(UserVar,RunInfo,CtrlVar,
 fprintf("\n LSF: fix point solver \n")
 
 FixPointConverged=0 ; 
-CtrlVar.LevelSetFixPointSolverApproach="-initial fix point (IFP) then pseudo time stepping (PTS) followed by final fix point (FFP)-";
-% CtrlVar.LevelSetFixPointSolverApproach="-pseudo time stepping (PTS) followed by final fix point (FFP)-";
-CtrlVar.LevelSetFixPointSolverApproach="-pseudo time stepping (PTS)-";
+
+
 
 RunInfo.LevelSet.SolverConverged=false ;
 lIFP=[] ; 
@@ -32,7 +31,7 @@ if contains(CtrlVar.LevelSetFixPointSolverApproach,"IFP")
 end
 
 
-if ~FixPointConverged && contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS") 
+if ~FixPointConverged || contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS") 
 
     % pseudo time stepping
     l=[] ;

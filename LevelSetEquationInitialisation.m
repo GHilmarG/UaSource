@@ -19,7 +19,8 @@ if CtrlVar.LevelSetInitBCsZeroLevel
     
     BCs.LSFFixedNode= [LSFFixedNodeUnmodified ; find(Mask.NodesOn)];  % add the nodes of the "On" elements, ie all elements containing the zero level
     BCs.LSFFixedValue=[LSFFixedValueUnmodified ; F0.LSF(Mask.NodesOn) ];
-   % figure ;  lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
+   % 
+
 end
 
 CtrlVar.LevelSetReinitializePDist=1;
