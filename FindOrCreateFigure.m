@@ -24,6 +24,10 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 %
 %       clf(fig)
 %
+% To create a pdf of figure:
+%
+%    exportgraphics(fig,'fig.pdf')
+%
 %%
 
 persistent nFigs

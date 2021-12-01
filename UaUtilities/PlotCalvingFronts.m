@@ -16,6 +16,8 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     % figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,color="r");
     %
     %
+    %  figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,"k--");
+    %
     % Also consider using: 
     %
     %   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
