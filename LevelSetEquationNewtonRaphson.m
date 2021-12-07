@@ -148,10 +148,15 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
             frhs=-R;
             grhs=[];
         end
-        
-        [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+
+        if issymmetric(K)
+            [dLSF,dl]=solveKApeSymmetric(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        else
+            [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        end
+
         dLSF=full(dLSF);
-        
+
         
         if CtrlVar.LSF.C  && ~isempty(Qx)  % consistent formulation
             
