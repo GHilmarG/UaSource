@@ -22,7 +22,7 @@ switch N
             
         else
             
-            [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,F);
+            [UserVar,F.as,F.ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
             
         end
         
