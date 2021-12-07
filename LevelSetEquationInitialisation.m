@@ -1,13 +1,15 @@
 function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 
 
-LSFqx=[] ; LSFqy=[] ; 
+LSFqx=[] ; LSFqy=[] ; Mask=[] ; 
 
 % Don't redefine F0.LSF as F1.LSF, doing so would push the solution back in tiem
 F1.LSF=F0.LSF ;
 Threshold=0 ;    % Level Set value
+
 % Here F0.LSF is the original, and F1.LSF will be the re-initilized LSF
 % fix the LSF field for all nodes of elements around the level.
+
 if CtrlVar.LevelSetInitBCsZeroLevel
     % Use BCs to fix the level set over all elements that the level
     % goes through. This ensures that the level can not shift during
@@ -23,7 +25,7 @@ if CtrlVar.LevelSetInitBCsZeroLevel
 
 end
 
-CtrlVar.LevelSetReinitializePDist=1;
+% CtrlVar.LevelSetReinitializePDist=1;
 if  CtrlVar.LevelSetReinitializePDist
 
     %% After having located the 0 level, now do a rough re-initialisation using signed distance function. After this I then do a full
@@ -31,7 +33,7 @@ if  CtrlVar.LevelSetReinitializePDist
     % This will in most cases not be needed, but
 
     if  isfield(CtrlVar,'CtrlVar.LevelSetTestString') &&  contains(CtrlVar.LevelSetTestString,"-xc/yc nodes-")
-        xC=F0.x(Mask.NodesOn ) ; yC=F0.y(Mask.NodesOn) ;
+        xC=F0.x(Mask.NodesOn) ; yC=F0.y(Mask.NodesOn) ;
     else
         CtrlVar.LineUpGLs=false ;
         [xC,yC]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);

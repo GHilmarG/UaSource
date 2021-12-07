@@ -1,9 +1,15 @@
-function [UserVar,rh,kv,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+function [UserVar,f0,K,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
 
 %% Level Set Equation with a source term
 %
 % $$ \partial \varphi/\partial t + v \cdot \nabla \varphi - \nabla \cdot (\kappa \nabla \varphi ) + c \| \nabla \varphi \| = 0$$
 %
+%
+%     K d\varphi = - f0
+%
+%
+
+
 narginchk(15,53)
 nargoutchk(2,4)
 
@@ -299,7 +305,7 @@ end
 
 % rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
 % norm(rh-Rh)/norm(rh);
-rh=Rh; 
+f0=Rh; 
 
 
 if nargout>2
@@ -315,7 +321,25 @@ if nargout>2
         end
     end
     
-    kv=sparseUA(Iind,Jind,Xval,neq,neq);
+    K=sparseUA(Iind,Jind,Xval,neq,neq);
 end
+
+if ~isL
+   
+    % if I'm not including the advection term (ie only the transient and/or the diffusion term)
+    % the system is symmetric
+
+    K=(K+K')/2 ;
+
+end
+   
+
+
+
+
+
+
+
+
 
 end
