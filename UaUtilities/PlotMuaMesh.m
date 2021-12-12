@@ -17,6 +17,11 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
 %   figure ; PlotMuaMesh([],MUA,[],'r')
 %
+% or
+%
+%   figure ; PlotMuaMesh(CtrlVar,MUA,[],color="r");
+%
+%
 % Plot the first 10000 elements in black:
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')

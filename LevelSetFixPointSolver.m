@@ -44,8 +44,11 @@ if ~FixPointConverged || contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS")
     FactorUp=1.5 ; FactorDown=2 ; iUpLast=true ; 
     TotalTime=0 ; dLSFdt=inf ;
     
-    Nmax=10;   % Just seeing if I can reduce this significantly
-    dLSFdtMax= 0.10 ;  TotalTimeMax=1e8*CtrlVar.dt;
+
+
+    Nmax=CtrlVar.LevelSetPseudoFixPointSolverMaxIterations ; 
+    dLSFdtMax= CtrlVar.LevelSetPseudoFixPointSolverTolerance ;
+    TotalTimeMax=1e8*CtrlVar.dt;
 
     while N<=Nmax  && dLSFdt > dLSFdtMax  && TotalTime<TotalTimeMax
 
@@ -61,7 +64,7 @@ if ~FixPointConverged || contains(CtrlVar.LevelSetFixPointSolverApproach,"PTS")
             TotalTime=TotalTime+CtrlVar.dt ;
             dLSFdt=max(F1.LSF-LSF)/CtrlVar.dt ;
             F1.LSF=LSF ; F0.LSF=F1.LSF ;
-            if RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount)<5
+            if RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount)<4
 
                 if iUpLast
                     iUpLast=false;

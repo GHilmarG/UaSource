@@ -10,9 +10,9 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % 
 % Here the Mask is returned is defined slighly differently or as logical array where:
 % 
-% Mask.NodesOn  :  True for nodes belonging to elements where some of the nodal values are above and some below the Threshold
-% Mask.NodesIn  :  True for nodes belonging to elements where all of the nodal values are above the Threshold
-% Mask.NodesOut :  True for nodes belonging to elements where all of the nodal values are below the Threshold
+% Mask.NodesOn  :  True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold
+% Mask.NodesIn  :  True for nodes belonging to elements where ALL of the nodal values are above the Threshold
+% Mask.NodesOut :  True for nodes belonging to elements where ALL of the nodal values are below the Threshold
 % 
 % A corresponding element mask is also returned. 
 % 

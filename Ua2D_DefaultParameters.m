@@ -1470,7 +1470,7 @@ CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","
 CtrlVar.LevelSetFABmu.Value=1 ; 
 CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
 
- CtrlVar.LevelSetTestString="" ; 
+CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetInitialisationInterval=inf ; 
@@ -1483,10 +1483,9 @@ CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the
 CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
 
-CtrlVar.LevelSetPseudoForwardTolerance=1; % tolerance on max(d\varphi/dt) in the pseudo-forward stepping phase.
-                                          % This parameter has the untis distance/time. If the units are meters and years,
-                                          % then the pseudo-forward step initialisation will be continued until max change in 
-                                          % any element is smaller than this prescribed tolerance.
+
+CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
+CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
 
 CtrlVar.CalvingLaw="-User Defined-"; 
 CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
