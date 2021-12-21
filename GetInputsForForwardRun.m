@@ -81,6 +81,9 @@ if CtrlVar.OnlyMeshDomainAndThenStop
 end
 
 
+
+[UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
+
 [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
 
 

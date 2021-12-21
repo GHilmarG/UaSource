@@ -36,7 +36,7 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
 %         fprintf(' Just checking take this out \n ' ) 
 %     end
 %     
-    if any(isnan(F.c))
+    if any(isnan(F.c))  && CtrlVar.CurrentRunStepNumber>0
         errorStruct.identifier = 'GetCalving:NaNinInput';
         errorStruct.message = 'nan in c (calving)';
         error(errorStruct)
@@ -55,7 +55,7 @@ function [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs)
     if CtrlVar.LevelSetEvolution=="-prescribed-"
         F.c=[];
     else
-        if numel(F.c)~=MUA.Nnodes
+        if ~isempty(F.c)  &&  numel(F.c)~=MUA.Nnodes
             errorStruct.identifier = 'GetCalving:CalvingFieldInvalid';
             errorStruct.message = 'number of elements in the calving field must equal number of nodes';
             error(errorStruct)

@@ -117,9 +117,10 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 cbar=[];
 QuiverHandel=[];
 
-if numel(x) ==0
+if isempty(x) || isempty(y) || isempty(u)   || isempty(v)
     return
 end
+
 
 if size(u,2)== 1 && (numel(x) ~= numel(y))
     error('Ua:QuiverColorGHG:xyDimensionsNotCompatible','x and y must have the same number of elements.')
