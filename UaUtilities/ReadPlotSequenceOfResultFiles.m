@@ -119,6 +119,7 @@ CurDir=pwd;
 if CreateVideo
     
     VideoFileName = "VideoResultsFile-"+FileNameSubstring+PlotType;
+    VideoFileName = "VideoResultsFile-"+PlotType;
     VideoFileName = replace(VideoFileName,".mat","");
     VideoFileName = replace(VideoFileName," ","");
     vidObj = VideoWriter(VideoFileName);

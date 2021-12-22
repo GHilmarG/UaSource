@@ -10,6 +10,8 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     narginchk(8,8)
     nargoutchk(4,4)
 
+
+
     
     MLC=BCs2MLC(CtrlVar,MUA,BCs);
     L=MLC.hL ; Lrhs=MLC.hRhs ;
@@ -26,7 +28,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     
      
     iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1; r=Inf; 
-    RunInfo.Forward.hConverged=false;
+    RunInfo.Forward.hConverged=false;   BackTrackInfo.iarm=NaN;BackTrackInfo.Converged=0;
     
     while true
         
@@ -208,9 +210,9 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     RunInfo.Forward.time(RunInfo.Forward.hiCount)=CtrlVar.time;   
     RunInfo.Forward.hIterations(RunInfo.Forward.hiCount)=iteration ; 
     RunInfo.Forward.hResidual(RunInfo.Forward.hiCount)=r;
-    RunInfo.Forward.hBackTrackSteps( RunInfo.Forward.hiCount)=BackTrackInfo.iarm ;
+    RunInfo.Forward.hBackTrackSteps(RunInfo.Forward.hiCount)=BackTrackInfo.iarm ;
     
-    
+   
     
     
 end

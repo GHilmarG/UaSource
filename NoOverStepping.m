@@ -1,7 +1,7 @@
 function dtOut=NoOverStepping(CtrlVar,time,dtIn,Dt)
 %
 %
-%  On intput Dt is the maximum time step, while dtIn is the current time step
+%  On input Dt is the maximum time step, while dtIn is the current time step
 %
 % To ensure the dtOut is not larger than Dt one could simpy set
 %  
@@ -16,8 +16,10 @@ function dtOut=NoOverStepping(CtrlVar,time,dtIn,Dt)
 %  and then I ensure that on return time+dtOut does not exceed this limit time. 
 %
 
-dtOut=round(dtIn,14); % round to 10 significant digits.
-                      % this is needed so that the sum time+dtOut is always numerically different from time
+%dtOut=round(dtIn,14); % round to 10 significant digits.
+%                      % this is needed so that the sum time+dtOut is always numerically different from time
+dtOut=dtIn ;
+
 
 LimitTime=Dt*ceil(time/Dt);  % time that should not be overstepped.
                              % LimitTime is always >= time

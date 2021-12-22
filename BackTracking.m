@@ -162,6 +162,7 @@ iarm=0;  BackTrackInfo.iarm=iarm;
 
 a=0;
 
+
 Infovector=zeros(MaxIterations+3,2)+NaN;
 
 

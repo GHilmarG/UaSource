@@ -238,13 +238,56 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time step
     % after this adjustment
     
+
+
+
     %
     if CtrlVar.DefineOutputsDt>0
-        temp=dtOut;
-        dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
-        if abs(temp-dtOut)>100*eps
-            fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accommodate user output requirements and set to %-g \n ',dtOut);
-            RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=1; 
+
+        % Unlikely to be the case, but make sure dtOut is equal or smaller than Dt
+        if dtOut>CtrlVar.DefineOutputsDt
+            dtOut=CtrlVar.DefineOutputsDt;
+        end
+
+        %temp=dtOut;
+        %dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
+        dtNoOverStepping=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.DefineOutputsDt);
+        % using dtNoOverStepping ensures that next output interval is not stepped over
+        % dtNoOverStepping might be smaller that dtOut to avoid overstepping, but never smaller
+        %
+        %
+        %   dtNoOverStepping is the dt I need to not overstep the Dt user requirements
+        %  But do I need to change dt?  What if dtNoOverStepping is 'small'
+        %
+        % I use:
+        %
+        %   (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/(10*CtrlVar.DefineOutputsDt)))
+        %
+        % to determine if I need an output file.  So if an output file is created for both, or neither, dtOut and dtNoOverStepping,
+        % there is no need to change dt
+        %
+
+        if dtNoOverStepping<dtOut  % so I may need to reduce dtOut, but maybe dtOut is only be a bit smaller than dtNoOverStepping
+
+            
+            % would I call DefineOutputs anyhow, even if I don't change dt? If so, then there is no need to change dtOut
+            % and dtOut and dtNoOverStepping are too similar for the difference to matter.
+            T1=ReminderFraction(CtrlVar.time+dtOut,CtrlVar.DefineOutputsDt) < (dtOut/(10*CtrlVar.DefineOutputsDt)) ;
+            T2=ReminderFraction(CtrlVar.time+dtNoOverStepping,CtrlVar.DefineOutputsDt) < (dtNoOverStepping/(10*CtrlVar.DefineOutputsDt)) ;
+
+            if T2  && ~T1
+                dtOut=dtNoOverStepping;
+                fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to accommodate user output requirements and set to %-g \n ',dtOut);
+                RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=1;
+            elseif ~T2
+                fprinft("I think this should not happen")
+            else
+                fprintf(" [dtNoOverStepping dtOut]=[%f %f]\n",dtNoOverStepping,dtOut);
+            end
+        elseif dtNoOverStepping>dtOut 
+            % it is possible that dtNoOverStepping is larger than dtOut. This happens if the remaining time to next output interval is
+            % small, in which case dtNoOverStepping is increased for the ucoming time step to reach that output time.
+            dtOut=dtNoOverStepping;
         end
     end
     

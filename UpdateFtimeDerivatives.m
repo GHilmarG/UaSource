@@ -12,14 +12,21 @@ else
     F.dhdt=(F.h-F0.h)/CtrlVar.dt;
     F.dsdt=(F.s-F0.s)/CtrlVar.dt;
     F.dbdt=(F.b-F0.b)/CtrlVar.dt;
-    
-    F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ; 
+
+    F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ;
     F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
-    
-    F.duddt=(F.ud-F0.ud)/CtrlVar.dt ; 
+
+    F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
     F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 end
 
+fprintf("[max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
+if max(abs(F.dubdt)) >1e8
+
+    fprintf("Check: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+
+
+end
 
 end
