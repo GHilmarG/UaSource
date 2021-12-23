@@ -286,7 +286,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
             end
         elseif dtNoOverStepping>dtOut 
             % it is possible that dtNoOverStepping is larger than dtOut. This happens if the remaining time to next output interval is
-            % small, in which case dtNoOverStepping is increased for the ucoming time step to reach that output time.
+            % small, in which case dtNoOverStepping is increased for the upcoming time step to reach that output time.
             dtOut=dtNoOverStepping;
         end
     end

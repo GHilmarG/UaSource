@@ -25,8 +25,34 @@ LimitTime=Dt*ceil(time/Dt);  % time that should not be overstepped.
                              % LimitTime is always >= time
                              
 % If LimitTime is numerically effectivly equal to time, then advance LimitTime by Dt
+% as otherwise I'm just repeating the same output interval.
+%
+% In other parts of the code I use 
+% 
+%         ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/(10*CtrlVar.DefineOutputsDt))) 
+%
+% to determine if I'm close enough to an output interval
+% So if the remaining time interval from time to LimitTime is smaller than this, them I'm 
+% at the same output interval.
+%
+%
+% (dtOut/(10*CtrlVar.DefineOutputsDt)) ;
+%
+% If LimitTime is only fractionally larger than time, I may already have created an output file for this interval
+% Currenlty, I'm not keeping track of the output intervals (maybe put this into RunInfo in the future?) So I'm having to 
+% make a conservative guess.  If the difference is a small fraction of dtOut, then I will have created an output file
+% already.  
+% 
+if  (LimitTime-time)<dtOut/1000
+    LimitTime=LimitTime+Dt;
+end
+
+
+% Is it also possible that in absolut terms, dt is already on input very small
+% so then also jump to next output interval
+
 if abs(LimitTime-time) < 1000*eps
-    LimitTime=time+Dt;
+    LimitTime=LimitTime+Dt;
 end
 
 if (time+dtOut)> LimitTime  % if needed, redefine time step so that the LimitTime is not overstepped
@@ -38,7 +64,7 @@ end
 
 RemainingDt=LimitTime-(time+dtOut);
 
-if RemainingDt/dtOut < 1e-2
+if RemainingDt>0 && RemainingDt/dtOut < 1e-2
     dtOut=dtOut+RemainingDt;
 end
 
