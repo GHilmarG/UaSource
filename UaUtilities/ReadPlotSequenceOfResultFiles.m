@@ -26,13 +26,16 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 % Read only those .mat files that have FileNameSubstring as a part of their name, collect
 % some data and plot VAF and grounded area as function of time.
 %
-%   DataCollect=ReadPlotSequenceOfResultFiles("FileNameSubstring","-Ice1r-","PlotType","-collect-");
+%   DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring="-Ice1r-",PlotType="-collect-");
 %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ;
 %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,'-or');
 %   xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
 %
 %
 % Examples:
+%
+%
+%   ReadPlotSequenceOfResultFiles(FileNameSubstring="ResultsFile",PlotTimestep=10)
 %
 % Read only those .mat files that have FileNameSubstring as a part of their name, set the
 % axis limits, and plot a file every 0.1 time units.
@@ -65,6 +68,7 @@ allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-
 IP = inputParser;
 
 addParameter(IP,"FileNameSubstring","",@isstring);
+addParameter(IP,"VideoFileName","VideoFile",@isstring);
 addParameter(IP,"AxisLimits",NaN,@isnumeric);
 addParameter(IP,"N",7,@isnumeric);
 addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,allowedPlotTypes)));
@@ -78,6 +82,7 @@ addParameter(IP,"DataToBeCollected","",@isstring);
 parse(IP,varargin{:});
 
 FileNameSubstring=IP.Results.FileNameSubstring ;
+VideoFileName=IP.Results.VideoFileName+FileNameSubstring ;
 PlotType=IP.Results.PlotType ;
 N=IP.Results.N ;
 AxisLimits=IP.Results.AxisLimits;
@@ -118,8 +123,7 @@ CurDir=pwd;
 
 if CreateVideo
     
-    VideoFileName = "VideoResultsFile-"+FileNameSubstring+PlotType;
-    VideoFileName = "VideoResultsFile-"+PlotType;
+ 
     VideoFileName = replace(VideoFileName,".mat","");
     VideoFileName = replace(VideoFileName," ","");
     vidObj = VideoWriter(VideoFileName);

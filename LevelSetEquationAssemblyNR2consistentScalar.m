@@ -123,17 +123,31 @@ for Iint=1:MUA.nip  %Integration points
     NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy+eps); % at each integration point for all elements
     n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
     n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
-    
+
     % if gradient is very small, set normal to zero, and with it the cx and cy components
     I0=NG0< eps^2 ;
     %I1=NG1< eps^2 ;
     %n1x(I1)=0 ; n1y(I1)=0;
     n0x(I0)=0 ; n0y(I0)=0;
-    
- 
+
+
+%     cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
+%     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
+
+    %% TestIng Test
+
+    c1int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,c1int,n1x,n1y,u1int,v1int) ; 
+    c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,c0int,n0x,n0y,u0int,v0int) ; 
+
+    % c1int=(u1int.*n1x+v1int.*n1y);
+    % c0int=(u0int.*n0x+v0int.*n0y);
+
     cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
-    cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
-    
+    cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;  % only used when calculating tauSUPG
+
+    %%
+
+
     tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
     % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
 

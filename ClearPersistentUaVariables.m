@@ -17,7 +17,7 @@ clear NewConjugatedGrad
 % User input files
 clear DefineSlipperyDistribution
 clear DefineAGlenDistribution
-clear DefineGeometry
+clear DefineGeometry     % I'm not clearing DefineGeometryAndDensities, maybe good so that interpolants do not need to be reloaded
 clear DefineInputsForInverseRun
 clear DefineDensities
 clear DefineDesiredEleSize
@@ -25,6 +25,7 @@ clear DefineBoundaryConditions
 clear DefineMassBalance
 clear DefineOutputs
 clear GetDesiredEleSize
+clear DefineCalving
 % Ua utilities
 clear PlotMeshScalarVariable
 clear PlotFEmesh

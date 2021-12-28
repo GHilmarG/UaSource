@@ -1487,8 +1487,8 @@ CtrlVar.LevelSetInfoLevel=1;
 CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
 CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
 
-CtrlVar.CalvingLaw="-User Defined-"; 
-CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
+% CtrlVar.CalvingLaw="-User Defined-"; 
+% CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted

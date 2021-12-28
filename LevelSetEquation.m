@@ -18,7 +18,25 @@ if isempty(nCallCounter)
     nCallCounter=0;
 end
 
-if CtrlVar.LevelSetEvolution=="-prescribed-"  % LSF is prescribed by the user, do not update or solve anything
+
+if CtrlVar.LevelSetMethod && ~CtrlVar.DevelopmentVersion
+    
+    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
+    
+end
+
+
+if ~CtrlVar.LevelSetMethod
+ 
+    LSF=[];
+    l=[];
+    LSFqx=[];
+    LSFqy=[]; 
+    return
+end
+
+if any(isnan(F0.c))
+    fprintf("Level set is not evolved because calving rate (c) contains nan. \n")
     LSF=F1.LSF;
     Mask=[];
     l=[];
@@ -27,35 +45,11 @@ if CtrlVar.LevelSetEvolution=="-prescribed-"  % LSF is prescribed by the user, d
     return
 end
 
-if ~CtrlVar.DevelopmentVersion
-    
-    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
-    
-end
-
-
-
-if ~CtrlVar.LevelSetMethod
-    LSF=F0.LSF;
-    l=[];
-    Mask=[] ;
-    return
-end
 
 if nargin<8
     l=[];
 end
 
-
-if CtrlVar.CalvingLaw=="-No Ice Shelves-"
-    
-    % I think this could be simplified, arguably no need to calculate signed distance
-    % in this case. Presumably could just define the LSF as distance from flotation, ie
-    % h-hf.
-    [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
-    Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
-    return
-end
 
 if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
     % So the Level Set Phase was not prescribed in the call,
