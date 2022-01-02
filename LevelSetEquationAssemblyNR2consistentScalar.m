@@ -39,10 +39,10 @@ v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 v1nod=reshape(v1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 
-
-c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
+if  ~contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
+    c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
 
 if isC
     qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -82,8 +82,7 @@ for Iint=1:MUA.nip  %Integration points
     
     u0int=u0nod*fun; v0int=v0nod*fun;
     u1int=u1nod*fun; v1int=v1nod*fun;
-    c0int=c0nod*fun;
-    c1int=c1nod*fun;
+  
     
     
     
@@ -131,20 +130,34 @@ for Iint=1:MUA.nip  %Integration points
     n0x(I0)=0 ; n0y(I0)=0;
 
 
-%     cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
-%     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
+    %     cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
+    %     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
 
     %% TestIng Test
+    if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
+        c1int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,n1x,n1y,u1int,v1int) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,n0x,n0y,u0int,v0int) ;
+    else
+        c0int=c0nod*fun;
+        c1int=c1nod*fun;
+    end
 
-    c1int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,c1int,n1x,n1y,u1int,v1int) ; 
-    c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,c0int,n0x,n0y,u0int,v0int) ; 
 
-    % c1int=(u1int.*n1x+v1int.*n1y);
-    % c0int=(u0int.*n0x+v0int.*n0y);
+    % c1int NG1 = -(cx1int.*df1dx+cy1int.*df1dy);
+    % c0int NG0 = -(cx0int.*df0dx+cy0int.*df0dy);
+    %
+    % also:
+    % 
+    % c1int  = (cx1int.*n1x+cy1int.*n1y);
+    % c0int  = (cx0int.*n0x+cy0int.*n0y);
+    %
+    %
+    cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
+    cx0int=c0int.*n0x ; cy0int=c0int.*n0y;  % only used when calculating tauSUPG
 
-    cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
-    cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;  % only used when calculating tauSUPG
-
+    % N=20 ; [u0int(1:N).*n0x(1:N)+v0int(1:N).*n0y(1:N) c0int(1:N)]
+    % norm(u0int.*n0x+v0int.*n0y-c0int)  This should be zero within machine precision
+    % N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*df1dy(1:N) c1int(1:N).*NG1(1:N) (cx1int(1:N).*n1x(1:N)+cy1int(1:N).*n1y(1:N)).*NG1(1:N)]
     %%
 
 
@@ -236,8 +249,15 @@ for Iint=1:MUA.nip  %Integration points
                     -c1int.*(n1xDeriv1Jnod + n1yDeriv2Jnod)...
                     );
                 
+                LL=0; 
                 % Pertubation term (diffusion)
+                % Why is this not equal? 
+                %N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*Deriv(1:N,2,Jnod)  (cx1int(1:N).*Deriv(1:N,1,Jnod)+cy1int(1:N).*Deriv(1:N,2,Jnod)).*NG1(1:N)]
+                %
+                % This is:
+                % N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*df1dy(1:N) c1int(1:N).*NG1(1:N) (cx1int(1:N).*df1dx(1:N)+cy1int(1:N).*df1dy(1:N)).*NG1(1:N)]
                 
+
                 Plhs=dt*theta*...
                     +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
                     -NR*dkappa.*(n1xDeriv1Jnod+n1yDeriv2Jnod).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)));

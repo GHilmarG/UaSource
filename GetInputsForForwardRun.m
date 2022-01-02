@@ -71,12 +71,13 @@ if CtrlVar.OnlyMeshDomainAndThenStop
     % plot mesh, even if PlotMesh not true
     if  CtrlVar.doplots==1
         CtrlVar.PlotMesh=1;
-        figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+        FindOrCreateFigure("Mesh")
+        PlotMuaMesh(CtrlVar,MUA); 
     end
     
     BCs=[]; F=[] ; l=[] ; 
     
-    fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
+    fprintf(CtrlVar.fidlog,' Exiting because CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return
 end
 

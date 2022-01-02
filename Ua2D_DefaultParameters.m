@@ -1297,7 +1297,7 @@ CtrlVar.MinSurfAccRequiredToReactivateNodes=0;  % If surface accumulation is lar
                                                 % This allows for the formation of new isolated glaciated areas.
                                                 % Although the default value is zero, it is presumably better to set this to a small positive value.
 
-
+CtrlVar.UpdateMUAafterDeactivating=1; 
 %% Uniform global mesh refinement
 % Mesh can be refined at a start of a run or the start of a restart run by subdividing all triangles into four
 % can be useful, for example, for an error estimation
@@ -1455,7 +1455,7 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
 
- CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 

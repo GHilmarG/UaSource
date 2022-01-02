@@ -65,8 +65,8 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
          LSF1qx=[] ; LSF1qy=[] ; 
     end
 
-    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
-    RunInfo.LevelSet.SolverConverged=false;
+    iteration=0 ; rWork=inf ; rForce=inf; r=inf ; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
+    RunInfo.LevelSet.SolverConverged=false; BackTrackInfo.iarm=0; ; 
     
     while true
         

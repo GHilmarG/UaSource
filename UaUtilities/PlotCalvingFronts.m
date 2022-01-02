@@ -29,19 +29,20 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     end
     
     if isempty(LSF)
-        xc=[] ; yc=[] ; 
+        xc=[] ; yc=[] ;
         return
     end
-    
-    
-    CtrlVar.LineUpGLs=true ; 
-   
+
+
+    CtrlVar.LineUpGLs=true ;
+
     GF.node=LSF ;
-    
-    CtrlVar.GLthreshold=0; 
+
+    CtrlVar.GLthreshold=0;
     [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
-    
-    
-    
-    
+
+ 
+
+
+
 end

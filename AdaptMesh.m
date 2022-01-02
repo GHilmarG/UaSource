@@ -301,10 +301,10 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     end
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
-    if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
-        ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
-    end
-    
+%     if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+%         ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
+%     end
+%     
     
     if CtrlVar.ManuallyDeactivateElements
         
