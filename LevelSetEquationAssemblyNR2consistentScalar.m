@@ -125,44 +125,58 @@ for Iint=1:MUA.nip  %Integration points
 
     % if gradient is very small, set normal to zero, and with it the cx and cy components
     I0=NG0< eps^2 ;
-    %I1=NG1< eps^2 ;
-    %n1x(I1)=0 ; n1y(I1)=0;
+ 
     n0x(I0)=0 ; n0y(I0)=0;
 
 
-    %     cx1int=-c1int.*n1x ; cy1int=-c1int.*n1y;
-    %     cx0int=-c0int.*n0x ; cy0int=-c0int.*n0y;
 
-    %% TestIng Test
+  
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        c1int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,n1x,n1y,u1int,v1int) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,n0x,n0y,u0int,v0int) ;
+        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int) ;
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;
     end
 
-
-    % c1int NG1 = -(cx1int.*df1dx+cy1int.*df1dy);
-    % c0int NG0 = -(cx0int.*df0dx+cy0int.*df0dy);
-    %
-    % also:
-    % 
-    % c1int  = (cx1int.*n1x+cy1int.*n1y);
-    % c0int  = (cx0int.*n0x+cy0int.*n0y);
-    %
-    %
     cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
     cx0int=c0int.*n0x ; cy0int=c0int.*n0y;  % only used when calculating tauSUPG
 
     % N=20 ; [u0int(1:N).*n0x(1:N)+v0int(1:N).*n0y(1:N) c0int(1:N)]
-    % norm(u0int.*n0x+v0int.*n0y-c0int)  This should be zero within machine precision
+    %
+    % If calving rate is set equal to ice-velocity normal to calving front then these should be zero:
+    %
+    % norm(u0int.*n0x+v0int.*n0y-c0int)  
+    % norm(u0int.*n0x+v0int.*n0y-(cx0int.*n0x+cy0int.*n0y) )
+    %
     % N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*df1dy(1:N) c1int(1:N).*NG1(1:N) (cx1int(1:N).*n1x(1:N)+cy1int(1:N).*n1y(1:N)).*NG1(1:N)]
     %%
 
 
-    tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
-    % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int,v0int,dt);
+     
+
+
+    % let 
+    %
+    %   c0int.*n0x+v0int.*n0y-c0int
+    %
+    % be the speed scale. This is zero in the limit when calving rate equals veocity normal to the front
+    % where the advective terms becomes zero.
+    %
+    % Using 
+    %
+    %   (u0int-cx0int,v0int-cy0int)
+    %
+    % does in this case not equal exactly zero.
+    %
+    % 
+
+    % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
+
+    % CtrlVar.Tracer.SUPG.tau='tau2' ;   %  inversly weighted average of spatial and temporal tau. This is dt/2 if speed -> 0
+    CtrlVar.Tracer.SUPG.tau='tau1' ;   %   typical textbook recomendation for spatially constant (and non-zero) speed for linear advection equation. This is dt/6 if speed -> 0
+    tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int.*n0x+v0int.*n0y-c0int,0,dt); 
+   
 
 
     if CtrlVar.LevelSetFABmu.Value==0 && isP && ~isT && ~isL
@@ -227,13 +241,9 @@ for Iint=1:MUA.nip  %Integration points
     
     for Inod=1:MUA.nod
         
-       % This feels like a more logical choice, but this does cause convergence problems
-       % SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
-
-
-        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-        %SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
-        
+       
+       SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+               
         if nOut>2
             for Jnod=1:nod
                 
@@ -242,20 +252,12 @@ for Iint=1:MUA.nip  %Integration points
 
                 n1xDeriv1Jnod=n1x.*Deriv(:,1,Jnod);
                 n1yDeriv2Jnod=n1y.*Deriv(:,2,Jnod);
-                
-                % (advection term)
+
                 LL=dt*theta*(...
                     u1int.*Deriv(:,1,Jnod) + v1int.*Deriv(:,2,Jnod)...
-                    -c1int.*(n1xDeriv1Jnod + n1yDeriv2Jnod)...
+                    +c1int.*(df1dx.*Deriv(:,1,Jnod)+df1dy.*Deriv(:,2,Jnod))./(sqrt(df1dx.*df1dx+df1dy.*df1dy+eps))...
+                    +(dcDdfdx1.*Deriv(:,1,Jnod)+dcDdfdy1.*Deriv(:,2,Jnod)).*NG1 ...
                     );
-                
-                LL=0; 
-                % Pertubation term (diffusion)
-                % Why is this not equal? 
-                %N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*Deriv(1:N,2,Jnod)  (cx1int(1:N).*Deriv(1:N,1,Jnod)+cy1int(1:N).*Deriv(1:N,2,Jnod)).*NG1(1:N)]
-                %
-                % This is:
-                % N=4 ; [u1int(1:N).*df1dx(1:N)+v1int(1:N).*df1dy(1:N) c1int(1:N).*NG1(1:N) (cx1int(1:N).*df1dx(1:N)+cy1int(1:N).*df1dy(1:N)).*NG1(1:N)]
                 
 
                 Plhs=dt*theta*...
@@ -280,15 +282,15 @@ for Iint=1:MUA.nip  %Integration points
         %% Galerkin
         % (time derivative)
         TR=f1int-f0int;
-        %Trhs=TR.*fun(Inod).*detJw ;
+        
         
         % (advection+source term)
         LR= dt*(...
             +     theta*(u1int.*df1dx +v1int.*df1dy)...
             + (1-theta)*(u0int.*df0dx +v0int.*df0dy)...
-            + theta*c1int.*NG1+(1-theta)*c0int.*NG0...
+            + theta*c1int.*NG1+(1-theta)*c0int.*NG0...      % NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy)
             );
-        %Lrhs=LR.*fun(Inod).*detJw ;
+ 
         
         % Pertubation term (diffusion)
         Prhs=...
@@ -300,19 +302,9 @@ for Iint=1:MUA.nip  %Integration points
             - dt*  theta   * (dqx1dx+ dqy1dy)...
             - dt*(1-theta) * (dqx0dx+ dqy0dy) ;
         
-%        ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
-        %%
-        
-        % qx= kappaint0.*df0dx ;
-        % qu= kappaint0.*df0dy) ;
+
         qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ;
         qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ;
-        
-        %PG(:,Inod)=PG(:,Inod)+Prhs.*detJw;
-        %LG(:,Inod)=LG(:,Inod)+Lrhs;
-        %TG(:,Inod)=TG(:,Inod)+Trhs;
-        %R(:,Inod)=R(:,Inod)+ResidualStrong;
- %       RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted;
         
         RTest(:,Inod)=RTest(:,Inod)+((isT*TR+isL*LR ).*(fun(Inod)+isPG*SUPG)+isP*(Prhs+isC*D2)).*detJw; 
         
