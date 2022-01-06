@@ -207,7 +207,7 @@ while iFile<=nFiles   % loop over files
             nPx=4; nPy=1;
         end
         
-        axis equal tight;        
+       
         if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
         
         switch PlotType
@@ -224,10 +224,11 @@ while iFile<=nFiles   % loop over files
                     
                     DataCollect.IceVolume=zeros(nFiles,1)+NaN;
                     
-                    DataCollect.LSFmax=zeros(nFiles,1)+NaN;
-                    DataCollect.LSFmin=zeros(nFiles,1)+NaN;
-                    DataCollect.LSFmean=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMax=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMin=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMean=zeros(nFiles,1)+NaN;
                     DataCollect.Lx=zeros(nFiles,1)+NaN;
+                    DataCollect.xc=zeros(nFiles,1)+NaN;
                     
                     if contains(DataToBeCollected,"-GL Flux-")
                         DataCollect.qGL=zeros(nFiles,1)+NaN;
@@ -256,9 +257,9 @@ while iFile<=nFiles   % loop over files
                 if isfield(F,"LSF") &&  ~isempty(F.LSF)
                     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
                     
-                    DataCollect.LSFmax(iCount)=max(xc,[],'omitnan') ;
-                    DataCollect.LSFmin(iCount)=min(xc,[],'omitnan') ;
-                    DataCollect.LSFmean(iCount)=mean(xc,'omitnan') ;
+                    DataCollect.xcMax(iCount)=max(xc,[],'omitnan') ;
+                    DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
+                    DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
                 end
                 
                 %%

@@ -1471,10 +1471,19 @@ CtrlVar.LevelSetFABmu.Value=1 ;
 CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
 
 CtrlVar.LevelSetTestString="" ; 
-CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
+CtrlVar.LevelSetSUPGtau="tau1" ; % {'tau1','tau2','taus','taut'}  
 
 CtrlVar.LevelSetInitialisationInterval=inf ; 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
+CtrlVar.LevelSetReinitializePDist=1;
+
+CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
+
+CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int","-node-"] 
+
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN; 
 
 % CtrlVar.LevelSetReinitialize=
 

@@ -56,49 +56,78 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     DistNod=DistNod(:) ;  % note, this is a element-valued distance function
     DistEle=Nodes2EleMean(MUA.connectivity,DistNod) ;
 
+    if isnan(CtrlVar.LevelSetMethodStripWidth)
 
-  
+        fprintf("The variable CtrlVar.LevelSetMethodStripWidth needs to be defined.\n")
+        error("LevelSetEquation:ParameterNotDefined","The variable CtrlVar.LevelSetMethodStripWidth needs to be defined.")
+
+    end
+
+
     ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
 
-    [MUA,K]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
+    [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
 
-    LSFcopy=F0.LSF ; % make a copy of LSF 
-    F0.LSF=F0.LSF(K) ;
-    F0.ub=F0.ub(K);
-    F0.vb=F0.vb(K);
+    % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
+    % so it would be possibly to figure out how to map the BCs from the old to new.
+    % Also, some of the issues are just related to the uvh boundary conditions that are not relevant when solving for \varphi
+    
+    % [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F0) ;
+    BCs=BoundaryConditions;  % resetting
 
-    F1.LSF=F1.LSF(K) ;
-    F1.ub=F1.ub(K);
-    F1.vb=F1.vb(K);
+    LSFcopy=F0.LSF ; % make a copy of LSF
+    F0.LSF=F0.LSF(kk) ;
+    F0.ub=F0.ub(kk);
+    F0.vb=F0.vb(kk);
+
+    F1.LSF=F1.LSF(kk) ;
+    F1.ub=F1.ub(kk);
+    F1.vb=F1.vb(kk);
+
+    % additonal variables for sliding law evaluation at int point
+    F1.h=F1.h(kk) ; 
+    F0.h=F0.h(kk) ; 
 
     if ~isempty(F0.c)
-        F0.c=F0.c(K);
+        F0.c=F0.c(kk);
     end
 
     if  ~isempty(F1.c)
-        F1.c=F1.c(K);
+        F1.c=F1.c(kk);
     end
 
-
+    % How to update BCs? I need to have a mapping from old-to-new nodal numbers
 
 end
 
 
 [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 
-FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
-Flsf=FindOrCreateFigure("LSF solve LSF ") ; clf(Flsf) ;
-PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
-hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ; 
-title("$\varphi$"+sprintf(" at t=%2.1f",F1.time),Interpreter="latex")
+% FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
+% 
+% Flsf=FindOrCreateFigure("LSF solve LSF ") ; clf(Flsf) ;
+% PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
+% hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ; 
+% title("$\varphi$"+sprintf(" at t=%2.1f",F1.time),Interpreter="latex")
+% 
+% FBCs=FindOrCreateFigure("BCs LSF") ; clf(FBCs) ;
+% PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
 
 if CtrlVar.LevelSetMethodSolveOnAStrip
+%     % 
+%     io=LSFcopy < 0 ;
+%     LSFcopy(io)=-DistNod(io)  ;   % were not evolved, just use the signed distance that has already been calculated
+%     LSFcopy(kk)=LSF;               % and then update the LSF field where it was evolved
     
-    % 
-    io=LSFcopy < 0 ;
-    LSFcopy(io)=-DistNod(io)  ;   % were not evolved, just use the signed distance that has already been calculated
-    LSFcopy(K)=LSF;               % and then update the LSF field where it was evolved
+     % new
+    io=isnan(ll);                                 % where I have only the old (before deactivation) nodes, 
+    LSFcopy(io)=DistNod(io).*sign(LSFcopy(io)) ;  % over old nodes at save distance from zero-level, fill in using already calculated signed distance 
+                                                  % as these values will never impact the calculation of the zero level
+    LSFcopy(~io)=LSF;                             % over the strip around zero level, use the calculated values based on solving the LSF equation
+
     LSF=LSFcopy;   
+
+    
 
 
 end

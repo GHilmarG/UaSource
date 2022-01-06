@@ -142,10 +142,11 @@ Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ;
 [UserVar,Fnew]=GetAGlenDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 [UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew);
 
+
 BCsNew=BoundaryConditions;
 [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
 
-
+[UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ;
 
 
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
@@ -194,9 +195,9 @@ if ~isfield(OutsideValue,'LSF')
 end
 
 
-switch CtrlVar.FlowApproximation
+switch lower(CtrlVar.FlowApproximation)
     
-    case "SSTREAM"
+    case "sstream"
         
 % if ub vb has been calculated as a part of the remeshing, I'm loosing that information
 % here. The problem is that ub vb will not, in general, have been calculated on either
@@ -211,7 +212,7 @@ switch CtrlVar.FlowApproximation
         Fnew.duddt=zeros(MUAnew.Nnodes,1);
         Fnew.dvddt=zeros(MUAnew.Nnodes,1);
         
-    case "SSHEET"
+    case "ssheet"
         
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.duddt,Fnew.dvddt,Fnew.LSF]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
@@ -221,7 +222,19 @@ switch CtrlVar.FlowApproximation
         Fnew.dubdt=zeros(MUAnew.Nnodes,1);
         Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
         
+   case "uvhprescribed"
+
+        % This will update velocities and thickness
+        [UserVar,RunInfo,Fnew]=uvhPrescibed(UserVar,RunInfo,CtrlVar,MUAnew,Fnew,Fnew,lnew,BCsNew);
         
+        Fnew.dubdt=zeros(MUAnew.Nnodes,1); Fnew.dvbdt=zeros(MUAnew.Nnodes,1);
+        Fnew.duddt=zeros(MUAnew.Nnodes,1); Fnew.dvddt=zeros(MUAnew.Nnodes,1);
+        
+        
+
+    otherwise
+
+        error("MapFbetweenMeshes:CaseNotFound","case not found")
 end
 
 % No need to update the calving as it is only needed in a transient run

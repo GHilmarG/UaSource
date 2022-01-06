@@ -63,14 +63,15 @@ if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || Ctr
     nCallCounter=nCallCounter+1;
 end
 %% Initialisation phase
-CtrlVar.LineUpGLs=false ; Threshold=0 ; 
-[xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
-[SignedDist,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xc,yc);
-Slope=abs(F1.LSF./SignedDist);
-DistMin=50e3 ; MinSlope=min(Slope(abs(SignedDist)>DistMin));
-fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
 
-if  contains(CtrlVar.LevelSetPhase,"Initialisation") || MinSlope < 0.1
+%CtrlVar.LineUpGLs=false ; Threshold=0 ; 
+%[xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+%[SignedDist,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xc,yc);
+% Slope=abs(F1.LSF./SignedDist);
+% DistMin=50e3 ; MinSlope=min(Slope(abs(SignedDist)>DistMin));
+% fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
+
+if  contains(CtrlVar.LevelSetPhase,"Initialisation") 
     % CtrlVar.LevelSetReinitializePDist=false ; 
     [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
     F0.LSF=LSF ; F1.LSF=LSF ;

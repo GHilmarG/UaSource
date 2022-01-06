@@ -66,7 +66,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     end
 
     iteration=0 ; rWork=inf ; rForce=inf; r=inf ; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
-    RunInfo.LevelSet.SolverConverged=false; BackTrackInfo.iarm=0; ; 
+    RunInfo.LevelSet.SolverConverged=false; BackTrackInfo.iarm=0; 
     
     while true
         
@@ -137,7 +137,10 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         
         iteration=iteration+1 ;
         
-        [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,LSF1qx,LSF1qy);
+        % [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,LSF1qx,LSF1qy);
+        [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0,F1);
+
+
         if ~isempty(L)
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation

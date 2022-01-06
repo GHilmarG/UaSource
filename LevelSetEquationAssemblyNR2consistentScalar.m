@@ -1,4 +1,11 @@
-function [UserVar,f0,K,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+function [UserVar,Rh,K,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,F0,F1) 
+
+
+
+f0=F0.LSF ; c0=F0.c ; u0=F0.ub ; v0=F0.vb ; f1=F1.LSF ; c1=F1.c ; u1=F1.ub ; v1=F1.vb ; qx0=F0.LSFqx ; qy0=F0.LSFqy ; qx1=F1.LSFqx ; qy1=F1.LSFqy;
+
+
+% [UserVar,f0,K,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
 
 %% Level Set Equation with a source term
 %
@@ -10,7 +17,7 @@ function [UserVar,f0,K,Qx,Qy]=LevelSetEquationAssemblyNR2consistentScalar(UserVa
 %
 
 
-narginchk(15,53)
+narginchk(5,5)
 nargoutchk(2,4)
 
 nOut=nargout;
@@ -43,6 +50,11 @@ if  ~contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
+
+% additonal variables for sliding law evaluation at int point
+
+h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
+h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 if isC
     qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -83,7 +95,9 @@ for Iint=1:MUA.nip  %Integration points
     u0int=u0nod*fun; v0int=v0nod*fun;
     u1int=u1nod*fun; v1int=v1nod*fun;
   
-    
+    % additonal variables for sliding law evaluation at int point
+    h1int=h1nod*fun;
+    h0int=h0nod*fun;
     
     
     % derivatives at one integration point for all elements
@@ -132,11 +146,13 @@ for Iint=1:MUA.nip  %Integration points
 
   
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int) ;
+        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int) ;
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;
+        dcDdfdx1=0;
+        dcDdfdy1=0;
     end
 
     cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
@@ -331,7 +347,7 @@ end
 
 % rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
 % norm(rh-Rh)/norm(rh);
-f0=Rh; 
+% f0=Rh; 
 
 
 if nargout>2
