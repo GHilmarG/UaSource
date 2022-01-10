@@ -227,8 +227,8 @@ while iFile<=nFiles   % loop over files
                     DataCollect.xcMax=zeros(nFiles,1)+NaN;
                     DataCollect.xcMin=zeros(nFiles,1)+NaN;
                     DataCollect.xcMean=zeros(nFiles,1)+NaN;
-                    DataCollect.Lx=zeros(nFiles,1)+NaN;
-                    DataCollect.xc=zeros(nFiles,1)+NaN;
+                    
+                    
                     
                     if contains(DataToBeCollected,"-GL Flux-")
                         DataCollect.qGL=zeros(nFiles,1)+NaN;
@@ -472,12 +472,9 @@ while iFile<=nFiles   % loop over files
                 
                 LSFmean=NaN;
                 if ~isempty(LSFProfile)
+                
                     
-                    if isempty(LSFScale)
-                        LSFScale=(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)) ;
-                    end
-                    
-                    plot(xProfile/1000,LSFProfile*LSFScale,'m.-','DisplayName','$\varphi$ (scaled)')
+                    plot(xProfile/1000,LSFProfile/1000,'m.-','DisplayName','$\varphi$ (km)')
                     
                     
                     if ~isempty(F.LSF)

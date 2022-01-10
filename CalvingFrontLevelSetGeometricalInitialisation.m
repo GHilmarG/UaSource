@@ -23,7 +23,12 @@ function [xc,yc,LSF,xcEdges,ycEdges,ShapeDifference]=CalvingFrontLevelSetGeometr
 %   CalvingFrontPointDistance=1000 ; % the distance between points along the re-sampled calving front
 %
 %
-
+% Examples:
+%
+%
+%   [xc,yc,LSF,xcEdges,ycEdges,ShapeDifference]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,F0.LSF,plot=true) ;
+%
+%
 
 arguments
     CtrlVar struct
@@ -63,7 +68,7 @@ if options.test
 
 end
 
-Nele=MUA.Nele;
+
 con=MUA.connectivity;
 coo=MUA.coordinates;
 
@@ -109,7 +114,8 @@ if options.ResampleCalvingFront
 
     xi(end)=[]; yi(end)=[];
 
-    P1=[xi(:) yi(:)] ;
+    P1=[P1 ; xi(:) yi(:)] ;  % add the new ones, keep the original ones as well
+    %P1=[xi(:) yi(:)] ;
 
 
 end
@@ -174,7 +180,8 @@ switch options.method
     case "InputPoints"
 
         % Here I simply take the input calving profile.
-        %
+        % But this may above have been resampled already, in which case this
+        % is potentially a finer subdivision
 
         xcEdges=P1(:,1); ycEdges=P1(:,2);
 
@@ -194,7 +201,7 @@ CtrlVar.PlotGLs=0;  % to suppress the plot
 
 if options.plot
 
-    FindOrCreateFigure("After: LSF and calving front")
+    figa=FindOrCreateFigure("After: LSF and calving front") ; clf(figa)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSF/CtrlVar.PlotXYscale);
     hold on
@@ -208,7 +215,7 @@ if options.plot
     plot(xcEdges/CtrlVar.PlotXYscale,ycEdges/CtrlVar.PlotXYscale,'r.',LineWidth=1,MarkerSize=12)
     axis equal
 
-    FindOrCreateFigure("Before: LSF and calving front")
+    figb=FindOrCreateFigure("Before: LSF and calving front") ;clf(figb);
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSFonInput/CtrlVar.PlotXYscale);
     hold on
@@ -219,6 +226,19 @@ if options.plot
     hold on
     %axis(tt)
     plot(xcOnInput/CtrlVar.PlotXYscale,yconInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
+
+    figc=FindOrCreateFigure("Change: LSF before - LSF after and new and old calving fronts") ; clf(figc)
+
+    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(LSF-LSFonInput)/CtrlVar.PlotXYscale);
+    hold on
+
+    PlotMuaMesh(CtrlVar,MUA,[],"w");
+    %tt=axis;
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)
+    hold on
+    %axis(tt)
+    plot(xcOnInput/CtrlVar.PlotXYscale,yconInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
+    title("Change: LSF before - LSF after and new (g) and old (k) calving fronts")
 
 
     axis equal

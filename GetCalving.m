@@ -52,10 +52,15 @@ if numel(F.LSF)==1
     F.LSF=F.LSF+zeros(MUA.Nnodes,1);
 end
 
-% 
-% 
-% if CtrlVar.LevelSetEvolution=="-prescribed-"
-%     F.c=[];
+
+
+if CtrlVar.LevelSetEvolution=="-prescribed-"
+    F.c=nan;
+end
+
+
+
+
 % else
 %     if ~isempty(F.c)  &&  numel(F.c)~=MUA.Nnodes
 %         errorStruct.identifier = 'GetCalving:CalvingFieldInvalid';

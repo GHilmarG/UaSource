@@ -51,7 +51,7 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
 
     % DistEle=pdist2([xc(:) yc(:)],[MUA.xEle MUA.yEle],'euclidean','Smallest',1) ;
     % DistEle=DistEle(:) ;  % note, this is a element-valued distance function
-
+    F0.x=MUA.coordinates(:,1); F0.y=MUA.coordinates(:,2);
     DistNod=pdist2([xc(:) yc(:)],[F0.x F0.y],'euclidean','Smallest',1) ;
     DistNod=DistNod(:) ;  % note, this is a element-valued distance function
     DistEle=Nodes2EleMean(MUA.connectivity,DistNod) ;
@@ -67,6 +67,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
 
     [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
+    LSFnodes=~isnan(ll) ; 
+
 
     % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
     % so it would be possibly to figure out how to map the BCs from the old to new.
@@ -97,7 +99,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     end
 
     % How to update BCs? I need to have a mapping from old-to-new nodal numbers
-
+else
+    LSFnodes=[] ; 
 end
 
 
@@ -108,7 +111,7 @@ end
 % Flsf=FindOrCreateFigure("LSF solve LSF ") ; clf(Flsf) ;
 % PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
 % hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ; 
-% title("$\varphi$"+sprintf(" at t=%2.1f",F1.time),Interpreter="latex")
+% title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
 % 
 % FBCs=FindOrCreateFigure("BCs LSF") ; clf(FBCs) ;
 % PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
@@ -128,11 +131,15 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     LSF=LSFcopy;   
 
     
-
+    
 
 end
 
-
+F1.LSF=LSF;
+F1.LSFMask=Mask;
+F1.LSFqx=LSFqx;
+F1.LSFqy=LSFqy;
+F1.LSFnodes=LSFnodes;
 
 
 

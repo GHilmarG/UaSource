@@ -16,7 +16,7 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 % If needed, one can transfer/map the old nodal values, fOld, onto the new subset of nodes using:
 %
-%  fNew=fOld(k) ;
+%     fNew=fOld(k) ;
 %
 % and
 %
@@ -36,10 +36,14 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 %   find(isnan(l)) 
 %
+% And to get a logical list of the nodes on the old mesh that were kept in the new:
+%
+%   ~isnan(l)             ;   % logical list of nodes in the old mesh used/kept in the new mesh.
 %
 
 if ~any(ElementsToBeDeactivated)
-    k=[];
+    k=1:MUA.Nnodes; 
+    l=1:MUA.Nnodes; 
     return
 end
 

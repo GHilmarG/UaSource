@@ -30,7 +30,7 @@ function [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
     CtrlVar.GLthreshold=Value; 
     CtrlVar.GLsubdivide=1 ; 
     CtrlVar.PlotGLs=false ;
-    
+    CtrlVar.LineUpGLs=false ;
     % does not do any plotting here
     [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
     

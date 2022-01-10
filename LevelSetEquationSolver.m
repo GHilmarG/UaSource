@@ -53,6 +53,34 @@ if nargin<8
 end
 
 
+
+
+
+
+CtrlVar.LevelSetTheta=0.5;
+[rP,rL,rTP,rTL,rPTL]=CalcLSFconstfunctionTLPterms(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l,F1.LSF);
+
+% if rP/rL> 1e-3
+%     fprintf("LevelSetEquationSolver:Automated re-initialisation. \n")
+%     
+%     CtrlVar.LevelSetFixPointSolverApproach="-PTS-FFP-";
+%     CtrlVar.LevelSetReinitializePDist=1;
+%     CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
+%     CtrlVar.LevelSetTheta=1;
+%     [UserVar,RunInfo,LSFini,Mask,l,~,~,BCsLevel]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+%     F0.LSF=LSFini;
+%     F1.LSF=LSFini;
+% 
+% 
+%     CalcLSFconstfunctionTLPterms(UserVar,RunInfo,CtrlVar,MUA,BCsLevel,F0,F1,l,LSFini);
+% 
+%     fprintf("LevelSetEquationSolver:After re-initialisation: \n")
+%     % and then recalculate as it would be done
+%     CtrlVar.LevelSetTheta=0.5 ;
+%     CalcLSFconstfunctionTLPterms(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l,F1.LSF);
+% end
+
+
 if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
     % So the Level Set Phase was not prescribed in the call,
     if  mod(nCallCounter,CtrlVar.LevelSetInitialisationInterval)==0
@@ -71,10 +99,33 @@ end
 % DistMin=50e3 ; MinSlope=min(Slope(abs(SignedDist)>DistMin));
 % fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
 
-if  contains(CtrlVar.LevelSetPhase,"Initialisation") 
-    % CtrlVar.LevelSetReinitializePDist=false ; 
-    [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-    F0.LSF=LSF ; F1.LSF=LSF ;
+if  contains(CtrlVar.LevelSetPhase,"Initialisation")
+
+
+    %% TestIng
+    switch lower(CtrlVar.LevelSetInitialisationMethod)
+
+        case "geometric"
+
+            Value=0 ;  [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Value) ;
+
+            [~,~,F0.LSF]=...
+                CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,F0.LSF,...
+                method="InputPoints",...
+                ResampleCalvingFront=true,...
+                CalvingFrontPointDistance=1e3,...
+                plot=false) ;
+            %%
+
+        otherwise
+
+            % CtrlVar.LevelSetReinitializePDist=false ;
+            [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+            F0.LSF=LSF ; F1.LSF=LSF ;
+    end
+
+
+
 end
 
 %% Propagation phase, with or without FAB

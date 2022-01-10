@@ -8,19 +8,38 @@ if CtrlVar.dt==0
     F.dhdt=[];
     F.dubdt=[]; F.dvbdt=[];
     F.dsdt=[] ; F.dbdt=[];
-else
-    F.dhdt=(F.h-F0.h)/CtrlVar.dt;
-    F.dsdt=(F.s-F0.s)/CtrlVar.dt;
-    F.dbdt=(F.b-F0.b)/CtrlVar.dt;
+    return
 
-    F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ;
-    F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
-
-    F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
-    F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 end
 
+
+F.dhdt=(F.h-F0.h)/CtrlVar.dt;
+F.dsdt=(F.s-F0.s)/CtrlVar.dt;
+F.dbdt=(F.b-F0.b)/CtrlVar.dt;
+
+F.dubdt=(F.ub-F0.ub)/CtrlVar.dt ;
+F.dvbdt=(F.vb-F0.vb)/CtrlVar.dt;
+
+F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
+F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
+
+
 fprintf("[max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+
+if  CtrlVar.LevelSetMethod
+    % I= (F.h <= 2*CtrlVar.LevelSetMinIceThickness) | (F0.h <= 2*CtrlVar.LevelSetMinIceThickness) ;
+    if ~isempty(F.LSF)
+        I=F.LSF< 0;
+    end
+else
+    I= (F.h <= 2*CtrlVar.ThickMin) | (F0.h <= 2*CtrlVar.ThickMin) ;
+end
+
+F.dubdt(I)=0; F.dvbdt(I)=0;
+F.duddt(I)=0; F.dvddt(I)=0;
+
+fprintf("[max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+
 
 if max(abs(F.dubdt)) >1e8
 

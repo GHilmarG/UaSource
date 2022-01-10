@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy,BCs]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 
 
 LSFqx=[] ; LSFqy=[] ; Mask=[] ; 

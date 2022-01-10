@@ -83,9 +83,21 @@ end
 
 
 
-[UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
+
 
 [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
+
+[UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
+
+if CtrlVar.LevelSetMethod
+    % Now this is a special initial case right at the beginning of the run
+    % where LSF has been defined ahead of any uv or uvh solutions.
+    % Here set all ice thicknesses strickly donwstream of the zero level of the LSF to min.
+    fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f \n.",CtrlVar.LevelSetMinIceThickness)
+    Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    F.h(Mask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);

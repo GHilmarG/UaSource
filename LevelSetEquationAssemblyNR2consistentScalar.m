@@ -207,33 +207,43 @@ for Iint=1:MUA.nip  %Integration points
 
     % The Scale (or \mu in the UaCompendium) has the units m^2/t
     %
-    if contains(lower(CtrlVar.LevelSetFABmu.Scale),"constant")
+    % Various options :
+    switch lower(CtrlVar.LevelSetFABmu.Scale)
 
-        Scale =1 ;
-        mu=Scale*CtrlVar.LevelSetFABmu.Value;
+        case "constant"
 
-    elseif contains(lower(CtrlVar.LevelSetFABmu.Scale),"ucl")
-        % Various options
+            %  When solvingt the fix-point problem, I just want the diffusion term to be driven to zero This will happen once the min of
+            %  the potential is reached, and the minimum is independent of mu. So, arguably, one should just set mu to some fixed
+            %  constant value to ensure that ||\grad \varphi||= 0 at every point within the domain.
 
-        % 1)
-        Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
-        % This makes the scale independent of the solution and there is no impact on the NR solution
+            Scale =1 ;
+            mu=Scale*CtrlVar.LevelSetFABmu.Value;
+
+        case {"u-cl","-u-cl-"}
+
+            % 1)
+            Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+            % Here the solution will depend on f0. There is no contribution to the NR terms,  but if I solve again using backward Euler I
+            % will not get the same solution if I advance both F0 and F1. This is acceptable in a transient theta=0.5 solution, but less
+            % so if using a backward Euler when solving the fix point problem.
+            mu=Scale*CtrlVar.LevelSetFABmu.Value;
+        case {"ul","ucl","-ucl-","-ul-"}   % I should not include ucl here, but this is to make it compatiable with earlier inputs
 
 
-        % 2)
-        % Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
-        % Here the solution will depend on f0. There is no contribution to the NR terms,  but if I solve again using backward Euler I
-        % will not get the same solution if I advance both F0 and F1. This is acceptable in a transient theta=0.5 solution, but less
-        % so if using a backward Euler when solving the fix point problem.
+            % 2)
+            Scale =  sqrt( (u0int).^2+(v0int).^2) .*sqrt(2*MUA.EleAreas) ;
+            % This makes the scale independent of the solution and there is no impact on the NR solution
+            % but in the particular case where v=c  the diffusion terms does not drop out. This might potentially cause a shift in the
+            % steady-state solution for (xc,yc)
 
-        % 3)
-        % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
-        % the solution which is currenlty not included in the NR terms
-        % Scale=1e5;
-        mu=Scale*CtrlVar.LevelSetFABmu.Value;
-    else
+            % 3)
+            % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
+            % the solution which is currenlty not included in the NR terms
+            % Scale=1e5;
+            mu=Scale*CtrlVar.LevelSetFABmu.Value;
+        otherwise
 
-        error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
+            error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
     end
 
 
