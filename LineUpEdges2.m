@@ -61,12 +61,12 @@ end
 
 if isempty(CtrlVar)
     CtrlVar.InfoLevel=0;
-    CtrlVar.LineUpTolerance=100*eps ;
+    CtrlVar.LineUpTolerance=1000*eps ;
     
 end
 
 if ~isfield(CtrlVar,'InfoLevel') ; CtrlVar.InfoLevel=0 ; end
-if ~isfield(CtrlVar,'LineUpTolerance') ; CtrlVar.LineUpTolerance=100*eps ; end
+if ~isfield(CtrlVar,'LineUpTolerance') ; CtrlVar.LineUpTolerance=1000*eps ; end
 
 % Tolerance controls how close endpoints of edges must be for them to be considered to be a part of the
 % same polygon.
@@ -259,7 +259,56 @@ for l=1:NGL
 end
 
 
-xx(N:end)=[] ;  yy(N:end)=[] ; 
+xx(N:end)=[] ;  yy(N:end)=[] ;
+
+
+
+%% Added in 2022 January, extra checks to get rid of short line segments and segments with just one point
+
+% Now get rid of very short line segments:
+ds = sqrt(sum(diff([xx yy],[],1).^2,2)) ;
+I=ds<CtrlVar.LineUpTolerance ;
+xx(I)=[] ; yy(I)=[] ;
+
+% And now get rid of any single -point "line" segments:
+I=isnan(xx);
+K=find(I);                % labels of nan
+if any(diff(K)==2)  % OK so there are some segments with just one point
+
+    d=xx+nan ;                % generous pre-allocation
+    nn=1;
+    for k=1:numel(K)-1      % loop over nan
+        iD=K(k+1)-K(k) ;    % if two adjacent nan are diff by 2, then the line between those has only one point
+
+        % d is an array marking the points in xx and yy for deletion
+        if iD==2
+            d(nn)=K(k)+1;    % get rid of the data point
+            d(nn+1)=K(k+1) ; % and one of the nan bracketing that data point
+            nn=nn+2;
+        end
+    end
+
+    % Is there a single data point at the end?  The above approach would not find that case
+    if isnan(xx(end-1)) && ~isnan(xx(end))
+        d(nn)=numel(xx)-1;
+        nn=nn+1;
+        d(nn)=numel(xx);
+    end
+    d(isnan(d))=[] ;
+
+    xx(d)=[] ; yy(d)=[];  % and now delete from xx and yy
+
+
+
+end
+
+
+if isnan(xx(end))
+    xx(end)=[];
+    yy(end)=[];
+end
+
+%%
 
 xPolygon=xx; yPolygon=yy;
 

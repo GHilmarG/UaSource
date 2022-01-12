@@ -91,7 +91,7 @@ end
 
 if options.ResampleCalvingFront
     % and 2) subsample the points along the calving profile
-
+%%
     ds=options.CalvingFrontPointDistance;
 
     nPoints=size(P1,1);
@@ -102,7 +102,7 @@ if options.ResampleCalvingFront
 
     xi=[]; yi=[];
     for k=1:numel(ii)-1
-
+        
         px=P1(ii(k)+1:ii(k+1)-1,1);
         py=P1(ii(k)+1:ii(k+1)-1,2);
 
@@ -116,7 +116,7 @@ if options.ResampleCalvingFront
     end
 
     xi(end)=[]; yi(end)=[];
-
+%%
     P1=[P1 ; xi(:) yi(:)] ;  % add the new ones, keep the original ones as well
     %P1=[xi(:) yi(:)] ;
 
@@ -209,6 +209,7 @@ if options.plot
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSF/CtrlVar.PlotXYscale);
     hold on
 
+    CtrlVar.PlotNodes=1;
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
     plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6)
@@ -222,7 +223,7 @@ if options.plot
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSFonInput/CtrlVar.PlotXYscale);
     hold on
-
+    CtrlVar.PlotNodes=0;
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
     plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)

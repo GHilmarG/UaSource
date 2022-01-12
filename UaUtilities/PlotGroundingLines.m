@@ -162,11 +162,16 @@ if nargin<6 || ( isempty(xGL) || isempty(yGL))
 
     if CtrlVar.LineUpGLs
         xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
-        [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
+        [xGL,yGL]=LineUpEdges2(CtrlVar,xa,xb,ya,yb);
+
+        %% get rid of duplicats and almost duplicates
+
     else
         xGL=[GLgeo(:,3)  ; GLgeo(:,4) ] ;
         yGL=[GLgeo(:,5)  ; GLgeo(:,6) ] ;
-        temp=unique([xGL yGL],'rows') ;
+       %  temp=unique([xGL yGL],'rows') ;
+        temp=uniquetol([xGL yGL],1000*eps,ByRows=true) ;
+
         xGL=temp(:,1) ;  yGL=temp(:,2) ;
     end
 
