@@ -49,6 +49,9 @@ ShapeDifference=[];
 
 UserVar=[] ; RunInfo=[];
 
+
+
+
 if nargin > 4 && ~isempty(Xc)
     P1=[Xc(:) Yc(:)] ;
 end
@@ -208,7 +211,7 @@ if options.plot
 
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
-    plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1,MarkerSize=12)
+    plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6)
     hold on
     %axis(tt)
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
