@@ -21,6 +21,15 @@ if exist('UaOutputs.m','file')==2  && ~(exist('DefineOutputs.m','file')==2)
 end
 
 
+% To reduce the size of output files, I delete some of the MUA fields
+% If requred this can always be recreated by the call:
+%
+%   MUA=UpdateMUA(CtrlVar,MUA);
+%
+%
+
+MUA.DetJ=[] ; MUA.Deriv=[] ; MUA.dM=[] ;  MUA.M=[] ;  MUA.TR=[] ; 
+
 N=nargout('DefineOutputs');
 
 switch N

@@ -35,11 +35,15 @@ else
     I= (F.h <= 2*CtrlVar.ThickMin) | (F0.h <= 2*CtrlVar.ThickMin) ;
 end
 
+
+
 F.dubdt(I)=0; F.dvbdt(I)=0;
 F.duddt(I)=0; F.dvddt(I)=0;
 
-fprintf("[max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+fprintf("Based on level: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
+I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
+fprintf("Adding outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
 if max(abs(F.dubdt)) >1e8
 

@@ -57,15 +57,15 @@ hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floa
 
 
 VAF.node=hAF.*rho./rhow ;               % thickness above flotation in water eq.
-VAF.ele=FEintegrate2D([],MUA,VAF.node); % VAF for each element (m^3)
+VAF.ele=FEintegrate2D(CtrlVar,MUA,VAF.node); % VAF for each element (m^3)
 VAF.Total=sum(VAF.ele);                 % total volume above flotation over the whole model domain
 
 
 if nargout>1
-    IceVolume.Ele=FEintegrate2D([],MUA,h);
+    IceVolume.Ele=FEintegrate2D(CtrlVar,MUA,h);
     IceVolume.Total=sum(IceVolume.Ele);
     
-    GroundedArea.Ele=FEintegrate2D([],MUA,GF.node);
+    GroundedArea.Ele=FEintegrate2D(CtrlVar,MUA,GF.node);
     GroundedArea.Total=sum(GroundedArea.Ele);
 end
 

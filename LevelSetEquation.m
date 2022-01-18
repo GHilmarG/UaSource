@@ -67,7 +67,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
 
     [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
-    LSFnodes=~isnan(ll) ; 
+    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA over which the level-set is evolved
+
 
 
     % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
@@ -85,6 +86,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     F1.LSF=F1.LSF(kk) ;
     F1.ub=F1.ub(kk);
     F1.vb=F1.vb(kk);
+
+    
 
     % additonal variables for sliding law evaluation at int point
     F1.h=F1.h(kk) ; 

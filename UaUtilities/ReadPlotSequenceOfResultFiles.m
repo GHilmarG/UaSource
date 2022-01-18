@@ -58,8 +58,8 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 %% Parse inputs
 
 
-defaultPlotType="-mesh-speed-calving-level set-";
-allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
+defaultPlotType="-mesh-speed-B-level set-";
+allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-B-level set-','-mesh-',...
     '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
     '-1dIceShelf-','-hPositive-','-Level Set-',...
     '-collect-'};
@@ -504,7 +504,7 @@ while iFile<=nFiles   % loop over files
                 
                 ylabel('$u$ (m/a)','interpreter','latex')
                 
-                title(sprintf('Profile along the medial line at t=%g',CtrlVar.time))
+                title(sprintf('Profile along the medial line at t=%4.1f',CtrlVar.time))
                 xlabel('$x$ (km)','interpreter','latex') ;
                 legend('interpreter','latex','Location','SouthEast')
                 xlim([min(x)/1000 max(x)/1000]);
@@ -516,7 +516,7 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 
-            case {"-mesh-speed-s-ab-","-mesh-speed-calving-level set-"}
+            case {"-mesh-speed-s-ab-","-mesh-speed-B-level set-"}
                 
                 f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
                 clf(f4)
@@ -537,14 +537,13 @@ while iFile<=nFiles   % loop over files
                 
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
-                end
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
+                
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 axis equal tight
                 
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
-                title(sprintf('Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('Ice thickness at t=%4.1f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 title(cbar,'(m)')
                 ax = gca;
                 outerpos = ax.OuterPosition;
@@ -563,7 +562,7 @@ while iFile<=nFiles   % loop over files
                 
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
                 hold off
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%-g',time))
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%4.1f',time))
                 %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
@@ -588,14 +587,14 @@ while iFile<=nFiles   % loop over files
                 
                 hold off
                 
-                if contains(PlotType,"-calving-")
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
-                    title(sprintf('Calving Rate Field at t=%g',time))
+                if contains(PlotType,"-B-")
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.B);
+                    title(sprintf('Bedrock at t=%4.1f',time))
                     hold on
                     [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
-                    title(sprintf('surface at t=%-g',time))
+                    title(sprintf('surface at t=%4.1f',time))
                 end
                 
                 hold on
@@ -622,12 +621,12 @@ while iFile<=nFiles   % loop over files
                 
                 if contains(PlotType,"-level set-")
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);
-                    title(sprintf('Level Set Field at t=%-g',time))
+                    title(sprintf('Level Set Field at t=%4.1f',time))
                     hold on
                     [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
-                    title(sprintf('Basal melt at t=%-g',time))
+                    title(sprintf('Basal melt at t=%4.1f',time))
                 end
                 
                 hold on
@@ -649,7 +648,7 @@ while iFile<=nFiles   % loop over files
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
                 
-                sgtitle(FileNameSubstring)
+                sgtitle(VideoFileName)
                 
                 %%
                 
@@ -659,7 +658,7 @@ while iFile<=nFiles   % loop over files
                 fmesh=FindOrCreateFigure('Mesh',PlotScreenPosition);
                 
                 PlotMuaMesh(CtrlVar,MUA);
-                title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('t=%4.1f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
                 hold off

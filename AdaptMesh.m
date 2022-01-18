@@ -295,16 +295,20 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
         % DefineElementsToDeactivate.m
         % it's enough to do this here because the mapping is otherwise always done in the Remeshing
         
-        [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+        % This does feel like a bit of a over kill.
+        % Here it should be enough to identify the new nodes in MUAnew with respect to MUAold and set those to outside values.
+   
+
+        [UserVar,RunInfo,Fnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
         % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
         
     end
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
-%     if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
-%         ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
-%     end
-%     
+    if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+        ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
+    end
+    
     
     if CtrlVar.ManuallyDeactivateElements
         

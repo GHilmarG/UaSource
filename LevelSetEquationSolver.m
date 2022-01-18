@@ -105,7 +105,7 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
     %% TestIng
     switch lower(CtrlVar.LevelSetInitialisationMethod)
 
-        case "geometric"
+        case {"-geometric-","geometric","-geo-","geo"}
 
             Value=0 ;  [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Value,subdivide=true) ;
 
@@ -114,7 +114,7 @@ if  contains(CtrlVar.LevelSetPhase,"Initialisation")
                 method="InputPoints",...
                 ResampleCalvingFront=true,...
                 CalvingFrontPointDistance=0.1e3,...
-                plot=true) ;
+                plot=false) ;
             %%
 
         otherwise

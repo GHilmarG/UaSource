@@ -72,6 +72,13 @@ if options.test
 end
 
 
+if options.plot
+    LSFonInput=LSF;
+    CtrlVar.PlotGLs=0;
+    [xcOnInput,ycOnInput]=PlotCalvingFronts(CtrlVar,MUA,LSFonInput,color="k",LineStyle="--");
+    CtrlVar.PlotGLs=1;
+end
+
 con=MUA.connectivity;
 coo=MUA.coordinates;
 
@@ -191,11 +198,6 @@ switch options.method
 end
 
 
-if options.plot
-    LSFonInput=LSF;
-    CtrlVar.PlotGLs=0;
-    [xcOnInput,yconInput]=PlotCalvingFronts(CtrlVar,MUA,LSFonInput,color="k",LineStyle="--");
-end
 
 LSF=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,LSF,xcEdges,ycEdges);
 
@@ -212,13 +214,15 @@ if options.plot
     CtrlVar.PlotNodes=1;
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
-    plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6)
+    plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6,DisplayName="Calving fronts before re-initialisation")
     hold on
     %axis(tt)
-    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
-    plot(xcEdges/CtrlVar.PlotXYscale,ycEdges/CtrlVar.PlotXYscale,'r.',LineWidth=1,MarkerSize=12)
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12,DisplayName="Calving fronts after re-initialisation")
+    plot(xcEdges/CtrlVar.PlotXYscale,ycEdges/CtrlVar.PlotXYscale,'r.',LineWidth=1,MarkerSize=12,DisplayName="Edges")
     axis equal
-
+    leg=legend(Interpreter="latex") ;
+    leg.String(1:3)={"Nodes","Mesh","Nodes"} ;
+    
     figb=FindOrCreateFigure("Before: LSF and calving front") ;clf(figb);
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSFonInput/CtrlVar.PlotXYscale);
@@ -229,7 +233,7 @@ if options.plot
     plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)
     hold on
     %axis(tt)
-    plot(xcOnInput/CtrlVar.PlotXYscale,yconInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
+    plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
 
     figc=FindOrCreateFigure("Change: LSF before - LSF after and new and old calving fronts") ; clf(figc)
 
@@ -241,7 +245,7 @@ if options.plot
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)
     hold on
     %axis(tt)
-    plot(xcOnInput/CtrlVar.PlotXYscale,yconInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
+    plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
     title("Change: LSF before - LSF after and new (g) and old (k) calving fronts")
 
 

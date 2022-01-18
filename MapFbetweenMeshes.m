@@ -3,7 +3,9 @@ function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,Ct
          
 
 narginchk(8,9)
-nargoutchk(5,5)
+nargoutchk(3,5)
+
+nouts=nargout;
 
 if nargin<9 || isempty(OutsideValue)
     OutsideValue.h=CtrlVar.ThickMin;
@@ -13,10 +15,12 @@ end
 
 RunInfo.MeshAdapt.isChanged=HasMeshChanged(MUAold,MUAnew);
 
-Fnew=Fold;
+% Fnew=Fold;
+
+
 
 if ~RunInfo.MeshAdapt.isChanged
-
+    Fnew=Fold; 
     BCsNew=BCsOld;
     lnew=lold;
     
@@ -26,6 +30,8 @@ end
 MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
+Fnew=UaFields; 
+Fnew.time=Fold.time; 
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
              % density and the new geometry has been interpolated onto the new mesh. 
 
@@ -143,8 +149,12 @@ Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ;
 [UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew);
 
 
-BCsNew=BoundaryConditions;
-[UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
+if nouts>=4
+    BCsNew=BoundaryConditions;
+    [UserVar,BCsNew]=GetBoundaryConditions(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
+else
+    BCsNew=[]; 
+end
 
 [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ;
 
@@ -241,7 +251,7 @@ end
 % 
 if  CtrlVar.LevelSetMethod
 
-     OutsideValue.LSF=NaN;
+    OutsideValue.LSF=NaN;
     [RunInfo,Fnew.LSF]=...
         MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
         OutsideValue.LSF,...

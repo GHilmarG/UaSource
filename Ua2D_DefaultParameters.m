@@ -356,9 +356,10 @@ CtrlVar.AGlenmax=1e20;
 % The non-linear uvh/uv loops are considered to have converged if:
 %
 %  1) Work and Force tolerances are both less than: 
-CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
 % and, furthermore, at least one of Work and Force tolerances are less than:
-CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
+%Note: The default uvh tolerances set limits on the Force tolerance only. 
 
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-4;
@@ -1480,7 +1481,7 @@ CtrlVar.LevelSetReinitializePDist=1;
 
 CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
 
-CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int","-node-"] 
+CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
 
 CtrlVar.LevelSetMethodSolveOnAStrip=0;
 CtrlVar.LevelSetMethodStripWidth=NaN; 
