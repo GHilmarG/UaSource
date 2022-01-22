@@ -38,6 +38,15 @@ end
 F.AGlenmax=CtrlVar.AGlenmax;
 F.AGlenmin=CtrlVar.AGlenmin;
 
+
+
+if CtrlVar.LevelSetMethod % Level Set
+    % TestIng !!
+    Ai=10*AGlenVersusTemp(0);
+    I=F.LSF< 0 ;  F.AGlen(I)=Ai; 
+
+end
+
 [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
 
 

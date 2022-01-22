@@ -221,7 +221,7 @@ if options.plot
     plot(xcEdges/CtrlVar.PlotXYscale,ycEdges/CtrlVar.PlotXYscale,'r.',LineWidth=1,MarkerSize=12,DisplayName="Edges")
     axis equal
     leg=legend(Interpreter="latex") ;
-    leg.String(1:3)={"Nodes","Mesh","Nodes"} ;
+    leg.String(1:3)={"$\varphi$","Mesh","Nodes"} ;
     
     figb=FindOrCreateFigure("Before: LSF and calving front") ;clf(figb);
 

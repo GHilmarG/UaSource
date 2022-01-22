@@ -553,7 +553,8 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
-                
+                % caxis([-10 120])
+                ModifyColormap(0,1024) ; 
                 hold off
                 
                 
@@ -592,6 +593,7 @@ while iFile<=nFiles   % loop over files
                     title(sprintf('Bedrock at t=%4.1f',time))
                     hold on
                     [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
+                    ModifyColormap(0,1024) ; 
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
                     title(sprintf('surface at t=%4.1f',time))
@@ -623,12 +625,12 @@ while iFile<=nFiles   % loop over files
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);
                     title(sprintf('Level Set Field at t=%4.1f',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
                     title(sprintf('Basal melt at t=%4.1f',time))
                 end
-                
+                ModifyColormap(0,1024) ; 
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 xlabel('x (km)') ; ylabel('y (km)') ;
@@ -648,7 +650,7 @@ while iFile<=nFiles   % loop over files
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
                 
-                sgtitle(VideoFileName)
+               % sgtitle(VideoFileName)
                 
                 %%
                 

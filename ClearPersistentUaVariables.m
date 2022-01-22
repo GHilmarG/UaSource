@@ -26,9 +26,11 @@ clear DefineMassBalance
 clear DefineOutputs
 clear GetDesiredEleSize
 clear DefineCalving
+clear DefineCalvingAtIntegrationPoints
 % Ua utilities
 clear PlotMeshScalarVariable
 clear PlotFEmesh
 clear FindOrCreateFigure
 clear LevelSetEquation
+
 end

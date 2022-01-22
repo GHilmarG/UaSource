@@ -113,8 +113,10 @@ if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
     % TestIng
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+  
     hmin=CtrlVar.LevelSetMinIceThickness;
     abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
+    
     dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
 end

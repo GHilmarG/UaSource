@@ -155,7 +155,7 @@ for Iint=1:MUA.nip  %Integration points
         dcDdfdy1=0;
     end
 
-    cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
+   % cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
     cx0int=c0int.*n0x ; cy0int=c0int.*n0y;  % only used when calculating tauSUPG
 
     % N=20 ; [u0int(1:N).*n0x(1:N)+v0int(1:N).*n0y(1:N) c0int(1:N)]

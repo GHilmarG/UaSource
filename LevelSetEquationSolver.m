@@ -38,7 +38,7 @@ if ~CtrlVar.LevelSetMethod
 end
 
 if any(isnan(F0.c))
-    fprintf("Level set is not evolved because calving rate (c) contains nan. \n")
+    fprintf("LevelSetEquationSolver: Level set is not evolved because calving rate (c) contains nan. \n")
     LSF=F1.LSF;
     Mask=[];
     l=[];
@@ -100,31 +100,9 @@ end
 % fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
 
 if  contains(CtrlVar.LevelSetPhase,"Initialisation")
-
-
-    %% TestIng
-    switch lower(CtrlVar.LevelSetInitialisationMethod)
-
-        case {"-geometric-","geometric","-geo-","geo"}
-
-            Value=0 ;  [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Value,subdivide=true) ;
-
-            [~,~,F0.LSF]=...
-                CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,F0.LSF,...
-                method="InputPoints",...
-                ResampleCalvingFront=true,...
-                CalvingFrontPointDistance=0.1e3,...
-                plot=false) ;
-            %%
-
-        otherwise
-
-            % CtrlVar.LevelSetReinitializePDist=false ;
-            [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-            F0.LSF=LSF ; F1.LSF=LSF ;
-    end
-
-
+  
+     [UserVar,RunInfo,LSF,l,LSFqx,LSFqy,BCs]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+     F0.LSF=LSF ; F1.LSF=LSF ;
 
 end
 
@@ -190,7 +168,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
             
             if Ntries>NtriesMax
                 
-                fprintf("Level set solver did not converge despite repeated atempts. \n")
+                fprintf("LevelSetEquationSolver: Level set solver did not converge despite repeated atempts. \n")
                 fprintf("Returning last iterate. Level-set solution might be inaccurate. \n")
                 break
                 
@@ -200,11 +178,11 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
                 CtrlVar.LevelSetTheta=1;
                 dtBefore=CtrlVar.dt;
                 dtNew=CtrlVar.dt ;
-                fprintf("Level set solver did not converge. Trying backward Euler. \n")
+                fprintf("LevelSetEquationSolver: Level set solver did not converge. Trying backward Euler. \n")
 
             elseif Ntries==2
                 
-                fprintf("Level set solver did not converge. Performing a new re-initialisation \n")
+                fprintf("LevelSetEquationSolver: Level set solver did not converge. Performing a new re-initialisation \n")
                 CtrlVar.LevelSetReinitializePDist=false ; 
                 [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 F0.LSF=LSF ; F1.LSF=LSF ;
@@ -216,7 +194,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
                 dtBefore=CtrlVar.dt;
                 dtNew=dtBefore/10 ;
                 CtrlVar.dt=dtNew;
-                fprintf("Level set solver did not converge. Reducing time step and attempting solve again. \n")
+                fprintf("LevelSetEquationSolver: Level set solver did not converge. Reducing time step and attempting solve again. \n")
                 
             end
             
@@ -228,7 +206,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
     end
     
     CtrlVar.dt=dtOriginal ;
-    fprintf("LSF: time=%f \t tEnd=%f  \t dt=%g  \n",CtrlVar.time,tEnd,CtrlVar.dt)
+    fprintf("LevelSetEquationSolver: LSF time=%f \t tEnd=%f  \t dt=%g  \n",CtrlVar.time,tEnd,CtrlVar.dt)
     
 end
 

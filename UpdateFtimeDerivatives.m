@@ -24,7 +24,7 @@ F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
 F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 
 
-fprintf("[max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
 if  CtrlVar.LevelSetMethod
     % I= (F.h <= 2*CtrlVar.LevelSetMinIceThickness) | (F0.h <= 2*CtrlVar.LevelSetMinIceThickness) ;
@@ -36,20 +36,16 @@ else
 end
 
 
-
 F.dubdt(I)=0; F.dvbdt(I)=0;
 F.duddt(I)=0; F.dvddt(I)=0;
 
-fprintf("Based on level: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+fprintf("After removing values downstream of level set: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
 I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
-fprintf("Adding outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
 if max(abs(F.dubdt)) >1e8
-
     fprintf("Check: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
-
-
 end
 
 end
