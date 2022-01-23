@@ -42,8 +42,12 @@ F.AGlenmin=CtrlVar.AGlenmin;
 
 if CtrlVar.LevelSetMethod % Level Set
     % TestIng !!
-    Ai=10*AGlenVersusTemp(0);
-    I=F.LSF< 0 ;  F.AGlen(I)=Ai; 
+    % F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    % Ai=10*AGlenVersusTemp(0);
+    % I=F.LSF< 0 ;  F.AGlen(I)=Ai; 
+    % F.AGlen(F.LSFMask.NodesOut)=Ai;
+    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0); 
+    F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
 
 end
 

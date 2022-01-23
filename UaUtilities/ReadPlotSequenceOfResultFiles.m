@@ -339,7 +339,7 @@ while iFile<=nFiles   % loop over files
                 caxis([min(F.h.*Reactions.h./F.rho)-eps max(F.h.*Reactions.h./F.rho)+eps])
                 
                 colormap(flipud(othercolor('RdYlBu_11b',1000))) ;
-                ModifyColormap ;
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028) ; 
                 title(cbar,'$\lambda h$ ($m^2$)','Interpreter','latex')
                 
                 
@@ -504,7 +504,7 @@ while iFile<=nFiles   % loop over files
                 
                 ylabel('$u$ (m/a)','interpreter','latex')
                 
-                title(sprintf('Profile along the medial line at t=%4.1f',CtrlVar.time))
+                title(sprintf('Profile along the medial line at t=%4.2f',CtrlVar.time))
                 xlabel('$x$ (km)','interpreter','latex') ;
                 legend('interpreter','latex','Location','SouthEast')
                 xlim([min(x)/1000 max(x)/1000]);
@@ -525,7 +525,7 @@ while iFile<=nFiles   % loop over files
                 
                 
                 % SP=tight_subplot(nPx,nPy) ;
-                subplot(nPx,nPy,1)
+                sp1=subplot(nPx,nPy,1);
                 
                 
                 
@@ -537,13 +537,13 @@ while iFile<=nFiles   % loop over files
                 
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 axis equal tight
                 
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
-                title(sprintf('Ice thickness at t=%4.1f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('Ice thickness at t=%4.2f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 title(cbar,'(m)')
                 ax = gca;
                 outerpos = ax.OuterPosition;
@@ -554,19 +554,21 @@ while iFile<=nFiles   % loop over files
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
                 % caxis([-10 120])
-                ModifyColormap(0,1024) ; 
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp1) ; 
                 hold off
                 
                 
-                subplot(nPx,nPy,2);
+                sp2=subplot(nPx,nPy,2);
                 
                 
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0); speed(Mask.NodesOut)=nan;
                 hold off
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%4.1f',time))
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%4.2f',time))
                 %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                 axis equal tight;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
@@ -578,25 +580,23 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
-                if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
-                end
+                ModifyColormap(ShowGrayLevel=true,Ncol=2*1028,handle=sp2)
                 hold off
                 
-                subplot(nPx,nPy,3);
+                sp3=subplot(nPx,nPy,3);
                 
                 
                 hold off
                 
                 if contains(PlotType,"-B-")
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.B);
-                    title(sprintf('Bedrock at t=%4.1f',time))
+                    title(sprintf('Bedrock at t=%4.2f',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
-                    ModifyColormap(0,1024) ; 
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
+                    ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp3) ; 
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
-                    title(sprintf('surface at t=%4.1f',time))
+                    title(sprintf('surface at t=%4.2f',time))
                 end
                 
                 hold on
@@ -615,22 +615,23 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp3) ; 
                 
-                subplot(nPx,nPy,4);
+                sp4=subplot(nPx,nPy,4);
                 
                 
                 hold off
                 
                 if contains(PlotType,"-level set-")
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);
-                    title(sprintf('Level Set Field at t=%4.1f',time))
+                    title(sprintf('Level Set Field at t=%4.2f',time))
                     hold on
                     [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
-                    title(sprintf('Basal melt at t=%4.1f',time))
+                    title(sprintf('Basal melt at t=%4.2f',time))
                 end
-                ModifyColormap(0,1024) ; 
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp4) ; 
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 xlabel('x (km)') ; ylabel('y (km)') ;
@@ -660,7 +661,7 @@ while iFile<=nFiles   % loop over files
                 fmesh=FindOrCreateFigure('Mesh',PlotScreenPosition);
                 
                 PlotMuaMesh(CtrlVar,MUA);
-                title(sprintf('t=%4.1f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('t=%4.2f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
                 hold off

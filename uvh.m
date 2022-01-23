@@ -12,8 +12,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 
     if CtrlVar.LevelSetMethod % Level Set
          % TestIng !!
-        Ai=10*AGlenVersusTemp(0); 
-        I=F1.LSF< 0 ;  F1.AGlen(I)=Ai; F0.AGlen(I)=Ai; % important to change both as in the uvh assembly these are assumed equal
+        %Ai=10*AGlenVersusTemp(0); 
+        %I=F1.LSF< 0 ;  F1.AGlen(I)=Ai; F0.AGlen(I)=Ai; % important to change both as in the uvh assembly these are assumed equal
+        F0.LSFMask=CalcMeshMask(CtrlVar,MUA,F0.LSF,0); 
+        F1.LSFMask=F0.LSFMask;
+        F0.AGlen(F0.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+        F1.AGlen(F1.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
 
     end
      

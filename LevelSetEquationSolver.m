@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -9,7 +9,7 @@ function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar
 %
 
 narginchk(7,8)
-nargoutchk(7,7)
+nargoutchk(6,6)
 
 
 persistent nCallCounter
@@ -222,7 +222,7 @@ end
 
 
 
-Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+
 
 
 

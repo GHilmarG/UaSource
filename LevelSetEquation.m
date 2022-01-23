@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -9,7 +9,7 @@ function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunIn
 %
 
 narginchk(7,8)
-nargoutchk(7,7)
+nargoutchk(6,6)
 
 
 
@@ -25,7 +25,6 @@ end
 if any(isnan(F0.c))
     fprintf("Level set is not evolved because calving rate (c) contains nan. \n")
     LSF=F1.LSF;
-    Mask=[];
     l=[];
     LSFqx=[];
     LSFqy=[];
@@ -107,7 +106,7 @@ else
 end
 
 
-[UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+[UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 
 % FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
 % 
@@ -139,7 +138,7 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
 end
 
 F1.LSF=LSF;
-F1.LSFMask=Mask;
+%F1.LSFMask=Mask;  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
 F1.LSFqx=LSFqx;
 F1.LSFqy=LSFqy;
 F1.LSFnodes=LSFnodes;

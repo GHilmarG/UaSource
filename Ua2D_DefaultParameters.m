@@ -1460,6 +1460,10 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 
+CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Downstream of the calving fronts, AGlen is automatically set to this value
+                                                        % over any remaining ice. This value has physical dimentions.
+                                                        
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
@@ -1468,16 +1472,18 @@ CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;
 
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=1 ; 
-CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
 CtrlVar.LevelSetTestString="" ; 
-CtrlVar.LevelSetSUPGtau="tau1" ; % {'tau1','tau2','taus','taut'}  
+CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
+CtrlVar.LevelSetInitialisationMethod="-geo-" ;
 CtrlVar.LevelSetInitialisationInterval=inf ; 
+
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
 
-CtrlVar.LevelSetReinitializePDist=1;
+% CtrlVar.LevelSetReinitializePDist=1;
 
 CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
 
