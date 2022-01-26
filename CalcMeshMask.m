@@ -8,16 +8,28 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % if a the value of the NodalField at a given node is lower or higher than
 % the specified Threshold.
 % 
-% Here the Mask is returned is defined slighly differently or as logical array where:
+% Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.
+%
+% Mask is returned as a logical array where:
 % 
 % Mask.NodesOn  :  True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold
+%
 % Mask.NodesIn  :  True for nodes belonging to elements where ALL of the nodal values are above the Threshold
+%
 % Mask.NodesOut :  True for nodes belonging to elements where ALL of the nodal values are below the Threshold
 % 
 % A corresponding element mask is also returned. 
 % 
 % This definition of In/Out is sometimes also referred to as being 'strictly' above or
 % 'strickly' below a given threshold value. 
+%
+% Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
+%
+%   Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0.5) ;
+%
+% or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.
+%
+%   Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0) ;
 %
 %
 % Example: Create a mask based on ice thickness above and below 100. 
@@ -35,6 +47,8 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 %   p2=plot(x(Mask.NodesOn)/CtrlVar.PlotXYscale,y(Mask.NodesOn)/CtrlVar.PlotXYscale,'og','DisplayName','On');
 %   p3=plot(x(Mask.NodesOut)/CtrlVar.PlotXYscale,y(Mask.NodesOut)/CtrlVar.PlotXYscale,'ob','DisplayName','Out');
 %   legend([p1 p2 p3])
+% 
+%
 % 
 %%
 

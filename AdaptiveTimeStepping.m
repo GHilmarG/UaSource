@@ -104,10 +104,13 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     elseif CtrlVar.AdaptiveTimeStepping && CtrlVar.CurrentRunStepNumber>1
 
         
-        ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-5,1):CtrlVar.CurrentRunStepNumber-1);
-        nItVector=numel(ItVector) ;
         
-     
+        % I base the decision on the values in ItVector
+        % Extract last 
+        nStepBacks=max(CtrlVar.ATSIntervalDown,CtrlVar.ATSIntervalUp) ; 
+        ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-nStepBacks,1):CtrlVar.CurrentRunStepNumber-1);
+        nItVector=numel(ItVector) ;
+             
         
         % TimeStepUpRatio the ratio between maximum number of non-linear iterations over
         % last CtrlVar.ATSintervalUp iterations, divided by CtrlVar.ATSTargetIterations 

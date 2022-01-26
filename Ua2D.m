@@ -454,10 +454,6 @@ while 1
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
-   % if CtrlVar.LevelSetMethod % Level Set
-   %    [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
-   % end
-    
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
             [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry);
@@ -651,6 +647,7 @@ while 1
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
             [UserVar,RunInfo,F.LSF,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            F.LSFMask=[];
         end
     end   % CtrlVar.TimeDependentRun
     

@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcMeshMask</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-25"><meta name="DC.source" content="CalcMeshMask.m"><style type="text/css">
+      --><title>CalcMeshMask</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-01-25"><meta name="DC.source" content="CalcMeshMask.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -69,7 +69,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 </pre><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
-</pre><p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p><p>Here the Mask is returned is defined slighly differently or as logical array where:</p><p>Mask.NodesOn  :  True for nodes belonging to elements where some of the nodal values are above and some below the Threshold Mask.NodesIn  :  True for nodes belonging to elements where all of the nodal values are above the Threshold Mask.NodesOut :  True for nodes belonging to elements where all of the nodal values are below the Threshold</p><p>A corresponding element mask is also returned.</p><p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strickly' below a given threshold value.</p><p>Example: Create a mask based on ice thickness above and below 100.</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span>
+</pre><p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p><p>Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.</p><p>Mask is returned as a logical array where:</p><p>Mask.NodesOn  :  True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold</p><p>Mask.NodesIn  :  True for nodes belonging to elements where ALL of the nodal values are above the Threshold</p><p>Mask.NodesOut :  True for nodes belonging to elements where ALL of the nodal values are below the Threshold</p><p>A corresponding element mask is also returned.</p><p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strickly' below a given threshold value.</p><p>Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.</p><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0) ;
+</pre><p>or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.</p><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0) ;
+</pre><p>Example: Create a mask based on ice thickness above and below 100.</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span>
 CtrlVar=CtrlVarInRestartFile;
 Mask=CalcMeshMask(CtrlVar,MUA,F.h,100);
 </pre><pre class="language-matlab">FindOrCreateFigure(<span class="string">"Nodal Mask"</span>) ;
@@ -112,7 +114,7 @@ Mask.NodesIn=Mask.NodesIn &amp; ~Mask.NodesOn;
 
 <span class="keyword">return</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 
@@ -124,16 +126,28 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % if a the value of the NodalField at a given node is lower or higher than
 % the specified Threshold.
 % 
-% Here the Mask is returned is defined slighly differently or as logical array where:
+% Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.
+%
+% Mask is returned as a logical array where:
 % 
-% Mask.NodesOn  :  True for nodes belonging to elements where some of the nodal values are above and some below the Threshold
-% Mask.NodesIn  :  True for nodes belonging to elements where all of the nodal values are above the Threshold
-% Mask.NodesOut :  True for nodes belonging to elements where all of the nodal values are below the Threshold
+% Mask.NodesOn  :  True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold
+%
+% Mask.NodesIn  :  True for nodes belonging to elements where ALL of the nodal values are above the Threshold
+%
+% Mask.NodesOut :  True for nodes belonging to elements where ALL of the nodal values are below the Threshold
 % 
 % A corresponding element mask is also returned. 
 % 
 % This definition of In/Out is sometimes also referred to as being 'strictly' above or
 % 'strickly' below a given threshold value. 
+%
+% Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
+%
+%   Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0) ;
+%
+% or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.
+%
+%   Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0) ;
 %
 %
 % Example: Create a mask based on ice thickness above and below 100. 
@@ -151,6 +165,8 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 %   p2=plot(x(Mask.NodesOn)/CtrlVar.PlotXYscale,y(Mask.NodesOn)/CtrlVar.PlotXYscale,'og','DisplayName','On');
 %   p3=plot(x(Mask.NodesOut)/CtrlVar.PlotXYscale,y(Mask.NodesOut)/CtrlVar.PlotXYscale,'ob','DisplayName','Out');
 %   legend([p1 p2 p3])
+% 
+%
 % 
 %%
 

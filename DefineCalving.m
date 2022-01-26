@@ -1,5 +1,16 @@
 function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
     
+%% To-Do
+% Possibly better to write this as 
+%
+%  [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
+%
+% in which case LSF and c are always passed right through by default.
+%
+% 
+% 
+%
+%%
 
 %%
 %
