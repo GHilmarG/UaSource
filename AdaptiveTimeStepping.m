@@ -107,7 +107,8 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         
         % I base the decision on the values in ItVector
         % Extract last 
-        nStepBacks=max(CtrlVar.ATSIntervalDown,CtrlVar.ATSIntervalUp) ; 
+       
+        nStepBacks=max([CtrlVar.ATSintervalDown,CtrlVar.ATSintervalUp]); 
         ItVector=RunInfo.Forward.uvhIterations(max(CtrlVar.CurrentRunStepNumber-nStepBacks,1):CtrlVar.CurrentRunStepNumber-1);
         nItVector=numel(ItVector) ;
              
