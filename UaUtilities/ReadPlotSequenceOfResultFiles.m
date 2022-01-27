@@ -950,7 +950,7 @@ if CreateVideo
     fprintf('\n video file closed \n')
 end
 
-close all
+
 
 cd(CurDir)
 
