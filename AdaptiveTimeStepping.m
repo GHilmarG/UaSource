@@ -188,9 +188,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
                             dtOut=CtrlVar.DefineOutputsDt;
                         elseif Fraction>0.1   % if dt is greater than 10% of DefineOutputs interval, round dt
                             % so that it is an interger multiple of DefineOutputsDt
-                            fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
+                            %fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
                             dtOut=CtrlVar.DefineOutputsDt/RoundNumber(CtrlVar.DefineOutputsDt/dtOut,1);
-                            fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
+                            %fprintf('Adaptive Time Stepping dtout=%f \n ',dtOut);
                         end
                     end
                     
@@ -276,8 +276,8 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
             
             % would I call DefineOutputs anyhow, even if I don't change dt? If so, then there is no need to change dtOut
             % and dtOut and dtNoOverStepping are too similar for the difference to matter.
-            T1=ReminderFraction(CtrlVar.time+dtOut,CtrlVar.DefineOutputsDt) < (dtOut/(10*CtrlVar.DefineOutputsDt)) ;
-            T2=ReminderFraction(CtrlVar.time+dtNoOverStepping,CtrlVar.DefineOutputsDt) < (dtNoOverStepping/(10*CtrlVar.DefineOutputsDt)) ;
+            T1=ReminderFraction(CtrlVar.time+dtOut,CtrlVar.DefineOutputsDt) < (dtOut/(100*CtrlVar.DefineOutputsDt)) ;
+            T2=ReminderFraction(CtrlVar.time+dtNoOverStepping,CtrlVar.DefineOutputsDt) < (dtNoOverStepping/(100*CtrlVar.DefineOutputsDt)) ;
 
             if T2  && ~T1
                 dtOut=dtNoOverStepping;

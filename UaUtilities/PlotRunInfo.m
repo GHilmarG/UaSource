@@ -17,11 +17,13 @@ function PlotRunInfo(RunInfo)
     
     xlabel('time') ; 
     legend("time step","#uvh iterations")
+    ylim([0 inf])
     
      FindOrCreateFigure("RunInfo uvh: time step histogram and iterations")
      histogram(RunInfo.Forward.dt) ; xlabel('dt')
      title('dt Histogram')
     
-    
+     
+     
     
 end
