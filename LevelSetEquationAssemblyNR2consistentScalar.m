@@ -56,6 +56,11 @@ end
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+
 if isC
     qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -98,7 +103,8 @@ for Iint=1:MUA.nip  %Integration points
     % additonal variables for sliding law evaluation at int point
     h1int=h1nod*fun;
     h0int=h0nod*fun;
-    
+    s1int=s1nod*fun;
+    s0int=s0nod*fun;
     
     % derivatives at one integration point for all elements
     df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
@@ -146,8 +152,8 @@ for Iint=1:MUA.nip  %Integration points
 
   
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int) ;
+        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int) ;
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;

@@ -61,7 +61,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 defaultPlotType="-mesh-speed-B-level set-";
 allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-B-level set-','-mesh-',...
     '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
-    '-1dIceShelf-','-hPositive-','-Level Set-',...
+    '-1dIceShelf-','-hPositive-','-Level Set-','-ubvb-','-ubvb-B-','-ubvb-h-',...
     '-collect-'};
 
 
@@ -116,7 +116,7 @@ end
 
 PlotRegion=[];
 PlotArea=[];
-PlotMinThickLocations=true;
+PlotMinThickLocations=false;
 
 %%
 CurDir=pwd;
@@ -153,7 +153,7 @@ iCount=0;
 DataCollect=[];
 DataCollect.FileNameSubstring=FileNameSubstring;
 LSFScale=[];
-
+nVelCount=0;
 while iFile<=nFiles   % loop over files
     
     
@@ -670,27 +670,68 @@ while iFile<=nFiles   % loop over files
                 
                 %%
                 
-            case '-ubvb-'
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-'}
                 % plotting horizontal velocities
                 %%
                 
-                fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition);
-                
-                N=1;
+                fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition); clf(fubvb) ; 
+                ax1=axes ; 
+                NN=1;
                 %speed=sqrt(ub.*ub+vb.*vb);
                 %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
                 CtrlVar.VelPlotIntervalSpacing='log10';
                 %CtrlVar.VelColorMap='hot';
-                %CtrlVar.RelativeVelArrowSize=10;
-                CtrlVar.QuiverColorSpeedLimits=[1 5000];
-                
+                CtrlVar.RelativeVelArrowSize=5;
+                CtrlVar.QuiverColorSpeedLimits=[100 50000];
+                CtrlVar.QuiverColorPowRange=4;
+
+                if contains(PlotType,"-B-")
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
+                    title(cbarB,"(m a.s.l)")
+                elseif contains(PlotType,"-h-")
+                    %[~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab) ;  title(cbarB,"(m/yr)")  ; caxis(ax1,[-75 0])
+                    
+                    %caxis(ax1,[1 100])
+                    
+                end
+                cbarB.Position=[.92 .15 .02 .35]; 
+                hold on
                 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
                 hold on
-                QuiverColorGHG(x(1:N:end),y(1:N:end),F.ub(1:N:end),F.vb(1:N:end),CtrlVar);
-                CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+                Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+                F.ub(Mask.NodesOut)=nan;
+                F.vb(Mask.NodesOut)=nan;
+                if nVelCount==0
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
+                else
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+
+                end
+                nVelCount=nVelCount+1;
+                ax2=axes ;
+
+                ax2.Visible = 'off';
+                ax2.XTick = [];
+                ax2.YTick = [];
+                hold on
+                [cbar]=QuiverColorGHG(x(1:NN:end),y(1:NN:end),F.ub(1:NN:end),F.vb(1:NN:end),CtrlVar);
+                axis tight
+                linkaxes([ax1,ax2])
+                %colormap(ax2,'hot') ;
+
+                
+
+                %cb1 = colorbar(ax1,'Position',[.9 .15 .02 .35]); 
+                cbar.Position=[.92 .55 .02 .35];
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
-                title(sprintf('(ub,vb) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r',LineWidth=1.5);
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
+                title(ax1,sprintf('Bedrock and surface velocities at t=%5.2f (yr)',F.time),interpreter="latex") ;
+                xlabel(ax1,'xps (km)',Interpreter='latex') ; 
+                ylabel(ax1,'yps (km)',Interpreter='latex')
+                colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
+                
                 %%
                 if PlotMinThickLocations
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');

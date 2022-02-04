@@ -39,8 +39,8 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                              Par.QuiverColorPowRange=3, i.e.
 %                                              the smallest colored speed is 
 %                                              10^3 smaller than the largest speed
-% Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scalings as in previous call. In this case
-%                                               Par from previous call must be given as an input.
+% Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scalings as in previous call. 
+%                                           
 %
 % varargin is passed on to quiver
 %
@@ -99,8 +99,8 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %   [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par)  ; % first call, here Par is not strickly needed as an input
 %   Par.QuiverSameVelocityScalingsAsBefore=1;
-%   [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scalings as
-%                                            % the previous one, Par from previous call given as an input
+%   QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scalings as previous one
+%                                        
 %
 % Note: When doing further contour plots on top of velocity plot, matlab will possibly change the
 % limits of the colorbar and the position of the ticklables will no longer be correct.
@@ -113,6 +113,10 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   cbar.TickLabels=Par.QuiverTickLabels;
 %   title(cbar,'(m/d)')   ;
 %%
+
+persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
+
+
 
 cbar=[];
 QuiverHandel=[];
@@ -268,11 +272,29 @@ if nargin>4 && ~isempty(Par)
     if ~isfield(Par,'QuiverCmap')
         Par.QuiverCmap=[];
     end
-    
+
     if ~isfield(Par,'QuiverSameVelocityScalingsAsBefore')
-        Par.QuiverSameVelocityScalingsAsBefore=0;
+        Par.QuiverSameVelocityScalingsAsBefore=false ;
     end
-    
+
+    if Par.QuiverSameVelocityScalingsAsBefore
+
+        if ~isempty(uvPlotScale)
+
+            Par.uvPlotScale=uvPlotScale ;
+            Par.SpeedPlotIntervals=SpeedPlotIntervals ;
+            Par.QuiverTickLabels=QuiverTickLabels;
+            Par.QuiverTicks=QuiverTicks ;
+            Par.QuiverCmap=QuiverCmap;
+
+        else
+            Par.QuiverSameVelocityScalingsAsBefore=false ;
+            fprintf('In QuiverColorGHG same scaling as in a previous call is requested, but the velocity scaling factor is not defined.\n')
+            fprintf('Therefore, setting QuiverSameVelocityScalingsAsBefore=false \n')
+
+        end
+    end
+
 else
     
     Par.RelativeVelArrowSize=1; % larger value makes vel arrows larger
@@ -300,7 +322,7 @@ N=Par.VelArrowColorSteps;
 
 if Par.QuiverSameVelocityScalingsAsBefore
     
-    colormap(Par.QuiverCmap)
+    colormap(QuiverCmap)
     
     if isempty(Par.uvPlotScale) || ~isfield(Par,'uvPlotScale')
         fprintf('In QuiverColorGHG same scaling as in a previous call is requested, but the velocity scaling factor is not defined.\n')
@@ -406,7 +428,7 @@ for J=1:N
             I=speed>Par.SpeedPlotIntervals(J) & speed <= Par.SpeedPlotIntervals(J+1) & speed>Par.MinSpeedToPlot;
     end
     
-    if numel(x(I))>0  % This should not really be needed, but saving resulting figures in matlab fig format
+    if numel(x(I))>0  % This should not really be needed, but veving resulting figures in matlab fig format
                       % results in errors in Matlab2016a
         QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
             'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
@@ -418,110 +440,110 @@ nPowRange=Par.QuiverColorPowRange;
 
 if ~Par.QuiverSameVelocityScalingsAsBefore
 
-if verLessThan('matlab','8.4')
-    
-    %pre 2014b version
-    cbar=colorbar; title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
-    
-    if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
-        
-        ms=fix(log10(Par.MaxPlottedSpeed));
-        ticklabel=logspace(0,ms,ms+1);
-        tickpos=1+N*log10(ticklabel)/log10(Par.SpeedPlotIntervals(N+1));
-        set(cbar,'Ytick',tickpos,'YTicklabel',ticklabel);
-    else
-        caxis([0 max(Par.SpeedPlotIntervals)]);
-    end
-    
-    
-else
-    
-    if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
-        
-        
-        if ~isempty(Par.SpeedTickLabels)
-            ticklabel=log10(Par.SpeedTickLabels);
+    if verLessThan('matlab','8.4')
+
+        %pre 2014b version
+        cbar=colorbar; title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
+
+        if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
+
+            ms=fix(log10(Par.MaxPlottedSpeed));
+            ticklabel=logspace(0,ms,ms+1);
+            tickpos=1+N*log10(ticklabel)/log10(Par.SpeedPlotIntervals(N+1));
+            set(cbar,'Ytick',tickpos,'YTicklabel',ticklabel);
         else
-            % this is for more pleasing interval between labels (but needs to be improved)
-            %D=(max(sp)-min(sp))/10 ; D=10.^round(log10(D)) ; ticklabel=unique(D*round(sp/D));
-            ticklabel=logticks(speed,nPowRange,12,Par.SpeedPlotIntervals);
-            %ticks=logticks(speed,12,Par.QuiverColorPowRange);
+            caxis([0 max(Par.SpeedPlotIntervals)]);
         end
-        
-        
-        tickpos=(log10(ticklabel)-min(log10(Par.SpeedPlotIntervals)))/(max(log10(Par.SpeedPlotIntervals))-min(log10(Par.SpeedPlotIntervals)));
-        
-        
+
+
     else
-        
-        if ~isempty(Par.SpeedTickLabels)
-            
-            ticklabel=Par.SpeedTickLabels;
-        else
-            
-            % this is for (hopefully) a more pleasing interval between labels
-            D=(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
-            if D==0  % special case if all values same or all values zero
-                D=mean(Par.SpeedPlotIntervals);
-                if D==0
-                    ticklabel=[-1 0 1];
-                    tickpos=(ticklabel+1)/2;
-                else
-                    ticklabel=[D/2 D 1.5*D];
-                    tickpos=(ticklabel-D/2)/D;
-                end
+
+        if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
+
+
+            if ~isempty(Par.SpeedTickLabels)
+                ticklabel=log10(Par.SpeedTickLabels);
             else
-                
-                D=double(10.^floor(log10(D)))/2 ;
-                
-                first=D*floor(Par.SpeedPlotIntervals(1)/D);
-                last=D*ceil(Par.SpeedPlotIntervals(end)/D);
-                
-                ticklabel=first:D:last;
-                tickpos=(ticklabel-min(Par.SpeedPlotIntervals))/(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
-                %tickpos=(ticklabel-first)/(last-first);
-                
-                if numel(ticklabel)>10
-                   
-                    ticklabel=ticklabel(1:2:end) ;
-                    tickpos=tickpos(1:2:end) ;
-                    
-                end
-                
+                % this is for more pleasing interval between labels (but needs to be improved)
+                %D=(max(sp)-min(sp))/10 ; D=10.^round(log10(D)) ; ticklabel=unique(D*round(sp/D));
+                ticklabel=logticks(speed,nPowRange,12,Par.SpeedPlotIntervals);
+                %ticks=logticks(speed,12,Par.QuiverColorPowRange);
             end
-            %ticklabel=unique(D*round(sp/D));
-            
+
+
+            tickpos=(log10(ticklabel)-min(log10(Par.SpeedPlotIntervals)))/(max(log10(Par.SpeedPlotIntervals))-min(log10(Par.SpeedPlotIntervals)));
+
+
+        else
+
+            if ~isempty(Par.SpeedTickLabels)
+
+                ticklabel=Par.SpeedTickLabels;
+            else
+
+                % this is for (hopefully) a more pleasing interval between labels
+                D=(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
+                if D==0  % special case if all values same or all values zero
+                    D=mean(Par.SpeedPlotIntervals);
+                    if D==0
+                        ticklabel=[-1 0 1];
+                        tickpos=(ticklabel+1)/2;
+                    else
+                        ticklabel=[D/2 D 1.5*D];
+                        tickpos=(ticklabel-D/2)/D;
+                    end
+                else
+
+                    D=double(10.^floor(log10(D)))/2 ;
+
+                    first=D*floor(Par.SpeedPlotIntervals(1)/D);
+                    last=D*ceil(Par.SpeedPlotIntervals(end)/D);
+
+                    ticklabel=first:D:last;
+                    tickpos=(ticklabel-min(Par.SpeedPlotIntervals))/(max(Par.SpeedPlotIntervals)-min(Par.SpeedPlotIntervals));
+                    %tickpos=(ticklabel-first)/(last-first);
+
+                    if numel(ticklabel)>10
+
+                        ticklabel=ticklabel(1:2:end) ;
+                        tickpos=tickpos(1:2:end) ;
+
+                    end
+
+                end
+                %ticklabel=unique(D*round(sp/D));
+
+            end
+
+
         end
-        
-        
+
+
+        if any(isnan(tickpos))
+            warning('QuiverColorGHG:NANinTickPos','calculated positions of ticks on the colorbar contain NaNs')
+        end
+
+        [tickpos,ia]=unique(tickpos);
+
+        ticklabel=ticklabel(ia);
+
+        cbar=colorbar ;
+        %cbar.TickLabels=ticklabel ;
+
+
+        if ~any(isnan(tickpos))
+            Ticks=tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
+            %cbar.Ticks=Ticks; % tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
+        end
+
+        axis equal
+
+
+
+        Par.QuiverTickLabels=ticklabel;
+        Par.QuiverTicks=Ticks;
+
     end
-    
-    
-    if any(isnan(tickpos))
-        warning('QuiverColorGHG:NANinTickPos','calculated positions of ticks on the colorbar contain NaNs')
-    end
-    
-    [tickpos,ia]=unique(tickpos);
-    
-    ticklabel=ticklabel(ia);
-    
-    cbar=colorbar ;
-    %cbar.TickLabels=ticklabel ;
-    
-    
-    if ~any(isnan(tickpos))
-        Ticks=tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
-        %cbar.Ticks=Ticks; % tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
-    end
-    
-    axis equal
-    
-    
-    
-    Par.QuiverTickLabels=ticklabel;
-    Par.QuiverTicks=Ticks;
-    
-end
 end
 
 
@@ -536,6 +558,13 @@ cbar.Ticks=Par.QuiverTicks;
 
 axis equal
 % axis([min(x)/Par.PlotXYscale max(x)/Par.PlotXYscale min(y)/Par.PlotXYscale max(y)/Par.PlotXYscale])
+
+uvPlotScale=Par.uvPlotScale ;
+SpeedPlotIntervals=Par.SpeedPlotIntervals ;
+QuiverTickLabels=Par.QuiverTickLabels;
+QuiverTicks=Par.QuiverTicks ;
+QuiverCmap=Par.QuiverCmap;
+
 
 end
 

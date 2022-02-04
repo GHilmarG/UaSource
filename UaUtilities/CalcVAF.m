@@ -6,6 +6,11 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 % Calculates volume above flotation, and optionally ice volume and grounded area
 %
+%  VAF has the units distance^3, i.e. it is a volume, not weight.  It is the water equivalent volume.
+%
+% If all distance units are in meters, and we divide VAF as calculated by 10e9, then the units of VAF are km^3
+%
+%
 % GF is only needed to calculate grounded area.
 %
 %
