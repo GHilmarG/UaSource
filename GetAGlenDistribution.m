@@ -35,6 +35,9 @@ switch N
         
 end
 
+[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+
+
 F.AGlenmax=CtrlVar.AGlenmax;
 F.AGlenmin=CtrlVar.AGlenmin;
 
@@ -50,7 +53,7 @@ if CtrlVar.LevelSetMethod % Level Set
 
 end
 
-[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+
 
 
 
