@@ -59,7 +59,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         dtModifiedOutside=false;
     end
     
- 
+    
     
     
     % potentially dt was previously adjusted for plotting/saving purposes
@@ -78,7 +78,8 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
         end
     end
     
-    dtOut=dtIn ;
+    % dtOut=dtIn ;
+    dtOut=max(dtIn,CtrlVar.ATSdtMin) ;
     
     
     
@@ -227,7 +228,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
     
     if CtrlVar.ATSTdtRounding && CtrlVar.DefineOutputsDt~=0
         % rounding dt to within 10% of Dt
-        dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,1,'significant') ;
+        dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,2,'significant') ;
     end
     
     

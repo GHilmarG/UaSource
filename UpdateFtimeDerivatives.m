@@ -24,7 +24,7 @@ F.duddt=(F.ud-F0.ud)/CtrlVar.dt ;
 F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 
 
-fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 
 if CtrlVar.LimitRangeInUpdateFtimeDerivatives
 
@@ -40,8 +40,16 @@ if CtrlVar.LimitRangeInUpdateFtimeDerivatives
 
     F.dubdt(I)=0; F.dvbdt(I)=0;
     F.duddt(I)=0; F.dvddt(I)=0;
+    F.dhdt(I)=0; 
 
-    fprintf("After removing values downstream of level set: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+%     % TestIng
+%     F.dubdt=zeros(MUA.Nnodes,1); 
+%     F.dvbdt=zeros(MUA.Nnodes,1);
+%     F.duddt=zeros(MUA.Nnodes,1);
+%     F.dvddt=zeros(MUA.Nnodes,1);
+%     F.dhdt=zeros(MUA.Nnodes,1); 
+
+    fprintf("After removing values downstream of level set: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 
 %    I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
 %    fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
