@@ -156,7 +156,7 @@ else
     BCsNew=[]; 
 end
 
-[UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ;
+% [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ;
 
 
 [UserVar,Fnew]=GetSeaIceParameters(UserVar,CtrlVar,MUAnew,BCsNew,Fnew);
