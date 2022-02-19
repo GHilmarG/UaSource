@@ -151,12 +151,14 @@ if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeed
     end
     
     if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-        
-        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+
+        if isempty(F1.LSFMask)
+            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        end
         LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
 
     end
-       
+
 end
 
 

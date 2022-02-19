@@ -152,8 +152,8 @@ for Iint=1:MUA.nip  %Integration points
 
   
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int) ;
+        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int,F1.S(1)) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int,F0.S(1)) ;
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;

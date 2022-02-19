@@ -154,6 +154,10 @@ DataCollect=[];
 DataCollect.FileNameSubstring=FileNameSubstring;
 LSFScale=[];
 nVelCount=0;
+
+xGL0=[] ; yGL0=[] ; xCF0=[] ; yCF0=[] ;  % these will contain the (x,y) coordinates of the grounding lines and calving fronts in the first file that is loaded
+                                         % allowing for the initial grounding lines and calving fronts to be plotted in all subsequent plots
+
 while iFile<=nFiles   % loop over files
     
     
@@ -186,9 +190,15 @@ while iFile<=nFiles   % loop over files
         TRI=[]; DT=[]; xGL=[];yGL=[];
         x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
         ih=F.h<=CtrlVar.ThickMin;
-        
-        
-        
+
+        if isempty(xGL0)
+
+            [xCF0,yCF0]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0,lineup=true) ;
+            [xGL0,yGL0]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.GF.node,0.5,lineup=true) ;
+
+
+        end
+
         
         % if creaing 4 subplots, try to arrange them based on the aspect ratio
         
@@ -725,13 +735,18 @@ while iFile<=nFiles   % loop over files
                 %cb1 = colorbar(ax1,'Position',[.9 .15 .02 .35]); 
                 cbar.Position=[.92 .55 .02 .35];
                 hold on ;
+                
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r',LineWidth=1.5);
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
+
+
                 title(ax1,sprintf('Bedrock and surface velocities at t=%5.2f (yr)',F.time),interpreter="latex") ;
                 xlabel(ax1,'xps (km)',Interpreter='latex') ; 
                 ylabel(ax1,'yps (km)',Interpreter='latex')
                 colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
                 
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 %%
                 if PlotMinThickLocations
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');

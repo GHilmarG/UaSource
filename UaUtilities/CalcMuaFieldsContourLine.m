@@ -14,7 +14,7 @@ function [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,options)
 % Example: Calculate, and then plot, the ice-thickness contour line for the ice-thickness value 100
 %
 %
-%   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,100,lineup=true) ;
+%   
 %   plot(xc,yc) ; axis equal
 %%
 

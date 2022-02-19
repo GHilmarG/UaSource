@@ -20,12 +20,10 @@ F.h=F.s-F.b;
 
 
 if CtrlVar.LevelSetMethod % Level Set
-    % TestIng !!
-    % Ai=10*AGlenVersusTemp(0);
-    %I=F.LSF< 0 ;  F.AGlen(I)=Ai; 
-    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0); 
+    if isempty(F.LSFMask)  % This should have been calculated at the start of the run
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    end
     F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
-
 end
 
 if CtrlVar.TestForRealValues

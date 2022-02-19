@@ -1,32 +1,39 @@
 function [xc,yc,LSF,xcEdges,ycEdges,ShapeDifference]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,LSF,options)
 
 %
-% Takes initial calving front data (Xc,Yc) and a level set function LSF, which on input only must have a right sign, and
+% Takes initial calving front data (Xc,Yc) and a level set function LSF, which on input only must have the correct sign, and
 % initializes the level set based on gemetrical distance from the (Xc,Yc) calving front. Then recomputes the calving front
 % from the level set.
-% 
-% The level-set provided on input is initialized based on the (Xc,Yc) values, but the sign of the LSF function on input must
-% be correct, that is LSF<0 for nodes downstream of calving fronts, and LSF>0 for nodes upstream of calving fronts.
+%
+% The level-set provided on input is initialized based on the (Xc,Yc) values, and the LSF provided on input will be
+% recalculated.
+%
+% Only the sign of the LSF function on input is used. This sign must be correct in the sense that LSF<0 for nodes
+% downstream of calving fronts, and LSF>0 for nodes upstream of calving fronts.
 %
 % The returned calving front, (xc,yc), may not be identical to the calving front (Xc,Yc) provided as input. There are a
 % number of (subtle) reasons for this. The (xc,yc) calving front is (re) calculated from the nodal values of level set field
 % (LSF), calculated (ie initialized) using the (Xc,Yc) values. Despite best atempts, this operation, ie calculating c=(xc,yc)
-% form LSF, which we can write c=c(LSF), is not an exact inverse of the function LSF=LSF(c). This is due to limited
-% degrees-of-freedom when calculating LSF nodal values, as a single LSF nodal value will affect the positions of the calving
-% fronts across all elements to which it belongs.
+% from LSF, which we can write c=c(LSF), is not an exact inverse of the function LSF=LSF(c).
+% 
+% This can be understood as being related to lack degrees-of-freedom when calculating LSF nodal values, as a single LSF nodal
+% value will always affect the positions of the calving fronts across all elements to which it belongs. We can therefore have
+% a situation where it is impossible to find distribution of LSF nodal values for which the calculated calving front is
+% identical to the calving front as given on input.
+
 %
 % If the calving front is provided on input as (Xc,Yc), it can optionally be subsampled within elements. Generally this is a
 % must if one is performing a re-initialisation during a run, as otherwise the geometric re-initialzation can shift the level
 % set. But for the first initialisation this is hardly requried as it only impacts the initial location of the calving front,
 % and if the calving front is alread known at a high resolution as (Xc,Yc) from some observations, such resampling is
 % superfluous.
-% 
+%
 % There is a special case when Xc and Yc are entered as empty arrays, in which case Xc and Yc are simply determined by
 % calculating the zero contours of LSF. This can be OK, but the resulting calving front (xc,yc) will, in general, be impacted
 % by the mesh resolution with the resulting calving fronts typically cutting through the mid edges of the elements. If
 % (Xc,Yc) is know, the return calving front (xc,yc) is much more likely to cut across the elements similar as (Xc,Yc).
-% 
-% 
+%
+%
 %
 % On input only the sign of LSF must be correct. This is, for nodes inside/upstream of calving fronts LSF must be positive,
 % and for nodes outside/downstream of calving fronts, negative.
