@@ -46,6 +46,10 @@ v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 v1nod=reshape(v1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 
+ coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
+ cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
+
+
 if  ~contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
     c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
     c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -93,7 +97,10 @@ for Iint=1:MUA.nip  %Integration points
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
     
-    
+    xint=coox*fun;  % coordinates of this integration point for all elements
+    yint=cooy*fun;
+
+
     f0int=f0nod*fun;
     f1int=f1nod*fun;
     
@@ -152,8 +159,8 @@ for Iint=1:MUA.nip  %Integration points
 
   
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int,F1.S(1)) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int,F0.S(1)) ;
+        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int,F1.S(1),xint,yint) ;
+        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int,F0.S(1),xint,yint) ;
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;
