@@ -6,8 +6,7 @@
 %
 %    All these user input files are listed below.
 %
-%    The only user input file which name does not start with `Define' is the
-%    file `Ua2D_InitialUserInput.m'.
+%   
 %
 %    Put copies of all the user input files that you think you will need for
 %    your run into your local run folder.
