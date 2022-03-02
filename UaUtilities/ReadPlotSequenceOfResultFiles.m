@@ -691,9 +691,14 @@ while iFile<=nFiles   % loop over files
                 %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
                 CtrlVar.VelPlotIntervalSpacing='log10';
                 %CtrlVar.VelColorMap='hot';
+
                 CtrlVar.RelativeVelArrowSize=5;
                 CtrlVar.QuiverColorSpeedLimits=[100 50000];
                 CtrlVar.QuiverColorPowRange=4;
+
+               CtrlVar.QuiverColorSpeedLimits=[100 1000];  % jsut for Thule
+               CtrlVar.RelativeVelArrowSize=1;
+               CtrlVar.QuiverColorPowRange=3;
 
                 if contains(PlotType,"-B-")
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
@@ -741,8 +746,11 @@ while iFile<=nFiles   % loop over files
 
 
                 title(ax1,sprintf('Bedrock and surface velocities at t=%5.2f (yr)',F.time),interpreter="latex") ;
-                xlabel(ax1,'xps (km)',Interpreter='latex') ; 
-                ylabel(ax1,'yps (km)',Interpreter='latex')
+                %xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')
+
+                xlabel(ax1,'x (km)',Interpreter='latex') ;  ylabel(ax1,'y (km)',Interpreter='latex')  ; % Thulew
+
+
                 colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
                 
                 plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
