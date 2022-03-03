@@ -715,8 +715,8 @@ while iFile<=nFiles   % loop over files
                 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
                 hold on
                 Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-                F.ub(Mask.NodesOut)=nan;
-                F.vb(Mask.NodesOut)=nan;
+                F.ub(~Mask.NodesIn)=nan;
+                F.vb(~Mask.NodesIn)=nan;
                 if nVelCount==0
                     CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
                 else
