@@ -10,7 +10,11 @@ function [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
     Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
     hint,h0int,a1int,a0int,dadhint,lambda_h)
-
+% 
+% if ~Ronly
+%     save uvhNodalLoopSSTREAM.mat
+%     
+% end
 
 
 qx1dx=rhoint.*exx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
@@ -19,13 +23,15 @@ qy1dy=rhoint.*eyy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
 
 qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*h0int;
 qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
+
 % Above, corrected from
 % qx0dx=rhoint.*exx0.*h0int+rhoint.*u0int.*dh0dx+drhodx.*u0int.*hint;
 % qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*hint;
 % on 22/09/2021 and again on 13/03/2022
 
+
 for Inod=1:nod
-    
+
     SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
     funI=fun(Inod) ;
     

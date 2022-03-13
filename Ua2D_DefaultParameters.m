@@ -1882,6 +1882,12 @@ CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
+
+%%
+
+CtrlVar.UseMexFiles=false ; 
+
+
 %% Tracers
 %
 % If required that m-File 'TracerConservationEquation.m' can be used to
