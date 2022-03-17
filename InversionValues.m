@@ -23,6 +23,11 @@ classdef InversionValues
         
         RAGlen=[];
         RC=[];
+
+        RAa=[] ;
+        RAs=[] ;
+        RCa=[] ;
+        RCs=[] ;
         
         dJdp=[];
         dJdC=[];

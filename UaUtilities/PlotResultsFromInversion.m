@@ -826,7 +826,7 @@ else
         xlabel('Inverse iteration','interpreter','latex');
         hold off
         
-        if ~all(isnan(RunInfo.Inverse.R)) && ~all(isnan(RunInfo.Inverse.R))
+        if ~all(isnan(RunInfo.Inverse.R))
             
             fig=FindOrCreateFigure('J=I+R');
             clf(fig)

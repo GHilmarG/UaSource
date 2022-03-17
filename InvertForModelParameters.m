@@ -118,7 +118,7 @@ else
     
 end
 
-
+% Put RAa, RAs, RCa, RCs in InvFinalValues
 InvFinalValues=Vars2InvValues(CtrlVar,F,InvFinalValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
 
 

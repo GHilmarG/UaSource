@@ -1,7 +1,11 @@
 function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
 
 
-RegOuts=[];
+if nargout > 3
+    RegOuts=[];
+    RegOuts.RAs=nan  ; RegOuts.RAa=nan;
+    RegOuts.RCs=nan  ; RegOuts.RCa=nan;
+end
 %%
 
 % Add up field by field
@@ -240,10 +244,20 @@ else  % Tikhonov regularization
     
     if isA
         
+        
+
         NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-        RAGlen=dpA'*NA*dpA/2;
+        %RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
         
+        
+        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
+        RAa= dpA'    *M    *dpA   /(2*Area);
+        RAGlen=gsA.^2*RAs+gaA.^2*RAa; 
+     
+        RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+
+
         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             
             if contains(CtrlVar.Inverse.Hessian,"RHA=E")
@@ -266,9 +280,17 @@ else  % Tikhonov regularization
     if isC
         
         NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-        RC=dpC'*NC*dpC/2;
+        %RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
         
+  
+        RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
+        RCa= dpC'    *M    *dpC   /(2*Area);
+        RC=gsC.^2*RCs+gaC.^2*RCa; 
+        
+
+        RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
+
         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             if contains(CtrlVar.Inverse.Hessian,"RHC=E")
                 
@@ -341,22 +363,23 @@ R=CtrlVar.Inverse.Regularize.Multiplier*R;
 dRdp=CtrlVar.Inverse.Regularize.Multiplier*dRdp;
 ddRdpp=CtrlVar.Inverse.Regularize.Multiplier*ddRdpp;
 
+if nargout > 3
+    RegOuts.R=R;
+    RegOuts.dRdp=dRdp;
+    RegOuts.ddRddp=ddRdpp;
 
-RegOuts.R=R;
-RegOuts.dRdp=dRdp;
-RegOuts.ddRddp=ddRdpp;
 
+    RegOuts.RAGlen=RAGlen;
+    RegOuts.dRdAGlen=dRdAGlen;
 
-RegOuts.RAGlen=RAGlen;
-RegOuts.dRdAGlen=dRdAGlen;
+    RegOuts.RC=RC;
+    RegOuts.dRdC=dRdC;
 
-RegOuts.RC=RC;
-RegOuts.dRdC=dRdC;
+    RegOuts.Rb=Rb;
+    RegOuts.dRdb=dRdb;
 
-RegOuts.Rb=Rb;
-RegOuts.dRdb=dRdb;
-
-RegOuts.RB=RB;
-RegOuts.dRdB=dRdB;
+    RegOuts.RB=RB;
+    RegOuts.dRdB=dRdB;
+end
 
 
