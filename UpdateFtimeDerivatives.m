@@ -26,9 +26,11 @@ F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 
 fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 
+% TestIng
+CtrlVar.LimitRangeInUpdateFtimeDerivatives=1; 
 if CtrlVar.LimitRangeInUpdateFtimeDerivatives
 
-    if  CtrlVar.LevelSetMethod
+    if  CtrlVar.LevelSetMethod || ~isempty(F.LSF)
         % I= (F.h <= 2*CtrlVar.LevelSetMinIceThickness) | (F0.h <= 2*CtrlVar.LevelSetMinIceThickness) ;
         if ~isempty(F.LSF)
             I=F.LSF< 0;

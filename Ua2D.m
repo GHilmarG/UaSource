@@ -633,6 +633,7 @@ while 1
 
 
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+            
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
 
