@@ -24,12 +24,18 @@ if islogical(Variable)
     Variable=double(Variable) ;
 end
 
-if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSFMask)
+if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
-    F.ub(F.LSFMask.NodesOut)=NaN;
-    F.vb(F.LSFMask.NodesOut)=NaN;
+    if isempty(F.LSFMask)
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    end
+
+    F.ub(~F.LSFMask.NodesIn)=NaN;
+    F.vb(~F.LSFMask.NodesIn)=NaN;
 
 end
+
+isModifyColormap=true;
 
 
 
@@ -55,6 +61,18 @@ else
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
 
+        case {"ubvb","-ubvb-"}
+
+            isModifyColormap=false;
+
+%             if ~isempty(F.LSF)
+%                 IC=F.LSF<0;
+%                 F.ub(IC)=nan;
+%                 F.vb(IC)=nan;
+%             end
+%             
+            QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+
         otherwise
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
@@ -73,8 +91,9 @@ if options.PlotCalvingFronts
     PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
 end
 
+if isModifyColormap
 colormap(options.ColorMap); 
-
+end
 
 
 end
