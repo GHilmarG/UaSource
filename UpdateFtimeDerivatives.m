@@ -27,13 +27,15 @@ F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 
 % TestIng
-CtrlVar.LimitRangeInUpdateFtimeDerivatives=1; 
+CtrlVar.LimitRangeInUpdateFtimeDerivatives=0; 
 if CtrlVar.LimitRangeInUpdateFtimeDerivatives
 
     if  CtrlVar.LevelSetMethod || ~isempty(F.LSF)
-        % I= (F.h <= 2*CtrlVar.LevelSetMinIceThickness) | (F0.h <= 2*CtrlVar.LevelSetMinIceThickness) ;
+
         if ~isempty(F.LSF)
-            I=F.LSF< 0;
+
+            I=F.LSF< 0 | (F0.h <= 2*CtrlVar.ThickMin) ; 
+
         end
     else
         I= (F.h <= 2*CtrlVar.ThickMin) | (F0.h <= 2*CtrlVar.ThickMin) ;
@@ -44,12 +46,7 @@ if CtrlVar.LimitRangeInUpdateFtimeDerivatives
     F.duddt(I)=0; F.dvddt(I)=0;
     F.dhdt(I)=0; 
 
-%     % TestIng
-%     F.dubdt=zeros(MUA.Nnodes,1); 
-%     F.dvbdt=zeros(MUA.Nnodes,1);
-%     F.duddt=zeros(MUA.Nnodes,1);
-%     F.dvddt=zeros(MUA.Nnodes,1);
-%     F.dhdt=zeros(MUA.Nnodes,1); 
+
 
     fprintf("After removing values downstream of level set: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 

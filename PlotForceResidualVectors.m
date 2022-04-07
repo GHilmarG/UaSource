@@ -17,7 +17,7 @@ function PlotForceResidualVectors(msg,R,L,lambda,coordinates,CtrlVar)
         % uv-residuals
         
         quiver(x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,R(1:Nnodes),R(Nnodes+1:2*Nnodes))
-        title("Nodal Force residuals (R+L^T \lambda)")
+        title("Nodal-force residuals (R+L^T \lambda)")
         
         % h residuals
         if contains(msg,'h')
