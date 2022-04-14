@@ -1504,6 +1504,14 @@ CtrlVar.LevelSetInfoLevel=1;
 CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
 CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
 
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialisation
+                                                           % the (signed) distance to the calving front to each node is calculated.
+                                                           % For this purpose the calving front, as described either initially by the user
+                                                           % or as calculated as the zero contour of a previous level set, will need to be resampled
+                                                           % sufficiently fine. This is done by using a distance (d) that is given fraction of the smallest 
+                                                           % element size, as d=sqrt(2*min(MUA.EleAreas))/factor,
+                                                           % where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor
+
 % CtrlVar.CalvingLaw="-User Defined-"; 
 % CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
 %% Controlling when and how often mesh is adapted    
