@@ -9,9 +9,24 @@ if ~CtrlVar.LevelSetMethod
     return
 end
 
+nArgs=nargin('DefineCalving');
+
+switch nArgs
+
+    case 5
+
+        [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
+
+    case 7
+
+        [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F.LSF,F.c,F,BCs) ;
 
 
-[UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
+    otherwise
+
+        error('DefineCalving must have either 5 or 7 inputs arguments.')
+
+end
 
 % some input checks
 
