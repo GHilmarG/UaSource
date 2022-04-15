@@ -145,6 +145,19 @@ end
 
 Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ; 
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
+
+if  CtrlVar.LevelSetMethod
+    % Question: would it be better to re-initialize here geometrically, and make sure the calving fronts
+    % are preserved
+    OutsideValue.LSF=NaN;
+    [RunInfo,Fnew.LSF]=...
+        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
+        OutsideValue.LSF,...
+        Fold.LSF) ;
+    Fnew.LSFMask=CalcMeshMask(CtrlVar,MUAnew,Fnew.LSF,0); 
+end
+
+
 [UserVar,Fnew]=GetAGlenDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 [UserVar,Fnew]=GetMassBalance(UserVar,CtrlVar,MUAnew,Fnew);
 
@@ -247,17 +260,8 @@ switch lower(CtrlVar.FlowApproximation)
         error("MapFbetweenMeshes:CaseNotFound","case not found")
 end
 
-% No need to update the calving as it is only needed in a transient run
-% 
-if  CtrlVar.LevelSetMethod
 
-    OutsideValue.LSF=NaN;
-    [RunInfo,Fnew.LSF]=...
-        MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
-        OutsideValue.LSF,...
-        Fold.LSF) ;
-    
-end
+
 
 
 

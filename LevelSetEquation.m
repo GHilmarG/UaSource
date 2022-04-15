@@ -63,9 +63,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
 
     [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
-    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA over which the level-set is evolved
-
-
+    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA (i.e. the MUA here given as an input) 
+                          % over which the level-set is evolved
 
     % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
     % so it would be possibly to figure out how to map the BCs from the old to new.
@@ -86,8 +85,13 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
 
 
     % additonal variables for sliding law evaluation at int point
-    F1.h=F1.h(kk) ;
-    F0.h=F0.h(kk) ;
+    F1.h=F1.h(kk) ;      F0.h=F0.h(kk) ;
+    F1.s=F1.s(kk) ;      F0.s=F0.s(kk) ;
+    F1.b=F1.b(kk) ;      F0.b=F0.b(kk) ;
+    F1.S=F1.S(kk) ;      F0.S=F0.S(kk) ;
+    F1.rho=F1.rho(kk) ;  F0.rho=F0.rho(kk) ;
+
+    % To do, set all other values to empty to make sure they are not updated
 
     if ~isempty(F0.c)
         F0.c=F0.c(kk);
@@ -105,37 +109,47 @@ end
 
 [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 
-% FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
-%
-% Flsf=FindOrCreateFigure("LSF solve LSF ") ; clf(Flsf) ;
-% PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
-% hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ;
-% title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+
 %
 % FBCs=FindOrCreateFigure("BCs LSF") ; clf(FBCs) ;
 % PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
 
 if CtrlVar.LevelSetMethodSolveOnAStrip
-    %     %
-    %     io=LSFcopy < 0 ;
-    %     LSFcopy(io)=-DistNod(io)  ;   % were not evolved, just use the signed distance that has already been calculated
-    %     LSFcopy(kk)=LSF;               % and then update the LSF field where it was evolved
 
-    % new
-    io=isnan(ll);                                 % where I have only the old (before deactivation) nodes,
-    LSFcopy(io)=DistNod(io).*sign(LSFcopy(io)) ;  % over old nodes at save distance from zero-level, fill in using already calculated signed distance
+
+    FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
+
+    Flsf=FindOrCreateFigure("LSF on strip ") ; clf(Flsf) ;
+    PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ;
+    title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+
+
+    LSFcopy(~LSFnodes)=DistNod(~LSFnodes).*sign(LSFcopy(~LSFnodes)) ;  % over old nodes at save distance from zero-level, fill in using already calculated signed distance
     % as these values will never impact the calculation of the zero level
-    LSFcopy(~io)=LSF;                             % over the strip around zero level, use the calculated values based on solving the LSF equation
+
+    %LSFcopy(LSFnodes)=LSF;
+
+    LSFcopy(LSFnodes)=LSF(ll(LSFnodes));
+
+   % LSFcopy(~isnan(ll))=LSF(ll(~isnan(ll)));
+
+
+
+    Flsf=FindOrCreateFigure("LSF on original mesh ") ; clf(Flsf) ;
+    PlotMeshScalarVariable(CtrlVar,MUAonInput,LSFcopy/1000) ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUAonInput,LSFcopy,"r",LineWidth=2 ) ;
+    title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
 
     LSF=LSFcopy;
-
-
-
 
 end
 
 LSFMask=CalcMeshMask(CtrlVar,MUAonInput,LSF,0);  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
-                                                    % unless I use the original MUA
+% unless I use the original MUA
+
+
+
 
 % F1.LSF=LSF;
 % F1.LSFMask=Mask;  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
