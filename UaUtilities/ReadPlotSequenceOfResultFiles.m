@@ -180,6 +180,8 @@ while iFile<=nFiles   % loop over files
                 F.y=MUA.coordinates(:,2);
             end
             
+            
+
         catch
             fprintf('could not load %s \n ',list(iFile).name)
         end
@@ -544,14 +546,17 @@ while iFile<=nFiles   % loop over files
                 
                 hold on
                 PlotMuaMesh(CtrlVar,MUA,[],'w');
-                
+
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
-                
+
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
+
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 axis equal tight
-                
+
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 title(sprintf('Ice thickness at t=%4.2f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 title(cbar,'(m)')
@@ -580,6 +585,9 @@ while iFile<=nFiles   % loop over files
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                                
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 ax = gca;
@@ -615,6 +623,8 @@ while iFile<=nFiles   % loop over files
                 if ~isempty(cbar)
                     title(cbar,'(m/yr)')
                 end
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight ;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 ax = gca;
@@ -648,6 +658,9 @@ while iFile<=nFiles   % loop over files
                 if ~isempty(cbar)
                     title(cbar,'(km)')
                 end
+                                
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight ;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 hold off

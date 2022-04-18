@@ -20,10 +20,12 @@ F.h=F.s-F.b;
 
 
 if CtrlVar.LevelSetMethod % Level Set
-    if isempty(F.LSFMask)  % This should have been calculated at the start of the run
+    if isempty(F.LSFMask)  % This should have been calculated at the start of the run, ToDo,
         F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
     end
-    F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+    if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
+        F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+    end
 end
 
 if CtrlVar.TestForRealValues

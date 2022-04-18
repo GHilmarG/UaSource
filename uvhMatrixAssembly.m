@@ -450,7 +450,7 @@ end
 
 if any(isnan(R))
     save TestSave  ;
-    error(' NaN in R ' ) ;
+    error("uvhMatrixAssembly:NaNinR"," NaN in R " ) ;
 end
 end
 

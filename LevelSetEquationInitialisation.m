@@ -13,7 +13,7 @@ switch lower(CtrlVar.LevelSetInitialisationMethod)
     case {"-geometric-","geometric","-geo-","geo"}
 
         Value=0 ;  [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Value,subdivide=true) ;
-        isPlot=true;
+        isPlot=false;
         CFPD=sqrt(2*min(MUA.EleAreas))/CtrlVar.LevelSetGeometricInitialisationDistanceFactor;
         [~,~,LSF]=...
             CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,F0.LSF,...

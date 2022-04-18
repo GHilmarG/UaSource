@@ -1896,6 +1896,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 %%
 
 CtrlVar.UseMexFiles=false ; 
+CtrlVar.UseMexFilesCPUcompare=false;
 
 
 %% Tracers

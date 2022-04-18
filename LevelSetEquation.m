@@ -63,8 +63,8 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
 
     [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
-    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA (i.e. the MUA here given as an input) 
-                          % over which the level-set is evolved
+    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA (i.e. the MUA here given as an input)
+    % over which the level-set is evolved
 
     % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
     % so it would be possibly to figure out how to map the BCs from the old to new.
@@ -110,54 +110,41 @@ end
 [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 
 
-%
-% FBCs=FindOrCreateFigure("BCs LSF") ; clf(FBCs) ;
-% PlotBoundaryConditions(CtrlVar,MUA,BCs) ;
-
 if CtrlVar.LevelSetMethodSolveOnAStrip
 
 
-    FindOrCreateFigure("LSF solve mesh ") ; PlotMuaMesh(CtrlVar,MUA) ;
-
-    Flsf=FindOrCreateFigure("LSF on strip ") ; clf(Flsf) ;
-    PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
-    hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ;
-    title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+    if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
 
 
-    LSFcopy(~LSFnodes)=DistNod(~LSFnodes).*sign(LSFcopy(~LSFnodes)) ;  % over old nodes at save distance from zero-level, fill in using already calculated signed distance
+        Flsf=FindOrCreateFigure("LSF on strip ") ; clf(Flsf) ;
+        PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
+        hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ;
+        title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+
+    end
+
+
+    LSFcopy(~LSFnodes)=DistNod(~LSFnodes).*sign(LSFcopy(~LSFnodes)) ;  
+    % over old nodes at save distance from zero-level, fill in using already calculated signed distance
     % as these values will never impact the calculation of the zero level
-
-    %LSFcopy(LSFnodes)=LSF;
-
     LSFcopy(LSFnodes)=LSF(ll(LSFnodes));
 
-   % LSFcopy(~isnan(ll))=LSF(ll(~isnan(ll)));
+    % LSFcopy(~isnan(ll))=LSF(ll(~isnan(ll)));
 
 
-
-    Flsf=FindOrCreateFigure("LSF on original mesh ") ; clf(Flsf) ;
-    PlotMeshScalarVariable(CtrlVar,MUAonInput,LSFcopy/1000) ;
-    hold on ; PlotCalvingFronts(CtrlVar,MUAonInput,LSFcopy,"r",LineWidth=2 ) ;
-    title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+    if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
+        Flsf=FindOrCreateFigure("LSF on original mesh ") ; clf(Flsf) ;
+        PlotMeshScalarVariable(CtrlVar,MUAonInput,LSFcopy/1000) ;
+        hold on ; PlotCalvingFronts(CtrlVar,MUAonInput,LSFcopy,"r",LineWidth=2 ) ;
+        title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+    end
 
     LSF=LSFcopy;
 
 end
 
 LSFMask=CalcMeshMask(CtrlVar,MUAonInput,LSF,0);  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
-% unless I use the original MUA
-
-
-
-
-% F1.LSF=LSF;
-% F1.LSFMask=Mask;  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
-% F1.LSFqx=LSFqx;
-% F1.LSFqy=LSFqy;
-% F1.LSFnodes=LSFnodes;
-
-
+                                                 % unless I use the original MUA
 
 end
 

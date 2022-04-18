@@ -249,6 +249,7 @@ if options.plot
     hold on
 
     CtrlVar.PlotNodes=1;
+     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
     plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6,DisplayName="Calving fronts before re-initialisation")
