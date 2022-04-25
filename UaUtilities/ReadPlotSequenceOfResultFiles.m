@@ -239,6 +239,10 @@ while iFile<=nFiles   % loop over files
                     DataCollect.xcMax=zeros(nFiles,1)+NaN;
                     DataCollect.xcMin=zeros(nFiles,1)+NaN;
                     DataCollect.xcMean=zeros(nFiles,1)+NaN;
+
+
+                    DataCollect.xcMaxCenterLine=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMinCenterLine=zeros(nFiles,1)+NaN;
                     
                     
                     
@@ -265,15 +269,29 @@ while iFile<=nFiles   % loop over files
                     DataCollect.qGL(iCount)=sum(qGL);
                 end
                  
-                 
+
                 if isfield(F,"LSF") &&  ~isempty(F.LSF)
                     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
-                    
+
                     DataCollect.xcMax(iCount)=max(xc,[],'omitnan') ;
                     DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
                     DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
+
+
+
+                    FLSF=scatteredInterpolant(F.x,F.y,F.LSF);
+
+                    xProfile=min(x):1000:max(x);
+                    yCentre=40e3+xProfile*0;
+                    LSFProfile=FLSF(xProfile,yCentre);
+                    DataCollect.xcMaxCenterLine(iCount)=max(xProfile(LSFProfile>0)) ;
+                    DataCollect.xcMinCenterLine(iCount)=min(xProfile(LSFProfile<0)) ;
+
+
+
+
                 end
-                
+
                 %%
                 
             case "-hPositive-"
@@ -685,7 +703,7 @@ while iFile<=nFiles   % loop over files
                 F.ub(F.LSFMask.NodesOut)=nan;
                 F.vb(F.LSFMask.NodesOut)=nan;
 
-                fig100=FindOrCreateFigure("6Plots") ;
+                fig100=FindOrCreateFigure("6Plots") ; clf(fig100); 
                 fig100.Position=[1160 68 1389 1284];
                 subplot(6,1,1)
                 PlotMeshScalarVariable(CtrlVar,MUA,F.h); title(sprintf('h at t=%3.1f (yr)',CtrlVar.time))
@@ -722,8 +740,8 @@ while iFile<=nFiles   % loop over files
                 % is has never been evaluated over the nodes, so I simply make a call to the m-File
                 % for nodal values. This will only work if the calving law itself does not depend on the
                 % spatial gradients of the level set function.
-                load("UserVarFile.mat","UserVar") ; % get rid of this later
-                F.c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;
+                % load("UserVarFile.mat","UserVar") ; % get rid of this later
+                % F.c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;
 
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);   title(sprintf('Calving rate c at t=%3.1f  (yr)',CtrlVar.time))
                 hold on

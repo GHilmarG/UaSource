@@ -140,10 +140,10 @@ else
  
     [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,'-s-b-S-B-rho-rhow-g-');
 
-    
+
 end
 
-Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ; 
+Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ;
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 
 if  CtrlVar.LevelSetMethod
@@ -154,7 +154,18 @@ if  CtrlVar.LevelSetMethod
         MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
         OutsideValue.LSF,...
         Fold.LSF) ;
-    Fnew.LSFMask=CalcMeshMask(CtrlVar,MUAnew,Fnew.LSF,0); 
+    Fnew.LSFMask=CalcMeshMask(CtrlVar,MUAnew,Fnew.LSF,0);
+
+    if CtrlVar.CurrentRunStepNumber==1  && ~CtrlVar.Restart
+
+        % Now this is a special initial case right at the beginning of the run
+        % where LSF has been defined ahead of any uv or uvh solutions.
+        % Here set all ice thicknesses strickly downstream of the zero level of the LSF to min.
+        fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
+        Fnew.h(Fnew.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+        [Fnew.b,Fnew.s,Fnew.h,Fnew.GF]=Calc_bs_From_hBS(CtrlVar,MUAnew,Fnew.h,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow);
+
+    end
 end
 
 

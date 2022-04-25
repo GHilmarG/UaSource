@@ -315,6 +315,7 @@ end
 
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
+CtrlVar.time0=CtrlVar.time;
 
 
 
@@ -703,8 +704,8 @@ RunInfo.Message="Calculations done. Creating outputs. ";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 
 if CtrlVar.PlotWaitBar
-    multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
-    multiWaitbar('Time','Value',CtrlVar.time/CtrlVar.TotalTime);
+    multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/(CtrlVar.TotalNumberOfForwardRunSteps-CtrlVar.CurrentRunStepNumber0));
+    multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.time0) /(CtrlVar.TotalTime-CtrlVar.time0));
 end
 
 

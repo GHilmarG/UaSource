@@ -153,7 +153,7 @@ for Iint=1:MUA.nip
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     
     if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);
+        Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
         detJ=MUA.DetJ(:,Iint);
     else
         [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);

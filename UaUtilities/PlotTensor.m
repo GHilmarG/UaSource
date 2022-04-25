@@ -27,6 +27,8 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 %%
 
+
+% figure ; PlotTensor(F.x/1000,F.y/1000,F.exx,F.eyy,F.exy,1) ; axis equal
 if nargin<7 
     LineWidth=1; 
 end

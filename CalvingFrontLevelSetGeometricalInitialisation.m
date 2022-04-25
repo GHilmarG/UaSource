@@ -89,7 +89,7 @@ if nargin > 4 && ~isempty(Xc)
 else
     fprintf("CalvingFrontLevelSetGeometricalInitialisation: Xc and Yc empty on input. \n \t \t \t Xc and Yc calculated as the zero contour lines of LSF.\n")
     Value=0;
-    [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Value,lineup=false,plot=false,subdivide=false) ; 
+    [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Value,lineup=true,plot=false,subdivide=false) ; 
     P1=[Xc(:) Yc(:)] ;
 end
 

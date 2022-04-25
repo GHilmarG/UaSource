@@ -6,7 +6,13 @@ function [UserVar,RunInfo,LSF,LSFMask,LSFnodes,l,LSFqx,LSFqy]=LevelSetEquation(U
 %
 %    df/dt + (u-cx) df/dx + (v-cy) df/dy - div (kappa grad f) = 0
 %
+%%
+
 %
+% Note: Here, F0 and F1 have both been calculated in a uvh solve. 
+%       The F1 contains the solve at time F1.time, which is now the `current time', ie the time at which uvh has been solved
+%       
+%       
 
 narginchk(7,8)
 nargoutchk(8,8)
@@ -81,8 +87,6 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     F1.LSF=F1.LSF(kk) ;
     F1.ub=F1.ub(kk);
     F1.vb=F1.vb(kk);
-
-
 
     % additonal variables for sliding law evaluation at int point
     F1.h=F1.h(kk) ;      F0.h=F0.h(kk) ;
