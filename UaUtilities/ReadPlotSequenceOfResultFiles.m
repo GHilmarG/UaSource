@@ -75,6 +75,7 @@ addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,allowedPlot
 addParameter(IP,"PlotScreenPosition",NaN,@isnumeric);
 addParameter(IP,"PlotTimeInterval",[0 1e10],@isnumeric);
 addParameter(IP,"PlotTimestep",1,@isnumeric);
+addParameter(IP,"isCenterlineProfile",false,@logical);
 
 addParameter(IP,"DataToBeCollected","",@isstring);
 
@@ -90,6 +91,7 @@ PlotScreenPosition=IP.Results.PlotScreenPosition;
 PlotTimeInterval=IP.Results.PlotTimeInterval;
 PlotTimestep=IP.Results.PlotTimestep;
 DataToBeCollected=IP.Results.DataToBeCollected; 
+isCenterlineProfile=IP.Results.isCenterlineProfile; 
 %%
 
 if PlotType=="-collect-" && DataToBeCollected==""  %
@@ -263,35 +265,37 @@ while iFile<=nFiles   % loop over files
                 DataCollect.IceVolume(iCount)=IceVolume.Total;
                 
                 DataCollect.Lx(iCount)=max(F.x(F.h>10)) ;
-                
+
                 if contains(DataToBeCollected,"-GL Flux-")
                     [qGL,qGLx,qGLy,~,~,~,~,~,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,F.GF,F.ub,F.vb,F.ud,F.vd,F.h,F.rho) ;
                     DataCollect.qGL(iCount)=sum(qGL);
                 end
-                 
-
-                if isfield(F,"LSF") &&  ~isempty(F.LSF)
-                    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
-
-                    DataCollect.xcMax(iCount)=max(xc,[],'omitnan') ;
-                    DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
-                    DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
 
 
+                if isCenterlineProfile
+                    if isfield(F,"LSF") &&  ~isempty(F.LSF)
 
-                    FLSF=scatteredInterpolant(F.x,F.y,F.LSF);
+                        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
 
-                    xProfile=min(x):1000:max(x);
-                    yCentre=40e3+xProfile*0;
-                    LSFProfile=FLSF(xProfile,yCentre);
-                    DataCollect.xcMaxCenterLine(iCount)=max(xProfile(LSFProfile>0)) ;
-                    DataCollect.xcMinCenterLine(iCount)=min(xProfile(LSFProfile<0)) ;
+                        DataCollect.xcMax(iCount)=max(xc,[],'omitnan') ;
+                        DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
+                        DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
 
 
 
+                        FLSF=scatteredInterpolant(F.x,F.y,F.LSF);
 
+                        xProfile=min(x):1000:max(x);
+                        yCentre=40e3+xProfile*0;
+                        LSFProfile=FLSF(xProfile,yCentre);
+                        DataCollect.xcMaxCenterLine(iCount)=max(xProfile(LSFProfile>0)) ;
+                        DataCollect.xcMinCenterLine(iCount)=min(xProfile(LSFProfile<0)) ;
+
+
+
+
+                    end
                 end
-
                 %%
                 
             case "-hPositive-"

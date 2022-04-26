@@ -18,8 +18,15 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 % GF is only needed to calculate grounded area.
 %
 %
-% To calculate a rough estimate of resulting change in mean sea level, divide the change
-% in VAF with the area of the ocean (3.625e14 m^2).
+% To calculate a rough estimate of resulting change in mean sea level, divide the change in VAF with the area of the ocean
+% (3.625e14 m^2). Since 1Gt is = 1e9 m^3 water equivialent the conversion between sea-level change and ice loss is about
+%
+%     0.001/362  (m/Gt)
+%
+% so about 1 mm sea level change for every 362 Gt water added.  This is the sea level potential per Gt water. 
+% 
+% This calculation does not account for other effecs such as
+% ocean salinity changes, but these are only expected to change the value by a few %.
 %
 %
 %   VAF       :  Volume above flotation
