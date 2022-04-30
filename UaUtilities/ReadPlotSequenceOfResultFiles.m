@@ -281,18 +281,26 @@ while iFile<=nFiles   % loop over files
                         DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
                         DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
 
-
-
                         FLSF=scatteredInterpolant(F.x,F.y,F.LSF);
 
                         xProfile=min(x):1000:max(x);
                         yCentre=40e3+xProfile*0;
                         LSFProfile=FLSF(xProfile,yCentre);
-                        DataCollect.xcMaxCenterLine(iCount)=max(xProfile(LSFProfile>0)) ;
-                        DataCollect.xcMinCenterLine(iCount)=min(xProfile(LSFProfile<0)) ;
 
+                        tmax=max(xProfile(LSFProfile>0)) ;
+                        tmin=min(xProfile(LSFProfile<0)) ;
 
-
+                        if ~isempty(tmax)
+                            DataCollect.xcMaxCenterLine(iCount)=tmax;
+                        else
+                            DataCollect.xcMaxCenterLine(iCount)=nan;
+                        end
+                        
+                        if ~isempty(tmin)
+                            DataCollect.xcMinCenterLine(iCount)=tmin;
+                        else
+                            DataCollect.xcMinCenterLine(iCount)=nan;
+                        end
 
                     end
                 end

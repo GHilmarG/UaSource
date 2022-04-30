@@ -1104,12 +1104,26 @@ CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable)
 CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
 CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
-% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
+%
+% To suppress the generation of a mesh file set to empty, ie 
+% 
+%   CtrlVar.SaveInitialMeshFileName=[];
+%
+% To generate a new mesh file from, for example a result file or a restart file,  load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+
+
+CtrlVar.OnlyMeshDomainAndThenStop=0; % If true then only an initial global meshing is done and no further calculations.
+                                     % Useful for checking if initial mesh is reasonable.
+                                     % Note: This causes an exit ahead of any adapt meshing.
+
+
+CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no further calculations performed
+                                     % This will do an initial uniform global meshing (where the mesh size is based on 
+                                     % CtrlVar.MeshSize, CtrlVar.MeshSizeMax and CtrlVar.MeshSizeMin) and then do adaptive meshing as well.
+                                     %
 
 %% Selecting the external mesh generator
 %
