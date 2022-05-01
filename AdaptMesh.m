@@ -345,9 +345,6 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     OutsideValue.ub=0;
     OutsideValue.vb=0;
 
-
-
-
     % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
     
@@ -376,6 +373,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     xGL=[] ; yGL=[]; GLgeo=[];
     PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
     hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
+    PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     title(sprintf('Before remeshing \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
     axis tight
     
@@ -386,6 +384,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
     title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
     hold on ;  [xGL,yGL]=PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
+    PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     axis tight
 
      sgtitle(sprintf('Adapt meshing at runstep %-i and time %f',CtrlVar.CurrentRunStepNumber,CtrlVar.time))
@@ -429,8 +428,8 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 % It the mesh changed but all now nodes are interior nodes, do not recalculate uv.
 isRecalculateVelocities=(isNewOutsideNodes  ...
     || CtrlVar.InitialDiagnosticStepAfterRemeshing ...
-    || ~isMeshingLocalWithoutSmoothing) ...
-    && ~CtrlVar.LevelSetMethod ; 
+    || ~isMeshingLocalWithoutSmoothing);
+    
 
 if ~CtrlVar.AdaptMeshAndThenStop
     if isRecalculateVelocities

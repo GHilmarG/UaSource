@@ -62,15 +62,16 @@ if numel(F.c)==1
     F.c=F.c+zeros(MUA.Nnodes,1);
 end
 
-
-if numel(F.LSF)==1
-    F.LSF=F.LSF+zeros(MUA.Nnodes,1);
+if CtrlVar.LevelSetEvolution=="-prescribed-"
+    F.c=nan;
 end
 
 
-
-if CtrlVar.LevelSetEvolution=="-prescribed-"
-    F.c=nan;
+if numel(F.LSF)==1
+    F.LSF=F.LSF+zeros(MUA.Nnodes,1);
+    F.LSFMask=[];
+else
+    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
 end
 
 
