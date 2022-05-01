@@ -99,7 +99,13 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 if CtrlVar.MapOldToNew.Test
     FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
     semilogy(1:30,JVector,'-or')
-  
+    xlabel("iterations",Interpreter="latex")
+    ylabel("Cost function, $J$",Interpreter="latex")
+    title("Calculating $b$ and $h$ from $s$, $S$, and $B$",Interpreter="latex")
+    title(sprintf("Calculating $b$ and $h$ from $s$, $S$, and $B$ by minimizing \n $J=\\int (b-\\mathcal{G}B - (1-\\mathcal{G}) (\\rho s -\\rho_o S/(\\rho-\\rho_o))\\, \\mathrm{d}x \\, \\mathrm{d}y$\n with respect to $b$ "),Interpreter="latex")
+
+    % f=gcf ; exportgraphics(f,'Calc_bh_from_sBS_Example.pdf')
+
 end
 
 

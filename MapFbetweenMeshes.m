@@ -63,12 +63,19 @@ if CtrlVar.TimeDependentRun
         end
 
     else  % this is time-dependent and not start of a new run
-        % here s and b must be interpolated and LSF if using the level-set method
-
-        %
+          % here s and b must be interpolated and LSF if using the level-set method
 
 
         switch CtrlVar.MapOldToNew.Transient.Geometry
+            
+            % This is the default approach in a transient simulation.  Here only s is interpolated onto the new mesh. B and S are then
+            % later obtained through a call to GetGeometryAndDensities and in that call, b and h are calculated from s, S and B.
+            %
+            % This approach does not conserve h!
+            %
+            % This is done quite deliberately because the surface s is genearly very smooth, whereas b and h are not. If, for example,
+            % the new mesh has grounded nodes located over a local topographic feature in the bed, and h was interpolated from old to new
+            % mesh, the new bedrock topographic feature would impact the surface s=B+h and produce unrealistic surface topography.
 
             case "bh-FROM-sBS"
 
@@ -81,9 +88,6 @@ if CtrlVar.TimeDependentRun
                 end
 
                 [RunInfo,Fnew.s]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue.s,Fold.s);
-
-                %TestIng
-                [Fnew.b,Fnew.h,Fnew.GF]=Calc_bh_From_sBS(CtrlVar,MUA,Fnew.s,Fnew.B,Fnew.S,Fnew.rho,Fnew.rhow);
 
 
             case "bs-FROM-hBS"
@@ -107,7 +111,7 @@ if CtrlVar.TimeDependentRun
 
 
         CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
-
+        % Here within GetGeometryAndDensities, here b and h are calculated from s, S and B 
         [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
 
 
