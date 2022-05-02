@@ -56,11 +56,6 @@ MUA.connectivity(ElementsToBeDeactivated,:)=[];
 MUA.connectivity=reshape(ic,size(MUA.connectivity));
 MUA.coordinates=MUA.coordinates(k,:);
 
-% What nodes were eliminated
-
-
-
-
 
 % K is the subset of nodes that I keep.
 %

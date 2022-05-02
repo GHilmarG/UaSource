@@ -151,6 +151,10 @@ if ~isfield(CtrlVar,'PlotIndividualGLs') ; CtrlVar.PlotIndividualGLs=0 ; end
 if ~isfield(CtrlVar,'LineUpGLs') ; CtrlVar.LineUpGLs=1; end
 
 
+ if CtrlVar.PlotGLs  % if plotting, alwasy line up grounding lines
+     CtrlVar.LineUpGLs
+ end
+
 if nargin<4 || isempty(GLgeo)
 
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);

@@ -84,16 +84,29 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     F0.ub=F0.ub(kk);
     F0.vb=F0.vb(kk);
 
+    F0.LSFMask.NodesIn=F0.LSFMask.NodesIn(kk);
+    F0.LSFMask.NodesOn=F0.LSFMask.NodesOn(kk);
+    F0.LSFMask.NodesOut=F0.LSFMask.NodesOut(kk);
+
     F1.LSF=F1.LSF(kk) ;
     F1.ub=F1.ub(kk);
     F1.vb=F1.vb(kk);
 
     % additonal variables for sliding law evaluation at int point
+    F1.x=F1.x(kk) ;      F0.x=F0.x(kk) ;
+    F1.y=F1.y(kk) ;      F0.y=F0.y(kk) ;
     F1.h=F1.h(kk) ;      F0.h=F0.h(kk) ;
     F1.s=F1.s(kk) ;      F0.s=F0.s(kk) ;
     F1.b=F1.b(kk) ;      F0.b=F0.b(kk) ;
     F1.S=F1.S(kk) ;      F0.S=F0.S(kk) ;
-    F1.rho=F1.rho(kk) ;  F0.rho=F0.rho(kk) ;
+    F1.B=F1.B(kk) ;      F0.B=F0.B(kk) ;
+
+    F1.C=F1.C(kk) ;      F0.C=F0.C(kk) ;
+    F1.AGlen=F1.AGlen(kk) ;      F0.AGlen=F0.AGlen(kk) ;
+    F1.GF.node=F1.GF.node(kk) ;      F0.GF.node=F0.GF.node(kk) ;
+
+
+
 
     % To do, set all other values to empty to make sure they are not updated
 
@@ -105,11 +118,49 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
         F1.c=F1.c(kk);
     end
 
+
+
     % How to update BCs? I need to have a mapping from old-to-new nodal numbers
+
 else
     LSFnodes=[] ;
 end
 
+
+%% TestIng: Calculating  various potential calving-law related quantities ahead of a call to the level-set equation sovler
+if CtrlVar.LevelSetMethodTest 
+
+    [F0.exx,F0.eyy,F0.exy]=CalcNodalStrainRates(CtrlVar,MUA,F0.ub,F0.vb);
+    [F1.exx,F1.eyy,F1.exy]=CalcNodalStrainRates(CtrlVar,MUA,F1.ub,F1.vb);
+
+    PSR=CalcPrincipalValuesOfSymmerticalTwoByTwoMatrices(F0.exx,F0.exy,F0.eyy); % Principal Strain Rates
+    I1=PSR(:,1)<0 ;  PSR(I1,1)=0;
+    I2=PSR(:,2)<0 ;  PSR(I2,2)=0;
+
+    K=1;
+    cEigenCalving=K*PSR(:,1).*PSR(:,2);
+
+
+    PSR(F0.LSFMask.NodesOut,:)=NaN;
+    FindOrCreateFigure("P1") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,1)) ;
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
+    FindOrCreateFigure("P2") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,2)) ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
+
+
+    FindOrCreateFigure("Eigen Calving") ; PlotMeshScalarVariable(CtrlVar,MUA,cEigenCalving) ;
+
+    scale=1 ; FindOrCreateFigure("strain rates F0"); PlotTensor(F0.x/1000,F0.y/1000,F0.exx,F0.exy,F0.eyy,scale) ;  axis equal
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+    scale=1 ; FindOrCreateFigure("strain rates F1"); PlotTensor(F1.x/1000,F1.y/1000,F1.exx,F1.exy,F1.eyy,scale) ;  axis equal
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+end
+
+%%
 
 [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 

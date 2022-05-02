@@ -650,7 +650,6 @@ while 1
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
             [UserVar,RunInfo,F.LSF,F.LSFMask,F.LSFnodes,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
-           % F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);  % need this for the implicit mass-balance feedback
         end
     end   % CtrlVar.TimeDependentRun
     

@@ -90,6 +90,10 @@ classdef UaFields
         c=[] ; % calving rate
         LSFqx=[] ;
         LSFqy=[] ; 
+
+        exx=[];
+        eyy=[];
+        exy=[];
         
     end
     

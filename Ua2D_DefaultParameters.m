@@ -1460,6 +1460,8 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 CtrlVar.LevelSetMethod=0; 
 
+CtrlVar.LevelSetMethodTest=0;  %  
+
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
 CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
