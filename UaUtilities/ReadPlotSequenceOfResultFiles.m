@@ -74,7 +74,7 @@ addParameter(IP,"N",7,@isnumeric);
 addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,allowedPlotTypes)));
 addParameter(IP,"PlotScreenPosition",NaN,@isnumeric);
 addParameter(IP,"PlotTimeInterval",[0 1e10],@isnumeric);
-addParameter(IP,"PlotTimestep",1,@isnumeric);
+addParameter(IP,"PlotTimestep",0,@isnumeric);                    %  0 time step gives plots at all available times
 addParameter(IP,"isCenterlineProfile",false,@logical);
 
 addParameter(IP,"DataToBeCollected","",@isstring);
@@ -165,7 +165,8 @@ while iFile<=nFiles   % loop over files
     
     time=str2double(list(iFile).name(1:N))/100;  % get the model time, assuming that the first N letters of filename are the model time*100
     %time=str2double(list(iFile).name(1:4));
-    if mod(time,PlotTimestep)==0 && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specifed
+    if ( mod(time,PlotTimestep)==0  || mod(time,PlotTimestep)==time  ) ...
+        && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specified
         
         try   % go back into subdirectory containing result files and load one result file
             
@@ -813,7 +814,7 @@ while iFile<=nFiles   % loop over files
                 CtrlVar.QuiverColorSpeedLimits=[100 50000];
                 CtrlVar.QuiverColorPowRange=4;
 
-                CtrlVar.QuiverColorSpeedLimits=[100 1000];  % jsut for Thule
+                CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
                 CtrlVar.RelativeVelArrowSize=1;
                 CtrlVar.QuiverColorPowRange=3;
 
