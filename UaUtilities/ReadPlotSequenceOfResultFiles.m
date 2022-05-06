@@ -165,7 +165,7 @@ while iFile<=nFiles   % loop over files
     
     time=str2double(list(iFile).name(1:N))/100;  % get the model time, assuming that the first N letters of filename are the model time*100
     %time=str2double(list(iFile).name(1:4));
-    if ( mod(time,PlotTimestep)==0 || PlotTimestep==0 || isnan(PlotTimeInterval) ) ...  % plot at PlotTimestep intervals, unless PlotTimestep=0 or nan, then always collect/plot
+    if ( mod(time,PlotTimestep)==0 || PlotTimestep==0 || isnan(PlotTimestep) ) ...  % plot at PlotTimestep intervals, unless PlotTimestep=0 or nan, then always collect/plot
        && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specified
         
         try   % go back into subdirectory containing result files and load one result file
