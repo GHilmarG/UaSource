@@ -91,10 +91,7 @@ classdef UaFields
         LSFqx=[] ;
         LSFqy=[] ; 
 
-        exx=[];
-        eyy=[];
-        exy=[];
-        
+      
     end
     
 end

@@ -130,10 +130,10 @@ end
 %% TestIng: Calculating  various potential calving-law related quantities ahead of a call to the level-set equation sovler
 if CtrlVar.LevelSetMethodTest 
 
-    [F0.exx,F0.eyy,F0.exy]=CalcNodalStrainRates(CtrlVar,MUA,F0.ub,F0.vb);
-    [F1.exx,F1.eyy,F1.exy]=CalcNodalStrainRates(CtrlVar,MUA,F1.ub,F1.vb);
+    [F0.exx,F0.eyy,F0.exy]=CalcNodalStrainRates(MUA,F0.ub,F0.vb);
+    [F1.exx,F1.eyy,F1.exy]=CalcNodalStrainRates(MUA,F1.ub,F1.vb);
 
-    PSR=CalcPrincipalValuesOfSymmerticalTwoByTwoMatrices(F0.exx,F0.exy,F0.eyy); % Principal Strain Rates
+    PSR=CalcPrincipalValuesOfSymmetricalTwoByTwoMatrices(F0.exx,F0.exy,F0.eyy); % Principal Strain Rates
     I1=PSR(:,1)<0 ;  PSR(I1,1)=0;
     I2=PSR(:,2)<0 ;  PSR(I2,2)=0;
 
@@ -158,6 +158,7 @@ if CtrlVar.LevelSetMethodTest
     hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
     scale=1 ; FindOrCreateFigure("strain rates F1"); PlotTensor(F1.x/1000,F1.y/1000,F1.exx,F1.exy,F1.eyy,scale) ;  axis equal
     hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
 end
 
 %%
