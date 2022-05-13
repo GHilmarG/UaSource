@@ -1461,7 +1461,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
 
-CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Downstream of the calving fronts, AGlen is automatically set to this value
+CtrlVar.LevelSetDownstreamAGlen=AGlenVersusTemp(0);  % Downstream of the calving fronts, AGlen is automatically set to this value
                                                         % over any remaining ice. This value has physical dimentions.
                                                         
 
