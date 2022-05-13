@@ -50,6 +50,7 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %%
 
 
+
 if isempty(CtrlVar)
     CtrlVar.PlotLabels=0;
     CtrlVar.MeshColor='k';
@@ -97,5 +98,12 @@ if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
     hold on
     PlotGmshGeometryDefinition(CtrlVar);
 end
+
+
+[Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
+
+
+title(sprintf("Ele=%i Nodes=%i nod=%i \n (max/mean,median,min)=(%6.1f/%6.1f/%6.1f/%6.1f) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+
 
 end

@@ -56,6 +56,7 @@ narginchk(3,6)
 nargoutchk(1,4)
 
 if isempty(NodalField)
+    Mask=[]; 
     return
 end
 

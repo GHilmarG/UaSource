@@ -26,11 +26,11 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 %  l gives the mapping between old and new nodes numbers, that is:
 %
-%        j=l(i) 
+%        i=l(j) 
 %
-% gives the new node number j for the old node number i.
+% gives the new node number i for the old node number j.
 %
-%   l(i) is nan where there is no node in the new mesh corresponding to the old node i, ie for all deleted nodes.
+%   l(j) is nan where there is no node in the new mesh corresponding to the old node j, ie for all deleted nodes.
 %
 % To get a list of deleted old node numbers use:
 %
@@ -55,11 +55,6 @@ MUA.connectivity(ElementsToBeDeactivated,:)=[];
 [k,~,ic]=unique(MUA.connectivity(:));
 MUA.connectivity=reshape(ic,size(MUA.connectivity));
 MUA.coordinates=MUA.coordinates(k,:);
-
-% What nodes were eliminated
-
-
-
 
 
 % K is the subset of nodes that I keep.

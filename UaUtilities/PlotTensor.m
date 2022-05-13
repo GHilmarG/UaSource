@@ -27,6 +27,8 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 %%
 
+
+% figure ; PlotTensor(F.x/1000,F.y/1000,F.exx,F.eyy,F.exy,1) ; axis equal
 if nargin<7 
     LineWidth=1; 
 end
@@ -42,6 +44,7 @@ for k=1:length(x)
         D=[txx(k) txy(k) ; txy(k) tyy(k)];
         [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
         
+        % pStrains : Principla strains
         
         p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
         p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;

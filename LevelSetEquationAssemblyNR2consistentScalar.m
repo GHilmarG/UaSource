@@ -37,8 +37,9 @@ else
 end
 
 
-f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);  % this is the level set function
+f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);  % this is the level set function
 
 u0nod=reshape(u0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
@@ -46,8 +47,8 @@ v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 v1nod=reshape(v1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 
- coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
- cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
+coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
+cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
 
 
 if  ~contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
@@ -62,6 +63,8 @@ h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+rhonod=reshape(F0.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 
@@ -112,22 +115,40 @@ for Iint=1:MUA.nip  %Integration points
     h0int=h0nod*fun;
     s1int=s1nod*fun;
     s0int=s0nod*fun;
+    rhoint=rhonod*fun;
     
     % derivatives at one integration point for all elements
     df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
     df1dx=zeros(MUA.Nele,1); df1dy=zeros(MUA.Nele,1);
     dqx0dx=zeros(MUA.Nele,1); dqy0dy=zeros(MUA.Nele,1);
     dqx1dx=zeros(MUA.Nele,1); dqy1dy=zeros(MUA.Nele,1);
-    
+
+    exx1=zeros(MUA.Nele,1);
+    eyy1=zeros(MUA.Nele,1);
+    exy1=zeros(MUA.Nele,1);
+    exx0=zeros(MUA.Nele,1);
+    eyy0=zeros(MUA.Nele,1);
+    exy0=zeros(MUA.Nele,1);
+
     for Inod=1:MUA.nod
-        
-        
+
+
         df0dx=df0dx+Deriv(:,1,Inod).*f0nod(:,Inod);
         df0dy=df0dy+Deriv(:,2,Inod).*f0nod(:,Inod);
-        
+
         df1dx=df1dx+Deriv(:,1,Inod).*f1nod(:,Inod);
         df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
-        
+
+        exx1=exx1+Deriv(:,1,Inod).*u1nod(:,Inod);
+        eyy1=eyy1+Deriv(:,2,Inod).*v1nod(:,Inod);
+        exy1=exy1+0.5*(Deriv(:,1,Inod).*v1nod(:,Inod) + Deriv(:,2,Inod).*u1nod(:,Inod));
+       
+
+        exx0=exx0+Deriv(:,1,Inod).*u0nod(:,Inod);
+        eyy0=eyy0+Deriv(:,2,Inod).*v0nod(:,Inod);
+        exy0=exy0+0.5*(Deriv(:,1,Inod).*v0nod(:,Inod) + Deriv(:,2,Inod).*u0nod(:,Inod));
+
+
     end
 
     if isC  % consistent formulation 
@@ -157,10 +178,52 @@ for Iint=1:MUA.nip  %Integration points
 
 
 
-  
+
     if  contains(CtrlVar.CalvingLaw.Evaluation,"-int-")
-        [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int,F1.S(1),xint,yint) ;
-        c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int,F0.S(1),xint,yint) ;
+
+
+
+        nArgs=nargin('DefineCalvingAtIntegrationPoints');
+
+        if nArgs==5
+
+            F1int.ub=u1int;
+            F1int.vb=v1int;
+            F1int.h=h1int;
+            F1int.s=s1int;
+            F1int.rho=rhoint;
+            F1int.exx=exx1;
+            F1int.eyy=eyy1;
+            F1int.exy=exy1;
+            F1int.x=xint;
+            F1int.y=yint;
+            F1int.S=F1.S(1);
+            F1int.rhow=F1.rhow;
+
+            F0int.ub=u0int;
+            F0int.vb=v0int;
+            F0int.h=h0int;
+            F0int.s=s0int;
+            F0int.rho=rhoint;
+            F0int.exx=exx0;
+            F0int.eyy=eyy0;
+            F0int.exy=exy0;
+            F0int.x=xint;
+            F0int.y=yint;
+            F0int.S=F0.S(1);
+            F0int.rhow=F0.rhow;
+
+
+            [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,F1int) ;
+            [c0int]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,F0int) ;
+
+        else
+
+            [c1int,dcDdfdx1,dcDdfdy1]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df1dx,df1dy,u1int,v1int,h1int,s1int,F1.S(1),xint,yint) ;
+            c0int=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,df0dx,df0dy,u0int,v0int,h0int,s0int,F0.S(1),xint,yint) ;
+
+        end
+
     else
         c0int=c0nod*fun;
         c1int=c1nod*fun;

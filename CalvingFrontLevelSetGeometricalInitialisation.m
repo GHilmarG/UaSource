@@ -89,7 +89,7 @@ if nargin > 4 && ~isempty(Xc)
 else
     fprintf("CalvingFrontLevelSetGeometricalInitialisation: Xc and Yc empty on input. \n \t \t \t Xc and Yc calculated as the zero contour lines of LSF.\n")
     Value=0;
-    [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Value,lineup=false,plot=false,subdivide=false) ; 
+    [Xc,Yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,LSF,Value,lineup=true,plot=false,subdivide=false) ; 
     P1=[Xc(:) Yc(:)] ;
 end
 
@@ -249,6 +249,7 @@ if options.plot
     hold on
 
     CtrlVar.PlotNodes=1;
+     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA,[],"w");
     %tt=axis;
     plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6,DisplayName="Calving fronts before re-initialisation")

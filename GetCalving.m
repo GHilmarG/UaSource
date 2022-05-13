@@ -9,9 +9,24 @@ if ~CtrlVar.LevelSetMethod
     return
 end
 
+nArgs=nargin('DefineCalving');
+
+switch nArgs
+
+    case 5
+
+        [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
+
+    case 7
+
+        [UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F.LSF,F.c,F,BCs) ;
 
 
-[UserVar,F.LSF,F.c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs) ;
+    otherwise
+
+        error('DefineCalving must have either 5 or 7 inputs arguments.')
+
+end
 
 % some input checks
 
@@ -47,15 +62,16 @@ if numel(F.c)==1
     F.c=F.c+zeros(MUA.Nnodes,1);
 end
 
-
-if numel(F.LSF)==1
-    F.LSF=F.LSF+zeros(MUA.Nnodes,1);
+if CtrlVar.LevelSetEvolution=="-prescribed-"
+    F.c=nan;
 end
 
 
-
-if CtrlVar.LevelSetEvolution=="-prescribed-"
-    F.c=nan;
+if numel(F.LSF)==1
+    F.LSF=F.LSF+zeros(MUA.Nnodes,1);
+    F.LSFMask=[];
+else
+    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
 end
 
 

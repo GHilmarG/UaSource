@@ -9,9 +9,6 @@ nargoutchk(1,3)
 %
 % *Calculates b and h from s, B, S and rho and rhow.*
 %
-% GF and b0 are optional.
-%
-% GF and b0 are initial guesses for GF and b.
 %
 % Sets 
 %
@@ -34,7 +31,6 @@ nargoutchk(1,3)
 % required.
 %
 %
-% GF and b0   : (optional) initial guess for GF and b0
 %
 % MUA         : also optional and not currently used.
 %
@@ -45,7 +41,7 @@ nargoutchk(1,3)
 %
 %%
 
-% get a rough and a reasonable initial estimate for b if none is provided
+% get a rough and a reasonable initial estimate for b
 % The lower surface b is 
 %
 %
@@ -64,10 +60,10 @@ b=b0;
 h=s-b;
 
 % iteration
-ItMax=30 ; tol=100*eps ;  J=Inf ; I=0 ;
+ItMax=30 ; tol=1000*eps ;  J=Inf ; I=0 ;
 JVector=zeros(ItMax,1)+NaN ;
 
-while I< ItMax && J > tol
+while I < ItMax && J > tol
     I=I+1;
     
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
@@ -90,16 +86,26 @@ while I< ItMax && J > tol
     end
     
     JVector(I)=J ;
+
+    if J< tol
+        break
+    end
     
 end
+
 
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
 if CtrlVar.MapOldToNew.Test
     FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
-    semilogy([1:30],JVector,'-or')
-    
-  
+    semilogy(1:30,JVector,'-or')
+    xlabel("iterations",Interpreter="latex")
+    ylabel("Cost function, $J$",Interpreter="latex")
+    title("Calculating $b$ and $h$ from $s$, $S$, and $B$",Interpreter="latex")
+    title(sprintf("Calculating $b$ and $h$ from $s$, $S$, and $B$ by minimizing \n $J=\\int (b-\\mathcal{G}B - (1-\\mathcal{G}) (\\rho s -\\rho_o S/(\\rho-\\rho_o))\\, \\mathrm{d}x \\, \\mathrm{d}y$\n with respect to $b$ "),Interpreter="latex")
+
+    % f=gcf ; exportgraphics(f,'Calc_bh_from_sBS_Example.pdf')
+
 end
 
 
@@ -110,6 +116,8 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % my experience always faster if it converges (fminunc is very reluctant to take
     % large steps, and apparantly does not take a full NR step...?!)
     
+    warning("Calc_bh_From_SBS:NoConvergence","Calc_bh_from_sBS did not converge! \n")
+
     options = optimoptions('fminunc','Algorithm','trust-region',...
         'SpecifyObjectiveGradient',true,'HessianFcn','objective',...
         'SubproblemAlgorithm','factorization','StepTolerance',1e-10,...

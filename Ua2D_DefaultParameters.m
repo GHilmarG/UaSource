@@ -1104,12 +1104,26 @@ CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable)
 CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
 CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
-% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
+%
+% To suppress the generation of a mesh file set to empty, ie 
+% 
+%   CtrlVar.SaveInitialMeshFileName=[];
+%
+% To generate a new mesh file from, for example a result file or a restart file,  load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+
+
+CtrlVar.OnlyMeshDomainAndThenStop=0; % If true then only an initial global meshing is done and no further calculations.
+                                     % Useful for checking if initial mesh is reasonable.
+                                     % Note: This causes an exit ahead of any adapt meshing.
+
+
+CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no further calculations performed
+                                     % This will do an initial uniform global meshing (where the mesh size is based on 
+                                     % CtrlVar.MeshSize, CtrlVar.MeshSizeMax and CtrlVar.MeshSizeMin) and then do adaptive meshing as well.
+                                     %
 
 %% Selecting the external mesh generator
 %
@@ -1446,6 +1460,8 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 CtrlVar.LevelSetMethod=0; 
 
+CtrlVar.LevelSetMethodTest=0;  %  
+
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
 CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
@@ -1460,10 +1476,12 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
-
-CtrlVar.LevelSetDownstreamAGlen=AGlenVersusTemp(0);  % Downstream of the calving fronts, AGlen is automatically set to this value
-                                                        % over any remaining ice. This value has physical dimentions.
-                                                        
+                                                       
+% Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
+CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified
+% CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Here AGlen will be set to this numerical value downstream of all
+                                                          % calving fronts. This will be done automatically and replaces 
+                                                          % any values defined by the user in DefineAGlen.,
 
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
@@ -1503,6 +1521,14 @@ CtrlVar.LevelSetInfoLevel=1;
 
 CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
 CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
+
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialisation
+                                                           % the (signed) distance to the calving front to each node is calculated.
+                                                           % For this purpose the calving front, as described either initially by the user
+                                                           % or as calculated as the zero contour of a previous level set, will need to be resampled
+                                                           % sufficiently fine. This is done by using a distance (d) that is given fraction of the smallest 
+                                                           % element size, as d=sqrt(2*min(MUA.EleAreas))/factor,
+                                                           % where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor
 
 % CtrlVar.CalvingLaw="-User Defined-"; 
 % CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
@@ -1886,6 +1912,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 %%
 
 CtrlVar.UseMexFiles=false ; 
+CtrlVar.UseMexFilesCPUcompare=false;
 
 
 %% Tracers
@@ -1957,13 +1984,16 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 
-%% Internal variables 
+%% Internal variables and  temporary testing parameters
 %%
 CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
 end
 
 

@@ -26,32 +26,66 @@ F.dvddt=(F.vd-F0.vd)/CtrlVar.dt;
 
 fprintf("\n     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
 
-% TestIng
-CtrlVar.LimitRangeInUpdateFtimeDerivatives=0; 
-if CtrlVar.LimitRangeInUpdateFtimeDerivatives
 
-    if  CtrlVar.LevelSetMethod || ~isempty(F.LSF)
 
-        if ~isempty(F.LSF)
+if CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero
 
-            I=F.LSF< 0 | (F0.h <= 2*CtrlVar.ThickMin) ; 
+    F.dubdt=F.dubdt*0;
+    F.dvbdt=F.dvbdt*0;
+    F.duddt=F.duddt*0;
+    F.dvddt=F.dvddt*0;
+    F.dhdt=F.dhdt*0;
+
+
+    fprintf("CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=%i \n",...
+        CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero)
+    fprintf("UpdateFtimeDerivatives: After modification: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",...
+        max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
+
+else
+
+    if CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero
+
+        if  CtrlVar.LevelSetMethod || ~isempty(F.LSF)
+
+            if ~isempty(F.LSF)
+
+                I=F.LSF< 0  ;
+                F.dubdt(I)=0; F.dvbdt(I)=0;
+                F.duddt(I)=0; F.dvddt(I)=0;
+                F.dhdt(I)=0;
+
+                fprintf("CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=%i \n",...
+                    CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero)
+                fprintf("UpdateFtimeDerivatives: After modification: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",...
+                    max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
+
+            end
 
         end
-    else
-        I= (F.h <= 2*CtrlVar.ThickMin) | (F0.h <= 2*CtrlVar.ThickMin) ;
+
+        if CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero
+
+            I= (F.h <= 2*CtrlVar.ThickMin) | (F0.h <= 2*CtrlVar.ThickMin) ;
+            F.dubdt(I)=0; F.dvbdt(I)=0;
+            F.duddt(I)=0; F.dvddt(I)=0;
+            F.dhdt(I)=0;
+
+               fprintf("CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=%i \n",...
+                CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero)
+            fprintf("UpdateFtimeDerivatives: After modification: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",...
+                max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
+            
+
+        end
+
     end
 
 
-    F.dubdt(I)=0; F.dvbdt(I)=0;
-    F.duddt(I)=0; F.dvddt(I)=0;
-    F.dhdt(I)=0; 
+    
 
-
-
-    fprintf("After removing values downstream of level set: [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[%f %f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)),max(abs(F.dhdt)))
-
-%    I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
-%    fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+    %    I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
+    %    fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 
 end
 

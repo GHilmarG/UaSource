@@ -1,4 +1,4 @@
-function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
+function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA)
 
 %%
 %
@@ -19,6 +19,7 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 % See also: ProjectFintOntoNodes
 %%
 
+narginchk(2,2)
 
 ndim=2;
 % [points,weights]=sample('triangle',MUA.nip,ndim);
