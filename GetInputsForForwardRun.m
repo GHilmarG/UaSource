@@ -71,17 +71,33 @@ if CtrlVar.OnlyMeshDomainAndThenStop
     % plot mesh, even if PlotMesh not true
     if  CtrlVar.doplots==1
         CtrlVar.PlotMesh=1;
-        figure ; PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar)
+        FindOrCreateFigure("Mesh")
+        PlotMuaMesh(CtrlVar,MUA); 
     end
     
     BCs=[]; F=[] ; l=[] ; 
     
-    fprintf(CtrlVar.fidlog,' Exiting beacause CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
+    fprintf(CtrlVar.fidlog,' Exiting because CtrlVar.OnlyMeshDomainAndThenStop set to true. \n');
     return
 end
 
 
+
+
+
 [UserVar,F]=GetGeometryAndDensities(UserVar,CtrlVar,MUA,F,"-s-b-S-B-rho-rhow-g-");
+
+[UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
+
+if CtrlVar.LevelSetMethod
+    % Now this is a special initial case right at the beginning of the run
+    % where LSF has been defined ahead of any uv or uvh solutions.
+    % Here set all ice thicknesses strickly downstream of the zero level of the LSF to min.
+    fprintf("Setting ice thicknesses downstream of calving fronts to the minimum prescribed value of %f .\n",CtrlVar.LevelSetMinIceThickness)
+    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    F.h(F.LSFMask.NodesOut)=CtrlVar.LevelSetMinIceThickness;
+    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);

@@ -11,7 +11,7 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %
 % If 'Variable' not empty, but is not nodal, element or integration-point variable, I complain a bit.
 %
-% vararing is passed on to the patch command
+% varargin is passed on to the patch command
 %
 % *Examples:*
 %

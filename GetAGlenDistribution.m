@@ -35,10 +35,28 @@ switch N
         
 end
 
+[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+
+
 F.AGlenmax=CtrlVar.AGlenmax;
 F.AGlenmin=CtrlVar.AGlenmin;
 
-[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+
+
+if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen )
+
+    if isempty(F.LSFMask)
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    end
+    F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+
+
+    % F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    % F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+
+end
+
+
 
 
 

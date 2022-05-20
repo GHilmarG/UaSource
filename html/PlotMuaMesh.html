@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMuaMesh</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-01-23"><meta name="DC.source" content="PlotMuaMesh.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>PlotMuaMesh</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-12-11"><meta name="DC.source" content="PlotMuaMesh.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,10 +67,11 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 </pre><pre class="language-matlab">PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
-</pre><p>The only essential input is MUA, the other input variables are optional.</p><p>varargin is passed onto PlotFEmsh and then onto triplot.</p><p><b>Examples:</b></p><p>Plot Mesh:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
-figure ; PlotMuaMesh([],MUA)
+</pre><p>The only essential input is MUA, the other input variables are optional.</p><p>varargin is passed onto PlotFEmsh and then onto triplot.</p><p>hTri is a handle to the matlab triplot function</p><p><b>Examples:</b></p><p>Plot Mesh in red:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+figure ; PlotMuaMesh([],MUA,[],<span class="string">'r'</span>)
+</pre><p>or</p><pre class="language-matlab">figure ; PlotMuaMesh(CtrlVar,MUA,[],color=<span class="string">"r"</span>);
 </pre><p>Plot the first 10000 elements in black:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 figure ; PlotMuaMesh(CtrlVar,MUA,1:10000)
 </pre><p>Plot every 10th element in black and the nodes of those elements in red and do not plot the MeshBoundaryCoordinates</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
@@ -107,21 +109,23 @@ figure ; PlotMuaMesh(CtrlVar,MUA,3:10,<span class="string">'g'</span>)
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 <span class="keyword">end</span>
 
-<span class="keyword">if</span> nargin&lt;3  || isempty(ElementList)
+<span class="keyword">if</span> nargin&lt;3
     ElementList=1:MUA.Nele;
 <span class="keyword">end</span>
 
+
+
 <span class="keyword">if</span> ischar(ElementList) &amp;&amp; nargin==3
     <span class="comment">% silently ignore the fact that the user clearly did not read the comments and</span>
-    <span class="comment">% has incorreclty given a character as third argument. Assume that he/she wanted</span>
-    <span class="comment">% to specify some options to PlotFEmesh.</span>
+    <span class="comment">% has given a character as third argument. Assume that he/she wanted</span>
+    <span class="comment">% to specify some plotting options passed on to PlotFEmesh.</span>
     varargin{1}=ElementList;
     ElementList=1:MUA.Nele;
 <span class="keyword">end</span>
 
 
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
+hTri=PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:}) ;
 
 
 
@@ -130,9 +134,9 @@ PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
     PlotGmshGeometryDefinition(CtrlVar);
 <span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 %%
 %
@@ -142,12 +146,19 @@ function PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
 % varargin is passed onto PlotFEmsh and then onto triplot.
 %
+% hTri is a handle to the matlab triplot function
+%
 % *Examples:*
 %
-% Plot Mesh:
+% Plot Mesh in red:
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
-%   figure ; PlotMuaMesh([],MUA)
+%   figure ; PlotMuaMesh([],MUA,[],'r')
+%
+% or
+%
+%   figure ; PlotMuaMesh(CtrlVar,MUA,[],color="r");
+%
 %
 % Plot the first 10000 elements in black:
 %
@@ -200,21 +211,23 @@ if ~isfield(CtrlVar,'WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo')
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 end
 
-if nargin<3  || isempty(ElementList)
+if nargin<3  
     ElementList=1:MUA.Nele;
 end
 
+
+
 if ischar(ElementList) && nargin==3
     % silently ignore the fact that the user clearly did not read the comments and 
-    % has incorreclty given a character as third argument. Assume that he/she wanted
-    % to specify some options to PlotFEmesh.
+    % has given a character as third argument. Assume that he/she wanted
+    % to specify some plotting options passed on to PlotFEmesh.
     varargin{1}=ElementList;
     ElementList=1:MUA.Nele;
 end
 
 
 
-PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:})
+hTri=PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:}) ; 
 
 
 

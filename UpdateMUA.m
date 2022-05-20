@@ -167,19 +167,19 @@ end
 [NeleTest,ndimTest,nodTest,nipTest]=size(MUA.Deriv);
 
 if CtrlVar.CalcMUA_Derivatives
-    if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
+    if isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
 
         [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
     end
 end
 
 
-if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) && ~isfield(MUA,'M')
+if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(MUA,'M') || isempty(MUA.M))  
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
 
-if CtrlVar.MUA.DecomposeMassMatrix  && ~isfield(MUA,'dM')
+if CtrlVar.MUA.DecomposeMassMatrix  && ( ~isfield(MUA,'dM')  || isempty(MUA.dM))
     MUA.dM=decomposition(MUA.M,'chol','upper') ;
 end
 

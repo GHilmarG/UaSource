@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+function [UserVar,RunInfo,LSF,LSFMask,LSFnodes,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
 %
@@ -6,207 +6,201 @@ function [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunIn
 %
 %    df/dt + (u-cx) df/dx + (v-cy) df/dy - div (kappa grad f) = 0
 %
+%%
+
 %
+% Note: Here, F0 and F1 have both been calculated in a uvh solve. 
+%       The F1 contains the solve at time F1.time, which is now the `current time', ie the time at which uvh has been solved
+%       
+%       
 
 narginchk(7,8)
-nargoutchk(7,7)
+nargoutchk(8,8)
 
-
-persistent nCallCounter
-
-if isempty(nCallCounter)
-    nCallCounter=0;
-end
-
-if CtrlVar.LevelSetEvolution=="-prescribed-"  % LSF is prescribed by the user, do not update or solve anything
-    LSF=F1.LSF;
-    Mask=[];
-    l=[];
-    LSFqx=[];
-    LSFqy=[]; 
-    return
-end
-
-if ~CtrlVar.DevelopmentVersion
-    
-    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
-    
-end
-
-
+LSF=[];
+l=[];
+LSFqx=[];
+LSFqy=[];
+LSFMask=[];
+LSFnodes=[];
 
 if ~CtrlVar.LevelSetMethod
-    LSF=F0.LSF;
-    l=[];
-    Mask=[] ;
     return
 end
+
+if any(isnan(F0.c))
+    fprintf("Level set is not evolved because calving rate (c) contains nan. \n")
+    LSF=F1.LSF;
+    return
+end
+
 
 if nargin<8
     l=[];
 end
 
+MUAonInput=MUA;  % I need this in case I do the solution on a subset
 
-if CtrlVar.CalvingLaw=="-No Ice Shelves-"
-    
-    % I think this could be simplified, arguably no need to calculate signed distance
-    % in this case. Presumably could just define the LSF as distance from flotation, ie
-    % h-hf.
-    [LSF,UserVar,RunInfo]=ReinitializeLevelSet(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,0);
-    Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
-    return
-end
 
-if  ~isfield(CtrlVar,'LevelSetPhase') ||   isempty(CtrlVar.LevelSetPhase) || CtrlVar.LevelSetPhase==""
-    % So the Level Set Phase was not prescribed in the call,
-    if  mod(nCallCounter,CtrlVar.LevelSetInitialisationInterval)==0
-        CtrlVar.LevelSetPhase="Initialisation and Propagation and FAB" ;
-    else
-        CtrlVar.LevelSetPhase="Propagation and FAB" ;
+if CtrlVar.LevelSetMethodSolveOnAStrip
+
+
+
+    CtrlVar.LineUpGLs=false ; Threshold=0 ;
+
+    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
+
+
+    % DistEle=pdist2([xc(:) yc(:)],[MUA.xEle MUA.yEle],'euclidean','Smallest',1) ;
+    % DistEle=DistEle(:) ;  % note, this is a element-valued distance function
+    F0.x=MUA.coordinates(:,1); F0.y=MUA.coordinates(:,2);
+    DistNod=pdist2([xc(:) yc(:)],[F0.x F0.y],'euclidean','Smallest',1) ;
+    DistNod=DistNod(:) ;  % note, this is a element-valued distance function
+    DistEle=Nodes2EleMean(MUA.connectivity,DistNod) ;
+
+    if isnan(CtrlVar.LevelSetMethodStripWidth)
+
+        fprintf("The variable CtrlVar.LevelSetMethodStripWidth needs to be defined.\n")
+        error("LevelSetEquation:ParameterNotDefined","The variable CtrlVar.LevelSetMethodStripWidth needs to be defined.")
+
     end
-    nCallCounter=nCallCounter+1;
-end
-%% Initialisation phase
-CtrlVar.LineUpGLs=false ; Threshold=0 ; 
-[xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
-[SignedDist,UserVar,RunInfo]=SignedDistUpdate(UserVar,RunInfo,CtrlVar,MUA,F1.LSF,xc,yc);
-Slope=abs(F1.LSF./SignedDist);
-DistMin=50e3 ; MinSlope=min(Slope(abs(SignedDist)>DistMin));
-fprintf("\n\n =======================  min(Slope)=%f \n\n",MinSlope)
 
-if  contains(CtrlVar.LevelSetPhase,"Initialisation") || MinSlope < 0.1
-    % CtrlVar.LevelSetReinitializePDist=false ; 
-    [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-    F0.LSF=LSF ; F1.LSF=LSF ;
-end
 
-%% Propagation phase, with or without FAB
-if contains(CtrlVar.LevelSetPhase,"Propagation")
-    
-    CtrlVar.LevelSetTheta=0.5;
-    
-    if contains(CtrlVar.LevelSetPhase,"Propagation and FAB")
-        
-        CtrlVar.LSF.L=1 ;
-        CtrlVar.LSF.P=1 ;
-        CtrlVar.LSF.T=1 ;
-    else % Propagation only
-        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
-        CtrlVar.LSF.P=0 ;
-        CtrlVar.LSF.T=1 ;
-        
+    ElementsToBeDeactivated=DistEle>CtrlVar.LevelSetMethodStripWidth;
+
+    [MUA,kk,ll]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
+    LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA (i.e. the MUA here given as an input)
+    % over which the level-set is evolved
+
+    % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
+    % so it would be possibly to figure out how to map the BCs from the old to new.
+    % Also, some of the issues are just related to the uvh boundary conditions that are not relevant when solving for \varphi
+
+    % [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F0) ;
+    BCs=BoundaryConditions;  % resetting
+
+    LSFcopy=F0.LSF ; % make a copy of LSF
+    F0.LSF=F0.LSF(kk) ;
+    F0.ub=F0.ub(kk);
+    F0.vb=F0.vb(kk);
+
+    F0.LSFMask.NodesIn=F0.LSFMask.NodesIn(kk);
+    F0.LSFMask.NodesOn=F0.LSFMask.NodesOn(kk);
+    F0.LSFMask.NodesOut=F0.LSFMask.NodesOut(kk);
+
+    F1.LSF=F1.LSF(kk) ;
+    F1.ub=F1.ub(kk);
+    F1.vb=F1.vb(kk);
+
+    % additonal variables for sliding law evaluation at int point
+    F1.x=F1.x(kk) ;      F0.x=F0.x(kk) ;
+    F1.y=F1.y(kk) ;      F0.y=F0.y(kk) ;
+    F1.h=F1.h(kk) ;      F0.h=F0.h(kk) ;
+    F1.s=F1.s(kk) ;      F0.s=F0.s(kk) ;
+    F1.b=F1.b(kk) ;      F0.b=F0.b(kk) ;
+    F1.S=F1.S(kk) ;      F0.S=F0.S(kk) ;
+    F1.B=F1.B(kk) ;      F0.B=F0.B(kk) ;
+
+    F1.C=F1.C(kk) ;      F0.C=F0.C(kk) ;
+    F1.AGlen=F1.AGlen(kk) ;      F0.AGlen=F0.AGlen(kk) ;
+    F1.GF.node=F1.GF.node(kk) ;      F0.GF.node=F0.GF.node(kk) ;
+
+
+
+
+    % To do, set all other values to empty to make sure they are not updated
+
+    if ~isempty(F0.c)
+        F0.c=F0.c(kk);
     end
-    
-    
-    dtOriginal=CtrlVar.dt ;  tEnd=CtrlVar.time+CtrlVar.dt ;
-    dtFactor=2; NitDesired=4;  Ntries=0 ;  NtriesMax=20;
-    
-    
-    
-    
-    while true
-        
-        
-        [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-        
-        if RunInfo.LevelSet.SolverConverged
-            
-            % OK, it converged, advance solution, update time
-            
-            F1.LSF=LSF;                              % updating solution
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt ;   % advancing time
-            
-            if CtrlVar.time >= tEnd
-                % end of time step reached, break out of loop
-                break
-            end
-        
-            F0.LSF=LSF ;  % because I will now be doing another sub-forward step
-            
-            % OK, the step converged but end time of the current time step has not yet been reached (this will happen if previously the
-            % time step needed to be reduced due to loss of convergence).
-            % Now selecting a new time step based on numer of NR iterations
-            dtBefore=CtrlVar.dt;
-            dtNew=CtrlVar.dt*(NitDesired/RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount));
-            CtrlVar.dt=max(min(dtBefore*dtFactor,dtNew),dtBefore/dtFactor);
-            
-            if (CtrlVar.time+CtrlVar.dt) > tEnd  % don't overstep
-                CtrlVar.dt=tEnd-CtrlVar.time;
-            end
-            
-            
-            
-        else
-            
-            Ntries=Ntries+1;
-            
-            if Ntries>NtriesMax
-                
-                fprintf("Level set solver did not converge despite repeated atempts. \n")
-                fprintf("Returning last iterate. Level-set solution might be inaccurate. \n")
-                break
-                
-            elseif Ntries==1
-                
-                % before reducing time step, first try backward Euler
-                CtrlVar.LevelSetTheta=1;
-                dtBefore=CtrlVar.dt;
-                dtNew=CtrlVar.dt ;
-                fprintf("Level set solver did not converge. Trying backward Euler. \n")
 
-            elseif Ntries==2
-                
-                fprintf("Level set solver did not converge. Performing a new re-initialisation \n")
-                CtrlVar.LevelSetReinitializePDist=false ; 
-                [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-                F0.LSF=LSF ; F1.LSF=LSF ;
-                
-            else
-                % oops, did not converge, so decrease time step and do not advance solution or time,
-                % and try again.
-                CtrlVar.LevelSetTheta=1;  % Backward Euler
-                dtBefore=CtrlVar.dt;
-                dtNew=dtBefore/10 ;
-                CtrlVar.dt=dtNew;
-                fprintf("Level set solver did not converge. Reducing time step and attempting solve again. \n")
-                
-            end
-            
-        end
-        
-        fprintf("time=%f \t tEnd=%f \t dtNew=%g \t dtOld=%g \t dt=%g  \n",CtrlVar.time,tEnd,dtNew,dtBefore,CtrlVar.dt)
-        
-        
+    if  ~isempty(F1.c)
+        F1.c=F1.c(kk);
     end
-    
-    CtrlVar.dt=dtOriginal ;
-    fprintf("LSF: time=%f \t tEnd=%f  \t dt=%g  \n",CtrlVar.time,tEnd,CtrlVar.dt)
-    
+
+
+
+    % How to update BCs? I need to have a mapping from old-to-new nodal numbers
+
+else
+    LSFnodes=[] ;
 end
 
 
-% figure ; yyaxis left ; plot(F1.x,LSF,'.c') ; hold on ; plot(F1.x,F1.LSF,'ob') ; yyaxis right ; plot(F1.x,F1.LSF-LSF,'.r')
+%% TestIng: Calculating  various potential calving-law related quantities ahead of a call to the level-set equation sovler
+if CtrlVar.LevelSetMethodTest 
 
-if ~RunInfo.LevelSet.SolverConverged
-    % oops
-    warning('LevelSetEquation:NoConvergence','LSF did not converge')
-    fprintf('LevelSetEquation:  Solver did not converge.\n')
-    fprintf('LevelSetEquation:  Returning last iterate.\n')
+    [F0.exx,F0.eyy,F0.exy]=CalcNodalStrainRates(MUA,F0.ub,F0.vb);
+    [F1.exx,F1.eyy,F1.exy]=CalcNodalStrainRates(MUA,F1.ub,F1.vb);
+
+    PSR=CalcPrincipalValuesOfSymmetricalTwoByTwoMatrices(F0.exx,F0.exy,F0.eyy); % Principal Strain Rates
+    I1=PSR(:,1)<0 ;  PSR(I1,1)=0;
+    I2=PSR(:,2)<0 ;  PSR(I2,2)=0;
+
+    K=1;
+    cEigenCalving=K*PSR(:,1).*PSR(:,2);
+
+
+    PSR(F0.LSFMask.NodesOut,:)=NaN;
+    FindOrCreateFigure("P1") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,1)) ;
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
+    FindOrCreateFigure("P2") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,2)) ;
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
+
+
+    FindOrCreateFigure("Eigen Calving") ; PlotMeshScalarVariable(CtrlVar,MUA,cEigenCalving) ;
+
+    scale=1 ; FindOrCreateFigure("strain rates F0"); PlotTensor(F0.x/1000,F0.y/1000,F0.exx,F0.exy,F0.eyy,scale) ;  axis equal
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+    scale=1 ; FindOrCreateFigure("strain rates F1"); PlotTensor(F1.x/1000,F1.y/1000,F1.exx,F1.exy,F1.eyy,scale) ;  axis equal
+    hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
+
 end
 
+%%
+
+[UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
 
 
-Mask=CalcMeshMask(CtrlVar,MUA,LSF,0);
+if CtrlVar.LevelSetMethodSolveOnAStrip
 
 
+    if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
 
-if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
-    
-    F1.LSF=LSF ; % here needed for plotting
-    [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0,F1);
-    
+
+        Flsf=FindOrCreateFigure("LSF on strip ") ; clf(Flsf) ;
+        PlotMeshScalarVariable(CtrlVar,MUA,LSF/1000) ;
+        hold on ; PlotCalvingFronts(CtrlVar,MUA,LSF,"r",LineWidth=2 ) ;
+        title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+
+    end
+
+
+    LSFcopy(~LSFnodes)=DistNod(~LSFnodes).*sign(LSFcopy(~LSFnodes)) ;  
+    % over old nodes at save distance from zero-level, fill in using already calculated signed distance
+    % as these values will never impact the calculation of the zero level
+    LSFcopy(LSFnodes)=LSF(ll(LSFnodes));
+
+    % LSFcopy(~isnan(ll))=LSF(ll(~isnan(ll)));
+
+
+    if CtrlVar.LevelSetInfoLevel>=10 && CtrlVar.doplots
+        Flsf=FindOrCreateFigure("LSF on original mesh ") ; clf(Flsf) ;
+        PlotMeshScalarVariable(CtrlVar,MUAonInput,LSFcopy/1000) ;
+        hold on ; PlotCalvingFronts(CtrlVar,MUAonInput,LSFcopy,"r",LineWidth=2 ) ;
+        title("$\varphi$"+sprintf(" at t=%2.2f",F1.time),Interpreter="latex")
+    end
+
+    LSF=LSFcopy;
+
 end
 
+LSFMask=CalcMeshMask(CtrlVar,MUAonInput,LSF,0);  % If I solved the LSF on a strip, this will not be the correct mask over the full MUA
+                                                 % unless I use the original MUA
 
 end
 

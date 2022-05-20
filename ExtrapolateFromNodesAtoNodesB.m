@@ -30,7 +30,7 @@ FA2B=scatteredInterpolant();
 FA2B.Points=[x(NodesA) y(NodesA)];
 FA2B.Values=Values(NodesA) ;
 
-FA2B.ExtrapolationMethod='nearest'; FA2B.Method='nearest';
+FA2B.ExtrapolationMethod='nearest'; FA2B.Method='linear';
 
 Values(NodesB)=FA2B(x(NodesB),y(NodesB)) ;
 

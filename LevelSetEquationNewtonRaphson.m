@@ -26,9 +26,16 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     end
     iCalls=iCalls+1;
     
-    
-    MLC=BCs2MLC(CtrlVar,MUA,BCs);
-    L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+
+    if ~isempty(BCs.LSFL)
+        L=BCs.LSFL;
+        Lrhs=BCs.LSFrhs ;
+    else
+        MLC=BCs2MLC(CtrlVar,MUA,BCs);
+        L=MLC.LSFL ; Lrhs=MLC.LSFRhs ;
+    end
+
+
     if nargin==7 || isempty(l) || (numel(l)~=numel(Lrhs))
         l=Lrhs*0 ; 
     end
@@ -58,8 +65,8 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
          LSF1qx=[] ; LSF1qy=[] ; 
     end
 
-    iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
-    RunInfo.LevelSet.SolverConverged=false;
+    iteration=0 ; rWork=inf ; rForce=inf; r=inf ; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1;
+    RunInfo.LevelSet.SolverConverged=false; BackTrackInfo.iarm=0; 
     
     while true
         
@@ -130,7 +137,10 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
         
         iteration=iteration+1 ;
         
-        [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,LSF1qx,LSF1qy);
+        % [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0.LSF,F0.c,F0.ub,F0.vb,F1.LSF,F1.c,F1.ub,F1.vb,F0.LSFqx,F0.LSFqy,LSF1qx,LSF1qy);
+        [UserVar,R,K,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2(UserVar,CtrlVar,MUA,F0,F1);
+
+
         if ~isempty(L)
    
             frhs=-R-L'*l        ;  % This needs to be identical to what is defined in the CalcCostFunctionLevelSetEquation
@@ -141,10 +151,15 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
             frhs=-R;
             grhs=[];
         end
-        
-        [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+
+        if issymmetric(K)
+            [dLSF,dl]=solveKApeSymmetric(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        else
+            [dLSF,dl]=solveKApe(K,L,frhs,grhs,dLSF,dl,CtrlVar);
+        end
+
         dLSF=full(dLSF);
-        
+
         
         if CtrlVar.LSF.C  && ~isempty(Qx)  % consistent formulation
             
@@ -164,7 +179,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
             error('LevelSetEquationNewtonRaphson:NaNinSolution','NaN in the solution for dLSF')
         end
         
-        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl);
+        Func=@(gamma) CalcCostFunctionLevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l,dLSF,dl,BCs);
 
         gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);

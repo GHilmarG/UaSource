@@ -86,10 +86,12 @@ classdef UaFields
         
         LSF=[] % Level Set Field
         LSFMask=[]; 
+        LSFnodes=[];
         c=[] ; % calving rate
         LSFqx=[] ;
         LSFqy=[] ; 
-        
+
+      
     end
     
 end

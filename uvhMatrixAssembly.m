@@ -151,12 +151,14 @@ if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeed
     end
     
     if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-        
-        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-        LSFMask=F1.LSFMask.NodesOut ; 
+
+        if isempty(F1.LSFMask)
+            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        end
+        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
 
     end
-       
+
 end
 
 
@@ -448,7 +450,7 @@ end
 
 if any(isnan(R))
     save TestSave  ;
-    error(' NaN in R ' ) ;
+    error("uvhMatrixAssembly:NaNinR"," NaN in R " ) ;
 end
 end
 

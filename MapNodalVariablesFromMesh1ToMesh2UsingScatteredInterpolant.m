@@ -134,7 +134,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
             end
             
             % And finally, are any of the outside nodes actually on the mesh boundary?
-            NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],1000*eps);
+            NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],tol);
             
             %  Add any ouside nodes on bounday to the set of inside nodes
             if ~isempty(NodesOnBoundary)
@@ -148,8 +148,8 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         RunInfo.Mapping.nNotIdenticalNodesInside=numel(NodesInsideAndNotSame);
         
         
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 ;
-            fig=FindOrCreateFigure("-Old and new nodes-");
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 
+            fig=FindOrCreateFigure("-Old and new nodes-"); clf(fig) ; 
            
             tt=axis;
             hold off
@@ -161,7 +161,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
                 axis(tt)
             end
             
-            p2=plot(xNew(NodesOutside)/CtrlVar.PlotXYscale,yNew(NodesOutside)/CtrlVar.PlotXYscale,'om');
+            p2=plot(xNew(NodesOutside)/CtrlVar.PlotXYscale,yNew(NodesOutside)/CtrlVar.PlotXYscale,marker="h",color="m");
             p3=plot(xNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,yNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
             p4=plot(xNew(IdenticalNodes)/CtrlVar.PlotXYscale,yNew(IdenticalNodes)/CtrlVar.PlotXYscale,'*g');
             

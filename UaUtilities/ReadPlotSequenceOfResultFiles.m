@@ -26,13 +26,16 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 % Read only those .mat files that have FileNameSubstring as a part of their name, collect
 % some data and plot VAF and grounded area as function of time.
 %
-%   DataCollect=ReadPlotSequenceOfResultFiles("FileNameSubstring","-Ice1r-","PlotType","-collect-");
+%   DataCollect=ReadPlotSequenceOfResultFiles(FileNameSubstring="-Ice1r-",PlotType="-collect-");
 %   figure ; plot(DataCollect.time, DataCollect.VAF/1e9,'-or'); xlabel("time (yr)") ;
 %   ylabel(" VAF (Gt)") figure ; plot(DataCollect.time,DataCollect.GroundedArea/1e6,'-or');
 %   xlabel("time (yr)") ; ylabel(" Grounded area(km^2)")
 %
 %
 % Examples:
+%
+%
+%   ReadPlotSequenceOfResultFiles(FileNameSubstring="ResultsFile",PlotTimestep=10)
 %
 % Read only those .mat files that have FileNameSubstring as a part of their name, set the
 % axis limits, and plot a file every 0.1 time units.
@@ -50,26 +53,29 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 %    ReadPlotSequenceOfResultFiles("FileNameSubstring","Forward-Transient-Nod3-rCW-N0-M-Cga1-Cgs10000-Aga1-Ags10000-logAGlenlogC-uv-","PlotType","-Level Set-","PlotTimestep",1)
 %
 %    ReadPlotSequenceOfResultFiles("FileNameSubstring","LevelSetWithMeltFeedback","PlotType","-1dIceShelf-","PlotTimestep",1)
-
+%   
+%
 %% Parse inputs
 
 
-defaultPlotType="-mesh-speed-calving-level set-";
-allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-calving-level set-','-mesh-',...
+defaultPlotType="-mesh-speed-B-level set-";
+allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-B-level set-','-mesh-',...
     '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
-    '-1dIceShelf-','-hPositive-','-Level Set-',...
-    '-collect-'};
+    '-1dIceShelf-','-hPositive-','-Level Set-','-ubvb-','-ubvb-B-','-ubvb-h-',...
+    '-collect-','-uv-lsf-c-f-mesh-'};
 
 
 IP = inputParser;
 
 addParameter(IP,"FileNameSubstring","",@isstring);
+addParameter(IP,"VideoFileName","VideoFile",@isstring);
 addParameter(IP,"AxisLimits",NaN,@isnumeric);
 addParameter(IP,"N",7,@isnumeric);
 addParameter(IP,"PlotType",defaultPlotType,@(x) any(validatestring(x,allowedPlotTypes)));
 addParameter(IP,"PlotScreenPosition",NaN,@isnumeric);
 addParameter(IP,"PlotTimeInterval",[0 1e10],@isnumeric);
-addParameter(IP,"PlotTimestep",1,@isnumeric);
+addParameter(IP,"PlotTimestep",0,@isnumeric);                    %  0 time step gives plots at all available times
+addParameter(IP,"isCenterlineProfile",false,@logical);
 
 addParameter(IP,"DataToBeCollected","",@isstring);
 
@@ -77,6 +83,7 @@ addParameter(IP,"DataToBeCollected","",@isstring);
 parse(IP,varargin{:});
 
 FileNameSubstring=IP.Results.FileNameSubstring ;
+VideoFileName=IP.Results.VideoFileName+FileNameSubstring ;
 PlotType=IP.Results.PlotType ;
 N=IP.Results.N ;
 AxisLimits=IP.Results.AxisLimits;
@@ -84,6 +91,7 @@ PlotScreenPosition=IP.Results.PlotScreenPosition;
 PlotTimeInterval=IP.Results.PlotTimeInterval;
 PlotTimestep=IP.Results.PlotTimestep;
 DataToBeCollected=IP.Results.DataToBeCollected; 
+isCenterlineProfile=IP.Results.isCenterlineProfile; 
 %%
 
 if PlotType=="-collect-" && DataToBeCollected==""  %
@@ -110,14 +118,17 @@ end
 
 PlotRegion=[];
 PlotArea=[];
-PlotMinThickLocations=true;
+PlotMinThickLocations=false;
 
 %%
 CurDir=pwd;
 
 if CreateVideo
     
-    vidObj = VideoWriter("VideoResultsFile"+FileNameSubstring+PlotType);
+ 
+    VideoFileName = replace(VideoFileName,".mat","");
+    VideoFileName = replace(VideoFileName," ","");
+    vidObj = VideoWriter(VideoFileName);
     vidObj.FrameRate=10;   % frames per sec
     open(vidObj);
 end
@@ -144,13 +155,18 @@ iCount=0;
 DataCollect=[];
 DataCollect.FileNameSubstring=FileNameSubstring;
 LSFScale=[];
+nVelCount=0;
+
+xGL0=[] ; yGL0=[] ; xCF0=[] ; yCF0=[] ;  % these will contain the (x,y) coordinates of the grounding lines and calving fronts in the first file that is loaded
+                                         % allowing for the initial grounding lines and calving fronts to be plotted in all subsequent plots
 
 while iFile<=nFiles   % loop over files
     
     
     time=str2double(list(iFile).name(1:N))/100;  % get the model time, assuming that the first N letters of filename are the model time*100
     %time=str2double(list(iFile).name(1:4));
-    if mod(time,PlotTimestep)==0 && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specifed
+    if ( mod(time,PlotTimestep)==0 || PlotTimestep==0 || isnan(PlotTimestep) ) ...  % plot at PlotTimestep intervals, unless PlotTimestep=0 or nan, then always collect/plot
+       && time<=PlotTimeInterval(2) && time>=PlotTimeInterval(1)   % only do plots at given time intervals and up to a max time specified
         
         try   % go back into subdirectory containing result files and load one result file
             
@@ -167,6 +183,8 @@ while iFile<=nFiles   % loop over files
                 F.y=MUA.coordinates(:,2);
             end
             
+            
+
         catch
             fprintf('could not load %s \n ',list(iFile).name)
         end
@@ -177,9 +195,15 @@ while iFile<=nFiles   % loop over files
         TRI=[]; DT=[]; xGL=[];yGL=[];
         x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
         ih=F.h<=CtrlVar.ThickMin;
-        
-        
-        
+
+        if isempty(xGL0)
+
+            [xCF0,yCF0]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0,lineup=true) ;
+            [xGL0,yGL0]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.GF.node,0.5,lineup=true) ;
+
+
+        end
+
         
         % if creaing 4 subplots, try to arrange them based on the aspect ratio
         
@@ -198,7 +222,7 @@ while iFile<=nFiles   % loop over files
             nPx=4; nPy=1;
         end
         
-        axis equal tight;        
+       
         if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
         
         switch PlotType
@@ -215,10 +239,15 @@ while iFile<=nFiles   % loop over files
                     
                     DataCollect.IceVolume=zeros(nFiles,1)+NaN;
                     
-                    DataCollect.LSFmax=zeros(nFiles,1)+NaN;
-                    DataCollect.LSFmin=zeros(nFiles,1)+NaN;
-                    DataCollect.LSFmean=zeros(nFiles,1)+NaN;
-                    DataCollect.Lx=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMax=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMin=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMean=zeros(nFiles,1)+NaN;
+
+
+                    DataCollect.xcMaxCenterLine=zeros(nFiles,1)+NaN;
+                    DataCollect.xcMinCenterLine=zeros(nFiles,1)+NaN;
+                    
+                    
                     
                     if contains(DataToBeCollected,"-GL Flux-")
                         DataCollect.qGL=zeros(nFiles,1)+NaN;
@@ -237,21 +266,45 @@ while iFile<=nFiles   % loop over files
                 DataCollect.IceVolume(iCount)=IceVolume.Total;
                 
                 DataCollect.Lx(iCount)=max(F.x(F.h>10)) ;
-                
+
                 if contains(DataToBeCollected,"-GL Flux-")
                     [qGL,qGLx,qGLy,~,~,~,~,~,GLgeo]=FluxAcrossGroundingLine(CtrlVar,MUA,F.GF,F.ub,F.vb,F.ud,F.vd,F.h,F.rho) ;
                     DataCollect.qGL(iCount)=sum(qGL);
                 end
-                 
-                 
-                if isfield(F,"LSF") &&  ~isempty(F.LSF)
-                    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
-                    
-                    DataCollect.LSFmax(iCount)=max(xc,[],'omitnan') ;
-                    DataCollect.LSFmin(iCount)=min(xc,[],'omitnan') ;
-                    DataCollect.LSFmean(iCount)=mean(xc,'omitnan') ;
+
+
+                if isCenterlineProfile
+                    if isfield(F,"LSF") &&  ~isempty(F.LSF)
+
+                        [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.LSF,0);
+
+                        DataCollect.xcMax(iCount)=max(xc,[],'omitnan') ;
+                        DataCollect.xcMin(iCount)=min(xc,[],'omitnan') ;
+                        DataCollect.xcMean(iCount)=mean(xc,'omitnan') ;
+
+                        FLSF=scatteredInterpolant(F.x,F.y,F.LSF);
+
+                        xProfile=min(x):1000:max(x);
+                        yCentre=40e3+xProfile*0;
+                        LSFProfile=FLSF(xProfile,yCentre);
+
+                        tmax=max(xProfile(LSFProfile>0)) ;
+                        tmin=min(xProfile(LSFProfile<0)) ;
+
+                        if ~isempty(tmax)
+                            DataCollect.xcMaxCenterLine(iCount)=tmax;
+                        else
+                            DataCollect.xcMaxCenterLine(iCount)=nan;
+                        end
+                        
+                        if ~isempty(tmin)
+                            DataCollect.xcMinCenterLine(iCount)=tmin;
+                        else
+                            DataCollect.xcMinCenterLine(iCount)=nan;
+                        end
+
+                    end
                 end
-                
                 %%
                 
             case "-hPositive-"
@@ -329,7 +382,7 @@ while iFile<=nFiles   % loop over files
                 caxis([min(F.h.*Reactions.h./F.rho)-eps max(F.h.*Reactions.h./F.rho)+eps])
                 
                 colormap(flipud(othercolor('RdYlBu_11b',1000))) ;
-                ModifyColormap ;
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028) ; 
                 title(cbar,'$\lambda h$ ($m^2$)','Interpreter','latex')
                 
                 
@@ -381,14 +434,14 @@ while iFile<=nFiles   % loop over files
                     end
                     
                     if ~isempty(F.LSF) && CtrlVar.LevelSetMethod
-                        hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                        hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'w','LineWidth',2) ;
                         Temp=fMeshLSF.CurrentAxes.Title.String;
-                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in blue"}];
+                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Level-set zero line in white"}];
                         
                         [xf,yf]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.LevelSetMinIceThickness+1);
                         plot(xf/1000,yf/1000,'m','LineWidth',2);
                         
-                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"Blue: LSF zero-line. Magneta:Ice cliff front"}];
+                        fMeshLSF.CurrentAxes.Title.String=[Temp(:)',{"White: LSF zero-line. Magneta:Ice cliff front"}];
                         
                     end
                     
@@ -462,12 +515,9 @@ while iFile<=nFiles   % loop over files
                 
                 LSFmean=NaN;
                 if ~isempty(LSFProfile)
+                
                     
-                    if isempty(LSFScale)
-                        LSFScale=(max(sProfile)-min(bProfile))/(max(LSFProfile)-min(LSFProfile)) ;
-                    end
-                    
-                    plot(xProfile/1000,LSFProfile*LSFScale,'m.-','DisplayName','$\varphi$ (scaled)')
+                    plot(xProfile/1000,LSFProfile/1000,'m.-','DisplayName','$\varphi$ (km)')
                     
                     
                     if ~isempty(F.LSF)
@@ -497,7 +547,7 @@ while iFile<=nFiles   % loop over files
                 
                 ylabel('$u$ (m/a)','interpreter','latex')
                 
-                title(sprintf('Profile along the medial line at t=%g',CtrlVar.time))
+                title(sprintf('Profile along the medial line at t=%4.2f',CtrlVar.time))
                 xlabel('$x$ (km)','interpreter','latex') ;
                 legend('interpreter','latex','Location','SouthEast')
                 xlim([min(x)/1000 max(x)/1000]);
@@ -509,7 +559,7 @@ while iFile<=nFiles   % loop over files
                 hold off
                 
                 
-            case {"-mesh-speed-s-ab-","-mesh-speed-calving-level set-"}
+            case {"-mesh-speed-s-ab-","-mesh-speed-B-level set-"}
                 
                 f4=FindOrCreateFigure("-mesh-speed-s-ab-",PlotScreenPosition);
                 clf(f4)
@@ -518,7 +568,7 @@ while iFile<=nFiles   % loop over files
                 
                 
                 % SP=tight_subplot(nPx,nPy) ;
-                subplot(nPx,nPy,1)
+                sp1=subplot(nPx,nPy,1);
                 
                 
                 
@@ -527,17 +577,19 @@ while iFile<=nFiles   % loop over files
                 
                 hold on
                 PlotMuaMesh(CtrlVar,MUA,[],'w');
-                
+
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
-                if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
-                end
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
+
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
+
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 axis equal tight
-                
+
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
-                title(sprintf('Ice thickness at t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('Ice thickness at t=%4.2f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 title(cbar,'(m)')
                 ax = gca;
                 outerpos = ax.OuterPosition;
@@ -547,20 +599,26 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
-                
+                % caxis([-10 120])
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp1) ; 
                 hold off
                 
                 
-                subplot(nPx,nPy,2);
+                sp2=subplot(nPx,nPy,2);
                 
                 
                 speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+                Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0); speed(Mask.NodesOut)=nan;
                 hold off
-                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%-g',time))
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%4.2f',time))
                 %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
+                                
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 ax = gca;
@@ -571,24 +629,23 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
-                if contains(PlotType,"-calving-")
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
-                end
+                ModifyColormap(ShowGrayLevel=true,Ncol=2*1028,handle=sp2)
                 hold off
                 
-                subplot(nPx,nPy,3);
+                sp3=subplot(nPx,nPy,3);
                 
                 
                 hold off
                 
-                if contains(PlotType,"-calving-")
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);
-                    title(sprintf('Calving Rate Field at t=%g',time))
+                if contains(PlotType,"-B-")
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.B);
+                    title(sprintf('Bedrock at t=%4.2f',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
+                    ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp3) ; 
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
-                    title(sprintf('surface at t=%-g',time))
+                    title(sprintf('surface at t=%4.2f',time))
                 end
                 
                 hold on
@@ -597,6 +654,8 @@ while iFile<=nFiles   % loop over files
                 if ~isempty(cbar)
                     title(cbar,'(m/yr)')
                 end
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight ;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 ax = gca;
@@ -607,28 +666,32 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp3) ; 
                 
-                subplot(nPx,nPy,4);
+                sp4=subplot(nPx,nPy,4);
                 
                 
                 hold off
                 
                 if contains(PlotType,"-level set-")
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF);
-                    title(sprintf('Level Set Field at t=%-g',time))
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);
+                    title(sprintf('Level Set Field at t=%4.2f',time))
                     hold on
-                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                    [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 else
                     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab);
-                    title(sprintf('Basal melt at t=%-g',time))
+                    title(sprintf('Basal melt at t=%4.2f',time))
                 end
-                
+                ModifyColormap(ShowGrayLevel=true,Ncol=1028,handle=sp4) ; 
                 hold on
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 xlabel('x (km)') ; ylabel('y (km)') ;
                 if ~isempty(cbar)
-                    title(cbar,'(m/yr)')
+                    title(cbar,'(km)')
                 end
+                                
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 axis equal tight ;
                 if ~isnan(AxisLimits) ; axis(AxisLimits) ; end
                 hold off
@@ -641,65 +704,193 @@ while iFile<=nFiles   % loop over files
                 ax_width = outerpos(3) - ti(1) - ti(3);
                 ax_height = outerpos(4) - ti(2) - ti(4);
                 ax.Position = [left bottom ax_width ax_height];
-                
-                sgtitle(FileNameSubstring)
-                
+
+                % sgtitle(VideoFileName)
+
                 %%
-                
-                
-            case '-mesh-'
-                
-                fmesh=FindOrCreateFigure('Mesh',PlotScreenPosition);
-                
+
+
+
+            case "-uv-lsf-c-f-mesh-"
+
+                F.ub(F.LSFMask.NodesOut)=nan;
+                F.vb(F.LSFMask.NodesOut)=nan;
+
+                fig100=FindOrCreateFigure("6Plots") ; clf(fig100); 
+                fig100.Position=[1160 68 1389 1284];
+                subplot(6,1,1)
+                PlotMeshScalarVariable(CtrlVar,MUA,F.h); title(sprintf('h at t=%3.1f (yr)',CtrlVar.time))
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                axis tight
+                hold off
+
+                ttAxis=axis;
+
+
+                subplot(6,1,2)
+
+                QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb,CtrlVar);
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                axis(ttAxis)
+                hold off
+
+                subplot(6,1,3)
+                hold off
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000);   title(sprintf('LSF at t=%3.1f (yr)',CtrlVar.time))
+                hold on
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                title(cbar,"(km)")
+                axis tight
+                hold off
+
+                subplot(6,1,4)
+                % Because calving rate is only calculated within the integration-point loop,
+                % is has never been evaluated over the nodes, so I simply make a call to the m-File
+                % for nodal values. This will only work if the calving law itself does not depend on the
+                % spatial gradients of the level set function.
+                % load("UserVarFile.mat","UserVar") ; % get rid of this later
+                % F.c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;
+
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.c);   title(sprintf('Calving rate c at t=%3.1f  (yr)',CtrlVar.time))
+                hold on
+                title(cbar,"(m/yr)")
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                axis tight
+                hold off
+
+                subplot(6,1,5)
+                CliffHeight=min((F.s-F.S),F.h) ;
+                [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,CliffHeight);   title(sprintf('Cliff height at t=%3.1f  (yr)',CtrlVar.time))
+                hold on
+                title(cbar,"(m)")
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                axis tight
+                hold off
+
+                subplot(6,1,6)
                 PlotMuaMesh(CtrlVar,MUA);
-                title(sprintf('t=%-g (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
+                title(sprintf('FE Mesh at t=%3.1f  (yr)',CtrlVar.time))
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL);
+                [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b',LineWidth=2);
+                axis tight
+                hold off
+
+                fig100.Position=[1160 68 1389 1284];
+
+            case '-mesh-'
+
+                fmesh=FindOrCreateFigure('Mesh',PlotScreenPosition);
+
+                PlotMuaMesh(CtrlVar,MUA);
+                title(sprintf('t=%4.2f (yr)  #Ele=%-i, #Nodes=%-i, #nod=%-i',time,MUA.Nele,MUA.Nnodes,MUA.nod))
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
                 hold off
-                
-                
-                
+
+
+
                 %%
-                
-            case '-ubvb-'
+
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-'}
                 % plotting horizontal velocities
                 %%
-                
-                fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition);
-                
-                N=1;
+
+                fubvb=FindOrCreateFigure('fubvb',PlotScreenPosition); clf(fubvb) ;
+                ax1=axes ;
+                NN=1;
                 %speed=sqrt(ub.*ub+vb.*vb);
                 %CtrlVar.MinSpeedWhenPlottingVelArrows=0; CtrlVar.MaxPlottedSpeed=max(speed); %
                 CtrlVar.VelPlotIntervalSpacing='log10';
                 %CtrlVar.VelColorMap='hot';
-                %CtrlVar.RelativeVelArrowSize=10;
-                CtrlVar.QuiverColorSpeedLimits=[1 5000];
-                
+
+                CtrlVar.RelativeVelArrowSize=5;
+                CtrlVar.QuiverColorSpeedLimits=[100 50000];
+                CtrlVar.QuiverColorPowRange=4;
+
+                CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
+                CtrlVar.RelativeVelArrowSize=1;
+                CtrlVar.QuiverColorPowRange=3;
+
+                if contains(PlotType,"-B-")
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
+                    title(cbarB,"(m a.s.l)")
+                elseif contains(PlotType,"-h-")
+                    %[~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab) ;  title(cbarB,"(m/yr)")  ; caxis(ax1,[-75 0])
+
+                    %caxis(ax1,[1 100])
+
+                end
+                cbarB.Position=[.92 .15 .02 .35];
+                hold on
                 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
                 hold on
-                QuiverColorGHG(x(1:N:end),y(1:N:end),F.ub(1:N:end),F.vb(1:N:end),CtrlVar);
-                CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+                Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+                F.ub(~Mask.NodesIn)=nan;
+                F.vb(~Mask.NodesIn)=nan;
+                if nVelCount==0
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
+                else
+                    CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+
+                end
+                nVelCount=nVelCount+1;
+                ax2=axes ;
+
+                ax2.Visible = 'off';
+                ax2.XTick = [];
+                ax2.YTick = [];
+                hold on
+                [cbar]=QuiverColorGHG(x(1:NN:end),y(1:NN:end),F.ub(1:NN:end),F.vb(1:NN:end),CtrlVar);
+                axis tight
+                linkaxes([ax1,ax2])
+                %colormap(ax2,'hot') ;
+
+
+
+                %cb1 = colorbar(ax1,'Position',[.9 .15 .02 .35]);
+                cbar.Position=[.92 .55 .02 .35];
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
-                title(sprintf('(ub,vb) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
+
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r',LineWidth=1.5);
+                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
+
+
+                title(ax1,sprintf('Bedrock and surface velocities at t=%5.2f (yr)',F.time),interpreter="latex") ;
+                %xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')
+
+                xlabel(ax1,'x (km)',Interpreter='latex') ;  ylabel(ax1,'y (km)',Interpreter='latex')  ; % Thulew
+
+
+                colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
+
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 %%
                 if PlotMinThickLocations
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                 end
-                
-                
-                
+
+
+
             case '-log10(BasalSpeed)-'
                 %%
                 %us=ub+ud;  vs=vb+vd;
-                
-                
+
+
                 SurfSpeed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
-                
+
                 PlotNodalBasedQuantities(MUA.connectivity,MUA.coordinates,log10(SurfSpeed),CtrlVar);
                 hold on ;
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'k');
-                
+
                 title(sprintf('log_{10}(Basal speed) t=%-g (yr)',time)) ; xlabel('xps (km)') ; ylabel('yps (km)')
                 title(colorbar,'log_{10}(m/yr)')
                 if PlotMinThickLocations
@@ -707,9 +898,9 @@ while iFile<=nFiles   % loop over files
                 end
                 caxis([1 4])
                 %%
-                
+
             case "-VAF-"
-                
+
                 
                 figlogSpeed=FindOrCreateFigure('VAF',PlotScreenPosition);
                 
@@ -941,7 +1132,7 @@ if CreateVideo
     fprintf('\n video file closed \n')
 end
 
-close all
+
 
 cd(CurDir)
 

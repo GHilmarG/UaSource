@@ -315,6 +315,7 @@ end
 
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
+CtrlVar.time0=CtrlVar.time;
 
 
 
@@ -402,7 +403,7 @@ while 1
     
     
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
-    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements
+    if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
@@ -453,10 +454,6 @@ while 1
  
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
-    
-   % if CtrlVar.LevelSetMethod % Level Set
-   %    [RunInfo,CtrlVar,F]=ModifyThicknessBasedOnLevelSet(RunInfo,CtrlVar,MUA,F) ; % Level Set  
-   % end
     
     if ~CtrlVar.doInverseStep
         if CtrlVar.TimeDependentRun
@@ -598,6 +595,7 @@ while 1
                 filename="DumpWTSHTD.mat";
                 fprintf("Ua2D:Saving all variables in %s \n",filename)
                 save(filename) 
+                
                 fprintf("Ua2D:calling WTSHTF\n")
                 [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
                 
@@ -637,6 +635,7 @@ while 1
 
 
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+            
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
 
@@ -650,7 +649,7 @@ while 1
         
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
-            [UserVar,RunInfo,F.LSF,F.LSFMask,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            [UserVar,RunInfo,F.LSF,F.LSFMask,F.LSFnodes,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
         end
     end   % CtrlVar.TimeDependentRun
     
@@ -704,8 +703,8 @@ RunInfo.Message="Calculations done. Creating outputs. ";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 
 if CtrlVar.PlotWaitBar
-    multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
-    multiWaitbar('Time','Value',CtrlVar.time/CtrlVar.TotalTime);
+    multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/(CtrlVar.TotalNumberOfForwardRunSteps-CtrlVar.CurrentRunStepNumber0));
+    multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.time0) /(CtrlVar.TotalTime-CtrlVar.time0));
 end
 
 

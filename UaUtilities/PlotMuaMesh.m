@@ -12,10 +12,15 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %
 % *Examples:*
 %
-% Plot Mesh:
+% Plot Mesh in red:
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
-%   figure ; PlotMuaMesh([],MUA)
+%   figure ; PlotMuaMesh([],MUA,[],'r')
+%
+% or
+%
+%   figure ; PlotMuaMesh(CtrlVar,MUA,[],color="r");
+%
 %
 % Plot the first 10000 elements in black:
 %
@@ -43,6 +48,7 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %   figure ; PlotMuaMesh(CtrlVar,MUA,3:10,'g')
 %
 %%
+
 
 
 if isempty(CtrlVar)
@@ -92,5 +98,12 @@ if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
     hold on
     PlotGmshGeometryDefinition(CtrlVar);
 end
+
+
+[Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
+
+
+title(sprintf("Ele=%i Nodes=%i nod=%i \n (max/mean,median,min)=(%6.1f/%6.1f/%6.1f/%6.1f) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+
 
 end

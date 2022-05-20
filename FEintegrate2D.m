@@ -31,6 +31,11 @@ fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Int=zeros(MUA.Nele,1);
 
+
+if isempty(MUA.DetJ)
+    MUA=UpdateMUA(CtrlVar,MUA) ;
+end
+    
 for Iint=1:MUA.nip
     
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; 

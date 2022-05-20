@@ -1,9 +1,18 @@
 function [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
+% 
 %
+% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = \rho \, a(h)$$
 %
-% $$\rho \partial h/\partial t + \partial  (\rho u h)/ \partial x + \partial  (\rho v h)/\partial y - \nabla \cdot (\kappa \nabla h ) = a(h)$$
+%  For 
+%
+% $$\rho=1$$ 
+%
+% this is the advection-diffusion equation, ie
+%
+% $$\frac{\partial h}{\partial t} + \nabla \cdot ( \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = a(h)$$
+%
 %
 %
 %

@@ -51,7 +51,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
-CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho"] ;  
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho","uvhPrescribed"] ;  
 %% Slope of coordinate system with respect to gravity
 
 CtrlVar.alpha=0 ; 
@@ -298,6 +298,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
+CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
@@ -356,9 +357,10 @@ CtrlVar.AGlenmax=1e20;
 % The non-linear uvh/uv loops are considered to have converged if:
 %
 %  1) Work and Force tolerances are both less than: 
-CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
 % and, furthermore, at least one of Work and Force tolerances are less than:
-CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
+%Note: The default uvh tolerances set limits on the Force tolerance only. 
 
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-4;
@@ -713,7 +715,7 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
 
 
-% If the gradient-based approach is sued, the gradient of the objective function can be pre-multiplied with the inverse of the mass
+% If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
 % matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
 % presumably to use 'I', and then to try out 'M' for comparison.
 
@@ -1102,12 +1104,26 @@ CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable)
 CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
 CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
-% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
+%
+% To suppress the generation of a mesh file set to empty, ie 
+% 
+%   CtrlVar.SaveInitialMeshFileName=[];
+%
+% To generate a new mesh file from, for example a result file or a restart file,  load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+
+
+CtrlVar.OnlyMeshDomainAndThenStop=0; % If true then only an initial global meshing is done and no further calculations.
+                                     % Useful for checking if initial mesh is reasonable.
+                                     % Note: This causes an exit ahead of any adapt meshing.
+
+
+CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no further calculations performed
+                                     % This will do an initial uniform global meshing (where the mesh size is based on 
+                                     % CtrlVar.MeshSize, CtrlVar.MeshSizeMax and CtrlVar.MeshSizeMin) and then do adaptive meshing as well.
+                                     %
 
 %% Selecting the external mesh generator
 %
@@ -1297,7 +1313,7 @@ CtrlVar.MinSurfAccRequiredToReactivateNodes=0;  % If surface accumulation is lar
                                                 % This allows for the formation of new isolated glaciated areas.
                                                 % Although the default value is zero, it is presumably better to set this to a small positive value.
 
-
+CtrlVar.UpdateMUAafterDeactivating=1; 
 %% Uniform global mesh refinement
 % Mesh can be refined at a start of a run or the start of a restart run by subdividing all triangles into four
 % can be useful, for example, for an error estimation
@@ -1444,6 +1460,8 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 CtrlVar.LevelSetMethod=0; 
 
+CtrlVar.LevelSetMethodTest=0;  %  
+
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
 CtrlVar.LevelSetPhase="" ; 
 CtrlVar.ManuallyDeactivateElements=0; 
@@ -1455,9 +1473,15 @@ CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
 CtrlVar.LSFslope=1;
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
 
- CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
 
+                                                       
+% Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
+CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified
+% CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Here AGlen will be set to this numerical value downstream of all
+                                                          % calving fronts. This will be done automatically and replaces 
+                                                          % any values defined by the user in DefineAGlen.,
 
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
@@ -1467,14 +1491,25 @@ CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;
 
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=1 ; 
-CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
- CtrlVar.LevelSetTestString="" ; 
+CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
+CtrlVar.LevelSetInitialisationMethod="-geo-" ;
 CtrlVar.LevelSetInitialisationInterval=inf ; 
+
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+
+% CtrlVar.LevelSetReinitializePDist=1;
+
+CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
+
+CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
+
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN; 
 
 % CtrlVar.LevelSetReinitialize=
 
@@ -1483,13 +1518,20 @@ CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the
 CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
 
-CtrlVar.LevelSetPseudoForwardTolerance=1; % tolerance on max(d\varphi/dt) in the pseudo-forward stepping phase.
-                                          % This parameter has the untis distance/time. If the units are meters and years,
-                                          % then the pseudo-forward step initialisation will be continued until max change in 
-                                          % any element is smaller than this prescribed tolerance.
 
-CtrlVar.CalvingLaw="-User Defined-"; 
-CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
+CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
+CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
+
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialisation
+                                                           % the (signed) distance to the calving front to each node is calculated.
+                                                           % For this purpose the calving front, as described either initially by the user
+                                                           % or as calculated as the zero contour of a previous level set, will need to be resampled
+                                                           % sufficiently fine. This is done by using a distance (d) that is given fraction of the smallest 
+                                                           % element size, as d=sqrt(2*min(MUA.EleAreas))/factor,
+                                                           % where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor
+
+% CtrlVar.CalvingLaw="-User Defined-"; 
+% CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted
@@ -1866,6 +1908,13 @@ CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
+
+%%
+
+CtrlVar.UseMexFiles=false ; 
+CtrlVar.UseMexFilesCPUcompare=false;
+
+
 %% Tracers
 %
 % If required that m-File 'TracerConservationEquation.m' can be used to
@@ -1935,13 +1984,16 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 
-%% Internal variables 
+%% Internal variables and  temporary testing parameters
 %%
 CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
 end
 
 

@@ -19,7 +19,11 @@ switch lower(CtrlVar.FlowApproximation)
 
         [UserVar,RunInfo,F1,l1,BCs1]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
-        
+    case "uvhprescribed"
+
+
+        [UserVar,RunInfo,F1,l1,BCs1]=uvhPrescibed(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+
     otherwise
 
         error('what case')

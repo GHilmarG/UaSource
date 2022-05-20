@@ -18,8 +18,8 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %       scale=0.1; H0=1000; hold on ;
 %       quiver(GLgeo(:,7)/CtrlVar.PlotXYscale,GLgeo(:,8)/CtrlVar.PlotXYscale,GLgeo(:,9),GLgeo(:,10),scale,'color','r')
 %
-% CtrlVar is optional. If given then only CtrlVar.GLsubdivide and
-% CtrlVar.GLthreshold are needed.
+% CtrlVar is optional, and if given only the CtrlVar.GLsubdivide and
+% CtrlVar.GLthreshold fields are needed.
 %
 %
 % CtrlVar.GLsubdivide   :  If CtrlVar.GLsubdivide is set to true, then 6 and 10 nodes elements are subdivided into smaller sub-triangles,

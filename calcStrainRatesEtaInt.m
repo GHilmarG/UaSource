@@ -83,7 +83,7 @@ for Iint=1:MUA.nip
     if exist('MUA','var') && isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
         Deriv=MUA.Deriv(:,:,:,Iint);
     else
-        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
     end
     % [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod
     % The derivative depends on the det of each element

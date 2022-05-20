@@ -393,6 +393,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
             PlotForceResidualVectors('uvh',Ruvh,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight
+            hold on 
+            PlotGroundingLines(CtrlVar,MUA,F1.GF) ;
+            PlotCalvingFronts(CtrlVar,MUA,F1);
         end
      
         if CtrlVar.InfoLevelNonLinIt>=1

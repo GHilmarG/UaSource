@@ -1,11 +1,11 @@
-function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
+function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 
 
 %%
 %  
 % Calculates horizontal strain rates given horizontal velocities. 
 %
-%    [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
+%    [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 %
 % Returns nodal values.
 %
@@ -36,16 +36,20 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 %
 % See also CalcNodalStrainRatesAndStresses
 
+narginchk(3,5)
 
+if nargin==4 
+       fprintf("The parameter list no longer contains CtrlVar \n")
+end
 
-if ~nargin==4 || ~nargin==6
+if ~nargin==3 || ~nargin==5
     error('Ua:CalcNodalStrainRates','Wrong number of input arguments')
 end
 
 if ~isempty(ub)
     
-    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA,CtrlVar);
-    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA,CtrlVar);
+    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA);
+    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA);
     exxb=dubdx;
     eyyb=dvbdy;
     exyb=0.5*(dubdy+dvbdx);
@@ -54,10 +58,10 @@ else
     exxb=[] ; eyyb=[] ; exyb=[]; 
 end
 
-if nargin == 6
+if nargin == 5
     if ~isempty(ud)
-        [duddx,duddy]=calcFEderivativesMUA(ud,MUA,CtrlVar);
-        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA,CtrlVar);
+        [duddx,duddy]=calcFEderivativesMUA(ud,MUA);
+        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA);
         
         exxd=duddx;
         eyyd=dvddy;

@@ -1,0 +1,114 @@
+Starting restart run at t=312.575 with dt=0.0114943 
+ On restart loading an initial mesh from MeshFile10km 
+  This new mesh will replace the mesh in restart file. 
+ Note: Even though this is a restart run the following variables are defined at the beginning of the run
+       through calls to corresponding user-input files: rho, rhow, g, C, m, AGlen, n, as, and ab.
+       These will overwrite those in restart file.
+ ---------   Reading restart file and defining start values for restart run is now done.
+
+
+ 	 ----------------------------------------> Current run step: 24416 <-------------------------------
+ Adaptive Time Stepping:  #Non-Lin Iterations over last 5 time steps: (max|mean|min)=(7|4|2). Target is 4. 	 TimeStepUpRatio=1.75 
+ 
+ ==========================>  Implicit uvh going from t=312.5753758 to t=312.58687 with dt=0.0114943. Done 15.6288 % of total time, and  0 % of steps. (13-Mar-2022 20:26:38) 
+ NR-SSTREAM(uvh):  1/0  g=1              , r/r0=1.284418e-13   ,  r0=5.4849         , r=7.044904e-13   , rForce=7.044904e-13   , rWork=3.626233e+10   , BCsError=0  
+ NR-SSTREAM(uvh):  2/0  g=1              , r/r0=9.980503e-08   ,  r0=7.044904e-13   , r=7.031169e-20   , rForce=7.031169e-20   , rWork=35.90638       , BCsError=0  
+  SSTREAM(uvh) (time|dt)=(312.575|0.0114943): Converged with rForce=7.03117e-20 and rWork=35.9064 in 2 iterations and in 13.0457  sec 
+
+     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[2715.292942 2665.896369 278.460861]
+      Diffusion term only, ie     P residual 6.11218e-08 
+      Advection term only, ie     L residual 0.00271644 
+  time and diffusion term, ie   T+P residual 6.11218e-08 
+  time and advection term, ie   T+L residual 0.00271644 
+            Full residual, ie T+L+P residual 0.00271543 
+                                         P/L 2.25007e-05 
+Level-Set(TLP/111):  1/0  g=1              , r/r0=7.842151e-14   ,  r0=0.002715425    , r=2.129478e-16   , rForce=2.129478e-16   , rWork=6.397634e-12   , BCsError=0              
+ Level-Set(TLP/111):  2/0  g=1              , r/r0=1.834628e-12   ,  r0=2.129478e-16   , r=3.906799e-28   , rForce=3.906799e-28   , rWork=6.611811e-41   , BCsError=0              
+ LevelSetEquationNewtonRaphson: NR iteration converged in 2 iterations with rForce=3.9068e-28 and rWork=6.61181e-41 
+LevelSetEquationSolver: LSF time=312.598364 	 tEnd=312.598364  	 dt=0.0114943  
+
+ 	 ----------------------------------------> Current run step: 24417 <-------------------------------
+ Adaptive Time Stepping:  #Non-Lin Iterations over last 5 time steps: (max|mean|min)=(7|4|2). Target is 4. 	 TimeStepUpRatio=1.75 
+ 
+ ==========================>  Implicit uvh going from t=312.58687 to t=312.5983643 with dt=0.0114943. Done 15.6293 % of total time, and  20 % of steps. (13-Mar-2022 20:26:56) 
+ NR-SSTREAM(uvh):  1/0  g=1              , r/r0=2.129022e-14   ,  r0=5.493984       , r=1.169681e-13   , rForce=1.169681e-13   , rWork=7.266006e+10   , BCsError=0  
+ NR-SSTREAM(uvh):  2/0  g=1              , r/r0=8.236159e-09   ,  r0=1.169681e-13   , r=9.633681e-22   , rForce=9.633681e-22   , rWork=12.50571       , BCsError=0  
+  SSTREAM(uvh) (time|dt)=(312.587|0.0114943): Converged with rForce=9.63368e-22 and rWork=12.5057 in 2 iterations and in 12.9571  sec 
+
+     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[2713.651412 2559.287557 266.115236]
+      Diffusion term only, ie     P residual 6.12242e-08 
+      Advection term only, ie     L residual 0.00270155 
+  time and diffusion term, ie   T+P residual 6.12242e-08 
+  time and advection term, ie   T+L residual 0.00270155 
+            Full residual, ie T+L+P residual 0.00270041 
+                                         P/L 2.26626e-05 
+Level-Set(TLP/111):  1/0  g=1              , r/r0=7.757995e-14   ,  r0=0.002700414    , r=2.09498e-16    , rForce=2.09498e-16    , rWork=6.232633e-12   , BCsError=0              
+ Level-Set(TLP/111):  2/0  g=1              , r/r0=1.886514e-12   ,  r0=2.09498e-16    , r=3.952209e-28   , rForce=3.952209e-28   , rWork=4.926906e-41   , BCsError=0              
+ LevelSetEquationNewtonRaphson: NR iteration converged in 2 iterations with rForce=3.95221e-28 and rWork=4.92691e-41 
+LevelSetEquationSolver: LSF time=312.609859 	 tEnd=312.609859  	 dt=0.0114943  
+
+ 	 ----------------------------------------> Current run step: 24418 <-------------------------------
+ Adaptive Time Stepping:  #Non-Lin Iterations over last 5 time steps: (max|mean|min)=(7|4|2). Target is 4. 	 TimeStepUpRatio=1.75 
+ 
+ ==========================>  Implicit uvh going from t=312.5983643 to t=312.6098585 with dt=0.0114943. Done 15.6299 % of total time, and  40 % of steps. (13-Mar-2022 20:27:13) 
+ NR-SSTREAM(uvh):  1/0  g=1              , r/r0=1.515215e-14   ,  r0=5.4709         , r=8.289589e-14   , rForce=8.289589e-14   , rWork=1.425324e+10   , BCsError=0  
+ NR-SSTREAM(uvh):  2/0  g=1              , r/r0=1.097555e-08   ,  r0=8.289589e-14   , r=9.098283e-22   , rForce=9.098283e-22   , rWork=16.27349       , BCsError=0  
+  SSTREAM(uvh) (time|dt)=(312.598|0.0114943): Converged with rForce=9.09828e-22 and rWork=16.2735 in 2 iterations and in 12.6124  sec 
+
+     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[2732.075917 2519.561562 254.318434]
+      Diffusion term only, ie     P residual 6.14175e-08 
+      Advection term only, ie     L residual 0.00268669 
+  time and diffusion term, ie   T+P residual 6.14175e-08 
+  time and advection term, ie   T+L residual 0.00268669 
+            Full residual, ie T+L+P residual 0.00268544 
+                                         P/L 2.28599e-05 
+Level-Set(TLP/111):  1/0  g=1              , r/r0=7.674502e-14   ,  r0=0.002685441    , r=2.060942e-16   , rForce=2.060942e-16   , rWork=6.072724e-12   , BCsError=0              
+ Level-Set(TLP/111):  2/0  g=1              , r/r0=1.912035e-12   ,  r0=2.060942e-16   , r=3.940594e-28   , rForce=3.940594e-28   , rWork=1.82165e-40    , BCsError=0              
+ LevelSetEquationNewtonRaphson: NR iteration converged in 2 iterations with rForce=3.94059e-28 and rWork=1.82165e-40 
+LevelSetEquationSolver: LSF time=312.621353 	 tEnd=312.621353  	 dt=0.0114943  
+
+ 	 ----------------------------------------> Current run step: 24419 <-------------------------------
+ Adaptive Time Stepping:  #Non-Lin Iterations over last 5 time steps: (max|mean|min)=(7|4|2). Target is 4. 	 TimeStepUpRatio=1.75 
+ 
+ ==========================>  Implicit uvh going from t=312.6098585 to t=312.6213528 with dt=0.0114943. Done 15.6305 % of total time, and  60 % of steps. (13-Mar-2022 20:27:30) 
+ NR-SSTREAM(uvh):  1/0  g=1              , r/r0=2.690667e-14   ,  r0=5.487104       , r=1.476397e-13   , rForce=1.476397e-13   , rWork=4.532174e+09   , BCsError=0  
+ NR-SSTREAM(uvh):  2/0  g=1              , r/r0=6.402335e-09   ,  r0=1.476397e-13   , r=9.452389e-22   , rForce=9.452389e-22   , rWork=17.83066       , BCsError=0  
+  SSTREAM(uvh) (time|dt)=(312.61|0.0114943): Converged with rForce=9.45239e-22 and rWork=17.8307 in 2 iterations and in 12.8835  sec 
+
+     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[2804.526477 2530.735863 243.045556]
+      Diffusion term only, ie     P residual 6.17145e-08 
+      Advection term only, ie     L residual 0.00267193 
+  time and diffusion term, ie   T+P residual 6.17145e-08 
+  time and advection term, ie   T+L residual 0.00267193 
+            Full residual, ie T+L+P residual 0.00267057 
+                                         P/L 2.30973e-05 
+Level-Set(TLP/111):  1/0  g=1              , r/r0=7.593703e-14   ,  r0=0.00267057     , r=2.027952e-16   , rForce=2.027952e-16   , rWork=5.919452e-12   , BCsError=0              
+ Level-Set(TLP/111):  2/0  g=1              , r/r0=1.908534e-12   ,  r0=2.027952e-16   , r=3.870414e-28   , rForce=3.870414e-28   , rWork=3.073891e-42   , BCsError=0              
+ LevelSetEquationNewtonRaphson: NR iteration converged in 2 iterations with rForce=3.87041e-28 and rWork=3.07389e-42 
+LevelSetEquationSolver: LSF time=312.632847 	 tEnd=312.632847  	 dt=0.0114943  
+
+ 	 ----------------------------------------> Current run step: 24420 <-------------------------------
+ Adaptive Time Stepping:  #Non-Lin Iterations over last 5 time steps: (max|mean|min)=(7|3|2). Target is 4. 	 TimeStepUpRatio=1.75 
+ 
+ ==========================>  Implicit uvh going from t=312.6213528 to t=312.632847 with dt=0.0114943. Done 15.6311 % of total time, and  80 % of steps. (13-Mar-2022 20:27:47) 
+ NR-SSTREAM(uvh):  1/0  g=1              , r/r0=7.136253e-14   ,  r0=5.515297       , r=3.935856e-13   , rForce=3.935856e-13   , rWork=3.976702e+10   , BCsError=0  
+ NR-SSTREAM(uvh):  2/0  g=1              , r/r0=4.132985e-08   ,  r0=3.935856e-13   , r=1.626684e-20   , rForce=1.626684e-20   , rWork=13.77354       , BCsError=0  
+  SSTREAM(uvh) (time|dt)=(312.621|0.0114943): Converged with rForce=1.62668e-20 and rWork=13.7735 in 2 iterations and in 12.8658  sec 
+
+     UpdateFtimeDerivatives [max(abs(F.dubdt)) max(abs(F.dvbdt)) max(abs(F.dhdt)) ]=[2898.322314 2551.728165 232.272764]
+      Diffusion term only, ie     P residual 6.21007e-08 
+      Advection term only, ie     L residual 0.00265787 
+  time and diffusion term, ie   T+P residual 6.21007e-08 
+  time and advection term, ie   T+L residual 0.00265787 
+            Full residual, ie T+L+P residual 0.0026564 
+                                         P/L 2.33648e-05 
+Level-Set(TLP/111):  1/0  g=1              , r/r0=7.511101e-14   ,  r0=0.002656397    , r=1.995246e-16   , rForce=1.995246e-16   , rWork=5.770418e-12   , BCsError=0              
+ Level-Set(TLP/111):  2/0  g=1              , r/r0=1.950964e-12   ,  r0=1.995246e-16   , r=3.892654e-28   , rForce=3.892654e-28   , rWork=4.469214e-41   , BCsError=0              
+ LevelSetEquationNewtonRaphson: NR iteration converged in 2 iterations with rForce=3.89265e-28 and rWork=4.46921e-41 
+LevelSetEquationSolver: LSF time=312.644341 	 tEnd=312.644341  	 dt=0.0114943  
+Exiting run-step loop because total number of steps reached. 
+ Wall-clock time : 00:01:29 (hh:mm:ss) 
+ Run finishes at 13-Mar-2022 20:28:05 
+ ================           Allt gott þá endirinn er allra bestur!    ======================
+ 
+>> 
