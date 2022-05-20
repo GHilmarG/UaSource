@@ -12,11 +12,15 @@ function  [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlV
 % cint=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nx,ny,uint,vint)
 
 
+narginchk(5,5)
+
+
+
 isPlotStrainRates=false;
 
 if isPlotStrainRates
 
-    FigStrainRates=FindOrCreateFigure("strain rates and velocities") ; clf(FigStrainRates) ; 
+    FigStrainRates=FindOrCreateFigure("strain rates and velocities") ; clf(FigStrainRates) ;
     QuiverColorGHG(F.x/1000,F.y/1000,F.ub,F.vb) ;
     Scale=2;
     hold on ; PlotTensor(F.x/1000,F.y/1000,F.exx,F.exy,F.eyy,Scale) ; axis equal
@@ -24,20 +28,22 @@ if isPlotStrainRates
 end
 
 
-narginchk(5,5)
 
 switch UserVar.CalvingLaw.Type
 
     case "-AC-"
 
-        CliffHeight=min((F.s-F.S),F.h) ;  % note: this does not account for density
+        %CliffHeight=min((F.s-F.S),F.h) ;  % note: this does not account for density
+        
+        CliffHeight=min((F.s-F.S),F.h).*F.rho./1000; % guessing this is what the authors intended,
+                                                     % but maybe this should be F.rho/920 assuming the authors used 920.
 
         fI=3.2e-17*365.25 ; c=fI*CliffHeight.^(7.2) ;
         % Now set calving rate to zero for cliff less than 135meters
         c(CliffHeight<135)=0 ;
         % and set maximum at at cliff height equalt to 450m
-        %cMax=fI*450.^(7.2) ;
-        %c(c>cMax)=cMax ;
+        cMax=fI*450.^(7.2) ;
+        c(c>cMax)=cMax ;
 
         %     c(c>UserVar.CalvingRateMax)=UserVar.CalvingRateMax ; % set an upper max
         dcddphidx=0;
@@ -58,8 +64,8 @@ switch UserVar.CalvingLaw.Type
         %
 
         % I=y<-660e3; c(I)=0;
-        I=F.y<-550e3; c(I)=0;   % This is what Mathieu uses
-        I=F.x<-1700e3; c(I)=0;
+        % I=F.y<-550e3; c(I)=0;   % This is what Mathieu uses, but this seems to create problems with LSF
+        % I=F.x<-1700e3; c(I)=0;
 
         % No calving when B>S
         % Limit calving to 2 km/day
@@ -153,8 +159,8 @@ switch UserVar.CalvingLaw.Type
     case "-DP-"  % Robert DeConto and David Pollard
         
         % Units: meters, year
-        rhoice=917;
-        CliffHeight=min((F.s-F.S),F.h).*F.rho./rhoice;  % OK, so it is a bit unclear what the "cliff height" should be
+
+        CliffHeight=min((F.s-F.S),F.h).*F.rho./1000;  % OK, so it is a bit unclear what the "cliff height" should be
                                                       % But presumably the idea is that the CliffHeight is a proxy
                                                       % for the stresses at the calving front, so it appears likley that it should
                                                       % involve rho*g*CliffHeight
