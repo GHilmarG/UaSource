@@ -54,11 +54,11 @@ end
 %A=MassMatrix2D1dof(MUA);
 %sol=A\b;
 
-if ~isfield(MUA,'M')
+if ~isfield(MUA,'M') || isempty(MUA.M)
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if isa(MUA.dM,"decomposition")
+if isa(MUA.dM,"decomposition") && ~isempty(MUA.dM)
     sol=MUA.dM\b;
 else
     sol=MUA.M\b;
