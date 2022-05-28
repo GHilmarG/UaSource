@@ -910,6 +910,13 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
     
+    % 2022-05-21: tried to fix the error with M2022a when using the gradient-based option
+    % by redefining and simplifying the options, but this did not work either.
+     options=optimoptions("fmincon");
+     options.Algorithm="trust-region-reflective";
+     options.HessianApproximation="lbfgs";
+     options.SpecifyConstraintGradient=true;
+     CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
 
      % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
     CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
