@@ -69,11 +69,9 @@ end
 
 if numel(F.LSF)==1
     F.LSF=F.LSF+zeros(MUA.Nnodes,1);
-    F.LSFMask=[];
-else
-    F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
 end
 
+F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
 
 
 
