@@ -72,7 +72,7 @@ classdef UaFields
         
         duddt=[];
         dvddt=[];
-      
+
       
         
         g=[];
@@ -90,6 +90,10 @@ classdef UaFields
         c=[] ; % calving rate
         LSFqx=[] ;
         LSFqy=[] ; 
+
+        txx=[];
+        txy=[];
+        tyy=[];
 
       
     end

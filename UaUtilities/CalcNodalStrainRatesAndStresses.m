@@ -8,7 +8,8 @@ narginchk(4,4)
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F) 
 %
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
-% On output all variables are nodal variables.
+%
+% On output, all variables are nodal variables.
 %
 %   txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
 %   txx,tyy,txy   : horizontal deviatoric stresses

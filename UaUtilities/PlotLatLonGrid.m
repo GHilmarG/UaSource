@@ -5,7 +5,8 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,Labe
 % [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing)
 %
 %
-%  hold on ; PlotLatLonGrid(1000,5,30,2000,1);
+%  hold on ; PlotLatLonGrid(1000)
+
 %
 
 
