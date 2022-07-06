@@ -456,16 +456,20 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     tEnd=toc(tStart);
     
-    
-    
+
+
     if iteration > CtrlVar.NRitmax
         fprintf(CtrlVar.fidlog,'Warning: maximum number of NRuvh iterations %-i reached \n',CtrlVar.NRitmax);
-        warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
+        warning('SSTREAM_TransientImplicit:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
         filename='Dumpfile_SSTREAM_TransientImplicit.mat';
         fprintf('Saving all data in a dumpfile %s \n',filename)
-        save(filename)
+        try
+            save(filename)
+        catch
+            warning("SSTREAM_TransientImplicit:SaveFileError","Could not save file %s",filename);
+        end
     end
-    
+
     
     RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
     RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
