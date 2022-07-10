@@ -10,7 +10,7 @@ function [qngl,qtgl,ThetaN,ThetaT,kappaN,kappaT,Ngl,Tgl,f,hgl,dgl,ugl,vgl,rhogl,
     
     % for each grounding line do:
     
-    
+    % Note: Old and outdated, consider using GroundingLineQuantities.m instead
     
     
     

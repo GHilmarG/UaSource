@@ -6,7 +6,19 @@ function f2=Grid1toGrid2(DTgrid1,f1,x2,y2,CtrlVar,OutsideValue)
     % if any of the x2 and y2 values contain NaN, f2 is returned with NaN at the corresponding locations
     % if OutsideValue is defined then any points outside of the convex hull are assigned that value
     % if OustideValue is not defined then these points are given the nearest-neighbor values
+    %
+    %
+    %  Note: This is an old m-file created before MATLAB introduced the scatteredinterpoland object.
+    %        Use MATLAB scatteredinterpolant instead, or consider using MapFbetweenMeshes.m
+    % 
+    %       
+    %
+
+    %
+    %%
     
+    warning("Grid1toGrid2:ImTooOld","Old version, try not to use. Better options available.")
+
     if isempty(x2)
         f2=[];
         return

@@ -193,35 +193,46 @@ if CtrlVar.InverseRun
         
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logC-","");
         CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-C-","");
-        
-        
+
+
     end
-    
+
     CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"--","-");
     CtrlVar.Inverse.InvertFor=replace(CtrlVar.Inverse.InvertFor,"--","-");
-    
+
     if ~contains(lower(CtrlVar.Inverse.DataMisfit.GradientCalculation),["fixpoint","adjoint"])
         fprintf('the string CtrlVar.Inverse.DataMisfit.GradientCalculation must contain either ''fixpoint'' or ``adjoint` \n')
         error('Invalid inputs.')
     end
-    
+
     % create a string with letters indicating which fields are being inverted for
     % e.g "ABC" if inverting for AGlen, B and C.
     CtrlVar.Inverse.InvertForField=string(sort(char(replace(replace(replace(string(CtrlVar.Inverse.InvertFor),"log","") ,"-",""),"AGlen","A")))) ;
-    
-    
-    if contains(CtrlVar.Inverse.MinimisationMethod,'Hessian')
-        
-        CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
-                
+
+
+    if contains(CtrlVar.Inverse.MinimisationMethod,"MatlabOptimization")
+
+        if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization"
+            fprintf("Inversion is HessianBased, ie provides a Hessian approximation. \n")
+            CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";
+        end
+
     end
-    
+
+
+
+    if contains(CtrlVar.Inverse.MinimisationMethod,'Hessian')
+
+        CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
+
+    end
+
 end
 
 
 
 if isfield(CtrlVar,'AdaptMeshInterval')
-    
+
     fprintf(' Note: CtrlVar.AdaptMeshInterval no longer used. Use CtrlVar.AdaptMeshRunStepInterval instead.\n')
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
     

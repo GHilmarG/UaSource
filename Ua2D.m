@@ -71,7 +71,7 @@ CtrlVar=Ua2D_DefaultParameters();
 if  ~isempty(CtrlVarOnInput)
     % now replace default CtrlVar fields with those of CtrlVarOnInput
     % of the input CtrlVarOnInput.
-    fprintf("\n ===== The fields of CtrlVar given as input to Ua replace corresponding fields of CtrlVar defined in Ua2D_InitialUserInput.m \n")
+    fprintf("\n ===== The fields of CtrlVar given as input to Ua replace corresponding fields of CtrlVar defined in Ua2D_DefaultParameters.m \n")
     
     CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput);
 

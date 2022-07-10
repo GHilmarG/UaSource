@@ -49,14 +49,10 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     CtrlVar.LineUpGLs=false ; Threshold=0 ;
 
     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F0.LSF,Threshold);
-
-
-    % DistEle=pdist2([xc(:) yc(:)],[MUA.xEle MUA.yEle],'euclidean','Smallest',1) ;
-    % DistEle=DistEle(:) ;  % note, this is a element-valued distance function
     F0.x=MUA.coordinates(:,1); F0.y=MUA.coordinates(:,2);
     DistNod=pdist2([xc(:) yc(:)],[F0.x F0.y],'euclidean','Smallest',1) ;
-    DistNod=DistNod(:) ;  % note, this is a element-valued distance function
-    DistEle=Nodes2EleMean(MUA.connectivity,DistNod) ;
+    DistNod=DistNod(:) ;  
+    DistEle=Nodes2EleMean(MUA.connectivity,DistNod) ; % note, this is now an element-valued distance function
 
     if isnan(CtrlVar.LevelSetMethodStripWidth)
 
@@ -104,8 +100,6 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     F1.C=F1.C(kk) ;      F0.C=F0.C(kk) ;
     F1.AGlen=F1.AGlen(kk) ;      F0.AGlen=F0.AGlen(kk) ;
     F1.GF.node=F1.GF.node(kk) ;      F0.GF.node=F0.GF.node(kk) ;
-
-
 
 
     % To do, set all other values to empty to make sure they are not updated

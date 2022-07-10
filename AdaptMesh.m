@@ -285,7 +285,7 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     % at each mesh refinement stage to allow for the re-activation of regions previously
     % deactivated. As this is also done within LocalMeshRefinement using newest-vertex
     % bisection in combination with manual deactivation of elements, this is only
-    % occationally required.
+    % occasionally required.
     if  ~(size(MUAnew.RefineMesh.elements,1)==MUAnew.Nele && size(MUAnew.RefineMesh.coordinates,1)==MUAnew.Nnodes)
         
         MUAnew=CreateMUA(CtrlVar,MUAnew.RefineMesh.elements,MUAnew.RefineMesh.coordinates,MUAnew.RefineMesh);
@@ -415,8 +415,11 @@ end
 %   CtrlVar.InitialDiagnosticStepAfterRemeshing is true
 %   but also if mesh refinement method was not 'newest vertex bisection'
 %
-isMeshingLocalWithoutSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:local:red-green","IgnoreCase",true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0) ...
-    || contains(CtrlVar.MeshRefinementMethod,"local:newest vertex bisection","IgnoreCase",true);
+%isMeshingLocalWithoutSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:local:red-green","IgnoreCase",true) && CtrlVar.LocalAdaptMeshSmoothingIterations==0) ...
+%    || contains(CtrlVar.MeshRefinementMethod,"local:newest vertex bisection","IgnoreCase",true);
+
+isMeshingLocalWithSmoothing=(contains(CtrlVar.MeshRefinementMethod,"explicit:local:red-green","IgnoreCase",true) && CtrlVar.LocalAdaptMeshSmoothingIterations>0);
+    
 
 isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
@@ -426,16 +429,28 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 %                                (3) the remeshing done involved mesh smoothing (in which
 %                                    case most nodes will have shifted).
 % It the mesh changed but all now nodes are interior nodes, do not recalculate uv.
-isRecalculateVelocities=(isNewOutsideNodes  ...
-    || CtrlVar.InitialDiagnosticStepAfterRemeshing ...
-    || ~isMeshingLocalWithoutSmoothing);
-    
 
-if ~CtrlVar.AdaptMeshAndThenStop
-    if isRecalculateVelocities
-        [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
-    end
+
+
+% Do I need to recalcualte uv velocities?
+if ~isMeshChanged  || CtrlVar.AdaptMeshAndThenStop
+
+    isRecalculateVelocities=false ;
+
+else
+
+    isRecalculateVelocities=(isNewOutsideNodes  ...
+        || CtrlVar.InitialDiagnosticStepAfterRemeshing ...
+        || isMeshingLocalWithSmoothing);  % modification 2022-07-22: previously I used ~isMeshingLocalWithoutSmoothing. 
+                                          % This could be improved, currently there is no new uv calculation after a global remeshing step.
+                                          %
+
 end
+
+if isRecalculateVelocities
+    [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+end
+
 
 if ~isfield(RunInfo.MeshAdapt.Mesh,'Nele')
     RunInfo.MeshAdapt.Mesh.Nele=NaN;

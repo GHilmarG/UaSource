@@ -30,6 +30,7 @@
             <tocitem target="PlotAndDataGather.html">Files and Data Manipulations
                 <tocitem target="ReadPlotSequenceOfResultFiles.html">Plot and/or gather data from sequence of result files</tocitem>
                 <tocitem target="BedMachineToUaGriddedInterpolants.html">Read BedMachine data and create gridded interpolants and boundary coordinates</tocitem>
+                <tocitem target="FindBatchJobs.html">Finds all batch jobs on the local cluster. Writes the diary into a text file, and then displays</tocitem>
             </tocitem>
             <tocitem target="PlotUtilities.html">Plot Utilities 
                 <tocitem target="PlotMuaMesh.html">Plot mesh</tocitem>
