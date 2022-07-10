@@ -1,4 +1,7 @@
-function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhoOcean,GF)
+
+
+
+function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rhoOcean,GF,options)
 
 %%
 %
@@ -40,7 +43,7 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF([],MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
 %   CtrlVar=CtrlVarInRestartFile;
 %   FindOrCreateFigure("VAF") ; 
-%   [~,cbar]=PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,hAF) ; 
+%   [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,hAF) ; 
 %   axis tight
 %   hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
 %   hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r');
@@ -52,8 +55,19 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %%
 
-narginchk(7,8)
-nargoutchk(1,5)
+
+arguments
+    CtrlVar     struct
+    MUA         struct
+    h           (:,1)  double
+    B           (:,1)  double
+    S           (:,1)  double
+    rho         (:,1)  double
+    rhoOcean    (:,1)  double
+    GF          struct
+    options.boundary double=nan
+    options.plot logical = false 
+end
 
 
 % One option:
@@ -68,13 +82,21 @@ nargoutchk(1,5)
 %
 % or simply:
 hfPos=(S>B).*rhoOcean.*(S-B)./rho ;            % (positive) flotation thickness
-hAF= (h>hfPos).*(h-hfPos) ;                % (positive) ice thickness above floatation
+hAF= (h>hfPos).*(h-hfPos) ;                    % (positive) ice thickness above floatation
 
-
+if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate VAF inside of that boundary
+    xy=[MUA.coordinates(:,1) MUA.coordinates(:,2)] ;
+    isInside=inpoly2(xy,options.boundary);
+    hAF(~isInside)=0;                       % simply set all nodal values outside of that boundary to zero. 
+end
 
 VAF.node=hAF.*rho./rhoOcean ;                % thickness above flotation in water equivalent.
+
+
 VAF.ele=FEintegrate2D(CtrlVar,MUA,VAF.node); % VAF for each element (m^3)
 VAF.Total=sum(VAF.ele);                      % total volume above flotation over the whole model domain
+
+
 
 
 if nargout>1
@@ -88,6 +110,20 @@ if nargout>1
 end
 
 
+if options.plot 
+
+  FindOrCreateFigure("VAF") ; 
+  [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,hAF) ; 
+  axis tight
+  hold on ; PlotLatLonGrid(CtrlVar.PlotXYscale) ;
+  hold on ; PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'r');
+  xlabel("xps (km)",interpreter="latex") ; ylabel("yps (km)",interpreter="latex") ; 
+  title(cbar,"(m)") ; title("ice thickness above flotation")
+  fprintf("VAF=%f (Gt/yr)\n",VAF.Total/1e9)   ; 
+  fprintf("GroundedArea=%-7.2f (times the area of iceland)\n",GroundedArea.Total/1e6/103e3) ; 
+  colormap(othercolor('Blues7',1024));
+
+end
 
 
 end

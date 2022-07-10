@@ -235,7 +235,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
                 % then this will work
                 
-                %%  Mapping ino 'physical' nodal basis if required
+                %%  Mapping into 'physical' nodal basis if required
                 % remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
                 % actually most likely only need to do this if numel(hPosNode)>0
                 % If the L matrix was not in the FE basis, I simply calculate the reactions.
@@ -253,22 +253,33 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                     end
                 end
                 %%
-                
-                
+
+
                 if numel(lambdahpos) ~= numel(BCs1.hPosNode)
                     save TestSave ; error(' # of elements in lambdahpos must equal # of elements in BCs1.hPosNode')
                 end
-                
+
                 if RunInfo.Forward.Converged==1
                     break
                 end
-                
-                
+
+
                 warning('uvh:uvhSolutionNotConvergent','uvh2D did not converge')
                 filename='Dump_uvh';
                 fprintf('Saving all local data in %s \n',filename)
-                save(filename)
-                
+                try
+
+                    save(filename)
+
+                catch ME
+
+                    disp('Error Message:')
+                    disp(ME.message)
+                    warning('uvh:CouldNotSaveFile','For some reason file could not be saved.')
+
+                end
+
+
                 
                 % If not converged try:
                 % 1) Reset variables to values at the beginning of time ste
