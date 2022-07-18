@@ -20,7 +20,7 @@ function [xc,yc,LSF,xcEdges,ycEdges,ShapeDifference]=CalvingFrontLevelSetGeometr
 % value will always affect the positions of the calving fronts across all elements to which it belongs. We can therefore have
 % a situation where it is impossible to find distribution of LSF nodal values for which the calculated calving front is
 % identical to the calving front as given on input.
-
+%
 %
 % If the calving front is provided on input as (Xc,Yc), it can optionally be subsampled within elements. Generally this is a
 % must if one is performing a re-initialisation during a run, as otherwise the geometric re-initialzation can shift the level
@@ -31,8 +31,7 @@ function [xc,yc,LSF,xcEdges,ycEdges,ShapeDifference]=CalvingFrontLevelSetGeometr
 % There is a special case when Xc and Yc are entered as empty arrays, in which case Xc and Yc are simply determined by
 % calculating the zero contours of LSF. This can be OK, but the resulting calving front (xc,yc) will, in general, be impacted
 % by the mesh resolution with the resulting calving fronts typically cutting through the mid edges of the elements. If
-% (Xc,Yc) is know, the return calving front (xc,yc) is much more likely to cut across the elements similar as (Xc,Yc).
-%
+% (Xc,Yc) is known, the return calving front (xc,yc) is much more likely to cut across the elements similar as (Xc,Yc).
 %
 %
 % On input only the sign of LSF must be correct. This is, for nodes inside/upstream of calving fronts LSF must be positive,
