@@ -86,7 +86,7 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
 CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements = ...
     CtrlVar.LevelSetMethodAutomaticallyDeactivateElements ...   % 1)
     && CtrlVar.LevelSetMethod  ...                              % 2)
-    && ( mod(CtrlVar.CurrentRunStepNumber,CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval)==0 ) ;% 3) interval
+    && ( mod(CtrlVar.CurrentRunStepNumber-1,CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval)==0 ) ;% 3) interval
 
 
 if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements && ~CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
