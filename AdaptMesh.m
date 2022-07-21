@@ -84,8 +84,17 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
 
 
 if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements && ~CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && ~CtrlVar.LevelSetMethod  
+    % ToDo:  now adapt meshing is done at every time step whenever:
+    %          CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && CtrlVar.LevelSetMethod  == true
+    %
+    % Consider only doing adaptive meshing with the level-set method provided isMeshAdapt is true, this would ensure that
+    % LevelSet deactivation is only done at given intervals as determined by isAdaptMeshRunStepInterval && isAdaptMeshTime
     return
 end
+
+% isAdaptMeshing= ...
+% isMeshAdapt ...
+%     || isMeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements ||(CtrlVar.LevelSetMethodAutomaticallyDeactivateElements || ( CtrlVar.LevelSetMethod  && (isAdaptMeshRunStepInterval || isAdaptMeshTime)) ...
 
 
 

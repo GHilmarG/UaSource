@@ -810,13 +810,13 @@ while iFile<=nFiles   % loop over files
                 CtrlVar.VelPlotIntervalSpacing='log10';
                 %CtrlVar.VelColorMap='hot';
 
-                CtrlVar.RelativeVelArrowSize=5;
-                CtrlVar.QuiverColorSpeedLimits=[100 50000];
+                CtrlVar.RelativeVelArrowSize=1;
+                CtrlVar.QuiverColorSpeedLimits=[100 12000];
                 CtrlVar.QuiverColorPowRange=4;
 
-                CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
-                CtrlVar.RelativeVelArrowSize=1;
-                CtrlVar.QuiverColorPowRange=3;
+             %   CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
+             %   CtrlVar.RelativeVelArrowSize=1;
+             %   CtrlVar.QuiverColorPowRange=3;
 
                 if contains(PlotType,"-B-")
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
@@ -878,7 +878,7 @@ while iFile<=nFiles   % loop over files
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                 end
 
-
+                % PlotLatLonGrid(1000);
 
             case '-log10(BasalSpeed)-'
                 %%
