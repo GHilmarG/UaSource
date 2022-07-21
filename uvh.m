@@ -97,7 +97,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         end
 
 
-    else
+    else   %  Thickness constraints used
+
         %    NodesFixed: holdes the nodal numbers nodes in the active set
         %      ihactive: number nodes in active set
         %
@@ -551,16 +552,18 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 end
             end
         end
-        
+
         if any(F1.h<CtrlVar.ThickMin)
-            save TestSave ;
+
             warning('some h1 <ThickMin on return from FIuvh2D. min(h1)=%-g',min(F1.h)) ;
             I=find(F1.h<CtrlVar.ThickMin) ;
             fprintf('Nodes with thickness<ThickMin: ') ; fprintf('%i ',I)  ; fprintf('\n')
             fprintf('                    thickness: ') ; fprintf('%g ',F1.h(I))  ; fprintf('\n')
-            F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-            %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
-            fprintf(CtrlVar.fidlog,' Setting h1(h1<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+            if CtrlVar.ResetThicknessToMinThickness
+                F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
+                %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
+                fprintf(CtrlVar.fidlog,' Setting h1(h1<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+            end
         end
     end
     

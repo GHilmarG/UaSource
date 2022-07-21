@@ -82,8 +82,14 @@ isMeshAdapt=CtrlVar.AdaptMesh  ...
     && ~isMeshAdvanceRetreat;
 
 
+% Only do the automatic level set element deactivation if: 
+CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements = ...
+    CtrlVar.LevelSetMethodAutomaticallyDeactivateElements ...   % 1)
+    && CtrlVar.LevelSetMethod  ...                              % 2)
+    && ( mod(CtrlVar.CurrentRunStepNumber,CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval)==0 ) ;% 3) interval
 
-if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements && ~CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && ~CtrlVar.LevelSetMethod  
+
+if ~isMeshAdapt && ~isMeshAdvanceRetreat && ~CtrlVar.ManuallyDeactivateElements && ~CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
     % ToDo:  now adapt meshing is done at every time step whenever:
     %          CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && CtrlVar.LevelSetMethod  == true
     %
@@ -259,14 +265,14 @@ end
 
 %%
 
-if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+if CtrlVar.ManuallyDeactivateElements || CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
     
     
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
         if CtrlVar.ManuallyDeactivateElements
             fprintf("AdaptMesh: Manual deactivation of elements.\n")
         end
-        if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+        if CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
             fprintf("AdaptMesh: Automated deactivation of elements based on the level set. \n")
         end
     end
@@ -314,7 +320,7 @@ if CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeac
     end
     
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
-    if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+    if CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
         ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
     end
     

@@ -1465,7 +1465,11 @@ CtrlVar.RefineMeshOnStart=0;
 % Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
-CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
+CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
+
+CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
+                                          
+
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
                                                    % 'explicit:local:red-green'
@@ -1498,7 +1502,7 @@ CtrlVar.LevelSetMethodTest=0;  %
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
 CtrlVar.LevelSetPhase="" ; 
-CtrlVar.ManuallyDeactivateElements=0; 
+
 
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
@@ -1517,7 +1521,15 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
                                                           % calving fronts. This will be done automatically and replaces 
                                                           % any values defined by the user in DefineAGlen.,
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+
+% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
+% This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
+% in faster solution. 
+%
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                 %
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10; % 
+
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
