@@ -173,7 +173,7 @@ if CtrlVar.ThicknessBarrier
     % don't apply if already applied as a part of the level-set method
     isThickTooSmall=isThickTooSmall & ~LM ; 
 
-    a1= -100 ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
+    a1= -1000 ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= 0  ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
 
     abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
