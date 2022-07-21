@@ -363,7 +363,7 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 %Note: The default uvh tolerances set limits on the Force tolerance only. 
 
 % 2) If the step length in the backtracking becomes smaller than
-CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fullfilled:
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];

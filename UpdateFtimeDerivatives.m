@@ -82,15 +82,14 @@ else
     end
 
 
-    
-
-    %    I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
-    %    fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+   
 
 end
 
-if max(abs(F.dubdt)) >1e8
+if max(abs(F.dhdt)) >1e8 || max(abs(F.dubdt)) >1e8 ||  max(abs(F.dvbdt)) >1e8
     fprintf("Check: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
+     I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
+    fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 end
 
 end
