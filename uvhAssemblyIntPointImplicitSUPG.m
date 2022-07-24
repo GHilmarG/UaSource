@@ -114,6 +114,8 @@ if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
   
+    % a1=0 ; a3=-1e6 ; 
+
     hmin=CtrlVar.LevelSetMinIceThickness;
 
     abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
@@ -174,7 +176,8 @@ if CtrlVar.ThicknessBarrier
     isThickTooSmall=isThickTooSmall & ~LM ; 
 
     a1= -1000 ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
-    a3= 0  ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+    % a1=0 ;
+    % a3= -1e6  ; % CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
 
     abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
 
