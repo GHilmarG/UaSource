@@ -53,8 +53,9 @@ range=(t2-t1)*linspace(0,1,size(temp,1))+t1 ;
 
 if options.ShowGrayLevel
     N=2;
-    I=[iloc-N:iloc+N];
+    I=iloc-N:iloc+N;
     I(I<1)=[];
+    I(I>options.Ncol)=[];
 else
     N=0;
 end
