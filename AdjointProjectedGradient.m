@@ -142,7 +142,7 @@ for iteration=1:nIt
     
     fprintf(' fraction of lower and upper eps active AGlen constrains %-g \t %-g \n ',sum(IlowerC)/length(C0),sum(IupperC)/length(C0))
     
-    dJdC(IlowerC)=0; % at lower limit and (negative) gradient points out of feasable domain
+    dJdC(IlowerC)=0; % at lower limit and (negative) gradient points out of feasible domain
     dJdC(IupperC)=0;
     
     IlowerA=(AGlen0<=lowA) & (dJdAGlen>0) ;

@@ -4,7 +4,10 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     narginchk(9,9)
     nargoutchk(6,6)
     
-    dt=CtrlVar.dt;
+
+    error("uvh -> uvh2")
+
+    dt=CtrlVar.dt
 
     RunInfo.Forward.ActiveSetConverged=1;
     RunInfo.Forward.uvhIterationsTotal=0;

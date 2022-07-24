@@ -141,8 +141,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     if BCsRelativeError>0.01
         
-        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasable point\n')
-        % fprintf('         Although the uvh iteration can start at an infeasable point and still converge successfully, \n')
+        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasible point\n')
+        % fprintf('         Although the uvh iteration can start at an in-feasible point and still converge successfully, \n')
         
     end
     

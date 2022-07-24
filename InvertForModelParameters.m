@@ -27,7 +27,7 @@ F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
 
-% Make sure initial point is feasable
+% Make sure initial point is feasible
 F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
