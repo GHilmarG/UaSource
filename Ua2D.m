@@ -585,7 +585,7 @@ while 1
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
             % speed up the non-linear solver.
-            [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            [UserVar,RunInfo,F,l,BCs,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             

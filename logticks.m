@@ -43,7 +43,7 @@ ticks=Ticks;
 
 
 
-tv=[5 2 3 1.25 6 4 8 7 1.5 9 1.75]; iCount=0 ;
+tv=[5 2 3 1.5 6 4 8 7 1.5 9 1.75]; iCount=0 ;
 while numel(ticks)< nTicks && iCount<numel(tv)
     iCount=iCount+1;
     temp=Ticks*tv(iCount) ; temp=temp(1:end-1) ; ticks=sort([ticks temp]);

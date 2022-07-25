@@ -34,7 +34,7 @@ function CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput)
 % % CtrlVarOnInput.Field.Field.Field.Field.a="A";  % this should generate an error
 %
 %
-%   CtlrVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput); 
+%   CtrlVar=ReplaceStructureFields(CtrlVar,CtrlVarOnInput); 
 %
 %%
 

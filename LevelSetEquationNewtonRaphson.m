@@ -43,7 +43,7 @@ function [UserVar,RunInfo,LSF1,l,LSF1qx,LSF1qy,Residual]=LevelSetEquationNewtonR
     dLSF=F1.LSF*0;
     BCsError=0;
     
-    % make sure initial point is feasable
+    % make sure initial point is feasible
     F1.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
     F0.LSF(BCs.LSFFixedNode)=BCs.LSFFixedValue;
 
