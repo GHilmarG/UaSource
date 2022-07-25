@@ -294,7 +294,7 @@ end
 
 
 
-ChangeInActiveSet=setdiff(BCs1.hFixedNode,LastActiveSet) ;
+ChangeInActiveSet=setdiff(BCs1.hPosNode,LastActiveSet) ;
 nChangeInActiveSet=numel(ChangeInActiveSet);
 if nChangeInActiveSet ==0
     isActiveSetModified=false;

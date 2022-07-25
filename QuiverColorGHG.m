@@ -367,21 +367,32 @@ else
     % Now all Par fields have been checked or set to some reasonable values
     %
 
-    
-    if ~isnumeric(Par.VelColorMap)
-        NN=10*N ;
-        cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,NN));
-    else
-        cmap=Par.VelColorMap ;
-        NN=size(cmap,1); 
-    end
+
+   
 
     if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
         % create a `logarithmic' colormap
-        
 
+        if ~isnumeric(Par.VelColorMap)
+            NN=10*N ;
+            cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,NN));
+        else
+            cmap=Par.VelColorMap ;
+            NN=size(cmap,1);
+        end
         index=fix((NN-1)*(exp((0:N-1)/(N-1))-1)/(exp(1)-1)+1);
         cmap=colormap(cmap(index,:));
+    else
+
+        if ~isnumeric(Par.VelColorMap)
+
+            cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,N));
+
+        else
+            cmap=Par.VelColorMap ;
+            N=size(cmap,1);
+
+        end
 
     end
 
