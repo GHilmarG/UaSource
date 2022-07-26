@@ -171,7 +171,7 @@ end
 
 %% Consider adding LSF F1.LSFMask.NodesOut to thickness constraints
 
-if CtrlVar.LevelSetMethod % Level Set
+if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 
     if isempty(F1.LSFMask)  % 
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);

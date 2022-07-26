@@ -1511,16 +1511,32 @@ CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the l
 CtrlVar.LevelSetPhase="" ; 
 
 
-% To ensure ice thickness downstream of the calving front (ie zero line of the level set function) is small several
-% approaches can be used. This is quite similar to the implmentation of the min ice thickness.
+% To ensure ice thickness downstream of the calving front (ie zero line of the level set function) is small, several
+% approaches can be used. These are quite similar to the implementation of the min ice thickness.
 %
-% Three methods are possible: 1) reset thickness, 2) level-set approach , 3) mass-balance feedback
+% Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback
 %
-% The recomended option is to use both 2 and 3, but never 1.
+% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).
 %
+%
+% The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses
+% downstream of the calving front are guaranteed to be at min thick as they should. But this sharp transition in thickness
+% can come at the cost of shorter time steps.
+%
+% The mass-balance feedback method, ie method 3), will not give sharp calving fronts and the thickness downstream
+% of the calving front will in general go down to the min thickness over some distance. This distance can be shortened by
+% increasing the mass balance feedback, which can be done by making the paramters
+% 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic
+%
+% more negative. But again if the calving fronts become very sharp, we have the same risk of smal time steps as with
+% the active-set method.
+%
+
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recomended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
+CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
@@ -1530,7 +1546,7 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an addi
                                                                % but the thickness  barrier method does not have to be activated as
                                                                % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0;         % a3 in the above equaiton for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         % a3 in the above equaiton for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 

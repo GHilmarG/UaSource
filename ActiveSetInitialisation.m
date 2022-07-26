@@ -56,7 +56,7 @@ F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modif
 
 %% Consider adding LSF F1.LSFMask.NodesOut to thickness constraints
 
-if CtrlVar.LevelSetMethod % Level Set
+if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 
     if isempty(F1.LSFMask)  % If I have already solved the LSF equation, this will not be empty and does not need to be recalculated (ToDo)
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
