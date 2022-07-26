@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-12"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
+      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-07-26"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>Sept 2021</i></p><div><ul><li>Calving</li></ul></div><p>Calving can now be prescribed by defining a ice/ocean mask at each time step. The implementation is more general and faster than other similar manual calving options such as deactivating elements or prescribing an additional mass balance term.</p><p>The ice-free areas are automatically melted away using a mass-balance feedback option implemented at the integration points. Second-order NR convergence is obtained even if the reulting mass balance distribution varies sigificantly spatially within an element</p><p>To use this calving option set:</p><pre>    CtrlVar.LevelSetMethod=1;</pre><p>and then define the ice/ocean mask at each time step using the m-file</p><pre>    DefineCalving.m</pre><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>July 2022</i></p><div><ul><li>Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although still considered not fully testet, this option appears to work quite well. Further details can be found in Ua2D_DefaultParameters.m and in the DefineCalving.m files.</li></ul></div><div><ul><li>In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a new uvh solve, e.g.:</li></ul></div><pre class="language-matlab">CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;
+</pre><div><ul><li>UaPlots is a new plotting utility function.</li></ul></div><div><ul><li>Some minor bugs have been corrected, but nothing that should affect calculated solutions.</li></ul></div><div><ul><li>This version requires MATLAB2021a or later.</li></ul></div><p><b>Release Notes</b> <i>Sept 2021</i></p><div><ul><li>Calving</li></ul></div><p>Calving can now be prescribed by defining a ice/ocean mask at each time step. The implementation is more general and faster than other similar manual calving options such as deactivating elements or prescribing an additional mass balance term.</p><p>The ice-free areas are automatically melted away using a mass-balance feedback option implemented at the integration points. Second-order NR convergence is obtained even if the reulting mass balance distribution varies sigificantly spatially within an element</p><p>To use this calving option set:</p><pre>    CtrlVar.LevelSetMethod=1;</pre><p>and then define the ice/ocean mask at each time step using the m-file</p><pre>    DefineCalving.m</pre><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
          F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
          OceanNodes=MUA.coordinates(:,1)&gt;500e3 &amp; F.GF.NodesDownstreamOfGroundingLines;
          LSF=zeros(MUA.Nnodes,1)+ 1 ;
@@ -82,7 +83,7 @@ F.y=MUA.coordinates(:,2)
 </pre><div><ul><li>Default inverse algorithim has changed. Now the defaul options is a Hessian-based inversion.  The older-approach is still available by selecting a Gradien-based inversion. This is specificed using the CtrlVar field:</li></ul></div><pre>     CtrlVar.Inverse.MinimisationMethod</pre><p>When using this Hessian-based inversion, there is no need to specify the value of</p><pre>     CtrlVar.Inverse.AdjointGradientPreMultiplier</pre><p>and this field is not used.</p><div><ul><li>Ocean and wind-indued drag over floating ice can be included. This is defined in</li></ul></div><pre class="language-matlab">DefineSeaIceParameters.m
 </pre><p>and you need to switch this option on by setting</p><pre class="language-matlab">CtrlVar.IncludeMelangeModelPhysics=true;
 </pre><p>in DefineInitialInputs.m</p><div><ul><li>The quadrature degree can now be directly specified using</li></ul></div><pre class="language-matlab">CtrlVar.QuadratureRuleDegree=N
-</pre><p>where N is a number that can be as high as 25 (Previously the highest possible degree was 13). Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining second-order convergence of the Newton-Raphson system.</p><div><ul><li>The shallow-ice sheet (SIA/SSTREAM) option now includes basal sliding.</li></ul></div><p>The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.</p><p><b>Release Notes</b> <i>June 2020</i></p><div><ul><li>Naming of some user input m-files has changed:</li></ul></div><pre>     Ua2D_InitialUserInput.m</pre><p>is now named:</p><pre>     DefineInitialInputs.m</pre><p>And</p><pre>     UaOutputs.m</pre><p>is now:</p><pre>     DefineOutputs.m</pre><p>These changes were done so that names of all user-input files start with 'Define'</p><p>Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and UaOutputs.m files you can, for example, consider using the m-file utility file:</p><pre>     RenameFileRecursively.m</pre><div><ul><li>Naming of a few CtrlVar fields has changed. For example</li></ul></div><pre>     CtrlVar.ATStimeStepTarget</pre><p>is for example no longer used. Use:</p><pre>     CtrlVar.ATSdtMax</pre><p>instead.</p><p>You can now specify a minimum selected time step in the automated-time-stepping (ATM) algorithm settting the field</p><pre>     CtrlVar.ATSdtMin</pre><p>Also</p><pre class="language-matlab">CtrlVar.UaOutputsDt
+</pre><p>where N is a number that can be as high as 25 (Previously the highest possible degree was 13). Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining second-order convergence of the Newton-Raphson system.</p><div><ul><li>The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.</li></ul></div><p>The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.</p><p><b>Release Notes</b> <i>June 2020</i></p><div><ul><li>Naming of some user input m-files has changed:</li></ul></div><pre>     Ua2D_InitialUserInput.m</pre><p>is now named:</p><pre>     DefineInitialInputs.m</pre><p>And</p><pre>     UaOutputs.m</pre><p>is now:</p><pre>     DefineOutputs.m</pre><p>These changes were done so that names of all user-input files start with 'Define'</p><p>Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and UaOutputs.m files you can, for example, consider using the m-file utility file:</p><pre>     RenameFileRecursively.m</pre><div><ul><li>Naming of a few CtrlVar fields has changed. For example</li></ul></div><pre>     CtrlVar.ATStimeStepTarget</pre><p>is for example no longer used. Use:</p><pre>     CtrlVar.ATSdtMax</pre><p>instead.</p><p>You can now specify a minimum selected time step in the automated-time-stepping (ATM) algorithm settting the field</p><pre>     CtrlVar.ATSdtMin</pre><p>Also</p><pre class="language-matlab">CtrlVar.UaOutputsDt
 </pre><p>has also been replaced by</p><pre class="language-matlab">CtrlVar.DefineOutputsDt
 </pre><p>If you define these old fields in your (new) DefineInitialInputs.m, &Uacute;a will spot this and complain bitterly.</p><p>Those using Unix might want to systematically change names of some of the CtrlVar fields in there old input files. You might be able to use something like:</p><pre class="language-matlab">find <span class="string">.</span> <span class="string">-name</span> <span class="string">"DefineInitialInputs.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g'</span> <span class="string">{}</span> <span class="string">+</span>
 find <span class="string">.</span> <span class="string">-name</span> <span class="string">"Define*.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g'</span> <span class="string">{}</span> <span class="string">+</span>
@@ -93,11 +94,29 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 </pre><pre class="language-matlab">DefineOutsideValues
 </pre><p><b>Several new computational utilities</b></p><pre class="language-matlab">LakeOrOcean3.m
 </pre><p>is both fast and robust (Thanks to Sebastian Rosier).</p><pre class="language-matlab">EleFlooding.m
-</pre><p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 
 
 %%
+%
+% *Release Notes* _July 2022_
+%
+% * Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although
+% still considered not fully testet, this option appears to work quite well. Further details can be found in
+% Ua2D_DefaultParameters.m and in the DefineCalving.m files. 
+%
+% * In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a
+% new uvh solve, e.g.:
+%
+%   CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5; 
+%
+%
+% * UaPlots is a new plotting utility function.
+%
+% * Some minor bugs have been corrected, but nothing that should affect calculated solutions. 
+%
+% * This version requires MATLAB2021a or later. 
 %
 % *Release Notes* _Sept 2021_
 %
@@ -238,7 +257,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % be instances were increasing the degree could help with obtaining second-order
 % convergence of the Newton-Raphson system.
 %
-% * The shallow-ice sheet (SIA/SSTREAM) option now includes basal sliding.
+% * The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.
 %
 % The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to
 % the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the

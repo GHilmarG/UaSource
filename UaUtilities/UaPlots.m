@@ -1,5 +1,25 @@
 function cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
 
+%%
+%
+% cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
+%
+% Simple plot utility to plot variables and calving fronts and grounding lines as well.
+%
+% Examples:
+%
+%   UaPlots(CtrlVar,MUA,F,F.h)
+%
+%   UaPlots(CtrlVar,MUA,F,"-speed-")
+%
+%   UaPlots(CtrlVar,MUA,F,"-ubvb-")
+%
+%   UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet)
+%
+%   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",1028),PlotUnderMesh=true) ;
+%
+%%
+
 arguments
     CtrlVar struct
     MUA     struct
@@ -9,7 +29,9 @@ arguments
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "k"
     options.GroundingLineColor char = "r"
-    options.GetRidOfValuesDownStreamOfCalvingFronts=true; 
+    options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.PlotOverMesh=false;
+    options.PlotUnderMesh=false;
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -37,6 +59,12 @@ end
 
 isModifyColormap=true;
 
+if options.PlotOverMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA) ;
+    hold on 
+
+end
 
 
 if isnumeric(Variable)
@@ -60,18 +88,13 @@ else
             speed=log10(sqrt(F.ub.*F.ub+F.vb.*F.vb)) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
+            title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
+      
 
         case {"ubvb","-ubvb-"}
 
-            isModifyColormap=false;
-
-%             if ~isempty(F.LSF)
-%                 IC=F.LSF<0;
-%                 F.ub(IC)=nan;
-%                 F.vb(IC)=nan;
-%             end
-%             
-            QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            title(cbar,"(m/a)")
 
         otherwise
 
@@ -83,6 +106,14 @@ end
 
 hold on ;
 
+if options.PlotUnderMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA,[],"w") ;
+    hold on 
+
+end
+
+
 if options.PlotGroundingLines
     PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
 end
@@ -92,8 +123,12 @@ if options.PlotCalvingFronts
 end
 
 if isModifyColormap
-colormap(options.ColorMap); 
+    colormap(options.ColorMap);
 end
+
+%% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
+xlabel("xps (km)",Interpreter="latex")
+ylabel("xps (km)",Interpreter="latex")
 
 
 end
