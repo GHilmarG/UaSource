@@ -104,10 +104,10 @@ end
 
 if nReleased==0   && nActivated==0
     isActiveSetModified=false;
-    fprintf("Active set not modified.\n")
+    fprintf("ActiveSetInitialisation: Active set not modified.\n")
 else
     isActiveSetModified=true;
-    fprintf("Active set modified.\n")
+    fprintf("ActiveSetInitialisation: Active set modified.\n")
 end
 
 

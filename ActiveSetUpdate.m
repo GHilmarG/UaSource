@@ -298,10 +298,10 @@ ChangeInActiveSet=setdiff(BCs1.hPosNode,LastActiveSet) ;
 nChangeInActiveSet=numel(ChangeInActiveSet);
 if nChangeInActiveSet ==0
     isActiveSetModified=false;
-    fprintf("Active set not modified.\n")
+    fprintf("ActiveSetUpdate: Active set not modified.\n")
 else
     isActiveSetModified=true;
-    fprintf("Active set modified.\n")
+    fprintf("ActiveSetUpdate: Active set modified.\n")
 end
 
 
