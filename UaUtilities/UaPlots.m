@@ -95,6 +95,7 @@ else
 
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)")
+            title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
 
         otherwise
 
