@@ -42,7 +42,10 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     Tarea=TriAreaFE(MUAold.coordinates,MUAold.connectivity);
     tol=1e-5*sqrt(2*min(Tarea)) ;  % I found that tol=1000*eps is not enough...
     
-    
+    if isempty(MUAold.TR)
+        MUAold.TR=CreateFEmeshTriRep(MUAold.connectivity,MUAold.coordinates);
+    end
+
     [ID,d] = nearestNeighbor(MUAold.TR,[xNew yNew]);  % This works for all element types! (3, 6 and 10)
     % The reason this works for all element types despite TR.ConnectivityList
     % only containing the corner nodes is because all coordinates are included
