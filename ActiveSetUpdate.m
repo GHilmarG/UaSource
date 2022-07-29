@@ -294,9 +294,10 @@ end
 
 
 
-ChangeInActiveSet=setdiff(BCs1.hPosNode,LastActiveSet) ;
+
+ChangeInActiveSet=setxor(BCs1.hPosNode,LastActiveSet) ;
 nChangeInActiveSet=numel(ChangeInActiveSet);
-if nChangeInActiveSet ==0
+if nChangeInActiveSet == 0  ||  isActiveSetCyclical
     isActiveSetModified=false;
     fprintf("ActiveSetUpdate: Active set not modified.\n")
 else
