@@ -331,44 +331,10 @@ if Par.QuiverSameVelocityScalingsAsBefore
     end
 else
     
-    %if ~isfield(Par,'SpeedPlotIntervals') || isempty(Par.SpeedPlotIntervals)
-    
-    switch Par.VelPlotIntervalSpacing
-        
-        case 'log10'
-            
-            ticks=logticks(speed,Par.QuiverColorPowRange,12,Par.QuiverColorSpeedLimits);
-            
-            MinTick=min(ticks);
-            
-            if Par.QuiverColorSpeedLimits(1)<MinTick
-                
-                %Par.MinPlottedSpeed=MinTick;
-                Par.QuiverColorSpeedLimits(1)=MinTick;
-            end
-            
-            
-            Par.SpeedPlotIntervals=logspace(log10(Par.QuiverColorSpeedLimits(1)),log10(Par.QuiverColorSpeedLimits(2)),N+1);
-            
-        case 'lin'
-            
-            %Par.SpeedPlotIntervals=linspace(Par.MinPlottedSpeed,Par.MaxPlottedSpeed,N+1);
-            Par.SpeedPlotIntervals=linspace(Par.QuiverColorSpeedLimits(1),Par.QuiverColorSpeedLimits(2),N+1);
-            
-        otherwise
-            fprintf(' which case {log10,lin}?' )
-            error('QuiverColorGHG:VelPlotIntervalSpacing','case not reckognized')
-    end
 
 
-    %end
-
-    %%
-    % Now all Par fields have been checked or set to some reasonable values
-    %
 
 
-   
 
     if strcmp(Par.VelPlotIntervalSpacing,'log10')==1
         % create a `logarithmic' colormap
@@ -385,16 +351,43 @@ else
     else
 
         if ~isnumeric(Par.VelColorMap)
-
             cmap=colormap(sprintf('%s(%i)',Par.VelColorMap,N));
-
         else
             cmap=Par.VelColorMap ;
             N=size(cmap,1);
-
         end
-
     end
+
+
+    switch Par.VelPlotIntervalSpacing
+
+        case 'log10'
+
+            ticks=logticks(speed,Par.QuiverColorPowRange,12,Par.QuiverColorSpeedLimits);
+
+            MinTick=min(ticks);
+
+            if Par.QuiverColorSpeedLimits(1)<MinTick
+
+                %Par.MinPlottedSpeed=MinTick;
+                Par.QuiverColorSpeedLimits(1)=MinTick;
+            end
+
+
+            Par.SpeedPlotIntervals=logspace(log10(Par.QuiverColorSpeedLimits(1)),log10(Par.QuiverColorSpeedLimits(2)),N+1);
+
+        case 'lin'
+
+            %Par.SpeedPlotIntervals=linspace(Par.MinPlottedSpeed,Par.MaxPlottedSpeed,N+1);
+            Par.SpeedPlotIntervals=linspace(Par.QuiverColorSpeedLimits(1),Par.QuiverColorSpeedLimits(2),N+1);
+
+        otherwise
+            fprintf(' which case {log10,lin}?' )
+            error('QuiverColorGHG:VelPlotIntervalSpacing','case not reckognized')
+    end
+
+
+
 
     Par.QuiverCmap=cmap;
 
@@ -434,7 +427,7 @@ uplot=uplot/Par.uvPlotScale; vplot=vplot/Par.uvPlotScale;
 
 % end
 
-for J=1:N
+for J=1:numel(Par.SpeedPlotIntervals)-1
     
     switch J
         case 1
@@ -543,7 +536,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
         [tickpos,ia]=unique(tickpos);
 
         ticklabel=ticklabel(ia);
-
+        colormap(Par.QuiverCmap)
         cbar=colorbar ;
         %cbar.TickLabels=ticklabel ;
 
@@ -564,7 +557,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
 end
 
 
-cbar=colorbar ;
+
 title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;

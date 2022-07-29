@@ -16,7 +16,7 @@ function cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 %   UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet)
 %
-%   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",1028),PlotUnderMesh=true) ;
+%   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",100),PlotUnderMesh=true) ;
 %
 %%
 
@@ -59,6 +59,10 @@ end
 
 isModifyColormap=true;
 
+if isModifyColormap
+    colormap(options.ColorMap);
+end
+
 if options.PlotOverMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA) ;
@@ -93,6 +97,7 @@ else
 
         case {"ubvb","-ubvb-"}
 
+            CtrlVar.VelColorMap=jet(100) ; 
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)")
             title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
@@ -123,9 +128,7 @@ if options.PlotCalvingFronts
     PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
 end
 
-if isModifyColormap
-    colormap(options.ColorMap);
-end
+
 
 %% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 xlabel("xps (km)",Interpreter="latex")
