@@ -26,7 +26,7 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %     0.001/362  (m/Gt)
 %
-% so about 1 mm sea level change for every 362 Gt water added.  This is the sea level potential per Gt water. 
+% so about 1 mm sea level change for every 362.5 Gt water added.  This is the sea level potential per Gt water. 
 % 
 % This calculation does not account for other effecs such as
 % ocean salinity changes, but these are only expected to change the value by a few %.

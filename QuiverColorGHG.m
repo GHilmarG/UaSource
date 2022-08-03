@@ -557,7 +557,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
 end
 
 
-
+cbar=colorbar;
 title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
