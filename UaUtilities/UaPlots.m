@@ -14,7 +14,8 @@ function cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 %   UaPlots(CtrlVar,MUA,F,"-ubvb-")
 %
-%   UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet)
+%   cbar=UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet);
+%   title(cbar,"h (m)")
 %
 %   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",100),PlotUnderMesh=true) ;
 %
@@ -74,6 +75,7 @@ end
 if isnumeric(Variable)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
+    title(cbar,inputname(4)) ; 
 
 else
 
@@ -105,6 +107,7 @@ else
         otherwise
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
+            title(cbar,"$(m)$",Interpreter="latex")
 
 
     end
@@ -132,7 +135,7 @@ end
 
 %% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 xlabel("xps (km)",Interpreter="latex")
-ylabel("xps (km)",Interpreter="latex")
+ylabel("yps (km)",Interpreter="latex")
 
 
 end
