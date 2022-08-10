@@ -504,7 +504,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
                     end
                 else
 
-                    D=double(10.^floor(log10(D)))/2 ;
+                    D=double(10.^floor(log10(D)))/4 ;
 
                     first=D*floor(Par.SpeedPlotIntervals(1)/D);
                     last=D*ceil(Par.SpeedPlotIntervals(end)/D);

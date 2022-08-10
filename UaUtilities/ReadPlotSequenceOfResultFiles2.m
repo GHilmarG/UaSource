@@ -845,14 +845,16 @@ while iFile<=nFiles   % loop over files
 
                 end
                 nVelCount=nVelCount+1;
-                ax2=axes ;
 
+                ax2=axes ;
                 ax2.Visible = 'off';
                 ax2.XTick = [];
                 ax2.YTick = [];
                 hold on
                 [cbar]=QuiverColorGHG(x(1:NN:end),y(1:NN:end),F.ub(1:NN:end),F.vb(1:NN:end),CtrlVar);
-                axis tight
+                axis equal
+                ax2.XLim=ax1.XLim;
+                ax2.YLim=ax1.YLim;
                 linkaxes([ax1,ax2])
                 %colormap(ax2,'hot') ;
 
