@@ -1546,7 +1546,8 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an addi
                                                                % but the thickness  barrier method does not have to be activated as
                                                                % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         % a3 in the above equaiton for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
+% a3 in the above equaiton for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
