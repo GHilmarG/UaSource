@@ -34,6 +34,24 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %   Col(:,:)=Col(ColorIndex,:);
 %
 % And then give this as the input variable Col in the call.
+%
+% An example of how to plot speed over surface mesh
+%
+%   load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+%   speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+%   Col=parula(numel(speed));
+%   ColorIndex=Variable2ColorIndex(speed); 
+%   TriCol=Col ; TriCol(:,:)=Col(ColorIndex,:);
+%   figSpeed=FindOrCreateFigure("speed over surface mesh") ;
+%   colormap(Col);
+%   AspectRatio=50; 
+%   PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio,TriCol) ;
+%   cbar=colorbar ;
+%   for I=1:numel(cbar.TickLabels) ; % Not sure how best to do this, the must be a better way...
+%         cbar.TickLabels{I}=num2str(round(str2double(cbar.TickLabels{I})*(max(speed)-min(speed))));
+%   end
+
+
 %%
 
 
@@ -45,7 +63,7 @@ x=MUA.coordinates(:,1) ;
 y=MUA.coordinates(:,2) ;
 
 if nargin<4 || isempty(AspectRatio)
-    AspectRatio=1;
+  
     xL=max(x)-min(x) ;
     yL=max(y)-min(y) ;
     xyL=min(xL,yL);
