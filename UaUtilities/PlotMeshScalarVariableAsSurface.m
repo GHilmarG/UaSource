@@ -37,21 +37,23 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %
 % An example of how to plot speed over surface mesh
 %
-%   load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
-%   speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
-%   Col=parula(numel(speed));
-%   ColorIndex=Variable2ColorIndex(speed); 
-%   TriCol=Col ; TriCol(:,:)=Col(ColorIndex,:);
-%   figSpeed=FindOrCreateFigure("speed over surface mesh") ;
-%   colormap(Col);
-%   AspectRatio=50; 
-%   PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio,TriCol) ;
-%   cbar=colorbar ;
-%   for I=1:numel(cbar.TickLabels) ; % Not sure how best to do this, the must be a better way...
-%         cbar.TickLabels{I}=num2str(round(str2double(cbar.TickLabels{I})*(max(speed)-min(speed))));
-%   end
-
-
+%     load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+%     speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+%     Col=parula(1028);
+%     figSpeed=FindOrCreateFigure("speed over surface mesh") ;
+%     colormap(Col);
+%     AspectRatio=50; 
+%     PatchObject=PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
+%     cbar=colorbar;
+%     PatchObject.FaceVertexCData=speed;
+%     PatchObject.EdgeColor="none";
+%     title(cbar,["speed","(m/a)"],interpreter="latex")
+%     xlabel("xps (km)",Interpreter="latex")
+%     ylabel("yps (km)",Interpreter="latex")
+%     zlabel("$s\, \mathrm{(m.a.s.l.)}$",Interpreter="latex")
+%     % lighting phong ; lightangle(gca,-45,20);
+%     camlight
+%
 %%
 
 
@@ -78,6 +80,7 @@ if isempty(Col)
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;
 else
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable,'FaceVertexCData',Col,'EdgeColor','none') ;
+  
 end
 
 
