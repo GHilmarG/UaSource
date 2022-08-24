@@ -873,8 +873,17 @@ while iFile<=nFiles   % loop over files
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'w',LineWidth=1.5);
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
 
+               [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
 
-                title(ax1,sprintf('t=%5.2f (yr)',F.time),interpreter="latex",FontSize=22) ;
+               if iCount==0
+                   SLR0mm=-VAF.Total/362.5e9 ;
+               end
+               iCount=iCount+1;
+               SLRmm=-VAF.Total/362.5e9;
+               dSLRmm=SLRmm-SLR0mm ;
+               
+
+                title(ax1,sprintf('t=%5.2f (yr), Mean sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
                 %xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')
 
                 xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')  ; % Thulew
