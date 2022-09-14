@@ -298,7 +298,7 @@ end
 
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
-if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+if CtrlVar.CreateOutputsBeginningOfRun
     CtrlVar.DefineOutputsInfostring="First call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
@@ -708,10 +708,11 @@ if CtrlVar.PlotWaitBar
 end
 
 
-%% Final call to DefineOutputs
+%% Possible final call to DefineOutputs
 
 
-if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
+
+if CtrlVar.CreateOutputsEndOfRun
     CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0

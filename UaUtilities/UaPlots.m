@@ -133,7 +133,7 @@ end
 
 
 
-%% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
+% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 xlabel("xps (km)",Interpreter="latex")
 ylabel("yps (km)",Interpreter="latex")
 

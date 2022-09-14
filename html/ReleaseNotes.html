@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-07-26"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
+      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-09-14"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,8 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>July 2022</i></p><div><ul><li>Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although still considered not fully testet, this option appears to work quite well. Further details can be found in Ua2D_DefaultParameters.m and in the DefineCalving.m files.</li></ul></div><div><ul><li>In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a new uvh solve, e.g.:</li></ul></div><pre class="language-matlab">CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>July 2022</i></p><div><ul><li>Call to DefineOutputs is now only done at the beginning and end of runs if the variables</li></ul></div><pre>     CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+     CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop</pre><p>are set to true.</p><div><ul><li>Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although still considered not fully testet, this option appears to work quite well. Further details can be found in Ua2D_DefaultParameters.m and in the DefineCalving.m files.</li></ul></div><div><ul><li>In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a new uvh solve, e.g.:</li></ul></div><pre class="language-matlab">CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;
 </pre><div><ul><li>UaPlots is a new plotting utility function.</li></ul></div><div><ul><li>Some minor bugs have been corrected, but nothing that should affect calculated solutions.</li></ul></div><div><ul><li>This version requires MATLAB2021a or later.</li></ul></div><p><b>Release Notes</b> <i>Sept 2021</i></p><div><ul><li>Calving</li></ul></div><p>Calving can now be prescribed by defining a ice/ocean mask at each time step. The implementation is more general and faster than other similar manual calving options such as deactivating elements or prescribing an additional mass balance term.</p><p>The ice-free areas are automatically melted away using a mass-balance feedback option implemented at the integration points. Second-order NR convergence is obtained even if the reulting mass balance distribution varies sigificantly spatially within an element</p><p>To use this calving option set:</p><pre>    CtrlVar.LevelSetMethod=1;</pre><p>and then define the ice/ocean mask at each time step using the m-file</p><pre>    DefineCalving.m</pre><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
          F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
          OceanNodes=MUA.coordinates(:,1)&gt;500e3 &amp; F.GF.NodesDownstreamOfGroundingLines;
@@ -101,6 +102,13 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %%
 %
 % *Release Notes* _July 2022_
+%
+% * Call to DefineOutputs is now only done at the beginning and end of runs if the variables
+%
+%       CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+%       CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+%
+% are set to true.
 %
 % * Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although
 % still considered not fully testet, this option appears to work quite well. Further details can be found in

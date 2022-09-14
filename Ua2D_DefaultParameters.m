@@ -1053,6 +1053,10 @@ CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % can sometimes be useful for testing/control purposes)
 % NaN implies no limit to the number of calls
 
+CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+
+
 
 %% Obtaining information about the run, during the run.
 %
