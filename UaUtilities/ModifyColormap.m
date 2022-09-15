@@ -17,15 +17,19 @@ function ModifyColormap(GrayLevel,Ncol,options)
 %   sp221=subplot(2,2,1);
 %   ModifyColormap(ShowGrayLevel=false,Ncol=2028,handle=sp221)  ; 
 %
-
+% Modify existing colormap so that values over the range of +/-100 around 0 are set to gray
+%
+%   ModifyColormap(ChangeColormap=false,GrayLevel=0,GrayLevelRange=100);
 
 arguments
     GrayLevel (1,1) double = nan
     Ncol (1,1) double = nan 
     options.GrayLevel (1,1) double=0
+    options.GrayLevelRange (1,1) double=nan
     options.Ncol (1,1) double = 1024
     options.ShowGrayLevel logical=true
     options.handle double=[]
+    options.ChangeColormap=true; 
 end
 
 if isnan(Ncol)
@@ -41,18 +45,26 @@ if isempty(options.handle)
     options.handle=gca ;
 end
 
-
-temp=colormap(options.handle,othercolor("YlOrRd9",Ncol)) ;
+if options.ChangeColormap
+    cmap=colormap(options.handle,othercolor("YlOrRd9",Ncol)) ;
+else
+    cmap=colormap;
+end
 
 [t1,t2]=caxis ;
-range=(t2-t1)*linspace(0,1,size(temp,1))+t1 ;
+range=(t2-t1)*linspace(0,1,size(cmap,1))+t1 ;
 
 
 
 [~,iloc]=min(abs(range-GrayLevel));
 
-if options.ShowGrayLevel
-    N=2;
+if options.ShowGrayLevel  % set colors to gray around GrayLevel value over the range of values 
+                          % as specified by GrayLevelRangeq
+    if isnan(options.GrayLevelRange)
+        N=2;
+    else
+        N=round(options.GrayLevelRange/(range(2)-range(1)));
+    end
     I=iloc-N:iloc+N;
     I(I<1)=[];
     I(I>options.Ncol)=[];
@@ -60,18 +72,20 @@ else
     N=0;
 end
 
+if options.ChangeColormap  % set different colormaps for pos and neg values
+    PosColorscale="YlOrRd9";
+    NegColorscale="YlGnBu8";
 
-PosColorscale="YlOrRd9";
-NegColorscale="YlGnBu8";
-
-temp(iloc+N:Ncol,:)=othercolor(PosColorscale,Ncol-(iloc+N-1)) ;
-temp(1:iloc-N,:)=flipud(othercolor(NegColorscale,iloc-N)) ;
-
-if options.ShowGrayLevel
-    temp(I,:)=temp(I,:)*0+0.95;
+    cmap(iloc+N:Ncol,:)=othercolor(PosColorscale,Ncol-(iloc+N-1)) ;
+    cmap(1:iloc-N,:)=flipud(othercolor(NegColorscale,iloc-N)) ;
 end
 
-colormap(options.handle,temp)
+
+if options.ShowGrayLevel  % set colors around zero values to gray
+    cmap(I,:)=cmap(I,:)*0+0.95;
+end
+
+colormap(options.handle,cmap)
 
 
 end

@@ -39,9 +39,7 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %
 %     load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
 %     speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
-%     Col=parula(1028);
 %     figSpeed=FindOrCreateFigure("speed over surface mesh") ;
-%     colormap(Col);
 %     AspectRatio=50; 
 %     PatchObject=PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
 %     cbar=colorbar;
@@ -53,7 +51,8 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %     zlabel("$s\, \mathrm{(m.a.s.l.)}$",Interpreter="latex")
 %     % lighting phong ; lightangle(gca,-45,20);
 %     camlight
-%
+%     colormap(othercolor('OrRd4',1024))
+%     ModifyColormap(ChangeColormap=false,GrayLevel=0,GrayLevelRange=100);
 %%
 
 
