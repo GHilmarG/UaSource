@@ -1,12 +1,13 @@
 function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 
-% Plots a lat lon grid
+% Plots a lat lon grid 
 %
-% [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing)
+% [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 %
+% Example:
 %
-%  hold on ; PlotLatLonGrid(1000)
-
+%   hold on ; PlotLatLonGrid(1000)   ; % plots lat lon grid on top of previous plot assuming 1000m being the distance unit
+%
 %
 
 
