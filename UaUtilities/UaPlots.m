@@ -88,6 +88,7 @@ else
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\| \mathbf{v} \|$",Interpreter="latex")
+            title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
 
         case {"log10speed","-log10speed-"}
 
