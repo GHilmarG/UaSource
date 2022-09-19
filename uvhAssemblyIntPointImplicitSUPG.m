@@ -341,7 +341,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 
 % This is done within the integration-point loop.
-tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau,CtrlVar.uvh.SUPG.tauMultiplier) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 
 

@@ -407,6 +407,9 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 
+CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
+CtrlVar.h.SUPG.tauMultiplier=1 ; 
+
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
 % When solving the non-linear system (forward model) the recommended option is is
