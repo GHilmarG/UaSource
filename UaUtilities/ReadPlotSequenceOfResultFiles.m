@@ -819,24 +819,37 @@ while iFile<=nFiles   % loop over files
                 %   CtrlVar.QuiverColorPowRange=3;
 
                 if contains(PlotType,"-B-")
+                
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
                     title(cbarB,"(m a.s.l)")
+                
                 elseif contains(PlotType,"-h-")
 
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
 
-                    % title(cbarB,"$(\mathrm{m}\,\mathrm{yr}^{-1})$",Interpreter="latex")  ;
+                    
                     title(cbarB,"$h\,(\mathrm{m})$",Interpreter="latex")  ;
                     caxis(ax1,[0 2000])
+                
                 elseif contains(PlotType,"-s-")
+                
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s) ;
-
-                    % title(cbarB,"$(\mathrm{m}\,\mathrm{yr}^{-1})$",Interpreter="latex")  ;
                     title(cbarB,"$s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
                     caxis(ax1,[0 4000])
-                    %caxis(ax1,[1 100])
+
+                elseif contains(PlotType,"-ds-")
+
+                    if iCount==0
+                        s0=F.s ;
+                    end
+
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-s0) ;
+                    title(cbarB,"$\Delta s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    clim(ax1,[-200 200])
 
                 end
+
+
                 axis(AxisLimits) 
                 cbarB.Position=[.92 .15 .02 .35];
                 hold on
@@ -878,7 +891,9 @@ while iFile<=nFiles   % loop over files
                if iCount==0
                    SLR0mm=-VAF.Total/362.5e9 ;
                end
-               iCount=iCount+1;
+
+               
+               
                SLRmm=-VAF.Total/362.5e9;
                dSLRmm=SLRmm-SLR0mm ;
                
@@ -902,6 +917,8 @@ while iFile<=nFiles   % loop over files
                 axis(AxisLimits) 
                 PlotLatLonGrid(1000,5/2,10);
 
+                iCount=iCount+1;
+                
             case '-log10(BasalSpeed)-'
                 %%
                 %us=ub+ud;  vs=vb+vd;

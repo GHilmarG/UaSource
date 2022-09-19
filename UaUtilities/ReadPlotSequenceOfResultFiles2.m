@@ -58,6 +58,7 @@ arguments
     options.DataToBeCollected string = "" ;
     options.isCenterLineProfile logical= false ;
     options.VAFBoundary (:,2) double = NaN
+    
 end
 
 % If no video file name given, create something sensible..
@@ -786,7 +787,7 @@ while iFile<=nFiles   % loop over files
 
                 %%
 
-            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-'}
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-'}
                 % plotting horizontal velocities
                 %%
 
@@ -806,6 +807,9 @@ while iFile<=nFiles   % loop over files
                 CtrlVar.RelativeVelArrowSize=1;
                 CtrlVar.QuiverColorPowRange=3;
 
+
+                [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF,boundary=options.VAFBoundary);
+
                 if contains(options.PlotType,"-B-")
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
                     title(cbarB,["B","(m a.s.l)"],Interpreter="latex")
@@ -820,13 +824,29 @@ while iFile<=nFiles   % loop over files
 
                     %caxis(ax1,[1 100])
 
+                elseif contains(options.PlotType,"-s-")
+
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s) ;
+                    title(cbarB,"$s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    caxis(ax1,[0 4000])
+
+                elseif contains(options.PlotType,"-ds-")
+
+                    if iCount==0
+                        s0=F.s ;
+                    end
+
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-s0) ;
+                    title(cbarB,"$\Delta s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    clim(ax1,[-500 500])
+
                 elseif contains(options.PlotType,"-VAF-")
 
-                   [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF,boundary=options.VAFBoundary);
-                   [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,VAF.node) ;  
-                   title(cbarB,["VAF","(m w eq.)"],Interpreter="latex")  ; 
-                   title(ax1,sprintf("VAF and surface velocities at t=%5.2f (yr)",F.time),interpreter="latex") ;
-                   %caxis(ax1,[-75 0])
+                   
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,VAF.node) ;
+                    title(cbarB,["VAF","(m w eq.)"],Interpreter="latex")  ;
+                    title(ax1,sprintf("VAF and surface velocities at t=%5.2f (yr)",F.time),interpreter="latex") ;
+                    %caxis(ax1,[-75 0])
 
 
                 end
@@ -837,44 +857,61 @@ while iFile<=nFiles   % loop over files
                 hold on
                 Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
                 F.ub(~Mask.NodesIn)=nan;
+                
                 F.vb(~Mask.NodesIn)=nan;
-                if nVelCount==0
-                    CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
-                else
-                    CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
 
+                if contains(options.PlotType,"-uvbv-")
+
+                    if nVelCount==0
+                        CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
+                    else
+                        CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+
+                    end
+                    nVelCount=nVelCount+1;
+
+                    ax2=axes ;
+                    ax2.Visible = 'off';
+                    ax2.XTick = [];
+                    ax2.YTick = [];
+                    hold on
+                    [cbar]=QuiverColorGHG(x(1:NN:end),y(1:NN:end),F.ub(1:NN:end),F.vb(1:NN:end),CtrlVar);
+                    axis equal
+                    ax2.XLim=ax1.XLim;
+                    ax2.YLim=ax1.YLim;
+                    linkaxes([ax1,ax2])
+                    %colormap(ax2,'hot') ;
+
+
+
+                    %cb1 = colorbar(ax1,'Position',[.9 .15 .02 .35]);
+                    cbar.Position=[.92 .55 .02 .35];
                 end
-                nVelCount=nVelCount+1;
 
-                ax2=axes ;
-                ax2.Visible = 'off';
-                ax2.XTick = [];
-                ax2.YTick = [];
-                hold on
-                [cbar]=QuiverColorGHG(x(1:NN:end),y(1:NN:end),F.ub(1:NN:end),F.vb(1:NN:end),CtrlVar);
-                axis equal
-                ax2.XLim=ax1.XLim;
-                ax2.YLim=ax1.YLim;
-                linkaxes([ax1,ax2])
-                %colormap(ax2,'hot') ;
-
-
-
-                %cb1 = colorbar(ax1,'Position',[.9 .15 .02 .35]);
-                cbar.Position=[.92 .55 .02 .35];
                 hold on ;
 
                 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r',LineWidth=1.5);
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
 
 
-                
+
+                if iCount==0
+                    SLR0mm=-VAF.Total/362.5e9 ;
+                end
+
+                SLRmm=-VAF.Total/362.5e9;
+                dSLRmm=SLRmm-SLR0mm ;
+
+                title(ax1,sprintf('t=%5.2f (yr), Mean sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
                 
 
                 xlabel(ax1,'x (km)',Interpreter='latex') ;  ylabel(ax1,'y (km)',Interpreter='latex')  ; % Thulew
 
-
-                colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
+                if contains(options.PlotType,"-ds-")
+                    ModifyColormap(GrayLevelRange=10) ; 
+                else
+                    colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
+                end
 
                 plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
                 plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
@@ -883,7 +920,11 @@ while iFile<=nFiles   % loop over files
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                 end
 
-
+                if ~isnan(options.AxisLimits)
+                    axis(options.AxisLimits)
+                end
+                PlotLatLonGrid(1000,5/2,10);
+                iCount=iCount+1; 
 
             case '-log10(BasalSpeed)-'
                 %%
