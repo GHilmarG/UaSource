@@ -75,13 +75,14 @@ if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
     tau2=(dt/2).*1./(1+ECN) ;
     taut=taut+zeros(size(v),'like',v);
 
+    FindOrCreateFigure("taus SUPG") ; histogram(taus) ; hold on ; histogram(taut) ; histogram(tau1) ; histogram(tau2) ; legend
 
     % incomplete because MUA not handed over in the integration point loop
-    FindOrCreateFigure("taus SUPG") ;
-    subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
-    subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
-    subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,tau1) ; title('tau1')
-    subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,tau2) ; title('tau2')
+%     FindOrCreateFigure("taus SUPG") ;
+%     subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
+%     subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
+%     subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,tau1) ; title('tau1')
+%     subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,tau2) ; title('tau2')
 
 end
 

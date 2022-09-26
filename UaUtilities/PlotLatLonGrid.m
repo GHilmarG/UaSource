@@ -24,13 +24,13 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 fig = gcf;
 ax1 = fig.CurrentAxes ; 
 tt=axis;
-axis tight equal
+
 xmin=tt(1) ; xmax=tt(2) ; ymin=tt(3) ; ymax=tt(4) ;
 
 
 % create new axes for the lat/lon lines
 ax2=axes ;
-axis equal tight 
+
 ax2.Visible = 'off';
 ax2.XTick = [];
 ax2.YTick = [];
