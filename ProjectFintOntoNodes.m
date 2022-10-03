@@ -58,7 +58,7 @@ if ~isfield(MUA,'M') || isempty(MUA.M)
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if isa(MUA.dM,"decomposition") && ~isempty(MUA.dM)
+if isfield(MUA,"dM") && isa(MUA.dM,"decomposition") && ~isempty(MUA.dM)
     sol=MUA.dM\b;
 else
     sol=MUA.M\b;

@@ -133,10 +133,10 @@ if ~isempty(MLC.hL)
     
     if BCsThicknessError > 0.1
         
+        fprintf('\n The user-defined initial ice thickness distribution is inconsistent with the user-defined thickness boundary conditions.\n')
         fprintf(' Node \t \t h (defined) \t \t \t h (BCs) \n')
         fprintf('%i : \t \t %f \t \t %f \n ',[BCs.hFixedNode  MLC.hL*F.h MLC.hRhs]')
         
-        fprintf('The user-defined initial ice thickness distribution is inconsistent with the user-defined thickness boundary conditions.\n')
         fprintf('Redefine either the initial ice thickness distribution or the boundary conditions for the ice thickness. \n')
         error('GetInputsForForwardRun:IncorrectUserInputs','User inputs are inconsistent')
         
