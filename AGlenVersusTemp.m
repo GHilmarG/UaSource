@@ -1,5 +1,5 @@
 
-function AGlen=AGlenVersusTemp(T)
+function [AGlen,B]=AGlenVersusTemp(T)
 
     % Gives A as a function of temperatur (degrees Celcius) in the units a^{-1} kPa^{-3}
     
@@ -12,8 +12,11 @@ function AGlen=AGlenVersusTemp(T)
     
     fa=1.2478766e-39 * exp(0.32769 * T) + 1.9463011e-10 * exp(0.07205 * T) ; %; %Smith & Morland 1982 ,  Keine Einheiten; fa(273.15)=1.0
     
-    AGlen=a0 * fa  ;
+    AGlen=a0 * fa  ;  % 
     
-    
-    
+
+    rhog=917*9.81/1000 ;   % kPa/m
+    B=0.5*AGlen*(rhog)^3 ;  %  m^{-3} a^{-1} 
+
+
 end
