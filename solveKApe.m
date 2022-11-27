@@ -106,6 +106,8 @@ switch CtrlVar.AsymmSolver
         xx0(iConstrainedDOF)=[];
         
         tstart=tic;
+
+
         tluinc=tic;
         %setup.type = 'crout'; setup.milu = 'off'; setup.droptol = 0.1;
         %setup.type = 'ilutp'; setup.milu = 'off'; setup.droptol = 0.15;
@@ -115,8 +117,10 @@ switch CtrlVar.AsymmSolver
         tluinc=toc(tluinc);
         
         
-        tol=1e-6 ; maxit=10;
+        tol=1e-6 ; maxit=20;
         
+
+
         t1=tic ;
         %[sol,flag,relres,iter,resvec]=bicgstabl(AA,ff,tol,maxit,L1,U1,xx0);
         restart=10;

@@ -37,6 +37,7 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %
 % An example of how to plot speed over surface mesh
 %
+%     
 %     load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
 %     speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
 %     figSpeed=FindOrCreateFigure("speed over surface mesh") ;
