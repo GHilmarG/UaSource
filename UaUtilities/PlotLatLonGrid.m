@@ -16,9 +16,11 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %   CtrlVar=CtrlVarInRestartFile ;
 %   cbar=UaPlots(CtrlVar,MUA,F,"-speed-") ; 
 %   hold on ; 
-%   [~,~,~,~,~,hlat,~,hlon,ax1,ax2]=PlotLatLonGrid(1000)   ; 
+%   [~,~,~,~,~,hlat,~,hlon]=PlotLatLonGrid(1000)   ; % often the colormap will have to be redefined after this call
+%   axis([-2000 -1000 -900 100])
 %   hlat.LineStyle="--"; hlon.LineStyle="--";
-%   ax2.Position=ax1.Position;  % NOTE, do this after each zoom action or the lat/lon will be incorrectly placed!
+%   clim([0 4000])
+%   ModifyColormap;
 %%
 
 fig = gcf;
@@ -28,17 +30,17 @@ tt=axis;
 xmin=tt(1) ; xmax=tt(2) ; ymin=tt(3) ; ymax=tt(4) ;
 
 
-% create new axes for the lat/lon lines
-ax2=axes ;
-
-ax2.Visible = 'off';
-ax2.XTick = [];
-ax2.YTick = [];
-hold on
-ax2.Position=ax1.Position;
-ax2.XLim=ax1.XLim;
-ax2.YLim=ax1.YLim;
-
+%% create new axes for the lat/lon lines  (never got this to work)
+%     ax2=axes ;
+%     
+%     ax2.Visible = 'off';
+%     ax2.XTick = [];
+%     ax2.YTick = [];
+%     hold on
+%     ax2.Position=ax1.Position;
+%     ax2.XLim=ax1.XLim;
+%     ax2.YLim=ax1.YLim;
+ax2=[] ; 
 %%
 
 if nargin<2 || isempty(dlat)
@@ -81,20 +83,21 @@ end
 
 
 hold on
-[Clat,hlat]=contour(ax2,X0,Y0,Lat,[-90:dlat:0],'LineColor',lcol);
+[Clat,hlat]=contour(ax1,X0,Y0,-Lat,[0:dlat:90],'LineColor',lcol,"LabelFormat","%2.0fS");
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
-[Clon,hlon]=contour(ax2,X0,Y0,Lon,[-180+dlon:dlon:180],'LineColor',lcol);
+[Clon,hlon]=contour(ax1,X0,Y0,-Lon,[-180+dlon:dlon:180],LineColor=lcol,LabelFormat="%2.0fE");
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',LabelSpacing)
+
 
 hlon.LineColor=Colour ; 
 hlat.LineColor=Colour ; 
 clabel(Clat,hlat,'Color',Colour)
 clabel(Clon,hlon,'Color',Colour)
 
-linkaxes([ax1,ax2],"xy") ; %  For some reason this is not having the desired effect...?!
-fig.CurrentAxes = ax1;
-ax2.Position=ax1.Position;
+%linkaxes([ax1,ax2],"xy") ; %  For some reason this is not having the desired effect...?!
+%fig.CurrentAxes = ax1;
+%ax2.Position=ax1.Position;
 % revert back to original axes
 
 

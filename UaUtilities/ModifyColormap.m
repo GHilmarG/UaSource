@@ -1,4 +1,4 @@
-function ModifyColormap(GrayLevel,Ncol,options)
+function cmap=ModifyColormap(GrayLevel,Ncol,options)
 
 %
 % resets colormap to gray for values at GrayLevel, and uses different colorscales for values below and above GrayLevel. 
@@ -51,7 +51,7 @@ else
     cmap=colormap;
 end
 
-[t1,t2]=caxis ;
+[t1,t2]=clim ;
 range=(t2-t1)*linspace(0,1,size(cmap,1))+t1 ;
 
 
@@ -73,8 +73,9 @@ else
 end
 
 if options.ChangeColormap  % set different colormaps for pos and neg values
-    PosColorscale="YlOrRd9";
-    NegColorscale="YlGnBu8";
+    PosColorscale="YlGnBu8";
+    NegColorscale="YlOrRd9";
+    
 
     cmap(iloc+N:Ncol,:)=othercolor(PosColorscale,Ncol-(iloc+N-1)) ;
     cmap(1:iloc-N,:)=flipud(othercolor(NegColorscale,iloc-N)) ;
