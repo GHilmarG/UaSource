@@ -86,14 +86,16 @@ hold on
 [Clat,hlat]=contour(ax1,X0,Y0,-Lat,[0:dlat:90],'LineColor',lcol,"LabelFormat","%2.0fS");
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
+
 [Clon,hlon]=contour(ax1,X0,Y0,-Lon,[-180+dlon:dlon:180],LineColor=lcol,LabelFormat="%2.0fE");
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
 hlon.LineColor=Colour ; 
 hlat.LineColor=Colour ; 
-clabel(Clat,hlat,'Color',Colour)
-clabel(Clon,hlon,'Color',Colour)
+clabel(Clat,hlat,Color=Colour,fontsize=9);
+clabel(Clon,hlon,Color=Colour,fontsize=9)
+
 
 %linkaxes([ax1,ax2],"xy") ; %  For some reason this is not having the desired effect...?!
 %fig.CurrentAxes = ax1;

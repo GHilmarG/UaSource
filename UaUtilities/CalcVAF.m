@@ -22,7 +22,7 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %
 % To calculate a rough estimate of resulting change in mean sea level, divide the change in VAF with the area of the ocean
-% (3.625e14 m^2). Since 1Gt is = 1e9 m^3 water equivialent the conversion between sea-level change and ice loss is about
+% (3.625e14 m^2). Since 1Gt is = 1e9 m^3 water equivalent, the conversion between sea-level change and ice loss is about
 %
 %     0.001/362.5  (m/Gt)
 %

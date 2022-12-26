@@ -538,6 +538,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
         ticklabel=ticklabel(ia);
         colormap(Par.QuiverCmap)
         cbar=colorbar ;
+        
         %cbar.TickLabels=ticklabel ;
 
 
@@ -556,8 +557,9 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
     end
 end
 
-
-cbar=colorbar;
+if isempty(cbar)
+    cbar=colorbar;
+end
 title(cbar,Par.VelColorBarTitle,"interpreter","latex")   ;
 cbar.TickLabels=Par.QuiverTickLabels;
 cbar.Ticks=Par.QuiverTicks;
