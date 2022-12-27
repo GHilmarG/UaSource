@@ -837,7 +837,7 @@ while iFile<=nFiles   % loop over files
                     end
 
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-s0) ;
-                    title(cbarB,"$\Delta s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    title(cbarB,"$\Delta s\, (\mathrm{m})$",Interpreter="latex")  ;
                     clim(ax1,[-500 500])
 
                 elseif contains(options.PlotType,"-VAF-")
@@ -922,6 +922,8 @@ while iFile<=nFiles   % loop over files
 
                 if ~isnan(options.AxisLimits)
                     axis(options.AxisLimits)
+                else
+                    axis tight
                 end
                 PlotLatLonGrid(1000,5/2,10);
                 iCount=iCount+1; 
