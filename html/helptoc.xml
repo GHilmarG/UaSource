@@ -73,6 +73,7 @@
                 <tocitem target="FluxAcrossGroundingLine.html">Calculates flux across grounding lines. </tocitem>
                 <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
                 <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
+                <tocitem target="DraftDependentMeltParameterisations.html">Returns several pre-defined draft-dependent melt-parameterisations. </tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

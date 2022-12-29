@@ -90,7 +90,7 @@ if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate
     hAF(~isInside)=0;                       % simply set all nodal values outside of that boundary to zero. 
 end
 
-VAF.node=hAF.*rho./rhoOcean ;                % thickness above flotation in water equivalent.
+VAF.node=hAF.*rho./rhoOcean ;                % thickness above flotation in (ocean) water equivalent.
 
 
 VAF.ele=FEintegrate2D(CtrlVar,MUA,VAF.node); % VAF for each element (m^3)
