@@ -71,6 +71,16 @@ switch MRP
 end
 
 
+if ~isequal(F.as,F.x)
+    F.as=zeros(size(F.x)) ;
+    F.ab=zeros(size(F.x)) ;
+    F.dasdh=zeros(size(F.x)) ;
+    F.dabdh=zeros(size(F.x)) ;
+end
+
+
+
+
 dabdh=F.ab;
 ab=F.dabdh;
 

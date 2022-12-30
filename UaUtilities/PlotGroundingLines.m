@@ -82,7 +82,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Plot grounding lines based on the Bedmachine mask
 %
-%   PlotGroundingLines(CtrlVarInRestartFile,"Bedmachine",[],[],[],[],"r");
+%   
 %
 %
 % See also: PlotMuaBoundary, EleBasedGL
@@ -91,7 +91,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 narginchk(2,inf)
 
 if isempty(CtrlVar)
-    CtrlVar.XYscale=1;
+    CtrlVar.PlotXYscale=1;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
@@ -100,7 +100,9 @@ if ~isfield(CtrlVar,"PlotGLs")
     CtrlVar.PlotGLs=1;
 end
 
-
+if ~isfield(CtrlVar,"PlotIndividualGLs")
+    CtrlVar.PlotIndividualGLs=0;
+end
 
 
 

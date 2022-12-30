@@ -3,6 +3,10 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %%
 % Plots a lat lon grid 
 %
+% This is written for the Antarctica setting using polar stereographic coordinate system.
+%
+% 
+%
 % [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 %
 %
@@ -68,7 +72,7 @@ lcol='k';
 
 
 
-[X0,Y0]=meshgrid(linspace(xmin,xmax,200),linspace(ymin,ymax,200));
+[X0,Y0]=meshgrid(linspace(xmin,xmax,400),linspace(ymin,ymax,400));
 
 [Lat,Lon]=pol_to_geog_wgs84_71S(X0*scale,Y0*scale);
 
@@ -77,7 +81,7 @@ if isCircumpolar
     I=Lat>-64.9;  Lon(I)=NaN;
     I=Lat<-85.1 ; Lon(I)=NaN;
     I=Lat<-86 ; Lat(I)=NaN ; 
-    I=Lon<-175 ; Lon(I)=Lon(I)+360;
+    I=Lon<-171 ; Lon(I)=Lon(I)+360;
     I=Lon<-170 ; Lon(I)=NaN;
 end
 
@@ -87,7 +91,7 @@ hold on
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
-[Clon,hlon]=contour(ax1,X0,Y0,-Lon,[-180+dlon:dlon:180],LineColor=lcol,LabelFormat="%2.0fE");
+[Clon,hlon]=contour(ax1,X0,Y0,Lon,[-180+dlon:dlon:185],LineColor=lcol,LabelFormat=@mylabelfun);
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
@@ -101,6 +105,23 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 %fig.CurrentAxes = ax1;
 %ax2.Position=ax1.Position;
 % revert back to original axes
+
+
+
+
+    function labels=mylabelfun(vals)
+
+
+    labels= vals +"W" ; 
+    I=vals<0  ;  labels(I) = -vals(I) +"E" ; 
+    I=vals==0 ;  labels(I) = vals(I)  ; 
+    
+
+    end
+
+
+
+
 
 
 
