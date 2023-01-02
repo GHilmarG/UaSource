@@ -254,10 +254,6 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
 
 
 
-            if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
-                fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
-                break
-            end
 
             [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
 
@@ -265,6 +261,10 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
             LastActivated=Activated;
 
 
+            if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
+                fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
+                break
+            end
 
             if ~isActiveSetModified
                 fprintf(' Leaving active-set loop because active set did not change in last active-set iteration. \n')
