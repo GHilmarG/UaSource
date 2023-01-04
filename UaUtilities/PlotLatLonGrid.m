@@ -112,8 +112,8 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
     function labels=mylabelfun(vals)
 
 
-    labels= vals +"W" ; 
-    I=vals<0  ;  labels(I) = -vals(I) +"E" ; 
+    labels= vals +"E" ; 
+    I=vals<0  ;  labels(I) = -vals(I) +"W" ; 
     I=vals==0 ;  labels(I) = vals(I)  ; 
     
 
