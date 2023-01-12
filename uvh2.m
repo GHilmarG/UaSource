@@ -116,7 +116,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
             
     
             
-            iActiveSetIteration=iActiveSetIteration+1;
+            % iActiveSetIteration=iActiveSetIteration+1;
             
             
             fprintf(CtrlVar.fidlog,' ----------> Active-set Iteration #%-i <----------  \n',iActiveSetIteration);
@@ -254,17 +254,17 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
 
 
 
-
+            % Update active set once uvh solution has been found.
+            % Note: If this active-set iteration does not converge,
+            %       the uvh solution and the active set are not consistence,
+            %       i.e. the uvh solution was not obtained for the BCs in the active set.
             [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated);
 
             LastReleased=Released;
             LastActivated=Activated;
 
 
-            if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
-                fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
-                break
-            end
+        
 
             if ~isActiveSetModified
                 fprintf(' Leaving active-set loop because active set did not change in last active-set iteration. \n')
@@ -279,6 +279,16 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
 
             end
 
+
+            iActiveSetIteration=iActiveSetIteration+1;
+            if  iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
+                RunInfo.Forward.ActiveSetConverged=0;
+                fprintf(' Leaving active-set pos. thickness loop because number of active-set iteration (%i) greater than maximum allowed (CtrlVar.ThicknessConstraintsItMax=%i). \n ',iActiveSetIteration,CtrlVar.ThicknessConstraintsItMax)
+                break
+            end
+
+
+
         end   % active set loop
 
 
@@ -288,12 +298,10 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
         % set have been found, of course this assumes that as the final
         % convergence is reached, the active set no longer changes.
         
-        if iActiveSetIteration > CtrlVar.ThicknessConstraintsItMax
-            RunInfo.Forward.ActiveSetConverged=0;
-        end
+     
         
         
-        if  iActiveSetIteration> CtrlVar.ThicknessConstraintsItMax
+        if  ~RunInfo.Forward.ActiveSetConverged
             fprintf(CtrlVar.fidlog,' Warning: In enforcing thickness constraints and finding a critical point, the loop was exited due to maximum number of iterations (%i) being reached. \n',CtrlVar.ThicknessConstraintsItMax);
         else
             if numel(BCs1.hPosNode)>0
