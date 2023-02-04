@@ -298,7 +298,7 @@ end
 
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
-if CtrlVar.CreateOutputsBeginningOfRun
+if CtrlVar.CreateOutputsBeginningOfRun  && ~CtrlVar.Restart
     CtrlVar.DefineOutputsInfostring="First call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
