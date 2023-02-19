@@ -74,6 +74,42 @@ if CtrlVar.InverseRun  && contains(CtrlVar.SlidingLaw,["Coulomb","-C-"])
     error('Ua:CtrlVarValidityCheck:InverseAdapt','CtrlVar not valid')
 end
 
+%%
+
+if CtrlVar.UaRunType==""  %  "-uvh-" , "-uv-h-" ,  "-uv-" , "-h-" ;
+
+    if  CtrlVar.TimeDependentRun
+
+        if CtrlVar.Implicituvh
+            CtrlVar.UaRunType="-uvh-";
+        else
+            CtrlVar.UaRunType="-uv-h-";
+        end
+
+    else
+
+        CtrlVar.UaRunType="-uv-";
+
+    end
+
+else
+
+    if CtrlVar.UaRunType=="-uv-"
+        CtrlVar.TimeDependentRun=0;
+    else
+        CtrlVar.TimeDependentRun=1;
+
+        if CtrlVar.UaRunType=="-uvh-"
+            CtrlVar.Implicituvh=1;
+        else
+            CtrlVar.Implicituvh=0;
+        end
+    end
+
+end
+
+%%
+
 
 
 

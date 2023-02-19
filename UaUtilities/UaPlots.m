@@ -102,8 +102,18 @@ else
 
             CtrlVar.VelColorMap=jet(100) ; 
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
-            title(cbar,"(m/a)")
+            title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
+
+        
+        case "dhdt"
+
+            
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
+            title(cbar,"(m/a)",Interpreter="latex")
+            title(sprintf("$dh/dt$ at t=%f",CtrlVar.time),Interpreter="latex")
+            title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
+
 
         otherwise
 
@@ -138,5 +148,6 @@ end
 xlabel("xps (km)",Interpreter="latex")
 ylabel("yps (km)",Interpreter="latex")
 
+axis tight
 
 end

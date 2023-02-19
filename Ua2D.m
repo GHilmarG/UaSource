@@ -473,30 +473,44 @@ while 1
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
     
     
- 
+
     %%  -------------------------------------------------------------------------------------]
-    
-    
-    if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
-        
+
+    %% "-uv-"
+    %if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+    if CtrlVar.UaRunType=="-uv-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
-        
+
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-        
+
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+
+
+    elseif CtrlVar.UaRunType=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+
+        %% Diagnostic calculation (uv)
+        if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
+
+        RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for thickness.";
+        CtrlVar.RunInfoMessage=RunInfo.Message;
+
         
-    end  % ~CtrlVar.TimeDependentRun
-    
-    if CtrlVar.TimeDependentRun
-        
-        
+        [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs);
+
+
+
+        % "-uvh-" ; "-uv-h-"
+    elseif CtrlVar.UaRunType=="-uvh-"  ||  CtrlVar.UaRunType=="-uv-h-"
+
+
         %        0  : values at t      This is F0
         %        1  : values at t+dt   This is F.
         %       at start, F is explicit guess for values at t+dt
         %       an end,   F are converged values at t+dt
-        
+
         % RunInfo
         
     
@@ -505,7 +519,10 @@ while 1
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
         RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
-        if CtrlVar.Implicituvh % Fully implicit time-dependent step (uvh)
+        % "-uvh-"
+        %
+        % if CtrlVar.UaRunType=="-uvh-"  ||  CtrlVar.UaRunType=="-uv-h-"
+        if CtrlVar.UaRunType=="-uvh-"
             
             
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving implicitly for velocities and thickness.";
@@ -609,9 +626,9 @@ while 1
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             
-
-        elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
-            
+        % "-uv-h-"
+        %elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
+        elseif CtrlVar.UaRunType=="-uv-h-"
             
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
