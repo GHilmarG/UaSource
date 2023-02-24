@@ -13,7 +13,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 %  [cGL,yGL]=PlotGroundingLines(CtrlVarInRestartFile,"Bedmachine");
 %
-%
+%  [cGL,yGL]=PlotGroundingLines([],"Bedmachine");    
 %
 % When plotting grounding lines over the mesh defined by MUA and based on GF, the only required inputs are:
 %
@@ -91,7 +91,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 narginchk(2,inf)
 
 if isempty(CtrlVar)
-    CtrlVar.PlotXYscale=1;
+    CtrlVar.PlotXYscale=1000;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
