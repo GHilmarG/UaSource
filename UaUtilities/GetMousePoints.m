@@ -3,7 +3,7 @@ function  [xp,yp]=GetMousePoints(xp,yp,PlotPoints)
 % get (x,y) coordinates from mouse clicks
 % only selects left-clicks
 % returns if right or middle mouse buttons pressed
-% if xp yp given as imputs, then appends
+% if xp yp given as inputs, then appends
 
 N=1000 ;
 

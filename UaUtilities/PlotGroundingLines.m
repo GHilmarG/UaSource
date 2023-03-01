@@ -88,7 +88,15 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 % See also: PlotMuaBoundary, EleBasedGL
 %
 
-narginchk(2,inf)
+narginchk(0,inf)
+
+
+if nargin==0 
+
+    CtrlVar=[]; 
+    MUA="Bedmachine" ; 
+
+end
 
 if isempty(CtrlVar)
     CtrlVar.PlotXYscale=1000;
