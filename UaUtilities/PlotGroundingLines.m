@@ -139,10 +139,12 @@ if isstring(MUA)
         tt=axis;
         plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
         ax=gca; ax.DataAspectRatio=[1 1 1];
-        axis(tt)
 
+        if ~isequal(tt,[0 1 0 1])
+            axis(tt)
+        end
     end
-    
+
     GLgeo=[] ;
     return
 
