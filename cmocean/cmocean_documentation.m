@@ -69,7 +69,7 @@ cmocean('solar',12)
 %%
 % Get the RGB values of a 5-level thermal colormap: 
 
-RGB = cmocean('thermal',5)
+RGB = cmocean('thermal',5) 
 
 %%
 % Some of those values are below zero and others are above. If this dataset represents

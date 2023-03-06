@@ -24,6 +24,10 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
+
+CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+
+
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
                               % If true (i.e. set to 1) then the run is a forward transient one, if not
                               % then velocities based on the current geometry are calculated. 
@@ -36,7 +40,8 @@ CtrlVar.Restart=0;            % If true then the run is a restart run. Note that
                               %       CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-
+CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
+                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.

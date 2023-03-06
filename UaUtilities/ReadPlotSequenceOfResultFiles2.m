@@ -787,7 +787,7 @@ while iFile<=nFiles   % loop over files
 
                 %%
 
-            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-'}
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-','-ds-VAF-','-dt-'}
                 % plotting horizontal velocities
                 %%
 
@@ -807,6 +807,15 @@ while iFile<=nFiles   % loop over files
                 CtrlVar.RelativeVelArrowSize=1;
                 CtrlVar.QuiverColorPowRange=3;
 
+                 if contains(options.PlotType,"-ds-VAF-")
+                    isTiles=true;
+                    T=tiledlayout(2,3) ; % this get rids of previous axis
+                    T.TileSpacing="tight";
+                    T.Padding="tight" ;
+                    fubvb.Position=[10 350 1600 950] ;
+                 else
+                     isTiles=false;
+                 end
 
                 [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF,boundary=options.VAFBoundary);
 
@@ -826,19 +835,51 @@ while iFile<=nFiles   % loop over files
 
                 elseif contains(options.PlotType,"-s-")
 
+
+           
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s) ;
                     title(cbarB,"$s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
-                    caxis(ax1,[0 4000])
+                    clim(ax1,[0 4000])
+
+
+
 
                 elseif contains(options.PlotType,"-ds-")
 
                     if iCount==0
                         s0=F.s ;
+                        Fs0=scatteredInterpolant(F.x,F.y,s0);
+                        timeVector=nan(1000,1);
+                        dSLRmmVector=nan(1000,1);
+                        GLminVector=nan(1000,1);
+                        GLmaxVector=nan(1000,1);
+                        SLR0mm=-VAF.Total/362.5e9 ;
                     end
 
-                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-s0) ;
-                    title(cbarB,"$\Delta s\, (\mathrm{m})$",Interpreter="latex")  ;
-                    clim(ax1,[-500 500])
+
+                    if numel(s0)==numel(F.s)
+                        ds=F.s-s0;
+                    else
+                        ds=F.s-Fs0(F.x,F.y);
+                    end
+
+                    if isTiles
+                        nexttile([2 2])
+                    end
+
+                    
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,ds) ;
+                    title(cbarB,"$(\mathrm{m})$",Interpreter="latex")  ;
+                    ax1=gca;
+                    clim(ax1,[-1500 100])
+
+                    SLRmm=-VAF.Total/362.5e9;
+                    dSLRmm=SLRmm-SLR0mm ;
+                    timeVector(iCount+1)=time;
+                    dSLRmmVector(iCount+1)=dSLRmm;
+
+             
+
 
                 elseif contains(options.PlotType,"-VAF-")
 
@@ -851,7 +892,11 @@ while iFile<=nFiles   % loop over files
 
                 end
 
-                cbarB.Position=[.92 .15 .02 .35];
+                if isTiles
+                    cbarB.Position=[0.58 0.15 0.01 0.7];
+                else
+                    cbarB.Position=[.92 .15 .02 .35];
+                end
                 hold on
                 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
                 hold on
@@ -902,13 +947,18 @@ while iFile<=nFiles   % loop over files
                 SLRmm=-VAF.Total/362.5e9;
                 dSLRmm=SLRmm-SLR0mm ;
 
-                title(ax1,sprintf('t=%5.2f (yr), Mean sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
-                
 
-                xlabel(ax1,'x (km)',Interpreter='latex') ;  ylabel(ax1,'y (km)',Interpreter='latex')  ; % Thulew
+                if  contains(options.PlotType,"-ds-")
+                    title(ax1,sprintf('Surface elevation changes at t=%5.2f (yr) \n Mean sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=18) ;
+                else
+                    title(ax1,sprintf('t=%5.2f (yr), Global sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
+                end
+
+                xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')  ; % Thulew
 
                 if contains(options.PlotType,"-ds-")
-                    ModifyColormap(GrayLevelRange=10) ; 
+                    %ModifyColormap(GrayLevelRange=100) ; 
+                    CM=cmocean('balanced',25,'pivor',0) ; colormap(CM); ModifyColormap(100,5,ChangeColormap=false) ;
                 else
                     colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
                 end
@@ -926,7 +976,81 @@ while iFile<=nFiles   % loop over files
                     axis tight
                 end
                 PlotLatLonGrid(1000,5/2,10);
-                iCount=iCount+1; 
+
+
+
+                if contains(options.PlotType,"-VAF-")
+                    nexttile
+                    yyaxis left
+                    plot(timeVector,dSLRmmVector/10,'-ob',LineWidth=2)
+                    xlabel("time (yr)",Interpreter="latex") ; 
+                    ylabel("Sea level rise (cm)",Interpreter="latex",FontSize=14)
+                    axSLR=gca;
+                    title(axSLR,"Sea Level Rise / Grounding Line",Interpreter="latex",FontSize=16)
+
+                    % Profile
+                    x1=-1600e3 ; x2=-1100e3 ;
+                    y1=-450e3; y2=-220e3 ;
+                    xProfile=linspace(x1,x2,1000);  yProfile=linspace(y1,y2,1000);
+                    Fs=scatteredInterpolant(F.x,F.y,F.s);
+                    Fb=scatteredInterpolant(F.x,F.y,F.b);
+                    FB=scatteredInterpolant(F.x,F.y,F.B);
+                    sProfile=Fs(xProfile,yProfile);
+                    bProfile=Fb(xProfile,yProfile);
+                    BProfile=FB(xProfile,yProfile);
+                    Profile=sqrt( (xProfile-xProfile(1)).^2 + (yProfile-yProfile(1)).^2 ) ;
+
+                    % Find grounding-line position along profile
+                    % min distance value for which b and B are equal
+                    GLminVector(iCount+1)=min(Profile(abs(bProfile-BProfile)<1)) ;
+                    GLmaxVector(iCount+1)=max(Profile(abs(bProfile-BProfile)>1)) ;
+                
+                    yyaxis right
+                    plot(timeVector,GLminVector/1000,'--r')
+                    hold on
+                    plot(timeVector,GLmaxVector/1000,'--r')
+                    axR=gca; axR.YLim=[0 500];
+                    ylabel("Grounding line (km)",Interpreter="latex",FontSize=14)
+                    
+
+                    nexttile
+                    axProfile=gca;
+                    hold off
+                    plot(Profile/1000,BProfile,'k'); hold on
+                    plot(Profile/1000,bProfile,'b');
+                    plot(Profile/1000,sProfile,'b');
+
+                    % Bedrock polygon
+                    BxPoly=[0  max(Profile)/1000  fliplr(Profile)/1000 ] ;
+                    ByPoly=[-2000  -2000   fliplr(BProfile) ] ;
+                    fill(BxPoly,ByPoly,[128 128 128]/255) ;
+
+                    OceanxPoly=[Profile/1000 fliplr(Profile)/1000 ] ;
+                    OceanyPoly=[BProfile   fliplr(bProfile) ] ;
+                    fill(OceanxPoly,OceanyPoly,[0 0 1]) ;
+
+
+                    ICExPoly=[Profile/1000 fliplr(Profile)/1000 ] ;
+                    ICEyPoly=[bProfile   fliplr(sProfile) ] ;
+                    fill(ICExPoly,ICEyPoly,[0.58 0.815 0.988]) ;
+                    title(axProfile,"Profile",Interpreter="latex",FontSize=16)
+
+
+                    axis tight
+                    ylim([-2000 2000]) ;
+
+                    xlabel("distance (km)",Interpreter="latex") ; ylabel("(m)",Interpreter="latex")
+
+                    plot(ax1,xProfile/1000,yProfile/1000,'m',LineStyle='--',LineWidth=1.5) ;
+
+                end
+
+
+
+
+
+
+                iCount=iCount+1;
 
             case '-log10(BasalSpeed)-'
                 %%
@@ -949,24 +1073,24 @@ while iFile<=nFiles   % loop over files
 
             case "-VAF-"
 
-                
+
                 figlogSpeed=FindOrCreateFigure('VAF',options.PlotScreenPosition);
-                
-                
+
+
                 [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF,boundary=options.VAFBoundary);
-                
+
                 if iCount==0
                     vaf=[];
                 end
-                
-                
+
+
                 vaf.value(iCount)=VAF.Total ;
                 vaf.time(iCount)=CtrlVar.time;
                 hold off
                 plot(vaf.time,vaf.value/1e9,'or')
                 xlabel(' time (yr)') ; ylabel(' VAF (Gt)')
-                
-                
+
+
             case '-ab-'
                 if ~exist('fab','var') || ~ishandle(fab)
                     fab=figure;
@@ -974,9 +1098,9 @@ while iFile<=nFiles   % loop over files
                 else
                     close(fab)
                     fab=figure;
-                    
+
                 end
-                
+
                 %set(gcf,'nextplot','replacechildren')
                 %set(gca,'nextplot','replace')
                 %fab.NextPlot='replacechildren';
