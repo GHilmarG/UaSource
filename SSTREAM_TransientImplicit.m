@@ -141,8 +141,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     if BCsRelativeError>0.01
         
-        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasable point\n')
-        % fprintf('         Although the uvh iteration can start at an infeasable point and still converge successfully, \n')
+        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasible point\n')
+        % fprintf('         Although the uvh iteration can start at an in-feasible point and still converge successfully, \n')
         
     end
     
@@ -253,6 +253,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             grhs=[];
         end
 
+        % 
         
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
@@ -423,13 +424,15 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %% return calculated values at the end of the time step
     %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
     
+    %% Old:  this case is now checked inside the while loop
     % I got out of the while loop if either if the solver converged, or
     % backtrack stagnated.
     %RunInfo.Forward.Converged=1;
-    if RunInfo.BackTrack.Converged==0
-        RunInfo.Forward.Converged=0;
-    end
-    
+    % if RunInfo.BackTrack.Converged==0
+    %     RunInfo.Forward.Converged=0;
+    % end
+    %%
+
     %% print/plot some info
     
     if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1

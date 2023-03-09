@@ -22,11 +22,11 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %
 % To calculate a rough estimate of resulting change in mean sea level, divide the change in VAF with the area of the ocean
-% (3.625e14 m^2). Since 1Gt is = 1e9 m^3 water equivialent the conversion between sea-level change and ice loss is about
+% (3.625e14 m^2). Since 1Gt is = 1e9 m^3 water equivalent, the conversion between sea-level change and ice loss is about
 %
-%     0.001/362  (m/Gt)
+%     0.001/362.5  (m/Gt)
 %
-% so about 1 mm sea level change for every 362 Gt water added.  This is the sea level potential per Gt water. 
+% so about 1 mm sea level change for every 362.5 Gt water added.  This is the sea level potential per Gt water. 
 % 
 % This calculation does not account for other effecs such as
 % ocean salinity changes, but these are only expected to change the value by a few %.
@@ -90,7 +90,7 @@ if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate
     hAF(~isInside)=0;                       % simply set all nodal values outside of that boundary to zero. 
 end
 
-VAF.node=hAF.*rho./rhoOcean ;                % thickness above flotation in water equivalent.
+VAF.node=hAF.*rho./rhoOcean ;                % thickness above flotation in (ocean) water equivalent.
 
 
 VAF.ele=FEintegrate2D(CtrlVar,MUA,VAF.node); % VAF for each element (m^3)

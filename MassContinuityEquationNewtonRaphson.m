@@ -22,7 +22,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     dh=F1.h*0;
     BCsError=0;
     
-    % make sure initial point is feasable
+    % make sure initial point is feasible
     F1.h(BCs.hFixedNode)=BCs.hFixedValue;
     F0.h(BCs.hFixedNode)=BCs.hFixedValue;
     

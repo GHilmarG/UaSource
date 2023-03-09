@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMeshScalarVariableAsSurface</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-06"><meta name="DC.source" content="PlotMeshScalarVariableAsSurface.m"><style type="text/css">
+      --><title>PlotMeshScalarVariableAsSurface</title><meta name="generator" content="MATLAB 9.13"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-11-21"><meta name="DC.source" content="PlotMeshScalarVariableAsSurface.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -79,22 +79,44 @@ colormap(othercolor(<span class="string">'BuOr_12'</span>,1024));
 </pre><p>An example of how to specify  the colormap</p><pre class="language-matlab">Col=copper(numel(Variable));
 ColorIndex=Variable2ColorIndex(Variable);
 Col(:,:)=Col(ColorIndex,:);
-</pre><p>And then give this as the input variable Col in the call.</p><pre class="codeinput"><span class="keyword">if</span> nargin&lt;5
+</pre><p>And then give this as the input variable Col in the call.</p><p>An example of how to plot speed over surface mesh</p><pre>   load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+   speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+   figSpeed=FindOrCreateFigure("speed over surface mesh") ;
+   AspectRatio=50;
+   PatchObject=PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
+   cbar=colorbar;
+   PatchObject.FaceVertexCData=speed;
+   PatchObject.EdgeColor="none";
+   title(cbar,["speed","(m/a)"],interpreter="latex")
+   xlabel("xps (km)",Interpreter="latex")
+   ylabel("yps (km)",Interpreter="latex")
+   zlabel("$s\, \mathrm{(m.a.s.l.)}$",Interpreter="latex")
+   % lighting phong ; lightangle(gca,-45,20);
+   camlight
+   colormap(othercolor('OrRd4',1024))
+   ModifyColormap(ChangeColormap=false,GrayLevel=0,GrayLevelRange=100);</pre><pre class="codeinput"><span class="keyword">if</span> nargin&lt;5
     Col=[];
 <span class="keyword">end</span>
+x=MUA.coordinates(:,1) ;
+y=MUA.coordinates(:,2) ;
 
 <span class="keyword">if</span> nargin&lt;4 || isempty(AspectRatio)
-    AspectRatio=1;
+
+    xL=max(x)-min(x) ;
+    yL=max(y)-min(y) ;
+    xyL=min(xL,yL);
+    VL=max(Variable)-min(Variable) ;
+    AspectRatio=xyL/VL;
 <span class="keyword">end</span>
 
 TRI=TriFE(MUA.connectivity);
-x=MUA.coordinates(:,1) ;
-y=MUA.coordinates(:,2) ;
+
 
 <span class="keyword">if</span> isempty(Col)
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;
 <span class="keyword">else</span>
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable,<span class="string">'FaceVertexCData'</span>,Col,<span class="string">'EdgeColor'</span>,<span class="string">'none'</span>) ;
+
 <span class="keyword">end</span>
 
 
@@ -112,7 +134,7 @@ axis <span class="string">equal</span> ; tt=daspect ;
 daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/AspectRatio]);
 axis <span class="string">tight</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,AspectRatio,Col)
 
@@ -150,6 +172,26 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %   Col(:,:)=Col(ColorIndex,:);
 %
 % And then give this as the input variable Col in the call.
+%
+% An example of how to plot speed over surface mesh
+%
+%     
+%     load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+%     speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+%     figSpeed=FindOrCreateFigure("speed over surface mesh") ;
+%     AspectRatio=50; 
+%     PatchObject=PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
+%     cbar=colorbar;
+%     PatchObject.FaceVertexCData=speed;
+%     PatchObject.EdgeColor="none";
+%     title(cbar,["speed","(m/a)"],interpreter="latex")
+%     xlabel("xps (km)",Interpreter="latex")
+%     ylabel("yps (km)",Interpreter="latex")
+%     zlabel("$s\, \mathrm{(m.a.s.l.)}$",Interpreter="latex")
+%     % lighting phong ; lightangle(gca,-45,20);
+%     camlight
+%     colormap(othercolor('OrRd4',1024))
+%     ModifyColormap(ChangeColormap=false,GrayLevel=0,GrayLevelRange=100);
 %%
 
 
@@ -157,19 +199,26 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 if nargin<5
     Col=[];
 end
+x=MUA.coordinates(:,1) ;
+y=MUA.coordinates(:,2) ;
 
 if nargin<4 || isempty(AspectRatio)
-    AspectRatio=1;
+  
+    xL=max(x)-min(x) ;
+    yL=max(y)-min(y) ;
+    xyL=min(xL,yL);
+    VL=max(Variable)-min(Variable) ;
+    AspectRatio=xyL/VL;
 end
 
 TRI=TriFE(MUA.connectivity);
-x=MUA.coordinates(:,1) ;
-y=MUA.coordinates(:,2) ;
+
 
 if isempty(Col)
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;
 else
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable,'FaceVertexCData',Col,'EdgeColor','none') ;
+  
 end
 
 

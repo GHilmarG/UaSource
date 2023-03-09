@@ -61,7 +61,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles(varargin)
 defaultPlotType="-mesh-speed-B-level set-";
 allowedPlotTypes = {'-mesh-speed-s-ab-','-mesh-speed-B-level set-','-mesh-',...
     '-h-','-sbB-','-dhdt-','-log10(BasalSpeed)-','-VAF-',...
-    '-1dIceShelf-','-hPositive-','-Level Set-','-ubvb-','-ubvb-B-','-ubvb-h-',...
+    '-1dIceShelf-','-hPositive-','-Level Set-','-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-s-',...
     '-collect-','-uv-lsf-c-f-mesh-'};
 
 
@@ -579,7 +579,7 @@ while iFile<=nFiles   % loop over files
                 PlotMuaMesh(CtrlVar,MUA,[],'w');
 
                 hold on ;
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'w','LineWidth',2);
                 [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
 
                 plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
@@ -613,7 +613,7 @@ while iFile<=nFiles   % loop over files
                 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed); title(sprintf('speed at t=%4.2f',time))
                 %QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),ub,vb,CtrlVar);
                 hold on
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'w','LineWidth',2);
                 [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',2) ;
                 xlabel('x (km)') ; ylabel('y (km)') ; title(cbar,'(m/yr)')
                                 
@@ -798,7 +798,7 @@ while iFile<=nFiles   % loop over files
 
                 %%
 
-            case {'-ubvb-','-ubvb-B-','-ubvb-h-'}
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-s-'}
                 % plotting horizontal velocities
                 %%
 
@@ -810,24 +810,47 @@ while iFile<=nFiles   % loop over files
                 CtrlVar.VelPlotIntervalSpacing='log10';
                 %CtrlVar.VelColorMap='hot';
 
-                CtrlVar.RelativeVelArrowSize=5;
-                CtrlVar.QuiverColorSpeedLimits=[100 50000];
+                CtrlVar.RelativeVelArrowSize=1;
+                CtrlVar.QuiverColorSpeedLimits=[100 12000];
                 CtrlVar.QuiverColorPowRange=4;
 
-                CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
-                CtrlVar.RelativeVelArrowSize=1;
-                CtrlVar.QuiverColorPowRange=3;
+                %   CtrlVar.QuiverColorSpeedLimits=[100 5000];  % just for Thule
+                %   CtrlVar.RelativeVelArrowSize=1;
+                %   CtrlVar.QuiverColorPowRange=3;
 
                 if contains(PlotType,"-B-")
+                
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
                     title(cbarB,"(m a.s.l)")
+                
                 elseif contains(PlotType,"-h-")
-                    %[~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
-                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.ab) ;  title(cbarB,"(m/yr)")  ; caxis(ax1,[-75 0])
 
-                    %caxis(ax1,[1 100])
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ;
+
+                    
+                    title(cbarB,"$h\,(\mathrm{m})$",Interpreter="latex")  ;
+                    caxis(ax1,[0 2000])
+                
+                elseif contains(PlotType,"-s-")
+                
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s) ;
+                    title(cbarB,"$s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    caxis(ax1,[0 4000])
+
+                elseif contains(PlotType,"-ds-")
+
+                    if iCount==0
+                        s0=F.s ;
+                    end
+
+                    [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-s0) ;
+                    title(cbarB,"$\Delta s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    clim(ax1,[-200 200])
 
                 end
+
+
+                axis(AxisLimits) 
                 cbarB.Position=[.92 .15 .02 .35];
                 hold on
                 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'b')
@@ -836,6 +859,7 @@ while iFile<=nFiles   % loop over files
                 F.ub(~Mask.NodesIn)=nan;
                 F.vb(~Mask.NodesIn)=nan;
                 if nVelCount==0
+                    CtrlVar.QuiverColorSpeedLimits=[5 5000]; % this might need to me manually adjusted
                     CtrlVar.QuiverSameVelocityScalingsAsBefore=false;
                 else
                     CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
@@ -859,27 +883,42 @@ while iFile<=nFiles   % loop over files
                 cbar.Position=[.92 .55 .02 .35];
                 hold on ;
 
-                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r',LineWidth=1.5);
+                [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'w',LineWidth=1.5);
                 hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'k','LineWidth',1) ;
 
+               [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF);
 
-                title(ax1,sprintf('Bedrock and surface velocities at t=%5.2f (yr)',F.time),interpreter="latex") ;
+               if iCount==0
+                   SLR0mm=-VAF.Total/362.5e9 ;
+               end
+
+               
+               
+               SLRmm=-VAF.Total/362.5e9;
+               dSLRmm=SLRmm-SLR0mm ;
+               
+
+                title(ax1,sprintf('t=%5.2f (yr), Mean sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
                 %xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')
 
-                xlabel(ax1,'x (km)',Interpreter='latex') ;  ylabel(ax1,'y (km)',Interpreter='latex')  ; % Thulew
+                xlabel(ax1,'xps (km)',Interpreter='latex') ;  ylabel(ax1,'yps (km)',Interpreter='latex')  ; % Thulew
 
 
                 colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
 
-                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");
+                plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"w");
                 plot(xCF0/CtrlVar.PlotXYscale,yCF0/CtrlVar.PlotXYscale,"k");
                 %%
                 if PlotMinThickLocations
                     plot(MUA.coordinates(ih,1)/CtrlVar.PlotXYscale,MUA.coordinates(ih,2)/CtrlVar.PlotXYscale,'.r');
                 end
 
+                %PlotLatLonGrid(1000);
+                axis(AxisLimits) 
+                PlotLatLonGrid(1000,5/2,10);
 
-
+                iCount=iCount+1;
+                
             case '-log10(BasalSpeed)-'
                 %%
                 %us=ub+ud;  vs=vb+vd;

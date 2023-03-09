@@ -34,6 +34,26 @@ function PatchObject=PlotMeshScalarVariableAsSurface(CtrlVar,MUA,Variable,Aspect
 %   Col(:,:)=Col(ColorIndex,:);
 %
 % And then give this as the input variable Col in the call.
+%
+% An example of how to plot speed over surface mesh
+%
+%     
+%     load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')
+%     speed=sqrt(F.ub.*F.ub+F.vb.*F.vb);
+%     figSpeed=FindOrCreateFigure("speed over surface mesh") ;
+%     AspectRatio=50; 
+%     PatchObject=PlotMeshScalarVariableAsSurface(CtrlVarInRestartFile,MUA,F.s,AspectRatio) ;
+%     cbar=colorbar;
+%     PatchObject.FaceVertexCData=speed;
+%     PatchObject.EdgeColor="none";
+%     title(cbar,["speed","(m/a)"],interpreter="latex")
+%     xlabel("xps (km)",Interpreter="latex")
+%     ylabel("yps (km)",Interpreter="latex")
+%     zlabel("$s\, \mathrm{(m.a.s.l.)}$",Interpreter="latex")
+%     % lighting phong ; lightangle(gca,-45,20);
+%     camlight
+%     colormap(othercolor('OrRd4',1024))
+%     ModifyColormap(ChangeColormap=false,GrayLevel=0,GrayLevelRange=100);
 %%
 
 
@@ -45,7 +65,7 @@ x=MUA.coordinates(:,1) ;
 y=MUA.coordinates(:,2) ;
 
 if nargin<4 || isempty(AspectRatio)
-    AspectRatio=1;
+  
     xL=max(x)-min(x) ;
     yL=max(y)-min(y) ;
     xyL=min(xL,yL);
@@ -57,9 +77,10 @@ TRI=TriFE(MUA.connectivity);
 
 
 if isempty(Col)
-    PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable) ;
+    PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable,edgecolor="none") ;
 else
     PatchObject=trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,Variable,'FaceVertexCData',Col,'EdgeColor','none') ;
+  
 end
 
 

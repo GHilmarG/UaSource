@@ -32,6 +32,7 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 %   rhow    :  ocean density (scalar variable)
 %   rho     :  ice density (nodal variable)
+
 %   g       :  gravitational acceleration
 %
 % These fields need to be returned at the nodal coordinates. The nodal

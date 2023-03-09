@@ -64,6 +64,11 @@ if ~isfield(CtrlVar,'CalcMUA_Derivatives')
 end
 
 
+if CtrlVar.FindMUA_Boundary && isempty(MUA.TR)
+    [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
+end
+
+
 %% Now consider the possibility the FE coordinates and connectivity has changed
 % and that the other fields are not up to date
 

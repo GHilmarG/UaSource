@@ -49,7 +49,7 @@ tau1=K.*l./speed/2;
 % tau1 -> dt/6 as speed -> 0
 I=speed<100*eps ; tau1(I)=dt/6;
 
-taut=dt/2+eps;
+taut=dt/2+eps++zeros(size(u),'like',u);
 taus=0.5*l./(speed+CtrlVar.SpeedZero);  % Now this must go down to zero gracefully...
 tau2=1./(1./taut+1./taus);
 
@@ -62,14 +62,17 @@ switch CtrlVar.Tracer.SUPG.tau
     case 'taus'   % 'spatial' definition, independent of time step
         tau=taus;
     case 'taut'   % 'temporal' definition, indepenent of speed
-        tau=taut+zeros(size(u),'like',u);
+        tau=taut ; 
     otherwise
         error('in CalcSUPGtau case not found')
 end
 
 
 if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
-    figure
+
+
+     
+    FindOrCreateFigure("taus SUPG") ;
     subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
     subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
     subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,tau1) ; title('tau1')

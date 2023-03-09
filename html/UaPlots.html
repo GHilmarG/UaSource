@@ -1,0 +1,337 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>UaPlots</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-09-14"><meta name="DC.source" content="UaPlots.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
+</pre><p>cbar=UaPlots(CtrlVar,MUA,F,Variable,options)</p><p>Simple plot utility to plot variables and calving fronts and grounding lines as well.</p><p>Examples:</p><pre class="language-matlab">UaPlots(CtrlVar,MUA,F,F.h)
+</pre><pre class="language-matlab">UaPlots(CtrlVar,MUA,F,<span class="string">"-speed-"</span>)
+</pre><pre class="language-matlab">UaPlots(CtrlVar,MUA,F,<span class="string">"-ubvb-"</span>)
+</pre><pre class="language-matlab">cbar=UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor=<span class="string">"b"</span>,GroundingLineColor=<span class="string">"k"</span>,GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet);
+title(cbar,<span class="string">"h (m)"</span>)
+</pre><pre class="language-matlab">UaPlots(CtrlVar,MUA,F,<span class="string">"-log10speed-"</span>,CalvingFrontColor=<span class="string">"b"</span>,GroundingLineColor=<span class="string">"k"</span>,GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor(<span class="string">"YlGnBu8"</span>,100),PlotUnderMesh=true) ;
+</pre><pre class="codeinput">arguments
+    CtrlVar <span class="string">struct</span>
+    MUA     <span class="string">struct</span>
+    F       <span class="string">{mustBeA(F,{'struct','UaFields'})}</span>
+    Variable   <span class="string">{string, double}</span>
+    options.PlotGroundingLines  logical = true
+    options.PlotCalvingFronts  logical = true
+    options.CalvingFrontColor char = <span class="string">"k"</span>
+    options.GroundingLineColor char = <span class="string">"r"</span>
+    options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.PlotOverMesh=false;
+    options.PlotUnderMesh=false;
+
+
+    <span class="comment">% options.ColorMap double=othercolor('YlGnBu6',1028)</span>
+    <span class="comment">% options.ColorMap double=othercolor("Mlightterrain",1028)</span>
+    <span class="comment">% options.ColorMap double=othercolor("Mdarkterrain",1028)</span>
+    <span class="comment">% options.ColorMap double=othercolor("Mtemperaturemap",1028)</span>
+    options.ColorMap double=othercolor(<span class="string">"YlGnBu8"</span>,1028)  <span class="comment">% See othercolor.m for more options</span>
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> islogical(Variable)
+    Variable=double(Variable) ;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> options.GetRidOfValuesDownStreamOfCalvingFronts  &amp;&amp; ~isempty(F.LSF)
+
+    <span class="keyword">if</span> isempty(F.LSFMask)
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    <span class="keyword">end</span>
+
+    F.ub(~F.LSFMask.NodesIn)=NaN;
+    F.vb(~F.LSFMask.NodesIn)=NaN;
+
+<span class="keyword">end</span>
+
+isModifyColormap=true;
+
+<span class="keyword">if</span> isModifyColormap
+    colormap(options.ColorMap);
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> options.PlotOverMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA) ;
+    hold <span class="string">on</span>
+
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> isnumeric(Variable)
+
+    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
+    title(cbar,inputname(4)) ;
+
+<span class="keyword">else</span>
+
+
+    <span class="keyword">switch</span> lower(Variable)
+
+        <span class="keyword">case</span> {<span class="string">"speed"</span>,<span class="string">"-speed-"</span>}
+
+            speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
+            title(<span class="string">"$\| \mathbf{v} \|$"</span>,Interpreter=<span class="string">"latex"</span>)
+
+        <span class="keyword">case</span> {<span class="string">"log10speed"</span>,<span class="string">"-log10speed-"</span>}
+
+            speed=log10(sqrt(F.ub.*F.ub+F.vb.*F.vb)) ;
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
+            title(<span class="string">"$\log_{10}(\| \mathbf{v} \|)$"</span>,Interpreter=<span class="string">"latex"</span>)
+            title(cbar,<span class="string">"$\log_{10}(m/a)$"</span>,Interpreter=<span class="string">"latex"</span>)
+
+
+        <span class="keyword">case</span> {<span class="string">"ubvb"</span>,<span class="string">"-ubvb-"</span>}
+
+            CtrlVar.VelColorMap=jet(100) ;
+            cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            title(cbar,<span class="string">"(m/a)"</span>)
+            title(sprintf(<span class="string">"velocities at t=%f"</span>,CtrlVar.time),Interpreter=<span class="string">"latex"</span>)
+
+        <span class="keyword">otherwise</span>
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
+            title(cbar,<span class="string">"$(m)$"</span>,Interpreter=<span class="string">"latex"</span>)
+
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+hold <span class="string">on</span> ;
+
+<span class="keyword">if</span> options.PlotUnderMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA,[],<span class="string">"w"</span>) ;
+    hold <span class="string">on</span>
+
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> options.PlotGroundingLines
+    PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> options.PlotCalvingFronts
+    PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+<span class="keyword">end</span>
+
+
+
+<span class="comment">% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.</span>
+xlabel(<span class="string">"xps (km)"</span>,Interpreter=<span class="string">"latex"</span>)
+ylabel(<span class="string">"yps (km)"</span>,Interpreter=<span class="string">"latex"</span>)
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
+
+%%
+%
+% cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
+%
+% Simple plot utility to plot variables and calving fronts and grounding lines as well.
+%
+% Examples:
+%
+%   UaPlots(CtrlVar,MUA,F,F.h)
+%
+%   UaPlots(CtrlVar,MUA,F,"-speed-")
+%
+%   UaPlots(CtrlVar,MUA,F,"-ubvb-")
+%
+%   cbar=UaPlots(CtrlVar,MUA,F,F.h,CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=jet);
+%   title(cbar,"h (m)")
+%
+%   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",100),PlotUnderMesh=true) ;
+%
+%%
+
+arguments
+    CtrlVar struct
+    MUA     struct
+    F       {mustBeA(F,{'struct','UaFields'})}
+    Variable   {string, double}
+    options.PlotGroundingLines  logical = true
+    options.PlotCalvingFronts  logical = true
+    options.CalvingFrontColor char = "k"
+    options.GroundingLineColor char = "r"
+    options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.PlotOverMesh=false;
+    options.PlotUnderMesh=false;
+
+
+    % options.ColorMap double=othercolor('YlGnBu6',1028)
+    % options.ColorMap double=othercolor("Mlightterrain",1028)
+    % options.ColorMap double=othercolor("Mdarkterrain",1028)
+    % options.ColorMap double=othercolor("Mtemperaturemap",1028)
+    options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
+end
+
+
+if islogical(Variable)
+    Variable=double(Variable) ;
+end
+
+if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
+
+    if isempty(F.LSFMask)
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    end
+
+    F.ub(~F.LSFMask.NodesIn)=NaN;
+    F.vb(~F.LSFMask.NodesIn)=NaN;
+
+end
+
+isModifyColormap=true;
+
+if isModifyColormap
+    colormap(options.ColorMap);
+end
+
+if options.PlotOverMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA) ;
+    hold on 
+
+end
+
+
+if isnumeric(Variable)
+
+    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
+    title(cbar,inputname(4)) ; 
+
+else
+
+
+    switch lower(Variable)
+
+        case {"speed","-speed-"}
+
+            speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
+            title("$\| \mathbf{v} \|$",Interpreter="latex")
+
+        case {"log10speed","-log10speed-"}
+
+            speed=log10(sqrt(F.ub.*F.ub+F.vb.*F.vb)) ;
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
+            title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
+            title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
+      
+
+        case {"ubvb","-ubvb-"}
+
+            CtrlVar.VelColorMap=jet(100) ; 
+            cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            title(cbar,"(m/a)")
+            title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
+
+        otherwise
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
+            title(cbar,"$(m)$",Interpreter="latex")
+
+
+    end
+end
+
+hold on ;
+
+if options.PlotUnderMesh
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    PlotMuaMesh(CtrlVar,MUA,[],"w") ;
+    hold on 
+
+end
+
+
+if options.PlotGroundingLines
+    PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+end
+
+if options.PlotCalvingFronts
+    PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+end
+
+
+
+% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
+xlabel("xps (km)",Interpreter="latex")
+ylabel("yps (km)",Interpreter="latex")
+
+
+end
+##### SOURCE END #####
+--></body></html>

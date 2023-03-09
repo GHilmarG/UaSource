@@ -13,7 +13,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 %  [cGL,yGL]=PlotGroundingLines(CtrlVarInRestartFile,"Bedmachine");
 %
-%
+%  [cGL,yGL]=PlotGroundingLines([],"Bedmachine");    
 %
 % When plotting grounding lines over the mesh defined by MUA and based on GF, the only required inputs are:
 %
@@ -82,16 +82,24 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 % Plot grounding lines based on the Bedmachine mask
 %
-%   PlotGroundingLines(CtrlVarInRestartFile,"Bedmachine",[],[],[],[],"r");
+%   
 %
 %
 % See also: PlotMuaBoundary, EleBasedGL
 %
 
-narginchk(2,inf)
+narginchk(0,inf)
+
+
+if nargin==0 
+
+    CtrlVar=[]; 
+    MUA="Bedmachine" ; 
+
+end
 
 if isempty(CtrlVar)
-    CtrlVar.XYscale=1;
+    CtrlVar.PlotXYscale=1000;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
@@ -100,7 +108,9 @@ if ~isfield(CtrlVar,"PlotGLs")
     CtrlVar.PlotGLs=1;
 end
 
-
+if ~isfield(CtrlVar,"PlotIndividualGLs")
+    CtrlVar.PlotIndividualGLs=0;
+end
 
 
 
@@ -129,10 +139,12 @@ if isstring(MUA)
         tt=axis;
         plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
         ax=gca; ax.DataAspectRatio=[1 1 1];
-        axis(tt)
 
+        if ~isequal(tt,[0 1 0 1])
+            axis(tt)
+        end
     end
-    
+
     GLgeo=[] ;
     return
 

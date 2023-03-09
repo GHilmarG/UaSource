@@ -6,7 +6,7 @@ function In=IsInBox(Box,x,y)
 % 
 % A much more general approach is provided by inpoly2
 %
-
+% 
 
 In=x>Box(1) & x <Box(2)  & y> Box(3) & y < Box(4) ;
 

@@ -44,10 +44,12 @@
                 <tocitem target="Plot_sbB.html">Plot upper and lower surfaces and bedrock </tocitem>
                 <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
+                <tocitem target="UaPLots.html">Plots variables, calving fronts and grounding lines </tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
                 <tocitem target="FE_inner_product.html">FE natural inner product and norm of nodal quantities</tocitem>
+                <tocitem target="FE_RootMeanSquareError.html">Calculate the root-mean-square deviation/error between two nodal variables</tocitem>
                 <tocitem target="calcFEderivativesMUA.html">Calculates x and y derivatives of a nodal quantity</tocitem>
                 <tocitem target="DistanceToLineSegment2.html">Determine if a point is close to a line.</tocitem>
                 <tocitem target="ProjectFintOntoNodes.html">Project integration-point values onto nodes.</tocitem>
@@ -71,6 +73,7 @@
                 <tocitem target="FluxAcrossGroundingLine.html">Calculates flux across grounding lines. </tocitem>
                 <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
                 <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
+                <tocitem target="DraftDependentMeltParameterisations.html">Returns several pre-defined draft-dependent melt-parameterisations. </tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

@@ -24,6 +24,10 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
+
+CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+
+
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
                               % If true (i.e. set to 1) then the run is a forward transient one, if not
                               % then velocities based on the current geometry are calculated. 
@@ -36,7 +40,8 @@ CtrlVar.Restart=0;            % If true then the run is a restart run. Note that
                               %       CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-
+CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
+                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
@@ -363,7 +368,7 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 %Note: The default uvh tolerances set limits on the Force tolerance only. 
 
 % 2) If the step length in the backtracking becomes smaller than
-CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fullfilled:
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
@@ -406,6 +411,9 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
+
+CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
+CtrlVar.h.SUPG.tauMultiplier=1 ; 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -1053,6 +1061,10 @@ CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % can sometimes be useful for testing/control purposes)
 % NaN implies no limit to the number of calls
 
+CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+
+
 
 %% Obtaining information about the run, during the run.
 %
@@ -1291,19 +1303,27 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                             % is presumably going to be OK.
                                       
                                             
-CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
-                                            % Limit the number of such cycles and exist loop.
                                             
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
-CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; %
+
+CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
+
+CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;     % In any active-set iteration, this is the min number of additional new constraints.
+                                                                    % This can be used to surpress new active-set iteration if only a few new constraints are identified.
+                                                                    % The exact number here can be expected to be problem dependent, but it seems safe to assume that if only 
+                                                                    % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
+                                                                    % been defined as being "a few". 
+                                                                 
 
 % thickness barrier, option 3
-CtrlVar.ThicknessBarrier=0;                   % set to 1 for using the barrier method  (Option 3)
-CtrlVar.ThicknessBarrierThicknessScale=CtrlVar.ThickMin;     %
-CtrlVar.ThicknessBarrierDiagonalFraction=1;   % size of barrier term in comparison to mean abs of diagonal elements
-CtrlVar.ThicknessBarrierMinThickMultiplier=2; % exp. barrier is 1 at ThickMin * MinThickMuliplier
-CtrlVar.ThicknessBarrierAccumulation=0.01;
+CtrlVar.ThicknessBarrier=1;                                         % set to 1 for using the barrier method  (Option 3)
+                                                                    % additonal mass-balance term, ab,  on the form:
+                                                                    %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
+                                                                    % is added, and applied at integration points where  h<hmin.
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equaiton for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equaiton for the additional mass balance term (should always be negative)
+
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
@@ -1465,7 +1485,11 @@ CtrlVar.RefineMeshOnStart=0;
 % Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
-CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
+CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
+
+CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
+                                          
+
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
                                                    % 'explicit:local:red-green'
@@ -1493,36 +1517,74 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 
 CtrlVar.LevelSetMethod=0; 
-
 CtrlVar.LevelSetMethodTest=0;  %  
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
 CtrlVar.LevelSetPhase="" ; 
-CtrlVar.ManuallyDeactivateElements=0; 
 
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
+% To ensure ice thickness downstream of the calving front (ie zero line of the level set function) is small, several
+% approaches can be used. These are quite similar to the implementation of the min ice thickness.
+%
+% Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback
+%
+% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).
+%
+%
+% The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses
+% downstream of the calving front are guaranteed to be at min thick as they should. But this sharp transition in thickness
+% can come at the cost of shorter time steps.
+%
+% The mass-balance feedback method, ie method 3), will not give sharp calving fronts and the thickness downstream
+% of the calving front will in general go down to the min thickness over some distance. This distance can be shortened by
+% increasing the mass balance feedback, which can be done by making the paramters
+% 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic
+%
+% more negative. But again if the calving fronts become very sharp, we have the same risk of smal time steps as with
+% the active-set method.
+%
+
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recomended!
+
+CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
+                                                        % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LSFslope=1;
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additonal mass-balance term, ab,  on the form:
+                                                               %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
+                                                               % is added. This is quite similar to the "barrier method", 
+                                                               % but the thickness  barrier method does not have to be activated as
+                                                               % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
+% a3 in the above equaiton for ab.
 
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
+CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
-                                                       
 % Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
 CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified
 % CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Here AGlen will be set to this numerical value downstream of all
                                                           % calving fronts. This will be done automatically and replaces 
                                                           % any values defined by the user in DefineAGlen.,
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+
+% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
+% This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
+% in faster solution. 
+%
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
+
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
+
+% Here are some numerical paramters and values, generally no need to change.
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
-
+CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
 CtrlVar.LevelSetFABmu.Value=0.1 ; 
@@ -1534,9 +1596,6 @@ CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}
 CtrlVar.LevelSetInitialisationMethod="-geo-" ;
 CtrlVar.LevelSetInitialisationInterval=inf ; 
 
-CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
-
-% CtrlVar.LevelSetReinitializePDist=1;
 
 CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
 
@@ -1545,7 +1604,6 @@ CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluatio
 CtrlVar.LevelSetMethodSolveOnAStrip=0;
 CtrlVar.LevelSetMethodStripWidth=NaN; 
 
-% CtrlVar.LevelSetReinitialize=
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
 CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)
@@ -1564,8 +1622,7 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
                                                            % element size, as d=sqrt(2*min(MUA.EleAreas))/factor,
                                                            % where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor
 
-% CtrlVar.CalvingLaw="-User Defined-"; 
-% CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
+
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted

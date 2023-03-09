@@ -13,9 +13,9 @@ iExperiment=0;
 density=0.05 ;
 timings=zeros(10,6)+NaN;
 
-nRepeat=1;
+nRepeat=2;
 
-for N=[100 1000 3000 5000 20000 ] % 500 1000 2000 3000]
+for N=[100 1000 3000 5000 ] % 500 1000 2000 3000 20000]
     
     
     iExperiment=iExperiment+1;
@@ -94,5 +94,7 @@ plot(timings(:,1),timings(:,4),'+-g')
 plot(timings(:,1),timings(:,5),'*-c')
 plot(timings(:,1),timings(:,6),'^-m')
 legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse')
+xlabel("Problem size N")
+ylabel("time (sec)")
 
 end

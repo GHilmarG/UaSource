@@ -109,29 +109,32 @@ a0int=as0int+ab0int;
 dadhint=dadhnod*fun;
 
 if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+
     LM=LSFMasknod*fun;
-    % TestIng
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
   
     hmin=CtrlVar.LevelSetMinIceThickness;
+
     abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
-    
     dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
+
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
+ 
+%    nh=numel(find(hint<hmin)) ;
+%    if nh>0
+%        fprintf("LSF #%i \t ThickMin=%f \t max(abLSF)=%f \n ",nh,min(hint),max(abLSF))
+%     end
+
+
+else
+    LM=false; % Level set mask for melt not applied
 end
 
-
-Bint=Bnod*fun;
-Sint=Snod*fun;
-rhoint=rhonod*fun;
-
-
-
-Hint=Sint-Bint;
+h1barr=0 ; h0barr=0; lambda_h=1;
 
 if CtrlVar.ThicknessBarrier
-    
+
     % using ThicknessBarrier I add fictitious accumulation term:
     %
     % gamma exp(-(h-h0)/l)
@@ -140,32 +143,52 @@ if CtrlVar.ThicknessBarrier
     %       l=CtrlVar.ThicknessBarrierThicknessScale
     %       h0=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier
     %
-    lambda_h=CtrlVar.ThicknessBarrierThicknessScale;
-    gamma_h=CtrlVar.ThicknessBarrierAccumulation;
-    
-    ThickBarrierMin=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier;
-    
-    argmax=log(realmax)/2;
-    
-    %       don't add (fictitious/barrier) mass term to last time step, only to the new one
-    %        hTest=h0int ;
-    %        arg0=-(hTest-MeshSizeMin)/lambda_h;
-    %        arg0(arg0>argmax)=argmax;
-    %        h0barr=gamma_h*exp(arg0)/lambda_h;
-    h0barr=0;
-    
-    
-    arg1=-(hint-ThickBarrierMin)/lambda_h;
-    arg1(arg1>argmax)=argmax;
-    h1barr=gamma_h*exp(arg1)/lambda_h;
+    %     lambda_h=CtrlVar.ThicknessBarrierThicknessScale;
+    %     gamma_h=CtrlVar.ThicknessBarrierAccumulation;
     %
-    
-    %fprintf(' max(h1barr)=%-g max(h0barr)=%-g \n ',max(max(h1barr)),max(max(h0barr)))
-else
-    h1barr=0 ; h0barr=0; lambda_h=1;
+    %     ThickBarrierMin=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier;
+    %
+    %     argmax=log(realmax)/2;
+    %     h0barr=0;
+    %
+    %
+    %     arg1=-(hint-ThickBarrierMin)/lambda_h;
+    %     arg1(arg1>argmax)=argmax;
+    %     h1barr=gamma_h*exp(arg1)/lambda_h;
+
+
+    %%  New simpler implementation of a thickness barrier.
+    % Similar to the implementatoin of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new seperate terms to the mass
+    % balance equation
+
+    hmin=CtrlVar.ThickMin ;
+
+    isThickTooSmall=hint<hmin ;
+
+    % don't apply if already applied as a part of the level-set method
+    isThickTooSmall=isThickTooSmall & ~LM ;
+    a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+    a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
+
+
+    abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
+
+    dadhThickMin=isThickTooSmall.*(a1+3*a3*(hint-hmin).^2) ;
+
+    a1int=a1int+abThickMin; dadhint=dadhint+dadhThickMin ;
+
+    %     nh=numel(find(isThickTooSmall)) ;
+    %     if nh> 0
+    %        fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(hint(isThickTooSmall)),max(abThickMin))
+    %     end
+    %
 end
 
-
+Bint=Bnod*fun;
+Sint=Snod*fun;
+rhoint=rhonod*fun;
+Hint=Sint-Bint;
 Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
 
 
@@ -318,7 +341,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 
 % This is done within the integration-point loop.
-tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau,CtrlVar.uvh.SUPG.tauMultiplier) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 
 

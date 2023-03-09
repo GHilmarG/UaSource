@@ -58,8 +58,7 @@ end
 
 
 CtrlVar.LevelSetTheta=0.5;
-[rP,rL,rTP,rTL,rPTL]=CalcLSFconstfunctionTLPterms(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l,F1.LSF);
-
+% [rP,rL,rTP,rTL,rPTL]=CalcLSFconstfunctionTLPterms(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l,F1.LSF);
 % if rP/rL> 1e-3
 %     fprintf("LevelSetEquationSolver:Automated re-initialisation. \n")
 %     
@@ -134,7 +133,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
         
         
         [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-        
+          
         if RunInfo.LevelSet.SolverConverged
             
             % OK, it converged, advance solution, update time
