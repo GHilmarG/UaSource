@@ -59,7 +59,11 @@ if ~isfield(MUA,'M') || isempty(MUA.M)
 end
 
 if isfield(MUA,"dM") && isa(MUA.dM,"decomposition") && ~isempty(MUA.dM)
-    sol=MUA.dM\b;
+    try
+        sol=MUA.dM\b;
+    catch
+        sol=MUA.M\b;
+    end
 else
     sol=MUA.M\b;
 end

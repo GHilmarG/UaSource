@@ -312,13 +312,13 @@ if ~isempty(Meas.dhdt)
      
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot);
-    PlotMeshScalarVariable(CtrlVar,MUA,dhdt-Meas.dhdt);
+    PlotMeshScalarVariable(CtrlVar,MUA,(dhdt-Meas.dhdt)./dhdtError);
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    title('dh/dt-Meas.dhdt') ;
+    title('(dh/dt-Meas.dhdt)/dhdtError') ;
     
 end
 

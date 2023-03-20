@@ -17,6 +17,22 @@ function [ab,qx,qy,dqxdx,dqxdy,dqydx,dqydy]=CalcIceShelfMeltRates(CtrlVar,MUA,u,
 %           dhdt is the rate of thickness change
 %           dqxdx and dqydy are the flux gradients calcuated from u, v, h, and rho
 %           as is the surface accumulation in meters of water equivalent
+% 
+% Note: It is very likely that the calculated ab values need to me smoothed or regularized. Smoothing can, for example, be done
+% using the Helmholtz equation solver. To regularize one could, for example, minimize
+%
+%  ab' R ab + (ab-F)' P (ab-F)
+%
+% giving the system   (R+P) ab = P F
+%
+% where F is this function, and R and P regularisation and likelyhood inverse covariances. 
+% 
+% 
+% Example would be: 
+% 
+%   P=MUA.M ; a=1; gs=1e7 ;  R= ga* MUA.M  + gs *(MUA.Dxx+MUA.Dyy); abEst=(R+P)\ (P*ab); 
+%
+% where ab was calculated by a call to this function. 
 %
 % Input:
 %
