@@ -119,6 +119,7 @@ if CreateVideo
     options.VideoFileName = replace(options.VideoFileName," ","");
     vidObj = VideoWriter(options.VideoFileName);
     vidObj.FrameRate=10;   % frames per sec
+   % vidObj.Quality = 95;   % the default is 75 (out of 100 max)
     open(vidObj);
 end
 
@@ -984,7 +985,7 @@ while iFile<=nFiles   % loop over files
                     yyaxis left
                     plot(timeVector,dSLRmmVector/10,'-ob',LineWidth=2)
                     xlabel("time (yr)",Interpreter="latex") ; 
-                    ylabel("Sea level rise (cm)",Interpreter="latex",FontSize=14)
+                    ylabel("Sea level rise (cm)",Interpreter="none",FontSize=14)
                     axSLR=gca;
                     title(axSLR,"Sea Level Rise / Grounding Line",Interpreter="latex",FontSize=16)
 
@@ -1033,7 +1034,7 @@ while iFile<=nFiles   % loop over files
                     ICExPoly=[Profile/1000 fliplr(Profile)/1000 ] ;
                     ICEyPoly=[bProfile   fliplr(sProfile) ] ;
                     fill(ICExPoly,ICEyPoly,[0.58 0.815 0.988]) ;
-                    title(axProfile,"Profile",Interpreter="latex",FontSize=16)
+                    title(axProfile,"Profile",Interpreter="none",FontSize=16)
 
 
                     axis tight

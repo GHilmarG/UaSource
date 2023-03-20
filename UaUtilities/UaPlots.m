@@ -1,10 +1,15 @@
-function cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
+function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
 %
 % cbar=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Simple plot utility to plot variables and calving fronts and grounding lines as well.
+%
+% Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
+% 
+% Calving fronts
+% 
 %
 % Examples:
 %
@@ -57,6 +62,8 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
     F.vb(~F.LSFMask.NodesIn)=NaN;
 
 end
+
+xGL=nan ; yGL=nan ; xCF=nan ; yCF=nan ;
 
 isModifyColormap=true;
 
@@ -135,11 +142,11 @@ end
 
 
 if options.PlotGroundingLines
-    PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
 end
 
 if options.PlotCalvingFronts
-    PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+    [xCF,yCF]=PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
 end
 
 
