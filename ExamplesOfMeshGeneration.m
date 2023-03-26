@@ -15,12 +15,13 @@
 %
 UserVar=[];
 CtrlVar=Ua2D_DefaultParameters(); %
+CtrlVar.PlotXYscale=1; 
  CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 % Note; When creating this mesh using Úa, only the following 
 % three lines are required in the Ua2D_InitialUserInput.m
-CtrlVar.MeshSizeMax=0.1; 
-CtrlVar.MeshSizeMin=0.1;
-CtrlVar.MeshSize=0.1;
+CtrlVar.MeshSizeMax=1; 
+CtrlVar.MeshSizeMin=0.01;
+CtrlVar.MeshSize=0.025;
 
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
 
@@ -30,7 +31,11 @@ CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
-figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+FindOrCreateFigure("Mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+
+FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
+
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();
@@ -384,13 +389,15 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 %   This method only works with mesh2d 
 
 CtrlVar=Ua2D_DefaultParameters();
-CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
 
 CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
-CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.MeshSizeMax=1; 
+CtrlVar.MeshSizeMin=0.025;  
+CtrlVar.MeshSize=0.01;
+
 CtrlVar.GmshInputFormat=1;
 UserVar=[];
 Boundary=[0.00 0.00 ; 0.25 0.10  ;  0.25 1.00 ; 1.00 1.00 ; 1.00  0.00  ; ....     % first loop
@@ -402,8 +409,10 @@ CtrlVar.MeshBoundaryCoordinates=Boundary ;
 
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
-figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+FindOrCreateFigure("mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
+
+FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: Two subdomains sharing a common boundary.
 %
@@ -513,7 +522,35 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 
-%% Example: Meshing the Brunt Ice Shelf
+
+%% Example: Meshing the Brunt Ice Shelf using mesh2d
+%
+
+load BruntMeshBoundaryCoordinates.mat
+UserVar=[];
+
+CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.MeshSizeMax=20e3; 
+CtrlVar.MeshSize=5e3; 
+CtrlVar.MeshSizeMin=1e3; 
+CtrlVar.TriNodes=3;
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
+FindOrCreateFigure("Brunt mesh with mesh2d") ; 
+PlotMuaMesh(CtrlVar,MUA); drawnow
+
+
+FindOrCreateFigure("ele sizes histogram mesh2d") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
+
+%str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+
+%% Example: Meshing the Brunt Ice Shelf using gmsh
 %
 
 load BruntMeshBoundaryCoordinates.mat
@@ -528,9 +565,10 @@ CtrlVar=Ua2D_DefaultParameters();
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 
-CtrlVar.MeshGenerator='gmsh';  
+CtrlVar.MeshGenerator='gmsh';   
 CtrlVar.GmshInputFormat=2;
 CtrlVar.MeshSizeMax=5e3; 
+CtrlVar.MeshSize=5e3; 
 CtrlVar.MeshSizeMin=1e3; 
 CtrlVar.TriNodes=3;
 
@@ -543,7 +581,10 @@ CtrlVar.Gmsh.Lines{1}=[(1:i1b-i1a+1)';1];
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
-figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+FindOrCreateFigure("Brunt mesh with gmsh") ; 
+PlotMuaMesh(CtrlVar,MUA); drawnow
+
+FindOrCreateFigure("ele sizes histogram gmsh") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %%
@@ -729,10 +770,10 @@ CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
 
 x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
 MUA.coordinates(:,1)=y ; MUA.coordinates(:,2)=x;
-figure ; PlotMuaMesh(CtrlVar,MUA,'k') ; axis ij off ; title(' ')
+FindOrCreateFigure("UA Logo") ; PlotMuaMesh(CtrlVar,MUA,'k') ; axis ij off ; title(' ')
 
 
-
+FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 
 
 
