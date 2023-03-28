@@ -15,6 +15,8 @@ switch lower(CtrlVar.FlowApproximation)
 
         if CtrlVar.Parallel.uvAssembly.spmdInt.isOn  && ~CtrlVar.uvMatrixAssembly.Ronly
 
+            % This uses spmd over integration points with one worker per integration point
+            % Does speed things up somewhat with increasing number of elements and nip
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMspmd(CtrlVar,MUA,F) ;
 
         else
@@ -40,7 +42,7 @@ switch lower(CtrlVar.FlowApproximation)
              
             
 
-            FileName="TestSaveuvMatrixAssembly"+num2str(MUA.Nnodes) ;
+            FileName="TestSaveuvMatrixAssembly"+"nEle"+num2str(MUA.Nele) ;
             fprintf("Saving MUA and F in %s \n",FileName)
             save(FileName,"CtrlVar","MUA","F")
 
