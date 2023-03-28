@@ -94,38 +94,38 @@ if CtrlVar.IncludeMelangeModelPhysics
     
     uanod=reshape(F.ua(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vanod=reshape(F.va(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
 end
 
-if ~CtrlVar.CisElementBased
-    
-    Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
-    if ~isempty(F.q)
-        qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
-    
-    if ~isempty(F.muk)
-        muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
-    
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        
-        
-        Canod=reshape(F.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        manod=reshape(F.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
+%if ~CtrlVar.CisElementBased
+
+Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+if ~isempty(F.q)
+    qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+if ~isempty(F.muk)
+    muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 
-if ~CtrlVar.AGlenisElementBased
-    AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+if CtrlVar.IncludeMelangeModelPhysics
+    Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+    Canod=reshape(F.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    manod=reshape(F.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
+%end
+
+
+%if ~CtrlVar.AGlenisElementBased
+AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+%end
 
 
 
@@ -180,63 +180,64 @@ for Iint=1:MUA.nip
         
         uaint=uanod*fun;
         vaint=vanod*fun;
-        
+
     end
-    
-    if CtrlVar.CisElementBased
-        
-        Cint=F.C;
-        mint=F.m;
-        qint=F.q;
-        mukint=F.muk;
-        if CtrlVar.IncludeMelangeModelPhysics
-            Coint=F.Co;
-            moint=F.mo;
-            
-            Caint=F.Ca;
-            maint=F.ma;
-        end
+
+    % if CtrlVar.CisElementBased
+    %
+    %     Cint=F.C;
+    %     mint=F.m;
+    %     qint=F.q;
+    %     mukint=F.muk;
+    %     if CtrlVar.IncludeMelangeModelPhysics
+    %         Coint=F.Co;
+    %         moint=F.mo;
+    %
+    %         Caint=F.Ca;
+    %         maint=F.ma;
+    %     end
+    % else
+
+    Cint=Cnod*fun;
+    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+    mint=mnod*fun;
+
+    if ~isempty(F.q)
+        qint=qnod*fun;
     else
-        Cint=Cnod*fun;
-        Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
-        mint=mnod*fun;
-        
-        if ~isempty(F.q)
-            qint=qnod*fun;
-        else
-            qint=[];
-        end
-        
-        if ~isempty(F.muk)
-            mukint=muknod*fun;
-        else
-            mukint=[];
-        end
-        
-        
-        
-        
-        if CtrlVar.IncludeMelangeModelPhysics
-            Coint=Conod*fun;
-            moint=monod*fun;
-            
-            Caint=Canod*fun;
-            maint=manod*fun;
-        end
+        qint=[];
     end
-    
-    
-    if CtrlVar.AGlenisElementBased
-        AGlenint=F.AGlen;
-        nint=F.n;
+
+    if ~isempty(F.muk)
+        mukint=muknod*fun;
     else
+        mukint=[];
+    end
+
+
+
+
+    if CtrlVar.IncludeMelangeModelPhysics
+        Coint=Conod*fun;
+        moint=monod*fun;
+
+        Caint=Canod*fun;
+        maint=manod*fun;
+    end
+    %   end
+
+
+    % if CtrlVar.AGlenisElementBased
+    %     AGlenint=F.AGlen;
+    %     nint=F.n;
+    % else
         AGlenint=AGlennod*fun;
         AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
         nint=nnod*fun;
-    end
-    
-    
-    
+   %  end
+
+
+
     
     Bint=Bnod*fun;
     Sint=Snod*fun;

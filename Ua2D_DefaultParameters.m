@@ -374,7 +374,7 @@ CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
 CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.uvExitBackTrackingStepLength=1e-4;
 CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];

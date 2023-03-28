@@ -25,18 +25,19 @@ i2=MUA.Nele;
 Partition{nW}=i1:i2 ;
 %
 
+MUA.dM=[] ; 
 spmd (0,nW) 
     % Build M directly on the workers to avoid communication
     
         
-    M{labindex}=MUA;
-    M{labindex}.connectivity=MUA.connectivity(Partition{labindex},:);
-    M{labindex}.Nele=numel(Partition{labindex});
-    M{labindex}.Deriv=MUA.Deriv(Partition{labindex},:,:,:);
-    M{labindex}.DetJ=MUA.DetJ(Partition{labindex},:);
-    [rr,kk]=uvMatrixAssembly(CtrlVar,M{labindex},F);
-    rrsum = gplus(rr,1);
-    kksum = gplus(kk,1);
+    M{spmdIndex}=MUA;
+    M{spmdIndex}.connectivity=MUA.connectivity(Partition{spmdIndex},:);
+    M{spmdIndex}.Nele=numel(Partition{spmdIndex});
+    M{spmdIndex}.Deriv=MUA.Deriv(Partition{spmdIndex},:,:,:);
+    M{spmdIndex}.DetJ=MUA.DetJ(Partition{spmdIndex},:);
+    [rr,kk]=uvMatrixAssembly(CtrlVar,M{spmdIndex},F);
+    rrsum = spmdPlus(rr,1);
+    kksum = spmdPlus(kk,1);
 end
 
 
