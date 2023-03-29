@@ -38,7 +38,7 @@ switch lower(CtrlVar.FlowApproximation)
 
             fprintf('\n \n ----------------------------- \n')
             fprintf(' tSeq=%f \t tSPMD=%f \t speedup=%f \n',tSeq,tSPMD,tSeq/tSPMD)
-            fprintf(' norm(Ruv-Ruv2)/norm(Ruv)=%g \t Kuv error=%g \n',tSeq,tSPMD,MUA.Nele,norm(full(Ruv-Ruv2))/norm(full(Ruv)),norm(diag(Kuv2-Kuv))/max(abs(diag(Kuv))))
+            fprintf(' norm(Ruv-Ruv2)/norm(Ruv)=%g \t Kuv error=%g \n',norm(full(Ruv-Ruv2))/norm(full(Ruv)),norm(diag(Kuv2-Kuv))/max(abs(diag(Kuv))))
              
             
 
