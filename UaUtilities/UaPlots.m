@@ -29,7 +29,7 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 arguments
     CtrlVar struct
     MUA     struct
-    F       {mustBeA(F,{'struct','UaFields'})}
+    F       {mustBeA(F,{'struct','UaFields','numeric'})}
     Variable   {string, double}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
@@ -52,16 +52,25 @@ if islogical(Variable)
     Variable=double(Variable) ;
 end
 
-if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
+Variable=Variable(:);
 
-    if isempty(F.LSFMask)
-        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+if isempty(F) 
+    F=UaFields;
+end
+
+
+
+    if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
+
+        if isempty(F.LSFMask)
+            F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+        end
+
+        F.ub(~F.LSFMask.NodesIn)=NaN;
+        F.vb(~F.LSFMask.NodesIn)=NaN;
+
     end
 
-    F.ub(~F.LSFMask.NodesIn)=NaN;
-    F.vb(~F.LSFMask.NodesIn)=NaN;
-
-end
 
 xGL=nan ; yGL=nan ; xCF=nan ; yCF=nan ;
 
@@ -139,6 +148,7 @@ if options.PlotUnderMesh
     hold on 
 
 end
+
 
 
 if options.PlotGroundingLines

@@ -11,7 +11,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running ï¿½a, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -467,7 +467,7 @@ CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
-CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijo–Goldstein exit condition
+CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijoï¿½Goldstein exit condition
 CtrlVar.BackTrackMaxIterations=50 ;       % this is plenty
 CtrlVar.BackTrackMaxExtrapolations=50  ;  % if set to zero no extrapolation is done (i.e. pure backtracking)
 CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size in each extrapolation step
@@ -1090,7 +1090,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 %   MeshBoundaryCoordinates
 %
-% Currently two external mesh generators can be called direclty from Úa:
+% Currently two external mesh generators can be called direclty from ï¿½a:
 %
 %   gmsh
 %   mesh2d
@@ -1104,10 +1104,10 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and
 % mesh2d on how to do this.
 %
-% *By default Úa uses mesh2d*
+% *By default ï¿½a uses mesh2d*
 %
 %
-% When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% When generating the mesh from within ï¿½a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
 % defined by the variable
 %
@@ -1122,12 +1122,12 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
-% Both when done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
+% Both when done from within ï¿½a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
 % *             a) create an input file for gmsh (.geo)
 % *             b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)
-% *             c) read into Úa the resulting gmsh output file (.msh) with the mesh
-% All, or some of these three steps can be done withing Úa.
+% *             c) read into ï¿½a the resulting gmsh output file (.msh) with the mesh
+% All, or some of these three steps can be done withing ï¿½a.
 %
 % More specifically the options are:
 %
@@ -1135,7 +1135,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % *   ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)
 % *   iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)
 %
-% Option iii is the default option, in which case Úa generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
+% Option iii is the default option, in which case ï¿½a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
 % To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}
 %
@@ -1185,7 +1185,7 @@ CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"];
 %% Options related to the use of the gmsh external mesh generator
 
 
-CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+CtrlVar.GmshInputFormat=1; % When using ï¿½a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
                            % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
                            % Format 1 is simpler
                            % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
@@ -1819,7 +1819,7 @@ CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
-% The grounding line position does not enter any calculations done by Úa. 
+% The grounding line position does not enter any calculations done by ï¿½a. 
 % The grounding line is primarily calculated for plotting purposes.
 CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
@@ -1900,7 +1900,7 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
-CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
+CtrlVar.EnforceCFL=false  ;         % enforce Courantï¿½Friedrichsï¿½Lewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 
 
@@ -1949,7 +1949,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
 
 %% Sea ice/melange                                               
 %
-% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
+% ï¿½a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
 % drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
@@ -1976,7 +1976,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %% Parallel options:
 % 
 %
-% The parallel profile is not modified within Úa. Set the properties of the local
+% The parallel profile is not modified within Ãša. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
@@ -1995,6 +1995,7 @@ CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spm
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
+CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 

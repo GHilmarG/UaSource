@@ -1,4 +1,7 @@
-function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin)
+  
+
+
+function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScattered(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin)
     
     %%
     % varargout=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
@@ -244,3 +247,46 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
 
     
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% for each element:
+    % f(x,y)= f_p \phi(x,y)  
+    % 
+    % where x and y are the barycentric triangle coordinates.
+    % these are returned by the pointLocation function
+    % 
+    % = fvecEle*phivec'
+    % fvecEle= sr_shape_fun(B,CtrlVar.TriNodes);
+
+    % fvecEle=reshape(fnod(MUAnew.connectivity,1),MUAnew.Nele,MUAnew.nod);   % Nele x nod  ie this is fvec for all the elements
+    % phivec=shape_fun(Iint,ndim,nod,points)
+    % points=barycentric coordinates. 
+    % use:  sr_shape_fun which has been simplified accordingly from
+    % shape_fun
+    % Fnode=reshape(varargin{iVar}(MUAnew.connectivity,1),MUAnew.Nele,MUAnew.nod);
+    % sfun=reshape(varargin{iVar}(MUA1.connectivity,1),MUA1.Nele,MUA1.nod);
