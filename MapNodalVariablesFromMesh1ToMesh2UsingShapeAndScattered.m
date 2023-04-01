@@ -76,7 +76,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         % all new nodes are identical to old ones
         RunInfo.Mapping.nNotIdenticalNodesOutside=0;
         RunInfo.Mapping.nNotIdenticalInside=0;
-        NodesOutside=0;
+        
     end
     
 
@@ -238,29 +238,31 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
             %% Form function interpolation for inside nodes
             % possible duplication here, optimize afterwards
 
-            [ID,B] = pointLocation(MUAold.TR,[xNew(NodesInsideAndNotSame) yNew(NodesInsideAndNotSame)]);
+            if ~isempty(NodesInsideAndNotSame)
+                [ID,B] = pointLocation(MUAold.TR,[xNew(NodesInsideAndNotSame) yNew(NodesInsideAndNotSame)]);
 
-            sfun = sr_shape_fun(B,MUAold.nod);
-            nmap=numel(NodesInsideAndNotSame);
-            newvals=zeros(nmap,1);
-
-
-            for iVar=1:nVar
-
-                if isempty(varargin{iVar})
-                    varargout{iVar}=[];
-                else
+                sfun = sr_shape_fun(B,MUAold.nod);
+                nmap=numel(NodesInsideAndNotSame);
+                newvals=zeros(nmap,1);
 
 
-                    Fnode = reshape(varargin{iVar}(MUAold.connectivity,1),MUAold.Nele,MUAold.nod);
+                for iVar=1:nVar
 
-                    for ii=1:nmap
-                        newvals(ii) = Fnode(ID(ii),:)*sfun(ii,:)';  %  (1x3)*(3,1) vector multiplication
+                    if isempty(varargin{iVar})
+                        varargout{iVar}=[];
+                    else
+
+
+                        Fnode = reshape(varargin{iVar}(MUAold.connectivity,1),MUAold.Nele,MUAold.nod);
+
+                        for ii=1:nmap
+                            newvals(ii) = Fnode(ID(ii),:)*sfun(ii,:)';  %  (1x3)*(3,1) vector multiplication
+                        end
+
+
+                        varargout{iVar}(NodesInsideAndNotSame)=newvals;
+                        isMapped(NodesInsideAndNotSame)=true;
                     end
-
-
-                    varargout{iVar}(NodesInsideAndNotSame)=newvals;
-                    isMapped(NodesInsideAndNotSame)=true;
                 end
             end
         end
