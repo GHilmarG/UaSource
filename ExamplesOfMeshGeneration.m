@@ -36,6 +36,86 @@ FindOrCreateFigure("Mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 
+
+
+%% Examples of local mesh refinement
+% create initial mesh
+UserVar=[];
+CtrlVar=Ua2D_DefaultParameters(); %
+CtrlVar.PlotXYscale=1; 
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+CtrlVar.MeshSizeMax=1; 
+CtrlVar.MeshSizeMin=0.2;
+CtrlVar.MeshSize=0.025;
+
+MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
+FindOrCreateFigure("MUA old") ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+% Refine all elements using the local newest red-green method
+
+MUAold=MUA;
+
+ElementsToBeCoarsened=false(MUAold.Nele,1);
+ElementsToBeRefined=true(MUAold.Nele,1);
+
+CtrlVar.MeshRefinementMethod='explicit:local:red-green' ;
+RunInfo=UaRunInfo; 
+[MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ; 
+
+
+FindOrCreateFigure("MUAnew: Mesh refined local:red-green") ; PlotMuaMesh(CtrlVar,MUAnew); 
+
+
+
+% Refine all elements using the local newest vertex bisection method
+
+
+MUAold=MUA;
+
+ElementsToBeCoarsened=false(MUAold.Nele,1);
+ElementsToBeRefined=true(MUAold.Nele,1);
+
+CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; 
+[MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ; 
+
+
+FindOrCreateFigure("MUAnew: Mesh refined local:newest vertex bisection") ; PlotMuaMesh(CtrlVar,MUAnew); 
+
+% Refine about half of the elements 
+
+
+MUAold=MUA;
+ElementsToBeCoarsened=false(MUAold.Nele,1);
+ElementsToBeRefined=MUA.xEle< 0 ; 
+
+CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; 
+[MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ; 
+
+
+FindOrCreateFigure("MUAnew: Part of mesh refined local:newest vertex bisection") ; PlotMuaMesh(CtrlVar,MUAnew); 
+
+% And now unrefine again.  Unrefinement can only be done using newest vertex bisection and for those elements that previously where refined
+
+
+
+MUAold=MUA;
+Variable=zeros(MUAold.Nnodes,1);
+
+ElementsToBeCoarsened=true(MUAold.Nele,1);
+ElementsToBeRefined=false(MUAold.Nele,1);
+
+CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; 
+[MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ; 
+
+
+FindOrCreateFigure("MUAnew: Mesh unrefined local:newest vertex bisection") ; PlotMuaMesh(CtrlVar,MUAnew); 
+
+
+
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();

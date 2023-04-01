@@ -18,7 +18,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
     varargout=cell(nVar,1);
     
     xOld=MUAold.coordinates(:,1);
-    yOld=MUAold.coordinates(:,2);
+    %yOld=MUAold.coordinates(:,2);
     xNew=MUAnew.coordinates(:,1);
     yNew=MUAnew.coordinates(:,2);
     
@@ -76,6 +76,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         % all new nodes are identical to old ones
         RunInfo.Mapping.nNotIdenticalNodesOutside=0;
         RunInfo.Mapping.nNotIdenticalInside=0;
+        NodesOutside=0;
     end
     
 
@@ -199,35 +200,71 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         %% Here for the first time I use scatteredInterpolant. This is only used for nodes that are not identical to those of the old 
         Finterpolant = scatteredInterpolant();
         Finterpolant.Points=MUAold.coordinates;
-        
+
         Finterpolant.Method='natural';
         Finterpolant.ExtrapolationMethod='nearest';
-        
+
         % If OutsideValues have been defined for the variable, then use these for
         % the outside points. Otherwise use scattered interpolant.
         % For all the remaining new nodes within the old mesh use scattered
         % interpolant
-        
-        for iVar=1:nVar
-            
-            if isempty(varargin{iVar})
-                varargout{iVar}=[];
-            else
-                
-                Finterpolant.Values=double(varargin{iVar});
-                if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
-                    varargout{iVar}(NodesOutside)=OutsideValues(iVar);
-                    isMapped(NodesOutside)=true;
+
+
+        %% Scattered interpolant for all new nodes, both inside and outside of the old mesh
+         
+        TestFormFunction=true ;
+
+        if ~TestFormFunction
+            for iVar=1:nVar
+
+                if isempty(varargin{iVar})
+                    varargout{iVar}=[];
                 else
-                    varargout{iVar}(NodesOutside)=Finterpolant(xNew(NodesOutside),yNew(NodesOutside));
-                    isMapped(NodesOutside)=true;
+
+                    Finterpolant.Values=double(varargin{iVar});
+                    if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
+                        varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+                        isMapped(NodesOutside)=true;
+                    else
+                        varargout{iVar}(NodesOutside)=Finterpolant(xNew(NodesOutside),yNew(NodesOutside));
+                        isMapped(NodesOutside)=true;
+                    end
+                    varargout{iVar}(NodesInsideAndNotSame)=Finterpolant(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
+                    isMapped(NodesInsideAndNotSame)=true;
                 end
-                varargout{iVar}(NodesInsideAndNotSame)=Finterpolant(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
-                isMapped(NodesInsideAndNotSame)=true;
+            end
+
+        else
+            %% Form function interpolation for inside nodes
+            % possible duplication here, optimize afterwards
+
+            [ID,B] = pointLocation(MUAold.TR,[xNew(NodesInsideAndNotSame) yNew(NodesInsideAndNotSame)]);
+
+            sfun = sr_shape_fun(B,MUAold.nod);
+            nmap=numel(NodesInsideAndNotSame);
+            newvals=zeros(nmap,1);
+
+
+            for iVar=1:nVar
+
+                if isempty(varargin{iVar})
+                    varargout{iVar}=[];
+                else
+
+
+                    Fnode = reshape(varargin{iVar}(MUAold.connectivity,1),MUAold.Nele,MUAold.nod);
+
+                    for ii=1:nmap
+                        newvals(ii) = Fnode(ID(ii),:)*sfun(ii,:)';  %  (1x3)*(3,1) vector multiplication
+                    end
+
+
+                    varargout{iVar}(NodesInsideAndNotSame)=newvals;
+                    isMapped(NodesInsideAndNotSame)=true;
+                end
             end
         end
-        
-        
+
     end
     %% Now check that all returned variables are column vectors
     
