@@ -2067,8 +2067,12 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant"}
-
+CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
+CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
+                                                    % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
+                                                    % produced bizzare results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and
+                                                    % there is noting that can be done about this except using alternative approaches not dependent on the MATLAB interpolant for
+                                                    % boundary points of the triangulation. See examples and tests in the UaTest subfolder "MappingVariablesFromMesh1toMesh2"
 CtrlVar.MapOldToNew.Test=false;   %  
 
 
