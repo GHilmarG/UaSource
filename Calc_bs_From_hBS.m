@@ -57,7 +57,7 @@ end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
-bfloat=S-rho.*h/rhow;
+bfloat=S-rho.*h./rhow;
 
 b=GF.node.*B + (1-GF.node) .* bfloat ;
 

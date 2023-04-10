@@ -1,7 +1,7 @@
 function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
 
 %% 
-% Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimentions:
+% Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimensions:
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla d(x,y) $$
 %

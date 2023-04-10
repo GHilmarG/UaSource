@@ -7,6 +7,12 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     tStart=tic;
     RunInfo.Forward.Converged=1; 
+ 
+    
+    if isempty(CtrlVar.CurrentRunStepNumber) || CtrlVar.CurrentRunStepNumber==0 
+        CtrlVar.CurrentRunStepNumber=1;
+    end
+
     RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
     RunInfo.Forward.Residual=NaN;
     
@@ -85,8 +91,9 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     %
     
     
-    
-    
+    %% Make sure iterate is feasable
+    F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+    %%
     
     
     dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
