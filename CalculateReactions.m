@@ -35,7 +35,7 @@ narginchk(4,4)
 %
 %   lambda^* = M^{-1} L' lambda 
 %
-%  This gives lamda over all nodes.
+%  This gives lamnda over all nodes.
 %
 % To restrict it to the nodes over which the constrants were applied use:
 %

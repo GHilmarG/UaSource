@@ -107,8 +107,27 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     Kuv=[] ; 
     
+     
+    
+ 
+
     fext0=KRTFgeneralBCs(CtrlVar,MUA,F,true); % RHS with velocities set to zero, i.e. only external forces
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocitie, i.e. difference between external and internal forces
+    
+    %% New normalisation idea, 10 April 2023
+    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
+    % then calculate the const function for this value and use as normalisation
+    % gamma=0; fext0=1; 
+    % ubStart=F.ub; vbStart=F.vb; 
+    % F.ub=zeros(MUA.Nnodes,1); F.vb=zeros(MUA.Nnodes,1); 
+    % F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue; % Make sure iterate is feasable
+    % fNOrm=CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
+    % fext0=sqrt(fNOrm); 
+    % F.ub=ubStart ; F.vb=vbStart ; 
+    %%
+
+    
+    
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
     
     RunInfo.CPU.Solution.uv=0;
 
