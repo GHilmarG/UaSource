@@ -70,7 +70,13 @@ if ZeroFields
     % I can solve this by dividing with dt again as I calculate the normalisation factor in the const
     % function. This means that the normalisation is independent of dt
     % 
-    % 
+    % Possibly it would be better to solve directly for dh/dt, then at
+    % least the units of the rhs are identical for all unknonws
+    %
+    % On the other hand this can hardly be too much of an issue as the
+    % dh/dt equation is liner in h and all the residuals will be caused by
+    % the u v residuals.
+    %
     
     
 end
@@ -330,6 +336,10 @@ end
 %%
 
 R=Tint-Fext;
+
+% R=Tint-Fext;
+% Tint=[Tx ; Ty ; Th] ;
+% Rint=[Fx ; Fy ; Fh] ;
 
 if ~Ronly
     

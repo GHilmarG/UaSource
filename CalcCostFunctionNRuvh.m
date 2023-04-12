@@ -13,11 +13,22 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     
     CtrlVar.uvhMatrixAssembly.ZeroFields=false;
     CtrlVar.uvhMatrixAssembly.Ronly=true;
-    
-    
+
+
     [UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
-    
-    
+
+    % R=Tint-Fext;
+    % Tint=[Tx ; Ty ; Th] ;
+    % Rint=[Fx ; Fy ; Fh] ;
+    %
+    % 
+    %
+    % Th=-dhdt 
+    % Fh= a-dq/dx
+    %
+    %
+
+
     if ~isempty(L)
         
         frhs=-R-L'*luvh;   % Not sure why I put this minus here, but with the minus it becomes the right-hand side
