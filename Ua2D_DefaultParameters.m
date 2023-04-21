@@ -305,9 +305,27 @@ CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
+% Note: Some of those paramters have physical dimentions and these values may have to be
+%       adjusted to the specific situation. 
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=0 ; % 1e-20    ;    % must be much smaller than C. 
+
+CtrlVar.etaZero=10; %  Minimum value for the effective viscosity  
+%                      For Glens flow law the effective viscosity is 0.5 A^(-1/n) e^((1-n)/n)
+%                      where e is the effective strain rate.  The effective
+%                      strain rate on glaciers is usually around 10^(-4) to
+%                      10^(-2) 1/yr.  A save lower estimate for the effective viscosity would then be
+%                      taking A for temperate ice and strain rates of 1 (1/yr).
+%                      giving:
+%                      n=3 ; eps=1 ; 0.5*AGlenVersusTemp(0)^(-1/n) *181 eps^((1-n)/n) =181
+%                      So settting etaZero=10 kPa/yr would not affect the effective viscosity
+%                      in all realistic cases.  However, this might
+%                      sometimes need to me adjusted. Before May-2023 the
+%                      default value was etaZero=0, ie no lower limit on
+%                      the effective viscosity, but this did occasionally
+%                      cause numerical convergence issues.
+
+CtrlVar.Czero=0 ;           % must be much smaller than C. 
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %

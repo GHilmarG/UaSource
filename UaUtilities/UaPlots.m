@@ -121,15 +121,71 @@ else
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
 
-        
+
         case "dhdt"
 
-            
+
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("$dh/dt$ at t=%f",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
 
+        case "basal drag"
+
+          
+
+
+            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+
+            CtrlVar.VelColorMap=jet(100) ;
+            cbar=QuiverColorGHG(F.x,F.y,txzb,tyzb,CtrlVar) ;
+            title(cbar,"(m/a)",Interpreter="latex")
+            title(sprintf("basal drag vectors at t=%f",CtrlVar.time),Interpreter="latex")
+
+
+        case "e"  % effective strain rate
+
+
+            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+
+            % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
+            title(cbar,"(1/a)",Interpreter="latex")
+            title(sprintf("effective strain rates at t=%f",CtrlVar.time),Interpreter="latex")
+
+
+        case "e int"  % effective strain rate at integration points
+
+
+
+            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
+            title(cbar,"(1/a)",Interpreter="latex")
+            title(sprintf("effective strain rates at integration points at t=%f",CtrlVar.time),Interpreter="latex")
+
+
+
+        case "eta"  % effective strain rate
+
+
+            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+
+            % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
+            title(cbar,"(kPa yr)",Interpreter="latex")
+            title(sprintf("effective viscosity eta at t=%f",CtrlVar.time),Interpreter="latex")
+
+
+        case "eta int"  % effective strain rate at integration points
+
+
+
+            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
+            title(cbar,"(kPa yr)",Interpreter="latex")
+            title(sprintf("log10 of effective viscosity at integration points at t=%f",CtrlVar.time),Interpreter="latex")
 
         otherwise
 

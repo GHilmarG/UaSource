@@ -3,7 +3,7 @@ function PlotRunInfo(RunInfo)
     %%
     
     
-    FindOrCreateFigure("RunInfo uvh: time step and iterations")
+    FindOrCreateFigure("RunInfo: time step and iterations")
     yyaxis left
     semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; 
     ylabel('time step')
@@ -19,7 +19,7 @@ function PlotRunInfo(RunInfo)
     legend("time step","#uvh iterations")
     ylim([0 inf])
     
-     FindOrCreateFigure("RunInfo uvh: time step histogram and iterations")
+     FindOrCreateFigure("RunInfo: time step histogram and iterations")
      histogram(RunInfo.Forward.dt) ; xlabel('dt')
      title('dt Histogram')
     

@@ -284,7 +284,8 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
-    
+  
+
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
     detJw=detJ*MUA.weights(Iint);
