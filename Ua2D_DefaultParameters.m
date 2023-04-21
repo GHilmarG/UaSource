@@ -324,6 +324,17 @@ CtrlVar.etaZero=10; %  Minimum value for the effective viscosity
 %                      default value was etaZero=0, ie no lower limit on
 %                      the effective viscosity, but this did occasionally
 %                      cause numerical convergence issues.
+%
+%                      Whatever value for etaZero is selected, the value should be small compared to 
+%                      the smallest eta values based on direct use of Glen's flow law. 
+%                      This can be tested by calculating the effective
+%                      viscosity values and plotting a histogram and making
+%                      and inspecting the distribution and how it is
+%                      affected by the value of etaZero, e.g.
+%
+%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); 
+%   figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+%
 
 CtrlVar.Czero=0 ;           % must be much smaller than C. 
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
