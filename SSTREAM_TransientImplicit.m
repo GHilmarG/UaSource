@@ -455,10 +455,10 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             fprintf(CtrlVar.fidlog,'Norm of BCs residuals is %14.7g  \n ',BCsError);
         end
     end
-    
-    
+
+
     tEnd=toc(tStart);
-    
+
 
 
     if iteration > CtrlVar.NRitmax
@@ -473,19 +473,25 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
     end
 
-    
-    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
+
+    if numel(RunInfo.Forward.uvhIterations) < CtrlVar.CurrentRunStepNumber
+        RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
+        RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
+        RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
+    end
+
+    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
     RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
-    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ; 
-    
+    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ;
+
     if CtrlVar.WriteRunInfoFile
-        
+
         fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
             CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,...
             RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),tEnd) ;
-        
+
     end
-    
+
     
 end
 

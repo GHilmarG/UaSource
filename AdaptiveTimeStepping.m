@@ -212,20 +212,20 @@ if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit 
 
     dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
     if ~isnan(dtcritical)
+    
+        nFactorSafety=2;
 
+        if dtOut>dtcritical/nFactorSafety
 
-
-        if dtOut>dtcritical/5
-
-            dtOut=dtcritical/5 ;
+            dtOut=dtcritical/nFactorSafety ;
 
             fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
 
         end
 
 
-        dtOut=min(dtcritical/5,dtOut*1.2) ;  % don't increase time step by more than 20%
-        fprintf('AdaptiveTimeStepping: dt=dtCFL/5=%f \n',dtOut)
+        dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
+        fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
 
     end
 end

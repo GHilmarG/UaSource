@@ -80,6 +80,9 @@ end
 %
 [UserVar,RunInfo,F1,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F1,l);
 
+
+
+
 %  du=u1-F1.ub; dv=v1-F1.vb ; dh=h1-F1.h;
 %  Du=norm(du)/norm(F1.ub) ; Dv=norm(dv)/norm(F1.vb) ; Dh=norm(dh)/norm(F1.h);
 %  if Du > 0.25 || Dv > 0.25 || Dh> 0.05  % if so, then force a reduction in dt

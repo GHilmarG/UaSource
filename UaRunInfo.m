@@ -34,10 +34,11 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
 
+            N=1000; % initial memory allocation
             obj.Forward.uvConverged=false;
-            obj.Forward.uvIterations=NaN;
-            obj.Forward.uvResidual=NaN;
-
+            obj.Forward.uvIterations=NaN(N,1);
+            obj.Forward.uvResidual=NaN(N,1);
+            obj.Forward.uvBackTrackSteps=NaN(N,1);
 
 
 

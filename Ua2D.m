@@ -20,8 +20,8 @@ SetUaPath() %%
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
-parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+% parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+% parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;
@@ -367,24 +367,10 @@ while 1
     
     %%
     
-    
+
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
     
-    nRunInfo=numel(RunInfo.Forward.uvhIterations) ;
-    if nRunInfo < CtrlVar.CurrentRunStepNumber
-        
-        RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-        RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
-        RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
-        RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
-        RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
-        RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
-        RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
-        RunInfo.Forward.uvhActiveSetConstraints=[RunInfo.Forward.uvhActiveSetConstraints;RunInfo.Forward.uvhActiveSetConstraints+NaN];
-        
-    end
-    
-    
+
     if CtrlVar.InfoLevel >= 1 
         fprintf('\n \t ----------------------------------------> Current run step: %i <-------------------------------\n',CtrlVar.CurrentRunStepNumber) ;  
     end
@@ -512,10 +498,13 @@ while 1
         %       an end,   F are converged values at t+dt
 
         % RunInfo
-        
-    
-        
-        % RunInfo.Forward.iCounter=RunInfo.Forward.iCounter+1;
+
+
+
+        if numel(RunInfo.Forward.time) < CtrlVar.CurrentRunStepNumber 
+            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
+            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
+        end
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
         RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         

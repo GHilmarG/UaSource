@@ -114,7 +114,7 @@ else
             title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
       
 
-        case {"ubvb","-ubvb-"}
+        case {"ubvb","-ubvb-","uv"}
 
             CtrlVar.VelColorMap=jet(100) ; 
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;

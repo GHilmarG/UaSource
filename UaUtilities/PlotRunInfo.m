@@ -1,25 +1,31 @@
-function PlotRunInfo(RunInfo)
+function PlotRunInfo(RunInfo,FigName)
     
     %%
     
-    
-    FindOrCreateFigure("RunInfo: time step and iterations")
+    if nargin< 2
+        FigName="";
+    end
+
+    fig=FindOrCreateFigure("RunInfo: time steps and iterations"+FigName) ; clf(fig) ;
     yyaxis left
     semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; 
     ylabel('time step')
     
-
-    
     yyaxis right 
     stairs(RunInfo.Forward.time,RunInfo.Forward.uvhIterations) ; 
-    ylabel('uvh iterations')
-
+    ylabel('iterations')
+    hold on 
+    stairs(RunInfo.Forward.time,RunInfo.Forward.uvIterations) ; 
     
     xlabel('time') ; 
-    legend("time step","#uvh iterations")
-    ylim([0 inf])
+    legend("time step","#uvh iterations","#uv iterations")
+   
+    tt=axis; axis([tt(1) tt(2) 0 tt(4)])
     
-     FindOrCreateFigure("RunInfo: time step histogram and iterations")
+
+  
+
+     FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName)
      histogram(RunInfo.Forward.dt) ; xlabel('dt')
      title('dt Histogram')
     

@@ -381,12 +381,19 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         save TestSaveNR
         
     end
+
+
+    if numel(RunInfo.Forward.uvIterations) < CtrlVar.CurrentRunStepNumber
+        RunInfo.Forward.uvIterations=[RunInfo.Forward.uvIterations;RunInfo.Forward.uvIterations+NaN];
+        RunInfo.Forward.uvResidual=[RunInfo.Forward.uvResidual;RunInfo.Forward.uvResidual+NaN];
+        RunInfo.Forward.uvBackTrackSteps=[RunInfo.Forward.uvBackTrackSteps;RunInfo.Forward.uvBackTrackSteps+NaN];
+    end
     
-    
-    RunInfo.Forward.uvIterations=iteration;  
-    RunInfo.Forward.uvResidual=r;
-    
-    
+    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=iteration;  
+    RunInfo.Forward.uvResidual(CtrlVar.CurrentRunStepNumber)=r;
+    RunInfo.Forward.uvBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackInfo.iarm ; 
+
+
     
     if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     
