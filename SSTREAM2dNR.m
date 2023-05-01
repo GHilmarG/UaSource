@@ -13,8 +13,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         CtrlVar.CurrentRunStepNumber=1;
     end
 
-    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
-    RunInfo.Forward.Residual=NaN;
+   % RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
+   % RunInfo.Forward.Residual=NaN; BackTrackInfo.iarm=NaN;
     
     Kuv=[] ; Ruv=[]; 
    

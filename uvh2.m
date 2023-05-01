@@ -11,7 +11,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
     iActiveSetIteration=0;
     isActiveSetCyclical=NaN;
 
-    if CtrlVar.LevelSetMethod % Level Set
+    if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen) &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)
         
         if isempty(F0.LSFMask)  % If I have already solved the LSF equation, this will not be empty and does not need to be recalculated (ToDo)
             F0.LSFMask=CalcMeshMask(CtrlVar,MUA,F0.LSF,0);
@@ -21,6 +21,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
         if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
             F0.AGlen(F0.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
             F1.AGlen(F1.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+            F0.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
+            F1.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
         end
 
     end

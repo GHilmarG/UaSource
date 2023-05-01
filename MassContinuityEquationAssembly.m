@@ -1,15 +1,18 @@
 
-function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,rho,ub0,vb0,as0,ab0,h1,ub1,vb1,as1,ab1,das1dh,dab1dh)
+function   [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+
+
+% [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,rho,ub0,vb0,as0,ab0,h1,ub1,vb1,as1,ab1,das1dh,dab1dh)
 
 % Assembly
 %
-%   K dh =-f0 
+%   K dh =-f0
 %
 % dFdt is the matrix F in d deltah/dt = F deltah
 % This matrix can be used to assess (linear) stability, from eigenvalues of M\dFdt
-% 
+%
 
-narginchk(16,16)
+narginchk(6,6)
 nargoutchk(2,4)
 
 nOut=nargout;
@@ -22,27 +25,39 @@ dt=CtrlVar.dt;
 
 
 
-a1=as1+ab1;
-a0=as0+ab0;
-da1dh=das1dh+dab1dh;
+a1=F1.as+F1.ab;
+a0=F0.as+F0.ab;
+da1dh=F1.dasdh+F1.dabdh;
 
 
-h0nod=reshape(h0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-h1nod=reshape(h1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
+h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+a0nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+a1nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 da1dhnod=reshape(da1dh(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-ub0nod=reshape(ub0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-ub1nod=reshape(ub1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+ub0nod=reshape(F0.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+ub1nod=reshape(F1.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-vb0nod=reshape(vb0(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vb1nod=reshape(vb1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vb0nod=reshape(F0.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vb1nod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-rhonod=reshape(rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F0.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+b0nod=reshape(F0.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+b1nod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
+cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
+
+GF0node=reshape(F0.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);  
+GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);  
 
 
 Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -54,62 +69,121 @@ l=sqrt(2*MUA.EleAreas);
 % vector over all elements for each  integration point
 
 for Iint=1:MUA.nip  %Integration points
-    
+
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
+
     h0int=h0nod*fun;
     h1int=h1nod*fun;
-    
+
     ub0int=ub0nod*fun; vb0int=vb0nod*fun;
     ub1int=ub1nod*fun; vb1int=vb1nod*fun;
-    a0int=a0nod*fun;
-    a1int=a1nod*fun;
-    da1dhint=da1dhnod*fun;
-    
     rhoint=rhonod*fun;
+
     
+
+    if  contains(CtrlVar.MassBalance.Evaluation,"-int-")
+
+
+
+        xint=coox*fun;  % coordinates of this integration point for all elements
+        yint=cooy*fun;
+
+        F0int.x=xint;  F0int.y=yint;
+        F1int.x=xint;  F1int.y=yint;
+
+        s0int=s0nod*fun;
+        s1int=s1nod*fun;
+
+        b0int=b0nod*fun;
+        b1int=b1nod*fun;
+
+
+        F0int.h=h0int;
+        F0int.s=s0int;
+        F0int.b=b0int;
+        F0int.rho=rhoint;
+        F0int.rhow=F0.rhow;
+        F0int.S=F0.S(1);
+
+        F1int.h=h1int;
+        F1int.s=s1int;
+        F1int.b=b1int;
+        F1int.rho=rhoint;
+        F1int.rhow=F1.rhow;
+        F1int.S=F1.S(1);
+
+        F0int.as=nan(size(F0int.h)) ;
+        F0int.ab=nan(size(F0int.h)) ;
+        F1int.as=nan(size(F1int.h)) ;
+        F1int.as=nan(size(F1int.h)) ;
+
+        GF0nodInt=GF0node*fun;
+        GF1nodInt=GF1node*fun;
+
+        F0int.GF.node=GF0nodInt;
+        F1int.GF.node=GF1nodInt;
+
+        MUAint.Nnodes=numel(h0int);
+
+        [UserVar,as1int,ab1int,dasdhint,dabdhint]=DefineMassBalance(UserVar,CtrlVar,MUAint,F1int) ;
+        [UserVar,as0int,ab0int]=DefineMassBalance(UserVar,CtrlVar,MUAint,F0int) ;
+
+        a0int=as0int+ab0int ;
+        a1int=as1int+ab1int ;
+        da1dhint=dasdhint+dabdhint;
+
+    else
+
+        a0int=a0nod*fun;
+        a1int=a1nod*fun;
+        da1dhint=da1dhnod*fun;
+
+    end
+
+    % da1dhint=0;
+
     % derivatives at one integration point for all elements
     Deriv1=squeeze(Deriv(:,1,:)) ;
     Deriv2=squeeze(Deriv(:,2,:)) ;
-    
-    
+
+
     exx0=zeros(MUA.Nele,1);
     eyy0=zeros(MUA.Nele,1);
-    
+
     exx1=zeros(MUA.Nele,1);
     eyy1=zeros(MUA.Nele,1);
-    
+
     drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
     dh1dx=zeros(MUA.Nele,1); dh1dy=zeros(MUA.Nele,1);
     dh0dx=zeros(MUA.Nele,1); dh0dy=zeros(MUA.Nele,1);
-    
+
     for Inod=1:MUA.nod
-        
+
         dh1dx=dh1dx+Deriv1(:,Inod).*h1nod(:,Inod);
         dh1dy=dh1dy+Deriv2(:,Inod).*h1nod(:,Inod);
         dh0dx=dh0dx+Deriv1(:,Inod).*h0nod(:,Inod);
         dh0dy=dh0dy+Deriv2(:,Inod).*h0nod(:,Inod);
-        
+
         exx0=exx0+Deriv1(:,Inod).*ub0nod(:,Inod);
         eyy0=eyy0+Deriv2(:,Inod).*vb0nod(:,Inod);
-        
-        
+
+
         drhodx=drhodx+Deriv1(:,Inod).*rhonod(:,Inod);
         drhody=drhody+Deriv2(:,Inod).*rhonod(:,Inod);
-        
+
         exx1=exx1+Deriv1(:,Inod).*ub1nod(:,Inod);
         eyy1=eyy1+Deriv2(:,Inod).*vb1nod(:,Inod);
-        
-        
-        
+
+
+
     end
-    
-    
+
+
     detJw=detJ*MUA.weights(Iint);
-    
-    
+
+
     speed0=sqrt(ub0int.*ub0int+vb0int.*vb0int+CtrlVar.SpeedZero^2);
     tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.h.SUPG.tau) ;
     tauSUPGint=CtrlVar.SUPG.beta0*tau;
@@ -157,20 +231,17 @@ for Iint=1:MUA.nip  %Integration points
 
                 % dFdt = ( rho a - div ( rho v)   )/rho
                 %
-                %  A dh/dt = F 
+                %  A dh/dt = F
                 %
-                %   rho (h1 - h0)/dt  =   rho a - div (rho v) 
-                %    
-                %  < rho (h1 - h0)/dt  , \phi > =  < rho a - div (rho v)  , \phi > 
+                %   rho (h1 - h0)/dt  =   rho a - div (rho v)
                 %
-                %    
+                %  < rho (h1 - h0)/dt  , \phi > =  < rho a - div (rho v)  , \phi >
+                %
+                %
                 %
 
             end
         end
-
-
-
 
         % Note, I solve: LSH  \phi  = - RHS
         qterm=  dt*(theta*q1xdx+(1-theta)*q0xdx+theta*q1ydy+(1-theta)*q0ydy);

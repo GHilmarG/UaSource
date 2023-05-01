@@ -35,7 +35,17 @@ if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitl
 
 end
 
-
+[UserVar,F0]=GetCalving(UserVar,CtrlVar,MUA,F0,BCs);  % Level Set  
+                                                      % This is the level
+                                                      % set at the
+                                                      % beginning of the
+                                                      % time increment.
+                                                      % Currently the level
+                                                      %-set is not solved
+                                                      % implicitly together
+                                                      % with uv. 
+                       
+                                               
 
 
 CtrlVar.StartSemiImplicitWithExtrapolation=false ; % TestIng: Hm, for some reason this extrapolation appears to 
@@ -67,6 +77,8 @@ end
 if CtrlVar.InfoLevel>=10
     fprintf("uvhSemiImplicit:Solving for h at t=t1, implicitly.\n")
 end
+
+
 
 
 %% calculate new ice thickness implicitly with respect to h.

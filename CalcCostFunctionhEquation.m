@@ -10,7 +10,9 @@ F1.h=F1.h+gamma*dh;
 l=l+gamma*dl;
 
 
-[UserVar,R]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+%[UserVar,R]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+[UserVar,R]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+
 
 if ~isempty(L)
     

@@ -15,16 +15,17 @@ tdiagnostic=tic;
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
-[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
-[F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
+% [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+% [F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
 
 
-if CtrlVar.LevelSetMethod % Level Set
+if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen)  &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)
     if isempty(F.LSFMask)  % This should have been calculated at the start of the run, ToDo,
         F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
     end
     if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
         F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+        F.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
     end
 end
 
@@ -62,26 +63,27 @@ end
 Lubvb=[];
 
 %% force C and AGlen to be within given max and min limits
-[F.C,iUC,iLC]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
-[F.AGlen,iUA,iLA]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
+% This has not been taken out, should be done at the beginning of run
+% [F.C,iUC,iLC]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
+% [F.AGlen,iUA,iLA]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
 
-if CtrlVar.InfoLevel>=10
-    if any(iUC)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values greater than Cmax=%-g \n ',numel(find(iU)),CtrlVar.Cmax) ;
-    end
-
-    if any(iLC)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values less than Cmin=%-g \n ',numel(find(iL)),CtrlVar.Cmin) ;
-    end
-
-    if any(iUA)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values greater than AGlenmax=%-g \n ',numel(find(iU)),CtrlVar.AGlenmax) ;
-    end
-
-    if any(iLA)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values less than AGlenmin=%-g \n ',numel(find(iL)),CtrlVar.AGlenmin) ;
-    end
-end
+% if CtrlVar.InfoLevel>=10
+%     if any(iUC)
+%         fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values greater than Cmax=%-g \n ',numel(find(iU)),CtrlVar.Cmax) ;
+%     end
+% 
+%     if any(iLC)
+%         fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values less than Cmin=%-g \n ',numel(find(iL)),CtrlVar.Cmin) ;
+%     end
+% 
+%     if any(iUA)
+%         fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values greater than AGlenmax=%-g \n ',numel(find(iU)),CtrlVar.AGlenmax) ;
+%     end
+% 
+%     if any(iLA)
+%         fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values less than AGlenmin=%-g \n ',numel(find(iL)),CtrlVar.AGlenmin) ;
+%     end
+% end
 
 
 switch lower(CtrlVar.FlowApproximation)

@@ -100,7 +100,10 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         iteration=iteration+1 ;
         
         
-        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+        % [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+        [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+        
+       
         
         if ~isempty(L)
    
@@ -123,6 +126,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         end
         
         Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l.h,dh,dl);
+        
 
         gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
         gamma=1 ; [r1,~,~,rForce1,rWork1,D21]=Func(gamma);
@@ -196,23 +200,18 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     
     h1=F1.h ; % Because I don't return F1
     
-    RunInfo.Forward.hiCount=RunInfo.Forward.hiCount+1;
-    
-    if numel(RunInfo.Forward.time) < RunInfo.Forward.hiCount
-       RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-       RunInfo.Forward.hIterations=[RunInfo.Forward.hIterations;RunInfo.Forward.hIterations+NaN];
-       RunInfo.Forward.hResidual=[RunInfo.Forward.hResidual;RunInfo.Forward.hResidual+NaN];
-       RunInfo.Forward.hBackTrackSteps=[RunInfo.Forward.hBackTrackSteps;RunInfo.Forward.hBackTrackSteps+NaN];
+
+    if numel(RunInfo.Forward.hIterations) < CtrlVar.CurrentRunStepNumber
+        RunInfo.Forward.hIterations=[RunInfo.Forward.hIterations;RunInfo.Forward.hIterations+NaN];
+        RunInfo.Forward.hResidual=[RunInfo.Forward.hResidual;RunInfo.Forward.hResidual+NaN];
+        RunInfo.Forward.hBackTrackSteps=[RunInfo.Forward.hBackTrackSteps;RunInfo.Forward.hBackTrackSteps+NaN];
     end
     
-    
-    
-    RunInfo.Forward.time(RunInfo.Forward.hiCount)=CtrlVar.time;   
-    RunInfo.Forward.hIterations(RunInfo.Forward.hiCount)=iteration ; 
-    RunInfo.Forward.hResidual(RunInfo.Forward.hiCount)=r;
-    RunInfo.Forward.hBackTrackSteps(RunInfo.Forward.hiCount)=BackTrackInfo.iarm ;
-    
-   
+    RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=iteration;  
+    RunInfo.Forward.hResidual(CtrlVar.CurrentRunStepNumber)=r;
+    RunInfo.Forward.hBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackInfo.iarm ; 
+
+
     
     
 end

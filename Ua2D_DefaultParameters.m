@@ -332,8 +332,8 @@ CtrlVar.etaZero=10; %  Minimum value for the effective viscosity
 %                      and inspecting the distribution and how it is
 %                      affected by the value of etaZero, e.g.
 %
-%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); 
-%   figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+%   
 %
 
 CtrlVar.Czero=0 ;           % must be much smaller than C. 
@@ -1598,6 +1598,7 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
                                                           % calving fronts. This will be done automatically and replaces 
                                                           % any values defined by the user in DefineAGlen.,
 
+CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is here set to nan, there AGlen stress exponent will NOT be modified
 
 % It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
 % This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
@@ -1974,7 +1975,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
                                                % Should always be equal to 0 if possible.
                                                % If not equal to 0, the algorithm converges to a wrong solution (!),
                                                % although the error might be very small if mass-balance geometry feedback is not that strong.
-      
+CtrlVar.MassBalance.Evaluation="-node-";      
 
 %% Sea ice/melange                                               
 %

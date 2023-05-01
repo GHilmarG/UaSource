@@ -51,7 +51,7 @@ switch MRP
 
     case "4"
 
-        fprintf(' MeltRate4 \n ');
+       % fprintf(' MeltRate4 \n ');
         dMin=-400 ;  abMin=0 ;
         dMax=-500 ;  abMax=-50  ;
 
@@ -71,27 +71,35 @@ switch MRP
 end
 
 
-if ~isequal(F.as,F.x)
-    F.as=zeros(size(F.x)) ;
-    F.ab=zeros(size(F.x)) ;
-    F.dasdh=zeros(size(F.x)) ;
-    F.dabdh=zeros(size(F.x)) ;
-end
+
+F.as=zeros(size(F.h)) ;
+F.ab=zeros(size(F.h)) ;
+F.dasdh=zeros(size(F.h)) ;
+F.dabdh=zeros(size(F.h)) ;
 
 
 
 
-dabdh=F.ab;
-ab=F.dabdh;
 
+dabdh=zeros(size(F.x)) ;
+ab=zeros(size(F.x)) ;
+% ab=F.dabdh;
 
-I=F.b>dMin ; ab(I)=abMin; dabdh(I)=abMin;        % above dMin
+% Note, the dab/dh calculation is not exact, as it is missing a Dirac delta
+% term
 
-I= F.b< dMin & F.b >= dMax ; ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); 
-dabdh(I)=(-F.rho(I)/F.rhow)/(abMax/(dMax-dMin));
+I=F.b>dMin ; ab(I)=abMin; dabdh(I)=0;        % above dMin
 
-I=F.b<dMax ; ab(I)=abMax; dabdh(I)=abMax;        % below dMax
+I= F.b<= dMin & F.b >= dMax ; 
 
+% b= -h rho/rhow
+ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); % negative values, because it is a basal ablation
+dabdh(I)=(-F.rho(I)/F.rhow)  .* (abMax/(dMax-dMin));
+
+ I=F.b<dMax ; ab(I)=abMax; dabdh(I)=0;        % below dMax
+
+% dabdh=dabdh*0; 
+% dabdh=-dabdh; 
 
 
 

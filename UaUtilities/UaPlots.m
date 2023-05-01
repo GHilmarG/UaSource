@@ -7,9 +7,9 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 % Simple plot utility to plot variables and calving fronts and grounding lines as well.
 %
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
-% 
+%
 % Calving fronts
-% 
+%
 %
 % Examples:
 %
@@ -23,6 +23,10 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %   title(cbar,"h (m)")
 %
 %   UaPlots(CtrlVar,MUA,F,"-log10speed-",CalvingFrontColor="b",GroundingLineColor="k",GetRidOfValuesDownStreamOfCalvingFronts=false,ColorMap=othercolor("YlGnBu8",100),PlotUnderMesh=true) ;
+%
+%
+%   figetaInt=FindOrCreateFigure("eta Int") ; clf(figetaInt) ;
+%   UaPlots(CtrlVar,MUA,F,"eta int",GetRidOfValuesDownStreamOfCalvingFronts=false) ;
 %
 %%
 
@@ -38,6 +42,7 @@ arguments
     options.GetRidOfValuesDownStreamOfCalvingFronts=true;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
+    options.PlotMuaBoundary=true;
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -54,22 +59,27 @@ end
 
 Variable=Variable(:);
 
-if isempty(F) 
+if isempty(F)
     F=UaFields;
 end
 
 
 
-    if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
+if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
-        if isempty(F.LSFMask)
-            F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-        end
-
-        F.ub(~F.LSFMask.NodesIn)=NaN;
-        F.vb(~F.LSFMask.NodesIn)=NaN;
-
+    if isempty(F.LSFMask)
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
     end
+
+    F.ub(~F.LSFMask.NodesIn)=NaN;
+    F.vb(~F.LSFMask.NodesIn)=NaN;
+    if isnumeric(Variable)
+        if numel(Variable)==MUA.Nnodes
+            Variable(~F.LSFMask.NodesIn)=NaN;
+        end
+    end
+
+end
 
 
 xGL=nan ; yGL=nan ; xCF=nan ; yCF=nan ;
@@ -83,7 +93,7 @@ end
 if options.PlotOverMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA) ;
-    hold on 
+    hold on
 
 end
 
@@ -91,7 +101,7 @@ end
 if isnumeric(Variable)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
-    title(cbar,inputname(4)) ; 
+    title(cbar,inputname(4)) ;
 
 else
 
@@ -112,11 +122,11 @@ else
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
             title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
-      
+
 
         case {"ubvb","-ubvb-","uv"}
 
-            CtrlVar.VelColorMap=jet(100) ; 
+            CtrlVar.VelColorMap=jet(100) ;
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
@@ -132,7 +142,7 @@ else
 
         case "basal drag"
 
-          
+
 
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
@@ -187,6 +197,17 @@ else
             title(cbar,"(kPa yr)",Interpreter="latex")
             title(sprintf("log10 of effective viscosity at integration points at t=%f",CtrlVar.time),Interpreter="latex")
 
+
+        case "surface slope"  % effective strain rate at integration points
+
+            [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
+            slope=sqrt(dfdx.*dfdx+dfdy.*dfdy) ;
+            slope=ProjectFintOntoNodes(MUA,slope) ;
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.rho.*F.h.*slope);
+            title(cbar,"()",Interpreter="latex")
+            title(sprintf("surface slope at t=%f",CtrlVar.time),Interpreter="latex")
+
+
         otherwise
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
@@ -201,7 +222,7 @@ hold on ;
 if options.PlotUnderMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA,[],"w") ;
-    hold on 
+    hold on
 
 end
 
@@ -216,6 +237,9 @@ if options.PlotCalvingFronts
 end
 
 
+if options.PlotMuaBoundary
+    PlotMuaBoundary(CtrlVar,MUA,"k");
+end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 
