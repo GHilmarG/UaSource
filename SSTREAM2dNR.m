@@ -1,6 +1,9 @@
 function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
     
     
+    % Solves SSA/SSTREAM for u and v
+
+
     nargoutchk(7,7)
     narginchk(7,7)
     
@@ -328,7 +331,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             
         end
 
-        
+        % Need to update all primary (u,v,l) and dependent variables.
+        % Here I have no dependent variables
         F.ub=F.ub+gamma*dub ;
         F.vb=F.vb+gamma*dvb;
         l.ubvb=l.ubvb+gamma*dl;

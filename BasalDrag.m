@@ -474,6 +474,9 @@ function [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g)
     dNdh=rho.*g;
     dNdh(I)=0;
     
+    % Testing
+   %  N=rho.*g.*10;
+   %  dNdh=dNdh*0; 
     
     
 end

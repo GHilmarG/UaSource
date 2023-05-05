@@ -11,7 +11,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running �a, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -1608,7 +1608,6 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
 
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
 
 % Here are some numerical paramters and values, generally no need to change.

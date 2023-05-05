@@ -66,7 +66,7 @@ end
 
 
 Cint=Cnod*fun;
-Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+% Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
 mint=mnod*fun;
 
 if ~isempty(qnod)
@@ -91,7 +91,7 @@ if CtrlVar.IncludeMelangeModelPhysics
 end
 
 AGlenint=AGlennod*fun;
-AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+% AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
 nint=nnod*fun;
 
 

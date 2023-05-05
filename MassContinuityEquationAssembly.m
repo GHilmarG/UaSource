@@ -33,8 +33,8 @@ da1dh=F1.dasdh+F1.dabdh;
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-a0nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
-a1nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+a0nod=reshape(a0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+a1nod=reshape(a1(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 da1dhnod=reshape(da1dh(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -65,6 +65,26 @@ dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
 
+if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0)
+
+    if isempty(F1.dabdh)
+        F1.dabdh=zeros(MUA.Nnodes,1) ;
+    end
+
+    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+
+        if isempty(F1.LSFMask)
+            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        end
+        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
+        LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    end
+
+end
+
+
+
+
 l=sqrt(2*MUA.EleAreas);
 % vector over all elements for each  integration point
 
@@ -86,7 +106,7 @@ for Iint=1:MUA.nip  %Integration points
     if  contains(CtrlVar.MassBalance.Evaluation,"-int-")
 
 
-
+        % This is not fully flexible as I have not implemented calculating the flotation mask at integration points
         xint=coox*fun;  % coordinates of this integration point for all elements
         yint=cooy*fun;
 
@@ -134,6 +154,12 @@ for Iint=1:MUA.nip  %Integration points
         a1int=as1int+ab1int ;
         da1dhint=dasdhint+dabdhint;
 
+        % a0intTest=a0nod*fun;
+        % a1intTest=a1nod*fun;
+        % da1dhintTest=da1dhnod*fun;
+        %
+        % [norm(a0int-a0intTest) norm(a1int-a1intTest) norm(da1dhintTest-da1dhint)]
+
     else
 
         a0int=a0nod*fun;
@@ -141,6 +167,24 @@ for Iint=1:MUA.nip  %Integration points
         da1dhint=da1dhnod*fun;
 
     end
+
+    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+
+        LM=LSFMasknod*fun;
+        a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
+        a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+
+        hmin=CtrlVar.LevelSetMinIceThickness;
+
+        abLSF =LM.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;
+        dadhLSF=LM.*(a1+3*a3*(h1int-hmin).^2) ;
+
+        a1int=a1int+abLSF; 
+        da1dhint=da1dhint+dadhLSF ;
+    end
+    
+
+
 
     % da1dhint=0;
 

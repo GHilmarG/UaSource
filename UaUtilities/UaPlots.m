@@ -63,6 +63,14 @@ if isempty(F)
     F=UaFields;
 end
 
+if isscalar(Variable)
+
+    if contains(Variable,"int")
+        options.GetRidOfValuesDownStreamOfCalvingFronts=false;
+    end
+
+end
+
 
 
 if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)

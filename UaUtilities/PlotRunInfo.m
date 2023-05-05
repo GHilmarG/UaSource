@@ -25,14 +25,14 @@ if numel(find(I))>0
     stairs(RunInfo.Forward.time(I),RunInfo.Forward.uvIterations(I),DisplayName="#uv iterations") ;
 end
 
-I=~isnan(RunInfo.Forward.uvIterations) ;
+I=~isnan(RunInfo.Forward.hIterations) ;
 if numel(find(I))>0
-    stairs(RunInfo.Forward.time(I),RunInfo.Forward.hIterations(I),DisplayName="#h iterations") ;
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.hIterations(I),DisplayName="#h iterations",LineWidth=2) ;
 end
 ylabel('iterations')
 
 xlabel('time') ;
-legend;
+legend(Location="best");
 
 tt=axis; axis([tt(1) tt(2) 0 tt(4)])
 

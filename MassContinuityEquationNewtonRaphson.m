@@ -181,25 +181,26 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         
         F1.h=F1.h+gamma*dh;
         l.h=l.h+gamma*dl;
-        
-        rRatio=r/r0; 
+
+        rRatio=r/r0;
         if CtrlVar.hInfoLevel>=1
             if ~isempty(L)
                 BCsError=norm(Lrhs-L*F1.h);
             end
-           
+
             fprintf(CtrlVar.fidlog,'NR-h:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
                 iteration,BackTrackInfo.iarm,gamma,rRatio,r0,r,rForce,rWork,BCsError);
         end
-        
 
-
-        % Now that F1.h has been updated, I need to update the mass balance if using mass-balance feedback
-        [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
+        % Make sure to update s and b as well, but do not reset thickness within the non-linear loop
+      
+         CtrlVar.ResetThicknessToMinThickness=0;
+         [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+         [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
     end
-    
+
     h1=F1.h ; % Because I don't return F1
-    
+
 
     if numel(RunInfo.Forward.hIterations) < CtrlVar.CurrentRunStepNumber
         RunInfo.Forward.hIterations=[RunInfo.Forward.hIterations;RunInfo.Forward.hIterations+NaN];
