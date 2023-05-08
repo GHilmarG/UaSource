@@ -25,6 +25,14 @@ if ~RunInfo.MeshAdapt.isChanged
     BCsNew=BCsOld;
     lnew=lold;
 
+    RunInfo.Mapping.nNewNodes=MUAnew.Nnodes;
+    RunInfo.Mapping.nOldNodes=MUAold.Nnodes;
+    RunInfo.Mapping.nIdenticalNodes=MUAnew.Nnodes;
+    RunInfo.Mapping.nNotIdenticalNodes=0;
+    RunInfo.Mapping.nNotIdenticalNodesOutside=0;
+    RunInfo.Mapping.nNotIdenticalNodesInside=0 ;
+    RunInfo.Mapping.nNotIdenticalInside=0;
+
     return
 end
 

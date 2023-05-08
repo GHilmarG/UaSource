@@ -18,7 +18,8 @@ else
         case 6
 
             Degree=8;
-
+            Degree=12;
+            Degree=20;
 
         case 10
 

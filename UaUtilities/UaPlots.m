@@ -43,6 +43,7 @@ arguments
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
+    options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -52,12 +53,26 @@ arguments
     options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
 end
 
+% if fig title has not been set, use by default the variable name
+if options.FigureTitle=="UaPlots"
+    if isstring(Variable)
+       options.FigureTitle=Variable;
+    elseif ~isempty(inputname(4))
+        options.FigureTitle=inputname(4) ; 
+    end
+
+end
+
+
+fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
 
 if islogical(Variable)
     Variable=double(Variable) ;
 end
 
-Variable=Variable(:);
+if isnumeric(Variable)
+    Variable=Variable(:);
+end
 
 if isempty(F)
     F=UaFields;
@@ -219,7 +234,7 @@ else
         otherwise
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.(Variable));
-            title(cbar,"$(m)$",Interpreter="latex")
+            title(cbar,"$("+Variable+")$",Interpreter="latex")
 
 
     end

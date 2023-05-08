@@ -1607,16 +1607,25 @@ CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is 
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
 
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN;   % This value is used to define:
+                                        % 1) the width of the strip over which the LSF is solved arount the zero level,
+                                        % 2) the distance downstream of the calving front where elements are deactivated
+                                        % Case 1 is only relevant if CtrlVar.LevelSetMethodSolveOnAStrip=true
+                                        % Case 2 is only relevant if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true
 
 
 
-% Here are some numerical paramters and values, generally no need to change.
+% Here are some numerical parameters and values, generally no need to change.
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; % This "best" value is a bit uncertain. It is expected to be on the order of unity.
+                                  % The value of 0.1 was found by conducting diffusion test for a circular geomety with a circular velocity field.
+                                  % It was decided that 1 is a bit too large. Possibly a value of 0.2 could be selected as well.
+
 CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
 CtrlVar.LevelSetTestString="" ; 
@@ -1630,8 +1639,6 @@ CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equa
 
 CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
 
-CtrlVar.LevelSetMethodSolveOnAStrip=0;
-CtrlVar.LevelSetMethodStripWidth=NaN; 
 
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
