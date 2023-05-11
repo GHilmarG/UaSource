@@ -39,10 +39,14 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     %       H = S-B
     %
     %%
-    
- 
-    
-    
+
+    % rounding and internal element interpolation can make these negative.
+    % If not made positive, some variables can be complex numbers on
+    % return.
+    delta(delta<0)=0;
+    He(He<0)=0 ;
+
+
     %% Basal drag term : ice
     % this drag term is zero if the velocities are zero.
     

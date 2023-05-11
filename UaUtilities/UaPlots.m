@@ -216,10 +216,21 @@ else
 
             [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
+
+            fFigHist=FindOrCreateFigure(options.FigureTitle+"Hist")  ; clf(fFigHist)  ; 
+            histogram((log10(etaInt(:))),Normalization="probability") ; 
+            hold on ; 
+            xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+
+
+            fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
             title(cbar,"(kPa yr)",Interpreter="latex")
             title(sprintf("log10 of effective viscosity at integration points at t=%f",CtrlVar.time),Interpreter="latex")
 
+
+
+    
 
         case "surface slope"  % effective strain rate at integration points
 

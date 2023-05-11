@@ -40,7 +40,10 @@ tt=axis; axis([tt(1) tt(2) 0 tt(4)])
 
 
 FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName)
-histogram(RunInfo.Forward.dt) ; xlabel('dt')
+
+items=numel(find(~isnan( RunInfo.Forward.dt)));
+nbins=fix(items/10);
+histogram(RunInfo.Forward.dt,nbins) ; xlabel('dt')
 title('dt Histogram')
 
 

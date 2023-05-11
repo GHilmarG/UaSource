@@ -1,4 +1,4 @@
-function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMtauGroup(CtrlVar,MUA,F)
+function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F)
 
 %
 % Ruv=Tint-Fext;
@@ -87,6 +87,10 @@ snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+
+H=F.S-F.B;
+
+
 if CtrlVar.IncludeMelangeModelPhysics
     
     uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -131,24 +135,19 @@ nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Hnod=Snod-Bnod;
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
 ca=cos(F.alpha); sa=sin(F.alpha);
 
-%% basal drag evaluated at nodes
-% Consider as a first ste, evaluating just the Heint at nodes, and the interpolating to the integration points
-%
 
-% dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-% deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-% Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-
-dnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
-deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
-Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
-
+if CtrlVar.uvGroupAssembly
+    hfnod=F.rhow*(Snod-Bnod)./rhonod;
+    bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    dnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
+    deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+end
 
 
 %[points,weights]=sample('triangle',MUA.nip,ndim);
@@ -161,17 +160,17 @@ Tx=zeros(MUA.Nele,MUA.nod);  Ty=zeros(MUA.Nele,MUA.nod); Fx=zeros(MUA.Nele,MUA.n
 
 
 for Iint=1:MUA.nip
-    
-    
+
+
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
-    end
-    
+
+    % if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+    Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
+    detJ=MUA.DetJ(:,Iint);
+    % else
+    %     [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+    % end
+
     
     %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     %       [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
@@ -197,6 +196,7 @@ for Iint=1:MUA.nip
     end
 
  
+
     Cint=Cnod*fun;
     Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
     mint=mnod*fun;
@@ -226,32 +226,57 @@ for Iint=1:MUA.nip
     %   end
 
 
-    AGlenint=AGlennod*fun;
-    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
-    nint=nnod*fun;
+    % if CtrlVar.AGlenisElementBased
+    %     AGlenint=F.AGlen;
+    %     nint=F.n;
+    % else
+        AGlenint=AGlennod*fun;
+        AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+        nint=nnod*fun;
+   %  end
+
+
+
     
-
-
-
-
     Bint=Bnod*fun;
     Sint=Snod*fun;
     bint=sint-hint;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
-
-    hfint=hfnod*fun;
-
-    %% evaluating dint, hfint, Heint and deltaint at integration points
-    dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
-    %% interpolating dint, hfint, Heint and deltaint onto the    integration points
-    dint=dnod*fun;
-    deltaint=deltanod*fun;
-    Heint=Henod*fun; 
 
+  
+    %
+    
+
+    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
+    % Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+    
+    
+
+    if CtrlVar.uvGroupAssembly
+        %% interpolating dint, hfint, Heint and deltaint onto the    integration points
+        dint=dnod*fun;
+        deltaint=deltanod*fun;
+        Heint=Henod*fun;
+
+      if any(dint<0)
+          fprintf(" dint negative \n")
+      end
+      if any(deltaint<0)
+          fprintf(" deltaint negative \n")
+      end
+      if any(Heint<0)
+          fprintf(" Heint negative \n")
+      end
+
+    else
+        %% evaluating dint, hfint, Heint and deltaint at integration points#
+        hfint=F.rhow*Hint./rhoint;
+        dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
+        deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+        Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+    end
     
     % derivatives at this integration point for all elements
     dsdx=zeros(MUA.Nele,1); dhdx=zeros(MUA.Nele,1);
