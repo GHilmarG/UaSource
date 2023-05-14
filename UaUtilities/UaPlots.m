@@ -210,7 +210,7 @@ else
             title(sprintf("effective viscosity eta at t=%f",CtrlVar.time),Interpreter="latex")
 
 
-        case "eta int"  % effective strain rate at integration points
+        case {"eta int","etaint"}  % effective strain rate at integration points
 
 
 
