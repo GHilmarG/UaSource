@@ -21,8 +21,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
         if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
             F0.AGlen(F0.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
             F1.AGlen(F1.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
-            F0.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
-            F1.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
+            F0.n(F0.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
+            F1.n(F1.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
         end
 
     end

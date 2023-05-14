@@ -242,6 +242,35 @@ bnod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 ca=cos(alpha); sa=sin(alpha);
 
 
+if CtrlVar.uvGroupAssembly
+
+    hfnod=rhow*(Snod-Bnod)./rhonod;
+
+    deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    Deltanod=DiracDelta(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
+
+    Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    HEnod = HeavisideApprox(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
+    Hnod=Snod-Bnod; 
+    Hposnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*Hnod;
+
+    %    dnod = Hposnod.*(Snod-bnod);  % draft
+
+    dnod=HEnod.*rhonod.*hnod/rhow+Henod.*Hposnod ;  % definition of d
+    Dddhnod=HEnod.*rhonod/rhow-Deltanod.*hnod.*rhonod/rhow+deltanod.*Hposnod; % derivative of dint with respect to hint
+
+else
+
+
+    Henod=[] ;  deltanod=[] ;   Hposnod=[] ;  dnod=[];   Dddhnod=[];
+
+end
+
+
+
+
+
+
 % [points,weights]=sample('triangle',nip,ndim);
 
 if ~Ronly
@@ -268,6 +297,7 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            Henod,deltanod,Hposnod,dnod,Dddhnod,...
             LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
@@ -291,6 +321,7 @@ else
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            Henod,deltanod,Hposnod,dnod,Dddhnod,...
             LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...

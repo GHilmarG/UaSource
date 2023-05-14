@@ -494,6 +494,11 @@ CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while ba
 
 CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
+
+
+CtrlVar.uvGroupAssembly=false;
+CtrlVar.uvhGroupAssembly=false;
+
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
 CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijo�Goldstein exit condition
@@ -550,7 +555,7 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
-CtrlVar.GroupRepresentation=0;
+
 %% Number of integration points and/or quadrature rule degree
 % if left empty, the number of integration points is set automatically
 

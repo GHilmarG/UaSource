@@ -274,8 +274,11 @@ for Iint=1:MUA.nip
         %% evaluating dint, hfint, Heint and deltaint at integration points#
         hfint=F.rhow*Hint./rhoint;
         dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-        deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+        
+        
         Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+        deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
+        
     end
     
     % derivatives at this integration point for all elements

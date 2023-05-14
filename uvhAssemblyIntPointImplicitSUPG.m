@@ -1,12 +1,13 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    Henod,deltanod,Hposnod,dnod,Dddhnod,...
     LSFMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(55,55)
+narginchk(60,60)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -108,6 +109,12 @@ a1int=as1int+ab1int;
 a0int=as0int+ab0int;
 dadhint=dadhnod*fun;
 
+
+
+
+
+
+
 if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
     LM=LSFMasknod*fun;
@@ -189,23 +196,44 @@ Bint=Bnod*fun;
 Sint=Snod*fun;
 rhoint=rhonod*fun;
 Hint=Sint-Bint;
-Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+
+hfint=rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
 
 
-% calculate He and DiracDelta from integration point values of thickness
-
-hfint=rhow*Hint./rhoint;
-kH=CtrlVar.kH;
-
-Heint = HeavisideApprox(kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-HEint = HeavisideApprox(kH,hfint-hint,CtrlVar.Hh0);
-deltaint=DiracDelta(kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-Deltaint=DiracDelta(kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+if CtrlVar.uvhGroupAssembly
 
 
-dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
-Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
+    Heint=Henod*fun;  %
+   % HEint=HEnod*fun;  %
 
+    deltaint=deltanod*fun;
+   % Deltaint=Deltanod*fun;
+
+    Hposint=Hposnod*fun;
+
+    dint=dnod*fun;  % dnod=HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
+    Dddhint=Dddhnod*fun;
+
+
+else
+
+    % calculate He and DiracDelta from integration point values of thickness
+
+   
+ 
+
+    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+    HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+    
+    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+    Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+
+    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+
+    dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
+    Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
+
+end
 
 
 dhdx=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
@@ -269,7 +297,7 @@ end
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
     BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
 
-CtrlVar.GroupRepresentation=0;
+
 
 %% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
 

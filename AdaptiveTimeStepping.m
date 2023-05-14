@@ -211,6 +211,8 @@ end
 if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
     dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
+
+    dtcritical=round(dtcritical,2,"significant") ;
     if ~isnan(dtcritical)
     
         nFactorSafety=2;
@@ -218,14 +220,14 @@ if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit 
         if dtOut>dtcritical/nFactorSafety
 
             dtOut=dtcritical/nFactorSafety ;
-
-            fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+            dtOut=round(dtOut,2,"significant") ;
+           % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
 
         end
 
 
         dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
-        fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
+        % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
 
     end
 end
@@ -233,7 +235,8 @@ end
 
 if CtrlVar.ATSTdtRounding && CtrlVar.DefineOutputsDt~=0
     % rounding dt to within 10% of Dt
-    dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,2,'significant') ;
+    % dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,2,'significant') ;
+    dtOut=CtrlVar.DefineOutputsDt/(round(5*CtrlVar.DefineOutputsDt/dtOut,1,'significant')/5) ;
 end
 
 
