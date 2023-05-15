@@ -96,11 +96,13 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
     F.ub(~F.LSFMask.NodesIn)=NaN;
     F.vb(~F.LSFMask.NodesIn)=NaN;
+
     if isnumeric(Variable)
         if numel(Variable)==MUA.Nnodes
             Variable(~F.LSFMask.NodesIn)=NaN;
         end
     end
+
 
 end
 

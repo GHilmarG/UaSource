@@ -125,6 +125,7 @@ else
 
 end
 
+
 % Note !!!
 % The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line
 % This can be done in DefineMassBalance.m as follows:
@@ -134,5 +135,6 @@ end
 %   dabdh(~OceanNodes)=0;
 %
 %%
+
 
 end
