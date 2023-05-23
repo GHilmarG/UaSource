@@ -11,7 +11,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running �a, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -404,10 +404,10 @@ CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
-CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
 CtrlVar.uvExitBackTrackingStepLength=1e-4;
 CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-8];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
@@ -488,7 +488,7 @@ CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picar
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
-CtrlVar.LineSearchAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
+CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
@@ -501,7 +501,7 @@ CtrlVar.uvhGroupAssembly=false;
 
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
-CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijo�Goldstein exit condition
+CtrlVar.BackTrackBeta=0.1 ;               % beta in the ArmijoGoldstein exit condition
 CtrlVar.BackTrackMaxIterations=50 ;       % this is plenty
 CtrlVar.BackTrackMaxExtrapolations=50  ;  % if set to zero no extrapolation is done (i.e. pure backtracking)
 CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size in each extrapolation step
@@ -1124,7 +1124,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 %   MeshBoundaryCoordinates
 %
-% Currently two external mesh generators can be called direclty from �a:
+% Currently two external mesh generators can be called direclty from a:
 %
 %   gmsh
 %   mesh2d
@@ -1138,10 +1138,10 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and
 % mesh2d on how to do this.
 %
-% *By default �a uses mesh2d*
+% *By default a uses mesh2d*
 %
 %
-% When generating the mesh from within �a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% When generating the mesh from within a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
 % defined by the variable
 %
@@ -1156,12 +1156,12 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
-% Both when done from within �a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
+% Both when done from within a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
 % *             a) create an input file for gmsh (.geo)
 % *             b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)
-% *             c) read into �a the resulting gmsh output file (.msh) with the mesh
-% All, or some of these three steps can be done withing �a.
+% *             c) read into a the resulting gmsh output file (.msh) with the mesh
+% All, or some of these three steps can be done withing a.
 %
 % More specifically the options are:
 %
@@ -1169,7 +1169,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % *   ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)
 % *   iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)
 %
-% Option iii is the default option, in which case �a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
+% Option iii is the default option, in which case a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
 % To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}
 %
@@ -1219,7 +1219,7 @@ CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"];
 %% Options related to the use of the gmsh external mesh generator
 
 
-CtrlVar.GmshInputFormat=1; % When using �a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+CtrlVar.GmshInputFormat=1; % When using a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
                            % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
                            % Format 1 is simpler
                            % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
@@ -1860,7 +1860,7 @@ CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
-% The grounding line position does not enter any calculations done by �a. 
+% The grounding line position does not enter any calculations done by a. 
 % The grounding line is primarily calculated for plotting purposes.
 CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
@@ -1941,7 +1941,7 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
-CtrlVar.EnforceCFL=false  ;         % enforce Courant�Friedrichs�Lewy condition on time step. Note: this is always done in a semi-implicit step
+CtrlVar.EnforceCFL=false  ;         % enforce CourantFriedrichsLewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 
 
@@ -1990,7 +1990,7 @@ CtrlVar.MassBalance.Evaluation="-node-";
 
 %% Sea ice/melange                                               
 %
-% �a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
+% a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
 % drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
@@ -2017,7 +2017,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %% Parallel options:
 % 
 %
-% The parallel profile is not modified within Úa. Set the properties of the local
+% The parallel profile is not modified within �a. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
