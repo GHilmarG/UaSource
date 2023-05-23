@@ -1,5 +1,5 @@
 
-function [Juv,dJduv,Huv,RunInfo]=Juv(uv,UserVar,RunInfo,CtrlVar,MUA,F,fext0)
+function [Juv,dJduv,Huv,RunInfo]=Juv(uv,UserVar,RunInfo,CtrlVar,MUA,F,fext0,Aeq,beq)
 
 
 
@@ -20,12 +20,36 @@ else
 
 end
 
+if ~isempty(L)
+    f=-Ruv-L'*l;
+    g=beq-Aeq*[F.ub;F.vb];
+
+else
+    f=-Ruv;
+    g=[];
+    % dl=[];
+end
 
 
-f=-Ruv;
-Juv=full((f'*f)./(fext0'*fext0+1000*eps));
-dJduv=Ruv;
-Huv=Kuv;
+
+% Juv=full((f'*f)./(fext0'*fext0+1000*eps));
+
+Juv=full([f;g]'*[f;g]./(fext0'*fext0+1000*eps));
+
+% Mblock=MassMatrixBlockDiagonal2D(MUA); M=Mblock;
+
+
+dJduv= Ruv;
+
+
+
+if nargout>2
+    Huv=Kuv;
+    fprintf("Hessian \n")
+end
+
+%%
+
 
 
 end
