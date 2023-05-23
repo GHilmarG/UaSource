@@ -64,7 +64,7 @@ if options.FigureTitle=="UaPlots"
 end
 
 
-fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
+% fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
 
 if islogical(Variable)
     Variable=double(Variable) ;
