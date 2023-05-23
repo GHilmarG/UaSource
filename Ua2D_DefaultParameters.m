@@ -302,7 +302,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
-CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 % Note: Some of those paramters have physical dimentions and these values may have to be
