@@ -353,8 +353,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         if CtrlVar.InfoLevelNonLinIt>=1
             
-            fprintf(CtrlVar.fidlog,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
-                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork);
+            fprintf(CtrlVar.fidlog,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , fSlope0=%-14.7g \n ',...
+                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,2*rForce0);
         end
         
         if CtrlVar.WriteRunInfoFile

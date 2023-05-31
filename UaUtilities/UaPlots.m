@@ -44,6 +44,7 @@ arguments
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
+    options.CreateNewFigure logical = true ; 
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -64,7 +65,10 @@ if options.FigureTitle=="UaPlots"
 end
 
 
-% fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
+if options.CreateNewFigure
+    fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ;
+end
+
 
 if islogical(Variable)
     Variable=double(Variable) ;
