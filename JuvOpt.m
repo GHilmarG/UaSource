@@ -1,7 +1,7 @@
 function [F,J,RunInfo]=JuvOpt(UserVar,RunInfo,CtrlVar,MUA,BCs,F)
 
 
-Ex="Quad";   Ex="";
+Ex="Quad";   % Ex="";
 Opt="Mat" ; Opt="Ua" ; 
 
 
