@@ -598,7 +598,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         nnn=10 ; 
         
         rTestVector=zeros(nnn,1)+NaN ;
-        Upper=1.05*max(Infovector(:,1)) ; Lower=0; 
+        Upper=1.25*max(Infovector(:,1)) ; Lower=0; 
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
         gammaTestVector=[Lower,dx/2,dx,2*dx,gammaTestVector(2:end)]; 
