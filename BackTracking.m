@@ -611,7 +611,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     end
     
     
-    fig=FindOrCreateFigure('BackTrackingInfo') ;
+    fig=FindOrCreateFigure('BackTrackingInfo NR') ;  clf(fig) ; 
     plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     hold on
