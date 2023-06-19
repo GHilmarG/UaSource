@@ -138,7 +138,7 @@ end
 % ratio is smaller than:
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
 
-if isempty(slope0)
+if isempty(slope0) || isnan(slope0)
     NoSlopeInformation=1;
 else
     NoSlopeInformation=0;
@@ -174,7 +174,7 @@ Infovector=zeros(MaxIterations+3,2)+NaN;
 
 
 
-if isempty(fa)
+if isempty(fa) || isnan(fa)
     a=0 ;
     if Fargcollect
         
@@ -193,7 +193,7 @@ end
 
 f0=fa; % the value of f at gamma=0
 
-if isempty(fb)
+if isempty(fb) || isnan(fb)
     b=1 ;
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
@@ -592,6 +592,9 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 
 [fgamma,I]=min(Infovector(:,2)) ; gamma=Infovector(I,1) ;
 
+
+
+%% Info
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     if CtrlVar.InfoLevelBackTrack>=1000
@@ -601,7 +604,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         Upper=1.25*max(Infovector(:,1)) ; Lower=0; 
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
-        gammaTestVector=[Lower,dx/2,dx,2*dx,gammaTestVector(2:end)]; 
+        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)]; 
         parfor I=1:numel(gammaTestVector)
             gammaTest=gammaTestVector(I); 
             rTest=Func(gammaTest);
@@ -610,8 +613,13 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         end
     end
     
-    
-    fig=FindOrCreateFigure('BackTrackingInfo NR') ;  clf(fig) ; 
+    if isfield(CtrlVar,"BacktracFigName")
+        FigName=CtrlVar.BacktracFigName  ;
+    else
+        FigName="BackTrackingInfo";
+    end
+
+    fig=FindOrCreateFigure(FigName) ;  clf(fig) ; 
     plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     hold on
@@ -641,6 +649,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     %          end
 end
 
+%%
 I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
 BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=Extrapolation;

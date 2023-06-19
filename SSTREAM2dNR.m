@@ -269,35 +269,34 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
                         CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration,tEnd) ;
                 end
                 RunInfo.Forward.uvConverged=1;
-                
+
                 break
             end
         end
-        
-   
-    
+
+
+
         %% calculate  residuals at full Newton step, i.e. at gamma=1
-        % gamma=1 ; [UserVar,r1,rForce1,rWork1,D21] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
-        % gamma=1 ; [r,UserVar,RunInfo,rForce,rWork] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
-        
-%        [UserVar,r,gamma,infovector,BackTrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,fext0,r0,r1,L,l,cuv,dub,dvb,dl);
+
+        %        [UserVar,r,gamma,infovector,BackTrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,fext0,r0,r1,L,l,cuv,dub,dvb,dl);
         slope0=-2*r0 ;
+        CtrlVar.InfoLevelBackTrack=1000;
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
-        
+
         RunInfo.BackTrack=BackTrackInfo;
-        
-        
+
+
         % If backtracking returns all values, then this call will not be needed.
-        % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
+        % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         [rTest,~,~,rForce,rWork,D2]=Func(gamma);
         rVector.gamma(iteration+1)=gamma;
         rVector.rDisp(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
-        
-        
-        
+
+
+
         if BackTrackInfo.Converged==0
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
@@ -306,7 +305,20 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             RunInfo.Forward.Converged=0;
             break
         end
-        
+
+
+        %% Testing
+        func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
+        dh=[] ; dJdh=[] ;
+        dJdu=frhs(1:MUA.Nnodes);
+        dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
+        dJdl=grhs ;
+        Normalisation=fext0'*fext0+1000*eps;
+        CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; 
+        [gammamin,rmin,BackTrackInfo] = rLineminUa(CtrlVar,UserVar,func,Kuv,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+
+        %%
+
         %% If requested, plot residual as function of steplength
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
