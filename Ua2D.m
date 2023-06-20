@@ -4,7 +4,6 @@ function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 % 
 
 
-
 if nargin==0
     UserVar=[]; 
     CtrlVarOnInput=[];
@@ -20,8 +19,10 @@ SetUaPath() %%
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
-% parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-% parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+ parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+ parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+ 
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;

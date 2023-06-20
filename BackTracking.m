@@ -620,16 +620,28 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     end
 
     fig=FindOrCreateFigure(FigName) ;  clf(fig) ; 
-    plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
-    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
-    hold on
-    plot(gamma,fgamma,'*b')
+    plot(Infovector(:,1),Infovector(:,2),'or-') ; 
     
+    xlabel('$\gamma$',Interpreter='latex') ; 
+    ylabel('Cost',Interpreter='latex') ;
+    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
+    
+    hold on
+    plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10)
+    
+     % add Infovector the the TestVector values
+
+    gammaTestVector=[gammaTestVector(:);Infovector(:,1)];
+    rTestVector=[rTestVector(:);Infovector(:,2)];
+
+    [gammaTestVector,Ind]=sort(gammaTestVector) ; rTestVector=rTestVector(Ind) ; 
+
     if CtrlVar.InfoLevelBackTrack>=1000
        plot(gammaTestVector,rTestVector,'xk-') 
         
     end
     
+   
     
     if ~isempty(slope0)
         hold on
@@ -641,7 +653,8 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         
         
     end
-    
+
+    legend("backracking curve values","estimated minimum","cost curve","estimated slope at origin",Location="best",interpreter="latex")
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');
     %          if isempty(str)

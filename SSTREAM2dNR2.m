@@ -1,4 +1,4 @@
-function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
+function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
     
     
     % Solves SSA/SSTREAM for u and v
@@ -7,9 +7,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     nargoutchk(7,7)
     narginchk(7,7)
     
-    error("no longer used")
-
-
+    
     tStart=tic;
     RunInfo.Forward.Converged=1; 
  
@@ -278,16 +276,32 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 
         %% calculate  residuals at full Newton step, i.e. at gamma=1
         gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
-        slope0=-2*r0 ;
-        CtrlVar.InfoLevelBackTrack=1000;
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
+
+        if r1/r0 < CtrlVar.NewtonAcceptRatio
+
+            r=r1 ; rForce=rForce1 ; rWork=rWork1 ; D2=D21 ;
+            du=dub ; dv=dvb ;
+            BackTrackInfo.Infovector=[0 r0 ; 1 r1] ;
+            BackTrackInfo.Converged=1; RunInfo.BackTrack.iarm=0; 
+
+        else
+
+
+            func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
+            dh=[] ; dJdh=[] ;
+            dJdu=frhs(1:MUA.Nnodes);
+            dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
+            dJdl=grhs ;
+            Normalisation=fext0'*fext0+1000*eps;
+            CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
+            [gamma,r,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,Kuv,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+
+
+        end
+
 
         RunInfo.BackTrack=BackTrackInfo;
 
-
-        % If backtracking returns all values, then this call will not be needed.
-        % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
-        [rTest,~,~,rForce,rWork,D2]=Func(gamma);
         rVector.gamma(iteration+1)=gamma;
         rVector.rDisp(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
@@ -305,16 +319,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
 
-        %% Testing
-        func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
-        dh=[] ; dJdh=[] ;
-        dJdu=frhs(1:MUA.Nnodes);
-        dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
-        dJdl=grhs ;
-        Normalisation=fext0'*fext0+1000*eps;
-        CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; 
-        [gammamin,rmin,du,dv,dh,dl2,BackTrackInfo] = rLineminUa(CtrlVar,UserVar,func,Kuv,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
-
+    
         %%
 
         %% If requested, plot residual as function of steplength
@@ -337,7 +342,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             SlopeWork=-2*rWork0;
             SlopeD2=-D20;
             CtrlVar.MinimisationQuantity=CtrlVar.uvMinimisationQuantity;
-            [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-uv-",...
+            PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r,iteration,"-uv-",...
                 gammaTestVector,rForceTestvector,rWorkTestvector,rD2Testvector,...
                 SlopeForce,SlopeWork,SlopeD2,rForce,rWork,D2);
             
@@ -345,9 +350,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
 
         % Need to update all primary (u,v,l) and dependent variables.
         % Here I have no dependent variables
-        F.ub=F.ub+gamma*dub ;
-        F.vb=F.vb+gamma*dvb;
-        l.ubvb=l.ubvb+gamma*dl;
+        % F.ub=F.ub+gamma*dub ;
+        % F.vb=F.vb+gamma*dvb;
+        % l.ubvb=l.ubvb+gamma*dl;
+
+        F.ub=F.ub+du ;
+        F.vb=F.vb+dv;
+        l.ubvb=l.ubvb+dl;
         
         ResidualReduction=r/r0;
         
@@ -378,7 +387,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
   
             
-            FindOrCreateFigure("NR-uv r");
+            figruv=FindOrCreateFigure("NR-uv r"); clf(figruv) ;
             yyaxis left
             semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
             ylabel('rResiduals^2')
