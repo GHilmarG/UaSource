@@ -11,7 +11,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running �a, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -405,9 +405,9 @@ CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
 CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
-CtrlVar.uvExitBackTrackingStepLength=1e-4;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-8];
+CtrlVar.uvExitBackTrackingStepLength=1e-10;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
@@ -2017,7 +2017,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %% Parallel options:
 % 
 %
-% The parallel profile is not modified within �a. Set the properties of the local
+% The parallel profile is not modified within a. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 

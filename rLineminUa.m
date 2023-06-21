@@ -10,17 +10,23 @@ function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(
 % func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
 %%
 
+% CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
 
-du=nan ; dv=nan ; dh=nan ; dl=nan ;
-rminNewton=nan ; rminDescent=nan ; rminCauchy=nan ; rmin=r0 ; 
-gammaminNewton=nan ; gammaminDescent=nan ; gammaMinCauchy=nan ;
+%%
+
+du=nan ; dv=nan ; dh=nan ; dl=nan ;  rmin=r0 ; 
+
+rminNewton=nan     ; rminDescent=nan     ; rminCauchy=nan     ;  rminM=nan;  
+gammaminNewton=nan ; gammaminDescent=nan ; gammaMinCauchy=nan ;  gammaminM=nan; 
 
 CtrlVar.rLineMinUa="-Newton-Steepest Descent-Steepest Descent Mass-Cauchy-" ;
+
+CtrlVar.rLineMinUa="-Auto-" ;
 
 %%
 
 
-if contains(CtrlVar.rLineMinUa,"-Newton-")
+if contains(CtrlVar.rLineMinUa,"-Newton-")  || contains(CtrlVar.rLineMinUa,"-Auto-")
 
     % Newton
 
@@ -60,6 +66,13 @@ if contains(CtrlVar.rLineMinUa,"-Newton-")
     else
 
         fprintf(' rLineminUa: backtracking step in Newton direction did not converge \n ') ;
+
+       if  contains(CtrlVar.rLineMinUa,"-Auto-")
+
+            fprintf(' rLineminUa: Will now try using Steepest Descent were the mass matrix replaces the Hessian \n ') ;
+            CtrlVar.rLineMinUa="-Auto-Steepest Descent Mass-" ;
+
+       end
 
     end
 
@@ -135,11 +148,19 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent Mass-")
             BackTrackInfo=BackTrackInfoSteepestMass;
             BackTrackInfo.Direction="Steepest Descent Mass" ;
             [rTest,~,~,rForce,rWork,D2]=rMassFunc(gammamin);
-            
+
         end
     else
 
         fprintf(' rLineminUa: backtracking step in M-modified steepest-descent directoin did not converge \n ') ;
+
+        if  contains(CtrlVar.rLineMinUa,"-Auto-")
+
+            fprintf(' rLineminUa: Will now try using steepest descent  \n ') ;
+            CtrlVar.rLineMinUa="-Auto-Steepest Descent Mass-Steepest Descent-"; 
+
+        end
+
 
     end
 
@@ -166,7 +187,8 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
     b = -0.1 *r0/slope0Descent ;  % initial step size
     gamma=b ; rb=rDescentFunc(gamma);
 
-    CtrlVar.InfoLevelBackTrack=1000; CtrlVar.BacktracFigName="Steepest Descent" ;
+    % CtrlVar.InfoLevelBackTrack=1000; 
+    CtrlVar.BacktracFigName="Steepest Descent" ;
     CtrlVar.BacktrackingGammaMin=1e-13; CtrlVar.LineSearchAllowedToUseExtrapolation=true;
     [gammaminDescent,rminDescent,BackTrackInfoSteepest]=BackTracking(slope0Descent,b,r0,rb,rDescentFunc,CtrlVar);
 
@@ -203,13 +225,14 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy-")
     rDescentFunc=@(gamma) func(gamma,dJdu,dJdv,dJdl) ;
     gammaMinCauchy=R'*H*R/(R'*(H'*H)*R) ;
 
-    if gammaMinCauchy<0 
+    if gammaMinCauchy<0
         gammaMinCauchy=-gammaMinCauchy;
     end
 
     rminCauchy=rDescentFunc(gammaMinCauchy) ;
 
     if rminCauchy < rmin
+
         du=gammaMinCauchy*dJdu;
         dv=gammaMinCauchy*dJdv;
         dl=gammaMinCauchy*dJdl;
@@ -217,20 +240,18 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy-")
         rmin=rminCauchy;
 
         BackTrackInfo.Infovector=[0 r0 ; gammamin rmin] ;
-        BackTrackInfo.Converged=1; 
-        BackTrackInfo.iarm=0; 
+        BackTrackInfo.Converged=1;
+        BackTrackInfo.iarm=0;
 
         BackTrackInfo.Direction="Cauchy" ;
 
         [rTest,~,~,rForce,rWork,D2]=rDescentFunc(gammamin);
+
+
     end
 
-else
-
-    fprintf(' rLineminUa: backtracking step in steepest-descent directoin did not converge \n ') ;
 
 end
-
 
 
 if contains(CtrlVar.rLineMinUa,"-Plot Quad Approximations-")
@@ -286,10 +307,10 @@ if contains(CtrlVar.rLineMinUa,"-Plot Quad Approximations-")
 end
 
 %% Summary
-
-fprintf("r0=%13.7g \t r1/r0=%10.7g \t rNewton/r0=%10.7g \t rM/r0=%10.7g \t rDescent/r0=%10.7g \t rCauchy/r0=%10.7g \n",r0,r1/r0,rminNewton/r0,rminM/r0,rminDescent/r0,rminCauchy/r0)
-fprintf("g0=%13.8g \t g1=%13.7g \t gNewton=%13.7g \t gM=%13.7g \t gDescent=%13.7g \t gCauchy=%13.7g \n",0,1,gammaminNewton,gammaminM,gammaminDescent,gammaMinCauchy)
-
+fprintf(" [---------- rLineminUa: \n")
+fprintf("\t r0=%13.7g \t r1/r0=%10.7g \t rNewton/r0=%10.7g \t rM/r0=%10.7g \t rDescent/r0=%10.7g \t rCauchy/r0=%10.7g \n",r0,r1/r0,rminNewton/r0,rminM/r0,rminDescent/r0,rminCauchy/r0)
+fprintf("\t g0=%13.8g \t g1=%13.7g \t gNewton=%13.7g \t gM=%13.7g \t gDescent=%13.7g \t gCauchy=%13.7g \n",0,1,gammaminNewton,gammaminM,gammaminDescent,gammaMinCauchy)
+fprintf(" -------------------------] \n")
 
 %%
 

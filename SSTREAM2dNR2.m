@@ -282,7 +282,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
             r=r1 ; rForce=rForce1 ; rWork=rWork1 ; D2=D21 ;
             du=dub ; dv=dvb ;
             BackTrackInfo.Infovector=[0 r0 ; 1 r1] ;
-            BackTrackInfo.Converged=1; RunInfo.BackTrack.iarm=0; 
+            BackTrackInfo.Converged=1; BackTrackInfo.iarm=0; 
 
         else
 
@@ -293,7 +293,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
             dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
             dJdl=grhs ;
             Normalisation=fext0'*fext0+1000*eps;
-            CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
+            % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
             [gamma,r,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,Kuv,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
 
 
