@@ -211,8 +211,8 @@ if CtrlVar.uvhGroupAssembly
 
     Hposint=Hposnod*fun;
 
-    dint=dnod*fun;  % dnod=HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
-    Dddhint=Dddhnod*fun;
+    dint=dnod*fun;        % dnod=HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
+    Dddhint=Dddhnod*fun;  % Here I am interpolating the derivative calculated at nodes, to the int points
 
 
 else

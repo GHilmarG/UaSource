@@ -257,7 +257,7 @@ if CtrlVar.uvGroupAssembly
     %    dnod = Hposnod.*(Snod-bnod);  % draft
 
     dnod=HEnod.*rhonod.*hnod/rhow+Henod.*Hposnod ;  % definition of d
-    Dddhnod=HEnod.*rhonod/rhow-Deltanod.*hnod.*rhonod/rhow+deltanod.*Hposnod; % derivative of dint with respect to hint
+    Dddhnod=HEnod.*rhonod/rhow-Deltanod.*hnod.*rhonod/rhow+deltanod.*Hposnod; % derivative of dnod with respect to hnod
 
 else
 
