@@ -119,20 +119,27 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent Mass-")
     % b=1 ; rDb=rMassFunc(b);
     % slopeD0=-2*R'*H*(Mblock\R);
 
-    slopeD0=(-2*R'*H*[Du0;Dv0;Dl0])/Normalisation;
+    s=[Du0;Dv0;Dl0];
+    slopeD0=(-2*R'*H*s)/Normalisation;
+    
+    gammaMinEst=(s'*H'*R+R'*H*s)/(2*(H*s)'*(H*s)) ;
+
+     rD0=r0 ; 
+
 
     if slopeD0 > 0
         slopeD0=-slopeD0;
+        gammaMinEst = -0.1 *rD0/slopeD0 ;  % initial step size
     end
 
-
     %rD0=rMassFunc(0) ;
-    rD0=r0 ; 
-    b = -0.1 *rD0/slopeD0 ;  % initial step size
-    gamma=b ; rMb=rMassFunc(gamma);
+
+    % gamma=b ; rMb=rMassFunc(gamma);
+    b=gammaMinEst ; rMb=rMassFunc(b);
 
 
     CtrlVar.uvMinimisationQuantity="Force Residuals" ;  CtrlVar.BacktracFigName="Line Search in Mass Direction" ;
+    CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
     CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
 

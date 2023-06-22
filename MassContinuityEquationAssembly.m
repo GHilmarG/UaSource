@@ -168,7 +168,7 @@ for Iint=1:MUA.nip  %Integration points
 
     end
 
-    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
         LM=LSFMasknod*fun;
         a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
