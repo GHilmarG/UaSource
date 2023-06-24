@@ -77,8 +77,7 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
         end
 
         LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
-        
-=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
+        LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
     end
