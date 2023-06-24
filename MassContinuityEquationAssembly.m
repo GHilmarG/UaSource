@@ -56,29 +56,33 @@ b1nod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 coox=reshape(MUA.coordinates(MUA.connectivity,1),MUA.Nele,MUA.nod);
 cooy=reshape(MUA.coordinates(MUA.connectivity,2),MUA.Nele,MUA.nod);
 
-GF0node=reshape(F0.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);  
-GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);  
+GF0node=reshape(F0.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
+GF1node=reshape(F1.GF.node(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 Khh=zeros(MUA.Nele,MUA.nod,MUA.nod);
 dFdt=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Rh=zeros(MUA.Nele,MUA.nod);
 
+if isempty(F1.dabdh)
+    F1.dabdh=zeros(MUA.Nnodes,1) ;
+end
 
-if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0)
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
 
-    if isempty(F1.dabdh)
-        F1.dabdh=zeros(MUA.Nnodes,1) ;
-    end
-
-    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    if ~isempty(F1.LSF) 
 
         if isempty(F1.LSFMask)
             F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
         end
+
         LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
-        LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
+        
+=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
     end
+
 
 end
 

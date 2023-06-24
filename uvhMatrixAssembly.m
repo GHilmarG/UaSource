@@ -147,24 +147,15 @@ else
     dadh=zeros(MUA.Nnodes,1);
 end
 
-LSFMask=zeros(MUA.Nnodes,1) ;
 
-if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0) && ~ZeroFields
 
-    
-    if isempty(F1.dabdh)
-        F1.dabdh=zeros(MUA.Nnodes,1) ;
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
+    if isempty(F1.LSFMask)
+        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
     end
-    
-    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-
-        if isempty(F1.LSFMask)
-            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-        end
-        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
-
-    end
-
+    LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
+else
+    LSFMask=zeros(MUA.Nnodes,1) ;
 end
 
 

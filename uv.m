@@ -9,6 +9,13 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+if numel(F.m)==1
+    F.m=zeros(MUA.Nnodes,1)+F.m;
+end
+
+if numel(F.n)==1
+    F.n=zeros(MUA.Nnodes,1)+F.n;
+end
 
 
 

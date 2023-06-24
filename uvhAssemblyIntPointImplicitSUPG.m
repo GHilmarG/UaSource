@@ -114,8 +114,7 @@ dadhint=dadhnod*fun;
 
 
 
-
-if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
     LM=LSFMasknod*fun;
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
@@ -127,12 +126,6 @@ if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
     dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
 
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
- 
-%    nh=numel(find(hint<hmin)) ;
-%    if nh>0
-%        fprintf("LSF #%i \t ThickMin=%f \t max(abLSF)=%f \n ",nh,min(hint),max(abLSF))
-%     end
-
 
 else
     LM=false; % Level set mask for melt not applied
