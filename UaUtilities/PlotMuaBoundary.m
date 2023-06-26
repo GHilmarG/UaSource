@@ -25,4 +25,5 @@ function PlotMuaBoundary(CtrlVar,MUA,varargin)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,varargin{:})
 
 
+
 end

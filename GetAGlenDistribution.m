@@ -42,20 +42,39 @@ F.AGlenmax=CtrlVar.AGlenmax;
 F.AGlenmin=CtrlVar.AGlenmin;
 
 
+%% Better do these test in uvh and uv, when they are needed
 
-if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen )
 
-    if isempty(F.LSFMask)
-        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+[F.AGlen,iU,iL]=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin);
+
+niU=numel(find(iU));
+niL=numel(find(iL));
+
+if CtrlVar.InfoLevel>=10
+    if niU>0
+        fprintf('TestAGlenInputValues: On input %i AGlen values are larger than largest allowed value (%g).  \n',niU);
+        fprintf(' These values have been reset to the maximum allowed value of %g .\n',niU,CtrlVar.AGlenmax);
+
     end
-    F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
-
-
-    % F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-    % F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
-
+    if niL>0
+        fprintf('TestAGlenInputValues: On input %i AGlen values are smaller than smallest allowed value (%g). \n',niL,CtrlVar.AGlenmin);
+        fprintf(' These values are have been reset to the minimum allowed value of %g.\n',CtrlVar.AGlenmin);
+    end
 end
 
+
+
+if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen) &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)
+    if isempty(F.LSFMask)  % This should have been calculated at the start of the run, ToDo,
+        F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
+    end
+    if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
+        F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+        F.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
+    end
+end
+
+  
 
 
 

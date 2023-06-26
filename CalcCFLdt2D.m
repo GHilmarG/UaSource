@@ -36,10 +36,15 @@ end
 speed=sqrt(u.*u+v.*v) ;
 speed=Nodes2EleMean(MUA.connectivity,speed); 
 
-l=sqrt(MUA.EleAreas);  % there is a factor of two here that I'm not including, this will reduced dt 
-                       % and provide a margin of safety.
+l=sqrt(2*MUA.EleAreas); 
+                       
 
 dtcritical=min(l./(speed+eps));
+
+
+if all(speed==0)
+    dtcritical=nan;
+end
 
 end
 

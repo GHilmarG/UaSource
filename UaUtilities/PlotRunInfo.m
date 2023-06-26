@@ -1,29 +1,52 @@
-function PlotRunInfo(RunInfo)
-    
-    %%
-    
-    
-    FindOrCreateFigure("RunInfo uvh: time step and iterations")
-    yyaxis left
-    semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-') ; 
-    ylabel('time step')
-    
+function PlotRunInfo(RunInfo,FigName)
 
-    
-    yyaxis right 
-    stairs(RunInfo.Forward.time,RunInfo.Forward.uvhIterations) ; 
-    ylabel('uvh iterations')
+%%
 
-    
-    xlabel('time') ; 
-    legend("time step","#uvh iterations")
-    ylim([0 inf])
-    
-     FindOrCreateFigure("RunInfo uvh: time step histogram and iterations")
-     histogram(RunInfo.Forward.dt) ; xlabel('dt')
-     title('dt Histogram')
-    
-     
-     
-    
+if nargin< 2
+    FigName="";
+end
+
+fig=FindOrCreateFigure("RunInfo: time steps and iterations"+FigName) ; clf(fig) ;
+yyaxis left
+semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-',DisplayName="time step") ;
+ylabel('time step, $\mathrm{d}t$',Interpreter='latex')
+
+yyaxis right
+
+I=~isnan(RunInfo.Forward.uvhIterations) ;
+if numel(find(I)) > 0
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uvhIterations(I),DisplayName="\#uvh iterations") ;
+end
+
+hold on
+
+I=~isnan(RunInfo.Forward.uvIterations) ;
+if numel(find(I))>0
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uvIterations(I),DisplayName="\#uv iterations") ;
+end
+
+I=~isnan(RunInfo.Forward.hIterations) ;
+if numel(find(I))>0
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.hIterations(I),DisplayName="\#h iterations",LineWidth=2) ;
+end
+ylabel('\# iterations',Interpreter='latex')
+
+xlabel('time, $t$',Interpreter='latex') ;
+legend(Location="best",Interpreter="latex");
+
+tt=axis; axis([tt(1) tt(2) 0 tt(4)])
+
+
+
+
+FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName)
+
+items=numel(find(~isnan( RunInfo.Forward.dt)));
+nbins=max(10,fix(items/20));
+histogram(RunInfo.Forward.dt,nbins) ; xlabel('time step, $\mathrm{d}t$',Interpreter='latex')
+title('dt Histogram')
+
+
+
+
 end

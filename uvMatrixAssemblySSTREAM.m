@@ -87,6 +87,10 @@ snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+
+H=F.S-F.B;
+
+
 if CtrlVar.IncludeMelangeModelPhysics
     
     uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -94,48 +98,56 @@ if CtrlVar.IncludeMelangeModelPhysics
     
     uanod=reshape(F.ua(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vanod=reshape(F.va(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
 end
 
-if ~CtrlVar.CisElementBased
-    
-    Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
-    if ~isempty(F.q)
-        qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
-    
-    if ~isempty(F.muk)
-        muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
-    
-    
-    if CtrlVar.IncludeMelangeModelPhysics
-        Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        
-        
-        Canod=reshape(F.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
-        manod=reshape(F.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    end
+%if ~CtrlVar.CisElementBased
+
+Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+if ~isempty(F.q)
+    qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+if ~isempty(F.muk)
+    muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 
-if ~CtrlVar.AGlenisElementBased
-    AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+if CtrlVar.IncludeMelangeModelPhysics
+    Conod=reshape(F.Co(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    monod=reshape(F.mo(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+    Canod=reshape(F.Ca(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    manod=reshape(F.ma(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
+%end
+
+
+%if ~CtrlVar.AGlenisElementBased
+AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+%end
 
 
 
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Hnod=Snod-Bnod;
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-hfnod=F.rhow*(Snod-Bnod)./rhonod;
-
 ca=cos(F.alpha); sa=sin(F.alpha);
+
+
+if CtrlVar.uvGroupAssembly
+    hfnod=F.rhow*(Snod-Bnod)./rhonod;
+    bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    dnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
+    deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+end
 
 
 %[points,weights]=sample('triangle',MUA.nip,ndim);
@@ -148,17 +160,17 @@ Tx=zeros(MUA.Nele,MUA.nod);  Ty=zeros(MUA.Nele,MUA.nod); Fx=zeros(MUA.Nele,MUA.n
 
 
 for Iint=1:MUA.nip
-    
-    
+
+
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
-    end
-    
+
+    % if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+    Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
+    detJ=MUA.DetJ(:,Iint);
+    % else
+    %     [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+    % end
+
     
     %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     %       [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
@@ -180,79 +192,94 @@ for Iint=1:MUA.nip
         
         uaint=uanod*fun;
         vaint=vanod*fun;
-        
+
     end
-    
-    if CtrlVar.CisElementBased
-        
-        Cint=F.C;
-        mint=F.m;
-        qint=F.q;
-        mukint=F.muk;
-        if CtrlVar.IncludeMelangeModelPhysics
-            Coint=F.Co;
-            moint=F.mo;
-            
-            Caint=F.Ca;
-            maint=F.ma;
-        end
+
+ 
+
+    Cint=Cnod*fun;
+    Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
+    mint=mnod*fun;
+
+    if ~isempty(F.q)
+        qint=qnod*fun;
     else
-        Cint=Cnod*fun;
-        Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
-        mint=mnod*fun;
-        
-        if ~isempty(F.q)
-            qint=qnod*fun;
-        else
-            qint=[];
-        end
-        
-        if ~isempty(F.muk)
-            mukint=muknod*fun;
-        else
-            mukint=[];
-        end
-        
-        
-        
-        
-        if CtrlVar.IncludeMelangeModelPhysics
-            Coint=Conod*fun;
-            moint=monod*fun;
-            
-            Caint=Canod*fun;
-            maint=manod*fun;
-        end
+        qint=[];
     end
-    
-    
-    if CtrlVar.AGlenisElementBased
-        AGlenint=F.AGlen;
-        nint=F.n;
+
+    if ~isempty(F.muk)
+        mukint=muknod*fun;
     else
+        mukint=[];
+    end
+
+
+
+
+    if CtrlVar.IncludeMelangeModelPhysics
+        Coint=Conod*fun;
+        moint=monod*fun;
+
+        Caint=Canod*fun;
+        maint=manod*fun;
+    end
+    %   end
+
+
+    % if CtrlVar.AGlenisElementBased
+    %     AGlenint=F.AGlen;
+    %     nint=F.n;
+    % else
         AGlenint=AGlennod*fun;
         AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
         nint=nnod*fun;
-    end
-    
-    
-    
+   %  end
+
+
+
     
     Bint=Bnod*fun;
     Sint=Snod*fun;
     bint=sint-hint;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
-    dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-
-    hfint=hfnod*fun;
-    %hfint=F.rhow*Hint./rhoint;
     
 
-    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
-    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+  
+    %
+    
+
+    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
+    % Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     
     
+
+    if CtrlVar.uvGroupAssembly
+        %% interpolating dint, hfint, Heint and deltaint onto the    integration points
+        dint=dnod*fun;
+        deltaint=deltanod*fun;
+        Heint=Henod*fun;
+
+      % if any(dint<0)
+      %     fprintf(" dint negative \n")
+      % end
+      % if any(deltaint<0)
+      %     fprintf(" deltaint negative \n")
+      % end
+      % if any(Heint<0)
+      %     fprintf(" Heint negative \n")
+      % end
+
+    else
+        %% evaluating dint, hfint, Heint and deltaint at integration points#
+        hfint=F.rhow*Hint./rhoint;
+        dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
+        
+        
+        Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+        deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
+        
+    end
     
     % derivatives at this integration point for all elements
     dsdx=zeros(MUA.Nele,1); dhdx=zeros(MUA.Nele,1);
@@ -283,7 +310,8 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
-    
+  
+
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
     detJw=detJ*MUA.weights(Iint);

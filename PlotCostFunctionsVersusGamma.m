@@ -17,7 +17,9 @@ function [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r
     ylabel('Force Residuals')
     
     if CtrlVar.MinimisationQuantity=="Force Residuals"
-        plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+       
+         plot(RunInfo.BackTrack.Infovector(:,1),RunInfo.BackTrack.Infovector(:,2),"ok",MarkerFaceColor="k"); 
+         plot(gamma,r,'Marker','o','MarkerEdgeColor','r','MarkerFaceColor','r',MarkerSize=10)
     end
     
     yyaxis right
@@ -27,7 +29,8 @@ function [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r
     ylabel('Work Residuals')
     
     if CtrlVar.MinimisationQuantity=="Work Residuals"
-        plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+        plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g',MarkerSize==2)
+        
     end
     title(sprintf('%s iteration %-i,  iarm=%-i, $\\gamma$=%-6g , r=%-6g',IdString,iteration,RunInfo.BackTrack.iarm,gamma,r),'interpreter','latex') ;
     xlabel(' \gamma ') ;
@@ -53,7 +56,9 @@ function [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r
     ylabel('Work Residuals')
     
     if CtrlVar.MinimisationQuantity=="Work Residuals"
-        plot(gamma,r,'Marker','h','MarkerEdgeColor','k','MarkerFaceColor','g')
+        
+        plot(RunInfo.BackTrack.Infovector(:,1),RunInfo.BackTrack.Infovector(:,2),"ok",MarkerFaceColor="k"); 
+        plot(gamma,r,'Marker','*','MarkerEdgeColor','r','MarkerFaceColor','r')
     end
     
 

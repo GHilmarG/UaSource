@@ -17,35 +17,18 @@ switch CtrlVar.MapOldToNew.method
     case "FE form functions"
         
         [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,RunInfo,MUAold,MUAnew,varargin{:});
+
+    case "ShapeAndScattered"  
+
+        [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScattered(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin{:});
+        
+
+    otherwise
+
+        error(" case not found")
 end
 
-return
 
-%% if testing, currenlty broken as FEShapeFunction interpolation does not work
-
-if CtrlVar.MapOldToNew.Test
-    
-    tMapOld=tic;
-    
-    nVar=length(varargin) ;
-    varargout=cell(nVar,1);
-    [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin{:}) ;
-    tMapOld=toc(tMapOld);
-    
-    Test=varargout ;
-    
-    tMapNew=tic;
-    varargout=cell(nVar,1);
-    [RunInfo,varargout{:}]=MapNodalVariablesFromMesh1ToMesh2UsingFEShapeFunctions(CtrlVar,RunInfo,MUAold,MUAnew,varargin{:});
-    tMapNew=toc(tMapNew);
-    
-    fprintf(' tMapOld \t \t tMapNew \n %f \t \t %f \n ',tMapOld,tMapNew)
-    
-    for I=1:nVar
-        [norm(varargout{I}-Test{I})  norm(Test{I})]
-    end
-    
-end
 
 
 end
