@@ -217,24 +217,29 @@ BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=0;
 
 
-if fb<target 
-    
-    % fmin=fb ; gmin=b ;  % there is a possibiliyt that fb was smaller then the target, but that fa was smaller still
-    % so just return the smallest value, obtained so far which is fmin at gmin
-    
+if fb<target
+
+
     if CtrlVar.InfoLevelBackTrack>=2
         fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
     end
     BackTrackInfo.Converged=1;
     BackTrackInfo.nFuncEval=nFuncEval;
-    I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
+    I=isnan(Infovector(:,1)) ; Infovector(I,:)=[];
     BackTrackInfo.Infovector=Infovector;
-    
+
     if ~isempty(nOut) && nOut> 0
         [fmin,varargout{1:nOut-1}]=Func(gmin,varargin{:}) ;
     end
-    
-    return
+    % now fmin < ftarget
+    % I can now return
+    % The only exception is if the user requests information about the
+    % backtracking and some pltos
+
+    if ~(CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1 )
+        return
+    end
+
 end
 
 if ~NoSlopeInformation

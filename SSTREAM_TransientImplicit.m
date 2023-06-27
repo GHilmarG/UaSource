@@ -290,33 +290,34 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %% calculate  residuals at full Newton step, i.e. at gamma=1
   
            
-        % r1=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma); 
+        dJdu=frhs(1:MUA.Nnodes);
+        dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
+        dJdh=frhs(2*MUA.Nnodes+1:3*MUA.Nnodes);
+        dJdl=grhs ;
+
+        Normalisation=Fext0'*Fext0+1000*eps;
+
+        func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
+
+
+        r0=func(0,dub,dvb,dh,dl) ;
+        r1=func(1,dub,dvb,dh,dl) ;
+
         
-        %% either accept full Newton step or do a line search
+        [gamma,r,Du,Dv,Dh,Dl,BackTrackInfo,rForce,rWork,D2] = rLineminUaTest(CtrlVar,UserVar,func,r0,r1,K,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+        %%
         
-        % [UserVar,RunInfo,gamma,r]=FindBestGamma2DuvhBacktrack(UserVar,RunInfo,CtrlVar,MUA,F0,F1,dub,dvb,dh,dl,L,luvh,cuvh,r0,r1,Fext0);
-        
-        
-        
-        slope0=-2*r0 ; 
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
+       % slope0=-2*r0 ; 
+       % [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
 
         RunInfo.BackTrack=BackTrackInfo; 
-        
-        % If backtracking returns all values, then this call will not be needed.
-        % [rTest,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
-        [rTest,~,~,rForce,rWork,D2]=Func(gamma); 
         rVector.gamma(iteration+1)=gamma;
         rVector.ruv(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
         rVector.D2(iteration+1)=D2 ;
-        if ~isequal(r,rTest) 
-            fprintf("r=%g \t rTest=%g \t \n",r,rTest)
-            error('SSTREAM_TransientImplicit:expecting r and rTest to be equal')
-        end
-        
+
+
         
         %% If desired, plot residual along search direction
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
@@ -358,11 +359,16 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         %% update variables
         
         
-        F1.ub=F1.ub+gamma*dub;
-        F1.vb=F1.vb+gamma*dvb;
-        F1.h=F1.h+gamma*dh;
-        luvh=luvh+gamma*dl;
+        %F1.ub=F1.ub+gamma*dub;
+        %F1.vb=F1.vb+gamma*dvb;
+        %F1.h=F1.h+gamma*dh;
+        %luvh=luvh+gamma*dl;
         
+        F1.ub=F1.ub+Du;
+        F1.vb=F1.vb+Dv;
+        F1.h=F1.h+Dh;
+        luvh=luvh+Dl;
+
         l1.ubvb=luvh(1:nlubvb) ;  l1.h=luvh(nlubvb+1:end);
         
         
@@ -414,9 +420,20 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         end
      
         if CtrlVar.InfoLevelNonLinIt>=1
+
+            if RunInfo.BackTrack.Direction=="Newton"
+                Step="N" ;
+            elseif RunInfo.BackTrack.Direction=="Steepest Descent Mass"
+                Step="M" ;
+            elseif RunInfo.BackTrack.Direction=="Steepest Descent"
+                Step="D";
+            else
+                Step="";
+            end
+
             fprintf(...
-                'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
-                iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
+                'NR-SSTREAM(uvh):%3u/%-2u g%s=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g  \n ',...
+                iteration,RunInfo.BackTrack.iarm,Step,gamma,r/r0,r0,r,rForce,rWork,BCsError);
             
         end
         
@@ -438,13 +455,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %% return calculated values at the end of the time step
     %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
     
-    %% Old:  this case is now checked inside the while loop
-    % I got out of the while loop if either if the solver converged, or
-    % backtrack stagnated.
-    %RunInfo.Forward.Converged=1;
-    % if RunInfo.BackTrack.Converged==0
-    %     RunInfo.Forward.Converged=0;
-    % end
+  
     %%
 
     %% print/plot some info
