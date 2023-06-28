@@ -56,6 +56,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     rVector.rWork=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.rForce=zeros(CtrlVar.NRitmax+1,1)+NaN;
     rVector.D2=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.D2=zeros(CtrlVar.NRitmax+1,1)+NaN;
+    rVector.Direction=strings(CtrlVar.NRitmax+1,1);
     
     BackTrackSteps=0;
     
@@ -285,6 +287,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             rVector.rWork(1)=rWork0;
             rVector.rForce(1)=rForce0 ;
             rVector.D2(1)=D20 ;
+            rVector.Direction(1)="    ";
         end
         
         %% calculate  residuals at full Newton step, i.e. at gamma=1
@@ -316,7 +319,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
         rVector.D2(iteration+1)=D2 ;
-
+        rVector.Direction(iteration+1)=RunInfo.BackTrack.Direction; 
 
         
         %% If desired, plot residual along search direction
@@ -423,7 +426,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
             if RunInfo.BackTrack.Direction=="Newton"
                 Step="N" ;
-            elseif RunInfo.BackTrack.Direction=="Steepest Descent Mass"
+            elseif RunInfo.BackTrack.Direction=="Mass Steepest Descent"
                 Step="M" ;
             elseif RunInfo.BackTrack.Direction=="Steepest Descent"
                 Step="D";
@@ -460,17 +463,19 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
     %% print/plot some info
     
-    if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=5 && iteration >= 2 && CtrlVar.doplots==1
         
-        FindOrCreateFigure("NR-uvh r");
+        figNR=FindOrCreateFigure("NR-uvh r"); clf(figNR) ;
         yyaxis left
         semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
-        ylabel('rForce^2')
+        ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
+        text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),2),HorizontalAlignment="center") ;
         yyaxis right
         semilogy(0:iteration,rVector.rWork(1:iteration+1),'o-') ;
-        ylabel('rWork^2')
+        ylabel('$r_{\mathrm{Work}}^2$',Interpreter='latex')
         
-        title('Force and Work residuals (NR uvh diagnostic step)') ; xlabel('Iteration') ;
+        title('Force and Work residuals (NR uvh transient step)') ; 
+        xlabel('Iteration',Interpreter='latex') ;
         
         
     end

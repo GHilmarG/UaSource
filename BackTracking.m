@@ -209,6 +209,7 @@ if isempty(fb) || isnan(fb)
 end
 
 
+xStart=b ; fStart=fb; 
 
 Infovector(1:2,1)=[a ; b ] ;  Infovector(1:2,2)=[ fa ; fb ] ; iq=2;  
 [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
@@ -257,22 +258,27 @@ elseif gamma < CtrlVar.BackTrackGuardLower*b
 end
 
 
-
-iarm=1 ;     BackTrackInfo.iarm=iarm;
-if Fargcollect
-    [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
-    nFuncEval=nFuncEval+1; 
-    if ~isempty(listOutF) && ~isempty(listInF)
-        [varargin{listInF}]=varargout{listOutF-1} ;
+if fmin>target
+    iarm=1 ;     BackTrackInfo.iarm=iarm;
+    if Fargcollect
+        [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
+        nFuncEval=nFuncEval+1;
+        if ~isempty(listOutF) && ~isempty(listInF)
+            [varargin{listInF}]=varargout{listOutF-1} ;
+        end
+    else
+        fgamma=Func(gamma);
+        nFuncEval=nFuncEval+1;
     end
+
+    gammaOld=gamma ;
+
+    iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ;
 else
-    fgamma=Func(gamma);
-    nFuncEval=nFuncEval+1; 
+    gammaOld=gamma ;  gamma=b ; fgamma=fb ; 
 end
 
-gammaOld=gamma ;
-
-iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
+[fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
 
 c=b; fc=fb ; b=gamma ; fb=fgamma ;
 
@@ -652,14 +658,13 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         hold on
         dx=min(Infovector(2:end,1)/10) ;
         plot([0 dx],[f0 f0+slope0*dx],'g','LineWidth',2)
-        hold off
-        
-        % slopeExperimenta=(rTest(2)-rTest(1))/(gammaTestVector(2)-gammaTestVector(1));
-        
         
     end
 
-    legend("backracking curve values","estimated minimum","cost curve","estimated slope at origin",Location="best",interpreter="latex")
+
+    plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5); 
+
+    legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');
     %          if isempty(str)
