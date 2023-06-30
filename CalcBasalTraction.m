@@ -19,7 +19,7 @@ narginchk(4,4)
 %
 % Note: There is a slight inconsistency with respect to how this is done
 % internally in Ua in the sense that the floating mask is here evalutated at
-% nodes, whereas internally this is done at integration pointa. 
+% nodes, whereas internally this is done at integration points. 
 %
 %
 %%

@@ -46,8 +46,9 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %
 %%
 BackTrackInfo.Converged=0;
+BackTrackInfo.Direction="   " ;
 nFuncEval=0; 
-
+JustPlot=false;
 
 if nargin< 6
     CtrlVar=[];
@@ -239,6 +240,8 @@ if fb<target
 
     if ~(CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1 )
         return
+    else
+        JustPlot=true;
     end
 
 end
@@ -378,7 +381,7 @@ if  Extrapolation>0
 end
 
 fLastReduction=1;
-while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
+while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan ) && ~JustPlot
     iarm=iarm+1; BackTrackInfo.iarm=iarm;
     
     
@@ -607,23 +610,29 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 
 %% Info
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
-    
+
+    warning('off','MATLAB:decomposition:SaveNotSupported')
+    warning('off','MATLAB:decomposition:genericError')
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+
     if CtrlVar.InfoLevelBackTrack>=1000
-        nnn=10 ; 
-        
+        nnn=10 ;
+
         rTestVector=zeros(nnn,1)+NaN ;
-        Upper=1.25*max(Infovector(:,1)) ; Lower=0; 
+        Upper=1.25*max(Infovector(:,1)) ; Lower=0;
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
-        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)]; 
+        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
         parfor I=1:numel(gammaTestVector)
-            gammaTest=gammaTestVector(I); 
+            gammaTest=gammaTestVector(I);
             rTest=Func(gammaTest);
-            gammaTestVector(I)=gammaTest ; 
+            gammaTestVector(I)=gammaTest ;
             rTestVector(I)=rTest;
         end
     end
-    
+
     if isfield(CtrlVar,"BacktracFigName")
         FigName=CtrlVar.BacktracFigName  ;
     else
@@ -665,11 +674,13 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5); 
 
     legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
+    drawnow
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');
     %          if isempty(str)
     %              str = 'Y';
     %          end
+
 end
 
 %%

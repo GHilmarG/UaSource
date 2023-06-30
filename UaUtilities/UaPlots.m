@@ -6,6 +6,10 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Simple plot utility to plot variables and calving fronts and grounding lines as well.
 %
+% Note: Sometimes the default labels on the plots assume some typical
+%       physical dimensions such as m/yr for velocities, and kPa for stresses.
+% 
+%
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
 % Calving fronts
@@ -71,11 +75,21 @@ end
 
 
 if islogical(Variable)
+
+
     Variable=double(Variable) ;
 end
 
 if isnumeric(Variable)
-    Variable=Variable(:);
+
+    [nV,mV]=size(Variable);
+    if nV==MUA.Nnodes && mV==2
+        F.ub=Variable(:,1);
+        F.vb=Variable(:,2);
+        Variable="-uv-";
+    else
+        Variable=Variable(:);
+    end
 end
 
 if isempty(F)
@@ -83,8 +97,9 @@ if isempty(F)
 end
 
 if isscalar(Variable)
-
-    if contains(Variable,"int")
+% {"-eta-","eta int","etaint","-eta int-"}
+    if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
+            || contains(Variable,"tau")  || contains(Variable,"basal drag") 
         options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     end
 
@@ -169,20 +184,20 @@ else
             title(sprintf("$dh/dt$ at t=%f",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
 
-        case "basal drag"
+        case {"basal drag","taub"}
 
 
+            [tbx,tby,tb] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
 
-
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,txzb,tyzb,CtrlVar) ;
-            title(cbar,"(m/a)",Interpreter="latex")
+            cbar=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
+            title(cbar,"(kPa)",Interpreter="latex")
             title(sprintf("basal drag vectors at t=%f",CtrlVar.time),Interpreter="latex")
 
 
-        case "e"  % effective strain rate
+        case "e node"  % effective strain rate
 
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
@@ -193,7 +208,7 @@ else
             title(sprintf("effective strain rates at t=%f",CtrlVar.time),Interpreter="latex")
 
 
-        case "e int"  % effective strain rate at integration points
+        case {"-e-","e int","-e int-"}  % effective strain rate at integration points
 
 
 
@@ -205,7 +220,7 @@ else
 
 
 
-        case "eta"  % effective strain rate
+        case "eta node"  % effective strain rate
 
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
@@ -216,7 +231,7 @@ else
             title(sprintf("effective viscosity eta at t=%f",CtrlVar.time),Interpreter="latex")
 
 
-        case {"eta int","etaint"}  % effective strain rate at integration points
+        case {"-eta-","eta int","etaint","-eta int-","eta"}  % effective strain rate at integration points
 
 
 
@@ -232,7 +247,7 @@ else
             fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
             title(cbar,"(kPa yr)",Interpreter="latex")
-            title(sprintf("log10 of effective viscosity at integration points at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("log10 of effective viscosity at integration points \n t=%f",CtrlVar.time),Interpreter="latex")
 
 
 

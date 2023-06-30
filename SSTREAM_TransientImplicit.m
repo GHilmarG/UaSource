@@ -75,6 +75,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     % change h.
     dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h; 
     
+    u1Start=F1.ub ; v1Start=F1.vb ;  h1Start=F1.h ; 
+
     
     %%
     if CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step
@@ -97,14 +99,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         fprintf(' Guarding agains wild extrapolation in uvh step.\n')
         fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
             numel(find(Iuvh)),numel(Iuvh))
-        
-        
-        %     Iuvh=abs(dub-mean(dub))>N*std(dub) | abs(dvb-mean(dvb))>N*std(dvb) | abs(dh-mean(dh))>N*std(dh) ;
-        %     fprintf(' Guarding agains wild extrapolation in uvh step.\n')
-        %     fprintf(' Resetting %i forward explicit estimates out of %i to values at previous time step. \n',...
-        %         numel(find(Iuvh)),numel(Iuvh))
-        %
-        
+
         
         
         F1.ub(Iuvh)=F0.ub(Iuvh);
@@ -274,9 +269,6 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
-  
-        
-        % [r0,UserVar,RunInfo,rForce0,rWork0,D20]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0);
                                 
         Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
         gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma); 
@@ -416,10 +408,17 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
         
         if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
-            PlotForceResidualVectors('uvh',Ruvh,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight
-            hold on 
-            PlotGroundingLines(CtrlVar,MUA,F1.GF) ;
-            PlotCalvingFronts(CtrlVar,MUA,F1);
+
+            PlotForceResidualVectors2(CtrlVar,MUA,F1,"uvh",Ruvh,L,luvh,iteration) ;
+        
+
+            UaPlots(CtrlVar,MUA,F1,[Du Dv],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(Du,Dv) increments");
+            title(sprintf("velocity increment (Du,Dv) at t=%f \n NR iteration=%i ",CtrlVar.time,iteration),Interpreter="latex")
+
+            UaPlots(CtrlVar,MUA,F1,Dh,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="Dh increment");
+            ModifyColormap ;
+            title(sprintf("ice thickness increment (Dh) at t=%f \n NR iteration=%i ",CtrlVar.time,iteration),Interpreter="latex")
+           
         end
      
         if CtrlVar.InfoLevelNonLinIt>=1
@@ -467,7 +466,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         figNR=FindOrCreateFigure("NR-uvh r"); clf(figNR) ;
         yyaxis left
-        semilogy(0:iteration,rVector.rForce(1:iteration+1),'x-') ;
+        semilogy(0:iteration,rVector.rForce(1:iteration+1),'-') ;
         ylabel('$r_{\mathrm{Force}}^2$',Interpreter='latex')
         text(0:iteration,rVector.rForce(1:iteration+1),extractBefore(rVector.Direction(1:iteration+1),2),HorizontalAlignment="center") ;
         yyaxis right
@@ -477,9 +476,45 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         title('Force and Work residuals (NR uvh transient step)') ; 
         xlabel('Iteration',Interpreter='latex') ;
         
-        
+        drawnow
     end
     
+
+    if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
+
+        [cbar,xGL0,yGL0,xCF0,yCF0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
+        title(sprintf("(u0,v0) at start of time step t=%f",CtrlVar.time),Interpreter="latex")
+
+        UaPlots(CtrlVar,MUA,F1,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1,v1) at end of NR iteration") ;
+        title(sprintf("converged (u1,v1) at end of time step t=%f",CtrlVar.time),Interpreter="latex")
+
+        UaPlots(CtrlVar,MUA,F1,[F1.ub-F0.ub,F1.vb-F0.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u1-v0,v1-v0) at end of NR iteration") ;
+        hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+        title(sprintf("converged (u1-v0,v1-v0), t=%f",CtrlVar.time),Interpreter="latex")
+
+        UaPlots(CtrlVar,MUA,F1,[u1Start-F1.ub,v1Start-F1.vb],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in u1 during NR iteration from initial guess") ;
+        title(sprintf("change in converged (u1,v1) from initial guess \n t=%f \t dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+        hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+
+        UaPlots(CtrlVar,MUA,F1,h1Start-F1.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in h1 during NR iteration from initial guess") ;
+        hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+        title(sprintf("change in converged h1 from initial guess \n t=%f \t dt=%f ",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+        [tbx0,tby0,tb0] = CalcBasalTraction(CtrlVar,[],MUA,F0) ;
+        [tbx1,tby1,tb1] = CalcBasalTraction(CtrlVar,[],MUA,F1) ;
+
+        cbar=UaPlots(CtrlVar,MUA,F0,[tbx0,tby0],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="basal drag vectors at start of time step") ;
+        title(sprintf("basal drag vectors at beginning of time step \n t=%f \t dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+        title(cbar,"($\mathrm{kPa}$)",Interpreter="latex")
+
+        cbar=UaPlots(CtrlVar,MUA,F1,[tbx1-tbx0,tby1-tby0],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in basal drage vectors") ;
+        hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
+        title(sprintf("change in basal drag vectors \n t=%f \t dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+        title(cbar,"(kPa)",Interpreter="latex")
+
+    end
+
+
     if ~isempty(L)
         if BCsError>10*eps
             fprintf(CtrlVar.fidlog,'Norm of BCs residuals is %14.7g  \n ',BCsError);
