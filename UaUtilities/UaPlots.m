@@ -41,7 +41,7 @@ arguments
     Variable   {string, double}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
-    options.CalvingFrontColor char = "k"
+    options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
     options.GetRidOfValuesDownStreamOfCalvingFronts=true;
     options.PlotOverMesh=false;
@@ -293,7 +293,7 @@ end
 
 
 if options.PlotMuaBoundary
-    PlotMuaBoundary(CtrlVar,MUA,"k");
+    PlotMuaBoundary(CtrlVar,MUA,"k--");
 end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
