@@ -329,6 +329,7 @@ if contains(AdaptMeshMethod,"-activation-")
  
 
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
+    
     if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
     end

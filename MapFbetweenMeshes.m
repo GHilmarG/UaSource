@@ -111,11 +111,25 @@ if CtrlVar.TimeDependentRun
         end
 
         if  CtrlVar.LevelSetMethod
-            if ~isfield(OutsideValue,'LSF')
-                OutsideValue.LSF=NaN;
+
+            if CtrlVar.LevelSetEvolution=="-Prescribed-"
+
+                fprintf("MapFbetweenMeshes: LevelSetEvolution is prescribed, so when mapping onto a new mesh, the levelset is defined through a call to DefineCalving.m \n")
+                BCsNew=[] ; % BCs have yet to be defined
+                Fnew.LSF=[] ; 
+                [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ; 
+
+            else
+
+
+                if ~isfield(OutsideValue,'LSF')
+                    OutsideValue.LSF=NaN;
+                end
+
+                [RunInfo,Fnew.LSF]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue.LSF,Fold.LSF);
+
             end
 
-            [RunInfo,Fnew.LSF]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValue.LSF,Fold.LSF);
         end
 
 

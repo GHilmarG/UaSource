@@ -28,7 +28,7 @@ if ~CtrlVar.LevelSetMethod
     return
 end
 
-if any(isnan(F0.c))
+if any(isnan(F0.c)) || isempty(F0.c)
     fprintf("Level set is not evolved because calving rate (c) contains nan. \n")
     LSF=F1.LSF;
     return
