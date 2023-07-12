@@ -644,7 +644,6 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     xlabel('$\gamma$',Interpreter='latex') ; 
     ylabel('Cost',Interpreter='latex') ;
-    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     
     hold on
     plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10)
@@ -674,6 +673,11 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5); 
 
     legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
+
+
+    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
+    subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
     drawnow
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');

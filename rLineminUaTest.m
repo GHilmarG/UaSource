@@ -187,8 +187,8 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
 
     
    % To do:  define a temp variable: RH=R'*H ; 
-    % CauchyMSlope0=(-2*R'*H*s)/Normalisation;
-    CauchyMSlope0=-(sM'*(H'*R)+(R'*H)*sM)/Normalisation;
+    CauchyMSlope0=(-2*R'*H*s)/Normalisation;
+    % CauchyMSlope0=-(sM'*(H'*R)+(R'*H)*sM)/Normalisation;
 
     gammaCauchyM=(sM'*H'*R+R'*H*sM)/(2*(H*sM)'*(H*sM)) ;
     CauchyMPoint=gammaCauchyM*sM ;
@@ -296,6 +296,8 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
     if Variables=="-uvl-"
 
         I2n=speye(2*nM,2*nM) ;
+        Ruv=[dJdu;dJdv];
+        sol0=[du0;dv0];  
         [sol,dlD]=solveKApeSymmetric(I2n,L,Ruv,dJdl,sol0,dl0,CtrlVar);
         duD=sol(1:nM) ; dvD=sol(nM+1:2*nM); dhD=[] ;
         rDescentFunc=@(gamma) func(gamma,duD,dvD,dlD) ;
@@ -304,6 +306,8 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
     elseif Variables=="-uvhl-"
 
         I3n=speye(3*nM,3*nM) ;
+        Ruvh=[dJdu;dJdv;dJdh];
+        sol0=[du0;dv0;dh0];  
         [sol,dlD]=solveKApeSymmetric(I3n,L,Ruvh,dJdl,sol0,dl0,CtrlVar);
         duD=sol(1:nM) ; dvD=sol(nM+1:2*nM);  dhD=sol(2*nM+1:3*nM);
         rDescentFunc=@(gamma) func(gamma,duD,dvD,dhD,dlD) ;
@@ -311,7 +315,8 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
 
     end
 
-    slope0Descent=-sD'*(H'+H)*sD/Normalisation ;
+    % slope0Descent=-2*R'*H*sD/Normalisation ;
+    slope0Descent=-R'*(H'+H)*R/Normalisation ;
     if slope0Descent > 0
         slope0Descent = - slope0Descent;
     end
@@ -362,7 +367,107 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
 end
 
 
-if gammaminNewton < 0.05  
+
+%% HR-Cauchy, Steepest as 2 H' R
+if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
+    [nM,mM]=size(M);
+    % Must still solve a system because I need to preserve the BCs
+    if Variables=="-uvl-"
+
+        I2n=speye(2*nM,2*nM) ;
+        Ruv=[dJdu;dJdv];
+        sol0=[du0;dv0];  
+        [sol,dlD]=solveKApeSymmetric(I2n,L,Ruv,dJdl,sol0,dl0,CtrlVar);
+        duD=sol(1:nM) ; dvD=sol(nM+1:2*nM); dhD=[] ;
+        rDescentFunc=@(gamma) func(gamma,duD,dvD,dlD) ;
+        sD=[duD;dvD;dlD];
+
+    elseif Variables=="-uvhl-"
+
+        
+        I3n=speye(3*nM,3*nM) ;
+        Ruvh=[dJdu;dJdv;dJdh];
+        H=[K L' ;L L0] ;
+
+        HR=K'*Ruvh ; 
+
+        sol0=[du0;dv0;dh0];  
+        [sol,dlHR]=solveKApeSymmetric(I3n,L,HR,dJdl,sol0,dl0,CtrlVar);
+        duHR=sol(1:nM) ; dvHR=sol(nM+1:2*nM);  dhHR=sol(2*nM+1:3*nM);
+        rHRFunc=@(gamma) func(gamma,duHR,dvHR,dhHR,dlHR) ;
+        sHR=[duHR;dvHR;dhHR;dlHR];
+
+    end
+
+    slope0Descent=-sHR'*(H'+H)*sHR/Normalisation ;
+    slope0Descent=-2*sHR'*(H'+H)*sHR/Normalisation ;
+    if slope0Descent > 0
+        slope0Descent = - slope0Descent;
+    end
+
+    gammaminCauchy=0.5*sHR'*(H'+H)*sHR/(sHR'*(H'*H)*sHR) ;
+
+    
+    if gammaminCauchy > 0
+        b=gammaminCauchy ;
+    else
+        b = -0.1 *r0/slope0Descent ;  % initial step size
+    end
+
+
+    gamma=b ; rb=rDescentFunc(gamma);
+
+    % CtrlVar.InfoLevelBackTrack=1000;
+    CtrlVar.BacktracFigName="Steepest Descent" ;
+    CtrlVar.BacktrackingGammaMin=gammaminCauchy/1000; 
+    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+    CtrlVar.NewtonAcceptRatio=0.999; % primarirly use the Armijo's condition based on slope0
+
+    [gammaminDescent,rminDescent,BackTrackInfoSteepest]=BackTracking(slope0Descent,b,r0,rb,rDescentFunc,CtrlVar);
+
+    if rminDescent < rminCauchyM
+        CauchyMPointUpdated=gammaminDescent*sD;
+        r2MD=rminDescent ; % plotting purposes
+    end
+
+ 
+
+    if rminDescent < rmin
+        NoReduction=false;
+        du=gammaminDescent*duD;
+        dv=gammaminDescent*dvD;
+        dh=gammaminDescent*dhD;
+        dl=gammaminDescent*dlD;
+        gammamin=gammaminDescent;
+        rmin=rminDescent;
+        BackTrackInfo=BackTrackInfoSteepest;
+        BackTrackInfo.Direction="SD" ;
+        BestMethod="Steepest Descent" ;
+        [rTest,~,~,rForce]=rDescentFunc(gammamin);
+        rWork=nan ; D2=nan ;  % those have no meaning for the steepest Descent direction
+        gammamin=gammamin/gammaminCauchy ; % on return, normalize this with the min of the quad model
+    end
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if gammaminNewton < 0.01  
     CtrlVar.rLineMinUa=replace(CtrlVar.rLineMinUa,"Cauchy M to Newton","") ;   
     CtrlVar.rLineMinUa=replace(CtrlVar.rLineMinUa,"--","-") ;
 end
@@ -430,6 +535,8 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
         xlabel("Distance along the Cauchy-to-Newton path",interpreter="latex")
         ylabel("$r^2$",interpreter="latex")
         legend("$r^2$","$r^2_C$","$r^2_N$","$r^2_0$","$\min r^2_N$","$\min r^2_{CM}$",interpreter="latex",location="best")
+        title("From the Cauchy-Point to the Newton-Point")
+        subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
         % fig=gcf ; exportgraphics(fig,"ExampleCaucyToNewtonPath.pdf")
         drawnow
     end
