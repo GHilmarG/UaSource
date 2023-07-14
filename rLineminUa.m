@@ -475,7 +475,7 @@ end
 %% Dogleg, going from the M-Cauchy point towards the Newton point
 if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
 
-    CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
+    % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
     [nM,mM]=size(M);
     TolX=0.02;
     options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
