@@ -103,8 +103,10 @@ e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
 if nargin>4
     if ~isempty(AGlen)
         n=nGlenint;
-        etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
-        Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
+        % etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
+        % Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
+
+        [etaInt,Eint,e,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
     end
 end
 

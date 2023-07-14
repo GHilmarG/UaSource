@@ -9,22 +9,30 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+if numel(F.m)==1
+    F.m=zeros(MUA.Nnodes,1)+F.m;
+end
+
+if numel(F.n)==1
+    F.n=zeros(MUA.Nnodes,1)+F.n;
+end
 
 
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
-[F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
-[F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
+% [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
+% [F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
 
 
-if CtrlVar.LevelSetMethod % Level Set
+if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen)  &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)
     if isempty(F.LSFMask)  % This should have been calculated at the start of the run, ToDo,
         F.LSFMask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
     end
     if ~isnan(CtrlVar.LevelSetDownstreamAGlen)
         F.AGlen(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstreamAGlen;
+        F.n(F.LSFMask.NodesOut)=CtrlVar.LevelSetDownstream_nGlen;
     end
 end
 
@@ -61,27 +69,7 @@ end
 
 Lubvb=[];
 
-%% force C and AGlen to be within given max and min limits
-[F.C,iUC,iLC]=kk_proj(F.C,CtrlVar.Cmax,CtrlVar.Cmin);
-[F.AGlen,iUA,iLA]=kk_proj(F.AGlen,CtrlVar.AGlenmax,CtrlVar.AGlenmin);
 
-if CtrlVar.InfoLevel>=10
-    if any(iUC)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values greater than Cmax=%-g \n ',numel(find(iU)),CtrlVar.Cmax) ;
-    end
-
-    if any(iLC)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i C values less than Cmin=%-g \n ',numel(find(iL)),CtrlVar.Cmin) ;
-    end
-
-    if any(iUA)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values greater than AGlenmax=%-g \n ',numel(find(iU)),CtrlVar.AGlenmax) ;
-    end
-
-    if any(iLA)
-        fprintf(CtrlVar.fidlog,' SSTREAM2dNR:  on input %-i AGlen values less than AGlenmin=%-g \n ',numel(find(iL)),CtrlVar.AGlenmin) ;
-    end
-end
 
 
 switch lower(CtrlVar.FlowApproximation)
@@ -91,12 +79,12 @@ switch lower(CtrlVar.FlowApproximation)
 
         if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
 
-        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
         if ~RunInfo.Forward.Converged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
             F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
-            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
         end
 
     case 'ssheet'

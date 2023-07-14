@@ -6,15 +6,6 @@ if isempty(F.LSF) ; return ; end
 
 
 
-
-% Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0);
-%      CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=CtrlVar.LevelSetMethodStripWidth/2 ;
-%      Inode=F.LSF<CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold ;
-%      Iele=MuaElementsContainingGivenNodes(CtrlVar,MUA,find(Inode),Mask.ElementsOut,"all") ;
-%      ElementsToBeDeactivated=ElementsToBeDeactivated | Iele ;
-
-
-
 if CtrlVar.LevelSetMethodSolveOnAStrip
 
 

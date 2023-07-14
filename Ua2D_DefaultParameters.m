@@ -11,7 +11,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -302,12 +302,41 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
-CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
+% Note: Some of those paramters have physical dimentions and these values may have to be
+%       adjusted to the specific situation. 
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=0 ; % 1e-20    ;    % must be much smaller than C. 
+
+CtrlVar.etaZero=10; %  Minimum value for the effective viscosity  
+%                      For Glens flow law the effective viscosity is 0.5 A^(-1/n) e^((1-n)/n)
+%                      where e is the effective strain rate.  The effective
+%                      strain rate on glaciers is usually around 10^(-4) to
+%                      10^(-2) 1/yr.  A save lower estimate for the effective viscosity would then be
+%                      taking A for temperate ice and strain rates of 1 (1/yr).
+%                      giving:
+%                      n=3 ; eps=1 ; 0.5*AGlenVersusTemp(0)^(-1/n) *181 eps^((1-n)/n) =181
+%                      So settting etaZero=10 kPa/yr would not affect the effective viscosity
+%                      in all realistic cases.  However, this might
+%                      sometimes need to me adjusted. Before May-2023 the
+%                      default value was etaZero=0, ie no lower limit on
+%                      the effective viscosity, but this did occasionally
+%                      cause numerical convergence issues.
+%
+%                      Whatever value for etaZero is selected, the value should be small compared to 
+%                      the smallest eta values based on direct use of Glen's flow law. 
+%                      This can be tested by calculating the effective
+%                      viscosity values and plotting a histogram and making
+%                      and inspecting the distribution and how it is
+%                      affected by the value of etaZero, e.g.
+%
+%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+%   
+%
+
+CtrlVar.Czero=0 ;           % must be much smaller than C. 
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
@@ -374,11 +403,11 @@ CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
-CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
-CtrlVar.uvExitBackTrackingStepLength=1e-4;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.uvExitBackTrackingStepLength=1e-10;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
@@ -459,15 +488,20 @@ CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picar
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
-CtrlVar.LineSearchAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
+CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
 CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
+
+
+CtrlVar.uvGroupAssembly=false;
+CtrlVar.uvhGroupAssembly=false;
+
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
-CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijo–Goldstein exit condition
+CtrlVar.BackTrackBeta=0.1 ;               % beta in the ArmijoGoldstein exit condition
 CtrlVar.BackTrackMaxIterations=50 ;       % this is plenty
 CtrlVar.BackTrackMaxExtrapolations=50  ;  % if set to zero no extrapolation is done (i.e. pure backtracking)
 CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size in each extrapolation step
@@ -521,7 +555,7 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
-CtrlVar.GroupRepresentation=0;
+
 %% Number of integration points and/or quadrature rule degree
 % if left empty, the number of integration points is set automatically
 
@@ -1090,7 +1124,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 %   MeshBoundaryCoordinates
 %
-% Currently two external mesh generators can be called direclty from Úa:
+% Currently two external mesh generators can be called direclty from a:
 %
 %   gmsh
 %   mesh2d
@@ -1104,10 +1138,10 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and
 % mesh2d on how to do this.
 %
-% *By default Úa uses mesh2d*
+% *By default a uses mesh2d*
 %
 %
-% When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% When generating the mesh from within a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
 % defined by the variable
 %
@@ -1122,12 +1156,12 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
-% Both when done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
+% Both when done from within a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
 % *             a) create an input file for gmsh (.geo)
 % *             b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)
-% *             c) read into Úa the resulting gmsh output file (.msh) with the mesh
-% All, or some of these three steps can be done withing Úa.
+% *             c) read into a the resulting gmsh output file (.msh) with the mesh
+% All, or some of these three steps can be done withing a.
 %
 % More specifically the options are:
 %
@@ -1135,7 +1169,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % *   ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)
 % *   iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)
 %
-% Option iii is the default option, in which case Úa generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
+% Option iii is the default option, in which case a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
 % To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}
 %
@@ -1185,7 +1219,7 @@ CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"];
 %% Options related to the use of the gmsh external mesh generator
 
 
-CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+CtrlVar.GmshInputFormat=1; % When using a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
                            % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
                            % Format 1 is simpler
                            % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
@@ -1569,6 +1603,7 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
                                                           % calving fronts. This will be done automatically and replaces 
                                                           % any values defined by the user in DefineAGlen.,
 
+CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is here set to nan, there AGlen stress exponent will NOT be modified
 
 % It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
 % This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
@@ -1577,17 +1612,25 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
 
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN;   % This value is used to define:
+                                        % 1) the width of the strip over which the LSF is solved arount the zero level,
+                                        % 2) the distance downstream of the calving front where elements are deactivated
+                                        % Case 1 is only relevant if CtrlVar.LevelSetMethodSolveOnAStrip=true
+                                        % Case 2 is only relevant if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
 
-% Here are some numerical paramters and values, generally no need to change.
+% Here are some numerical parameters and values, generally no need to change.
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; % This "best" value is a bit uncertain. It is expected to be on the order of unity.
+                                  % The value of 0.1 was found by conducting diffusion test for a circular geomety with a circular velocity field.
+                                  % It was decided that 1 is a bit too large. Possibly a value of 0.2 could be selected as well.
+
 CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
 CtrlVar.LevelSetTestString="" ; 
@@ -1601,8 +1644,6 @@ CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equa
 
 CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
 
-CtrlVar.LevelSetMethodSolveOnAStrip=0;
-CtrlVar.LevelSetMethodStripWidth=NaN; 
 
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
@@ -1819,7 +1860,7 @@ CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
-% The grounding line position does not enter any calculations done by Úa. 
+% The grounding line position does not enter any calculations done by a. 
 % The grounding line is primarily calculated for plotting purposes.
 CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
@@ -1900,7 +1941,7 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
-CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
+CtrlVar.EnforceCFL=false  ;         % enforce CourantFriedrichsLewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 
 
@@ -1945,11 +1986,11 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
                                                % Should always be equal to 0 if possible.
                                                % If not equal to 0, the algorithm converges to a wrong solution (!),
                                                % although the error might be very small if mass-balance geometry feedback is not that strong.
-      
+CtrlVar.MassBalance.Evaluation="-node-";      
 
 %% Sea ice/melange                                               
 %
-% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
+% a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
 % drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
@@ -1976,7 +2017,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %% Parallel options:
 % 
 %
-% The parallel profile is not modified within Úa. Set the properties of the local
+% The parallel profile is not modified within a. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
@@ -1995,6 +2036,7 @@ CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spm
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
+CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
@@ -2066,8 +2108,12 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant"}
-
+CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
+CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
+                                                    % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
+                                                    % produced bizzare results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and
+                                                    % there is noting that can be done about this except using alternative approaches not dependent on the MATLAB interpolant for
+                                                    % boundary points of the triangulation. See examples and tests in the UaTest subfolder "MappingVariablesFromMesh1toMesh2"
 CtrlVar.MapOldToNew.Test=false;   %  
 
 

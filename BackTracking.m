@@ -29,15 +29,20 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %
 % Example:
 %
-%     c1=0 ; c2=0.5  ; c3=1.1 ; Func=@(x)  -(x-c1).* (x-c2).*(x-c3) ; slope0=-(c1*c2+c1*c3+c2*c3);  f0=Func(0) ; f1=Func(1) ; 
+% 
+%%
+% 
+% 
+% 
+%   c1=0 ; c2=0.5  ; c3=1.1 ; Func=@(x)  -(x-c1).* (x-c2).*(x-c3) ; slope0=-(c1*c2+c1*c3+c2*c3);  f0=Func(0) ; f1=Func(1) ; 
 %
-%     [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,f0,f1,Func);
+%   [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,f0,f1,Func);
 %
-%     xvector=linspace(0,1) ; yvector=Func(xvector);
-%     figure
-%     plot(xvector,yvector) ; hold on
-%     plot(gmin,fmin,'or')
-%     plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'+b')
+%   xvector=linspace(0,1) ; yvector=Func(xvector);
+%   figure
+%   plot(xvector,yvector) ; hold on
+%   plot(gmin,fmin,'or')
+%   plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'+b')
 %
 %%
 BackTrackInfo.Converged=0;
@@ -133,12 +138,14 @@ end
 % ratio is smaller than:
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
 
-if isempty(slope0)
+if isempty(slope0) || isnan(slope0)
     NoSlopeInformation=1;
 else
     NoSlopeInformation=0;
     if slope0>0
-        error('BackTracking: slope at x=0 must be negative')
+        warning('Backtracking:SlopeAtZeroNotNegative','BackTracking: slope at x=0 must be negative')
+        gmin=nan;  fmin=nan; 
+        return
     end
 end
 
@@ -167,7 +174,7 @@ Infovector=zeros(MaxIterations+3,2)+NaN;
 
 
 
-if isempty(fa)
+if isempty(fa) || isnan(fa)
     a=0 ;
     if Fargcollect
         
@@ -186,7 +193,7 @@ end
 
 f0=fa; % the value of f at gamma=0
 
-if isempty(fb)
+if isempty(fb) || isnan(fb)
     b=1 ;
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
@@ -585,16 +592,19 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 
 [fgamma,I]=min(Infovector(:,2)) ; gamma=Infovector(I,1) ;
 
+
+
+%% Info
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     if CtrlVar.InfoLevelBackTrack>=1000
         nnn=10 ; 
         
         rTestVector=zeros(nnn,1)+NaN ;
-        Upper=1.05*max(Infovector(:,1)) ; Lower=0; 
+        Upper=1.25*max(Infovector(:,1)) ; Lower=0; 
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
-        gammaTestVector=[Lower,dx/2,dx,2*dx,gammaTestVector(2:end)]; 
+        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)]; 
         parfor I=1:numel(gammaTestVector)
             gammaTest=gammaTestVector(I); 
             rTest=Func(gammaTest);
@@ -603,18 +613,35 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         end
     end
     
+    if isfield(CtrlVar,"BacktracFigName")
+        FigName=CtrlVar.BacktracFigName  ;
+    else
+        FigName="BackTrackingInfo";
+    end
+
+    fig=FindOrCreateFigure(FigName) ;  clf(fig) ; 
+    plot(Infovector(:,1),Infovector(:,2),'or-') ; 
     
-    fig=FindOrCreateFigure('BackTrackingInfo') ;
-    plot(Infovector(:,1),Infovector(:,2),'or-') ; xlabel('gamma') ; ylabel('Cost') ;
+    xlabel('$\gamma$',Interpreter='latex') ; 
+    ylabel('Cost',Interpreter='latex') ;
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
-    hold on
-    plot(gamma,fgamma,'*b')
     
+    hold on
+    plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10)
+    
+     % add Infovector the the TestVector values
+
+    gammaTestVector=[gammaTestVector(:);Infovector(:,1)];
+    rTestVector=[rTestVector(:);Infovector(:,2)];
+
+    [gammaTestVector,Ind]=sort(gammaTestVector) ; rTestVector=rTestVector(Ind) ; 
+
     if CtrlVar.InfoLevelBackTrack>=1000
        plot(gammaTestVector,rTestVector,'xk-') 
         
     end
     
+   
     
     if ~isempty(slope0)
         hold on
@@ -626,7 +653,8 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         
         
     end
-    
+
+    legend("backracking curve values","estimated minimum","cost curve","estimated slope at origin",Location="best",interpreter="latex")
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');
     %          if isempty(str)
@@ -634,6 +662,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     %          end
 end
 
+%%
 I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
 BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=Extrapolation;

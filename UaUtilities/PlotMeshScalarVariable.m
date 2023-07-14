@@ -35,12 +35,12 @@ function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,
 %   figure ; PlotMeshScalarVariable(CtrlVar,MUA,GF.node) ; title('The nodal floating mask (floating=0, grounded=1)')
 %%
 
-persistent NodTri EleTri Nele Nnodes nod DTintTriInside DTint
+
 
 if islogical(Variable)
-    
+
     Variable=double(Variable);
-    
+
 end
 
 
@@ -49,60 +49,52 @@ FigHandle=[] ;
 ColorbarHandle=[] ;
 
 if N==MUA.Nnodes && M==1   % nodal variable
-    
-    if isempty(NodTri) || isempty(Nnodes)
-        NodTri=MUA.connectivity;
-    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
-        NodTri=MUA.connectivity;
-    end
-    
+
+    NodTri=MUA.connectivity;
+
     [FigHandle,ColorbarHandle,NodTri]=PlotNodalBasedQuantities(NodTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
-    
+
 elseif N==MUA.Nele && M==1 % element variable
-    
-    if isempty(EleTri) || isempty(Nele)
-        EleTri=MUA.connectivity;
-    elseif MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
-        EleTri=MUA.connectivity;
-    end
-    
+
+
+    EleTri=MUA.connectivity;
     [FigHandle,ColorbarHandle,EleTri]=PlotElementBasedQuantities(EleTri,MUA.coordinates,Variable,CtrlVar,varargin{:});
-    
+
 elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
-    
-    
+
+
     % This case is slighly more complicated, because the set of integration point can have duplicates if integration points fall on the
     % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
-    
-    if isempty(DTint) || isempty(Nele) || MUA.Nele~=Nele || MUA.Nnodes~= Nnodes || MUA.nod~=nod
-        
-        x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-        [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
-        
-        % create vectors Xint and Yint of unique integration points and triangulise that set of points
-        Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],'first','rows'); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
-        DTint = delaunayTriangulation(Xint,Yint);
-        
-        % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
-        ic=incenter(DTint);
-        [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
-        DTintTriInside=DTint.ConnectivityList(cnInt,:);
-        
-    end
-    
+
+
+
+    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
+    [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
+
+    % create vectors Xint and Yint of unique integration points and triangulise that set of points
+    Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],'first','rows'); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
+    DTint = delaunayTriangulation(Xint,Yint);
+
+    % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
+    ic=incenter(DTint);
+    [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+    DTintTriInside=DTint.ConnectivityList(cnInt,:);
+
+
+
     [FigHandle,ColorbarHandle]=PlotIntegrationPointBasedQuantities(CtrlVar,DTintTriInside,DTint.Points,Variable,varargin{:}) ;
-    
-    
-    
+
+
+
 elseif ~isempty(Variable)
-    
+
     fprintf('PlotMeshScalarVariable: Variable has inconsistent dimensions and can not be plotted.\n')
     warning('Ua:PlotMeshScalarVariable:Inconsistentdimensions','Inconsistent dimensions')
     FigHandle=[] ;
     ColorbarHandle=[] ;
-    
+
 end
 
-Nele=MUA.Nele ; Nnodes=MUA.Nnodes; nod=MUA.nod;
+
 
 end

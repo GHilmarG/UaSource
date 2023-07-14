@@ -70,7 +70,13 @@ if ZeroFields
     % I can solve this by dividing with dt again as I calculate the normalisation factor in the const
     % function. This means that the normalisation is independent of dt
     % 
-    % 
+    % Possibly it would be better to solve directly for dh/dt, then at
+    % least the units of the rhs are identical for all unknonws
+    %
+    % On the other hand this can hardly be too much of an issue as the
+    % dh/dt equation is liner in h and all the residuals will be caused by
+    % the u v residuals.
+    %
     
     
 end
@@ -141,24 +147,15 @@ else
     dadh=zeros(MUA.Nnodes,1);
 end
 
-LSFMask=zeros(MUA.Nnodes,1) ;
 
-if ~isempty(F1.LSF) &&  (CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback>0) && ~ZeroFields
 
-    
-    if isempty(F1.dabdh)
-        F1.dabdh=zeros(MUA.Nnodes,1) ;
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
+    if isempty(F1.LSFMask)
+        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
     end
-    
-    if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-
-        if isempty(F1.LSFMask)
-            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-        end
-        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
-
-    end
-
+    LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
+else
+    LSFMask=zeros(MUA.Nnodes,1) ;
 end
 
 
@@ -236,6 +233,35 @@ bnod=reshape(F1.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
 ca=cos(alpha); sa=sin(alpha);
 
 
+if CtrlVar.uvGroupAssembly
+
+    hfnod=rhow*(Snod-Bnod)./rhonod;
+
+    deltanod=DiracDelta(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    Deltanod=DiracDelta(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
+
+    Henod = HeavisideApprox(CtrlVar.kH,hnod-hfnod,CtrlVar.Hh0);
+    HEnod = HeavisideApprox(CtrlVar.kH,hfnod-hnod,CtrlVar.Hh0);
+    Hnod=Snod-Bnod; 
+    Hposnod = HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*Hnod;
+
+    %    dnod = Hposnod.*(Snod-bnod);  % draft
+
+    dnod=HEnod.*rhonod.*hnod/rhow+Henod.*Hposnod ;  % definition of d
+    Dddhnod=HEnod.*rhonod/rhow-Deltanod.*hnod.*rhonod/rhow+deltanod.*Hposnod; % derivative of dnod with respect to hnod
+
+else
+
+
+    Henod=[] ;  deltanod=[] ;   Hposnod=[] ;  dnod=[];   Dddhnod=[];
+
+end
+
+
+
+
+
+
 % [points,weights]=sample('triangle',nip,ndim);
 
 if ~Ronly
@@ -262,6 +288,7 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            Henod,deltanod,Hposnod,dnod,Dddhnod,...
             LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
@@ -285,6 +312,7 @@ else
         [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+            Henod,deltanod,Hposnod,dnod,Dddhnod,...
             LSFMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
@@ -330,6 +358,10 @@ end
 %%
 
 R=Tint-Fext;
+
+% R=Tint-Fext;
+% Tint=[Tx ; Ty ; Th] ;
+% Rint=[Fx ; Fy ; Fh] ;
 
 if ~Ronly
     

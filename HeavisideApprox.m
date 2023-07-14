@@ -6,8 +6,11 @@ function y = HeavisideApprox(k,x,x0)
 	%  The width of the step is about 1/k
 	%  the limit k -> infty is Heaviside step function
 	%  
-	y=1./(1+exp(-2*k*(x-x0)));
-	
-    
+    %
+    %
+
+	y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function 
+	                            %  also same as
+                                %  0.5 + 0.5 tanh(x/2)
 	
 end

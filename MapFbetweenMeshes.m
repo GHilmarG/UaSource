@@ -1,5 +1,6 @@
 function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue)
 
+% Úa
 
 
 narginchk(8,9)
@@ -23,6 +24,14 @@ if ~RunInfo.MeshAdapt.isChanged
     Fnew=Fold;
     BCsNew=BCsOld;
     lnew=lold;
+
+    RunInfo.Mapping.nNewNodes=MUAnew.Nnodes;
+    RunInfo.Mapping.nOldNodes=MUAold.Nnodes;
+    RunInfo.Mapping.nIdenticalNodes=MUAnew.Nnodes;
+    RunInfo.Mapping.nNotIdenticalNodes=0;
+    RunInfo.Mapping.nNotIdenticalNodesOutside=0;
+    RunInfo.Mapping.nNotIdenticalNodesInside=0 ;
+    RunInfo.Mapping.nNotIdenticalInside=0;
 
     return
 end
