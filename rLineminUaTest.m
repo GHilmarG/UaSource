@@ -1,4 +1,4 @@
-function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
+function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUaTest(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
 
 %%
 
@@ -38,7 +38,7 @@ CtrlVar.rLineMinUa="-Auto-" ;  % First do the Newton step, ie H n = -g and evalu
 
 % CtrlVar.rLineMinUa="-Newton-Steepest Descent-Steepest Descent Mass-Plot Quad Approximations-" ;
 % CtrlVar.rLineMinUa="-Newton Step-Cauchy M-step-Cauchy M to Newton-Steepest Descent-Plot Quad Approximations-" ;
-
+% CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
 
 %%
 
@@ -300,6 +300,7 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
         duD=sol(1:nM) ; dvD=sol(nM+1:2*nM); dhD=[] ;
         rDescentFunc=@(gamma) func(gamma,duD,dvD,dlD) ;
         sD=[duD;dvD;dlD];
+    
 
     elseif Variables=="-uvhl-"
 
@@ -311,11 +312,13 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
         duD=sol(1:nM) ; dvD=sol(nM+1:2*nM);  dhD=sol(2*nM+1:3*nM);
         rDescentFunc=@(gamma) func(gamma,duD,dvD,dhD,dlD) ;
         sD=[duD;dvD;dhD;dlD];
+        
 
     end
 
+
     slope0Descent=-2*R'*H*sD/Normalisation ;
-    
+
     if slope0Descent > 0
         slope0Descent = - slope0Descent;
     end
@@ -475,12 +478,11 @@ end
 %% Dogleg, going from the M-Cauchy point towards the Newton point
 if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
 
-    % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
+
     [nM,mM]=size(M);
     TolX=0.02;
     options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
-   
-    FunCN=@(step) Cauchy2Newton(func,step,Variables,nM,CauchyMPointUpdated,NewtonPoint) ;  % remember also to change below in any other calls to Cauchy2Newton! 
+    FunCN=@(step) Cauchy2Newton(func,step,"-uvhl-",nM,CauchyMPointUpdated,NewtonPoint) ;  % remember also to change below in any other calls to Cauchy2Newton! 
     
     [gammaminCN,rCN,exitflag,output]=fminbnd(FunCN,0,1,options) ;
     [stop,Outs]=outfunFminbnd();
@@ -492,7 +494,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
 
         NoReduction=false;   
    
-        [r2Test,rForce,rWork,DuC2N,DvC2N,DhC2N,DlC2N]=Cauchy2Newton(func,gammaminCN,Variables,nM,CauchyMPointUpdated,NewtonPoint) ;
+        [r2Test,rForce,rWork,DuC2N,DvC2N,DhC2N,DlC2N]=Cauchy2Newton(func,gammaminCN,"-uvhl-",nM,CauchyMPointUpdated,NewtonPoint) ;
         
         du=DuC2N;
         dv=DvC2N;

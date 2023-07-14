@@ -1546,10 +1546,86 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 
 %% Calving :  including Level Set Method
-% Calving using the level-set method is currently experimental.
-% For the time being use other options such as the manual element deactivation
 %
-
+% When using the level-set method, the calving fronts can evolve dynamically. The initial position of the calving fronts, and
+% the calving law are defined by the user in 
+% 
+%   DefineCalving.m
+%
+% The level set itself is a field of F,  ie F.LSF
+%
+% Remember that F.LSF is a field and is defined over all nodes of the mesh, ie it is not a line or a collection of lines.
+%
+% The calving fronts locations are calculated by calculating the zero-levels (zero value contour lines) of F.LSF.
+%
+% The user initializes the level-set, ie F.LSF, by setting F.LSF < 0 downstream of calving fronts, and F.LSF > 0 upstream of
+% calving fronts in DefineCalving.m. If a node happens to be exactly at a desired calving front location set F.LSF=0 over
+% those nodes.
+%
+% One simple use of the level-set is simply to prescribe the level-set directly at any given time. This option can be
+% selected by setting
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-prescribed-"  ;
+%
+% When using this option, the user can prescribe the calving front locations by setting F.LSF accordingly. In general, this
+% only needs to be done if F.LSF=[] at entry to the DefineCalving.m or if the user wants to change F.LSF from its previous
+% value.  Note that when mapping LSF to a new mesh when using this option (ie when  the new
+% CtrlVar.LevelSetEvolution="-prescribed-") F.LSF is defined by call to DefineCalving.m and is set to empty ahead of this
+% call (F.LSF=[]).  It is the responsibility of the user to define F.LSF in DefineCalving.m whenever F.LSF=[] at entry.
+% 
+%
+% To evolve the calving fronts dynamically based on a calving law
+% 
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-By solving the level set equation-" ;
+%
+% The calving rate
+%
+%   F.c
+%
+% can then be defined in 
+% 
+%   DefineCalving.m  
+% 
+% Again, remember that the calving rate, F.c, is a field just like F.LSF and defined
+% everywhere within the domain.  
+% 
+% To, for example, define a calving rate that is directly propotional to ice thicness, set
+%
+%   F.c=F.h
+%
+% and if calving is a linear function of cliff height set
+%
+%   F.c= k*CliffHeight
+%
+% where, for example, 
+%
+%   CliffHeight=min((F.s-F.S),F.h).*F.rho./1000;  
+% 
+% and k is some number.
+%
+%
+% If the calving rate is a function of the gradients of the level-set, the calving rate must be defined at the element
+% integration points using
+%
+%
+%   [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
+%
+% which provies dphi/dx and dphi/dy where phi is the level-set function
+%
+% This is, for example, required if the calving rate is a function of velocities normal to the calving front.
+%
+% The user must then also return derivatives of the calving rate, c, with respect to x and y derivatives of the level set,
+% ie 
+% 
+% $$\frac{dc}{d (d \phi/dx)}$$
+%
+% $$\frac{dc}{d (d \phi/dy)}$$
+% 
+% More details are provided in the UaCompendium
+%
 CtrlVar.LevelSetMethod=0; 
 CtrlVar.LevelSetMethodTest=0;  %  
 

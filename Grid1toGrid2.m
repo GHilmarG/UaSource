@@ -12,7 +12,7 @@ function f2=Grid1toGrid2(DTgrid1,f1,x2,y2,CtrlVar,OutsideValue)
     %        Use MATLAB scatteredinterpolant instead, or consider using MapFbetweenMeshes.m
     % 
     %       
-    %
+    % 
 
     %
     %%

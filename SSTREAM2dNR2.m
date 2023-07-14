@@ -361,7 +361,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         ResidualReduction=r/r0;
         
         if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
-            PlotForceResidualVectors('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
+            %PlotForceResidualVectors2('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
+            PlotForceResidualVectors2(CtrlVar,MUA,F,'uv',Ruv,L,l.ubvb,iteration);
         end
         
         if NRincomplete
