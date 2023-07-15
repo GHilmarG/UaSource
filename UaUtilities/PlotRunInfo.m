@@ -43,7 +43,8 @@ fHist=FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName) 
 
 items=numel(find(~isnan( RunInfo.Forward.dt)));
 nbins=max(10,fix(items/20));
-histogram(RunInfo.Forward.dt,nbins) ; xlabel('time step, $\mathrm{d}t$',Interpreter='latex')
+histogram(RunInfo.Forward.dt,nbins,Normalization="probability") ; 
+xlabel('time step, $\mathrm{d}t$',Interpreter='latex')
 title('dt Histogram')
 
 
