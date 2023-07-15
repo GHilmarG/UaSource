@@ -239,11 +239,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             break
         end
 
-        if r/r0 > 0.9999
+        rRatioMin=0.99999 ;
+        if r/r0 > rRatioMin 
 
             if CtrlVar.InfoLevelNonLinIt>=1
-                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0 ratio greater than 0.9999 \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,iteration) ;
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0=%-g ratio greater than %g \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
+                    CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
             end
 
         
