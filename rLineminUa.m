@@ -248,12 +248,14 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
         dv=gammaminCauchyM*DvM;
         dh=gammaminCauchyM*DhM;
         dl=gammaminCauchyM*DlM;
-        gammamin=gammaminCauchyM;
+        
         rmin=rminCauchyM;
         BackTrackInfo=BackTrackInfoCauchyM;
         BackTrackInfo.Direction="MD" ;
         BestMethod="Mass Steepest Descent" ;
-        [rTest,~,~,rForce,rWork,D2]=funcCauchyM(gammamin);
+        % gammamin=gammaminCauchyM;
+        % [rTest,~,~,rForce,rWork,D2]=funcCauchyM(gammamin);
+        rForce=rmin ; rWork=nan ; D2=nan ;
         gammamin=gammaminCauchyM/gammaCauchyM ;  % on return, normalize this with the min of the quad model
        
         

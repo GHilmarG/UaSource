@@ -29,10 +29,19 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
 
 
     if ~CtrlVar.ThicknessConstraints
-        
-        
+
+
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-        
+
+        if ~RunInfo.Forward.uvhConverged
+
+            [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
+
+        end
+
+        F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
+
+
         if numel(RunInfo.Forward.uvhActiveSetIterations)<CtrlVar.CurrentRunStepNumber
             RunInfo.Forward.uvhActiveSetIterations=[RunInfo.Forward.uvhActiveSetIterations;RunInfo.Forward.uvhActiveSetIterations+NaN];
             RunInfo.Forward.uvhActiveSetCyclical=[RunInfo.Forward.uvhActiveSetCyclical;RunInfo.Forward.uvhActiveSetCyclical+NaN];
@@ -44,65 +53,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
         RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=NaN;
 
 
-        if ~RunInfo.Forward.Converged
-
-            warning('uvh:nonconvergent1','Resetting F1 velocities to zero, and trying again.\n')
-            filename='Dump-uvh-NoConvergence-ResetVelocities';
-            fprintf('Saving all data in %s \n',filename)
-            save(filename)
-
-            % If uvh solution did not converge, reset F1 to F0 and try again
-            F1.ub=F1.ub*0 ; F1.vb=F1.vb*0 ;F1.ud=F1.ud*0 ;F1.ud=F1.ud*0 ;
-            F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-            % alos check F0 and F1.dubdt, may need to set those to zero
-            [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-
-            if ~RunInfo.Forward.Converged
-
-                warning('uvh:nonconvergent2','uvh solve still not convergent. Doing a new uv diagnostic solve, to establish a new starting point for F1 velocities.\n')
-                filename='Dump-uvh-NoConvergence-AheadOfNew-uv-solve';
-                fprintf('Saving all data in %s \n',filename)
-                save(filename)
-
-                % If this did not work, find a new initial point for F0 using F0 calculated velocities as a start
-                [UserVar,RunInfo,F0,l0]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l0);
-
-                if ~RunInfo.Forward.Converged
-
-                    warning('uv:nonconvergent','uv not convergent. Setting F0 velocities to zero, and atempting another uv diagnostic solve.\n')
-                    filename='Dump-uvh-NoConvergence-AheadOfAnotherNew-uv-solve';
-                    fprintf('Saving all data in %s \n',filename)
-                    save(filename)
-
-                    % If this did not work, find a new intial point for F0 after resetting velocities
-                    F0.ub=F0.ub*0 ; F0.vb=F0.vb*0 ;F0.ud=F0.ud*0 ;F0.ud=F0.ud*0 ;
-                    F0=StartVelocity(CtrlVar,MUA,BCs1,F0) ;
-                    [UserVar,RunInfo,F0,l0] = uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l0);
-
-                end
-
-                if RunInfo.Forward.Converged
-                    F1=F0;
-                    [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
-                else
-
-                    warning('uvh:nonconvergent','Despite a number of atemptes, uvh solve not convergent. Returning nan in solution .\n')
-                    filename='Dump-uvh-NoConvergence-FinalAtempt';
-                    fprintf('Saving all data in %s \n',filename)
-                    save(filename)
-                    F0.ub=F0.ub+nan; F0.vb=F0.vb+nan ;F0.ud=F0.ud+nan ;F0.ud=F0.ud+nan ;
-                end
-
-            else
-
-                % I now need to recalculate F0.dubdt as these might be used as Fm1.dubdt in the explicit estimation for next time step
-
-                [F1,F0]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
-
-            end
 
 
-        end
 
 
     else   %  Thickness constraints used
@@ -180,7 +132,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
                 end
 
 
-                if RunInfo.Forward.Converged==1
+                if RunInfo.Forward.uvhConverged==1
                     break
                 end
 
@@ -240,8 +192,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F1,
                     
                     ReduceTimeStep=1;
                     dtOld=CtrlVar.dt;
-                    dt=dt/2; CtrlVar.dt=dt;
-                    F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
+                    dt=dt/2; CtrlVar.dt=dt; F1.dt=CtrlVar.dt ;  F0.dt=CtrlVar.dt ; 
                     
                     fprintf(CtrlVar.fidlog,' Warning : Reducing time step from %-g to %-g \n',dtOld,CtrlVar.dt);
                     fprintf(CtrlVar.fidlog,'Also resetting u1, v1, h1 to ub0, vb0 and h0, and setting estimates for Lagrange parameters to zero. \n');
