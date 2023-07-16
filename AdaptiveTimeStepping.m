@@ -188,6 +188,10 @@ if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the numb
 
 end
 
+ dtOut=round(dtOut,2,"significant") ;
+
+
+
 if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
     dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;

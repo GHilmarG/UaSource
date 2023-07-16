@@ -50,7 +50,7 @@ else
     Variables="-uvhl-";
 end
 
-rRatioReductionAccepted=0.5 ; 
+rRatioReductionAccepted=0.65 ; 
 
 
 if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,"-Auto-")
