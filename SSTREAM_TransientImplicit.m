@@ -160,7 +160,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
     iteration=0 ;
     
-    RunInfo.Forward.Converged=0;
+    RunInfo.Forward.uvhConverged=0;
     RunInfo.BackTrack.Converged=1 ;
     r=inf;  rWork=inf ; rForce=inf; r0=inf; 
     gamma=1 ;
@@ -207,7 +207,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                 fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
             end
-            RunInfo.Forward.Converged=1;
+            RunInfo.Forward.uvhConverged=1;
             break
             
         end
@@ -220,7 +220,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                 fprintf(' Exiting uvh iteration after %-i iterations with r=%-g \n',iteration,r)
             end
             
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.uvhConverged=0;
             break
         end
 
@@ -235,19 +235,20 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
                     CtrlVar.time,CtrlVar.dt,r,iteration) ;
             end
 
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.uvhConverged=0;
             break
         end
 
-        if r/r0 > 0.9999
+        rRatioMin=0.99999 ;
+        if r/r0 > rRatioMin 
 
             if CtrlVar.InfoLevelNonLinIt>=1
-                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0 ratio greater than 0.9999 \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
-                    CtrlVar.time,CtrlVar.dt,r,iteration) ;
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0=%-g ratio greater than %g \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
+                    CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
             end
 
         
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.uvhConverged=0;
             break
         end
 
@@ -551,13 +552,6 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     if iteration > CtrlVar.NRitmax
         fprintf(CtrlVar.fidlog,'Warning: maximum number of NRuvh iterations %-i reached \n',CtrlVar.NRitmax);
         warning('SSTREAM_TransientImplicit:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
-        filename='Dumpfile_SSTREAM_TransientImplicit.mat';
-        fprintf('Saving all data in a dumpfile %s \n',filename)
-        try
-            save(filename)
-        catch
-            warning("SSTREAM_TransientImplicit:SaveFileError","Could not save file %s",filename);
-        end
     end
 
 

@@ -321,7 +321,7 @@ CtrlVar.time0=CtrlVar.time;
 
 
 RunInfo.Forward.IterationsTotal=0; 
-RunInfo.Forward.Converged=true; 
+RunInfo.Forward.uvhConverged=true; 
 %%  RunStep Loop
 while 1
     
@@ -596,7 +596,7 @@ while 1
             
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             
-            if ~RunInfo.Forward.Converged
+            if ~RunInfo.Forward.uvhConverged
                 
                 warning("Ua2D:WTSHTF","uvh did not converge")
                 filename="DumpWTSHTD.mat";

@@ -81,7 +81,7 @@ switch lower(CtrlVar.FlowApproximation)
 
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
-        if ~RunInfo.Forward.Converged
+        if ~RunInfo.Forward.uvConverged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
             F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
             [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
@@ -94,7 +94,7 @@ switch lower(CtrlVar.FlowApproximation)
 
         [F.ud,F.vd,F.ub,F.vb]=uvSSHEET(CtrlVar,MUA,BCs,F.AGlen,F.n,F.C,F.m,F.rho,F.g,F.s,F.h);
         l.ubvb=[] ; Kuv=[] ; Ruv=[];
-        RunInfo.Forward.Converged=1;
+        RunInfo.Forward.uvConverged=1;
         RunInfo.Forward.Iterations=NaN;
         RunInfo.Forward.Residual=NaN;
 

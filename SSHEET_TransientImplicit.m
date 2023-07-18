@@ -1,9 +1,5 @@
 function [UserVar,RunInfo,F1,l1,BCs]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs)
 
-% [UserVar,ud1,vd1,h1,s1,GF1,lambdah1,RunInfo]=SSHEET_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,dt,h1,h0,S,B,as0,ab0,as1,ab1,lambdah,AGlen,n,C,m,rho,rhow,g)
-
-
-
 %  s and h are the initial estimates for s1 and h1
 %  these are then updated, once convergent, I set s1=s and h1=h
 
@@ -83,7 +79,7 @@ while true
                 fprintf(' SSHEET(h) (time|dt)=(%g|%g): Converged with rForce=%-g and rWork=%-g in %-i iterations and in %-g  sec \n',...
                     CtrlVar.time,CtrlVar.dt,rForce,rWork,iteration,tEnd) ;
             end
-            RunInfo.Forward.Converged=1;  RunInfo.Forward.hConverged=1;
+            RunInfo.Forward.uvhConverged=1;  RunInfo.Forward.hConverged=1;
             
             break
             
@@ -102,7 +98,7 @@ while true
                 fprintf(RunInfo.File.fid,' Exiting h iteration after %-i iterations with r=%-g \n',iteration,r);
             end
             
-            RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
+            RunInfo.Forward.uvhConverged=0;  RunInfo.Forward.hConverged=0;
             
             break
         end
@@ -256,7 +252,7 @@ tEnd=toc(tStart);
 RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
 
 if RunInfo.BackTrack.Converged==0
-    RunInfo.Forward.Converged=0;  RunInfo.Forward.hConverged=0;
+    RunInfo.Forward.uvhConverged=0;  RunInfo.Forward.hConverged=0;
 end
 
 
