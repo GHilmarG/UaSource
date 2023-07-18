@@ -91,8 +91,10 @@ if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,
     rminNewtonRatio=rminNewton/r0; 
     if  contains(CtrlVar.rLineMinUa,"-Auto-") &&  gammaminNewton < gammaminNewtonAccepted  && rminNewtonRatio > rminNewtonRatioAccepted
 
-        fprintf(' rLineminUa: Newton step is %f and smaller that %f  \n ',gammaminNewton,gammaminNewtonAccepted) ;
-        fprintf(' rLineminUa: Will now try using Cauchy step Steepest Descent were the mass matrix replaces the Hessian \n ') ;
+        if CtrlVar.InfoLevelNonLinIt >= 10 
+            fprintf(' rLineminUa: Newton step is %f and smaller that %f  \n ',gammaminNewton,gammaminNewtonAccepted) ;
+            fprintf(' rLineminUa: Will now try using Cauchy step Steepest Descent were the mass matrix replaces the Hessian \n ') ;
+        end
         CtrlVar.rLineMinUa="-Auto-Cauchy M-step-" ;
 
     end
@@ -257,20 +259,21 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
         % [rTest,~,~,rForce,rWork,D2]=funcCauchyM(gammamin);
         rForce=rmin ; rWork=nan ; D2=nan ;
         gammamin=gammaminCauchyM/gammaCauchyM ;  % on return, normalize this with the min of the quad model
-       
-        
+
+
     end
 
     if rminCauchyM < r0
 
-        NoReduction=false; 
-
-        fprintf(' rLineminUa: M-Cauchy point led to a reduction with respect to r0, with rminCauchyM/r0=%f \n ',rminCauchyM/r0) ;
-
+        NoReduction=false;
+        if CtrlVar.InfoLevelNonLinIt >= 10
+            fprintf(' rLineminUa: M-Cauchy point led to a reduction with respect to r0, with rminCauchyM/r0=%f \n ',rminCauchyM/r0) ;
+        end
         if  contains(CtrlVar.rLineMinUa,"-Auto-")
 
-            fprintf(' rLineminUa: Will now do the rest of the dogleg and go from Cauchy to Newton \n ') ;
-
+            if CtrlVar.InfoLevelNonLinIt >= 10
+                fprintf(' rLineminUa: Will now do the rest of the dogleg and go from Cauchy to Newton \n ') ;
+            end
             CtrlVar.rLineMinUa="-Auto-Cauchy M to Newton-" ;
             % If Newton step is not accepted, try Steepest Descent.
 
@@ -282,7 +285,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
 
                 CtrlVar.rLineMinUa="-Auto-Cauchy M to Newton-" ;
 
-            % else
+                % else
 
 
                 dx=sM ;                % setting direction the be the that of M-modified steepest Descent
@@ -293,8 +296,10 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
                 EstimatedReduction=r0-rminQCauchyM;
                 ActualReductoni=r0-rminCauchyM;
                 ratioEstimated2Actual=EstimatedReduction/ActualReductoni;
-                fprintf("ratio between estimated and realized reduction in MCauchy step is %f \n",ratioEstimated2Actual)
 
+                if CtrlVar.InfoLevelNonLinIt >= 10
+                    fprintf("ratio between estimated and realized reduction in MCauchy step is %f \n",ratioEstimated2Actual)
+                end
                 if ratioEstimated2Actual > 0.8 && ratioEstimated2Actual < 1.8
                     % Q model is good, so try going from here towards the Newton point
                     CtrlVar.rLineMinUa="-Auto-Cauchy M to Newton-" ;
@@ -423,10 +428,17 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
     % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
     [nM,mM]=size(M);
     TolX=0.02;
-    options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
-   
-    FunCN=@(step) Cauchy2Newton(func,step,Variables,nM,CauchyPointUpdated,NewtonPoint) ;  % remember also to change below in any other calls to Cauchy2Newton! 
-    
+
+
+    if CtrlVar.InfoLevelNonLinIt >= 10 
+        options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
+    else
+        options = optimset('Display','off','TolX',TolX,'OutputFcn',@outfunFminbnd);
+    end
+
+
+    FunCN=@(step) Cauchy2Newton(func,step,Variables,nM,CauchyPointUpdated,NewtonPoint) ;  % remember also to change below in any other calls to Cauchy2Newton!
+
     [gammaminCN,rCN,exitflag,output]=fminbnd(FunCN,0,1,options) ;
     [stop,Outs]=outfunFminbnd();
 
@@ -458,7 +470,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
     end
 
 
-    if CtrlVar.InfoLevelBackTrack >= 1000
+    if CtrlVar.InfoLevelNonLinIt >= 1000
         
         
         % r2Newton=rNewtonFunc(1) ;
@@ -622,7 +634,7 @@ if contains(CtrlVar.rLineMinUa,"-Plot Quad Approximations-")
     %% Plot r2 along Cauchy to Newton direction
 
 
-    
+
 
     gVector=linspace(0,1,nPoints)' ;
     [nM,mM]=size(M);
@@ -632,7 +644,10 @@ if contains(CtrlVar.rLineMinUa,"-Plot Quad Approximations-")
         r2(I)=Cauchy2Newton(func,gVector(I),"-uvhl-",nM,CauchyPointUpdated,NewtonPoint) ;
     end
 
+
     options = optimset('Display','iter','TolX',0.02,'OutputFcn',@outfunFminbnd);
+
+
     FunCN=@(step) Cauchy2Newton(func,step,"-uvhl-",nM,CauchyMPoint,NewtonPoint) ;
     [gammaminCN,rCN,exitflag,output]=fminbnd(FunCN,0,1,options) ;
     [stop,Outs]=outfunFminbnd();
@@ -690,14 +705,14 @@ end
 rRatioMin=0.99999 ;
 if NoReduction || rmin/r0 >  rRatioMin
     BackTrackInfo.Converged = false ;
-    CtrlVar.InfoLevelBackTrack = 2 ;
+    CtrlVar.InfoLevelNonLinIt = 10 ;
 else
     BackTrackInfo.Converged = true ;
 end
 
 %% Summary
-CtrlVar.InfoLevelBackTrack = 2 ; 
-if CtrlVar.InfoLevelBackTrack >= 2
+
+if CtrlVar.InfoLevelNonLinIt >= 10
     fprintf(" [---------- rLineminUa: \n")
     fprintf("\t r0=%-13.7g \t r1/r0=%-13.7g \t rNewton/r0=%-13.7g \t rminCauchyM/r0=%-13.7g \t rDescent/r0=%-13.7g \t rCN/r0=%-13.7g \n",r0,r1/r0,rminNewton/r0,rminCauchyM/r0,rminCauchyD/r0,rCN/r0)
     fprintf("\t g0=%-13.8g \t    g1=%-13.7g \t    gNewton=%-13.7g \t             gM=%-13.7g \t    gDescent=%-13.7g \t    gCM=%-13.7g \n",0,1,gammaminNewton,gammaminCauchyM/gammaCauchyM,gammaminCauchyD,gammaminCN)
