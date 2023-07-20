@@ -103,7 +103,7 @@ end
 [Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
 
 
-title(sprintf("Ele=%i Nodes=%i nod=%i \n (max/mean,median,min)=(%6.1f/%6.1f/%6.1f/%6.1f) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+title(sprintf("Ele=%i Nodes=%i nod=%i \n (max,mean,median,min)=(%6.1f,%6.1f,%6.1f,%6.1f) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
 
 
 end

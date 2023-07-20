@@ -46,8 +46,9 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %
 %%
 BackTrackInfo.Converged=0;
+BackTrackInfo.Direction="   " ;
 nFuncEval=0; 
-
+JustPlot=false;
 
 if nargin< 6
     CtrlVar=[];
@@ -209,6 +210,7 @@ if isempty(fb) || isnan(fb)
 end
 
 
+xStart=b ; fStart=fb; 
 
 Infovector(1:2,1)=[a ; b ] ;  Infovector(1:2,2)=[ fa ; fb ] ; iq=2;  
 [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
@@ -217,24 +219,31 @@ BackTrackInfo.Infovector=Infovector;
 BackTrackInfo.nExtrapolationSteps=0;
 
 
-if fb<target 
-    
-    % fmin=fb ; gmin=b ;  % there is a possibiliyt that fb was smaller then the target, but that fa was smaller still
-    % so just return the smallest value, obtained so far which is fmin at gmin
-    
+if fb<target
+
+
     if CtrlVar.InfoLevelBackTrack>=2
         fprintf('B: At start fb<target  (%g<%g). Exiting backtracking \n',fb,target)
     end
     BackTrackInfo.Converged=1;
     BackTrackInfo.nFuncEval=nFuncEval;
-    I=isnan(Infovector(:,1)) ; Infovector(I,:)=[]; 
+    I=isnan(Infovector(:,1)) ; Infovector(I,:)=[];
     BackTrackInfo.Infovector=Infovector;
-    
+
     if ~isempty(nOut) && nOut> 0
         [fmin,varargout{1:nOut-1}]=Func(gmin,varargin{:}) ;
     end
-    
-    return
+    % now fmin < ftarget
+    % I can now return
+    % The only exception is if the user requests information about the
+    % backtracking and some pltos
+
+    if ~(CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1 )
+        return
+    else
+        JustPlot=true;
+    end
+
 end
 
 if ~NoSlopeInformation
@@ -252,22 +261,27 @@ elseif gamma < CtrlVar.BackTrackGuardLower*b
 end
 
 
-
-iarm=1 ;     BackTrackInfo.iarm=iarm;
-if Fargcollect
-    [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
-    nFuncEval=nFuncEval+1; 
-    if ~isempty(listOutF) && ~isempty(listInF)
-        [varargin{listInF}]=varargout{listOutF-1} ;
+if fmin>target
+    iarm=1 ;     BackTrackInfo.iarm=iarm;
+    if Fargcollect
+        [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
+        nFuncEval=nFuncEval+1;
+        if ~isempty(listOutF) && ~isempty(listInF)
+            [varargin{listInF}]=varargout{listOutF-1} ;
+        end
+    else
+        fgamma=Func(gamma);
+        nFuncEval=nFuncEval+1;
     end
+
+    gammaOld=gamma ;
+
+    iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ;
 else
-    fgamma=Func(gamma);
-    nFuncEval=nFuncEval+1; 
+    gammaOld=gamma ;  gamma=b ; fgamma=fb ; 
 end
 
-gammaOld=gamma ;
-
-iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
+[fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
 
 c=b; fc=fb ; b=gamma ; fb=fgamma ;
 
@@ -367,7 +381,7 @@ if  Extrapolation>0
 end
 
 fLastReduction=1;
-while fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan 
+while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductionRatioLessThan ) && ~JustPlot
     iarm=iarm+1; BackTrackInfo.iarm=iarm;
     
     
@@ -596,23 +610,29 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 
 %% Info
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
-    
+
+    warning('off','MATLAB:decomposition:SaveNotSupported')
+    warning('off','MATLAB:decomposition:genericError')
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+
     if CtrlVar.InfoLevelBackTrack>=1000
-        nnn=10 ; 
-        
+        nnn=10 ;
+
         rTestVector=zeros(nnn,1)+NaN ;
-        Upper=1.25*max(Infovector(:,1)) ; Lower=0; 
+        Upper=1.25*max(Infovector(:,1)) ; Lower=0;
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
-        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)]; 
+        gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
         parfor I=1:numel(gammaTestVector)
-            gammaTest=gammaTestVector(I); 
+            gammaTest=gammaTestVector(I);
             rTest=Func(gammaTest);
-            gammaTestVector(I)=gammaTest ; 
+            gammaTestVector(I)=gammaTest ;
             rTestVector(I)=rTest;
         end
     end
-    
+
     if isfield(CtrlVar,"BacktracFigName")
         FigName=CtrlVar.BacktracFigName  ;
     else
@@ -624,7 +644,6 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     
     xlabel('$\gamma$',Interpreter='latex') ; 
     ylabel('Cost',Interpreter='latex') ;
-    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation))
     
     hold on
     plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10)
@@ -647,19 +666,25 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         hold on
         dx=min(Infovector(2:end,1)/10) ;
         plot([0 dx],[f0 f0+slope0*dx],'g','LineWidth',2)
-        hold off
-        
-        % slopeExperimenta=(rTest(2)-rTest(1))/(gammaTestVector(2)-gammaTestVector(1));
-        
         
     end
 
-    legend("backracking curve values","estimated minimum","cost curve","estimated slope at origin",Location="best",interpreter="latex")
+
+    plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5); 
+
+    legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
+
+
+    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
+    subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+    drawnow
     %          prompt = 'Do you want more? Y/N [Y]: ';
     %          str = input(prompt,'s');
     %          if isempty(str)
     %              str = 'Y';
     %          end
+
 end
 
 %%

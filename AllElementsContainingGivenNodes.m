@@ -25,6 +25,9 @@ function  I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 %
 %%
 
+if islogical(NodeList)
+    NodeList=find(NodeList) ;
+end
 
 if nargin<3
     I=any(ismember(connectivity,NodeList),2);

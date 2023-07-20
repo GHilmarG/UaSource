@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-07-26"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-07-09"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,13 +68,16 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#6">Types of run</a></li><li><a href="#7">Ice flow approximation</a></li><li><a href="#8">Slope of coordinate system with respect to gravity</a></li><li><a href="#9">Sliding law</a></li><li><a href="#10">Boundary conditions</a></li><li><a href="#11">Ensuring flotation</a></li><li><a href="#12">Manually updating geometry in the course of a run.</a></li><li><a href="#14">Element type</a></li><li><a href="#15">Control on transient runs</a></li><li><a href="#16">Restart option</a></li><li><a href="#18">Plotting</a></li><li><a href="#19">Plotting mesh</a></li><li><a href="#20">Numerical variables related to transient runs</a></li><li><a href="#21">Explicit estimation</a></li><li><a href="#22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#23">Constraints on viscosity and slipperiness</a></li><li><a href="#24">Non-linear iteration-loop parameters</a></li><li><a href="#25">uvh Convergence criteria</a></li><li><a href="#26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#27">Backtracking parameters  -line search</a></li><li><a href="#28">Lin equation solver parameters</a></li><li><a href="#29">Internal variables related to matrix assembly</a></li><li><a href="#30">Number of integration points and/or quadrature rule degree</a></li><li><a href="#31">Level of information given during a run</a></li><li><a href="#32">Inversion</a></li><li><a href="#33">Inversion algorithim:</a></li><li><a href="#43">Comparing adjoint gradients with finite-difference gradients</a></li><li><a href="#44">Inverse testing parameters (do not change)</a></li><li><a href="#45">Numbering of nodes and elements</a></li><li><a href="#46">Outputs</a></li><li><a href="#47">Obtaining information about the run, during the run.</a></li><li><a href="#48">General Meshing Options</a></li><li><a href="#49">Selecting the external mesh generator</a></li><li><a href="#50">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#51">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#52">Controlling element sizes</a></li><li><a href="#53">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#54">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#55">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#56">Uniform global mesh refinement</a></li><li><a href="#57">Adaptive mesh refinement</a></li><li><a href="#58">Calving :  including Level Set Method</a></li><li><a href="#59">Controlling when and how often mesh is adapted</a></li><li><a href="#60">Mesh refinement criteria</a></li><li><a href="#61">Mesh smoothing</a></li><li><a href="#62">Local mesh refinement around grounding line</a></li><li><a href="#63">Local mesh refinement around calving front</a></li><li><a href="#64">Parameters affecting the floating mask</a></li><li><a href="#65">Parameters affecting calculation of grounding line</a></li><li><a href="#67">A and C as element or nodal variables</a></li><li><a href="#68">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step) (automated time stepping)</a></li><li><a href="#69">Mass-balance geometry feedback</a></li><li><a href="#70">Sea ice/melange</a></li><li><a href="#72">Mapping from Mesh1 to Mesh2</a></li><li><a href="#73">Parallel options:</a></li><li><a href="#75">Tracers</a></li><li><a href="#77">Mapping variables from one FE mesh to another</a></li><li><a href="#79">Internal variables and  temporary testing parameters</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
-</pre><p>CtrlVar=Ua2D_DefaultParameters</p><pre>sets the fields of the CtrlVar to their default values</pre><pre>Most likely when running &Uacute;a, only a fairly limited number of the parameters listed below need to be set/changed.
+</pre><p>CtrlVar=Ua2D_DefaultParameters</p><pre>sets the fields of the CtrlVar to their default values</pre><pre>Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed.
 Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'.
 That user m-file should be located in a separate run-directory, together with all the other user m-files</pre><pre class="codeinput">CtrlVar.WhoAmI=<span class="string">"Ua2D CtrlVar"</span> ;
 </pre><pre class="codeinput">CtrlVar.Experiment=<span class="string">'UaDefaultRun'</span>;
 CtrlVar.time=0;               <span class="comment">% In a transient run this variable is the (model) time. Set to some</span>
                               <span class="comment">% reasonable initial value, for example CtrlVar.time=0;</span>
-</pre><h2 id="6">Types of run</h2><pre class="codeinput">CtrlVar.TimeDependentRun=0 ;  <span class="comment">% either [0|1].</span>
+</pre><h2 id="6">Types of run</h2><pre class="codeinput">CtrlVar.UaRunType=<span class="string">""</span> ; <span class="comment">% "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ;</span>
+
+
+CtrlVar.TimeDependentRun=0 ;  <span class="comment">% either [0|1].</span>
                               <span class="comment">% If true (i.e. set to 1) then the run is a forward transient one, if not</span>
                               <span class="comment">% then velocities based on the current geometry are calculated.</span>
 CtrlVar.InverseRun=0;         <span class="comment">% if true then a surface-to-bed inversion is to be performed.</span>
@@ -86,7 +89,8 @@ CtrlVar.Restart=0;            <span class="comment">% If true then the run is a 
                               <span class="comment">%       CtrlVar.Restart=1;</span>
                               <span class="comment">% results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)</span>
                               <span class="comment">%</span>
-
+CtrlVar.Implicituvh=1;           <span class="comment">% 0: prognostic run is semi-implicit (implicit with respect to h only)</span>
+                                 <span class="comment">% 1: prognostic run is fully-implicit (implicit with respect to uvh)</span>
 
 CtrlVar.TotalNumberOfForwardRunSteps=1;   <span class="comment">% maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.</span>
                                           <span class="comment">% In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.</span>
@@ -229,11 +233,38 @@ CtrlVar.TG3=0 ; <span class="comment">% if true, the prognostic steps uses a thi
 CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     <span class="comment">% keep zero (only used for testing)</span>
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    <span class="comment">% keep zero (only used for testing)</span>
 </pre><h2 id="21">Explicit estimation</h2><p>In a transient run u, v and h can estimated explicity ahead of an implicit uvh calculation.  If the explicit estimate is a good starting point, then the number of non-linear uvh iterations is reduced. One can either use second-order Adams-Bashforth method for a variable time step, or calculate dh/dt explicitly from flux convergence and then set h1=h0+dt dh/dt.   Generally both method work fine and the Adams-Bashforth method used to be the default approach. However, experience has shown that occasionally the Adams-Bashforth extrapolation appears to give rise to a bad starting points for the uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in the sense that one calculates dh/dt directly from the velocity field, rather than using an estimate of dh/dt from the two previous solutions.</p><pre class="codeinput">CtrlVar.ExplicitEstimationMethod=<span class="string">"-Adams-Bashforth-"</span> ; <span class="comment">% {"-Adams-Bashforth-","-dhdt-"}</span>
-CtrlVar.MustBe.ExplicitEstimationMethod=[<span class="string">"-Adams-Bashforth-"</span>,<span class="string">"-dhdt-"</span>] ;
+CtrlVar.MustBe.ExplicitEstimationMethod=[<span class="string">"-Adams-Bashforth-"</span>,<span class="string">"-dhdt-"</span>,<span class="string">"-no extrapolation-"</span>] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ;
-</pre><h2 id="22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</h2><pre class="codeinput">CtrlVar.SpeedZero=1e-4;     <span class="comment">% needs to be larger than 0 but should also be much smaller than any velocities of interest.</span>
+</pre><h2 id="22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</h2><p>Note: Some of those paramters have physical dimentions and these values may have to be       adjusted to the specific situation.</p><pre class="codeinput">CtrlVar.SpeedZero=1e-4;     <span class="comment">% needs to be larger than 0 but should also be much smaller than any velocities of interest.</span>
 CtrlVar.EpsZero=1e-10;      <span class="comment">% needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.</span>
-CtrlVar.Czero=0 ; <span class="comment">% 1e-20    ;    % must be much smaller than C.</span>
+
+CtrlVar.etaZero=10; <span class="comment">%  Minimum value for the effective viscosity</span>
+<span class="comment">%                      For Glens flow law the effective viscosity is 0.5 A^(-1/n) e^((1-n)/n)</span>
+<span class="comment">%                      where e is the effective strain rate.  The effective</span>
+<span class="comment">%                      strain rate on glaciers is usually around 10^(-4) to</span>
+<span class="comment">%                      10^(-2) 1/yr.  A save lower estimate for the effective viscosity would then be</span>
+<span class="comment">%                      taking A for temperate ice and strain rates of 1 (1/yr).</span>
+<span class="comment">%                      giving:</span>
+<span class="comment">%                      n=3 ; eps=1 ; 0.5*AGlenVersusTemp(0)^(-1/n) *181 eps^((1-n)/n) =181</span>
+<span class="comment">%                      So settting etaZero=10 kPa/yr would not affect the effective viscosity</span>
+<span class="comment">%                      in all realistic cases.  However, this might</span>
+<span class="comment">%                      sometimes need to me adjusted. Before May-2023 the</span>
+<span class="comment">%                      default value was etaZero=0, ie no lower limit on</span>
+<span class="comment">%                      the effective viscosity, but this did occasionally</span>
+<span class="comment">%                      cause numerical convergence issues.</span>
+<span class="comment">%</span>
+<span class="comment">%                      Whatever value for etaZero is selected, the value should be small compared to</span>
+<span class="comment">%                      the smallest eta values based on direct use of Glen's flow law.</span>
+<span class="comment">%                      This can be tested by calculating the effective</span>
+<span class="comment">%                      viscosity values and plotting a histogram and making</span>
+<span class="comment">%                      and inspecting the distribution and how it is</span>
+<span class="comment">%                      affected by the value of etaZero, e.g.</span>
+<span class="comment">%</span>
+<span class="comment">%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+
+CtrlVar.Czero=0 ;           <span class="comment">% must be much smaller than C.</span>
 CtrlVar.HeZero=0;           <span class="comment">% shifts the floating/grounding mask when calculating basal drag, must be &lt;&lt; 1. (In effect this shift introduces a</span>
                             <span class="comment">% non-zero basal drag term everywhere.)</span>
                             <span class="comment">%</span>
@@ -266,11 +297,11 @@ CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
-CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
-CtrlVar.uvExitBackTrackingStepLength=1e-4;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.uvExitBackTrackingStepLength=1e-10;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
@@ -303,6 +334,9 @@ CtrlVar.MustBe.LSFMinimisationQuantity=[<span class="string">"Force Residuals"</
 
 CtrlVar.uvh.SUPG.tau=<span class="string">"taus"</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 CtrlVar.h.SUPG.tau=<span class="string">"taus"</span>;  CtrlVar.h.SUPG.Use=1;
+
+CtrlVar.uvh.SUPG.tauMultiplier=1 ;
+CtrlVar.h.SUPG.tauMultiplier=1 ;
 </pre><h2 id="26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</h2><p>When solving the non-linear system (forward model) the recommended option is is to use the full Newton-Raphson method</p><p>One can also use the modified Newton-Raphson or the Picard iteration.</p><p>Modified Newton-Raphson only evaluates the left-hand side (the stiffness matrix) if certain criteria are fulfilled. This will reduced time spend with matrix assembly but also reduced the rate of convergence. Depending on the problem using the modified NR method may, or may not, lead to an overall reduction in computational time.</p><p>When using the modified Newton-Raphson method, there are two criteria that determine if the left-hand side is updated or not: 1) interval and 2) (residual) reduction criteria. The interval criteria determines the number of iterations between updates. (The matrix is always updated at the beginning of the non-linear iteration.) The reduction criteria forces re-assembly if the reduction in last iteration was not greater than a given fraction.</p><p>Note:Most of the following parameters related to the NR iteration do, in general, not to be modified and the default values should in most situation be OK.</p><pre class="codeinput">CtrlVar.NR=1;                             <span class="comment">% 1 gives Newton-Raphson (use Newton-Raphson whenever possible)</span>
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  <span class="comment">% interval between matrix updates, always a positive integer number.</span>
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; <span class="comment">% fractional reduction forcing an update</span>
@@ -325,12 +359,17 @@ CtrlVar.iarmmax=10;       <span class="comment">% maximum number of backtracking
 CtrlVar.NRitmin=1;        <span class="comment">% minimum number of NR iteration</span>
 CtrlVar.NewtonAcceptRatio=0.5;  <span class="comment">% accepted reduction in NR without going into back-stepping</span>
 CtrlVar.NewtonBacktrackingBeta=1e-4;  <span class="comment">%  affects the Amarijo exit criteria in the back-stepping</span>
-CtrlVar.LineSearchAllowedToUseExtrapolation=1; <span class="comment">% If true, backtracking algorithm may start with an extrapolation step.</span>
+CtrlVar.LineSearchAllowedToUseExtrapolation=0; <span class="comment">% If true, backtracking algorithm may start with an extrapolation step.</span>
 CtrlVar.BacktrackingGammaMin=1e-10;  <span class="comment">% smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.</span>
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; <span class="comment">% smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)</span>
 
 CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
-</pre><h2 id="27">Backtracking parameters  -line search</h2><p>Parameters affecting the backtracking algorithm</p><pre class="codeinput">CtrlVar.BackTrackBeta=0.1 ;               <span class="comment">% beta in the Armijo&#8211;Goldstein exit condition</span>
+
+
+
+CtrlVar.uvGroupAssembly=false;
+CtrlVar.uvhGroupAssembly=false;
+</pre><h2 id="27">Backtracking parameters  -line search</h2><p>Parameters affecting the backtracking algorithm</p><pre class="codeinput">CtrlVar.BackTrackBeta=0.1 ;               <span class="comment">% beta in the ArmijoGoldstein exit condition</span>
 CtrlVar.BackTrackMaxIterations=50 ;       <span class="comment">% this is plenty</span>
 CtrlVar.BackTrackMaxExtrapolations=50  ;  <span class="comment">% if set to zero no extrapolation is done (i.e. pure backtracking)</span>
 CtrlVar.BackTrackExtrapolationRatio=2.5 ; <span class="comment">% ratio between new and old step size in each extrapolation step</span>
@@ -361,8 +400,7 @@ CtrlVar.LinSolveTol=1e-8;   <span class="comment">% Residual when solving linear
                             <span class="comment">% Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);</span>
                             <span class="comment">% A value of 1e-8 is arguably alread a relativily small number, in many cases 1e-6 would be considered acceptable</span>
 CtrlVar.Solve.LUvector=false; <span class="comment">% LU factorisation done using vector format, consider seeting to true if memory an issue</span>
-</pre><h2 id="29">Internal variables related to matrix assembly</h2><p>These variables are only for testing purposes. Do not change from default values.</p><pre class="codeinput">CtrlVar.GroupRepresentation=0;
-</pre><h2 id="30">Number of integration points and/or quadrature rule degree</h2><p>if left empty, the number of integration points is set automatically</p><pre class="codeinput">CtrlVar.niph=[] ;  <span class="comment">% number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs</span>
+</pre><h2 id="29">Internal variables related to matrix assembly</h2><p>These variables are only for testing purposes. Do not change from default values.</p><h2 id="30">Number of integration points and/or quadrature rule degree</h2><p>if left empty, the number of integration points is set automatically</p><pre class="codeinput">CtrlVar.niph=[] ;  <span class="comment">% number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs</span>
 CtrlVar.nip=[] ;   <span class="comment">% number of integration points for the uv solver</span>
                    <span class="comment">% Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37.</span>
                    <span class="comment">% The default values are:</span>
@@ -675,15 +713,18 @@ CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  <span class="comment">% maximum nr of ca
 <span class="comment">% Once this limit is reached, the run stops. (Setting this to 1 or some low number</span>
 <span class="comment">% can sometimes be useful for testing/control purposes)</span>
 <span class="comment">% NaN implies no limit to the number of calls</span>
+
+CtrlVar.CreateOutputsBeginningOfRun=true;   <span class="comment">% If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.</span>
+CtrlVar.CreateOutputsEndOfRun=true;         <span class="comment">% If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop</span>
 </pre><h2 id="47">Obtaining information about the run, during the run.</h2><p>A simply way of getting information about the run from within the user m-files is by inspecting the fields of the CtrlVar.  The CtrlVar is given an in input to all such m-files.</p><p>For example, the counter CtrlVar.CurrentRunStepNumber gives the current run-step number.</p><pre class="codeinput">CtrlVar.CurrentRunStepNumber=0 ;  <span class="comment">% This is a counter that is increased by one at each run step.</span>
 CtrlVar.WriteRunInfoFile=0;       <span class="comment">% True to get a .txt file with some basic information about the run, such as number of iterations and residuals</span>
 </pre><h2 id="48">General Meshing Options</h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in</p><pre class="language-matlab">DefineInitialUserInput
 </pre><p>by setting the variable</p><pre class="language-matlab">MeshBoundaryCoordinates
-</pre><p>Currently two external mesh generators can be called direclty from &Uacute;a:</p><pre class="language-matlab">gmsh
+</pre><p>Currently two external mesh generators can be called direclty from a:</p><pre class="language-matlab">gmsh
 mesh2d
-</pre><p>The external mesh generator "gmsh" is a well known and a well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>)</p><p>mesh2d is a matlab based mesh generator (see: <a href="https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation">https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation</a>)</p><p>IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and mesh2d on how to do this.</p><p><b>By default &Uacute;a uses mesh2d</b></p><p>When generating the mesh from within &Uacute;a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being used. In either case the outlines of the mesh are defined by the variable</p><pre class="language-matlab">MeshBoundaryCoordinates
+</pre><p>The external mesh generator "gmsh" is a well known and a well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>)</p><p>mesh2d is a matlab based mesh generator (see: <a href="https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation">https://uk.mathworks.com/matlabcentral/fileexchange/25555-mesh2d-delaunay-based-unstructured-mesh-generation</a>)</p><p>IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and mesh2d on how to do this.</p><p><b>By default a uses mesh2d</b></p><p>When generating the mesh from within a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being used. In either case the outlines of the mesh are defined by the variable</p><pre class="language-matlab">MeshBoundaryCoordinates
 </pre><p>set in</p><pre class="language-matlab">DefineInitialUserInput.m.
-</pre><p>This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p><b>For examples of how to generate different type of meshes look at</b> <b>ExamplesOfMeshGeneration.m</b></p><p>Both when done from within &Uacute;a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:</p><div><ul><li>a) create an input file for gmsh (.geo)</li><li>b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)</li><li>c) read into &Uacute;a the resulting gmsh output file (.msh) with the mesh All, or some of these three steps can be done withing &Uacute;a.</li></ul></div><p>More specifically the options are:</p><div><ul><li>i)  Directly read existing gmsh output file (.msh)</li><li>ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)</li><li>iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)</li></ul></div><p>Option iii is the default option, in which case &Uacute;a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.</p><p>To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}</p><p>CtrlVar.GmshMeshingMode='load .msh'                                                               % option i CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii</p><pre class="codeinput">CtrlVar.GmshMeshingMode=<span class="string">'create new gmsh .geo input file and mesh domain and load .msh file'</span>;       <span class="comment">% option iii, which is the default option when using gmsh</span>
+</pre><p>This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p><b>For examples of how to generate different type of meshes look at</b> <b>ExamplesOfMeshGeneration.m</b></p><p>Both when done from within a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:</p><div><ul><li>a) create an input file for gmsh (.geo)</li><li>b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)</li><li>c) read into a the resulting gmsh output file (.msh) with the mesh All, or some of these three steps can be done withing a.</li></ul></div><p>More specifically the options are:</p><div><ul><li>i)  Directly read existing gmsh output file (.msh)</li><li>ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)</li><li>iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)</li></ul></div><p>Option iii is the default option, in which case a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.</p><p>To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}</p><p>CtrlVar.GmshMeshingMode='load .msh'                                                               % option i CtrlVar.GmshMeshingMode='mesh domain and load .msh file'                                          % option ii</p><pre class="codeinput">CtrlVar.GmshMeshingMode=<span class="string">'create new gmsh .geo input file and mesh domain and load .msh file'</span>;       <span class="comment">% option iii, which is the default option when using gmsh</span>
 <span class="comment">%</span>
 <span class="comment">% After having generated a FE mesh, that FE mesh can then be read in as an initial mesh at the start of other runs.</span>
 <span class="comment">%</span>
@@ -715,7 +756,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      <span class="comment">% Tf true, then mesh 
 </pre><h2 id="49">Selecting the external mesh generator</h2><p>As external mesh generators one can use either `gmsh' or `mesh2d'</p><p>Note that mesh2d does not support periodic boundary conditions.</p><pre class="codeinput"><span class="comment">%CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}</span>
 CtrlVar.MeshGenerator=<span class="string">"mesh2d"</span>;  <span class="comment">% this is the deault option</span>
 CtrlVar.MustBe.MeshGenerator=[<span class="string">"mesh2d"</span>,<span class="string">"gmsh"</span>];
-</pre><h2 id="50">Options related to the use of the gmsh external mesh generator</h2><pre class="codeinput">CtrlVar.GmshInputFormat=1; <span class="comment">% When using &Uacute;a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput</span>
+</pre><h2 id="50">Options related to the use of the gmsh external mesh generator</h2><pre class="codeinput">CtrlVar.GmshInputFormat=1; <span class="comment">% When using a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput</span>
                            <span class="comment">% can be given in two different ways, i.e. GmshInputFormat=1 or 2.</span>
                            <span class="comment">% Format 1 is simpler</span>
                            <span class="comment">% Format 2 is closer to the actual input format of Gmsh (.geo) and is more</span>
@@ -884,7 +925,18 @@ CtrlVar.MustBe.MeshRefinementMethod=[<span class="string">"explicit:global"</spa
 <span class="comment">% coarsening.</span>
 <span class="comment">%</span>
 <span class="comment">%</span>
-</pre><h2 id="58">Calving :  including Level Set Method</h2><p>Calving using the level-set method is currently experimental. For the time being use other options such as the manual element deactivation</p><pre class="codeinput">CtrlVar.LevelSetMethod=0;
+</pre><h2 id="58">Calving :  including Level Set Method</h2><p>When using the level-set method, the calving fronts can evolve dynamically. The initial position of the calving fronts, and the calving law are defined by the user in</p><pre class="language-matlab">DefineCalving.m
+</pre><p>The level set itself is a field of F,  ie F.LSF</p><p>Remember that F.LSF is a field and is defined over all nodes of the mesh, ie it is not a line or a collection of lines.</p><p>The calving fronts locations are calculated by calculating the zero-levels (zero value contour lines) of F.LSF.</p><p>The user initializes the level-set, ie F.LSF, by setting F.LSF &lt; 0 downstream of calving fronts, and F.LSF &gt; 0 upstream of calving fronts in DefineCalving.m. If a node happens to be exactly at a desired calving front location set F.LSF=0 over those nodes.</p><p>One simple use of the level-set is simply to prescribe the level-set directly at any given time. This option can be selected by setting</p><pre class="language-matlab">CtrlVar.LevelSetMethod=true;
+CtrlVar.LevelSetEvolution=<span class="string">"-prescribed-"</span>  ;
+</pre><p>When using this option, the user can prescribe the calving front locations by setting F.LSF accordingly. In general, this only needs to be done if F.LSF=[] at entry to the DefineCalving.m or if the user wants to change F.LSF from its previous value.  Note that when mapping LSF to a new mesh when using this option (ie when  the new CtrlVar.LevelSetEvolution="-prescribed-") F.LSF is defined by call to DefineCalving.m and is set to empty ahead of this call (F.LSF=[]).  It is the responsibility of the user to define F.LSF in DefineCalving.m whenever F.LSF=[] at entry.</p><p>To evolve the calving fronts dynamically based on a calving law</p><pre class="language-matlab">CtrlVar.LevelSetMethod=true;
+CtrlVar.LevelSetEvolution=<span class="string">"-By solving the level set equation-"</span> ;
+</pre><p>The calving rate</p><pre class="language-matlab">F.c
+</pre><p>can then be defined in</p><pre class="language-matlab">DefineCalving.m
+</pre><p>Again, remember that the calving rate, F.c, is a field just like F.LSF and defined everywhere within the domain.</p><p>To, for example, define a calving rate that is directly propotional to ice thicness, set</p><pre class="language-matlab">F.c=F.h
+</pre><p>and if calving is a linear function of cliff height set</p><pre class="language-matlab">F.c= k*CliffHeight
+</pre><p>where, for example,</p><pre class="language-matlab">CliffHeight=min((F.s-F.S),F.h).*F.rho./1000;
+</pre><p>and k is some number.</p><p>If the calving rate is a function of the gradients of the level-set, the calving rate must be defined at the element integration points using</p><pre class="language-matlab">[c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F)
+</pre><p>which provies dphi/dx and dphi/dy where phi is the level-set function</p><p>This is, for example, required if the calving rate is a function of velocities normal to the calving front.</p><p>The user must then also return derivatives of the calving rate, c, with respect to x and y derivatives of the level set, ie</p><p><img src="Ua2D_DefaultParameters_eq02851864253424017727.png" alt="$$\frac{dc}{d (d \phi/dx)}$$" style="width:59px;height:34px;"></p><p><img src="Ua2D_DefaultParameters_eq01195850433064937765.png" alt="$$\frac{dc}{d (d \phi/dy)}$$" style="width:59px;height:34px;"></p><p>More details are provided in the UaCompendium</p><pre class="codeinput">CtrlVar.LevelSetMethod=0;
 CtrlVar.LevelSetMethodTest=0;  <span class="comment">%</span>
 
 CtrlVar.LevelSetEvolution=<span class="string">"-prescribed-"</span>  ; <span class="comment">% "-prescribed-", "-By solving the level set equation-"</span>
@@ -926,7 +978,8 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; <span class="comm
                                                                <span class="comment">% but the thickness  barrier method does not have to be activated as</span>
                                                                <span class="comment">% well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).</span>
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          <span class="comment">% a1 in the above equation for ab.</span>
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         <span class="comment">% a3 in the above equaiton for ab.</span>
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;
+<span class="comment">% a3 in the above equaiton for ab.</span>
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             <span class="comment">% hmin in the above equation.</span>
 
@@ -936,6 +989,7 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      <span class="comment">
                                                           <span class="comment">% calving fronts. This will be done automatically and replaces</span>
                                                           <span class="comment">% any values defined by the user in DefineAGlen.,</span>
 
+CtrlVar.LevelSetDownstream_nGlen=nan;                      <span class="comment">% Since the value is here set to nan, there AGlen stress exponent will NOT be modified</span>
 
 <span class="comment">% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.</span>
 <span class="comment">% This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting</span>
@@ -944,17 +998,25 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      <span class="comment">
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    <span class="comment">%</span>
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    <span class="comment">%</span>
 
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN;   <span class="comment">% This value is used to define:</span>
+                                        <span class="comment">% 1) the width of the strip over which the LSF is solved arount the zero level,</span>
+                                        <span class="comment">% 2) the distance downstream of the calving front where elements are deactivated</span>
+                                        <span class="comment">% Case 1 is only relevant if CtrlVar.LevelSetMethodSolveOnAStrip=true</span>
+                                        <span class="comment">% Case 2 is only relevant if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true</span>
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  <span class="comment">% This is also roughly a signed distance</span>
 
 
-<span class="comment">% Here are some numerical paramters and values, generally no need to change.</span>
+<span class="comment">% Here are some numerical parameters and values, generally no need to change.</span>
 CtrlVar.LevelSetSolutionMethod=<span class="string">"Newton Raphson"</span>;
 CtrlVar.MustBe.LevelSetSolutionMethod=[<span class="string">"Newton Raphson"</span>,<span class="string">"Picard"</span>] ;
 CtrlVar.LSFslope=1;  <span class="comment">% This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.</span>
 CtrlVar.LevelSetFABCostFunction=<span class="string">"p2q2"</span> ; <span class="comment">% can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]</span>
 
-CtrlVar.LevelSetFABmu.Value=0.1 ;
+CtrlVar.LevelSetFABmu.Value=0.1 ; <span class="comment">% This "best" value is a bit uncertain. It is expected to be on the order of unity.</span>
+                                  <span class="comment">% The value of 0.1 was found by conducting diffusion test for a circular geomety with a circular velocity field.</span>
+                                  <span class="comment">% It was decided that 1 is a bit too large. Possibly a value of 0.2 could be selected as well.</span>
+
 CtrlVar.LevelSetFABmu.Scale=<span class="string">"-u-cl-"</span> ; <span class="comment">% can be ["-u-cl-","-ucl-","-constant-"];</span>
 
 CtrlVar.LevelSetTestString=<span class="string">""</span> ;
@@ -968,8 +1030,6 @@ CtrlVar.LevelSetFixPointSolverApproach=<span class="string">"PTS"</span>  ; <spa
 
 CtrlVar.CalvingLaw.Evaluation=<span class="string">"-node-"</span>  ; <span class="comment">% nodal or integration-point evaluation  ["-int-","-node-"]</span>
 
-CtrlVar.LevelSetMethodSolveOnAStrip=0;
-CtrlVar.LevelSetMethodStripWidth=NaN;
 
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; <span class="comment">% use BCs to fix LSF around the zero level during (re)initialisation</span>
@@ -1137,7 +1197,7 @@ CtrlVar.MeshAdapt.GLrange=[];   <span class="comment">% Example (see description
                 <span class="comment">%       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance</span>
                 <span class="comment">%       that is small compared to other distances of interest.</span>
 CtrlVar.Hh0=0;  <span class="comment">% offset is Heaviside function when calculating GF field</span>
-</pre><h2 id="65">Parameters affecting calculation of grounding line</h2><p>The grounding line position does not enter any calculations done by &Uacute;a. The grounding line is primarily calculated for plotting purposes.</p><pre class="codeinput">CtrlVar.GLthreshold=0.5;  <span class="comment">% used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)</span>
+</pre><h2 id="65">Parameters affecting calculation of grounding line</h2><p>The grounding line position does not enter any calculations done by a. The grounding line is primarily calculated for plotting purposes.</p><pre class="codeinput">CtrlVar.GLthreshold=0.5;  <span class="comment">% used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)</span>
 CtrlVar.GLsubdivide=0;    <span class="comment">% If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true</span>
                           <span class="comment">% then all nodal values of 6-node and 10-node triangles are also used. This is done by splitting those into 4 and 9 triangles, respectively</span>
 </pre><p>Grounding/Floating mask The grounding/floating mask (GF) can be accessed as F.GF By default GF has one field, GF.nodes, with values betweon 0 and 1. The value 0 indicates that the corrsponding node is afloat, and the value 1 that it is grounded.</p><p>Sometimes it is usefull to have additional information about which nodes are strickly upstream/downstream of grounding lines. For node to be "stricly afloat" all the nodes of all the elements containing that particular node must all be afloat. For example, generally ocean-induced melt should only be applied to nodes that are "strickly afloat".</p><pre class="codeinput">CtrlVar.GroundingFloatingMaskContains=<span class="string">"GF nodes only"</span> ;
@@ -1168,7 +1228,7 @@ CtrlVar.ATSTargetIterations=4;      <span class="comment">% if number of non-lin
                                     <span class="comment">% each and everyone of the last ATSintervalUp iterations, the time step is</span>
                                     <span class="comment">% increased by the factor ATStimeStepFactorUp</span>
 CtrlVar.ATSTdtRounding=true;        <span class="comment">% if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt&gt;0)</span>
-CtrlVar.EnforceCFL=false  ;         <span class="comment">% enforce Courant&#8211;Friedrichs&#8211;Lewy condition on time step. Note: this is always done in a semi-implicit step</span>
+CtrlVar.EnforceCFL=false  ;         <span class="comment">% enforce CourantFriedrichsLewy condition on time step. Note: this is always done in a semi-implicit step</span>
                                     <span class="comment">% even if this variable is set to false.</span>
 </pre><h2 id="69">Mass-balance geometry feedback</h2><p>If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs. This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user supplies the gradient of the mass balance with respect to thickness.</p><pre class="codeinput">CtrlVar.MassBalanceGeometryFeedback=0;  <span class="comment">% If the mass balance depends on geometry then</span>
                                         <span class="comment">% setting this parameter to either 1, 2 or 3 has the effect of</span>
@@ -1206,7 +1266,8 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  <span class="comment">% Dampens t
                                                <span class="comment">% Should always be equal to 0 if possible.</span>
                                                <span class="comment">% If not equal to 0, the algorithm converges to a wrong solution (!),</span>
                                                <span class="comment">% although the error might be very small if mass-balance geometry feedback is not that strong.</span>
-</pre><h2 id="70">Sea ice/melange</h2><p>&Uacute;a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric drag acting over the floating sections.non-line% If used, then the drag parameters are defined in 'DefineSeaIceParameters'</p><pre class="codeinput">CtrlVar.IncludeMelangeModelPhysics=0;
+CtrlVar.MassBalance.Evaluation=<span class="string">"-node-"</span>;
+</pre><h2 id="70">Sea ice/melange</h2><p>a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric drag acting over the floating sections.non-line% If used, then the drag parameters are defined in 'DefineSeaIceParameters'</p><pre class="codeinput">CtrlVar.IncludeMelangeModelPhysics=0;
 </pre><pre class="codeinput">CtrlVar.MeltNodesDefinition=<span class="string">'Node-Wise'</span>; <span class="comment">%  ('Edge-Wise','Element-wise','Node-Wise')</span>
 
 <span class="comment">%</span>
@@ -1214,7 +1275,7 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  <span class="comment">% Dampens t
 <span class="comment">%</span>
 </pre><h2 id="72">Mapping from Mesh1 to Mesh2</h2><p>when a new FE is created, the values from the old mesh need to be mapped onto the new mesh if the boundary of the mesh has not changed this only involves interpolation but if the boundary of Mesh2 is different from that of Mesh1 then extrapolation might be involved In this case one must check for such points and give them some sensible outside value.</p><pre class="codeinput">CtrlVar.Mesh1To2CheckForPointsOutsideMesh1AndInsideConvexHull=1 ; <span class="comment">% for non evolving mesh boundaries, can be set to 0/false</span>
 CtrlVar.InpolyTol=0.1;       <span class="comment">% tolerance when checking inside outpoints using the `inpoly' m-file, should be small compared to size of any element</span>
-</pre><h2 id="73">Parallel options:</h2><p>The parallel profile is not modified within &Uacute;a. Set the properties of the local profile through the general Matlab settings. See the matlab manual for further information.  For example, to change the number of local workers to 6, one can do the following:</p><pre class="language-matlab">myCluster = parcluster(<span class="string">'local'</span>) ;
+</pre><h2 id="73">Parallel options:</h2><p>The parallel profile is not modified within a. Set the properties of the local profile through the general Matlab settings. See the matlab manual for further information.  For example, to change the number of local workers to 6, one can do the following:</p><pre class="language-matlab">myCluster = parcluster(<span class="string">'local'</span>) ;
 myCluster.NumWorkers = 6;
 saveProfile(myCluster)
 </pre><p>Consult the matlab documentation for further information.</p><p>Note: It appears using about 6 workers on parfor and smpd options both on is the best approach.       However, results are likely to be somewhat problem dependent.</p><pre class="codeinput">CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     <span class="comment">% assembly over integration points done in parallel using parfor</span>
@@ -1222,6 +1283,7 @@ CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       <span class="comment">% assembly
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  <span class="comment">% If left empty, all workers available are used</span>
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  <span class="comment">% If left empty, all workers available are used</span>
+CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; <span class="comment">%</span>
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; <span class="comment">% this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)</span>
 
@@ -1241,8 +1303,12 @@ CtrlVar.Tracer.SUPG.tau=<span class="string">'tau2'</span> ; <span class="commen
 <span class="comment">%</span>
 </pre><pre class="codeinput">CtrlVar.fidlog=1;  <span class="comment">% unit number for standard output, no need to change.</span>
 </pre><h2 id="77">Mapping variables from one FE mesh to another</h2><p>Remeshing during a run requires variables to be mapped from the older mesh to the new mesh. Both geometrical variables (s, b, S, B) and other calculated quantaties such as ub, vb, dhdt, etc. need to be mapped.</p><p>In a diagnostic run (time-independent run) geometrical variables are defined by calls to 'DefineGeometry.m'</p><p>In a transient run one can either:</p><div><ol><li>calculate s and b from h, B and S  (h is approximately conserved), or</li><li>calculate h and b from s, B and S  (s is approximately unchanged).</li></ol></div><p>Which option is used is determined by the variable:</p><pre class="codeinput">CtrlVar.MapOldToNew.Transient.Geometry=<span class="string">"bh-FROM-sBS"</span> ; <span class="comment">% {"bs-FROM-hBS" ; "bh-FROM-sBS" }</span>
-</pre><p>When mapping variables using interpolation, either the matlab scattered interpolant can be used, or the interpolation is done using the FE form functions</p><pre class="codeinput">CtrlVar.MapOldToNew.method=<span class="string">"scatteredInterpolant"</span> ; <span class="comment">% {"FE form functions","scatteredInterpolant"}</span>
-
+</pre><p>When mapping variables using interpolation, either the matlab scattered interpolant can be used, or the interpolation is done using the FE form functions</p><pre class="codeinput">CtrlVar.MapOldToNew.method=<span class="string">"scatteredInterpolant"</span> ; <span class="comment">% {"FE form functions","scatteredInterpolant","ShapeAndScattered"}</span>
+CtrlVar.MapOldToNew.method=<span class="string">"ShapeAndScattered"</span>    ; <span class="comment">% This is the new default option as of 2 April 2023.</span>
+                                                    <span class="comment">% The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes</span>
+                                                    <span class="comment">% produced bizzare results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and</span>
+                                                    <span class="comment">% there is noting that can be done about this except using alternative approaches not dependent on the MATLAB interpolant for</span>
+                                                    <span class="comment">% boundary points of the triangulation. See examples and tests in the UaTest subfolder "MappingVariablesFromMesh1toMesh2"</span>
 CtrlVar.MapOldToNew.Test=false;   <span class="comment">%</span>
 </pre><h2 id="79">Internal variables and  temporary testing parameters</h2><pre class="codeinput">CtrlVar.DevelopmentVersion=false;  <span class="comment">% Internal variable, always set to 0</span>
                                 <span class="comment">% (unless you want to use some untried, untested and unfinished features....)</span>
@@ -1253,7 +1319,7 @@ CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function CtrlVar=Ua2D_DefaultParameters
 
@@ -1268,7 +1334,7 @@ function CtrlVar=Ua2D_DefaultParameters
 
 %%
 %  
-%  Most likely when running Úa, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -1281,6 +1347,10 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
+
+CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+
+
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
                               % If true (i.e. set to 1) then the run is a forward transient one, if not
                               % then velocities based on the current geometry are calculated. 
@@ -1293,7 +1363,8 @@ CtrlVar.Restart=0;            % If true then the run is a restart run. Note that
                               %       CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-
+CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
+                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
@@ -1554,12 +1625,41 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
-CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
+CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
+% Note: Some of those paramters have physical dimentions and these values may have to be
+%       adjusted to the specific situation. 
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
-CtrlVar.Czero=0 ; % 1e-20    ;    % must be much smaller than C. 
+
+CtrlVar.etaZero=10; %  Minimum value for the effective viscosity  
+%                      For Glens flow law the effective viscosity is 0.5 A^(-1/n) e^((1-n)/n)
+%                      where e is the effective strain rate.  The effective
+%                      strain rate on glaciers is usually around 10^(-4) to
+%                      10^(-2) 1/yr.  A save lower estimate for the effective viscosity would then be
+%                      taking A for temperate ice and strain rates of 1 (1/yr).
+%                      giving:
+%                      n=3 ; eps=1 ; 0.5*AGlenVersusTemp(0)^(-1/n) *181 eps^((1-n)/n) =181
+%                      So settting etaZero=10 kPa/yr would not affect the effective viscosity
+%                      in all realistic cases.  However, this might
+%                      sometimes need to me adjusted. Before May-2023 the
+%                      default value was etaZero=0, ie no lower limit on
+%                      the effective viscosity, but this did occasionally
+%                      cause numerical convergence issues.
+%
+%                      Whatever value for etaZero is selected, the value should be small compared to 
+%                      the smallest eta values based on direct use of Glen's flow law. 
+%                      This can be tested by calculating the effective
+%                      viscosity values and plotting a histogram and making
+%                      and inspecting the distribution and how it is
+%                      affected by the value of etaZero, e.g.
+%
+%   etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); figure ; histogram((log10(etaInt(:))),Normalization="probability") ; hold on ; xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
+%   
+%
+
+CtrlVar.Czero=0 ;           % must be much smaller than C. 
 CtrlVar.HeZero=0;           % shifts the floating/grounding mask when calculating basal drag, must be << 1. (In effect this shift introduces a 
                             % non-zero basal drag term everywhere.)  
                             %
@@ -1626,11 +1726,11 @@ CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
 
-CtrlVar.uvDesiredWorkAndForceTolerances=[1000 1e-10];
-CtrlVar.uvDesiredWorkOrForceTolerances=[1 1e-15];
-CtrlVar.uvExitBackTrackingStepLength=1e-4;
-CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvDesiredWorkOrForceTolerances=[inf 1e-15];
+CtrlVar.uvExitBackTrackingStepLength=1e-10;
+CtrlVar.uvAcceptableWorkAndForceTolerances=[inf 1e-15];
+CtrlVar.uvAcceptableWorkOrForceTolerances=[inf 1e-15];
 
 CtrlVar.hDesiredWorkAndForceTolerances=[1000 1e-10];
 CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
@@ -1663,6 +1763,9 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
+
+CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
+CtrlVar.h.SUPG.tauMultiplier=1 ; 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -1708,15 +1811,20 @@ CtrlVar.iarmmax=10;       % maximum number of backtracking steps in NR and Picar
 CtrlVar.NRitmin=1;        % minimum number of NR iteration
 CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into back-stepping
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
-CtrlVar.LineSearchAllowedToUseExtrapolation=1; % If true, backtracking algorithm may start with an extrapolation step.
+CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
 CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
 
 CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
+
+
+CtrlVar.uvGroupAssembly=false;
+CtrlVar.uvhGroupAssembly=false;
+
 %% Backtracking parameters  -line search 
 % Parameters affecting the backtracking algorithm
-CtrlVar.BackTrackBeta=0.1 ;               % beta in the Armijo–Goldstein exit condition
+CtrlVar.BackTrackBeta=0.1 ;               % beta in the ArmijoGoldstein exit condition
 CtrlVar.BackTrackMaxIterations=50 ;       % this is plenty
 CtrlVar.BackTrackMaxExtrapolations=50  ;  % if set to zero no extrapolation is done (i.e. pure backtracking)
 CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size in each extrapolation step
@@ -1770,7 +1878,7 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
-CtrlVar.GroupRepresentation=0;
+
 %% Number of integration points and/or quadrature rule degree
 % if left empty, the number of integration points is set automatically
 
@@ -2310,6 +2418,10 @@ CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
 % can sometimes be useful for testing/control purposes)
 % NaN implies no limit to the number of calls
 
+CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+
+
 
 %% Obtaining information about the run, during the run.
 %
@@ -2335,7 +2447,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 %   MeshBoundaryCoordinates
 %
-% Currently two external mesh generators can be called direclty from Úa:
+% Currently two external mesh generators can be called direclty from a:
 %
 %   gmsh
 %   mesh2d
@@ -2349,10 +2461,10 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % IMPORTANT:  if you write a paper based on the use of either gmsh or mesh2d, do give the proper credits. Consult the documentation of gmsh and
 % mesh2d on how to do this.
 %
-% *By default Úa uses mesh2d*
+% *By default a uses mesh2d*
 %
 %
-% When generating the mesh from within Úa the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% When generating the mesh from within a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
 % defined by the variable
 %
@@ -2367,12 +2479,12 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 % *For examples of how to generate different type of meshes look at* *ExamplesOfMeshGeneration.m*
 %
-% Both when done from within Úa or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
+% Both when done from within a or externally, generating a FE mesh with the mesh generator `gmsh' typically involves:
 %
 % *             a) create an input file for gmsh (.geo)
 % *             b) call gmsh for that input file (.geo). gmsh in turn generates an output file (.msh)
-% *             c) read into Úa the resulting gmsh output file (.msh) with the mesh
-% All, or some of these three steps can be done withing Úa.
+% *             c) read into a the resulting gmsh output file (.msh) with the mesh
+% All, or some of these three steps can be done withing a.
 %
 % More specifically the options are:
 %
@@ -2380,7 +2492,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % *   ii)  First run gmsh with an existing gmsh input file (.geo) and then read the resulting gmsh output file (.msh)
 % *   iii) First generate gmsh input file (geo), then run gmsh for that input file, and finally read the resulting gmsh output file (.msh)
 %
-% Option iii is the default option, in which case Úa generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
+% Option iii is the default option, in which case a generates the gmsh input file (.geo), calls gmsh, and then reads the resulting gmsh output file with the mesh.
 %
 % To select between i, ii and iii set CtrlVar.GmshMeshingMode={'load .msh','mesh domain and load .msh file','create new gmsh .geo input file and mesh domain and load .msh file'}
 %
@@ -2430,7 +2542,7 @@ CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"];
 %% Options related to the use of the gmsh external mesh generator
 
 
-CtrlVar.GmshInputFormat=1; % When using Úa to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
+CtrlVar.GmshInputFormat=1; % When using a to call Gmsh, the input to Gmsh as defined in Ua2D_InitialUserInput 
                            % can be given in two different ways, i.e. GmshInputFormat=1 or 2. 
                            % Format 1 is simpler
                            % Format 2 is closer to the actual input format of Gmsh (.geo) and is more
@@ -2757,10 +2869,86 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 
 %% Calving :  including Level Set Method
-% Calving using the level-set method is currently experimental.
-% For the time being use other options such as the manual element deactivation
 %
-
+% When using the level-set method, the calving fronts can evolve dynamically. The initial position of the calving fronts, and
+% the calving law are defined by the user in 
+% 
+%   DefineCalving.m
+%
+% The level set itself is a field of F,  ie F.LSF
+%
+% Remember that F.LSF is a field and is defined over all nodes of the mesh, ie it is not a line or a collection of lines.
+%
+% The calving fronts locations are calculated by calculating the zero-levels (zero value contour lines) of F.LSF.
+%
+% The user initializes the level-set, ie F.LSF, by setting F.LSF < 0 downstream of calving fronts, and F.LSF > 0 upstream of
+% calving fronts in DefineCalving.m. If a node happens to be exactly at a desired calving front location set F.LSF=0 over
+% those nodes.
+%
+% One simple use of the level-set is simply to prescribe the level-set directly at any given time. This option can be
+% selected by setting
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-prescribed-"  ;
+%
+% When using this option, the user can prescribe the calving front locations by setting F.LSF accordingly. In general, this
+% only needs to be done if F.LSF=[] at entry to the DefineCalving.m or if the user wants to change F.LSF from its previous
+% value.  Note that when mapping LSF to a new mesh when using this option (ie when  the new
+% CtrlVar.LevelSetEvolution="-prescribed-") F.LSF is defined by call to DefineCalving.m and is set to empty ahead of this
+% call (F.LSF=[]).  It is the responsibility of the user to define F.LSF in DefineCalving.m whenever F.LSF=[] at entry.
+% 
+%
+% To evolve the calving fronts dynamically based on a calving law
+% 
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-By solving the level set equation-" ;
+%
+% The calving rate
+%
+%   F.c
+%
+% can then be defined in 
+% 
+%   DefineCalving.m  
+% 
+% Again, remember that the calving rate, F.c, is a field just like F.LSF and defined
+% everywhere within the domain.  
+% 
+% To, for example, define a calving rate that is directly propotional to ice thicness, set
+%
+%   F.c=F.h
+%
+% and if calving is a linear function of cliff height set
+%
+%   F.c= k*CliffHeight
+%
+% where, for example, 
+%
+%   CliffHeight=min((F.s-F.S),F.h).*F.rho./1000;  
+% 
+% and k is some number.
+%
+%
+% If the calving rate is a function of the gradients of the level-set, the calving rate must be defined at the element
+% integration points using
+%
+%
+%   [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
+%
+% which provies dphi/dx and dphi/dy where phi is the level-set function
+%
+% This is, for example, required if the calving rate is a function of velocities normal to the calving front.
+%
+% The user must then also return derivatives of the calving rate, c, with respect to x and y derivatives of the level set,
+% ie 
+% 
+% $$\frac{dc}{d (d \phi/dx)}$$
+%
+% $$\frac{dc}{d (d \phi/dy)}$$
+% 
+% More details are provided in the UaCompendium
+%
 CtrlVar.LevelSetMethod=0; 
 CtrlVar.LevelSetMethodTest=0;  %  
 
@@ -2803,7 +2991,8 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an addi
                                                                % but the thickness  barrier method does not have to be activated as
                                                                % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         % a3 in the above equaiton for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
+% a3 in the above equaiton for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
@@ -2813,6 +3002,7 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
                                                           % calving fronts. This will be done automatically and replaces 
                                                           % any values defined by the user in DefineAGlen.,
 
+CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is here set to nan, there AGlen stress exponent will NOT be modified
 
 % It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
 % This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
@@ -2821,17 +3011,25 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
 
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN;   % This value is used to define:
+                                        % 1) the width of the strip over which the LSF is solved arount the zero level,
+                                        % 2) the distance downstream of the calving front where elements are deactivated
+                                        % Case 1 is only relevant if CtrlVar.LevelSetMethodSolveOnAStrip=true
+                                        % Case 2 is only relevant if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
 
-% Here are some numerical paramters and values, generally no need to change.
+% Here are some numerical parameters and values, generally no need to change.
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
 CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; % This "best" value is a bit uncertain. It is expected to be on the order of unity.
+                                  % The value of 0.1 was found by conducting diffusion test for a circular geomety with a circular velocity field.
+                                  % It was decided that 1 is a bit too large. Possibly a value of 0.2 could be selected as well.
+
 CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
 CtrlVar.LevelSetTestString="" ; 
@@ -2845,8 +3043,6 @@ CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equa
 
 CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
 
-CtrlVar.LevelSetMethodSolveOnAStrip=0;
-CtrlVar.LevelSetMethodStripWidth=NaN; 
 
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
@@ -3063,7 +3259,7 @@ CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
 %% Parameters affecting calculation of grounding line
-% The grounding line position does not enter any calculations done by Úa. 
+% The grounding line position does not enter any calculations done by a. 
 % The grounding line is primarily calculated for plotting purposes.
 CtrlVar.GLthreshold=0.5;  % used to define position of GL with respect to the values of the Heaviside function (1 fully grounded, 0 fully floating)
 CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on GL.node values at corners only (using GLthreshold). If 1/true
@@ -3144,7 +3340,7 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
-CtrlVar.EnforceCFL=false  ;         % enforce Courant–Friedrichs–Lewy condition on time step. Note: this is always done in a semi-implicit step
+CtrlVar.EnforceCFL=false  ;         % enforce CourantFriedrichsLewy condition on time step. Note: this is always done in a semi-implicit step
                                     % even if this variable is set to false. 
 
 
@@ -3189,11 +3385,11 @@ CtrlVar.MassBalanceGeometryFeedbackDamping=0;  % Dampens the update in surface m
                                                % Should always be equal to 0 if possible.
                                                % If not equal to 0, the algorithm converges to a wrong solution (!),
                                                % although the error might be very small if mass-balance geometry feedback is not that strong.
-      
+CtrlVar.MassBalance.Evaluation="-node-";      
 
 %% Sea ice/melange                                               
 %
-% Úa has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
+% a has some (simple) ice-melange/sea-ice physics that allow for ocean and atmospheric
 % drag acting over the floating sections.non-line%
 % If used, then the drag parameters are defined in 'DefineSeaIceParameters'
 %
@@ -3220,7 +3416,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %% Parallel options:
 % 
 %
-% The parallel profile is not modified within Úa. Set the properties of the local
+% The parallel profile is not modified within a. Set the properties of the local
 % profile through the general Matlab settings. See the matlab manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
@@ -3239,6 +3435,7 @@ CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spm
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
+CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
@@ -3310,8 +3507,12 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 % functions
 %
 
-CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant"}
-
+CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
+CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
+                                                    % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
+                                                    % produced bizzare results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and
+                                                    % there is noting that can be done about this except using alternative approaches not dependent on the MATLAB interpolant for
+                                                    % boundary points of the triangulation. See examples and tests in the UaTest subfolder "MappingVariablesFromMesh1toMesh2"
 CtrlVar.MapOldToNew.Test=false;   %  
 
 

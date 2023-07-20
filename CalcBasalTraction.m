@@ -19,23 +19,22 @@ narginchk(4,4)
 %
 % Note: There is a slight inconsistency with respect to how this is done
 % internally in Ua in the sense that the floating mask is here evalutated at
-% nodes, whereas internally this is done at integration pointa. 
+% nodes, whereas internally this is done at integration points. 
 %
 %
 %%
 
 
-
-if CtrlVar.CisElementBased
-    % project onto nodes
-    [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); 
-    
-    F.C=M*F.C;
-    F.m=M*F.m;
-    
-end
-
-
+% 
+% if CtrlVar.CisElementBased
+%     % project onto nodes
+%     [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); 
+% 
+%     F.C=M*F.C;
+%     F.m=M*F.m;
+% 
+% end
+% 
 % beta2=(F.C+CtrlVar.Czero).^(-1./F.m).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1) ;
 %
 % tbx=F.GF.node.*beta2.*F.ub;

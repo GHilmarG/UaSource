@@ -74,7 +74,7 @@ end
 
 
 
-if RunInfo.Forward.Converged
+if RunInfo.Forward.uvConverged
     ubP=F.ub;
     vbP=F.vb;
 else

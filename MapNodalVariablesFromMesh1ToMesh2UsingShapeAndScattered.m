@@ -94,7 +94,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
     %% II) Now check if there are any non-identical nodes
     % And if so, find nodes inside and outside of the old mesh.
     % For the inside nodes, use form-function interpolation.
-    % For the outside ndoes, use 'OutsideValues' if defined, otherwise estraplate using scatteredinterpolant
+    % For the outside ndoes, use 'OutsideValues' if defined, otherwise extraplate using scatteredinterpolant
     
     if (nNewNodes-nIdenticalNodes)>0
         

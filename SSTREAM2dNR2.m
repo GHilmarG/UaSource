@@ -9,7 +9,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     
     
     tStart=tic;
-    RunInfo.Forward.Converged=1; 
+    RunInfo.Forward.uvConverged=1; 
  
     
     if isempty(CtrlVar.CurrentRunStepNumber) || CtrlVar.CurrentRunStepNumber==0 
@@ -179,7 +179,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
                 fprintf(RunInfo.File.fid,' Exiting uv iteration after %-i iterations with r=%-g \n',iteration,r);
             end
             
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.uvConverged=0; 
             break
         end
         
@@ -314,7 +314,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
             fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
             save SSTREAM2dNRDump
-            RunInfo.Forward.Converged=0;
+            RunInfo.Forward.uvConverged=0; 
             break
         end
 
@@ -361,7 +361,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         ResidualReduction=r/r0;
         
         if CtrlVar.InfoLevelNonLinIt>100  && CtrlVar.doplots==1
-            PlotForceResidualVectors('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
+            %PlotForceResidualVectors2('uv',Ruv,L,l.ubvb,MUA.coordinates,CtrlVar) ; axis equal tight
+            PlotForceResidualVectors2(CtrlVar,MUA,F,'uv',Ruv,L,l.ubvb,iteration);
         end
         
         if NRincomplete
