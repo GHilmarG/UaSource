@@ -45,7 +45,7 @@ end
 [Nele,nod]=size(tri);
 
 
-if nod~=3 || isempty(tri)
+if nod~=3 
     tri=TriFE(tri);
 end
 

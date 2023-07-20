@@ -8,7 +8,8 @@ narginchk(4,4)
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F) 
 %
 % Strains and stresses are first calculated at integration points, then projeted onto nodes.
-% On output all variables are nodal variables.
+%
+% On output, all variables are nodal variables.
 %
 %   txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
 %   txx,tyy,txy   : horizontal deviatoric stresses
@@ -72,13 +73,20 @@ Ty=zeros(MUA.Nele,MUA.nod);
 for Iint=1:MUA.nip
     
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+
+    if ~(isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ))
+        fprintf("CalcNodalStrainRatesAndStresses: MUA is not in an expected state. MUA updated. Consider doing this ahead of this call. \n")
+        fprintf("             MUA=UpdateMUA(CtrlVar,MUA)   \n")
+        MUA=UpdateMUA(CtrlVar,MUA) ;
+    end
+
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
-    
+
+
     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
     dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
-    
+
     % derivatives for all elements at this integration point
     for Inod=1:MUA.nod
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);

@@ -1,14 +1,25 @@
 function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
     
     
+    % Solves SSA/SSTREAM for u and v
+
+
     nargoutchk(7,7)
     narginchk(7,7)
     
-    
+    error("no longer used")
+
+
     tStart=tic;
     RunInfo.Forward.Converged=1; 
-    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
-    RunInfo.Forward.Residual=NaN;
+ 
+    
+    if isempty(CtrlVar.CurrentRunStepNumber) || CtrlVar.CurrentRunStepNumber==0 
+        CtrlVar.CurrentRunStepNumber=1;
+    end
+
+   % RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
+   % RunInfo.Forward.Residual=NaN; BackTrackInfo.iarm=NaN;
     
     Kuv=[] ; Ruv=[]; 
    
@@ -85,8 +96,9 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     %
     
     
-    
-    
+    %% Make sure iterate is feasable
+    F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+    %%
     
     
     dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
@@ -100,8 +112,27 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     
     Kuv=[] ; 
     
+     
+    
+ 
+
     fext0=KRTFgeneralBCs(CtrlVar,MUA,F,true); % RHS with velocities set to zero, i.e. only external forces
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocitie, i.e. difference between external and internal forces
+    
+    %% New normalisation idea, 10 April 2023
+    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
+    % then calculate the const function for this value and use as normalisation
+    % gamma=0; fext0=1; 
+    % ubStart=F.ub; vbStart=F.vb; 
+    % F.ub=zeros(MUA.Nnodes,1); F.vb=zeros(MUA.Nnodes,1); 
+    % F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue; % Make sure iterate is feasable
+    % fNOrm=CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
+    % fext0=sqrt(fNOrm); 
+    % F.ub=ubStart ; F.vb=vbStart ; 
+    %%
+
+    
+    
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
     
     RunInfo.CPU.Solution.uv=0;
 
@@ -116,25 +147,13 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
     gamma=1;
     
     iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
+
+    BackTrackInfo.iarm=nan;
     while true
 
         
         ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce,rWork,iteration,gamma) ; 
-        % ResidualsCriteria=false ; 
-%         if gamma > max(CtrlVar.uvExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
-%             
-%             ResidualsCriteria=(rWork<CtrlVar.uvDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.uvDesiredWorkAndForceTolerances(2))...
-%                 && (rWork<CtrlVar.uvDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.uvDesiredWorkOrForceTolerances(2))...
-%                 && iteration >= CtrlVar.NRitmin;
-%             
-%             
-%         else
-%             
-%             ResidualsCriteria=(rWork<CtrlVar.uvAcceptableWorkAndForceTolerances(1)  && rForce<CtrlVar.uvAcceptableWorkAndForceTolerances(2))...
-%                 && (rWork<CtrlVar.uvAcceptableWorkOrForceTolerances(1)  || rForce<CtrlVar.uvAcceptableWorkOrForceTolerances(2))...
-%                 && iteration >= CtrlVar.NRitmin;
-%             
-%         end
+
         
 
         if ResidualsCriteria
@@ -230,13 +249,11 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         end
 
         %% Residuals , at gamma=0;
-        % gamma=0 ; [UserVar,r0,rForce0,rWork0,D20] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
-        % gamma=0 ; [r,UserVar,RunInfo,rForce,rWork] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         Func=@(gamma) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         gamma=0 ; [r0,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
         
         if iteration==1
-%           special case to check if initial state was already within tolorance 
+%           special case to check if initial state was already within tolerance 
             ResidualsCriteria=uvResidualsCriteria(CtrlVar,rForce0,rWork0,iteration,1) ;  % here I set gamma as an input to one, i.e. as if I had take a full step
             
             % save the first r value for plotting, etc
@@ -252,35 +269,32 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
                         CtrlVar.time,CtrlVar.dt,rForce0,rWork0,iteration,tEnd) ;
                 end
                 RunInfo.Forward.uvConverged=1;
-                
+
                 break
             end
         end
-        
-   
-    
+
+
+
         %% calculate  residuals at full Newton step, i.e. at gamma=1
-        % gamma=1 ; [UserVar,r1,rForce1,rWork1,D21] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
-        % gamma=1 ; [r,UserVar,RunInfo,rForce,rWork] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         gamma=1 ; [r1,UserVar,RunInfo,rForce1,rWork1,D21]=Func(gamma);
-        
-%        [UserVar,r,gamma,infovector,BackTrackInfo] = FindBestGamma2Dbacktracking(UserVar,CtrlVar,MUA,F,fext0,r0,r1,L,l,cuv,dub,dvb,dl);
         slope0=-2*r0 ;
+        CtrlVar.InfoLevelBackTrack=1000;
         [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
-        
+
         RunInfo.BackTrack=BackTrackInfo;
-        
-        
+
+
         % If backtracking returns all values, then this call will not be needed.
-        % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ; 
+        % [UserVar,rTest,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
         [rTest,~,~,rForce,rWork,D2]=Func(gamma);
         rVector.gamma(iteration+1)=gamma;
         rVector.rDisp(iteration+1)=NaN;
         rVector.rWork(iteration+1)=rWork;
         rVector.rForce(iteration+1)=rForce ;
-        
-        
-        
+
+
+
         if BackTrackInfo.Converged==0
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
@@ -289,7 +303,20 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             RunInfo.Forward.Converged=0;
             break
         end
-        
+
+
+        %% Testing
+        func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
+        dh=[] ; dJdh=[] ;
+        dJdu=frhs(1:MUA.Nnodes);
+        dJdv=frhs(MUA.Nnodes+1:2*MUA.Nnodes);
+        dJdl=grhs ;
+        Normalisation=fext0'*fext0+1000*eps;
+        CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; 
+        [gammamin,rmin,du,dv,dh,dl2,BackTrackInfo] = rLineminUa(CtrlVar,UserVar,func,Kuv,L,dub,dvb,dh,dl,dJdu,dJdv,dJdh,dJdl,Normalisation,MUA.M) ;
+
+        %%
+
         %% If requested, plot residual as function of steplength
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
@@ -316,7 +343,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
             
         end
 
-        
+        % Need to update all primary (u,v,l) and dependent variables.
+        % Here I have no dependent variables
         F.ub=F.ub+gamma*dub ;
         F.vb=F.vb+gamma*dvb;
         l.ubvb=l.ubvb+gamma*dl;
@@ -335,8 +363,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         
         if CtrlVar.InfoLevelNonLinIt>=1
             
-            fprintf(CtrlVar.fidlog,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g \n ',...
-                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork);
+            fprintf(CtrlVar.fidlog,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , fSlope0=%-14.7g \n ',...
+                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,2*rForce0);
         end
         
         if CtrlVar.WriteRunInfoFile
@@ -369,12 +397,19 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,
         save TestSaveNR
         
     end
+
+
+    if numel(RunInfo.Forward.uvIterations) < CtrlVar.CurrentRunStepNumber
+        RunInfo.Forward.uvIterations=[RunInfo.Forward.uvIterations;RunInfo.Forward.uvIterations+NaN];
+        RunInfo.Forward.uvResidual=[RunInfo.Forward.uvResidual;RunInfo.Forward.uvResidual+NaN];
+        RunInfo.Forward.uvBackTrackSteps=[RunInfo.Forward.uvBackTrackSteps;RunInfo.Forward.uvBackTrackSteps+NaN];
+    end
     
-    
-    RunInfo.Forward.uvIterations=iteration;  
-    RunInfo.Forward.uvResidual=r;
-    
-    
+    RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=iteration;  
+    RunInfo.Forward.uvResidual(CtrlVar.CurrentRunStepNumber)=r;
+    RunInfo.Forward.uvBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackInfo.iarm ; 
+
+
     
     if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     

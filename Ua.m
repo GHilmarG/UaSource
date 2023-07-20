@@ -150,7 +150,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %
 % It is never used by Úa. 
 %
-% The user can use this variable to exchange information between his own user
+% The user can use this variable to exchange information between his/her own user
 % m-files, or for whatever other purpose required. 
 %
 % UserVar can be modified at the start of the run in Ua2D_InitialUserInput.

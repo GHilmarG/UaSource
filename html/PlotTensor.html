@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotTensor</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-25"><meta name="DC.source" content="PlotTensor.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>PlotTensor</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-13"><meta name="DC.source" content="PlotTensor.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -68,7 +69,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 </pre><p>Plots a 2x2 symmetrical tensor quantity</p><pre class="language-matlab">PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
-</pre><p>Tensor T=[txx  txy]          [txy  tyy]</p><p>Compression is plotted in red, extension in blue.</p><p><b>Example:</b></p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
+</pre><pre class="language-matlab">T=[txx  txy]
+  [txy  tyy]
+</pre><p>Compression is plotted in red, extension in blue.</p><p><b>Example:</b></p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
 CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
 [exx,eyy,exy,e]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             <span class="comment">% calculate strain rates</span>
 [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
@@ -80,54 +83,54 @@ scale=1e4; LineWidth=2 ;
 PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  <span class="comment">% plot strain rates</span>
 axis <span class="string">equal</span> <span class="string">tight</span>
 FigTensor.Children.Title.String=<span class="string">'Strain rates'</span>
-</pre><pre class="codeinput">    headscale=0.3;
-    sharp=0.3;
+</pre><pre class="codeinput"><span class="keyword">if</span> nargin&lt;7
+    LineWidth=1;
+<span class="keyword">end</span>
 
-    <span class="keyword">if</span> nargin&lt;7 ; LineWidth=1; <span class="keyword">end</span>
-
-    <span class="keyword">for</span> k=1:length(x)
-
-        <span class="keyword">if</span> ~isnan(txx(k))
-            D=[txx(k) txy(k) ; txy(k) tyy(k)];
-            [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
+headscale=0.3;
+sharp=0.3;
 
 
-            p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
-            p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
+
+<span class="keyword">for</span> k=1:length(x)
+
+    <span class="keyword">if</span> ~isnan(txx(k))
+        D=[txx(k) txy(k) ; txy(k) tyy(k)];
+        [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
 
 
-            <span class="keyword">if</span> l1 &lt; 0
-                head=-1;
-                col=[1 0 0 ];
-            <span class="keyword">else</span>
-                head=1;
-                col=[0 0 1];
-            <span class="keyword">end</span>
+        p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
+        p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
 
 
-            ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
-            ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
-
-            <span class="keyword">if</span> l2 &lt; 0
-                head=-1;
-                col=[1 0 0 ];
-            <span class="keyword">else</span>
-                head=1;
-                col=[0 0 1];
-            <span class="keyword">end</span>
-            ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
-            ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
+        <span class="keyword">if</span> l1 &lt; 0
+            head=-1;
+            col=[1 0 0 ];
+        <span class="keyword">else</span>
+            head=1;
+            col=[0 0 1];
         <span class="keyword">end</span>
+
+
+        ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
+        ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
+
+        <span class="keyword">if</span> l2 &lt; 0
+            head=-1;
+            col=[1 0 0 ];
+        <span class="keyword">else</span>
+            head=1;
+            col=[0 0 1];
+        <span class="keyword">end</span>
+        ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
+        ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
     <span class="keyword">end</span>
+<span class="keyword">end</span>
 
 
-    <span class="keyword">return</span>
-</pre><pre class="codeoutput error">Not enough input arguments.
-
-Error in PlotTensor (line 36)
-    for k=1:length(x)
+<span class="keyword">return</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 
@@ -136,8 +139,8 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 %   PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
-% Tensor T=[txx  txy]
-%          [txy  tyy]
+%   T=[txx  txy]
+%     [txy  tyy]
 %
 % Compression is plotted in red, extension in blue.
 %
@@ -158,50 +161,53 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 %%
 
+if nargin<7 
+    LineWidth=1; 
+end
 
-    headscale=0.3;
-    sharp=0.3;
+headscale=0.3;
+sharp=0.3;
+
+
+
+for k=1:length(x)
     
-    if nargin<7 ; LineWidth=1; end
-    
-    for k=1:length(x)
+    if ~isnan(txx(k))
+        D=[txx(k) txy(k) ; txy(k) tyy(k)];
+        [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
         
-        if ~isnan(txx(k))
-            D=[txx(k) txy(k) ; txy(k) tyy(k)];
-            [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
-            
-            
-            p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
-            p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
-            
-            
-            if l1 < 0
-                head=-1;
-                col=[1 0 0 ];
-            else
-                head=1;
-                col=[0 0 1];
-            end
-            
-            
-            ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
-            ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
-            
-            if l2 < 0
-                head=-1;
-                col=[1 0 0 ];
-            else
-                head=1;
-                col=[0 0 1];
-            end
-            ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
-            ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
+        
+        p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
+        p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
+        
+        
+        if l1 < 0
+            head=-1;
+            col=[1 0 0 ];
+        else
+            head=1;
+            col=[0 0 1];
         end
+        
+        
+        ghg_arrow(x(k),y(k),p1x,p1y,scale,headscale,sharp,head,col,LineWidth);
+        ghg_arrow(x(k),y(k),-p1x,-p1y,scale,headscale,sharp,head,col,LineWidth);
+        
+        if l2 < 0
+            head=-1;
+            col=[1 0 0 ];
+        else
+            head=1;
+            col=[0 0 1];
+        end
+        ghg_arrow(x(k),y(k),p2x,p2y,scale,headscale,sharp,head,col,LineWidth);
+        ghg_arrow(x(k),y(k),-p2x,-p2y,scale,headscale,sharp,head,col,LineWidth);
     end
-    
-    
-    return
-    
+end
+
+
+return
+
 end
 
 ##### SOURCE END #####

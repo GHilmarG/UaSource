@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-14"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
+      --><title>Ua2D_DefaultParameters</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-07-26"><meta name="DC.source" content="Ua2D_DefaultParameters.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,7 +67,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#6">Types of run</a></li><li><a href="#7">Ice flow approximation</a></li><li><a href="#8">Slope of coordinate system with respect to gravity</a></li><li><a href="#9">Sliding law</a></li><li><a href="#10">Boundary conditions</a></li><li><a href="#11">Ensuring flotation</a></li><li><a href="#12">Manually updating geometry in the course of a run.</a></li><li><a href="#14">Element type</a></li><li><a href="#15">Control on transient runs</a></li><li><a href="#16">Restart option</a></li><li><a href="#18">Plotting</a></li><li><a href="#19">Plotting mesh</a></li><li><a href="#20">Numerical variables related to transient runs</a></li><li><a href="#21">Explicit estimation</a></li><li><a href="#22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#23">Constraints on viscosity and slipperiness</a></li><li><a href="#24">Non-linear iteration-loop parameters</a></li><li><a href="#25">uvh Convergence criteria</a></li><li><a href="#26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#27">Backtracking parameters  -line search</a></li><li><a href="#28">Lin equation solver parameters</a></li><li><a href="#29">Internal variables related to matrix assembly</a></li><li><a href="#30">Number of integration points and/or quadrature rule degree</a></li><li><a href="#31">Level of information given during a run</a></li><li><a href="#32">Inversion</a></li><li><a href="#33">Inversion algorithim:</a></li><li><a href="#43">Comparing adjoint gradients with finite-difference gradients</a></li><li><a href="#44">Inverse testing parameters (do not change)</a></li><li><a href="#45">Numbering of nodes and elements</a></li><li><a href="#46">Outputs</a></li><li><a href="#47">Obtaining information about the run, during the run.</a></li><li><a href="#48">General Meshing Options</a></li><li><a href="#49">Selecting the external mesh generator</a></li><li><a href="#50">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#51">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#52">Controlling element sizes</a></li><li><a href="#53">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#54">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#55">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#56">Uniform global mesh refinement</a></li><li><a href="#57">Adaptive mesh refinement</a></li><li><a href="#58">Calving :  including Level Set Method</a></li><li><a href="#59">Controlling when and how often mesh is adapted</a></li><li><a href="#60">Mesh refinement criteria</a></li><li><a href="#61">Mesh smoothing</a></li><li><a href="#62">Local mesh refinement around grounding line</a></li><li><a href="#63">Local mesh refinement around calving front</a></li><li><a href="#64">Parameters affecting the floating mask</a></li><li><a href="#65">Parameters affecting calculation of grounding line</a></li><li><a href="#67">A and C as element or nodal variables</a></li><li><a href="#68">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step) (automated time stepping)</a></li><li><a href="#69">Mass-balance geometry feedback</a></li><li><a href="#70">Sea ice/melange</a></li><li><a href="#72">Mapping from Mesh1 to Mesh2</a></li><li><a href="#73">Parallel options:</a></li><li><a href="#74">Tracers</a></li><li><a href="#76">Mapping variables from one FE mesh to another</a></li><li><a href="#78">Internal variables</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#6">Types of run</a></li><li><a href="#7">Ice flow approximation</a></li><li><a href="#8">Slope of coordinate system with respect to gravity</a></li><li><a href="#9">Sliding law</a></li><li><a href="#10">Boundary conditions</a></li><li><a href="#11">Ensuring flotation</a></li><li><a href="#12">Manually updating geometry in the course of a run.</a></li><li><a href="#14">Element type</a></li><li><a href="#15">Control on transient runs</a></li><li><a href="#16">Restart option</a></li><li><a href="#18">Plotting</a></li><li><a href="#19">Plotting mesh</a></li><li><a href="#20">Numerical variables related to transient runs</a></li><li><a href="#21">Explicit estimation</a></li><li><a href="#22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</a></li><li><a href="#23">Constraints on viscosity and slipperiness</a></li><li><a href="#24">Non-linear iteration-loop parameters</a></li><li><a href="#25">uvh Convergence criteria</a></li><li><a href="#26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</a></li><li><a href="#27">Backtracking parameters  -line search</a></li><li><a href="#28">Lin equation solver parameters</a></li><li><a href="#29">Internal variables related to matrix assembly</a></li><li><a href="#30">Number of integration points and/or quadrature rule degree</a></li><li><a href="#31">Level of information given during a run</a></li><li><a href="#32">Inversion</a></li><li><a href="#33">Inversion algorithim:</a></li><li><a href="#43">Comparing adjoint gradients with finite-difference gradients</a></li><li><a href="#44">Inverse testing parameters (do not change)</a></li><li><a href="#45">Numbering of nodes and elements</a></li><li><a href="#46">Outputs</a></li><li><a href="#47">Obtaining information about the run, during the run.</a></li><li><a href="#48">General Meshing Options</a></li><li><a href="#49">Selecting the external mesh generator</a></li><li><a href="#50">Options related to the use of the gmsh external mesh generator</a></li><li><a href="#51">Options related to the use of the mesh2d external mesh generator</a></li><li><a href="#52">Controlling element sizes</a></li><li><a href="#53">Options related to the Ua mesh structure variable MUA</a></li><li><a href="#54">Pos. thickness constraints,          (-active set-)</a></li><li><a href="#55">Advance/Retreat mesh and automated activation/deactivation of elements</a></li><li><a href="#56">Uniform global mesh refinement</a></li><li><a href="#57">Adaptive mesh refinement</a></li><li><a href="#58">Calving :  including Level Set Method</a></li><li><a href="#59">Controlling when and how often mesh is adapted</a></li><li><a href="#60">Mesh refinement criteria</a></li><li><a href="#61">Mesh smoothing</a></li><li><a href="#62">Local mesh refinement around grounding line</a></li><li><a href="#63">Local mesh refinement around calving front</a></li><li><a href="#64">Parameters affecting the floating mask</a></li><li><a href="#65">Parameters affecting calculation of grounding line</a></li><li><a href="#67">A and C as element or nodal variables</a></li><li><a href="#68">Adaptive Time Stepping Algorithm (ATSA)   (adapt time step) (automated time stepping)</a></li><li><a href="#69">Mass-balance geometry feedback</a></li><li><a href="#70">Sea ice/melange</a></li><li><a href="#72">Mapping from Mesh1 to Mesh2</a></li><li><a href="#73">Parallel options:</a></li><li><a href="#75">Tracers</a></li><li><a href="#77">Mapping variables from one FE mesh to another</a></li><li><a href="#79">Internal variables and  temporary testing parameters</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> CtrlVar=Ua2D_DefaultParameters
 </pre><p>CtrlVar=Ua2D_DefaultParameters</p><pre>sets the fields of the CtrlVar to their default values</pre><pre>Most likely when running &Uacute;a, only a fairly limited number of the parameters listed below need to be set/changed.
 Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'.
 That user m-file should be located in a separate run-directory, together with all the other user m-files</pre><pre class="codeinput">CtrlVar.WhoAmI=<span class="string">"Ua2D CtrlVar"</span> ;
@@ -99,7 +99,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 </pre><h2 id="7">Ice flow approximation</h2><pre class="codeinput">CtrlVar.FlowApproximation=<span class="string">"SSTREAM"</span> ;  <span class="comment">% any of ['SSTREAM'|'SSHEET'|'Hybrid']</span>
                                        <span class="comment">% Note, both SSTREAM and SSHEET are implemented.</span>
                                        <span class="comment">% But Hybrid is still in development and should not be used for the time being.</span>
-CtrlVar.MustBe.FlowApproximation=[<span class="string">"SSTREAM"</span>,<span class="string">"SSHEET"</span>,<span class="string">"Hybrid"</span>] ;
+CtrlVar.MustBe.FlowApproximation=[<span class="string">"SSTREAM"</span>,<span class="string">"SSHEET"</span>,<span class="string">"Hybrid"</span>,<span class="string">"SSTREAM-rho"</span>,<span class="string">"uvhPrescribed"</span>] ;
 </pre><h2 id="8">Slope of coordinate system with respect to gravity</h2><pre class="codeinput">CtrlVar.alpha=0 ;
 </pre><h2 id="9">Sliding law</h2><p>Several sliding laws can be defined. These include <b>Weertman</b> (power-law relationship between basal drag and velocity, i.e. u=C tau^m ) and <b>Coulomb</b> friction (basal drag equal a constant times effective pressure, i.e. tau = mu N).  When using Columb friction define mu in DefineSlipperiness.m instead of C.</p><p>The other sliding laws are all just different ways of combining Weertman and Coulomb.</p><p>If the drag calculated using Weertman law is TauW and that calculated using Coulomb law is TauC, while Tau is the drag used, then</p><p><b>Tsai:</b>   Tau=min(TauC,TauW)</p><p><b>Conford:</b>  1/Tau^m = 1/TauC^m + 1/TauW^m</p><p>The <b>Budd</b> sliding law is a simple extension of the Weertman sliding law where:</p><p>u = C tau^m/N^q</p><p>The effective pressure is currently only calculated using a 'zeroth-order' hydrology model, where N=rho g (h-h_f) where h_f is the flotation thickness.</p><pre class="codeinput">CtrlVar.SlidingLaw=<span class="string">"Weertman"</span> ;
 CtrlVar.MustBe.SlidingLaw=[<span class="string">"Weertman"</span>,<span class="string">"Budd"</span>,<span class="string">"Tsai"</span>,<span class="string">"Coulomb"</span>,<span class="string">"Cornford"</span>,<span class="string">"Umbi"</span>,<span class="string">"W"</span>,<span class="string">"W-N0"</span>,<span class="string">"minCW-N0"</span>,<span class="string">"C"</span>,<span class="string">"rpCW-N0"</span>,<span class="string">"rCW-N0"</span>]  ;
@@ -166,11 +166,12 @@ CtrlVar.NameOfRestartFiletoWrite=<span class="string">'Ua2D_Restartfile.mat'</sp
 </pre><pre class="codeinput">CtrlVar.SaveAdaptMeshFileName=[];          <span class="comment">% file name for saving adapt mesh. If left empty, no file is written</span>
 </pre><h2 id="18">Plotting</h2><p>Most plotting is typically done by the user using his own version of the m-file</p><pre class="language-matlab">DefineOutputs.m
 </pre><p>or in a separate post-processing step.</p><p>However, some basic plots can be generated directly from within Ua.</p><pre class="codeinput">CtrlVar.doplots=1;          <span class="comment">% if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots</span>
+CtrlVar.PlotXYscale=1000;     <span class="comment">% used to scale x and y axis of some of the figures, only used for plotting purposes</span>
 CtrlVar.PlotWaitBar=1;      <span class="comment">% a waitbar is plotted</span>
 CtrlVar.doAdaptMeshPlots=1; <span class="comment">% if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing</span>
 CtrlVar.PlotOceanLakeNodes=0;        <span class="comment">% Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean</span>
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.PlotXYscale=1;     <span class="comment">% used to scale x and y axis of some of the figures, only used for plotting purposes</span>
+
                            <span class="comment">% (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)</span>
 CtrlVar.PlotsXaxisLabel=<span class="string">'x'</span> ; CtrlVar.PlotsYaxisLabel=<span class="string">'y'</span> ; <span class="comment">%</span>
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    <span class="comment">% when plotting vel arrows with smaller speed are scaled so that their speed its</span>
@@ -211,7 +212,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=[<span class="string">"TG3"</sp
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; <span class="comment">% parameters related to the SUPG method.</span>
 CtrlVar.theta=0.5;    <span class="comment">% theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate</span>
-
+CtrlVar.hTheta=0.5;
 <span class="comment">% Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.</span>
 <span class="comment">% It has not been fully tested but seems to work very well for fully implicit transient calculation.</span>
 <span class="comment">% This option that can be obtained by setting:</span>
@@ -229,6 +230,7 @@ CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     <span class="comment">%
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    <span class="comment">% keep zero (only used for testing)</span>
 </pre><h2 id="21">Explicit estimation</h2><p>In a transient run u, v and h can estimated explicity ahead of an implicit uvh calculation.  If the explicit estimate is a good starting point, then the number of non-linear uvh iterations is reduced. One can either use second-order Adams-Bashforth method for a variable time step, or calculate dh/dt explicitly from flux convergence and then set h1=h0+dt dh/dt.   Generally both method work fine and the Adams-Bashforth method used to be the default approach. However, experience has shown that occasionally the Adams-Bashforth extrapolation appears to give rise to a bad starting points for the uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in the sense that one calculates dh/dt directly from the velocity field, rather than using an estimate of dh/dt from the two previous solutions.</p><pre class="codeinput">CtrlVar.ExplicitEstimationMethod=<span class="string">"-Adams-Bashforth-"</span> ; <span class="comment">% {"-Adams-Bashforth-","-dhdt-"}</span>
 CtrlVar.MustBe.ExplicitEstimationMethod=[<span class="string">"-Adams-Bashforth-"</span>,<span class="string">"-dhdt-"</span>] ;
+CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ;
 </pre><h2 id="22">Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)</h2><pre class="codeinput">CtrlVar.SpeedZero=1e-4;     <span class="comment">% needs to be larger than 0 but should also be much smaller than any velocities of interest.</span>
 CtrlVar.EpsZero=1e-10;      <span class="comment">% needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.</span>
 CtrlVar.Czero=0 ; <span class="comment">% 1e-20    ;    % must be much smaller than C.</span>
@@ -252,12 +254,13 @@ CtrlVar.Cmax=1e50;
 CtrlVar.AGlenmin=1e-20;
 CtrlVar.AGlenmax=1e20;
 </pre><h2 id="24">Non-linear iteration-loop parameters</h2><p>The non-linear system is considered solved once the residuals are smaller than</p><pre class="language-matlab">CtlrVar.NLtol
-</pre><p>and the normalized chances in u,h and \lambda smaller than du, dh and dl.</p><p>The most (arguably even the only) important number is NLtol. NLtol is a tolerance on the norm of the solution residuals, i.e. the resulting residuals once the solution is plugged back into the equation. So NLtol should ALWAYS be set to a small value (for example &lt;1e-10)</p><p>The CtrlVar.du/dh/dl are tolerances for the chance in u,h, and \lambda, respectively, between subsequent non-linear iteration steps. Although one would expect these to go to zero with increasing iteration number, these are not very reliable estimates of the actual error.  Generally set du and dh to not too large value, but do not focus too much on those numbers (The error in solving the boundary conditions is always checked internally.)</p><p>Note: there is no need to put any constrains on the Lagrange variables used to enforce the BCs because 1) the BCs are currently always linear, and 2) it is always checked internally that the BCs have been solved correctly. In fact, it can be a bad idea to enforce a limit on this change because sometimes the change in lambda between non-linear iteration steps is just a direct response to how the primary variables (u,v,h) change.  The norm of these changes can then be large despite the BCs being exactly fulfilled.)</p><h2 id="25">uvh Convergence criteria</h2><p>The non-linear uvh/uv loops are considered to have converged if:</p><pre>1) Work and Force tolerances are both less than:</pre><pre class="codeinput">CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+</pre><p>and the normalized chances in u,h and \lambda smaller than du, dh and dl.</p><p>The most (arguably even the only) important number is NLtol. NLtol is a tolerance on the norm of the solution residuals, i.e. the resulting residuals once the solution is plugged back into the equation. So NLtol should ALWAYS be set to a small value (for example &lt;1e-10)</p><p>The CtrlVar.du/dh/dl are tolerances for the chance in u,h, and \lambda, respectively, between subsequent non-linear iteration steps. Although one would expect these to go to zero with increasing iteration number, these are not very reliable estimates of the actual error.  Generally set du and dh to not too large value, but do not focus too much on those numbers (The error in solving the boundary conditions is always checked internally.)</p><p>Note: there is no need to put any constrains on the Lagrange variables used to enforce the BCs because 1) the BCs are currently always linear, and 2) it is always checked internally that the BCs have been solved correctly. In fact, it can be a bad idea to enforce a limit on this change because sometimes the change in lambda between non-linear iteration steps is just a direct response to how the primary variables (u,v,h) change.  The norm of these changes can then be large despite the BCs being exactly fulfilled.)</p><h2 id="25">uvh Convergence criteria</h2><p>The non-linear uvh/uv loops are considered to have converged if:</p><pre>1) Work and Force tolerances are both less than:</pre><pre class="codeinput">CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
 <span class="comment">% and, furthermore, at least one of Work and Force tolerances are less than:</span>
-CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
+<span class="comment">%Note: The default uvh tolerances set limits on the Force tolerance only.</span>
 
 <span class="comment">% 2) If the step length in the backtracking becomes smaller than</span>
-CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 <span class="comment">% while at the same time these Work and Force tolerances also fullfilled:</span>
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
@@ -274,6 +277,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -297,6 +302,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=[<span class="string">"Force Residuals"</
 
 
 CtrlVar.uvh.SUPG.tau=<span class="string">"taus"</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
+CtrlVar.h.SUPG.tau=<span class="string">"taus"</span>;  CtrlVar.h.SUPG.Use=1;
 </pre><h2 id="26">Newton-Raphson, modified Newton-Raphson, Picard Iteration</h2><p>When solving the non-linear system (forward model) the recommended option is is to use the full Newton-Raphson method</p><p>One can also use the modified Newton-Raphson or the Picard iteration.</p><p>Modified Newton-Raphson only evaluates the left-hand side (the stiffness matrix) if certain criteria are fulfilled. This will reduced time spend with matrix assembly but also reduced the rate of convergence. Depending on the problem using the modified NR method may, or may not, lead to an overall reduction in computational time.</p><p>When using the modified Newton-Raphson method, there are two criteria that determine if the left-hand side is updated or not: 1) interval and 2) (residual) reduction criteria. The interval criteria determines the number of iterations between updates. (The matrix is always updated at the beginning of the non-linear iteration.) The reduction criteria forces re-assembly if the reduction in last iteration was not greater than a given fraction.</p><p>Note:Most of the following parameters related to the NR iteration do, in general, not to be modified and the default values should in most situation be OK.</p><pre class="codeinput">CtrlVar.NR=1;                             <span class="comment">% 1 gives Newton-Raphson (use Newton-Raphson whenever possible)</span>
 CtrlVar.ModifiedNRuvIntervalCriterion=1;  <span class="comment">% interval between matrix updates, always a positive integer number.</span>
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; <span class="comment">% fractional reduction forcing an update</span>
@@ -418,7 +424,7 @@ CtrlVar.InfoLevelLinSolve=0;  <span class="comment">% If the linear solver does 
                               <span class="comment">% then increasing this number will give further information. G</span>
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-
+CtrlVar.hInfoLevel=1;         <span class="comment">% Infolevel for the h solve when using semi-implicit uv/h approach</span>
 CtrlVar.InfoLevelThickMin=0 ; <span class="comment">% if &gt;=1 prints out info related to resetting thickness to min thick</span>
                               <span class="comment">% if &gt;=10, plots locations of min thickness within mesh</span>
 CtrlVar.SymmSolverInfoLevel=0 ;
@@ -426,7 +432,7 @@ CtrlVar.InfoLevelBackTrack=1;
 CtrlVar.InfoLevelCPU=0;  <span class="comment">% if 1 then some info on CPU time usage is given</span>
 CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard output is directed to a logfile</span>
 <span class="comment">% name of logfile is  $Experiment.log</span>
-</pre><h2 id="32">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq08369003733283222926.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq12181943583103488439.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq12924131073447543161.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq15019012425984498030.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq13887426895847926300.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:405px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq04487584478622693718.png" alt="$K_C$" style="width:20px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq09497593338882125070.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq06301708164122530744.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:365px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq09941021013676836398.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq05147331747641807187.png" alt="$A$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04475604477142801974.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq03986222445007418011.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq04408148735986522086.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'-logA-'</span> ;
+</pre><h2 id="32">Inversion</h2><p>Inversion can currently be done for A and C.</p><p>One can invert for either A or C individually, or both.</p><p>The default option is to invert for log(A) and log(C) simultaneously.</p><p>The objective function <img src="Ua2D_DefaultParameters_eq07719450564690685999.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p><p><img src="Ua2D_DefaultParameters_eq05807929389032372116.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p><p>where I is a misfit term, and R a regularization term.</p><p>The misfit term is:</p><p><img src="Ua2D_DefaultParameters_eq10024211797872095766.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p><p>where</p><p><img src="Ua2D_DefaultParameters_eq01878602293849951994.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p><p>and the regularization term can be either on the form (Bayesian)</p><p><img src="Ua2D_DefaultParameters_eq01765491164605855405.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:405px;height:18px;"></p><p>where  <img src="Ua2D_DefaultParameters_eq06066998096614611954.png" alt="$K_C$" style="width:20px;height:13px;">  and   <img src="Ua2D_DefaultParameters_eq11690864388985667333.png" alt="$K_A$" style="width:20px;height:13px;">  are covariance matrices, or (Tikhonov)</p><p><img src="Ua2D_DefaultParameters_eq10296661230749944397.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:365px;height:33px;"></p><p>where <img src="Ua2D_DefaultParameters_eq03729901751903020778.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq08772416954200330719.png" alt="$A$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq14208478268740022418.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq08596374860807106346.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq06488775577432398857.png" alt="$log(C)$" style="width:41px;height:15px;"></p><p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p><p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p><p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p><p>Ua has some inbuilt optimization methods and these are used by default. However, if the matlab optimization toolbox is installed, the matlab routines can be used instead.</p><p>Note #1: Some parameter combinations can be inconsistent. For example inverting for A only and applying regularization on A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.InvertFor=<span class="string">'-logA-'</span> ;
 CtrlVar.Inverse.Regularize.Field=<span class="string">'-logA-logC-'</span>
 </pre><p>is considered inconsistent (although in principle possible.) Also using the `FixPoint' gradient calculation, which only works for C inversion, and inverting for both A and C, i.e.</p><pre class="language-matlab">CtrlVar.Inverse.DataMisfit.GradientCalculation=<span class="string">'Adjoint'</span> ; <span class="comment">% {'Adjoint','FixPoint'}</span>
 CtrlVar.Inverse.InvertFor=<span class="string">'-logA-logC-'</span> ; <span class="comment">% {'-C-','-logC-','-AGlen-','-logA-','-logA-logC-'}</span>
@@ -447,7 +453,7 @@ CtrlVar.Inverse.Hessian=<span class="string">"RHA=E RHC=E IHC=FP IHA=FP"</span>;
 <span class="comment">% So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H.</span>
 
 
-<span class="comment">% If the gradient-based approach is sued, the gradient of the objective function can be pre-multiplied with the inverse of the mass</span>
+<span class="comment">% If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass</span>
 <span class="comment">% matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is</span>
 <span class="comment">% presumably to use 'I', and then to try out 'M' for comparison.</span>
 
@@ -559,6 +565,40 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
         <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
         <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default</span>
 
+    <span class="comment">% 2022-05-21: tried to fix the error with M2022a when using the gradient-based option</span>
+    <span class="comment">% by redefining and simplifying the options, but this did not work either.</span>
+     options=optimoptions(<span class="string">"fmincon"</span>);
+     options.Algorithm=<span class="string">"trust-region-reflective"</span>;
+     options.HessianApproximation=<span class="string">"lbfgs"</span>;
+     options.SpecifyConstraintGradient=true;
+     CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
+
+     <span class="comment">% These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox</span>
+    CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(<span class="string">'fmincon'</span>,<span class="keyword">...</span>
+        <span class="string">'Algorithm'</span>,<span class="string">'interior-point'</span>,<span class="keyword">...</span>
+        <span class="string">'CheckGradients'</span>,false,<span class="keyword">...</span>
+        <span class="string">'ConstraintTolerance'</span>,1e-10,<span class="keyword">...</span>
+        <span class="string">'HonorBounds'</span>,true,<span class="keyword">...</span>
+        <span class="string">'Diagnostics'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+        <span class="string">'DiffMaxChange'</span>,Inf,<span class="keyword">...</span>
+        <span class="string">'DiffMinChange'</span>,0,<span class="keyword">...</span>
+        <span class="string">'Display'</span>,<span class="string">'iter-detailed'</span>,<span class="keyword">...</span>
+        <span class="string">'FunValCheck'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+        <span class="string">'MaxFunctionEvaluations'</span>,1e6,<span class="keyword">...</span>
+        <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span><span class="comment">,...</span>
+        <span class="string">'OptimalityTolerance'</span>,1e-20,<span class="keyword">...</span>
+        <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
+        <span class="string">'PlotFcn'</span>,{@optimplotlogfval,@optimplotstepsize},<span class="keyword">...</span>
+        <span class="string">'StepTolerance'</span>,1e-30,<span class="keyword">...</span>
+        <span class="string">'FunctionTolerance'</span>,1,<span class="keyword">...</span>
+        <span class="string">'UseParallel'</span>,true,<span class="keyword">...</span>
+        <span class="string">'HessianApproximation'</span>,{<span class="string">'lbfgs'</span>,250},<span class="keyword">...</span>
+        <span class="string">'HessianFcn'</span>,[],<span class="keyword">...</span>
+        <span class="string">'HessianMultiplyFcn'</span>,[],<span class="keyword">...</span>
+        <span class="string">'ScaleProblem'</span>,false,<span class="keyword">...</span>
+        <span class="string">'SpecifyConstraintGradient'</span>,false,<span class="keyword">...</span>
+        <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
+        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are '</span>
 
     <span class="comment">% These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox</span>
     Hfunc=@(p,lambda) p+lambda ;  <span class="comment">% just needs to defined here, this is then later replaced with a function that returns the Hessian estmation.</span>
@@ -652,12 +692,26 @@ CtrlVar.ReadInitialMesh=0;    <span class="comment">% if true then read FE mesh 
 CtrlVar.ReadInitialMeshFileName=<span class="string">'ExistingMeshFile.mat'</span>;  <span class="comment">% read mesh file having this name</span>
 CtrlVar.SaveInitialMeshFileName=<span class="string">'NewMeshFile.mat'</span>;
 <span class="comment">% By default, the mesh is always saved into a file, and that file can later be re-read.</span>
-<span class="comment">% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file</span>
+<span class="comment">%</span>
+<span class="comment">% To suppress the generation of a mesh file set to empty, ie</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.SaveInitialMeshFileName=[];</span>
+<span class="comment">%</span>
+<span class="comment">% To generate a new mesh file from, for example a result file or a restart file,  load the restart/result file and save MUA to a file</span>
 <span class="comment">% So for example:  load Restartfile ; save MyNewMeshFile MUA</span>
 <span class="comment">% Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';</span>
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; <span class="comment">% if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable</span>
-CtrlVar.AdaptMeshAndThenStop=0;      <span class="comment">% if true, then mesh will be adapted but no further calculations performed</span>
+
+
+CtrlVar.OnlyMeshDomainAndThenStop=0; <span class="comment">% If true then only an initial global meshing is done and no further calculations.</span>
+                                     <span class="comment">% Useful for checking if initial mesh is reasonable.</span>
+                                     <span class="comment">% Note: This causes an exit ahead of any adapt meshing.</span>
+
+
+CtrlVar.AdaptMeshAndThenStop=0;      <span class="comment">% Tf true, then mesh will be adapted but no further calculations performed</span>
+                                     <span class="comment">% This will do an initial uniform global meshing (where the mesh size is based on</span>
+                                     <span class="comment">% CtrlVar.MeshSize, CtrlVar.MeshSizeMax and CtrlVar.MeshSizeMin) and then do adaptive meshing as well.</span>
+                                     <span class="comment">%</span>
 </pre><h2 id="49">Selecting the external mesh generator</h2><p>As external mesh generators one can use either `gmsh' or `mesh2d'</p><p>Note that mesh2d does not support periodic boundary conditions.</p><pre class="codeinput"><span class="comment">%CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}</span>
 CtrlVar.MeshGenerator=<span class="string">"mesh2d"</span>;  <span class="comment">% this is the deault option</span>
 CtrlVar.MustBe.MeshGenerator=[<span class="string">"mesh2d"</span>,<span class="string">"gmsh"</span>];
@@ -751,19 +805,26 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     <span class="comment">% maximum numb
                                             <span class="comment">% is presumably going to be OK.</span>
 
 
-CtrlVar.ThicknessConstraintsItMaxCycles=1;  <span class="comment">% The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.</span>
-                                            <span class="comment">% Limit the number of such cycles and exist loop.</span>
 
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  <span class="comment">% if Thickconstraints are larger than this value they are inactivated, should be zero</span>
 CtrlVar.NumberOfActiveThicknessConstraints=0;      <span class="comment">% The number of active thickness constraints (just for information, always set initially to zero)</span>
-CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; <span class="comment">%</span>
+
+CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; <span class="comment">% In any active-set iteration, this is the maximum number of additional new constraints</span>
+
+CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;     <span class="comment">% In any active-set iteration, this is the min number of additional new constraints.</span>
+                                                                    <span class="comment">% This can be used to surpress new active-set iteration if only a few new constraints are identified.</span>
+                                                                    <span class="comment">% The exact number here can be expected to be problem dependent, but it seems safe to assume that if only</span>
+                                                                    <span class="comment">% a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has</span>
+                                                                    <span class="comment">% been defined as being "a few".</span>
+
 
 <span class="comment">% thickness barrier, option 3</span>
-CtrlVar.ThicknessBarrier=0;                   <span class="comment">% set to 1 for using the barrier method  (Option 3)</span>
-CtrlVar.ThicknessBarrierThicknessScale=CtrlVar.ThickMin;     <span class="comment">%</span>
-CtrlVar.ThicknessBarrierDiagonalFraction=1;   <span class="comment">% size of barrier term in comparison to mean abs of diagonal elements</span>
-CtrlVar.ThicknessBarrierMinThickMultiplier=2; <span class="comment">% exp. barrier is 1 at ThickMin * MinThickMuliplier</span>
-CtrlVar.ThicknessBarrierAccumulation=0.01;
+CtrlVar.ThicknessBarrier=1;                                         <span class="comment">% set to 1 for using the barrier method  (Option 3)</span>
+                                                                    <span class="comment">% additonal mass-balance term, ab,  on the form:</span>
+                                                                    <span class="comment">%         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)</span>
+                                                                    <span class="comment">% is added, and applied at integration points where  h&lt;hmin.</span>
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          <span class="comment">% a1 in the equaiton for the additional mass balance term (should always be negative)</span>
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           <span class="comment">% a3 in the equaiton for the additional mass balance term (should always be negative)</span>
 </pre><h2 id="55">Advance/Retreat mesh and automated activation/deactivation of elements</h2><p>This option allows for deactivation/activation of elements based on ice thickness. A `background' FE mesh is required. In most cases this background FE mesh will simply be the initial FE mesh used at the start of the calculation. For advancing glaciers this option must be combined with the active-set method (set CtrlVar.ThicknessConstraints=1)</p><p>Note: When combined with the active-set method then CtrlVar.ThickMinDeactivateElements must be &gt;= CtrlVar.ThickMin. It is usually good for this value to be slightly larger than CtrlVar.ThickMin Nodes are only included in the active set if thickness at a node &lt; CtrlVar.ThickMin. If CtrlVar.ThickMinDeactivateElements&gt;CtrlVar.ThickMin elements will be eliminated before all nodes of that element have (potentially) been included in the active set. This reduces somewhat the number of nodes in the active set from what it would otherwise be if CtrlVar.ThickMinDeactivateElements=CtrlVar.ThickMin.</p><p>Note: Elements are only inactivated if ALL nodes have thickness &lt;CtrlVar.ThickMinDeactivateElements Elements are activated once at least one of the nodes leaves the active set. It is therefore possible to have a new element where some of the nodes have thickness larger than CtrlVar.ThickMin. but less than CtrlVar.ThickMinDeactivateElements.</p><pre class="codeinput">CtrlVar.FEmeshAdvanceRetreat=0;     <span class="comment">% activates the Advance/Retreating mesh option</span>
 CtrlVar.FEmeshAdvanceRetreatDT=0.5; <span class="comment">% activation/deactivation done at this time interval</span>
                                     <span class="comment">% for CtrlVar.FEmeshAdvanceRetreatDT=0 the activation/deactivation is done</span>
@@ -786,6 +847,8 @@ CtrlVar.MinSurfAccRequiredToReactivateNodes=0;  <span class="comment">% If surfa
                                                 <span class="comment">% the top of a mountain peak that is not included in the current FE-mesh.</span>
                                                 <span class="comment">% This allows for the formation of new isolated glaciated areas.</span>
                                                 <span class="comment">% Although the default value is zero, it is presumably better to set this to a small positive value.</span>
+
+CtrlVar.UpdateMUAafterDeactivating=1;
 </pre><h2 id="56">Uniform global mesh refinement</h2><p>Mesh can be refined at a start of a run or the start of a restart run by subdividing all triangles into four can be useful, for example, for an error estimation</p><pre class="codeinput">CtrlVar.RefineMeshOnRestart=0;
 CtrlVar.RefineMeshOnStart=0;
 </pre><h2 id="57">Adaptive mesh refinement</h2><p>There are two different types of mesh refinement</p><div><ul><li>local</li><li>global</li></ul></div><p>Two different local mesh refinements are implemented</p><div><ul><li>red-green</li><li>newest vertex bisection</li></ul></div><p>The mesh refinement method is selected by setting the value of string variable</p><pre class="language-matlab">CtrlVar.MeshRefinementMethod
@@ -797,7 +860,11 @@ CtrlVar.RefineMeshOnStart=0;
 </pre><p>Note: Adapt meshing can only be done in a combination with a forward run. Adapt meshing can not be done in an inverse run. Usually before starting with an inverse run you may find it useful to do a number of forward (time independent) forward runs and use those to optimize the mesh prior to start of any inverse runs.</p><p>In addition to the above listed relative refinement criteria, one can also specify one type of an absolute mesh criterion based on distance from grounding lines.</p><p>The desired sizes of elements within a given distance from any grounding lines can be specified through CtrlVar.MeshAdapt.GLrange</p><p>CtrlVar.MeshAdapt.GLrange is an n x 2 array. Each value pair in every line specifies a distance from the grounding line and the desired element size within that distance. For example setting</p><pre class="language-matlab">CtrlVar.MeshAdapt.GLrange=[5000 1000];
 </pre><p>specifies that all elements located within 5000 meters should be 1000 m large (here assuming the distance unit is meters) if all elements.</p><p>And setting</p><pre class="language-matlab">CtrlVar.MeshAdapt.GLrange=[5000 2000 ; 1000 500  ; 250 50];
 </pre><p>specifies that elements within 5000 meters from the grounding line should be at the most 2000 meters large, those within 1000 m at most 500 m larger, and those within 250 m, 50 meters in size.</p><p>If no such grounding-line mesh refinement is to be used, set</p><pre class="language-matlab">CtrlVar.MeshAdapt.GLrange=[];
-</pre><p>Note: This absolute mesh criterion requires the matlab function rangesearch which is a part of the Machine Learning Toolbox.</p><pre class="codeinput">CtrlVar.AdaptMesh=0;          <span class="comment">% true if adapt meshing is used, no remeshing is done unless this variable is true</span>
+</pre><p>Note: This absolute mesh criterion requires the matlab function rangesearch which is a part of the Machine Learning Toolbox.</p><pre class="codeinput">CtrlVar.AdaptMesh=0;                       <span class="comment">% true if adapt meshing is used, no remeshing is done unless this variable is true</span>
+
+CtrlVar.ManuallyDeactivateElements=0;      <span class="comment">% If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m</span>
+
+
 CtrlVar.MeshRefinementMethod=<span class="string">'explicit:global'</span>;    <span class="comment">% can have any of these values:</span>
                                                    <span class="comment">% 'explicit:global'</span>
                                                    <span class="comment">% 'explicit:local:red-green'</span>
@@ -818,52 +885,109 @@ CtrlVar.MustBe.MeshRefinementMethod=[<span class="string">"explicit:global"</spa
 <span class="comment">%</span>
 <span class="comment">%</span>
 </pre><h2 id="58">Calving :  including Level Set Method</h2><p>Calving using the level-set method is currently experimental. For the time being use other options such as the manual element deactivation</p><pre class="codeinput">CtrlVar.LevelSetMethod=0;
+CtrlVar.LevelSetMethodTest=0;  <span class="comment">%</span>
 
 CtrlVar.LevelSetEvolution=<span class="string">"-prescribed-"</span>  ; <span class="comment">% "-prescribed-", "-By solving the level set equation-"</span>
-
-CtrlVar.ManuallyDeactivateElements=0;
-
-
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
+CtrlVar.LevelSetPhase=<span class="string">""</span> ;
 
 
-CtrlVar.LSFslope=1;
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0;
+<span class="comment">% To ensure ice thickness downstream of the calving front (ie zero line of the level set function) is small, several</span>
+<span class="comment">% approaches can be used. These are quite similar to the implementation of the min ice thickness.</span>
+<span class="comment">%</span>
+<span class="comment">% Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback</span>
+<span class="comment">%</span>
+<span class="comment">% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses</span>
+<span class="comment">% downstream of the calving front are guaranteed to be at min thick as they should. But this sharp transition in thickness</span>
+<span class="comment">% can come at the cost of shorter time steps.</span>
+<span class="comment">%</span>
+<span class="comment">% The mass-balance feedback method, ie method 3), will not give sharp calving fronts and the thickness downstream</span>
+<span class="comment">% of the calving front will in general go down to the min thickness over some distance. This distance can be shortened by</span>
+<span class="comment">% increasing the mass balance feedback, which can be done by making the paramters</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin</span>
+<span class="comment">%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic</span>
+<span class="comment">%</span>
+<span class="comment">% more negative. But again if the calving fronts become very sharp, we have the same risk of smal time steps as with</span>
+<span class="comment">% the active-set method.</span>
+<span class="comment">%</span>
+
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; <span class="comment">% 1) This simply resets the thickness to min thickness. NOT recomended!</span>
+
+CtrlVar.LevelSetMethodThicknessConstraints=0;           <span class="comment">% 2) This uses the active-set method, done as a part of the active set approach.</span>
+                                                        <span class="comment">% Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1</span>
 
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; <span class="comment">% 3) Here an additonal mass-balance term, ab,  on the form:</span>
+                                                               <span class="comment">%         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)</span>
+                                                               <span class="comment">% is added. This is quite similar to the "barrier method",</span>
+                                                               <span class="comment">% but the thickness  barrier method does not have to be activated as</span>
+                                                               <span class="comment">% well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).</span>
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          <span class="comment">% a1 in the above equation for ab.</span>
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         <span class="comment">% a3 in the above equaiton for ab.</span>
+
+CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             <span class="comment">% hmin in the above equation.</span>
+
+<span class="comment">% Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.</span>
+CtrlVar.LevelSetDownstreamAGlen=nan;                      <span class="comment">% Since the value is here set to nan, there AGlen will NOT be modified</span>
+<span class="comment">% CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Here AGlen will be set to this numerical value downstream of all</span>
+                                                          <span class="comment">% calving fronts. This will be done automatically and replaces</span>
+                                                          <span class="comment">% any values defined by the user in DefineAGlen.,</span>
+
+
+<span class="comment">% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.</span>
+<span class="comment">% This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting</span>
+<span class="comment">% in faster solution.</span>
+<span class="comment">%</span>
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    <span class="comment">%</span>
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    <span class="comment">%</span>
+
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  <span class="comment">% This is also roughly a signed distance</span>
 
+
+<span class="comment">% Here are some numerical paramters and values, generally no need to change.</span>
 CtrlVar.LevelSetSolutionMethod=<span class="string">"Newton Raphson"</span>;
 CtrlVar.MustBe.LevelSetSolutionMethod=[<span class="string">"Newton Raphson"</span>,<span class="string">"Picard"</span>] ;
-
+CtrlVar.LSFslope=1;  <span class="comment">% This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.</span>
 CtrlVar.LevelSetFABCostFunction=<span class="string">"p2q2"</span> ; <span class="comment">% can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]</span>
 
-CtrlVar.LevelSetFABmu.Value=1 ;
-CtrlVar.LevelSetFABmu.Scale=<span class="string">"ucl"</span> ; <span class="comment">% can be ["ucl","constant"];</span>
+CtrlVar.LevelSetFABmu.Value=0.1 ;
+CtrlVar.LevelSetFABmu.Scale=<span class="string">"-u-cl-"</span> ; <span class="comment">% can be ["-u-cl-","-ucl-","-constant-"];</span>
 
- CtrlVar.LevelSetTestString=<span class="string">""</span> ;
+CtrlVar.LevelSetTestString=<span class="string">""</span> ;
 CtrlVar.LevelSetSUPGtau=<span class="string">"taus"</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
-CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;
+CtrlVar.LevelSetInitialisationMethod=<span class="string">"-geo-"</span> ;
+CtrlVar.LevelSetInitialisationInterval=inf ;
 
-<span class="comment">% CtrlVar.LevelSetReinitialize=</span>
+
+CtrlVar.LevelSetFixPointSolverApproach=<span class="string">"PTS"</span>  ; <span class="comment">%  Solve the diffusion-only equation using pseudo-time stepping</span>
+
+CtrlVar.CalvingLaw.Evaluation=<span class="string">"-node-"</span>  ; <span class="comment">% nodal or integration-point evaluation  ["-int-","-node-"]</span>
+
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN;
+
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; <span class="comment">% use BCs to fix LSF around the zero level during (re)initialisation</span>
 CtrlVar.LSF.C=0;   <span class="comment">% consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)</span>
 CtrlVar.LevelSetMethodEquationForm=<span class="string">"scalar"</span>;
 CtrlVar.LevelSetInfoLevel=1;
 
-CtrlVar.LevelSetPseudoForwardTolerance=1; <span class="comment">% tolerance on max(d\varphi/dt) in the pseudo-forward stepping phase.</span>
-                                          <span class="comment">% This parameter has the untis distance/time. If the units are meters and years,</span>
-                                          <span class="comment">% then the pseudo-forward step initialisation will be continued until max change in</span>
-                                          <span class="comment">% any element is smaller than this prescribed tolerance.</span>
 
-CtrlVar.CalvingLaw=<span class="string">"-User Defined-"</span>;
-CtrlVar.MustBe.CalvingLaw=[<span class="string">"-User Defined-"</span>,<span class="string">"-No Ice Shelves-"</span>] ;
+CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
+CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
+
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  <span class="comment">% When using a geometrical initialisation</span>
+                                                           <span class="comment">% the (signed) distance to the calving front to each node is calculated.</span>
+                                                           <span class="comment">% For this purpose the calving front, as described either initially by the user</span>
+                                                           <span class="comment">% or as calculated as the zero contour of a previous level set, will need to be resampled</span>
+                                                           <span class="comment">% sufficiently fine. This is done by using a distance (d) that is given fraction of the smallest</span>
+                                                           <span class="comment">% element size, as d=sqrt(2*min(MUA.EleAreas))/factor,</span>
+                                                           <span class="comment">% where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor</span>
 </pre><h2 id="59">Controlling when and how often mesh is adapted</h2><p>There are a few variables that control when and how often the mesh is adapted</p><p>One can control the run-step interval between mesh adapt iterations through the variable</p><pre class="language-matlab">CtrlVar.AdaptMeshRunStepInterval
 </pre><p>One can control how many adapt iterations are performed within a run-step through the variables</p><pre class="language-matlab">CtrlVar.AdaptMeshIterations
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
@@ -1102,7 +1226,9 @@ CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; <span class="comment">% this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)</span>
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
-</pre><h2 id="74">Tracers</h2><p>If required that m-File 'TracerConservationEquation.m' can be used to solved the tracer conservation equation for the trace c on the form:</p><pre>dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a</pre><p>(Note: dc/dt is here the local time derivative, ie not the material derivative)</p><p>The natural boundary condition is (grad c) \cdot \norm = 0, ie free outflow condition</p><p>It's possible to use the streamline upwind Petrov--Galerkin method (SUPG), also named streamline diffusion finite element method (SDFEM), to ensure a stable finite element solution</p><pre class="codeinput">CtrlVar.Tracer.SUPG.Use=1;
+</pre><pre class="codeinput">CtrlVar.UseMexFiles=false ;
+CtrlVar.UseMexFilesCPUcompare=false;
+</pre><h2 id="75">Tracers</h2><p>If required that m-File 'TracerConservationEquation.m' can be used to solved the tracer conservation equation for the trace c on the form:</p><pre>dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a</pre><p>(Note: dc/dt is here the local time derivative, ie not the material derivative)</p><p>The natural boundary condition is (grad c) \cdot \norm = 0, ie free outflow condition</p><p>It's possible to use the streamline upwind Petrov--Galerkin method (SUPG), also named streamline diffusion finite element method (SDFEM), to ensure a stable finite element solution</p><pre class="codeinput">CtrlVar.Tracer.SUPG.Use=1;
 <span class="comment">% several different definitions of the SUPG parameter can be used:</span>
 CtrlVar.Tracer.SUPG.tau=<span class="string">'tau2'</span> ; <span class="comment">% {'tau1','tau2','taus','taut'}</span>
 <span class="comment">% tau1 : often recomended in textbooks for linear diffusion equations with</span>
@@ -1114,17 +1240,20 @@ CtrlVar.Tracer.SUPG.tau=<span class="string">'tau2'</span> ; <span class="commen
 <span class="comment">% To plot these different definitions set CtrlVar.PlotSUPGparameter and CtrlVar.doplots both to true (see above).</span>
 <span class="comment">%</span>
 </pre><pre class="codeinput">CtrlVar.fidlog=1;  <span class="comment">% unit number for standard output, no need to change.</span>
-</pre><h2 id="76">Mapping variables from one FE mesh to another</h2><p>Remeshing during a run requires variables to be mapped from the older mesh to the new mesh. Both geometrical variables (s, b, S, B) and other calculated quantaties such as ub, vb, dhdt, etc. need to be mapped.</p><p>In a diagnostic run (time-independent run) geometrical variables are defined by calls to 'DefineGeometry.m'</p><p>In a transient run one can either:</p><div><ol><li>calculate s and b from h, B and S  (h is approximately conserved), or</li><li>calculate h and b from s, B and S  (s is approximately unchanged).</li></ol></div><p>Which option is used is determined by the variable:</p><pre class="codeinput">CtrlVar.MapOldToNew.Transient.Geometry=<span class="string">"bh-FROM-sBS"</span> ; <span class="comment">% {"bs-FROM-hBS" ; "bh-FROM-sBS" }</span>
+</pre><h2 id="77">Mapping variables from one FE mesh to another</h2><p>Remeshing during a run requires variables to be mapped from the older mesh to the new mesh. Both geometrical variables (s, b, S, B) and other calculated quantaties such as ub, vb, dhdt, etc. need to be mapped.</p><p>In a diagnostic run (time-independent run) geometrical variables are defined by calls to 'DefineGeometry.m'</p><p>In a transient run one can either:</p><div><ol><li>calculate s and b from h, B and S  (h is approximately conserved), or</li><li>calculate h and b from s, B and S  (s is approximately unchanged).</li></ol></div><p>Which option is used is determined by the variable:</p><pre class="codeinput">CtrlVar.MapOldToNew.Transient.Geometry=<span class="string">"bh-FROM-sBS"</span> ; <span class="comment">% {"bs-FROM-hBS" ; "bh-FROM-sBS" }</span>
 </pre><p>When mapping variables using interpolation, either the matlab scattered interpolant can be used, or the interpolation is done using the FE form functions</p><pre class="codeinput">CtrlVar.MapOldToNew.method=<span class="string">"scatteredInterpolant"</span> ; <span class="comment">% {"FE form functions","scatteredInterpolant"}</span>
 
 CtrlVar.MapOldToNew.Test=false;   <span class="comment">%</span>
-</pre><h2 id="78">Internal variables</h2><pre class="codeinput">CtrlVar.DevelopmentVersion=false;  <span class="comment">% Internal variable, always set to 0</span>
+</pre><h2 id="79">Internal variables and  temporary testing parameters</h2><pre class="codeinput">CtrlVar.DevelopmentVersion=false;  <span class="comment">% Internal variable, always set to 0</span>
                                 <span class="comment">% (unless you want to use some untried, untested and unfinished features....)</span>
 CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; <span class="comment">% Test</span>
 CtrlVar.nargoutJGH=[];   <span class="comment">% internal variable, do not change</span>
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function CtrlVar=Ua2D_DefaultParameters
 
@@ -1179,7 +1308,7 @@ CtrlVar.UseUserDefinedRunStopCriterion=false ;
 CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
-CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid"] ;  
+CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho","uvhPrescribed"] ;  
 %% Slope of coordinate system with respect to gravity
 
 CtrlVar.alpha=0 ; 
@@ -1325,11 +1454,12 @@ CtrlVar.SaveAdaptMeshFileName=[];          % file name for saving adapt mesh. If
 %
 
 CtrlVar.doplots=1;          % if true then plotting during runs by Ua are allowed, set to 0 to suppress all plots
+CtrlVar.PlotXYscale=1000;     % used to scale x and y axis of some of the figures, only used for plotting purposes
 CtrlVar.PlotWaitBar=1;      % a waitbar is plotted
 CtrlVar.doAdaptMeshPlots=1; % if true and if CtrlVar.doplots true also, then do some extra plotting related to adapt meshing
 CtrlVar.PlotOceanLakeNodes=0;        % Shows which nodes are considered a part of the `ocean' and which are within `lakes' that have no connection the ocean
 CtrlVar.PlotMeltNodes=0;
-CtrlVar.PlotXYscale=1;     % used to scale x and y axis of some of the figures, only used for plotting purposes
+
                            % (if spatial units are in meters, setting this to 1000 produces xy axis with the units km)
 CtrlVar.PlotsXaxisLabel='x' ; CtrlVar.PlotsYaxisLabel='y' ; %
 CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smaller speed are scaled so that their speed its
@@ -1394,7 +1524,7 @@ CtrlVar.MustBe.uvhSemiImplicitTimeSteppingMethod=["TG3","Galerkin","SUPG"] ;
 
 CtrlVar.SUPG.beta0=1 ; CtrlVar.SUPG.beta1=0 ; % parameters related to the SUPG method.
 CtrlVar.theta=0.5;    % theta=0 is forward Euler, theta=1 is backward Euler, theta=1/2 is Lax-Wendroff and is most accurate
-
+CtrlVar.hTheta=0.5;
 % Note: An additional time-stepping method is the Third-Order Taylor-Galerkin (TG3) method.
 % It has not been fully tested but seems to work very well for fully implicit transient calculation.
 % This option that can be obtained by setting:
@@ -1425,6 +1555,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % an estimate of dh/dt from the two previous solutions.
 CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-"] ;
+CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
@@ -1483,12 +1614,13 @@ CtrlVar.AGlenmax=1e20;
 % The non-linear uvh/uv loops are considered to have converged if:
 %
 %  1) Work and Force tolerances are both less than: 
-CtrlVar.uvhDesiredWorkAndForceTolerances=[1000 1e-10];
+CtrlVar.uvhDesiredWorkAndForceTolerances=[inf 1e-15];
 % and, furthermore, at least one of Work and Force tolerances are less than:
-CtrlVar.uvhDesiredWorkOrForceTolerances=[1 1e-15];
+CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
+%Note: The default uvh tolerances set limits on the Force tolerance only. 
 
 % 2) If the step length in the backtracking becomes smaller than
-CtrlVar.uvhExitBackTrackingStepLength=1e-4;
+CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fullfilled:
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
@@ -1505,6 +1637,8 @@ CtrlVar.hDesiredWorkOrForceTolerances=[1 1e-15];
 CtrlVar.hExitBackTrackingStepLength=1e-4;
 CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.hSolverMaxIterations=50;
+
 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
@@ -1528,7 +1662,7 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
-
+CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -1710,7 +1844,7 @@ CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it somet
                               % then increasing this number will give further information. G
 
 CtrlVar.ThicknessConstraintsInfoLevel=1 ;
-                              
+CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implicit uv/h approach
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
@@ -1838,7 +1972,7 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
 
 
-% If the gradient-based approach is sued, the gradient of the objective function can be pre-multiplied with the inverse of the mass
+% If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
 % matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
 % presumably to use 'I', and then to try out 'M' for comparison.
 
@@ -2033,6 +2167,40 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
     
+    % 2022-05-21: tried to fix the error with M2022a when using the gradient-based option
+    % by redefining and simplifying the options, but this did not work either.
+     options=optimoptions("fmincon");
+     options.Algorithm="trust-region-reflective";
+     options.HessianApproximation="lbfgs";
+     options.SpecifyConstraintGradient=true;
+     CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
+
+     % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
+    CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
+        'Algorithm','interior-point',...
+        'CheckGradients',false,...
+        'ConstraintTolerance',1e-10,...
+        'HonorBounds',true,...
+        'Diagnostics','on',...
+        'DiffMaxChange',Inf,...
+        'DiffMinChange',0,...
+        'Display','iter-detailed',...
+        'FunValCheck','off',...
+        'MaxFunctionEvaluations',1e6,...
+        'MaxIterations',CtrlVar.Inverse.Iterations,...,...
+        'OptimalityTolerance',1e-20,...
+        'OutputFcn',@fminuncOutfun,...
+        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
+        'StepTolerance',1e-30,...
+        'FunctionTolerance',1,...
+        'UseParallel',true,...
+        'HessianApproximation',{'lbfgs',250},...
+        'HessianFcn',[],...
+        'HessianMultiplyFcn',[],...
+        'ScaleProblem',false,...
+        'SpecifyConstraintGradient',false,...
+        'SpecifyObjectiveGradient',true,...
+        'SubproblemAlgorithm','cg');  % here the options are '
     
     % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
     Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estmation.
@@ -2227,12 +2395,26 @@ CtrlVar.ReadInitialMesh=0;    % if true then read FE mesh (i.e the MUA variable)
 CtrlVar.ReadInitialMeshFileName='ExistingMeshFile.mat';  % read mesh file having this name 
 CtrlVar.SaveInitialMeshFileName='NewMeshFile.mat';       
 % By default, the mesh is always saved into a file, and that file can later be re-read.
-% But to generate a new mesh file from, for example a result file or a restart file, is easy. Just load the restart/result file and save MUA to a file 
+%
+% To suppress the generation of a mesh file set to empty, ie 
+% 
+%   CtrlVar.SaveInitialMeshFileName=[];
+%
+% To generate a new mesh file from, for example a result file or a restart file,  load the restart/result file and save MUA to a file 
 % So for example:  load Restartfile ; save MyNewMeshFile MUA
 % Now `MyNewMeshFile.mat' is a file that can be used as an initial mesh file by setting CtrlVar.ReadInitialMesh=0; CtrlVar.ReadInitialMeshFileName='MyNewMeshFile.mat';
 
-CtrlVar.OnlyMeshDomainAndThenStop=0; % if true then only meshing is done and no further calculations. Useful for checking if mesh is reasonable
-CtrlVar.AdaptMeshAndThenStop=0;      % if true, then mesh will be adapted but no further calculations performed
+
+
+CtrlVar.OnlyMeshDomainAndThenStop=0; % If true then only an initial global meshing is done and no further calculations.
+                                     % Useful for checking if initial mesh is reasonable.
+                                     % Note: This causes an exit ahead of any adapt meshing.
+
+
+CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no further calculations performed
+                                     % This will do an initial uniform global meshing (where the mesh size is based on 
+                                     % CtrlVar.MeshSize, CtrlVar.MeshSizeMax and CtrlVar.MeshSizeMin) and then do adaptive meshing as well.
+                                     %
 
 %% Selecting the external mesh generator
 %
@@ -2366,19 +2548,27 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                             % is presumably going to be OK.
                                       
                                             
-CtrlVar.ThicknessConstraintsItMaxCycles=1;  % The active set can become cyclical, ie nodes being activated/in-activated same as those previously in-activated/activated.
-                                            % Limit the number of such cycles and exist loop.
                                             
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
-CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; %
+
+CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
+
+CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;     % In any active-set iteration, this is the min number of additional new constraints.
+                                                                    % This can be used to surpress new active-set iteration if only a few new constraints are identified.
+                                                                    % The exact number here can be expected to be problem dependent, but it seems safe to assume that if only 
+                                                                    % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
+                                                                    % been defined as being "a few". 
+                                                                 
 
 % thickness barrier, option 3
-CtrlVar.ThicknessBarrier=0;                   % set to 1 for using the barrier method  (Option 3)
-CtrlVar.ThicknessBarrierThicknessScale=CtrlVar.ThickMin;     %
-CtrlVar.ThicknessBarrierDiagonalFraction=1;   % size of barrier term in comparison to mean abs of diagonal elements
-CtrlVar.ThicknessBarrierMinThickMultiplier=2; % exp. barrier is 1 at ThickMin * MinThickMuliplier
-CtrlVar.ThicknessBarrierAccumulation=0.01;
+CtrlVar.ThicknessBarrier=1;                                         % set to 1 for using the barrier method  (Option 3)
+                                                                    % additonal mass-balance term, ab,  on the form:
+                                                                    %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
+                                                                    % is added, and applied at integration points where  h<hmin.
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equaiton for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equaiton for the additional mass balance term (should always be negative)
+
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
@@ -2422,7 +2612,7 @@ CtrlVar.MinSurfAccRequiredToReactivateNodes=0;  % If surface accumulation is lar
                                                 % This allows for the formation of new isolated glaciated areas.
                                                 % Although the default value is zero, it is presumably better to set this to a small positive value.
 
-
+CtrlVar.UpdateMUAafterDeactivating=1; 
 %% Uniform global mesh refinement
 % Mesh can be refined at a start of a run or the start of a restart run by subdividing all triangles into four
 % can be useful, for example, for an error estimation
@@ -2540,7 +2730,11 @@ CtrlVar.RefineMeshOnStart=0;
 % Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
-CtrlVar.AdaptMesh=0;          % true if adapt meshing is used, no remeshing is done unless this variable is true
+CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
+
+CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
+                                          
+
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
                                                    % 'explicit:local:red-green'
@@ -2568,52 +2762,111 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 
 CtrlVar.LevelSetMethod=0; 
+CtrlVar.LevelSetMethodTest=0;  %  
 
 CtrlVar.LevelSetEvolution="-prescribed-"  ; % "-prescribed-", "-By solving the level set equation-" 
-
-CtrlVar.ManuallyDeactivateElements=0; 
-
-
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0;
+CtrlVar.LevelSetPhase="" ; 
 
 
-CtrlVar.LSFslope=1;
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1;
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1; 
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=0; 
+% To ensure ice thickness downstream of the calving front (ie zero line of the level set function) is small, several
+% approaches can be used. These are quite similar to the implementation of the min ice thickness.
+%
+% Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback
+%
+% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).
+%
+%
+% The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses
+% downstream of the calving front are guaranteed to be at min thick as they should. But this sharp transition in thickness
+% can come at the cost of shorter time steps.
+%
+% The mass-balance feedback method, ie method 3), will not give sharp calving fronts and the thickness downstream
+% of the calving front will in general go down to the min thickness over some distance. This distance can be shortened by
+% increasing the mass balance feedback, which can be done by making the paramters
+% 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin 
+%   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic
+%
+% more negative. But again if the calving fronts become very sharp, we have the same risk of smal time steps as with
+% the active-set method.
+%
+
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recomended!
+
+CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
+                                                        % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additonal mass-balance term, ab,  on the form:
+                                                               %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
+                                                               % is added. This is quite similar to the "barrier method", 
+                                                               % but the thickness  barrier method does not have to be activated as
+                                                               % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;         % a3 in the above equaiton for ab.
+
+CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
+
+% Optionally, AGlen can be set to some prescribed, usually small, value downstream of all calving fronts.
+CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is here set to nan, there AGlen will NOT be modified
+% CtrlVar.LevelSetDownstreamAGlen=10*AGlenVersusTemp(0);  % Here AGlen will be set to this numerical value downstream of all
+                                                          % calving fronts. This will be done automatically and replaces 
+                                                          % any values defined by the user in DefineAGlen.,
+
+
+% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
+% This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
+% in faster solution. 
+%
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
+CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
+
+
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsThreshold=-10e3;  % This is also roughly a signed distance
 
+
+% Here are some numerical paramters and values, generally no need to change.
 CtrlVar.LevelSetSolutionMethod="Newton Raphson"; 
 CtrlVar.MustBe.LevelSetSolutionMethod=["Newton Raphson","Picard"] ;  
-
+CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of the level-set function. Do not change unless you know exactly what you are doing.
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
-CtrlVar.LevelSetFABmu.Value=1 ; 
-CtrlVar.LevelSetFABmu.Scale="ucl" ; % can be ["ucl","constant"]; 
+CtrlVar.LevelSetFABmu.Value=0.1 ; 
+CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
 
- CtrlVar.LevelSetTestString="" ; 
+CtrlVar.LevelSetTestString="" ; 
 CtrlVar.LevelSetSUPGtau="taus" ; % {'tau1','tau2','taus','taut'}  
 
-CtrlVar.LevelSetReinitializeTimeInterval=inf;
-CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;   
+CtrlVar.LevelSetInitialisationMethod="-geo-" ;
+CtrlVar.LevelSetInitialisationInterval=inf ; 
 
-% CtrlVar.LevelSetReinitialize=
+
+CtrlVar.LevelSetFixPointSolverApproach="PTS"  ; %  Solve the diffusion-only equation using pseudo-time stepping 
+
+CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluation  ["-int-","-node-"] 
+
+CtrlVar.LevelSetMethodSolveOnAStrip=0;
+CtrlVar.LevelSetMethodStripWidth=NaN; 
+
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
 CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)
 CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
 
-CtrlVar.LevelSetPseudoForwardTolerance=1; % tolerance on max(d\varphi/dt) in the pseudo-forward stepping phase.
-                                          % This parameter has the untis distance/time. If the units are meters and years,
-                                          % then the pseudo-forward step initialisation will be continued until max change in 
-                                          % any element is smaller than this prescribed tolerance.
 
-CtrlVar.CalvingLaw="-User Defined-"; 
-CtrlVar.MustBe.CalvingLaw=["-User Defined-","-No Ice Shelves-"] ;
+CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
+CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
+
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialisation
+                                                           % the (signed) distance to the calving front to each node is calculated.
+                                                           % For this purpose the calving front, as described either initially by the user
+                                                           % or as calculated as the zero contour of a previous level set, will need to be resampled
+                                                           % sufficiently fine. This is done by using a distance (d) that is given fraction of the smallest 
+                                                           % element size, as d=sqrt(2*min(MUA.EleAreas))/factor,
+                                                           % where factor=CtrlVar.LevelSetGeometricInitialisationDistanceFactor
+
+
 %% Controlling when and how often mesh is adapted    
 %
 % There are a few variables that control when and how often the mesh is adapted
@@ -2990,6 +3243,13 @@ CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
+
+%%
+
+CtrlVar.UseMexFiles=false ; 
+CtrlVar.UseMexFilesCPUcompare=false;
+
+
 %% Tracers
 %
 % If required that m-File 'TracerConservationEquation.m' can be used to
@@ -3059,13 +3319,16 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 
 
-%% Internal variables 
+%% Internal variables and  temporary testing parameters
 %%
 CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
 end
 
 

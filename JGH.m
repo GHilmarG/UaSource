@@ -60,14 +60,19 @@ end
 
 
 
-if nargout>1
+if nargout>1   % gradient needed
     dJdp=dRdp+dIdp;
+end
+
+if nargout>2  % Hessian needed 
     if isempty(ddIddp)
         Hessian=ddRddp;
     else
         Hessian=ddRddp+ddIddp;
     end
 end
+
+
 
 if RunInfo.Forward.Converged
     ubP=F.ub;

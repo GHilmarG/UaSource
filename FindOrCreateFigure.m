@@ -24,6 +24,10 @@ function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 %
 %       clf(fig)
 %
+% To create a pdf of figure:
+%
+%    exportgraphics(fig,'fig.pdf')
+%
 %%
 
 persistent nFigs
@@ -60,7 +64,7 @@ if isempty(fig)
         figHeight=screensize(4)/Ny;
         nx=mod(floor(nFigs/Ny),Nx) ;
         ny=mod(mod(nFigs,Nx*Ny),Ny);
-
+        % nx=0;
 
 
         fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];

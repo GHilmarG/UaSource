@@ -25,7 +25,7 @@ for Iint=1:MUA.nip
 %        Deriv=MUA.Deriv(:,:,:,Iint);
         detJ=MUA.DetJ(:,Iint);
     else
-        [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+        [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
     end
     detJw=detJ*MUA.weights(Iint);
     

@@ -37,7 +37,7 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,nTol,aTol)
 %
 % coo   : Mx2 matrix defining the (x,y) coordinates of connected line segments.
 %
-% nTol and aTol are distances. Points
+% nTol and aTol are 'normal, and 'along' distances. 
 %
 % Outputs:
 %
@@ -59,9 +59,14 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,nTol,aTol)
 % if xx and yy are vectors defining (x,y) locations, I can find all boundary nodes
 % that are along the line segments joining (x,y) in the following manner:
 %
-%   [Ind,AlongDist,NormDist] = DistanceToLineSegment([x(Boundary.Nodes) y(Boundary.Nodes)],[xx(:) yy(:)],[],tolerance);
+%   [Ind,AlongDist,NormDist] = DistanceToLineSegment([x(MUA.Boundary.Nodes) y(MUA.Boundary.Nodes)],[xx(:) yy(:)],[],tolerance);
 %
 % Boundary.Nodes(Ind) now gives me the nodal numbers of all nodes along the boundary defined by the line segments
+%
+% Example:
+% Find boundary nodes along straight lines connecting MeshBoundaryCoordinates and witin 1000 normal distance
+% 
+%   [I,AlongDist,NormDist] = DistanceToLineSegment([F.x(MUA.Boundary.Nodes) F.y(MUA.Boundary.Nodes)],MeshBoundaryCoordinates,[],1000);
 %
 % Example:
 %

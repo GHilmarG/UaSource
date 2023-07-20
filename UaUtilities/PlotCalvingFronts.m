@@ -7,6 +7,17 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     % To suppress plotting set CtrlVar.PlotGLs=false
     %
     %
+    % F is the Ua field variable, but it can also be given as LSF or any other nodal variable 
+    %
+    % Example:
+    %
+    % figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,F,color="r");
+    %
+    % figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,color="r");
+    %
+    %
+    %  figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,"k--");
+    %
     % Also consider using: 
     %
     %   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
@@ -18,19 +29,20 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
     end
     
     if isempty(LSF)
-        xc=[] ; yc=[] ; 
+        xc=[] ; yc=[] ;
         return
     end
-    
-    
-    CtrlVar.LineUpGLs=true ; 
-   
+
+
+    CtrlVar.LineUpGLs=true ;
+
     GF.node=LSF ;
-    
-    CtrlVar.GLthreshold=0; 
+
+    CtrlVar.GLthreshold=0;
     [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
-    
-    
-    
-    
+
+ 
+
+
+
 end

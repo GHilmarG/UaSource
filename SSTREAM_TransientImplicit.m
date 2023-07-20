@@ -141,8 +141,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     if BCsRelativeError>0.01
         
-        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasable point\n')
-        % fprintf('         Although the uvh iteration can start at an infeasable point and still converge successfully, \n')
+        fprintf('WARNING: At the beginning of the uvh iteration F1 is not a feasible point\n')
+        % fprintf('         Although the uvh iteration can start at an in-feasible point and still converge successfully, \n')
         
     end
     
@@ -157,7 +157,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     RunInfo.Forward.Converged=0;
     RunInfo.BackTrack.Converged=1 ;
-    r=inf;  rWork=inf ; rForce=inf;
+    r=inf;  rWork=inf ; rForce=inf; r0=inf; 
     gamma=1 ;
     
     
@@ -218,22 +218,36 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             RunInfo.Forward.Converged=0;
             break
         end
-   
-        if RunInfo.BackTrack.Converged==0 || gamma==0 
+
+        if RunInfo.BackTrack.Converged==0 || gamma==0
             if CtrlVar.InfoLevelNonLinIt>=1
                 fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
                     CtrlVar.time,CtrlVar.dt,r,iteration) ;
             end
-            
+
             if CtrlVar.WriteRunInfoFile
                 fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g   after %-i iterations. \n',...
                     CtrlVar.time,CtrlVar.dt,r,iteration) ;
             end
-            
+
             RunInfo.Forward.Converged=0;
             break
         end
+
+        if r/r0 > 0.9999
+
+            if CtrlVar.InfoLevelNonLinIt>=1
+                fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0 ratio greater than 0.9999 \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...
+                    CtrlVar.time,CtrlVar.dt,r,iteration) ;
+            end
+
         
+            RunInfo.Forward.Converged=0;
+            break
+        end
+
+
+
         iteration=iteration+1;
         
         
@@ -253,6 +267,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             grhs=[];
         end
 
+        % 
         
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
@@ -393,6 +408,9 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
         if CtrlVar.InfoLevelNonLinIt>=100  && CtrlVar.doplots==1
             PlotForceResidualVectors('uvh',Ruvh,L,luvh,MUA.coordinates,CtrlVar) ; axis equal tight
+            hold on 
+            PlotGroundingLines(CtrlVar,MUA,F1.GF) ;
+            PlotCalvingFronts(CtrlVar,MUA,F1);
         end
      
         if CtrlVar.InfoLevelNonLinIt>=1
@@ -420,13 +438,15 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %% return calculated values at the end of the time step
     %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
     
+    %% Old:  this case is now checked inside the while loop
     % I got out of the while loop if either if the solver converged, or
     % backtrack stagnated.
     %RunInfo.Forward.Converged=1;
-    if RunInfo.BackTrack.Converged==0
-        RunInfo.Forward.Converged=0;
-    end
-    
+    % if RunInfo.BackTrack.Converged==0
+    %     RunInfo.Forward.Converged=0;
+    % end
+    %%
+
     %% print/plot some info
     
     if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
@@ -449,33 +469,43 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             fprintf(CtrlVar.fidlog,'Norm of BCs residuals is %14.7g  \n ',BCsError);
         end
     end
-    
-    
+
+
     tEnd=toc(tStart);
-    
-    
-    
+
+
+
     if iteration > CtrlVar.NRitmax
         fprintf(CtrlVar.fidlog,'Warning: maximum number of NRuvh iterations %-i reached \n',CtrlVar.NRitmax);
-        warning('SSTREAM2dNR:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
+        warning('SSTREAM_TransientImplicit:MaxIterationReached','SSTREAM2NR exits because maximum number of iterations %-i reached \n',CtrlVar.NRitmax)
         filename='Dumpfile_SSTREAM_TransientImplicit.mat';
         fprintf('Saving all data in a dumpfile %s \n',filename)
-        save(filename)
+        try
+            save(filename)
+        catch
+            warning("SSTREAM_TransientImplicit:SaveFileError","Could not save file %s",filename);
+        end
     end
-    
-    
-    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ; 
+
+
+    if numel(RunInfo.Forward.uvhIterations) < CtrlVar.CurrentRunStepNumber
+        RunInfo.Forward.uvhIterations=[RunInfo.Forward.uvhIterations;RunInfo.Forward.uvhIterations+NaN];
+        RunInfo.Forward.uvhResidual=[RunInfo.Forward.uvhResidual;RunInfo.Forward.uvhResidual+NaN];
+        RunInfo.Forward.uvhBackTrackSteps=[RunInfo.Forward.uvhBackTrackSteps;RunInfo.Forward.uvhBackTrackSteps+NaN];
+    end
+
+    RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
     RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
-    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ; 
-    
+    RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ;
+
     if CtrlVar.WriteRunInfoFile
-        
+
         fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
             CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,...
             RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),tEnd) ;
-        
+
     end
-    
+
     
 end
 

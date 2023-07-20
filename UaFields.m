@@ -72,7 +72,7 @@ classdef UaFields
         
         duddt=[];
         dvddt=[];
-      
+
       
         
         g=[];
@@ -86,10 +86,16 @@ classdef UaFields
         
         LSF=[] % Level Set Field
         LSFMask=[]; 
+        LSFnodes=[];
         c=[] ; % calving rate
         LSFqx=[] ;
         LSFqy=[] ; 
-        
+
+        txx=[];
+        txy=[];
+        tyy=[];
+
+      
     end
     
 end

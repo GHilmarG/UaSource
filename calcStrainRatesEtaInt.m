@@ -83,7 +83,7 @@ for Iint=1:MUA.nip
     if exist('MUA','var') && isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
         Deriv=MUA.Deriv(:,:,:,Iint);
     else
-        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
+        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
     end
     % [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod
     % The derivative depends on the det of each element
@@ -103,8 +103,10 @@ e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
 if nargin>4
     if ~isempty(AGlen)
         n=nGlenint;
-        etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
-        Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
+        % etaInt=real(0.5*AGlenint.^(-1./n).*e.^((1-n)./n));
+        % Eint=real((1-n)./(4*n).*AGlenint.^(-1./n).*e.^((1-3*n)./n));
+
+        [etaInt,Eint,e,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,n,exx,eyy,exy) ;
     end
 end
 

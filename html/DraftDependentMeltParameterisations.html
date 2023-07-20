@@ -1,0 +1,226 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DraftDependentMeltParameterisations</title><meta name="generator" content="MATLAB 9.13"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-12-28"><meta name="DC.source" content="DraftDependentMeltParameterisations.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
+</pre><pre class="language-matlab">[ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
+</pre><p>Returns basal melt rates, based on several depth-dependent parameterisations.</p><pre>ab is :    abMin for F.b&gt;dMin
+           abMax for F.b&lt;dMax</pre><pre>and varies linearly inbetween.</pre><p>These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in previous publicatioins.</p><pre class="codeinput"><span class="keyword">switch</span> MRP
+
+
+    <span class="keyword">case</span> <span class="string">"0"</span>
+
+        fprintf(<span class="string">' MeltRate0 \n '</span>);
+        dMin=-400 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-100  ;
+
+    <span class="keyword">case</span> <span class="string">"1"</span>
+
+        fprintf(<span class="string">' MeltRate1 \n '</span>);
+        dMin=-400 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-200  ;
+
+
+    <span class="keyword">case</span> <span class="string">"2"</span>
+
+        fprintf(<span class="string">' MeltRate2 \n '</span>);
+        dMin=-200 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-100  ;
+
+
+    <span class="keyword">case</span> <span class="string">"3"</span>
+
+        fprintf(<span class="string">' MeltRate3 \n '</span>);
+        dMin=-200 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-200  ;
+
+    <span class="keyword">case</span> <span class="string">"4"</span>
+
+        fprintf(<span class="string">' MeltRate4 \n '</span>);
+        dMin=-400 ;  abMin=0 ;
+        dMax=-500 ;  abMax=-50  ;
+
+    <span class="keyword">case</span> <span class="string">"5"</span>
+
+        fprintf(<span class="string">' MeltRate5 \n '</span>);
+        dMin=-400 ;  abMin=0 ;
+        dMax=-600 ;  abMax=-100  ;
+
+    <span class="keyword">otherwise</span>
+
+        fprintf(<span class="string">"DraftDependentMeltParameterisations : case not found"</span>)
+        dMin=nan ;  abMin=nan ;
+        dMax=nan ;  abMax=nan  ;
+
+
+<span class="keyword">end</span>
+
+
+dabdh=F.ab;
+ab=F.dabdh;
+
+
+I=F.b&gt;dMin ; ab(I)=abMin; dabdh(I)=abMin;        <span class="comment">% above dMin</span>
+
+I= F.b&lt; dMin &amp; F.b &gt;= dMax ; ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin);
+dabdh(I)=(-F.rho(I)/F.rhow)/(abMax/(dMax-dMin));
+
+I=F.b&lt;dMax ; ab(I)=abMax; dabdh(I)=abMax;        <span class="comment">% below dMax</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
+
+%%
+%
+%   [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
+%
+%
+% Returns basal melt rates, based on several depth-dependent parameterisations. 
+%
+%
+%  ab is :    abMin for F.b>dMin  
+%             abMax for F.b<dMax  
+%
+%  and varies linearly inbetween.
+%
+%
+% These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in
+% previous publicatioins.
+% 
+%
+%%
+
+switch MRP
+
+
+    case "0"
+
+        fprintf(' MeltRate0 \n ');
+        dMin=-400 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-100  ;
+
+    case "1"
+
+        fprintf(' MeltRate1 \n ');
+        dMin=-400 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-200  ;
+
+
+    case "2"
+
+        fprintf(' MeltRate2 \n ');
+        dMin=-200 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-100  ;
+
+
+    case "3"
+
+        fprintf(' MeltRate3 \n ');
+        dMin=-200 ;  abMin=0 ;
+        dMax=-800 ;  abMax=-200  ;
+
+    case "4"
+
+        fprintf(' MeltRate4 \n ');
+        dMin=-400 ;  abMin=0 ;
+        dMax=-500 ;  abMax=-50  ;
+
+    case "5"
+
+        fprintf(' MeltRate5 \n ');
+        dMin=-400 ;  abMin=0 ;
+        dMax=-600 ;  abMax=-100  ;
+
+    otherwise
+
+        fprintf("DraftDependentMeltParameterisations : case not found")
+        dMin=nan ;  abMin=nan ;
+        dMax=nan ;  abMax=nan  ;
+
+
+end
+
+
+dabdh=F.ab;
+ab=F.dabdh;
+
+
+I=F.b>dMin ; ab(I)=abMin; dabdh(I)=abMin;        % above dMin
+
+I= F.b< dMin & F.b >= dMax ; ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); 
+dabdh(I)=(-F.rho(I)/F.rhow)/(abMax/(dMax-dMin));
+
+I=F.b<dMax ; ab(I)=abMax; dabdh(I)=abMax;        % below dMax
+
+
+
+
+end
+##### SOURCE END #####
+--></body></html>

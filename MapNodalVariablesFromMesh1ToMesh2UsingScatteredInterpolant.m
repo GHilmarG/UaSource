@@ -27,6 +27,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         return
     end
     
+    isMapped=false(MUAnew.Nnodes,1); 
     
     
     % The underlying triangulation is only done once, and when interpolating different fields
@@ -42,7 +43,10 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     Tarea=TriAreaFE(MUAold.coordinates,MUAold.connectivity);
     tol=1e-5*sqrt(2*min(Tarea)) ;  % I found that tol=1000*eps is not enough...
     
-    
+    if isempty(MUAold.TR)
+        MUAold.TR=CreateFEmeshTriRep(MUAold.connectivity,MUAold.coordinates);
+    end
+
     [ID,d] = nearestNeighbor(MUAold.TR,[xNew yNew]);  % This works for all element types! (3, 6 and 10)
     % The reason this works for all element types despite TR.ConnectivityList
     % only containing the corner nodes is because all coordinates are included
@@ -58,12 +62,12 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
     nOldNodes=numel(xOld);
     nIdenticalNodes=numel(find(IdenticalNodes));
     NotIdendicalNodes=find(~IdenticalNodes);
-    nNotSame=numel(NotIdendicalNodes);
+    nNotIdendicalNodes=numel(NotIdendicalNodes);
     
     RunInfo.Mapping.nNewNodes=nNewNodes;
     RunInfo.Mapping.nOldNodes=nOldNodes;
     RunInfo.Mapping.nIdenticalNodes=nIdenticalNodes;
-    RunInfo.Mapping.nNotIdenticalNodes=nNotSame;
+    RunInfo.Mapping.nNotIdenticalNodes=nNotIdendicalNodes;
     
     if nNewNodes == nIdenticalNodes
         % all new nodes are identical to old ones
@@ -71,11 +75,13 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         RunInfo.Mapping.nNotIdenticalInside=0;
     end
     
+
     for iVar=1:nVar
         if isempty(varargin{iVar})
             varargout{iVar}=[];
         else
             varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
+            isMapped(IdenticalNodes)=true;  % this could be outside the loop I think, and only needs to be done once as it is only dependedn on the values of IdenticalNodes
         end
     end
     
@@ -134,7 +140,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
             end
             
             % And finally, are any of the outside nodes actually on the mesh boundary?
-            NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],1000*eps);
+            NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],tol);
             
             %  Add any ouside nodes on bounday to the set of inside nodes
             if ~isempty(NodesOnBoundary)
@@ -148,8 +154,8 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         RunInfo.Mapping.nNotIdenticalNodesInside=numel(NodesInsideAndNotSame);
         
         
-        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 ;
-            fig=FindOrCreateFigure("-Old and new nodes-");
+        if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=5 
+            fig=FindOrCreateFigure("-Old and new nodes-"); clf(fig) ; 
            
             tt=axis;
             hold off
@@ -161,7 +167,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
                 axis(tt)
             end
             
-            p2=plot(xNew(NodesOutside)/CtrlVar.PlotXYscale,yNew(NodesOutside)/CtrlVar.PlotXYscale,'om');
+            p2=plot(xNew(NodesOutside)/CtrlVar.PlotXYscale,yNew(NodesOutside)/CtrlVar.PlotXYscale,marker="h",color="m");
             p3=plot(xNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,yNew(NodesInsideAndNotSame)/CtrlVar.PlotXYscale,'or');
             p4=plot(xNew(IdenticalNodes)/CtrlVar.PlotXYscale,yNew(IdenticalNodes)/CtrlVar.PlotXYscale,'*g');
             
@@ -182,15 +188,17 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
             
             % fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
             FigTitle=sprintf('             #Nodes in new mesh=%i \t #Nodes in old mesh=%i \t \n #Same Nodes=%i \t  #~Same Nodes=%i \t #Nodes inside and new=%i \t #Outside nodes=%i ',...
-                nNewNodes,nOldNodes,nIdenticalNodes,nNotSame,numel(NodesInsideAndNotSame),numel(NodesOutside)) ;
+                nNewNodes,nOldNodes,nIdenticalNodes,nNotIdendicalNodes,numel(NodesInsideAndNotSame),numel(NodesOutside)) ;
             title(FigTitle)
         end
         
-        F = scatteredInterpolant();
-        F.Points=MUAold.coordinates;
+
+        %% Here for the first time I use scatteredInterpolant. This is only used for nodes that are not identical to those of the old 
+        Finterpolant = scatteredInterpolant();
+        Finterpolant.Points=MUAold.coordinates;
         
-        F.Method='natural';
-        F.ExtrapolationMethod='nearest';
+        Finterpolant.Method='natural';
+        Finterpolant.ExtrapolationMethod='nearest';
         
         % If OutsideValues have been defined for the variable, then use these for
         % the outside points. Otherwise use scattered interpolant.
@@ -203,13 +211,16 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
                 varargout{iVar}=[];
             else
                 
-                F.Values=double(varargin{iVar});
+                Finterpolant.Values=double(varargin{iVar});
                 if ~isempty(OutsideValues) && ~isnan(OutsideValues(iVar))
                     varargout{iVar}(NodesOutside)=OutsideValues(iVar);
+                    isMapped(NodesOutside)=true;
                 else
-                    varargout{iVar}(NodesOutside)=F(xNew(NodesOutside),yNew(NodesOutside));
+                    varargout{iVar}(NodesOutside)=Finterpolant(xNew(NodesOutside),yNew(NodesOutside));
+                    isMapped(NodesOutside)=true;
                 end
-                varargout{iVar}(NodesInsideAndNotSame)=F(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
+                varargout{iVar}(NodesInsideAndNotSame)=Finterpolant(xNew(NodesInsideAndNotSame),yNew(NodesInsideAndNotSame));
+                isMapped(NodesInsideAndNotSame)=true;
             end
         end
         
@@ -223,5 +234,13 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingScatteredInte
         end
     end
     
+
+    if ~all(isMapped)
+
+        find(~isMapped)
+        error("MapNodalVariablesFromMesh1ToMesh2UsingScatteredInterpolant:NoAllMapped","not all nodes of the new mesh have been interpolated from the old one....!")
+
+    end
+
     
 end

@@ -10,7 +10,16 @@ F1.h=F1.h+gamma*dh;
 l=l+gamma*dl;
 
 
-[UserVar,R]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+% Make sure to update all other fields that depend on h
+% Here the only such field is potentially the mass balance term
+
+ CtrlVar.ResetThicknessToMinThickness=0;
+ [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+ [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
+
+% Only here evaluating the righ-hand side of the equation, is the J(x0+ gamma dx)
+[UserVar,R]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+
 
 if ~isempty(L)
     

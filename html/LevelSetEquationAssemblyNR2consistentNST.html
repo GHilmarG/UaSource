@@ -1,0 +1,609 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>LevelSetEquationAssemblyNR2consistentNST</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-17"><meta name="DC.source" content="LevelSetEquationAssemblyNR2consistentNST.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Level Set Equation without a source term</a></li><li><a href="#4">limit cx-u and cy-v where it is suffiently far away from the zero level</a></li><li><a href="#7">Galerkin</a></li><li><a href="#8">Petrov</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistentNST(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+</pre><h2 id="2">Level Set Equation without a source term</h2><p><img src="LevelSetEquationAssemblyNR2consistentNST_eq16726948719043344746.png" alt="$$ \partial \varphi/\partial t + (v-u) \cdot \nabla \varphi - \nabla \cdot (\kappa \nabla \varphi ) = 0 $$" style="width:244px;height:15px;"></p><pre class="codeinput">narginchk(15,53)
+
+ndim=2; dof=1; neq=dof*MUA.Nnodes;
+
+theta=CtrlVar.LevelSetTheta;
+dt=CtrlVar.dt;
+CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
+
+isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
+
+f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+u0nod=reshape(u0(MUA.connectivity,1),MUA.Nele,MUA.nod);   <span class="comment">% MUA.Nele x nod</span>
+v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   <span class="comment">% MUA.Nele x nod</span>
+
+u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);   <span class="comment">% MUA.Nele x nod</span>
+v1nod=reshape(v1(MUA.connectivity,1),MUA.Nele,MUA.nod);   <span class="comment">% MUA.Nele x nod</span>
+
+
+c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+qx1nod=reshape(qx1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
+<span class="comment">%b1=zeros(MUA.Nele,MUA.nod);</span>
+TG=zeros(MUA.Nele,MUA.nod);
+PG=zeros(MUA.Nele,MUA.nod);
+LG=zeros(MUA.Nele,MUA.nod);
+R=zeros(MUA.Nele,MUA.nod);
+RSUPG=zeros(MUA.Nele,MUA.nod);
+qx=zeros(MUA.Nele,MUA.nod);
+qy=zeros(MUA.Nele,MUA.nod);
+
+
+<span class="keyword">if</span> CtrlVar.LevelSetSolutionMethod==<span class="string">"Newton Raphson"</span>
+    NR=1;
+<span class="keyword">else</span>
+    NR=0;
+<span class="keyword">end</span>
+
+
+<span class="comment">% vector over all elements for each  integration point</span>
+<span class="keyword">for</span> Iint=1:MUA.nip  <span class="comment">%Integration points</span>
+</pre><pre class="codeinput">    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; <span class="comment">% nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points</span>
+
+
+    Deriv=MUA.Deriv(:,:,:,Iint);
+    detJ=MUA.DetJ(:,Iint);
+
+
+    f0int=f0nod*fun;
+    f1int=f1nod*fun;
+
+    u0int=u0nod*fun; v0int=v0nod*fun;
+    u1int=u1nod*fun; v1int=v1nod*fun;
+    c0int=c0nod*fun;
+    c1int=c1nod*fun;
+
+
+
+    <span class="comment">% derivatives at one integration point for all elements</span>
+    df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
+    df1dx=zeros(MUA.Nele,1); df1dy=zeros(MUA.Nele,1);
+    dqx0dx=zeros(MUA.Nele,1); dqy0dy=zeros(MUA.Nele,1);
+    dqx1dx=zeros(MUA.Nele,1); dqy1dy=zeros(MUA.Nele,1);
+
+    <span class="keyword">for</span> Inod=1:MUA.nod
+
+
+        df0dx=df0dx+Deriv(:,1,Inod).*f0nod(:,Inod);
+        df0dy=df0dy+Deriv(:,2,Inod).*f0nod(:,Inod);
+
+        df1dx=df1dx+Deriv(:,1,Inod).*f1nod(:,Inod);
+        df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
+
+        dqx0dx=dqx1dx+Deriv(:,1,Inod).*qx0nod(:,Inod);
+        dqy0dy=dqy1dy+Deriv(:,2,Inod).*qy0nod(:,Inod);
+
+        dqx1dx=dqx1dx+Deriv(:,1,Inod).*qx1nod(:,Inod);
+        dqy1dy=dqy1dy+Deriv(:,2,Inod).*qy1nod(:,Inod);
+    <span class="keyword">end</span>
+
+
+
+
+
+    <span class="comment">% Norm of gradient (NG)</span>
+    NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); <span class="comment">% at each integration point for all elements</span>
+    NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); <span class="comment">% at each integration point for all elements</span>
+    n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
+    n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
+
+    <span class="comment">% if gradient is very small, set normal to zero, and with it the cx and cy components</span>
+    I0=NG0&lt; eps^2 ;
+    I1=NG1&lt; eps^2 ;
+    n1x(I1)=0 ; n1y(I1)=0;
+    n0x(I0)=0 ; n0y(I0)=0;
+
+
+    cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
+    cx0int=c0int.*n0x ; cy0int=c0int.*n0y;
+</pre><h2 id="4">limit cx-u and cy-v where it is suffiently far away from the zero level</h2><pre class="codeinput">    tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
+    <span class="comment">%tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt);</span>
+
+    <span class="comment">% I need to think about a good def for mu</span>
+    <span class="comment">%</span>
+    <span class="comment">% Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;</span>
+    <span class="comment">%</span>
+
+
+    <span class="keyword">switch</span> lower(CtrlVar.LevelSetFABmu.Scale)
+
+        <span class="keyword">case</span> <span class="string">"constant"</span>
+            Scale=1 ;
+        <span class="keyword">case</span> <span class="string">"ucl"</span>
+            Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+        <span class="keyword">otherwise</span>
+
+            error(<span class="string">"Ua:CaseNotFound"</span>,<span class="string">"CtrlVar.LevelSetFABmu.Scale has an invalid value."</span>)
+    <span class="keyword">end</span>
+
+    mu=Scale*CtrlVar.LevelSetFABmu.Value;  <span class="comment">% This has the dimention l^2/t</span>
+
+
+    [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
+    [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
+
+
+    detJw=detJ*MUA.weights(Iint);
+
+    <span class="keyword">if</span> any(~isfinite(n0x)) ||any(~isfinite(n1x)) || any(~isfinite(kappaint1)) || any(~isfinite(dkappa))
+        save <span class="string">TestSaveLSFnotFinite</span>
+        error(<span class="string">"LevelSetEquationAssemblyNR2:notfinite"</span>,<span class="string">"n0x, n1x kappa not finite"</span>)
+    <span class="keyword">end</span>
+
+    isPG=isL ;
+    <span class="keyword">for</span> Inod=1:MUA.nod
+</pre><pre class="codeinput">        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+        SUPGdetJw=SUPG.*detJw ; <span class="comment">% if there is no advection term, set to zero, ie use Galerkin weighting</span>
+
+        <span class="keyword">if</span> nargout&gt;2
+            <span class="keyword">for</span> Jnod=1:MUA.nod
+
+
+                Tlhs=fun(Jnod).*fun(Inod).*detJw;
+
+                <span class="comment">% (advection term)</span>
+                Llhs=<span class="keyword">...</span>
+                    +dt*theta*(<span class="keyword">...</span>
+                    (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))<span class="keyword">...</span>
+                    .*fun(Inod).*detJw;
+
+
+                <span class="comment">% It might appear one has forgotten  to linearize cx, but it turns out this linearisation term is equal to zero. So the only</span>
+                <span class="comment">% contribution of the (u1int-cx1int).*df1dx term stems from the linearisation of df1dx, giving just the usual</span>
+                <span class="comment">% u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))...</span>
+
+                <span class="comment">% Pertubation term (diffusion)</span>
+                Plhs=dt*theta*<span class="keyword">...</span>
+                    +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) <span class="keyword">...</span>
+                    -NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) <span class="keyword">...</span>
+                    .*detJw;
+
+
+                PGlhs = isT*fun(Jnod) + <span class="keyword">...</span>
+                    +isL*dt*theta*((u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod));
+                PGlhs=SUPGdetJw.*PGlhs;
+                <span class="comment">% The dqx1dx and dqy1dy terms are calculated from the</span>
+                <span class="comment">% previous interative solution, and therefore do not</span>
+                <span class="comment">% depend on phi at this iteration step</span>
+
+                d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+isPG*PGlhs;
+
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="comment">% Note, I solve: LSH  \phi  = - RHS</span>
+</pre><h2 id="7">Galerkin</h2><p>(time derivative)</p><pre class="codeinput">        Trhs=(f1int-f0int).*fun(Inod).*detJw ;
+
+        <span class="comment">% (advection)</span>
+        Lrhs= <span class="keyword">...</span>
+            +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*fun(Inod).*detJw <span class="keyword">...</span>
+            + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*fun(Inod).*detJw ;
+
+        <span class="comment">% Pertubation term (diffusion)</span>
+        Prhs=<span class="keyword">...</span>
+            dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw <span class="keyword">...</span>
+            + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
+</pre><h2 id="8">Petrov</h2><pre class="codeinput">        ResidualStrong=isT*(f1int-f0int)+<span class="keyword">...</span>
+            + isL*dt*  theta   * ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy)<span class="keyword">...</span><span class="comment">.</span>
+            + isL*dt*(1-theta) * ((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy)<span class="keyword">...</span>
+            - isP*dt*  theta   * (dqx1dx+ dqy1dy)<span class="keyword">...</span>
+            - isP*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
+
+
+        ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
+</pre><pre class="codeinput">        <span class="comment">% qx= kappaint0.*df0dx ;</span>
+        <span class="comment">% qu= kappaint0.*df0dy) ;</span>
+        qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ;
+        qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ;
+
+        PG(:,Inod)=PG(:,Inod)+Prhs;
+        LG(:,Inod)=LG(:,Inod)+Lrhs;
+        TG(:,Inod)=TG(:,Inod)+Trhs;
+        R(:,Inod)=R(:,Inod)+ResidualStrong;
+        RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted;
+</pre><pre class="codeinput">    <span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+
+Pv=sparseUA(neq,1);
+Lv=sparseUA(neq,1);
+Tv=sparseUA(neq,1);
+Qx=sparseUA(neq,1);
+Qy=sparseUA(neq,1);
+Rv=sparseUA(neq,1);
+RSUPGv=sparseUA(neq,1);
+
+<span class="keyword">for</span> Inod=1:MUA.nod
+    Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
+    Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
+    Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
+    Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
+    RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
+    Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
+    Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+<span class="keyword">end</span>
+
+rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
+
+<span class="keyword">if</span> nargout&gt;2
+    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+    istak=0;
+
+    <span class="keyword">for</span> Inod=1:MUA.nod
+        <span class="keyword">for</span> Jnod=1:MUA.nod
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+            Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+            Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
+            istak=istak+MUA.Nele;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    kv=sparseUA(Iind,Jind,Xval,neq,neq);
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [UserVar,rh,kv,Tv,Lv,Pv,Qx,Qy,Rv]=LevelSetEquationAssemblyNR2consistentNST(UserVar,CtrlVar,MUA,f0,c0,u0,v0,f1,c1,u1,v1,qx0,qy0,qx1,qy1)
+
+%% Level Set Equation without a source term
+%
+% $$ \partial \varphi/\partial t + (v-u) \cdot \nabla \varphi - \nabla \cdot (\kappa \nabla \varphi ) = 0 $$
+%
+narginchk(15,53)
+
+ndim=2; dof=1; neq=dof*MUA.Nnodes;
+
+theta=CtrlVar.LevelSetTheta;
+dt=CtrlVar.dt;
+CtrlVar.Tracer.SUPG.tau=CtrlVar.LevelSetSUPGtau;
+
+isL=CtrlVar.LSF.L ; isP=CtrlVar.LSF.P ; isT=CtrlVar.LSF.T ;
+
+f0nod=reshape(f0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+f1nod=reshape(f1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+u0nod=reshape(u0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
+v0nod=reshape(v0(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
+
+u1nod=reshape(u1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
+v1nod=reshape(v1(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
+
+
+c0nod=reshape(c0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+c1nod=reshape(c1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+qx0nod=reshape(qx0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+qy0nod=reshape(qy0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+qx1nod=reshape(qx1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+qy1nod=reshape(qy1(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
+%b1=zeros(MUA.Nele,MUA.nod);
+TG=zeros(MUA.Nele,MUA.nod);
+PG=zeros(MUA.Nele,MUA.nod);
+LG=zeros(MUA.Nele,MUA.nod);
+R=zeros(MUA.Nele,MUA.nod);
+RSUPG=zeros(MUA.Nele,MUA.nod);
+qx=zeros(MUA.Nele,MUA.nod);
+qy=zeros(MUA.Nele,MUA.nod);
+
+
+if CtrlVar.LevelSetSolutionMethod=="Newton Raphson"
+    NR=1;
+else
+    NR=0;
+end
+
+
+% vector over all elements for each  integration point
+for Iint=1:MUA.nip  %Integration points
+    
+    
+    
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+    
+    
+    Deriv=MUA.Deriv(:,:,:,Iint);
+    detJ=MUA.DetJ(:,Iint);
+    
+    
+    f0int=f0nod*fun;
+    f1int=f1nod*fun;
+    
+    u0int=u0nod*fun; v0int=v0nod*fun;
+    u1int=u1nod*fun; v1int=v1nod*fun;
+    c0int=c0nod*fun;
+    c1int=c1nod*fun;
+    
+    
+    
+    % derivatives at one integration point for all elements
+    df0dx=zeros(MUA.Nele,1); df0dy=zeros(MUA.Nele,1);
+    df1dx=zeros(MUA.Nele,1); df1dy=zeros(MUA.Nele,1);
+    dqx0dx=zeros(MUA.Nele,1); dqy0dy=zeros(MUA.Nele,1);
+    dqx1dx=zeros(MUA.Nele,1); dqy1dy=zeros(MUA.Nele,1);
+    
+    for Inod=1:MUA.nod
+        
+        
+        df0dx=df0dx+Deriv(:,1,Inod).*f0nod(:,Inod);
+        df0dy=df0dy+Deriv(:,2,Inod).*f0nod(:,Inod);
+        
+        df1dx=df1dx+Deriv(:,1,Inod).*f1nod(:,Inod);
+        df1dy=df1dy+Deriv(:,2,Inod).*f1nod(:,Inod);
+        
+        dqx0dx=dqx1dx+Deriv(:,1,Inod).*qx0nod(:,Inod);
+        dqy0dy=dqy1dy+Deriv(:,2,Inod).*qy0nod(:,Inod);
+        
+        dqx1dx=dqx1dx+Deriv(:,1,Inod).*qx1nod(:,Inod);
+        dqy1dy=dqy1dy+Deriv(:,2,Inod).*qy1nod(:,Inod);
+    end
+    
+    
+    
+    
+    
+    % Norm of gradient (NG)
+    NG0=sqrt(df0dx.*df0dx+df0dy.*df0dy); % at each integration point for all elements
+    NG1=sqrt(df1dx.*df1dx+df1dy.*df1dy); % at each integration point for all elements
+    n1x=-df1dx./NG1;  n1y=-df1dy./NG1;
+    n0x=-df0dx./NG0;  n0y=-df0dy./NG0;
+    
+    % if gradient is very small, set normal to zero, and with it the cx and cy components
+    I0=NG0< eps^2 ;
+    I1=NG1< eps^2 ;
+    n1x(I1)=0 ; n1y(I1)=0;
+    n0x(I0)=0 ; n0y(I0)=0;
+    
+    
+    cx1int=c1int.*n1x ; cy1int=c1int.*n1y;
+    cx0int=c0int.*n0x ; cy0int=c0int.*n0y;
+    
+    %% limit cx-u and cy-v where it is suffiently far away from the zero level
+    
+    
+    
+    %%
+    
+    tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
+    %tauSUPGint=CalcSUPGtau(CtrlVar,MUA,u0int,v0int,dt);
+    
+    % I need to think about a good def for mu
+    %
+    % Idea :  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2)) .*sqrt(2*MUA.EleAreas) ;
+    %
+    
+    
+    switch lower(CtrlVar.LevelSetFABmu.Scale)
+        
+        case "constant"
+            Scale=1 ;
+        case "ucl"
+            Scale =  sqrt( (u0int-cx0int).^2+(v0int-cy0int).^2) .*sqrt(2*MUA.EleAreas) ;
+        otherwise
+            
+            error("Ua:CaseNotFound","CtrlVar.LevelSetFABmu.Scale has an invalid value.")
+    end
+    
+    mu=Scale*CtrlVar.LevelSetFABmu.Value;  % This has the dimention l^2/t
+    
+    
+    [kappaint0]=LevelSetEquationFAB(CtrlVar,NG0,mu);
+    [kappaint1,dkappa]=LevelSetEquationFAB(CtrlVar,NG1,mu);
+    
+    
+    detJw=detJ*MUA.weights(Iint);
+    
+    if any(~isfinite(n0x)) ||any(~isfinite(n1x)) || any(~isfinite(kappaint1)) || any(~isfinite(dkappa))
+        save TestSaveLSFnotFinite
+        error("LevelSetEquationAssemblyNR2:notfinite","n0x, n1x kappa not finite")
+    end
+    
+    isPG=isL ;
+    for Inod=1:MUA.nod
+        
+        
+        SUPG=CtrlVar.Tracer.SUPG.Use*tauSUPGint.*((u0int-cx0int).*Deriv(:,1,Inod)+(v0int-cy0int).*Deriv(:,2,Inod));
+        SUPGdetJw=SUPG.*detJw ; % if there is no advection term, set to zero, ie use Galerkin weighting
+        
+        if nargout>2
+            for Jnod=1:MUA.nod
+                
+                
+                Tlhs=fun(Jnod).*fun(Inod).*detJw;
+                
+                % (advection term)
+                Llhs=...
+                    +dt*theta*(...
+                    (u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))...
+                    .*fun(Inod).*detJw;
+                
+                
+                % It might appear one has forgotten  to linearize cx, but it turns out this linearisation term is equal to zero. So the only
+                % contribution of the (u1int-cx1int).*df1dx term stems from the linearisation of df1dx, giving just the usual
+                % u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod))...
+                
+                % Pertubation term (diffusion)
+                Plhs=dt*theta*...
+                    +(kappaint1.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)) ...
+                    -NR*dkappa.*(n1x.*Deriv(:,1,Jnod)+n1y.*Deriv(:,2,Jnod)).*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))) ...
+                    .*detJw;
+                
+                
+                PGlhs = isT*fun(Jnod) + ...
+                    +isL*dt*theta*((u1int-cx1int).*Deriv(:,1,Jnod) + (v1int-cy1int).*Deriv(:,2,Jnod));
+                PGlhs=SUPGdetJw.*PGlhs;
+                % The dqx1dx and dqy1dy terms are calculated from the
+                % previous interative solution, and therefore do not
+                % depend on phi at this iteration step
+                
+                d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+isL*Llhs+isP*Plhs+isT*Tlhs+isPG*PGlhs;
+                
+            end
+        end
+        
+        % Note, I solve: LSH  \phi  = - RHS
+        
+        %% Galerkin
+        % (time derivative)
+        Trhs=(f1int-f0int).*fun(Inod).*detJw ;
+        
+        % (advection)
+        Lrhs= ...
+            +    dt*theta* ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy).*fun(Inod).*detJw ...
+            + dt*(1-theta)*((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy).*fun(Inod).*detJw ;
+        
+        % Pertubation term (diffusion)
+        Prhs=...
+            dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod)).*detJw ...
+            + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod)).*detJw;
+        
+        
+        %% Petrov
+        ResidualStrong=isT*(f1int-f0int)+...
+            + isL*dt*  theta   * ((u1int-cx1int).*df1dx +(v1int-cy1int).*df1dy)....
+            + isL*dt*(1-theta) * ((u0int-cx0int).*df0dx +(v0int-cy0int).*df0dy)...
+            - isP*dt*  theta   * (dqx1dx+ dqy1dy)...
+            - isP*dt*(1-theta) * (dqx0dx+ dqy0dy) ;
+        
+        
+        ResidualStrongSUPGweighted=ResidualStrong.*SUPGdetJw;
+        %%
+        
+        % qx= kappaint0.*df0dx ;
+        % qu= kappaint0.*df0dy) ;
+        qx(:,Inod)=qx(:,Inod)+kappaint1.*df1dx ;
+        qy(:,Inod)=qy(:,Inod)+kappaint1.*df1dy ;
+        
+        PG(:,Inod)=PG(:,Inod)+Prhs;
+        LG(:,Inod)=LG(:,Inod)+Lrhs;
+        TG(:,Inod)=TG(:,Inod)+Trhs;
+        R(:,Inod)=R(:,Inod)+ResidualStrong;
+        RSUPG(:,Inod)=RSUPG(:,Inod)+ResidualStrongSUPGweighted;
+        
+        
+    end
+end
+
+Pv=sparseUA(neq,1);
+Lv=sparseUA(neq,1);
+Tv=sparseUA(neq,1);
+Qx=sparseUA(neq,1);
+Qy=sparseUA(neq,1);
+Rv=sparseUA(neq,1);
+RSUPGv=sparseUA(neq,1);
+
+for Inod=1:MUA.nod
+    Pv=Pv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),PG(:,Inod),neq,1);
+    Lv=Lv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),LG(:,Inod),neq,1);
+    Tv=Tv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),TG(:,Inod),neq,1);
+    Rv=Rv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),R(:,Inod),neq,1);
+    RSUPGv=RSUPGv+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),RSUPG(:,Inod),neq,1);
+    Qx=Qx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qx(:,Inod),neq,1);
+    Qy=Qy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),qy(:,Inod),neq,1);
+end
+
+rh=isL*Lv+isP*Pv+isT*Tv+isPG*RSUPGv;
+
+if nargout>2
+    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+    istak=0;
+    
+    for Inod=1:MUA.nod
+        for Jnod=1:MUA.nod
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+            Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+            Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
+            istak=istak+MUA.Nele;
+        end
+    end
+    
+    kv=sparseUA(Iind,Jind,Xval,neq,neq);
+end
+
+end
+##### SOURCE END #####
+--></body></html>

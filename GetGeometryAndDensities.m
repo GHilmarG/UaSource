@@ -177,7 +177,6 @@ end
 
 
 
-
 switch CtrlVar.Calculate.Geometry
     
     case "bs-FROM-hBS"

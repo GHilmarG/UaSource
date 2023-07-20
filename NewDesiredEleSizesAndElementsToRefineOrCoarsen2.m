@@ -79,7 +79,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             u=F.ub+F.ud ; v=F.vb+F.vd;
             [~,~,~,ErrorProxy]=CalcHorizontalNodalStrainRates(CtrlVar,MUA,u,v);
-            [dfdx,dfdy]=calcFEderivativesMUA(ErrorProxy,MUA,CtrlVar);
+            [dfdx,dfdy]=calcFEderivativesMUA(ErrorProxy,MUA);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
@@ -95,7 +95,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
         case 'thickness gradient'
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
-            [dfdx,dfdy]=calcFEderivativesMUA(F.h,MUA,CtrlVar);
+            [dfdx,dfdy]=calcFEderivativesMUA(F.h,MUA);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
@@ -103,7 +103,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if CtrlVar.InfoLevelAdaptiveMeshing>=1
                 fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             end
-            [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
+            [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
@@ -111,7 +111,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             if CtrlVar.InfoLevelAdaptiveMeshing>=1
                 fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             end
-            [dfdx,dfdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
+            [dfdx,dfdy]=calcFEderivativesMUA(F.b,MUA);
             [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
@@ -126,7 +126,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
                 fprintf(CtrlVar.fidlog,' remeshing criterion %s too small to be of use and discarded. \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             else
                 
-                [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
+                [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA);
                 [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
                 ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             end

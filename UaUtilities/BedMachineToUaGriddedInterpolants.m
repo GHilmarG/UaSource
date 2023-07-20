@@ -262,6 +262,57 @@ if SaveOutputs
 end
 
 
+
+
+%% Grounding line coordinates
+% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the
+% situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the
+% time. 
+fprintf('Creating grounding line coordinates...')
+GroundedIceMask=(mask==2 ) ;  GroundedIceMask=double(GroundedIceMask);
+
+% N=10 ; BoundaryResolution=20e3;
+DataResolution=N*500 ; % the resolution of the data set is 500 m
+NN=min([round(BoundaryResolution/DataResolution) 1]) ;
+
+%NN=1; % testing
+fc=FindOrCreateFigure('GL contour') ;  
+M=contour(x(1:NN:end),y(1:NN:end),GroundedIceMask(1:NN:end,1:NN:end),1) ; axis equal
+hold on; plot(M(1,:), M(2, :), 'r.');
+
+% now find Ngl longest contourline
+level=0.5 ;  % this contour level must be in M
+I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ; 
+
+[Nglpoints,iloc]=sort(M(2,I),'descend');
+
+fprintf(' %i points in the longest contour line segment.\n',M(2,I(J)) );
+
+Ngl=2000 ;   % 2000 longest grounding lines
+for k=1:Ngl
+    GLvector{k}=M(:,I(iloc(k))+1:I(iloc(k))+M(2,I(iloc(k)))) ;
+end
+
+GL=[]; 
+for k=1:Ngl
+    temp=GLvector{k}';
+    GL=[GL ; temp ; nan nan];
+end
+
+FindOrCreateFigure("Grounding lines")
+plot(GL(:,1)/1000,GL(:,2)/1000,'r')  ; axis equal ;
+
+fprintf('done.\n')
+
+if SaveOutputs
+    xGL=GL(:,1); yGL=GL(:,2);
+    fprintf('Saving grounding line \n ')
+    save('GroundingLineForAntarcticaBasedOnBedmachine','xGL','yGL') ; 
+end
+
+
+
+
 %%  Testing mesh boundary coordinates and creating  a new one with different spacing between points and some level of smoothing
 
 CtrlVar.GLtension=1e-12; % tension of spline, 1: no smoothing; 0: straight line

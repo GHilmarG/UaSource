@@ -1,12 +1,13 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    Henod,deltanod,Hposnod,dnod,Dddhnod,...
     LSFMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(55,55)
+narginchk(60,60)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -66,7 +67,7 @@ end
 
 
 Cint=Cnod*fun;
-Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+% Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
 mint=mnod*fun;
 
 if ~isempty(qnod)
@@ -91,7 +92,7 @@ if CtrlVar.IncludeMelangeModelPhysics
 end
 
 AGlenint=AGlennod*fun;
-AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+% AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
 nint=nnod*fun;
 
 
@@ -108,28 +109,32 @@ a1int=as1int+ab1int;
 a0int=as0int+ab0int;
 dadhint=dadhnod*fun;
 
-if CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+
+
+
+
+
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+
     LM=LSFMasknod*fun;
-    % TestIng
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+  
     hmin=CtrlVar.LevelSetMinIceThickness;
+
     abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
     dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
+
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
+
+else
+    LM=false; % Level set mask for melt not applied
 end
 
-
-Bint=Bnod*fun;
-Sint=Snod*fun;
-rhoint=rhonod*fun;
-
-
-
-Hint=Sint-Bint;
+h1barr=0 ; h0barr=0; lambda_h=1;
 
 if CtrlVar.ThicknessBarrier
-    
+
     % using ThicknessBarrier I add fictitious accumulation term:
     %
     % gamma exp(-(h-h0)/l)
@@ -138,49 +143,90 @@ if CtrlVar.ThicknessBarrier
     %       l=CtrlVar.ThicknessBarrierThicknessScale
     %       h0=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier
     %
-    lambda_h=CtrlVar.ThicknessBarrierThicknessScale;
-    gamma_h=CtrlVar.ThicknessBarrierAccumulation;
-    
-    ThickBarrierMin=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier;
-    
-    argmax=log(realmax)/2;
-    
-    %       don't add (fictitious/barrier) mass term to last time step, only to the new one
-    %        hTest=h0int ;
-    %        arg0=-(hTest-MeshSizeMin)/lambda_h;
-    %        arg0(arg0>argmax)=argmax;
-    %        h0barr=gamma_h*exp(arg0)/lambda_h;
-    h0barr=0;
-    
-    
-    arg1=-(hint-ThickBarrierMin)/lambda_h;
-    arg1(arg1>argmax)=argmax;
-    h1barr=gamma_h*exp(arg1)/lambda_h;
+    %     lambda_h=CtrlVar.ThicknessBarrierThicknessScale;
+    %     gamma_h=CtrlVar.ThicknessBarrierAccumulation;
     %
-    
-    %fprintf(' max(h1barr)=%-g max(h0barr)=%-g \n ',max(max(h1barr)),max(max(h0barr)))
-else
-    h1barr=0 ; h0barr=0; lambda_h=1;
+    %     ThickBarrierMin=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier;
+    %
+    %     argmax=log(realmax)/2;
+    %     h0barr=0;
+    %
+    %
+    %     arg1=-(hint-ThickBarrierMin)/lambda_h;
+    %     arg1(arg1>argmax)=argmax;
+    %     h1barr=gamma_h*exp(arg1)/lambda_h;
+
+
+    %%  New simpler implementation of a thickness barrier.
+    % Similar to the implementatoin of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new seperate terms to the mass
+    % balance equation
+
+    hmin=CtrlVar.ThickMin ;
+
+    isThickTooSmall=hint<hmin ;
+
+    % don't apply if already applied as a part of the level-set method
+    isThickTooSmall=isThickTooSmall & ~LM ;
+    a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+    a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
+
+
+    abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
+
+    dadhThickMin=isThickTooSmall.*(a1+3*a3*(hint-hmin).^2) ;
+
+    a1int=a1int+abThickMin; dadhint=dadhint+dadhThickMin ;
+
+    %     nh=numel(find(isThickTooSmall)) ;
+    %     if nh> 0
+    %        fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(hint(isThickTooSmall)),max(abThickMin))
+    %     end
+    %
 end
 
+Bint=Bnod*fun;
+Sint=Snod*fun;
+rhoint=rhonod*fun;
+Hint=Sint-Bint;
 
-Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
-
-
-% calculate He and DiracDelta from integration point values of thickness
-
-hfint=rhow*Hint./rhoint;
-kH=CtrlVar.kH;
-
-Heint = HeavisideApprox(kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
-HEint = HeavisideApprox(kH,hfint-hint,CtrlVar.Hh0);
-deltaint=DiracDelta(kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-Deltaint=DiracDelta(kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+hfint=rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
 
 
-dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
-Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
+if CtrlVar.uvhGroupAssembly
 
+
+    Heint=Henod*fun;  %
+   % HEint=HEnod*fun;  %
+
+    deltaint=deltanod*fun;
+   % Deltaint=Deltanod*fun;
+
+    Hposint=Hposnod*fun;
+
+    dint=dnod*fun;        % dnod=HeavisideApprox(CtrlVar.kH,Hnod,CtrlVar.Hh0).*(Snod-bnod);  % draft
+    Dddhint=Dddhnod*fun;  % Here I am interpolating the derivative calculated at nodes, to the int points
+
+
+else
+
+    % calculate He and DiracDelta from integration point values of thickness
+
+   
+ 
+
+    Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+    HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+    
+    deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+    Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+
+    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+
+    dint=HEint.*rhoint.*hint/rhow+Heint.*Hposint ;  % definition of d
+    Dddhint=HEint.*rhoint/rhow-Deltaint.*hint.*rhoint/rhow+deltaint.*Hposint; % derivative of dint with respect to hint
+
+end
 
 
 dhdx=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
@@ -244,7 +290,7 @@ end
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
     BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
 
-CtrlVar.GroupRepresentation=0;
+
 
 %% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
 
@@ -316,7 +362,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 
 % This is done within the integration-point loop.
-tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau) ;
+tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.uvh.SUPG.tau,CtrlVar.uvh.SUPG.tauMultiplier) ;
 tau0=CtrlVar.SUPG.beta0*tau;
 
 
@@ -326,25 +372,83 @@ detJw=detJ*MUA.weights(Iint);
 nod=MUA.nod ;
 
 switch lower(CtrlVar.FlowApproximation)
-    
+
     case "sstream"
-        
-        [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
-            uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
-            CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
-            Deriv,fun,...
-            exx,eyy,exy,exx0,eyy0,...
-            dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
-            ca,sa,g,dt,...
-            etaint,Eint,...
-            h0barr,h1barr,...
-            taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
-            Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
-            hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-        
+
+       
+        UseMex=~Ronly && CtrlVar.UseMexFiles ;
+
+        if ~UseMex
+
+
+            [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
+                uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
+                CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
+                Deriv,fun,...
+                exx,eyy,exy,exx0,eyy0,...
+                dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
+                ca,sa,g,dt,...
+                etaint,Eint,...
+                h0barr,h1barr,...
+                taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
+                Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
+                hint,h0int,a1int,a0int,dadhint,lambda_h) ;
+
+        else
+
+            if CtrlVar.UseMexFilesCPUcompare
+                Tx2=Tx ; Fx2=Fx ; Ty2=Ty ; Fy2=Fy ; Th2=Th; Fh2=Fh ;
+                Kxu2=Kxu ;  Kxv2=Kxv ; Kyu2= Kyu;
+                Kyv2=Kyv ;  Kxh2=Kxh ; Kyh2=Kyh ;
+                Khu2= Khu ; Khv2=Khv ; Khh2=Khh;
+            end
+
+            CV=1; Ronly=double(Ronly) ;
+
+            tStart = cputime;
+
+            [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
+                uvhNodalLoopSSTREAM_mex(detJw,nod,theta,tau0,Ronly,...
+                CV,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
+                Deriv,fun,...
+                exx,eyy,exy,exx0,eyy0,...
+                dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
+                ca,sa,g,dt,...
+                etaint,Eint,...
+                h0barr,h1barr,...
+                taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
+                Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
+                hint,h0int,a1int,a0int,dadhint,lambda_h) ;
+
+            tEndMex = cputime - tStart ; %fprintf("    MEX file %f \n",tEndMex)
+
+            if CtrlVar.UseMexFilesCPUcompare
+                tStart = cputime;
+                [Tx2,Fx2,Ty2,Fy2,Th2,Fh2,Kxu2,Kxv2,Kyu2,Kyv2,Kxh2,Kyh2,Khu2,Khv2,Khh2]=...
+                    uvhNodalLoopSSTREAM(detJw,nod,theta,tau0,Ronly,...
+                    CtrlVar,Tx2,Fx2,Ty2,Fy2,Th2,Fh2,Kxu2,Kxv2,Kyu2,Kyv2,Kxh2,Kyh2,Khu2,Khv2,Khh2, ...
+                    Deriv,fun,...
+                    exx,eyy,exy,exx0,eyy0,...
+                    dhdx,dhdy,dh0dx,dh0dy,drhodx,drhody,dbdx,dbdy,dBdx,dBdy,Hposint,Dddhint,...
+                    ca,sa,g,dt,...
+                    etaint,Eint,...
+                    h0barr,h1barr,...
+                    taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
+                    Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
+                    hint,h0int,a1int,a0int,dadhint,lambda_h) ;
+
+                tEndm = cputime - tStart ; fprintf(" Mex %f sec \t   m-file %f sec \t m/Mex=%f \n",tEndMex,tEndm,tEndm/tEndMex)
+                fprintf("Difference between solutions: %f %f %f %f \n",norm(Tx2-Tx),norm(Fx2-Fx),norm(Ty2-Ty),norm(Fy2-Fy))
+            end
+
+        end
+
+
+
+
     case "hybrid"
-        
-        
+
+
         [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
             uvhNodalLoopHybrid(detJw,nod,theta,tau0,Ronly,...
             CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
@@ -357,11 +461,11 @@ switch lower(CtrlVar.FlowApproximation)
             taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
             Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
             hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-        
-        
+
+
     case "sstream-rho"
 
-         [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
+        [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
             uvhNodalLoopSSTREAMrho(detJw,nod,theta,tau0,Ronly,...
             CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
             Deriv,fun,...
@@ -373,14 +477,14 @@ switch lower(CtrlVar.FlowApproximation)
             taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
             Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
             hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-        
-        
+
+
 
 
 
     case "sstreamTest"
         error('not finalized')
-        
+
         [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
             uvhNodalLoopSSTREAMtest(detJw,nod,theta,tau0,Ronly,...
             CtrlVar,Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh, ...
@@ -393,8 +497,8 @@ switch lower(CtrlVar.FlowApproximation)
             taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh,...
             Heint,deltaint,rhoint,rhow,uint,vint,u0int,v0int,dint,...
             hint,h0int,a1int,a0int,dadhint,lambda_h) ;
-        
-        
+
+
     otherwise
         error("What case?")
 end

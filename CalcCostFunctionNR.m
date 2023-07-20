@@ -1,6 +1,6 @@
-function [r,UserVar,RunInfo,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl)
+function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl)
     
-    nargoutchk(1,6)
+    nargoutchk(1,9)
     narginchk(13,13)
     
     if isnan(gamma) ; error(' gamma is nan ') ; end
@@ -24,7 +24,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2] = CalcCostFunctionNR(UserVar,RunInf
     
     
     % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
-    rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
+    Normalisation=fext0'*fext0+1000*eps;
+    rForce=full([frhs;grhs]'*[frhs;grhs]./Normalisation); 
     
     % Newton Decrement
     

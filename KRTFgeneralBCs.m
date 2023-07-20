@@ -1,6 +1,6 @@
 function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F,ZeroFields)
 
-UserVar=[];
+
 
 if nargin<4
     CtrlVar.uvAssembly.ZeroFields=false;
@@ -33,7 +33,8 @@ end
 
 %%
 
-if CtrlVar.Parallel.isTest
+ 
+if CtrlVar.Parallel.isTest && CtrlVar.Parallel.uvAssembly.spmd.isOn  && ~CtrlVar.uvMatrixAssembly.Ronly
     
     tSeq=tic;
     [Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(CtrlVar,MUA,F);

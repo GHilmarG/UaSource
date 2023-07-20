@@ -4,19 +4,26 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 
 %% Plots grounding lines
 %
-% [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
+% To plot grounding lines over FE mesh based on the floating mask GL:
 %
-% The only required inputs are: 
+%  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargin)
 %
-%   MUA
-%   GF
 %
-% Other fields can be left empty. However, if the grounding line needs to be
-% plotted repeatedly for same MUA and GF, entering GLgeo, xGL and yGL, obtained
-% as outputs from a previouis call, will speed things up.
+% To plot (most of the) grounding lines based on the Bedmachine data:
+%
+%  [cGL,yGL]=PlotGroundingLines(CtrlVarInRestartFile,"Bedmachine");
+%
+%  [cGL,yGL]=PlotGroundingLines([],"Bedmachine");    
+%
+% When plotting grounding lines over the mesh defined by MUA and based on GF, the only required inputs are:
+%
+%   MUA GF
+%
+% Other fields can be left empty. However, if the grounding line needs to be plotted repeatedly for same MUA and GF, entering
+% GLgeo, xGL and yGL, obtained as outputs from a previouis call, will speed things up.
 %
 % varargin is passed over the the plot function and can be any input
-% accepted by the matlap plot function. 
+% accepted by the matlap plot function.
 %
 % *Examples:*
 %
@@ -24,7 +31,7 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity); Tlength=sqrt(2*Tarea) ;
-%   figure ; 
+%   figure ;
 %   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF) ;
 %
 % Plot grounding lines in red over the computational mesh in black:
@@ -32,13 +39,13 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %   figure
 %   CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-%   CtrlVar.PlotIndividualGLs=1 ; 
+%   CtrlVar.PlotIndividualGLs=1 ;
 %   PlotMuaMesh(CtrlVar,MUA,[],'k') ;
 %   hold on
 %   PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],'color','r','LineWidth',2);
 %
 % Plot grounding lines twice using outputs from first call in the second call:
-% 
+%
 %    load('MUA-PIG-TWG-Example.mat','MUA','BCs','GF','CtrlVar')
 %    GLgeo=[] ; xGL=[], yGL=[];
 %    figure
@@ -68,66 +75,135 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %
 %   CtrlVar.PlotIndividualGLs=1
 %
-% To just calculate the grounding line, but not plot it set 
-% 
+% To just calculate the grounding line, but not plot it set
+%
 %   CtrlVar.PlotGLs=0;
-%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL); 
+%   [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL);
+%
+% Plot grounding lines based on the Bedmachine mask
+%
+%   
 %
 %
 % See also: PlotMuaBoundary, EleBasedGL
 %
 
-narginchk(3,inf)
+narginchk(0,inf)
+
+
+if nargin==0 
+
+    CtrlVar=[]; 
+    MUA="Bedmachine" ; 
+
+end
 
 if isempty(CtrlVar)
-    CtrlVar.XYscale=1;
+    CtrlVar.PlotXYscale=1000;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
 
+if ~isfield(CtrlVar,"PlotGLs")
+    CtrlVar.PlotGLs=1;
+end
+
+if ~isfield(CtrlVar,"PlotIndividualGLs")
+    CtrlVar.PlotIndividualGLs=0;
+end
+
+
+
+if isstring(MUA)
+
+    GroundingLineDataSet=MUA ;
+
+    switch GroundingLineDataSet
+
+        case "Bedmachine"
+
+            load("GroundingLineForAntarcticaBasedOnBedmachine.mat","xGL","yGL") ;
+
+        case "Bindschadler"
+
+            load('GroundingLinesOfAntarticaFromBobBindschadler','xGL','yGL')  ;
+
+        otherwise
+
+            error("case not found")
+
+    end
+
+    if CtrlVar.PlotGLs
+
+        tt=axis;
+        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        ax=gca; ax.DataAspectRatio=[1 1 1];
+
+        if ~isequal(tt,[0 1 0 1])
+            axis(tt)
+        end
+    end
+
+    GLgeo=[] ;
+    return
+
+end
+
+
+
 if isempty(GF)
-    xGL=[]; yGL=[] ; GLgeo=[] ; 
+
     return
 end
 
 if ~isfield(CtrlVar,'PlotXYscale') ; CtrlVar.PlotXYscale=1 ; end
 if ~isfield(CtrlVar,'PlotGLs') ; CtrlVar.PlotGLs=1 ; end
 if ~isfield(CtrlVar,'PlotIndividualGLs') ; CtrlVar.PlotIndividualGLs=0 ; end
-if ~isfield(CtrlVar,'LineUpGLs') ; CtrlVar.LineUpGLs=1; end 
+if ~isfield(CtrlVar,'LineUpGLs') ; CtrlVar.LineUpGLs=1; end
 
+
+ if CtrlVar.PlotGLs  % if plotting, always line up grounding lines
+     CtrlVar.LineUpGLs=1;
+ end
 
 if nargin<4 || isempty(GLgeo)
-    
+
     GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar);
-    
+
 end
 
 if nargin<6 || ( isempty(xGL) || isempty(yGL))
-    
-    
+
+
     if CtrlVar.LineUpGLs
         xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
-        [xGL,yGL]=LineUpEdges2([],xa,xb,ya,yb);
+        [xGL,yGL]=LineUpEdges2(CtrlVar,xa,xb,ya,yb);
+
+        %% get rid of duplicats and almost duplicates
+
     else
         xGL=[GLgeo(:,3)  ; GLgeo(:,4) ] ;
         yGL=[GLgeo(:,5)  ; GLgeo(:,6) ] ;
-        temp=unique([xGL yGL],'rows') ;  
+       %  temp=unique([xGL yGL],'rows') ;
+        temp=uniquetol([xGL yGL],1000*eps,ByRows=true) ;
+
         xGL=temp(:,1) ;  yGL=temp(:,2) ;
     end
-    
+
 end
 
 
 
 if CtrlVar.PlotGLs
-    
+
     if ~CtrlVar.PlotIndividualGLs
-        
+
         plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
         ax=gca; ax.DataAspectRatio=[1 1 1];
-        
+
     else
-        
+
         i=0;
         I=find(isnan(xGL)) ;
         I=[1;I(:)];
@@ -135,7 +211,7 @@ if CtrlVar.PlotGLs
         %col=['b','r'];
         for ii=1:numel(I)-1
             i=i+1;
-            
+
             plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:}) ;
             axis equal ; hold on ;
             if i==numel(col) ; i=0 ; end

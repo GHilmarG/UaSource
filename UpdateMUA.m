@@ -18,20 +18,34 @@ end
 % first make sure that the element is of the right type
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
 
+% checking if MUA as the QuadratureRuleDegree field
+if CtrlVar.QuadRules2021  && ~isfield(MUA,"QuadratureRuleDegree")
+    QuadratureFieldMissing=true;
+else
+    QuadratureFieldMissing=false ;
+end
 
-if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')
+
+
+if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || ~isfield(MUA,'weights') ||  QuadratureFieldMissing 
 
     if CtrlVar.QuadRules2021
         Degree=QuadratureRuleDegree(CtrlVar);
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+        
+        MUA.QuadratureRuleDegree=Degree;
         MUA.nip=size(Q.Points,1);
         MUA.niph=size(Q.Points,1);
         MUA.points=Q.Points;
         MUA.weights=Q.Weights;
+        
     else
         CtrlVar=NrOfIntegrationPoints(CtrlVar);
+        
+        MUA.QuadratureRuleDegree=nan;
         MUA.niph=CtrlVar.niph;
         MUA.nip=CtrlVar.nip;
+        [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
     end
 
 end
@@ -64,13 +78,30 @@ if ~isfield(CtrlVar,'CalcMUA_Derivatives')
 end
 
 
+if CtrlVar.FindMUA_Boundary && isempty(MUA.TR)
+    [MUA.Boundary,MUA.TR]=FindBoundary(MUA.connectivity,MUA.coordinates);
+end
+
+
+%% Now consider the possibility that we are using the post 2021 quad rules and that the quadrature degree has changed
+
+ QuadratureRuleHasChanged=false;
+
+if CtrlVar.QuadRules2021
+    Degree=QuadratureRuleDegree(CtrlVar);
+    if MUA.QuadratureRuleDegree~=Degree
+        QuadratureRuleHasChanged=true;
+    end
+end
+
 %% Now consider the possibility the FE coordinates and connectivity has changed
 % and that the other fields are not up to date
 
 MeshHasChanged = ...
     MUA.nod~=size(MUA.connectivity,2) || ...
     MUA.Nele~=size(MUA.connectivity,1) || ...
-    MUA.Nnodes~=size(MUA.coordinates,1) ;
+    MUA.Nnodes~=size(MUA.coordinates,1) || ...
+    QuadratureRuleHasChanged ; 
 
 if MeshHasChanged
     if CtrlVar.InfoLevel>=10
@@ -86,6 +117,7 @@ if MeshHasChanged
     if CtrlVar.QuadRules2021
         
         Degree=QuadratureRuleDegree(CtrlVar);
+        MUA.QuadratureRuleDegree=Degree;
         Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
         MUA.nip=size(Q.Points,1);
         MUA.niph=size(Q.Points,1);
@@ -95,6 +127,7 @@ if MeshHasChanged
     else
         
         CtrlVar=NrOfIntegrationPoints(CtrlVar);
+        MUA.QuadratureRuleDegree=nan;
         MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
         [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
     end
@@ -151,11 +184,6 @@ if  CtrlVar.FindMUA_Boundary
 end
 
 
-if ~isfield(MUA,'points')  || ~isfield(MUA,'weights')
-    MUA.ndim=2;
-    CtrlVar=NrOfIntegrationPoints(CtrlVar); MUA.nip=CtrlVar.nip ; MUA.niph=CtrlVar.niph;
-    [MUA.points,MUA.weights]=sample('triangle',MUA.nip,MUA.ndim);
-end
 
 if CtrlVar.CalcMUA_Derivatives
     if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
@@ -165,26 +193,25 @@ if CtrlVar.CalcMUA_Derivatives
 end
 
 [NeleTest,ndimTest,nodTest,nipTest]=size(MUA.Deriv);
+MUADerivHasChanged=isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip ; 
 
-if CtrlVar.CalcMUA_Derivatives
-    if NeleTest~=MUA.Nele || nodTest~=MUA.nod || nipTest~=MUA.nip
 
+if CtrlVar.CalcMUA_Derivatives && MUADerivHasChanged
         [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
-    end
 end
 
 
-if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) && ~isfield(MUA,'M')
+if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(MUA,'M') || isempty(MUA.M) || MUADerivHasChanged  )  
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
 
-if CtrlVar.MUA.DecomposeMassMatrix  && ~isfield(MUA,'dM')
+if CtrlVar.MUA.DecomposeMassMatrix  && ( ~isfield(MUA,'dM')  || isempty(MUA.dM) || MUADerivHasChanged)
     MUA.dM=decomposition(MUA.M,'chol','upper') ;
 end
 
 
-if CtrlVar.MUA.StiffnessMatrix && ~isfield(MUA,'Dxx')
+if CtrlVar.MUA.StiffnessMatrix &&  (~isfield(MUA,'Dxx')  || MUADerivHasChanged)
     [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 

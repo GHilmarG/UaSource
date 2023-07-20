@@ -1,9 +1,13 @@
 function PlotReactions(CtrlVar,MUA,Reactions)
 
 
+%
+% To calculate Reactions, use CalculateReactions.m
+% 
+
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
-Two= numel(Reactions.ubvb)>0 && numel(Reactions.ubvb)>0;
+Two= numel(Reactions.ubvb)>0 && numel(Reactions.h)>0;
 
 if numel(Reactions.ubvb)>0
     

@@ -47,18 +47,26 @@ b=zeros(MUA.Nnodes,nVarargs);
 % factorize
 % [L,~,P]=chol(A,'lower');
 for I=1:nVarargs
-      b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,varargin{I});
-%      varargout{I}= P*(L' \(L \(P'*b(:,I))));
+    b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,varargin{I});
+    %      varargout{I}= P*(L' \(L \(P'*b(:,I))));
 end
 
 %A=MassMatrix2D1dof(MUA);
 %sol=A\b;
 
-if ~isfield(MUA,'M')
+if ~isfield(MUA,'M') || isempty(MUA.M)
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-sol=MUA.M\b;
+if isfield(MUA,"dM") && isa(MUA.dM,"decomposition") && ~isempty(MUA.dM)
+    try
+        sol=MUA.dM\b;
+    catch
+        sol=MUA.M\b;
+    end
+else
+    sol=MUA.M\b;
+end
 
 for I=1:nVarargs
     varargout{I}=sol(:,I);

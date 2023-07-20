@@ -48,6 +48,11 @@ if ny0~=nB
     save TestSave ; error('error in solveKApeSymmetric')
 end
 
+if ~isfield(CtrlVar,"Symmsolver")
+   CtrlVar.SymmSolver='auto' ;
+end
+
+
 if isequal(lower(CtrlVar.SymmSolver),'auto')
     
     if isempty(B) || numel(B)==0
@@ -92,12 +97,15 @@ switch CtrlVar.SymmSolver
 end
 
 
-tSolve=toc(tSolve); 
+tSolve=toc(tSolve);
 
-if CtrlVar.InfoLevelLinSolve>=10
-    fprintf('solveKApeSymmetric: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
-        nA+nB,nA,nB,tSolve,CtrlVar.SymmSolver)
+if isfield(CtrlVar,"InfoLevelLinSolve")
+    if CtrlVar.InfoLevelLinSolve>=10
+        fprintf('solveKApeSymmetric: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
+            nA+nB,nA,nB,tSolve,CtrlVar.SymmSolver)
+    end
 end
+
 
 return
 

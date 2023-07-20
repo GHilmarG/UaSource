@@ -2,6 +2,31 @@
 
 %%
 %
+% *Release Notes* _July 2022_
+%
+% * Call to DefineOutputs is now only done at the beginning and end of runs if the variables
+%
+%       CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+%       CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop
+%
+% are set to true.
+%
+% * Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although
+% still considered not fully testet, this option appears to work quite well. Further details can be found in
+% Ua2D_DefaultParameters.m and in the DefineCalving.m files. 
+%
+% * In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a
+% new uvh solve, e.g.:
+%
+%   CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5; 
+%
+%
+% * UaPlots is a new plotting utility function.
+%
+% * Some minor bugs have been corrected, but nothing that should affect calculated solutions. 
+%
+% * This version requires MATLAB2021a or later. 
+%
 % *Release Notes* _Sept 2021_
 %
 %

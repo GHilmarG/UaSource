@@ -57,7 +57,7 @@ end
 
 %GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
 
-bfloat=S-rho.*h/rhow;
+bfloat=S-rho.*h./rhow;
 
 b=GF.node.*B + (1-GF.node) .* bfloat ;
 
@@ -65,7 +65,7 @@ b=GF.node.*B + (1-GF.node) .* bfloat ;
 if CtrlVar.Enforce_bAboveB
     % because the grounding line is `smeared out' a bit for a finite CtrlVar.kH one can
     % have situations where b<B. For CtrlVar.kH>0.1 this is not really much of an issue
-    % and anyhow this is a consequnce of using a smooth step function.
+    % and anyhow this is a direct consequence of using a smooth step function (explained in detail in UaCompendium)
     I=b<B ;
     
     if any(I)

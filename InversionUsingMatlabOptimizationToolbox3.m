@@ -31,12 +31,15 @@ elseif isa(Test,'optim.options.Fmincon')
         
         [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
         
-    else
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
         
         
         [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
         
-        
+    else
+
+        fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ") 
+        error("InversionUsingMatlabOptimizationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
         
     end
     

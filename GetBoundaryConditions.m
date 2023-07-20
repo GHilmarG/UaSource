@@ -83,7 +83,29 @@ switch lower(CtrlVar.FlowApproximation)
 end
 
 
-% do some basic checks
+% do some basic checks, will not pick everything, but should find the most typical mistakes.
+
+if islogical(BCs.hFixedNode)
+   error('GetBoundaryConditions:h','BCs.hFixedNode is a logical variable, but must be numeric. \n')
+end
+
+if islogical(BCs.ubFixedNode)
+   error('GetBoundaryConditions:ub','BCs.ubFixedNode is a logical variable, but must be numeric. \n')
+end
+
+if islogical(BCs.vbFixedNode)
+   error('GetBoundaryConditions:vb','BCs.vbFixedNode is a logical variable, but must be numeric. \n')
+end
+
+if islogical(BCs.udFixedNode)
+   error('GetBoundaryConditions:ub','BCs.udFixedNode is a logical variable, but must be numeric. \n')
+end
+
+if islogical(BCs.vdFixedNode)
+   error('GetBoundaryConditions:vb','BCs.vdFixedNode is a logical variable, but must be numeric. \n')
+end
+
+
 
 if numel(BCs.ubFixedNode) ~=  numel(BCs.ubFixedValue)
     error('GetBoundaryConditions:ub','Number of fixed ub nodes not equal to number of ub fixed values! \n')
