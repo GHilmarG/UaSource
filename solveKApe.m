@@ -40,7 +40,7 @@ if ~isempty(B)
     
     if ny0~=nB
         fprintf('y0 must have same number of elements as there are rows in B\n')
-        error('error in solveKApe')
+        error('solveKApe:InputsIncompatable','error in solveKApe')
     end
 end
 
@@ -54,16 +54,34 @@ n=size(A,1) ; m=size(B,1);
 %     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
 % end
 
+if isempty(CtrlVar) || ~isstruct(CtrlVar)
+
+    CtrlVar.AsymmSolver='auto';
+    CtrlVar.InfoLevelLinSolve=0 ;
+    CtrlVar.TestForRealValues=0;
+
+else
+    if ~isfield(CtrlVar,"AsymmSolver")
+        CtrlVar.AsymmSolver='auto';
+    end
+
+    if ~isfield(CtrlVar,"InfoLevelLinSolve")
+        CtrlVar.InfoLevelLinSolve=0 ;
+    end
+
+    CtrlVar.TestForRealValues=0;
+end
+
 if isequal(lower(CtrlVar.AsymmSolver),'auto')
-    
+
     if isempty(B) || numel(B)==0
         CtrlVar.AsymmSolver='Bempty';
-     elseif isdiag(B*B')
-         CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+    elseif isdiag(B*B')
+        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
     else
         CtrlVar.AsymmSolver='AugmentedLagrangian';
     end
-    
+
 end
 
 
