@@ -1,12 +1,18 @@
 function [x,lambda,resnorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c)
 
-
+%%
+%
+%
 %
 %   [H L' ]  [dx]  = [g]
 %   [L  0 ]  [l]     [h]
 %
 %
-
+% Example:
+%
+%   lsqUaExample
+%
+%%
 if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
     ItMax=5;
@@ -75,6 +81,7 @@ r0=r ;
 
 
 rVector=nan(100,1) ;
+rVector(1)=r;
 if SaveIterate
     xVector=nan(numel(x),100);
     xVector(:,1)=x(:) ;
@@ -90,7 +97,7 @@ while iteration < ItMax  && r > tol
     if isLSQ
         H=2*(K'*K) ;
         if  ~isnan(LevenbergMarquardt)
-            H=H+speye(numel(x))*CtrlVar.lsqUa.LevenbergMarquardt ;
+            H=H+speye(numel(x))*LevenbergMarquardt ;
         end
     else
         H=K;

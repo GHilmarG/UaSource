@@ -7,14 +7,14 @@
 problemtype="[x1,x2]" ;
 problemtype="[x1+x2,x2]";
 problemtype="[x1^2+x2,x2]";
-%problemtype="[x1^2,x2]";
+% problemtype="[x1^2,x2]";
 
-isConstraint=false; 
+isConstraint=true; 
 
-CtrlVar.lsqUa.ItMax=10 ;
+CtrlVar.lsqUa.ItMax=20 ;
 CtrlVar.lsqUa.tol=1e-30 ;
 CtrlVar.lsqUa.isLSQ=true ;
-CtrlVar.lsqUa.LevenbergMarquardt=nan ;
+CtrlVar.lsqUa.LevenbergMarquardt=1e1 ;
 CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.SaveIterate=true;
 
@@ -68,6 +68,14 @@ for I=1:output.nIt
    % txt = input("RET to continue\n") ; 
     
 end
+
+
+flsqUaProg=FindOrCreateFigure("lsqUa progress") ; clf(flsqUaProg) ;
+
+itVector=linspace(0,numel(output.rVector)-1);
+semilogy(itVector, output.rVector,'o-')
+xlabel("iteration",Interpreter="latex")
+ylabel("$r^2$",Interpreter="latex")
 
 
 %%
