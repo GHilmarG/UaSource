@@ -54,9 +54,21 @@ n=size(A,1) ; m=size(B,1);
 %     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
 % end
 
-if isempty(CtrlVar) || isnan(CtrlVar)
+if isempty(CtrlVar) || ~isstruct(CtrlVar)
+
     CtrlVar.AsymmSolver='auto';
-    CtrlVar.InfoLevelLinSolve=0 ; 
+    CtrlVar.InfoLevelLinSolve=0 ;
+    CtrlVar.TestForRealValues=0;
+
+else
+    if ~isfield(CtrlVar,"AsymmSolver")
+        CtrlVar.AsymmSolver='auto';
+    end
+
+    if ~isfield(CtrlVar,"InfoLevelLinSolve")
+        CtrlVar.InfoLevelLinSolve=0 ;
+    end
+
     CtrlVar.TestForRealValues=0;
 end
 

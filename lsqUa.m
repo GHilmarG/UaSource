@@ -7,13 +7,14 @@ function [x,lambda,resnorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c
 %
 %
 
-if isempty(CtrlVar) || isnan(CtrlVar)  
+if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
     ItMax=5;
     tol=1e-6;
     isLSQ=true;
     LevenbergMarquardt=nan; 
     Normalize=false ;
+    SaveIterate=true; 
 
 else
 
@@ -22,6 +23,7 @@ else
     isLSQ=CtrlVar.lsqUa.isLSQ ;
     LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt; 
     Normalize=CtrlVar.lsqUa.Normalize;
+    SaveIterate=CtrlVar.lsqUa.SaveIterate;
 
 end
 
@@ -73,6 +75,12 @@ r0=r ;
 
 
 rVector=nan(100,1) ;
+if SaveIterate
+    xVector=nan(numel(x),100);
+    xVector(:,1)=x(:) ;
+else
+    xVector=[];
+end
 iteration=0 ;
 
 while iteration < ItMax  && r > tol
@@ -92,6 +100,10 @@ while iteration < ItMax  && r > tol
 
     x=x+dx ;
     lambda=lambda+dlambda ;
+
+    if SaveIterate
+        xVector(:,iteration+1)=x(:) ;
+    end
 
     [R,K]=fun(x) ;
 
@@ -122,7 +134,7 @@ while iteration < ItMax  && r > tol
     dlambdaNorm=norm(dlambda)/norm(lambda);
     BCsNorm=norm(h) ;
 
-    fprintf("\t      lsqUa: \t it=%i  \t     r0=%-10g \t     r1=%-10g \t         r1/r0=%-10g \t R2=%-10g \t |dx|=%-10g \t |dl|=%-10g \t |BCs|=%g \n",iteration,r0,r,r/r0,R2,dxNorm,dlambdaNorm,BCsNorm)
+    fprintf("\t      lsqUa: \t it=%2i  \t     r0=%-13g \t     r1=%-13g \t         r1/r0=%-13g \t R2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%g \n",iteration,r0,r,r/r0,R2,dxNorm,dlambdaNorm,BCsNorm)
 
 end
 
@@ -132,8 +144,8 @@ resnorm=r;
 residual=R ;
 exitflag=0;
 output.rVector=rVector;
-
-
+output.xVector=xVector; 
+output.nIt=iteration; 
 
 
 
