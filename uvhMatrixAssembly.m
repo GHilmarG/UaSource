@@ -74,7 +74,7 @@ if ZeroFields
     % least the units of the rhs are identical for all unknonws
     %
     % On the other hand this can hardly be too much of an issue as the
-    % dh/dt equation is liner in h and all the residuals will be caused by
+    % dh/dt equation is linear in h and all the residuals will be caused by
     % the u v residuals.
     %
     
