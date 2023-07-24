@@ -33,6 +33,23 @@ switch problemtype
         K=[2*x(1)  1 ; ...   % \nabla R1^T
             0     1] ;       % \nabla R2^T
 
+    case "[x1^2+x2,x2^2+x1]"
+
+        R(1)=x(1)^2+x(2);  
+        R(2)=x(2)^2+x(1);
+        R=R(:) ;
+
+        K=[2*x(1)   1   ; ...   % \nabla R1^T
+            1   2*x(2)] ;       % \nabla R2^T
+
+   case "[x1^2-x2,x2^2-x1]"
+
+        R(1)=x(1)^3-100*x(2);  
+        R(2)=-x(2)^2+10*x(1);
+        R=R(:) ;
+
+        K=[3*x(1)^2   -100   ; ...   % \nabla R1^T
+            +10   -2*x(2)] ;       % \nabla R2^T
 
     otherwise
 

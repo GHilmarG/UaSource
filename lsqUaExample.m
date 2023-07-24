@@ -5,14 +5,17 @@
 problemtype="[x1,x2]" ;
 problemtype="[x1+x2,x2]";
 problemtype="[x1^2+x2,x2]";
-% problemtype="[x1^2,x2]";
+problemtype="[x1^2,x2]";
+% problemtype="[x1^2+x2,x2^2+x1]";
+% problemtype="[x1^2-x2,x2^2-x1]";
 
 isConstraint=true; 
 
-CtrlVar.lsqUa.ItMax=20 ;
-CtrlVar.lsqUa.tol=1e-30 ;
-CtrlVar.lsqUa.isLSQ=true ;
-CtrlVar.lsqUa.LevenbergMarquardt=0 ;
+CtrlVar.lsqUa.ItMax=10 ;
+CtrlVar.lsqUa.tol=1e-30;
+CtrlVar.lsqUa.isLSQ=false ;
+CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
+CtrlVar.lsqUa.LMlambda0=0.01 ;
 CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.SaveIterate=true;
 
@@ -75,7 +78,14 @@ if ProgressOverplot
     hold on
 end
 
-itVector=linspace(0,numel(output.rVector)-1);
+npoints=numel(output.rVector);
+itVector=0:npoints-1; 
+yyaxis left
+semilogy(itVector, output.gVector,'o-')
+ylabel("$\|g\|^2$",Interpreter="latex")
+yyaxis right
 semilogy(itVector, output.rVector,'o-')
+ylabel("$\|R\|^2$",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
-ylabel("$r^2$",Interpreter="latex")
+
+
