@@ -2,10 +2,24 @@ function [x,lambda,R2,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c)
 
 %%
 %
+% Minimizes the norm of R where R is a vector subject the the
+% constraints
 %
+%   L x = c
 %
-%   [H L' ]  [dx]  = [g]
-%   [L  0 ]  [l]     [h]
+%  The function 'fun' should provide both R and the Jacobian, i.e.
+%
+%   [R,K]=fun(x) 
+%
+% where   K=grad J
+%
+% Note that R is a vector and K a matrix.  The value that is minimized is
+%
+%   R'*R
+%
+% Algorithm: Solves repeatedly the linearized min problem:
+%
+%  |R0+J dx|^2 
 %
 %
 % Example:
@@ -139,7 +153,6 @@ while true
 
    if isLSQ
        Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
-       % Q=2*R'*K*dx+dx'*H*dx/2 ;  % Quad approximation
    else
        Q=R'*dx+dx'*H*dx/2 ;
    end
@@ -151,7 +164,8 @@ while true
 
 
 
-    R0=R ; K0=K ; g0=g ; h0=h ; 
+    R0=R ; K0=K ; g0=g ; h0=h ; % If I reject the step, I need to reuse these variables
+
     [R,K]=fun(x) ;
 
     if ~isempty(L)
@@ -182,7 +196,7 @@ while true
 
 
     if g2 > g2Old  % reject step
-        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; dx=dx*0; g2=g2Old ; R2=R2Old ; dlambda=dlambda*0 ;
+        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; g2=g2Old ; R2=R2Old ;
         
         if LMlambda==0
             LMlambda=1;
@@ -212,7 +226,6 @@ while true
         end
 
     else
-
         LMlambda=nan;
     end
 
@@ -254,7 +267,7 @@ end
 
 fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
 
-resnorm=R2;
+
 residual=R ;
 output.gVector=gVector;
 output.RVector=RVector;
