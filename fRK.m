@@ -51,7 +51,7 @@ switch problemtype
         R=R(:) ;
 
         K=[3*x(1)^2   -100   ; ...   % \nabla R1^T
-            +10   -2*x(2)] ;       % \nabla R2^T
+            +10   -2*x(2)] ;         % \nabla R2^T
 
     case "Rosenbrock"
 

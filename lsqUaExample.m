@@ -1,21 +1,21 @@
 
 %  R=(x1,x2)
 
-%                                                         lsq            H
-%                                                                         
-problemtype="[x1,x2]" ;                   %                 24.5                   24.5
-problemtype="[x1+x2,x2]";                 %                 25.0                    50
-% problemtype="[x1^2+x2,x2]";             %                 40.915              49.999
-% problemtype="[x1^2,x2]";                %                 16.5015             20.5917
-% problemtype="[x1^2+x2,x2^2+x1]";        %                 153.125             153.125
-problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;       %                 1737.89             4052.71
-problemtype="Rosenbrock" ; 
+%                                                           lsq                      H           lsq                      H
+%                                                                 constraint                           unconstraint        
+problemtype="[x1,x2]" ;                   %                 24.5                   24.5           
+problemtype="[x1+x2,x2]";                 %                 25.0                    50             0                      0
+problemtype="[x1^2+x2,x2]";             %                 40.915              49.999               0                      0
+problemtype="[x1^2,x2]";                %                 16.5015             20.5917              0                      0
+problemtype="[x1^2+x2,x2^2+x1]";        %                 153.125             153.125              0                      0
+% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;  %              1737.89             4052.71            0                   not conv
+% problemtype="Rosenbrock" ;                %                 1.78794             5.4718
 
 
-isConstraint=true;
+isConstraint=false;
 
 
-CtrlVar.lsqUa.ItMax=30 ;
+CtrlVar.lsqUa.ItMax=50 ;
 CtrlVar.lsqUa.gTol=1e-30 ;
 CtrlVar.lsqUa.dR2Tol=1e-20 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
@@ -23,6 +23,7 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 CtrlVar.lsqUa.isLSQ=true ;
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
+CtrlVar.lsqUa.LMlambdaUpdateMethod=2 ;
 CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.ScaleProblem=true;  
 CtrlVar.lsqUa.SaveIterate=true;
@@ -35,6 +36,7 @@ CompareWithMatlabOpt=false;
 
 fun = @(x) fRK(x,problemtype)  ;
 x0=[-10 ; 15] ;
+% x0=[5; 0] ;
 
 
 lambda= []  ;
@@ -97,7 +99,7 @@ yyaxis right
 semilogy(itVector, output.RVector,'o-')
 ylabel("$\|R\|^2$",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
-title(sprintf("$\\|R\\|^2$ =%g $\\|g\\|^2$=%g",R2,g2),Interpreter="latex")
+title(sprintf("$\\|R\\|^2$ =%g, $\\|g\\|^2$=%g",R2,g2),Interpreter="latex")
 
 %% 
 

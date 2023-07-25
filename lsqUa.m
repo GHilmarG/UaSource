@@ -40,6 +40,7 @@ if isempty(CtrlVar) || ~isstruct(CtrlVar)
     LevenbergMarquardt="auto" ; % "fixed"
     LMlambda=1 ;
     ScaleProblem=false;
+    LMlambdaUpdateMethod=1; 
 
 
 else
@@ -54,6 +55,8 @@ else
     LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
     LMlambda=CtrlVar.lsqUa.LMlambda0 ;
     ScaleProblem=CtrlVar.lsqUa.ScaleProblem; 
+
+    LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
 
     SaveIterate=CtrlVar.lsqUa.SaveIterate;
 
@@ -130,20 +133,21 @@ iteration=0 ;
 
 fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
 
-while true
+while iteration <= ItMax
 
     iteration=iteration+1 ;
 
     if isLSQ
         KK=K'*K;
         H=2*KK;
-        if ScaleProblem
-            D=sparse(1:nx,1:nx,spdiags(H,0));
-        else
-            D=speye(nx,nx);
+        if LMlambda > 0
+            if ScaleProblem
+                D=sparse(1:nx,1:nx,spdiags(H,0));
+            else
+                D=speye(nx,nx);
+            end
+            H=H+D*LMlambda ;
         end
-        H=H+D*LMlambda ;
-
     else
         H=K;
     end
@@ -201,28 +205,42 @@ while true
         if LMlambda==0
             LMlambda=1;
         else
-            LMlambda=10*LMlambda ;
+            LMlambda=2*LMlambda ;
         end
         % fprintf(" step rejected \n")
+        % fprintf(" %i",iteration)
         continue
     end
 
 
-    dxNorm=norm(dx)/norm(x);
-    dlambdaNorm=norm(dlambda)/norm(lambda);
+    dxNorm=norm(dx);
+    dlambdaNorm=norm(dlambda);
     BCsNorm=norm(h) ;
 
     if isLSQ  && LevenbergMarquardt == "auto"
+        if LMlambda==0
+            LMlambda=1;
+        end
 
-        % now update LMlambda based on agreement with Quad model
-        if rho>0.9  && rho<1.1       % Quad model very good, decrease lambda
-            LMlambda=LMlambda/10 ;
-        elseif rho>0.75  && rho<1.5
-            LMlambda=LMlambda/2 ;
-        elseif rho>0.1  || rho<10
-            LMlambda=1.5*LMlambda ;
-        elseif rho < 0.1 || rho>10    % Quad model not good, increase lambda
-            LMlambda=2*LMlambda ;
+        switch LMlambdaUpdateMethod
+            % now update LMlambda based on agreement with Quad model
+            case 1
+                
+                factor=max(1/3,1-(2*rho-1)^3) ;  % 
+                LMlambda=factor*LMlambda ;
+
+            case 2
+                
+                if rho>0.9  && rho<1.1       % Quad model very good, decrease lambda
+                    LMlambda=LMlambda/10 ;
+                elseif rho>0.75  && rho<1.5
+                    LMlambda=LMlambda/2 ;
+                elseif rho>0.1  || rho<10
+                    LMlambda=1.5*LMlambda ;
+                elseif rho < 0.1 || rho>10    % Quad model not good, increase lambda
+                    LMlambda=2*LMlambda ;
+                end
+
         end
 
     else
@@ -236,7 +254,7 @@ while true
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t r=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g2Old,g2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g2Old,g2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
 
 
     if g2 < gTol
@@ -256,7 +274,7 @@ while true
         break
     end
     
-    if iteration == ItMax
+    if iteration >= ItMax
        fprintf("lsqUa: Exiting iteration because number of iterations has reached the set maximum of %i \n",ItMax)
        break
 
