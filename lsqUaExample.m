@@ -7,23 +7,24 @@ function lsqUaExample
 
 %  R=(x1,x2)
 
-%                                                           lsq                      H           lsq                      H
-%                                                                 constraint                           unconstraint
-problemtype="[x1,x2]" ;                   %                 24.5                   24.5
-problemtype="[x1+x2,x2]";                 %                 25.0                    50             0                      0
-% problemtype="[x1^2+x2,x2]";             %                 40.915              49.999               0                      0
-% problemtype="[x1^2,x2]";                %                 16.5015             20.5917              0                      0
-problemtype="[x1^2+x2,x2^2+x1]";        %                 153.125             153.125              0                      0
-% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;  %              1737.89             4052.71            0                   not conv
-% problemtype="Rosenbrock" ;                %                 1.78794             5.4718
+%                                                               lsq                      H            lsq                      H
+%                                                                       constraint                           unconstraint
+problemtype="[x1,x2]" ;                     %                   24.5                   24.5
+ problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
+% problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
+% problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
+% problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
+% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
+problemtype="Rosenbrock" ;                %                   1.78794              5.4718
 
 
-isConstraint=false;
+isConstraint=true;
 
 
 CtrlVar.lsqUa.ItMax=20 ;
-CtrlVar.lsqUa.gTol=1e-30 ;
-CtrlVar.lsqUa.dR2Tol=1e-20 ;
+
+CtrlVar.lsqUa.gTol=1e-20 ;
+CtrlVar.lsqUa.dR2Tol=1e-2 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
 
 CtrlVar.lsqUa.isLSQ=true ;
@@ -47,7 +48,10 @@ x0=[-10 ; 15] ;
 lambda= []  ;
 
 if isConstraint
-    L=[1 1 ];  c= 5  ;
+
+    % x2= c - a x1
+    a=1 ; c=5 ; 
+    L=[a 1 ];  c= 5  ;
 
 else
     L=[]; c=[];
@@ -74,7 +78,7 @@ flsqUa=FindOrCreateFigure("lsqUa test") ; clf(flsqUa) ;
 contourf(x1Vector,x2Vector,r2',20) ; axis equal tight; colorbar ; axis([-10 10 -10 10])
 hold on  ;
 if isConstraint
-    plot(x1Vector,c-x1Vector,'r')
+    plot(x1Vector,c-a*x1Vector,'r')
 end
 
 plot(xSol(1),xSol(2),'o',MarkerFaceColor='r',MarkerEdgeColor="w",MarkerSize=12)

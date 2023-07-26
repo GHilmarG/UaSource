@@ -116,7 +116,8 @@ while iteration <= ItMax
     iteration=iteration+1 ;
 
     K0=K ; R0=R; x0=x ; lambda0=lambda ; h0=h ; g0=g;
-    R20=R2;  g20=g2 ; R2=nan; g2=nan ;
+    R20=R2;  g20=g2 ; 
+    R2=nan; g2=nan ;
 
     if isLSQ
         KK0=K0'*K0;
@@ -124,17 +125,28 @@ while iteration <= ItMax
 
     else
         H0=K0;
+        KK0=K0'*K0;
     end
 
     [dxN,dlambdaN]=solveKApe(H0,L,g0,h0,x0,lambda0,CtrlVar);
 
 
     funcBackTrack=@(gamma) R2func(gamma,dxN,dlambdaN,fun,x0,lambda0) ;
+
+
     Slope0=2*R0'*K0*dxN ;
     gammaEst=-R0'*K0*dxN/(dxN'*(KK0)*dxN) ;
 
+    if Slope0 > 0
+        fprintf("lsqUa: Exiting iteration because slope at origin in line search positive (Slope=%g) \n",Slope0)
+        R2=R20 ; g2=g20 ; 
+        break
 
-    CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.NewtonAcceptRatio=0.001; CtrlVar.doplots=1 ;
+    end
+
+
+
+    %CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.NewtonAcceptRatio=0.001; CtrlVar.doplots=1 ;
     [gammaminNewton,R2minNewton,BackTrackInfo]=BackTracking(Slope0,gammaEst,R20,R2,funcBackTrack,CtrlVar);
 
     R2=R2minNewton ;
@@ -171,10 +183,11 @@ while iteration <= ItMax
     g2=full(g'*g)/Normalisation ;
     
     
-    [R2 R2minNewton]
+   
 
     rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
     g2Ratio=g2/g20 ;
+    R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
 
 
@@ -190,7 +203,7 @@ while iteration <= ItMax
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g20,g2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+    fprintf("lsqUa: \t it=%2i  \t     |R|^2=%-13g \t     R1/R0=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",iteration,R2,R2Ratio,gammaminNewton,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
 
 
     if g2 < gTol
