@@ -152,6 +152,7 @@ while iteration <= ItMax
 
 
     [R,K]=fun(x) ;
+    R2=full(R'*R);
 
     if ~isempty(L)
         LTlambda=L'*lambda ;
@@ -168,10 +169,10 @@ while iteration <= ItMax
     end
 
     g2=full(g'*g)/Normalisation ;
-    R2=full(R'*R);
+    
     
     [R2 R2minNewton]
-    
+
     rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
     g2Ratio=g2/g20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
@@ -227,23 +228,20 @@ output.R2Array=R2Array;
 output.xVector=xVector;
 output.nIt=iteration;
 
+end
 
+function  R2=R2func(gamma,dx,dl,fun,x0,l0)
 
-    function  R2=R2func(gamma,dx,dl,fun,x0,l0)
+x=x0+gamma*dx;
+l=l0+gamma*dl ;
 
-        x=x0+gamma*dx;
-        l=l0+gamma*dl ;
-
-        R=fun(x) ;
-        R2=R'*R;
-
-
-
-    end
+R=fun(x) ;
+R2=R'*R;
 
 
 
 end
+
 
 
 

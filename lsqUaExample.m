@@ -1,9 +1,15 @@
 
+
+
+function lsqUaExample
+
+
+
 %  R=(x1,x2)
 
 %                                                           lsq                      H           lsq                      H
-%                                                                 constraint                           unconstraint        
-problemtype="[x1,x2]" ;                   %                 24.5                   24.5           
+%                                                                 constraint                           unconstraint
+problemtype="[x1,x2]" ;                   %                 24.5                   24.5
 problemtype="[x1+x2,x2]";                 %                 25.0                    50             0                      0
 % problemtype="[x1^2+x2,x2]";             %                 40.915              49.999               0                      0
 % problemtype="[x1^2,x2]";                %                 16.5015             20.5917              0                      0
@@ -25,7 +31,7 @@ CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
 CtrlVar.lsqUa.LMlambdaUpdateMethod=1 ;
 CtrlVar.lsqUa.Normalize=false;
-CtrlVar.lsqUa.ScaleProblem=true;  
+CtrlVar.lsqUa.ScaleProblem=true;
 CtrlVar.lsqUa.SaveIterate=true;
 
 CtrlVar.lsqUa.Algorithm="DogLeg" ;
@@ -42,7 +48,7 @@ lambda= []  ;
 
 if isConstraint
     L=[1 1 ];  c= 5  ;
-   
+
 else
     L=[]; c=[];
 end
@@ -77,13 +83,13 @@ for I=1:output.nIt
 
     % plot(output.xVector(1,I),output.xVector(2,I),'+r')
     text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color="r")
-    
-   % txt = input("RET to continue\n") ; 
-    
+
+    % txt = input("RET to continue\n") ;
+
 end
 
 
-[flsqUaProg,FigFound]=FindOrCreateFigure("lsqUa progress") ; 
+[flsqUaProg,FigFound]=FindOrCreateFigure("lsqUa progress") ;
 
 
 if FigFound
@@ -92,7 +98,7 @@ end
 
 
 npoints=numel(output.R2Array);
-itVector=0:npoints-1; 
+itVector=0:npoints-1;
 yyaxis left
 semilogy(itVector, output.g2Array,'o-')
 ylabel("$\|g\|^2$",Interpreter="latex")
@@ -102,15 +108,15 @@ ylabel("$\|R\|^2$",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
 title(sprintf("$\\|R\\|^2$ =%g, $\\|g\\|^2$=%g",R2,g2),Interpreter="latex")
 
-%% 
+%%
 
 if CompareWithMatlabOpt
 
-    
+
     % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;     L=[1 1 ];  c= 5  ; x0=[-10 ; 15] ;
 
     fun = @(x) fRK(x,problemtype)  ;
-    
+
     lb=[] ; ub=[] ; A=[] ; b=[] ;   nonlcon=[] ;
 
 
@@ -119,6 +125,10 @@ if CompareWithMatlabOpt
         'FunctionTolerance',1e-10,'Algorithm','interior-point',PlotFcn='optimplotresnorm');
 
     [x1,resnorm,residual,exitflag,output] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
+
+
+
+end
 
 
 
