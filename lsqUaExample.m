@@ -5,8 +5,8 @@
 %                                                                 constraint                           unconstraint        
 problemtype="[x1,x2]" ;                   %                 24.5                   24.5           
 problemtype="[x1+x2,x2]";                 %                 25.0                    50             0                      0
-problemtype="[x1^2+x2,x2]";             %                 40.915              49.999               0                      0
-problemtype="[x1^2,x2]";                %                 16.5015             20.5917              0                      0
+% problemtype="[x1^2+x2,x2]";             %                 40.915              49.999               0                      0
+% problemtype="[x1^2,x2]";                %                 16.5015             20.5917              0                      0
 problemtype="[x1^2+x2,x2^2+x1]";        %                 153.125             153.125              0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;  %              1737.89             4052.71            0                   not conv
 % problemtype="Rosenbrock" ;                %                 1.78794             5.4718
@@ -15,7 +15,7 @@ problemtype="[x1^2+x2,x2^2+x1]";        %                 153.125             15
 isConstraint=false;
 
 
-CtrlVar.lsqUa.ItMax=50 ;
+CtrlVar.lsqUa.ItMax=20 ;
 CtrlVar.lsqUa.gTol=1e-30 ;
 CtrlVar.lsqUa.dR2Tol=1e-20 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
@@ -23,14 +23,13 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 CtrlVar.lsqUa.isLSQ=true ;
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
-CtrlVar.lsqUa.LMlambdaUpdateMethod=2 ;
+CtrlVar.lsqUa.LMlambdaUpdateMethod=1 ;
 CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.ScaleProblem=true;  
 CtrlVar.lsqUa.SaveIterate=true;
 
+CtrlVar.lsqUa.Algorithm="DogLeg" ;
 
-
-ProgressOverplot=1;
 CompareWithMatlabOpt=false;
 
 
@@ -84,19 +83,21 @@ for I=1:output.nIt
 end
 
 
-flsqUaProg=FindOrCreateFigure("lsqUa progress") ; 
+[flsqUaProg,FigFound]=FindOrCreateFigure("lsqUa progress") ; 
 
-if ProgressOverplot
+
+if FigFound
     hold on
 end
 
-npoints=numel(output.RVector);
+
+npoints=numel(output.R2Array);
 itVector=0:npoints-1; 
 yyaxis left
-semilogy(itVector, output.gVector,'o-')
+semilogy(itVector, output.g2Array,'o-')
 ylabel("$\|g\|^2$",Interpreter="latex")
 yyaxis right
-semilogy(itVector, output.RVector,'o-')
+semilogy(itVector, output.R2Array,'o-')
 ylabel("$\|R\|^2$",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
 title(sprintf("$\\|R\\|^2$ =%g, $\\|g\\|^2$=%g",R2,g2),Interpreter="latex")

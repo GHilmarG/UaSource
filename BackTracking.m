@@ -176,7 +176,11 @@ Infovector=zeros(MaxIterations+3,2)+NaN;
 
 
 if isempty(fa) || isnan(fa)
-    a=0 ;
+    
+    if isempty(a) || isnan(a)
+        a=0 ;
+    end
+    
     if Fargcollect
         
         [fa,varargout{1:nOut-1}]=Func(a,varargin{:}) ;
@@ -195,7 +199,9 @@ end
 f0=fa; % the value of f at gamma=0
 
 if isempty(fb) || isnan(fb)
-    b=1 ;
+    if isempty(b) || isnan(b)
+        b=1 ;
+    end
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
         nFuncEval=nFuncEval+1; 
@@ -676,7 +682,10 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
 
 
     title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
-    subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+    if isfield(CtrlVar,"time")
+        subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+    end
 
     drawnow
     %          prompt = 'Do you want more? Y/N [Y]: ';

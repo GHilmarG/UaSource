@@ -1,4 +1,4 @@
-function fig=FindOrCreateFigure(FigureName,Position,Nx,Ny)
+function [fig,FigFound]=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 
 %%
 %
@@ -54,6 +54,7 @@ screensize = get( groot, 'Screensize' ) ;
 fig=findobj(0,'name',FigureName);
 
 if isempty(fig)
+    FigFound=false; 
     fig=figure('name',FigureName);
     if nargin>1 && ~isempty(Position)
         fig.Position=Position;
@@ -71,6 +72,7 @@ if isempty(fig)
         nFigs=nFigs+1;
     end
 else
+    FigFound=true; 
     try
         fig=figure(fig(1));
     catch
