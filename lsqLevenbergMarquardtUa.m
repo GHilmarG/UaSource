@@ -1,4 +1,4 @@
-function [x,lambda,R2,g2,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,Slope0,g2,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c)
 
 %%
 %
@@ -66,6 +66,7 @@ R2Array=nan(ItMax+1,1) ;
 g2Array=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
+Slope0=nan ; % need to calculate final slope
 nx=numel(x);
 
 %% If contraints provided, make iterate feasable

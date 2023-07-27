@@ -1,4 +1,4 @@
-function [x,lambda,R2,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,Slope0,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c)
 
 %%
 %
@@ -44,13 +44,13 @@ switch Algorithm
 
     case "LevenbergMarquardt"
 
-        [x,lambda,R2,g2,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c) ;
+        [x,lambda,R2,Slope0,g2,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c) ;
 
 
     case "DogLeg"
 
 
-        [x,lambda,R2,g2,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c) ;
+        [x,lambda,R2,Slope0,g2,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c) ;
 
 
     otherwise

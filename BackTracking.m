@@ -645,10 +645,17 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         FigName="BackTrackingInfo";
     end
 
-    fig=FindOrCreateFigure(FigName) ;  clf(fig) ; 
-    plot(Infovector(:,1),Infovector(:,2),'or-') ; 
-    
-    xlabel('$\gamma$',Interpreter='latex') ; 
+
+    if isfield(CtrlVar,"BacktrackIteration")
+        ItText=sprintf("It=%i:  ",CtrlVar.BacktrackIteration);
+    else
+        ItText="";
+    end
+
+    fig=FindOrCreateFigure(FigName) ;  clf(fig) ;
+    plot(Infovector(:,1),Infovector(:,2),'or-') ;
+
+    xlabel('$\gamma$',Interpreter='latex') ;
     ylabel('Cost',Interpreter='latex') ;
     
     hold on
@@ -681,7 +688,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
 
 
-    title(sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
+    title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
 
     if isfield(CtrlVar,"time")
         subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")

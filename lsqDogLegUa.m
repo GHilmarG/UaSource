@@ -1,4 +1,4 @@
-function [x,lambda,R2,g2,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,Slope0,g2,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c)
 
 
 
@@ -40,6 +40,8 @@ end
 
 R2Array=nan(ItMax+1,1) ;
 g2Array=nan(ItMax+1,1) ;
+Slope0Array=nan(ItMax+1,1) ;
+WorkArray=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
 nx=numel(x);
@@ -128,33 +130,40 @@ while iteration <= ItMax
         KK0=K0'*K0;
     end
 
-    [dxN,dlambdaN]=solveKApe(H0,L,g0,h0,x0,lambda0,CtrlVar);
 
+    CtrlVar.BacktrackIteration=iteration  ;
 
-    funcBackTrack=@(gamma) R2func(gamma,dxN,dlambdaN,fun,x0,lambda0) ;
+    %% Newton Step, with possible backtracking
+    CtrlVar.BacktracFigName="Newton";
+    [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0) ;
 
-
-    Slope0=2*R0'*K0*dxN ;
-    gammaEst=-R0'*K0*dxN/(dxN'*(KK0)*dxN) ;
-
-    if Slope0 > 0
+    %%
+    if exitflag ==1
         fprintf("lsqUa: Exiting iteration because slope at origin in line search positive (Slope=%g) \n",Slope0)
-        R2=R20 ; g2=g20 ; 
         break
 
     end
 
+    %% Cauchy Step, with possible backtracking
+    % Should I try Cauchy step?
 
+    R2ratio=R2/R20;
+    if R2ratio >0.9 || gammamin < 0.001
+        TryCauchyStep=true;
+    else
+        TryCauchyStep=false;
+    end
 
-    %CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.NewtonAcceptRatio=0.001; CtrlVar.doplots=1 ;
-    [gammaminNewton,R2minNewton,BackTrackInfo]=BackTracking(Slope0,gammaEst,R20,R2,funcBackTrack,CtrlVar);
-
-    R2=R2minNewton ;
-
-    dx=gammaminNewton*dxN  ;
-    dlambda=gammaminNewton*dlambdaN ;
-    x=x+dx ;
-    lambda=lambda+dlambda ;
+    if TryCauchyStep
+        I0=speye(nx) ;
+        CtrlVar.BacktracFigName="Cauchy";
+        [R2C,xC,lambdaC,dxC,dlambdaC,Slope0C,gammaminC,BackTrackInfoC]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,I0,R20,K0,R0,g0,h0,KK0) ;
+        if R2C < R2
+            [R2 R2C R2C/R2]
+            fprintf("Cauchy step outperformes Newton. \n")
+            R2=R2C ; x=xC ; lambda=lambdaC ; dx=dxC ; dlambda=dlambdaC ; Slope0=Slope0C ; gammamin=gammaminC ;
+        end
+    end
 
     if isLSQ
         Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
@@ -183,7 +192,8 @@ while iteration <= ItMax
     g2=full(g'*g)/Normalisation ;
     
     
-   
+
+   %%
 
     rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
     g2Ratio=g2/g20 ;
@@ -198,12 +208,15 @@ while iteration <= ItMax
 
     g2Array(iteration+1)=g2;
     R2Array(iteration+1)=R2;
+    Slope0Array(iteration)=Slope0;
+    WorkArray(iteration+1)=[dx;dlambda]'*[g ; h] ;
+
     if SaveIterate
         xVector(:,iteration+1)=x(:) ;
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     |R|^2=%-13g \t     R1/R0=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",iteration,R2,R2Ratio,gammaminNewton,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+    fprintf("lsqUa: \t it=%2i  \t     |R|^2=%-13g \t     R1/R0=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",iteration,R2,R2Ratio,gammamin,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
 
 
     if g2 < gTol
@@ -232,29 +245,22 @@ while iteration <= ItMax
 
 end
 
-fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
+Slope0=2*R'*K*dx ;  Slope0Array(iteration+1)=Slope0;
+
+fprintf("\n\t Exit lsqUa: \t  g=%g \t    slope=%g \t     r=%g \n \n",g2,Slope0,R2)
+
 
 
 residual=R ;
 output.g2Array=g2Array;
 output.R2Array=R2Array;
+output.Slope0Array=Slope0Array;
+output.WorkArray=WorkArray;
+
 output.xVector=xVector;
 output.nIt=iteration;
 
 end
-
-function  R2=R2func(gamma,dx,dl,fun,x0,l0)
-
-x=x0+gamma*dx;
-l=l0+gamma*dl ;
-
-R=fun(x) ;
-R2=R'*R;
-
-
-
-end
-
 
 
 
