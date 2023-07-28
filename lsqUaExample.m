@@ -5,6 +5,8 @@ function lsqUaExample
 
 
 
+x0=[-10 ; 15] ;
+
 %  R=(x1,x2)
 
 %                                                               lsq                      H            lsq                      H
@@ -17,6 +19,9 @@ problemtype="[x1,x2]" ;                     %                   24.5            
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
 problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
 problemtype="[x1^2,x2^2]" ; 
+problemtype="[x1^-100 x1,0]" ; 
+problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
+
 
 isConstraint=false;
 
@@ -41,8 +46,6 @@ CompareWithMatlabOpt=true;
 
 
 fun = @(x) fRK(x,problemtype)  ;
-x0=[-10 ; 15] ;
-% x0=[5; 0] ;
 
 
 lambda= []  ;
