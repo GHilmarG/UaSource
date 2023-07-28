@@ -15,8 +15,8 @@ problemtype="[x1,x2]" ;                     %                   24.5            
 % problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
-problemtype="Rosenbrock" ;                %                   1.78794              5.4718
-
+problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
+problemtype="[x1^2,x2^2]" ; 
 
 isConstraint=false;
 
@@ -24,7 +24,7 @@ isConstraint=false;
 CtrlVar.lsqUa.ItMax=20 ;
 
 CtrlVar.lsqUa.gTol=1e-20 ;
-CtrlVar.lsqUa.dR2Tol=1e-2 ;
+CtrlVar.lsqUa.dR2Tol=1e-20 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
 
 CtrlVar.lsqUa.isLSQ=true ;
@@ -57,7 +57,7 @@ else
     L=[]; c=[];
 end
 
-[xSol,lambda,R2,Slope0,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
+[xSol,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
 
 
 xmin=min(xSol(1)-1,-10) ; ymin=min(xSol(2)-1,-10) ;
@@ -97,7 +97,7 @@ for I=1:output.nIt
 end
 
 
-[flsqUaProg,FigFound]=FindOrCreateFigure("lsqUa progress") ;
+[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ;
 
 
 if FigFound
@@ -117,7 +117,17 @@ semilogy(itVector, output.R2Array,'o-')
 
 ylabel("$\|R\|^2$",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
-title(sprintf("$\\|R\\|^2$ =%g, slope=%g, $\\|g\\|^2$=%g",R2,Slope0,g2),Interpreter="latex")
+title(sprintf("$\\|R\\|^2$ =%g, slope=%g",R2,Slope0),Interpreter="latex")
+
+[flsqUaProg,FigFound2]=FindOrCreateFigure("lsqUa progress:dx") ;
+yyaxis left
+semilogy(itVector+1, output.dxArray,'o-')
+ylabel("$\|\Delta x\|^2$",Interpreter="latex")
+yyaxis right
+semilogy(itVector, output.g2Array,'o-')
+ylabel("$\|g\|^2$",Interpreter="latex")
+xlabel("iteration",Interpreter="latex")
+title(sprintf("$\\|dx\\|^2$ =%g, $\\|g\\|^2$=%g",dxNorm,g2),Interpreter="latex")
 
 %%
 

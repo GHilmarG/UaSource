@@ -299,7 +299,7 @@ c=b; fc=fb ; b=gamma ; fb=fgamma ;
 %    target=fa+beta*slope0*gmin  ; % Armijo criteria
 %end
 
-if CtrlVar.InfoLevelBackTrack>=2
+if CtrlVar.InfoLevelBackTrack>=10000
     fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
         iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
     fprintf('               a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g   \t    g=%-10.5g     \t    gmin=%-10.5g \n ',a,b,c,gamma,gmin)
@@ -313,7 +313,7 @@ if CtrlVar.LineSearchAllowedToUseExtrapolation
         Extrapolation=Extrapolation+1;
         
         
-        if CtrlVar.InfoLevelBackTrack>=2
+        if CtrlVar.InfoLevelBackTrack>=10000
             %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
             fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
                 Extrapolation-1,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
@@ -358,7 +358,7 @@ end
 %%
 
 % if I just came out of extrapolation step, I need to give the final exit results
-if CtrlVar.InfoLevelBackTrack>=2 && Extrapolation>0
+if CtrlVar.InfoLevelBackTrack>=10000 && Extrapolation>0
     %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
     fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t f(g)/ft=%-10.5g \t f(g)/f0=%-g \n ',...
         Extrapolation,fa,fb,fc,fgamma,fmin,fgamma/target,fgamma/f0)
@@ -538,7 +538,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     
     %% Print info
     
-    if CtrlVar.InfoLevelBackTrack>=2
+    if CtrlVar.InfoLevelBackTrack>=10000
         fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
             iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
         fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)

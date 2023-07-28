@@ -5,6 +5,9 @@
 function [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0)
 
 
+nargoutchk(9,9)
+narginchk(13,13)
+
 exitflag=0 ; 
 
 
@@ -14,7 +17,12 @@ Slope0=2*R0'*K0*dx ;
 
 if Slope0 > 0
     fprintf("lsqStepUa: Exiting because slope at origin in line search positive (Slope=%g) \n",Slope0)
-    R2=R20 ; g2=g20 ; x=x0 ; lambda=lambda0; dx=0 ; dlambda=0 ; gammamin=nan ; BackTrackInfo=[]; 
+    R2=R20 ; x=x0 ; 
+    
+    lambda=lambda0; 
+    dx=zeros(numel(x0),1) ; 
+    dlambda=numel(lambda0,1) ; 
+    gammamin=nan ; BackTrackInfo=[]; 
     exitflag=1 ; 
     return
 end
@@ -22,7 +30,7 @@ end
 
 
 gammaEst=-R0'*K0*dx/(dx'*(KK0)*dx) ;
-
+CtrlVar.BacktrackingGammaMin=gammaEst/100; 
 funcBackTrack=@(gamma) R2func(gamma,dx,dlambda,fun,x0,lambda0) ;
 
 

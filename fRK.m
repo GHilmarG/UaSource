@@ -8,8 +8,16 @@ switch problemtype
 
     case "[x1,x2]"
 
-        R=x + 1 ;
+        R=x  ;
         K=eye(numel(x)) ;
+
+
+    case "[x1^2,x2^2]"
+
+        R=x.^2;
+        K=2*[x(1)  0     ;
+            0   x(2) ] ;
+
 
     case "[x1+x2,x2]"
 
