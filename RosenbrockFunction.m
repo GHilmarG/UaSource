@@ -4,7 +4,13 @@ function [f,g,H] = RosenbrockFunction(x)
 % minimum is at (1,1)
 
 % Calculate objective f
-f = 100*(x(2) - x(1).^2).^2 + (1-x(1)).^2;
+
+f1 = (sqrt(100)*(x(2) - x(1).^2)).^2 ;
+f2 =  (1-x(1)).^2;
+
+f=f1.^2+f2.^2 ; 
+
+% f = (sqrt(100)*(x(2) - x(1).^2)).^2 + (1-x(1)).^2;
 
 if nargout > 1 % gradient required
   

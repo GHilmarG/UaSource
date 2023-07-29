@@ -141,13 +141,15 @@ while iteration <= ItMax
 
     %% Newton Step, with possible backtracking
     CtrlVar.BacktracFigName="Newton";
-                                                                    
-    [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0) ;
-
+    CtrlVar.BacktrackStepRatio=1e-2;              
+    StepString="N ";
+    [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0) ;
+    
     %%
     if exitflag ==1
-        fprintf("lsqUa: Exiting iteration because slope at origin in line search positive (Slope=%g) \n",Slope0)
-        break
+        fprintf("lsqUa: Exiting iteration because slope at origin in Newton line search positive (Slope=%g) \n",Slope0)
+        gammamin=0; 
+        
 
     end
 
@@ -162,21 +164,64 @@ while iteration <= ItMax
     end
 
     if TryCauchyStep
+
+        xN=x ; % dont' loose the Newton solution, in case a Cauchy-to-Newton path is required
+        lambdaN=lambda ;
+        R2N=R2; 
+
         I0=speye(nx) ;
         CtrlVar.BacktracFigName="Cauchy";
-        [R2C,xC,lambdaC,dxC,dlambdaC,Slope0C,gammaminC,BackTrackInfoC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,I0,R20,K0,R0,g0,h0,KK0) ;
+        CtrlVar.BacktrackStepRatio=1e-5;
+        [R2C,xC,lambdaC,dxC,dlambdaC,Slope0C,gammaminC,BackTrackInfoC,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,I0,R20,K0,R0,g0,h0,KK0) ;
         if exitflag ==1
 
-            fprintf("lsqUa: Exiting iteration because slope at origin in line search positive (Slope=%g) \n",Slope0)
+            fprintf("lsqUa: Exiting iteration because slope at origin in Cauchy line search positive (Slope=%g) \n",Slope0)
             break
+            
 
         end
-        if R2C < R2
-            [R2 R2C R2C/R2]
-            fprintf("Cauchy step outperformes Newton. \n")
-            R2=R2C ; x=xC ; lambda=lambdaC ; dx=dxC ; dlambda=dlambdaC ; Slope0=Slope0C ; gammamin=gammaminC ;
+
+        if R2C < R2N
+            fprintf("Cauchy step outperformes Newton. R2C/R2N=%g \n",R2C/R2N)
+            StepString="C ";
+            x=xC ; lambda=lambdaC  ; Slope0=Slope0C ; gammamin=gammaminC ;
+            R2=R2C ;
+            % Cauchy-to-Newton
+            %% Cauchy-to-Newton search?
+            % Should I try Cauchy step?
+
+            R2ratio=R2/R20;
+            if R2ratio >0.9 && gammaminC/gammaEst > 0.9  % Only to Caucy-to-Newton if not sufficient reduction, AND min found close to Cauchy Point
+                TryCauchy2Newton=true;
+            else
+                TryCauchy2Newton=false;
+            end
+
+            if TryCauchy2Newton
+                x0=xC ; lambda0=lambdaC ;  dx=xN-xC  ;  dlambda=lambdaN-lambdaC;
+
+                funcCN=@(gamma) R2func(gamma,dx,dlambda,fun,x0,lambda0) ;
+                TolX=0.01;
+                options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
+                [gammaminCN,R2CN,exitflag,outputfminbnd]=fminbnd(funcCN,0,1,options) ;
+
+                if R2CN < R2
+
+                    fprintf("Cauchy-to-Newton step outperformes. R2C/R2N=%g \n",R2C/R2N)
+
+                    x=x0+gammaminCN*dx ;lambda=lambda0+gammaminCN*dlambda ;  R2=R2CN ; 
+
+                    if CtrlVar.InfoLevelBackTrack>=1000
+
+                        [stop,Outs]=outfunFminbnd();
+                        PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2C,R2N,gammaminCN,R2CN,R20);
+
+                    end
+                end
+            end
         end
     end
+
 
     if isLSQ
         Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
@@ -234,7 +279,8 @@ while iteration <= ItMax
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",iteration,R2,R2Ratio,gammamin,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+        iteration,StepString,R2,R2Ratio,gammamin,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
 
 
     if g2 < gTol
@@ -243,7 +289,7 @@ while iteration <= ItMax
     end
 
     if dxNorm < dxTol
-        fprintf("lsqUa: Exiting iteration because change in x within the set tolerance of %g \n",dxTol)
+        fprintf("lsqUa: Exiting iteration because change in |x|=%g within the set tolerance of %g \n",dxNorm,dxTol)
         break
     end
 

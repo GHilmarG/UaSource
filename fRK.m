@@ -21,16 +21,16 @@ switch problemtype
     case "[x1^-100 x1]"
 
         R(1)=(x(1)^4-100*x(1)^2) ;
-        R(2)=0; 
-        R=R(:) ; 
+        R(2)=0;
+        R=R(:) ;
         K=[4*x(1)-200*x(1) 0 ; ...
             0              0 ] ;
 
     case "[x1^-100 x1,x2^2]"
 
         R(1)=(x(1)^4-100*x(1)^2) ;
-        R(2)=x(2)^2; 
-        R=R(:) ; 
+        R(2)=x(2)^2;
+        R=R(:) ;
         K=[4*x(1)-200*x(1) 0 ; ...
             0              2*x(2) ] ;
 
@@ -52,7 +52,7 @@ switch problemtype
 
     case "[x1^2+x2,x2]"
 
-        R(1)=x(1)^2+x(2);  
+        R(1)=x(1)^2+x(2);
         R(2)=x(2);
         R=R(:) ;
 
@@ -61,16 +61,16 @@ switch problemtype
 
     case "[x1^2+x2,x2^2+x1]"
 
-        R(1)=x(1)^2+x(2);  
+        R(1)=x(1)^2+x(2);
         R(2)=x(2)^2+x(1);
         R=R(:) ;
 
         K=[2*x(1)   1   ; ...   % \nabla R1^T
             1   2*x(2)] ;       % \nabla R2^T
 
-   case "[x1^3-100 x2,-x2^2+10 x1]"
+    case "[x1^3-100 x2,-x2^2+10 x1]"
 
-        R(1)=x(1)^3-100*x(2);  
+        R(1)=x(1)^3-100*x(2);
         R(2)=-x(2)^2+10*x(1);
         R=R(:) ;
 
@@ -79,13 +79,24 @@ switch problemtype
 
     case "Rosenbrock"
 
-        [f,g,H] = RosenbrockFunction(x) ; 
+        [f,g,H] = RosenbrockFunction(x) ;
 
-         R=g ; K = H ; 
-    
+        R=g ; K = H ;
+
+    case "lsqRosenbrock"
+
+        [R,K] = lsqRosenbrockFunction(x) ;
+
+
     otherwise
 
         error("case not found")
 
 
 end
+
+
+R=R(:);
+
+end
+

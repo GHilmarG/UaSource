@@ -6,7 +6,7 @@ function [xmin,status] = CubicFit(Slope,y0,y1,y2,x1,x2,InfoLevel)
 
 
 if nargin<7
-    InfoLevel=10;
+    InfoLevel=0;
 end
 
 if x1 > x2 ; ltemp=x1 ; x1=x2 ; x2=ltemp ; gtemp=y1; y1=y2 ; y2=gtemp ; end
@@ -40,7 +40,10 @@ if ab(1) == 0 || ~isreal(xmin)
     
 end
 
-if ~isreal(xmin)
+
+
+
+if ~isreal(xmin) || InfoLevel>10000 
 
  % Cubic fit
     A=[ 1  0  0   0       ; ...
@@ -59,6 +62,7 @@ if ~isreal(xmin)
         0   1   0    ] ;
 
     b=[y0 ; y1 ; y2 ; Slope] ;
+    warning('off','MATLAB:rankDeficientMatrix')
     sol=A\b ; A0=sol(1) ; A1=sol(2) ; A2=sol(3) ; 
   
     fprintf(' CubicFit returns an imaginary number %g+i%g \n ',real(xmin),imag(xmin))
@@ -67,29 +71,27 @@ if ~isreal(xmin)
     fprintf(' %g \t %g \n',x1,y1)
     fprintf(' %g \t %g \n',x2,y2)
 
-    figure ; 
+    FindOrCreateFigure("CubicFit")
     
     plot([0 x1 x2],[y0 y1 y2],'o') ;
     hold on ; 
     plot([0 x1],[y0 y0+Slope*x1],'g') ;
-    x=linspace(0,2) ;
+    x=linspace(0,2*x2) ;
     y=a0+a1*x+a2*x.^2+a3*x.^3 ;
-    plot(x,y)
+    plot(x,y,LineWidth=2,LineStyle="--")
     y=A0+A1*x+A2*x.^2 ;
     plot(x,y)
+
+    if ~isnan(xmin)
+        xline(xmin,'--') ;
+    end
     hold off
 
-    legend("data","slope","cubic fit","least squares parabolic fit")
+    legend("data","slope","cubic fit","least squares parabolic fit","xmin estimated")
 
 
 
-    if y2 < y1 && y1 < y0
-        xmin=1.5*x2;
-    elseif y2 > y1 && y1 > y0
-        xmin=x1/2;
-    else
-        xmin=(x1+x2)/3;
-    end
+ 
 end
 
 
