@@ -21,7 +21,7 @@ if isempty(CtrlVar) || ~isstruct(CtrlVar)
     LMlambda=1 ;
     ScaleProblem=false;
     LMlambdaUpdateMethod=1;
-
+    InfoLevelNonLinIt=1;
 
 else
 
@@ -39,6 +39,7 @@ else
     LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
 
     SaveIterate=CtrlVar.lsqUa.SaveIterate;
+    InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
 
 end
 
@@ -49,7 +50,7 @@ Slope0Array=nan(ItMax+1,1) ;
 WorkArray=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
-nx=numel(x);
+nx=numel(x); nlambda=numel(lambda) ;
 
 %% If contraints provided, make iterate feasable
 
@@ -117,7 +118,17 @@ fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
 
 
 %%
+if contains(CtrlVar.lsqDogLeg,"-Cauchy-")
+    TryCauchyStep=true;
+else
+    TryCauchyStep=false;
+end
 
+if contains(CtrlVar.lsqDogLeg,"-Newton-")
+    TryNewtonStep=true;
+else
+    TryNewtonStep=false;
+end
 
 while iteration <= ItMax
 
@@ -125,7 +136,7 @@ while iteration <= ItMax
 
     K0=K ; R0=R; x0=x ; lambda0=lambda ; h0=h ; g0=g;
     R20=R2;  g20=g2 ; 
-    g2=nan ;
+    g2=nan ; R2minN=nan ; R2minC=nan ; R2minCN=nan ; Slope0=nan ; 
 
     if isLSQ
         KK0=K0'*K0;
@@ -139,89 +150,126 @@ while iteration <= ItMax
 
     CtrlVar.BacktrackIteration=iteration  ;
 
-    %% Newton Step, with possible backtracking
-    CtrlVar.BacktracFigName="Newton";
-    CtrlVar.BacktrackStepRatio=1e-2;              
-    StepString="N ";
-    [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0) ;
-    
-    %%
-    if exitflag ==1
-        fprintf("lsqUa: Exiting iteration because slope at origin in Newton line search positive (Slope=%g) \n",Slope0)
-        gammamin=0; 
-        
+    if TryNewtonStep
+
+        %% Newton Step, with possible backtracking
+        CtrlVar.BacktracFigName="Newton";
+        CtrlVar.BacktrackStepRatio=1e-2;
+        CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+
+        [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
+        xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
+        if R2minN < R2
+            R2=R2minN ;
+            x=x0+gammaminN*dxN ;
+            lambda=lambda0+gammaminN*dlambdaN ;
+            StepString="N ";
+            TryCauchyStep=false;
+            gammamin=gammaminN ;
+            Slope0=Slope0N ;
+        else
+            x=x0; lambda=lambda0;
+            StepString="  ";
+            gammamin=0 ;
+            if contains(CtrlVar.lsqDogLeg,"-Cauchy-")
+                TryCauchyStep=true;
+            else
+                TryCauchyStep=false;
+            end
+        end
+
+        if exitflag ==1  % do I need this?
+            fprintf("lsqUa: Slope at origin in Newton line search positive (Slope=%g) \n",Slope0)
+            gammamin=0;
+        end
 
     end
 
     %% Cauchy Step, with possible backtracking
     % Should I try Cauchy step?
 
+
+
     R2ratio=R2/R20;
-    if R2ratio >0.9 || gammamin < 0.001
-        TryCauchyStep=true;
-    else
-        TryCauchyStep=false;
+    if ~TryCauchyStep  % Even though Newton step did result in reduction, I might still want to try the Cauchy step as well if the step size or the reduction was small
+        if R2ratio >0.9 || gammamin < 0.001
+            TryCauchyStep=true;
+        end
     end
 
     if TryCauchyStep
 
-        xN=x ; % dont' loose the Newton solution, in case a Cauchy-to-Newton path is required
-        lambdaN=lambda ;
-        R2N=R2; 
-
         I0=speye(nx) ;
         CtrlVar.BacktracFigName="Cauchy";
         CtrlVar.BacktrackStepRatio=1e-5;
-        [R2C,xC,lambdaC,dxC,dlambdaC,Slope0C,gammaminC,BackTrackInfoC,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,I0,R20,K0,R0,g0,h0,KK0) ;
+        CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+        [R2minC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,I0,R20,K0,R0,g0,h0,KK0) ;
+        xC=x0+dxC ; lambdaC=lambda0+dlambdaC ;
+        if R2minC < R2
+            R2=R2minC ;
+            x=x0+gammaminC*dxC ;
+            lambda=lambda0+gammaminC*dlambdaC ;
+            Slope0=Slope0C ;  % Even if I then do the C2N step, this will be the estimate for Slop0, ie in the Cauchy direction.
+            StepString="C ";
+            TryCauchy2Newton=false;
+            gammamin=gammaminC ;
+            if contains(CtrlVar.lsqDogLeg,"-Newton-")
+                fprintf("Cauchy step outperformes Newton. R2minC/R2minN=%g \n",R2minC/R2minN  )
+            end
+        else
+            x=x0 ; lambda=lambda0 ;
+            StepString="  ";
+            gammamin=0 ;
+            TryCauchy2Newton=true;
+        end
+
         if exitflag ==1
 
             fprintf("lsqUa: Exiting iteration because slope at origin in Cauchy line search positive (Slope=%g) \n",Slope0)
-            break
-            
 
         end
 
-        if R2C < R2N
-            fprintf("Cauchy step outperformes Newton. R2C/R2N=%g \n",R2C/R2N)
-            StepString="C ";
-            x=xC ; lambda=lambdaC  ; Slope0=Slope0C ; gammamin=gammaminC ;
-            R2=R2C ;
-            % Cauchy-to-Newton
-            %% Cauchy-to-Newton search?
-            % Should I try Cauchy step?
+        % Try Cauchy-to-Newton?
+        R2ratio=R2/R20;
+        % Only to C2N if not sufficient reduction alread, both Newton and Cauchy have been performed and the min in the Cauchy step
+        % was found close to the min of the Quad approximation
+        if R2ratio>0.9 &&  ~isnan(R2minN) && ~isnan(R2minC) && gammaminC/gammaEstC > 0.9
+            TryCauchy2Newton=true;
+        end
 
-            R2ratio=R2/R20;
-            if R2ratio >0.9 && gammaminC/gammaEst > 0.9  % Only to Caucy-to-Newton if not sufficient reduction, AND min found close to Cauchy Point
-                TryCauchy2Newton=true;
+        if TryCauchy2Newton
+
+            dxC2N=xN-xC  ;  dlambdaC2N=lambdaN-lambdaC;
+
+            funcCN=@(gamma) R2func(gamma,dxC2N,dlambdaC2N,fun,xC,lambdaC) ;
+            TolX=0.01;
+            if InfoLevelNonLinIt >= 10
+                options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
             else
-                TryCauchy2Newton=false;
+                options = optimset('Display','off','TolX',TolX,'OutputFcn',@outfunFminbnd);
             end
 
-            if TryCauchy2Newton
-                x0=xC ; lambda0=lambdaC ;  dx=xN-xC  ;  dlambda=lambdaN-lambdaC;
 
-                funcCN=@(gamma) R2func(gamma,dx,dlambda,fun,x0,lambda0) ;
-                TolX=0.01;
-                options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
-                [gammaminCN,R2CN,exitflag,outputfminbnd]=fminbnd(funcCN,0,1,options) ;
+            [gammaminCN,R2CN,exitflag,outputfminbnd]=fminbnd(funcCN,0,1,options) ;
 
-                if R2CN < R2
+            if R2CN < R2
 
-                    fprintf("Cauchy-to-Newton step outperformes. R2C/R2N=%g \n",R2C/R2N)
+                fprintf("Cauchy-to-Newton step outperformes. R2minCN/R2=%g \n",R2minC/R2)
 
-                    x=x0+gammaminCN*dx ;lambda=lambda0+gammaminCN*dlambda ;  R2=R2CN ; 
+                gammamin=gammaminCN ;
+                x=xC+gammaminCN*dxC2N ;lambda=lambdaC+gammaminCN*dlambdaC2N ;
 
-                    if CtrlVar.InfoLevelBackTrack>=1000
+                if CtrlVar.InfoLevelBackTrack>=1000
 
-                        [stop,Outs]=outfunFminbnd();
-                        PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2C,R2N,gammaminCN,R2CN,R20);
+                    [stop,Outs]=outfunFminbnd();
+                    PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2minC,R2minN,gammaminCN,R2CN,R20);
 
-                    end
                 end
             end
         end
     end
-
+    
+    dx=x-x0 ; dlambda=lambda-lambda0 ; 
 
     if isLSQ
         Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H

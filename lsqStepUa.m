@@ -2,11 +2,11 @@
 
 
 
-function [R2,x,lambda,dx,dlambda,Slope0,gammamin,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,c,H0,R20,K0,R0,g0,h0,KK0)
+function [R2min,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0)
 
 
-nargoutchk(10,10)
-narginchk(13,13)
+nargoutchk(8,8)
+narginchk(12,12)
 
 exitflag=0 ; 
 
@@ -16,12 +16,9 @@ Slope0=2*R0'*(K0*dx) ;
 
 
 if Slope0 > 0
-    fprintf("lsqStepUa: Exiting because slope at origin in line search positive (Slope=%g) \n",Slope0)
-    R2=R20 ; x=x0 ; 
-    
-    lambda=lambda0; 
-    dx=zeros(numel(x0),1) ; 
-    dlambda=numel(lambda0,1) ; 
+   
+    %fprintf("lsqStepUa: Exiting because slope at origin in line search positive (Slope=%g) \n",Slope0)
+    R2min=nan; 
     gammamin=nan ; BackTrackInfo=[]; 
     gammaEst=nan ;
     exitflag=1 ; 
@@ -45,13 +42,11 @@ CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplot
 
 [gammamin,R2min,BackTrackInfo]=BackTracking(Slope0,gammaEst,R20,R2,funcBackTrack,CtrlVar);
 
-dx=gammamin*dx  ;
-dlambda=gammamin*dlambda ;
-
-x=x0+dx ;
-lambda=lambda0+dlambda ;
-
-R2=R2min ;
+% dx=gammamin*dx  ;
+% dlambda=gammamin*dlambda ;
+% x=x0+dx ;
+% lambda=lambda0+dlambda ;
+% R2=R2min ;
 
 
 end

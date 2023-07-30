@@ -32,6 +32,12 @@ ylabel("$r^2$",interpreter="latex")
 legend("$\\|R\\|^2$","$\\|R_C\\|^2$","$\\|R_N\\|$","$r^2_0$","$\min r^2_{CN}$",interpreter="latex",location="best")
 title("From the Cauchy-Point to the Newton-Point")
 
+if isfield(CtrlVar,"BacktrackIteration")
+    subtitle(sprintf("Iteration:%i",CtrlVar.BacktrackIteration))
+end
+
+
+
 if isfield(CtrlVar,"time")
     subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 end
