@@ -32,7 +32,7 @@ function [x,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqUa(
 %
 %%
 
-if isempty(CtrlVar) || ~isstruct(CtrlVar)
+if isempty(CtrlVar) || ~isstruct(CtrlVar) || ~isfield(CtrlVar,"lsqUa") || ~isfield(CtrlVar.lsqUa,"Algorithm")
 
     Algorithm="DogLeg";
 

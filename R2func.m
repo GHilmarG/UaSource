@@ -5,7 +5,7 @@ x=x0+gamma*dx;
 l=l0+gamma*dl ;
 
 R=fun(x) ;
-R2=R'*R;
+R2=full(R'*R);
 
 
 

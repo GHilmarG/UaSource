@@ -10,8 +10,15 @@ narginchk(12,12)
 
 exitflag=0 ; 
 
+CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(K0) ;
 
-[dx,dlambda]=solveKApe(H0,L,g0,h0,x0,lambda0,CtrlVar);
+if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
+    [dx,dlambda]=solveKApeSymmetric(H0,L,g0,h0,x0,lambda0,CtrlVar);
+else
+    [dx,dlambda]=solveKApe(H0,L,g0,h0,x0,lambda0,CtrlVar);
+end
+
+
 Slope0=2*R0'*(K0*dx) ;
 
 

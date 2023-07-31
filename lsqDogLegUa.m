@@ -7,7 +7,7 @@ function [x,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqDog
 
 
 
-if isempty(CtrlVar) || ~isstruct(CtrlVar)
+if isempty(CtrlVar) || ~isstruct(CtrlVar) || ~isfield(CtrlVar,"lsqUa") 
 
     ItMax=5;
     gTol=1e-20;
@@ -16,12 +16,13 @@ if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
     isLSQ=true;
     Normalize=false ;
-    SaveIterate=true;
+    SaveIterate=false;
     LevenbergMarquardt="auto" ; % "fixed"
     LMlambda=1 ;
     ScaleProblem=false;
     LMlambdaUpdateMethod=1;
-    InfoLevelNonLinIt=1;
+    InfoLevelNonLinIt=10;
+    lsqDogLeg="-Newton-Cauchy-";
 
 else
 
@@ -40,6 +41,7 @@ else
 
     SaveIterate=CtrlVar.lsqUa.SaveIterate;
     InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
+    lsqDogLeg=CtrlVar.lsqUa.DogLeg ; 
 
 end
 
@@ -60,7 +62,7 @@ if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estima
     if BCres>1e-6   % make feasable
         x=L\c ;
     end
-    if isempty(lambda)  || isnan(lambda)
+    if isempty(lambda)  || anynan(lambda)
         lambda=c*0;
     end
 end
@@ -118,13 +120,13 @@ fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
 
 
 %%
-if contains(CtrlVar.lsqDogLeg,"-Cauchy-")
+if contains(lsqDogLeg,"-Cauchy-")
     TryCauchyStep=true;
 else
     TryCauchyStep=false;
 end
 
-if contains(CtrlVar.lsqDogLeg,"-Newton-")
+if contains(lsqDogLeg,"-Newton-")
     TryNewtonStep=true;
 else
     TryNewtonStep=false;
@@ -155,10 +157,11 @@ while iteration <= ItMax
         %% Newton Step, with possible backtracking
         CtrlVar.BacktracFigName="Newton";
         CtrlVar.BacktrackStepRatio=1e-2;
-        CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+        CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
         [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
-        xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
+        % xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
+         xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;  
         if R2minN < R2
             R2=R2minN ;
             x=x0+gammaminN*dxN ;
@@ -171,7 +174,7 @@ while iteration <= ItMax
             x=x0; lambda=lambda0;
             StepString="  ";
             gammamin=0 ;
-            if contains(CtrlVar.lsqDogLeg,"-Cauchy-")
+            if contains(lsqDogLeg,"-Cauchy-")
                 TryCauchyStep=true;
             else
                 TryCauchyStep=false;
@@ -191,7 +194,10 @@ while iteration <= ItMax
 
 
     R2ratio=R2/R20;
-    if ~TryCauchyStep  % Even though Newton step did result in reduction, I might still want to try the Cauchy step as well if the step size or the reduction was small
+
+    if ~contains(lsqDogLeg,"-Cauchy-")
+        TryCauchyStep=false;
+    elseif ~TryCauchyStep  % Even though Newton step did result in reduction, I might still want to try the Cauchy step as well if the step size or the reduction was small
         if R2ratio >0.9 || gammamin < 0.001
             TryCauchyStep=true;
         end
@@ -204,7 +210,7 @@ while iteration <= ItMax
         CtrlVar.BacktrackStepRatio=1e-5;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
         [R2minC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,I0,R20,K0,R0,g0,h0,KK0) ;
-        xC=x0+dxC ; lambdaC=lambda0+dlambdaC ;
+        xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;
         if R2minC < R2
             R2=R2minC ;
             x=x0+gammaminC*dxC ;
@@ -213,15 +219,11 @@ while iteration <= ItMax
             StepString="C ";
             TryCauchy2Newton=false;
             gammamin=gammaminC ;
-            if contains(CtrlVar.lsqDogLeg,"-Newton-")
+            if contains(lsqDogLeg,"-Newton-")
                 fprintf("Cauchy step outperformes Newton. R2minC/R2minN=%g \n",R2minC/R2minN  )
             end
-        else
-            x=x0 ; lambda=lambda0 ;
-            StepString="  ";
-            gammamin=0 ;
-            TryCauchy2Newton=true;
         end
+           
 
         if exitflag ==1
 
@@ -251,6 +253,13 @@ while iteration <= ItMax
 
 
             [gammaminCN,R2CN,exitflag,outputfminbnd]=fminbnd(funcCN,0,1,options) ;
+           
+            if CtrlVar.InfoLevelBackTrack>=1000
+
+                [stop,Outs]=outfunFminbnd();
+                PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2minC,R2minN,gammaminCN,R2CN,R20);
+
+            end
 
             if R2CN < R2
 
@@ -259,23 +268,18 @@ while iteration <= ItMax
                 gammamin=gammaminCN ;
                 x=xC+gammaminCN*dxC2N ;lambda=lambdaC+gammaminCN*dlambdaC2N ;
 
-                if CtrlVar.InfoLevelBackTrack>=1000
 
-                    [stop,Outs]=outfunFminbnd();
-                    PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2minC,R2minN,gammaminCN,R2CN,R20);
-
-                end
             end
         end
     end
     
     dx=x-x0 ; dlambda=lambda-lambda0 ; 
 
-    if isLSQ
+   % if isLSQ
         Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
-    else
-        Q=R0'*dx+dx'*H0*dx/2 ;
-    end
+    %else
+    %    Q=R0'*dx+dx'*H0*dx/2 ;
+    %end
 
 
     [R,K]=fun(x) ;

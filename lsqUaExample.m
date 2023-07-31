@@ -42,7 +42,7 @@ CtrlVar.lsqUa.ScaleProblem=true;
 CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.lsqUa.Algorithm="DogLeg" ;
-CtrlVar.lsqDogLeg="-Newton-Cauchy-" ;
+CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
 CtrlVar.InfoLevelBackTrack=1000; 
 CompareWithMatlabOpt=true;
 
