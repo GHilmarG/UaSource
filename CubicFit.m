@@ -33,8 +33,9 @@ xmin=(-ab(2)+sqrt(ab(2)^2-3*ab(1)*Slope))/3/ab(1);
 
 if ab(1) == 0 || ~isreal(xmin)
     if InfoLevel>=10
-        fprintf('CubicFit: Cubic fit not sucessfull, try parabolic fit \n ')
+        fprintf('CubicFit: Minima not found within the range [0,%f]. Minimiser at one of the endpoints.  \n ',x2)
     end
+    
     [ xmin , status] = parabolamin(0,x1,x2,y0,y1,y2);
 
     

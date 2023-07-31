@@ -23,6 +23,7 @@ if isempty(CtrlVar) || ~isstruct(CtrlVar) || ~isfield(CtrlVar,"lsqUa")
     LMlambdaUpdateMethod=1;
     InfoLevelNonLinIt=10;
     lsqDogLeg="-Newton-Cauchy-";
+    CostMeasure="R2" ; % "r2"
 
 else
 
@@ -42,11 +43,14 @@ else
     SaveIterate=CtrlVar.lsqUa.SaveIterate;
     InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
     lsqDogLeg=CtrlVar.lsqUa.DogLeg ; 
+    CostMeasure=CtrlVar.lsqUa.CostMeasure;
+
 
 end
 
 R2Array=nan(ItMax+1,1) ;
 g2Array=nan(ItMax+1,1) ;
+JArray=nan(ItMax+1,1) ;
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
 WorkArray=nan(ItMax+1,1) ;
@@ -102,11 +106,17 @@ else
 end
 
 R2=full(R'*R);
-g2 = full(g'*g)/Normalisation;
+g2 = full([g;h]'*[g;h])/Normalisation;
 
+if CostMeasure=="R2"
+    J=R2;
+elseif CostMeasure=="r2"
+    J=r2;
+end
 
 g2Array(1)=g2;
 R2Array(1)=R2;
+JArray(1)=J ; 
 
 if SaveIterate
     xVector=nan(numel(x),100);
@@ -299,9 +309,13 @@ while iteration <= ItMax
         g =- (R + LTlambda) ;
     end
 
-    g2=full(g'*g)/Normalisation ;
-    
-    
+    g2=full([g;h]'*[g;h])/Normalisation ;
+
+    if CostMeasure=="R2"
+        J=R2;
+    elseif CostMeasure=="r2"
+        J=r2;
+    end
 
    %%
 
