@@ -135,6 +135,7 @@ if numel(xSol)==2
 
     end
 
+    
 end
 
 [flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ;
