@@ -2,7 +2,7 @@
 
 
 
-function [R2min,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0)
+function [R2min,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20)
 
 
 %
@@ -14,11 +14,14 @@ function [R2min,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqS
 
 
 nargoutchk(8,8)
-narginchk(12,12)
+narginchk(9,9)
 
 exitflag=0 ;
 
 isLSQ=CtrlVar.lsqUa.isLSQ ;
+CostMeasure=CtrlVar.lsqUa.CostMeasure;
+Step=CtrlVar.lsqUa.Step;
+nx=numel(x) ;
 
 if ~isempty(L)
     LTlambda=L'*lambda0 ;
@@ -31,12 +34,30 @@ end
 
 if isLSQ
     KK0=K0'*K0;
-    H0=2*KK0;
-    g =- (2*K0'*R0 + LTlambda) ;
+    
+    if CtrlVar.lsqUa.Step=="-Newton-"
+        H0=2*KK0;
+    elseif CtrlVar.lsqUa.Step=="-Cauchy-"
+        H0=speye(nx) ;
+    else
+        error("what step?")
+    end
+
+    g0 =- (2*K0'*R0 + LTlambda) ;
 else
-    H0=K0;
+    
+    
+    if CtrlVar.lsqUa.Step=="-Newton-"
+        H0=K0;
+    elseif CtrlVar.lsqUa.Step=="-Cauchy-"
+        H0=speye(nx) ;
+    else
+        error("what step?")
+    end
+
     KK0=K0'*K0;
     g0 =- (R0 + LTlambda) ;
+
 end
 
 
@@ -53,13 +74,21 @@ end
 
 
 if CostMeasure=="R2"
-    J=R2;
+
+    J0=full(R0'*R0) ;
     Slope0=2*R0'*(K0*dx) ;
+    gammaEst=-(R0'*K0*dx)/(dx'*(KK0)*dx) ;
+
 elseif CostMeasure=="r2"
-    J=r2;
+    
+    
+    d=[g0;h0] ;
+    J0=full(d'*d);
+    Hd=[H0*dx+L'*dlambda,L*dx];   % this should be equal to -d
+    Slope0=2*d'*Hd;               % this should be equal to -2*d'*d 
+    gammaEst=d'*Hd/(Hd'*Hd) ;     % I have the minus in the solve
+
 end
-
-
 
 
 
@@ -75,10 +104,10 @@ end
 
 
 
-gammaEst=-(R0'*K0*dx)/(dx'*(KK0)*dx) ;
+
 CtrlVar.BacktrackingGammaMin=gammaEst*CtrlVar.BacktrackStepRatio ;
 
-funcBackTrack=@(gamma) R2func(gamma,dx,dlambda,fun,x0,lambda0) ;
+funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0) ;
 
 
 R2=nan;

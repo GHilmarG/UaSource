@@ -165,13 +165,18 @@ while iteration <= ItMax
     if TryNewtonStep
 
         %% Newton Step, with possible backtracking
+        CtrlVar.lsqUa.Step="-Newton-";
         CtrlVar.BacktracFigName="Newton";
         CtrlVar.BacktrackStepRatio=1e-2;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
-        [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
+        % [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
+
+
+        [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+
         % xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
-         xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;  
+        xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;
         if R2minN < R2
             R2=R2minN ;
             x=x0+gammaminN*dxN ;
@@ -215,11 +220,15 @@ while iteration <= ItMax
 
     if TryCauchyStep
 
+        CtrlVar.lsqUa.Step="-Cauchy-";
         I0=speye(nx) ;
         CtrlVar.BacktracFigName="Cauchy";
         CtrlVar.BacktrackStepRatio=1e-5;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
-        [R2minC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,I0,R20,K0,R0,g0,h0,KK0) ;
+      
+        
+        [R2minC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+      
         xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;
         if R2minC < R2
             R2=R2minC ;

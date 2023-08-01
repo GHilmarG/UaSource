@@ -311,4 +311,12 @@ end
 
 axis tight
 
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars cbar
+end
+
+
+
+
 end
