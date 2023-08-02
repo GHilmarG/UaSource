@@ -2,7 +2,7 @@
 
 
 
-function [x,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c)
 
 
 
@@ -49,7 +49,7 @@ else
 end
 
 R2Array=nan(ItMax+1,1) ;
-g2Array=nan(ItMax+1,1) ;
+r2Array=nan(ItMax+1,1) ;
 JArray=nan(ItMax+1,1) ;
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
@@ -106,17 +106,19 @@ else
 end
 
 R2=full(R'*R);
-g2 = full([g;h]'*[g;h])/Normalisation;
+r2 = full([g;h]'*[g;h])/Normalisation;
 
 if CostMeasure=="R2"
     J=R2;
 elseif CostMeasure=="r2"
     J=r2;
+else
+    error("what cost measure?")
 end
 
-g2Array(1)=g2;
+r2Array(1)=r2;
 R2Array(1)=R2;
-JArray(1)=J ; 
+
 
 if SaveIterate
     xVector=nan(numel(x),100);
@@ -126,7 +128,7 @@ else
 end
 iteration=0 ;
 
-fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
+fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
 
 %%
@@ -147,8 +149,8 @@ while iteration <= ItMax
     iteration=iteration+1 ;
 
     K0=K ; R0=R; x0=x ; lambda0=lambda ; h0=h ; g0=g;
-    R20=R2;  g20=g2 ; 
-    g2=nan ; R2minN=nan ; R2minC=nan ; R2minCN=nan ; Slope0=nan ; 
+    R20=R2;  r20=r2 ;  J0=J ;  
+    r2=nan ; JminN=nan ; JminC=nan ; R2minCN=nan ; Slope0=nan ; 
 
     if isLSQ
         KK0=K0'*K0;
@@ -173,12 +175,12 @@ while iteration <= ItMax
         % [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
 
 
-        [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+        [JminN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
 
         % xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
         xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;
-        if R2minN < R2
-            R2=R2minN ;
+        if JminN < J
+            J=JminN ;
             x=x0+gammaminN*dxN ;
             lambda=lambda0+gammaminN*dlambdaN ;
             StepString="N ";
@@ -208,12 +210,12 @@ while iteration <= ItMax
 
 
 
-    R2ratio=R2/R20;
+    Jratio=J/J0;
 
     if ~contains(lsqDogLeg,"-Cauchy-")
         TryCauchyStep=false;
     elseif ~TryCauchyStep  % Even though Newton step did result in reduction, I might still want to try the Cauchy step as well if the step size or the reduction was small
-        if R2ratio >0.9 || gammamin < 0.001
+        if Jratio >0.9 || gammamin < 0.001
             TryCauchyStep=true;
         end
     end
@@ -221,17 +223,17 @@ while iteration <= ItMax
     if TryCauchyStep
 
         CtrlVar.lsqUa.Step="-Cauchy-";
-        I0=speye(nx) ;
+        
         CtrlVar.BacktracFigName="Cauchy";
         CtrlVar.BacktrackStepRatio=1e-5;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
       
         
-        [R2minC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+        [JminC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
       
         xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;
-        if R2minC < R2
-            R2=R2minC ;
+        if JminC < J
+            J=JminC ;
             x=x0+gammaminC*dxC ;
             lambda=lambda0+gammaminC*dlambdaC ;
             Slope0=Slope0C ;  % Even if I then do the C2N step, this will be the estimate for Slop0, ie in the Cauchy direction.
@@ -239,7 +241,7 @@ while iteration <= ItMax
             TryCauchy2Newton=false;
             gammamin=gammaminC ;
             if contains(lsqDogLeg,"-Newton-")
-                fprintf("Cauchy step outperformes Newton. R2minC/R2minN=%g \n",R2minC/R2minN  )
+                fprintf("Cauchy step outperformes Newton. R2minC/R2minN=%g \n",JminC/JminN  )
             end
         end
            
@@ -251,18 +253,25 @@ while iteration <= ItMax
         end
 
         % Try Cauchy-to-Newton?
-        R2ratio=R2/R20;
+        Jratio=J/J0;
         % Only to C2N if not sufficient reduction alread, both Newton and Cauchy have been performed and the min in the Cauchy step
         % was found close to the min of the Quad approximation
-        if R2ratio>0.9 &&  ~isnan(R2minN) && ~isnan(R2minC) && gammaminC/gammaEstC > 0.9
+        if Jratio>0.9 &&  ~isnan(JminN) && ~isnan(JminC) && gammaminC/gammaEstC > 0.9
             TryCauchy2Newton=true;
+        else
+            TryCauchy2Newton=false;
         end
 
         if TryCauchy2Newton
 
             dxC2N=xN-xC  ;  dlambdaC2N=lambdaN-lambdaC;
 
-            funcCN=@(gamma) R2func(gamma,dxC2N,dlambdaC2N,fun,xC,lambdaC) ;
+            % funcCN=@(gamma) R2func(gamma,dxC2N,dlambdaC2N,fun,xC,lambdaC) ;
+
+
+            funcCN=@(gamma)  Jlsqfunc(CtrlVar,gamma,dxC2N,dlambdaC2N,fun,L,c,xC,lambdaC)
+
+
             TolX=0.01;
             if InfoLevelNonLinIt >= 10
                 options = optimset('Display','iter','TolX',TolX,'OutputFcn',@outfunFminbnd);
@@ -276,13 +285,13 @@ while iteration <= ItMax
             if CtrlVar.InfoLevelBackTrack>=1000
 
                 [stop,Outs]=outfunFminbnd();
-                PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,R2minC,R2minN,gammaminCN,R2CN,R20);
+                PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,JminC,JminN,gammaminCN,R2CN,R20);
 
             end
 
             if R2CN < R2
 
-                fprintf("Cauchy-to-Newton step outperformes. R2minCN/R2=%g \n",R2minC/R2)
+                fprintf("Cauchy-to-Newton step outperformes. R2minCN/R2=%g \n",JminC/R2)
 
                 gammamin=gammaminCN ;
                 x=xC+gammaminCN*dxC2N ;lambda=lambdaC+gammaminCN*dlambdaC2N ;
@@ -318,18 +327,14 @@ while iteration <= ItMax
         g =- (R + LTlambda) ;
     end
 
-    g2=full([g;h]'*[g;h])/Normalisation ;
+    r2=full([g;h]'*[g;h])/Normalisation ;
 
-    if CostMeasure=="R2"
-        J=R2;
-    elseif CostMeasure=="r2"
-        J=r2;
-    end
+  
 
    %%
 
     rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
-    g2Ratio=g2/g20 ;
+    r2Ratio=r2/r20 ;
     R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
 
@@ -339,12 +344,12 @@ while iteration <= ItMax
     BCsNorm=norm(h) ;
 
 
-    g2Array(iteration+1)=g2;
+    r2Array(iteration+1)=r2;
     R2Array(iteration+1)=R2;
-    dxArray(iteration)=dxNorm ; 
-    Slope0Array(iteration)=Slope0;   % This is the slope based on R0, K0 and dx. Note the slope in dx direction at the end of the step 
-                                     % If doing a line search, the slope at the end of the step should always be close to zero in
-                                     % the direction dx.
+    dxArray(iteration)=dxNorm ;
+    Slope0Array(iteration)=Slope0;   % This is the slope based on R0, K0 and dx. Note the slope in dx direction at the end of the step
+    % If doing a line search, the slope at the end of the step should always be close to zero in
+    % the direction dx.
 
 
     WorkArray(iteration+1)=[dx;dlambda]'*[g ; h] ;
@@ -354,11 +359,23 @@ while iteration <= ItMax
     end
 
 
-    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |g|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
-        iteration,StepString,R2,R2Ratio,gammamin,g2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+    if CostMeasure=="R2"
 
+        fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+            iteration,StepString,R2,R2Ratio,gammamin,r2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
 
-    if g2 < gTol
+    elseif CostMeasure=="r2"
+
+        fprintf("lsqUa: \t it=%2i%s  \t     |r|^2=%-13g \t     |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+            iteration,StepString,r2,r2Ratio,gammamin,R2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+
+    else
+
+        error("what cost measure?")
+
+    end
+
+    if r2 < gTol
         fprintf("lsqUa: Exiting iteration because |g|^2 within set tolerance of %g \n",gTol)
         break
     end
@@ -384,15 +401,19 @@ while iteration <= ItMax
 
 end
 
-Slope0=2*R'*K*dx ;  
+Slope0=2*R'*K*dx ;
 Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based on final R and K values
 
-fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",g2,Slope0,R2)
+fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
 
 
+if CostMeasure=="R2"
+    residual=R ;
+else
+    residual=g;
+end
 
-residual=R ;
-output.g2Array=g2Array;
+output.r2Array=r2Array;
 output.R2Array=R2Array;
 output.dxArray=dxArray;
 output.Slope0Array=Slope0Array;

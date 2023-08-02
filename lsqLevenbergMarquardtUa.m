@@ -1,4 +1,4 @@
-function [x,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c)
 
 %%
 %
@@ -118,12 +118,12 @@ else
 end
 
 R2=full(R'*R); 
-g2 = full(g'*g)/Normalisation;
+r2 = full(g'*g)/Normalisation;
 
 
 
 
-g2Array(1)=g2;
+g2Array(1)=r2;
 R2Array(1)=R2;
 if SaveIterate
     xVector=nan(numel(x),100);
@@ -133,7 +133,7 @@ else
 end
 iteration=0 ;  
 
-fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
+fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
 while iteration <= ItMax
 
@@ -189,17 +189,17 @@ while iteration <= ItMax
     end
 
 
-    g2Old=g2;  R2Old=R2;
-    g2=full(g'*g)/Normalisation ;
+    g2Old=r2;  R2Old=R2;
+    r2=full(g'*g)/Normalisation ;
     R2=full(R'*R);
 
     rho=(R2-R2Old)/Q;      % Actual reduction / Modelled Reduction
-    g2Ratio=g2/g2Old ;
+    g2Ratio=r2/g2Old ;
     dR2=[abs(R2-R2Old); dR2(1)] ; 
 
 
-    if g2 > g2Old  % reject step
-        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; g2=g2Old ; R2=R2Old ;
+    if r2 > g2Old  % reject step
+        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; r2=g2Old ; R2=R2Old ;
         
         if LMlambda==0
             LMlambda=1;
@@ -246,17 +246,17 @@ while iteration <= ItMax
         LMlambda=nan;
     end
 
-    g2Array(iteration+1)=g2;
+    g2Array(iteration+1)=r2;
     R2Array(iteration+1)=R2;
     if SaveIterate
         xVector(:,iteration+1)=x(:) ;
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g2Old,g2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g2Old,r2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
 
 
-    if g2 < gTol
+    if r2 < gTol
         fprintf("lsqUa: Exiting iteration because |g|^2 within set tolerance of %g \n",gTol)
         break
     end
@@ -282,7 +282,7 @@ while iteration <= ItMax
 
 end
 
-fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",g2,R2)
+fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
 
 residual=R ;

@@ -13,27 +13,30 @@ x0=[-10 ; 15] ;
 %                                                                       constraint                           unconstrained
 problemtype="[x1,x2]" ;                     %                   24.5                   24.5
 problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
-% problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
+problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
 % problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
-problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
+% problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
 % problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;
 % problemtype="[x1^2,x2^2]" ;
 % problemtype="[x1^-100 x1,0]" ;
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
 % problemtype="Beale" ; x0=[2 ; 0] ; 
 
-isConstraint=false;
+isConstraint=true;
 
 
 CtrlVar.lsqUa.ItMax=50 ;
 
 CtrlVar.lsqUa.gTol=1e-20 ;
-CtrlVar.lsqUa.dR2Tol=1e-20 ;
+CtrlVar.lsqUa.dR2Tol=1e-10 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
 
 CtrlVar.lsqUa.isLSQ=true ;
+CtrlVar.lsqUa.CostMeasure="r2" ;
+
+
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
 CtrlVar.lsqUa.LMlambdaUpdateMethod=1 ;
@@ -43,7 +46,7 @@ CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.lsqUa.Algorithm="DogLeg" ;
 CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
-CtrlVar.lsqUa.CostMeasure="R2" ;
+
 CtrlVar.InfoLevelBackTrack=1000; 
 CompareWithMatlabOpt=true;
 
@@ -78,7 +81,7 @@ else
     L=[]; c=[];
 end
 
-[xSol,lambda,R2,Slope0,dxNorm,dlambdaNorm,g2,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
+[xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
 
 xSol
 lambda
@@ -102,19 +105,19 @@ if numel(xSol)==2
     x2Vector=linspace(ymin,ymax);
 
 
-    r2=nan(numel(x1Vector),numel(x2Vector));
+    RR=nan(numel(x1Vector),numel(x2Vector));
 
     for I=1:numel(x1Vector)
         for J=1:numel(x2Vector)
             x=[x1Vector(I) x2Vector(J)];
             R=fRK(x,problemtype);
-            r2(I,J)=R'*R ;
+            RR(I,J)=R'*R ;
         end
     end
 
 
     flsqUa=FindOrCreateFigure("lsqUa test") ; clf(flsqUa) ;
-    f=log10(r2'); 
+    f=log10(RR'); 
     contourf(x1Vector,x2Vector,f,50,LineStyle="none") ; 
     axis equal tight; 
     cbar=colorbar ;
@@ -152,26 +155,31 @@ end
 
 npoints=numel(output.R2Array);
 itVector=0:npoints-1;
-yyaxis right
-semilogy(itVector,-output.Slope0Array,LineStyle=ls,Color='r',Marker=ms)
-ylabel("slope",Interpreter="latex")
+
 yyaxis left
 semilogy(itVector, output.R2Array,'o-',color='b',Marker=ms)
-
-
 ylabel("$\|R\|^2$",Interpreter="latex")
+
+yyaxis right
+semilogy(itVector, output.r2Array,LineStyle=ls,color='r',Marker=ms)
+ylabel("$\|r\|^2$",Interpreter="latex")
+
+
 xlabel("iteration",Interpreter="latex")
-title(sprintf("$\\|R\\|^2$ =%g, slope=%g",R2,Slope0),Interpreter="latex")
+title(sprintf("$\\|R\\|^2$ =%g, $\\|r\\|^2$=%g",R2,r2),Interpreter="latex")
 
 [flsqUaProg,FigFound2]=FindOrCreateFigure("lsqUa progress:dx") ;
+
 yyaxis left
 semilogy(itVector+1, output.dxArray,LineStyle=ls,Color='b',Marker=ms)
 ylabel("$\|\Delta x\|^2$",Interpreter="latex")
+
+
 yyaxis right
-semilogy(itVector, output.g2Array,LineStyle=ls,color='r',Marker=ms)
-ylabel("$\|g\|^2$",Interpreter="latex")
+semilogy(itVector,-output.Slope0Array,LineStyle=ls,Color='r',Marker=ms)
+ylabel("slope",Interpreter="latex")
 xlabel("iteration",Interpreter="latex")
-title(sprintf("$\\|dx\\|^2$ =%g, $\\|g\\|^2$=%g",dxNorm,g2),Interpreter="latex")
+title(sprintf("$\\|dx\\|^2$ =%g, Slope=%g",dxNorm,Slope0),Interpreter="latex")
 
 %%
 
@@ -196,7 +204,7 @@ if CompareWithMatlabOpt
     options.OptimalityTolerance = 1.000000e-20 ; options.StepTolerance = 1.000000e-20 ;
     [x1,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
 
-
+x1
 
 end
 

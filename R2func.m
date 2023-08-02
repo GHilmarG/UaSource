@@ -1,8 +1,11 @@
 
-function  R2=R2func(gamma,dx,dl,fun,x0,l0)
+function  R2=R2func(gamma,dx,fun,x0)
+
+
+narginchk(4,4)
 
 x=x0+gamma*dx;
-l=l0+gamma*dl ;
+%l=lambda0+gamma*dlambda ;
 
 R=fun(x) ;
 R2=full(R'*R);
