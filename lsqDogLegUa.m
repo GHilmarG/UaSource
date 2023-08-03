@@ -56,7 +56,7 @@ Slope0Array=nan(ItMax+1,1) ;
 WorkArray=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
-nx=numel(x); nlambda=numel(lambda) ;
+
 
 %% If contraints provided, make iterate feasable
 
@@ -128,7 +128,7 @@ else
 end
 iteration=0 ;
 
-fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
+fprintf("\n\t Start lsqUa: \t  r2=%g \t         R2=%g \n \n",r2,R2)
 
 
 %%
@@ -172,10 +172,9 @@ while iteration <= ItMax
         CtrlVar.BacktrackStepRatio=1e-2;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
-        % [R2minN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,L,H0,R20,K0,R0,g0,h0,KK0) ;
+        
 
-
-        [JminN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+        [JminN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
 
         % xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
         xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;
@@ -229,7 +228,7 @@ while iteration <= ItMax
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
       
         
-        [JminC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20);
+        [JminC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
       
         xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;
         if JminC < J
@@ -301,13 +300,8 @@ while iteration <= ItMax
         end
     end
     
-    dx=x-x0 ; dlambda=lambda-lambda0 ; 
+    dx=x-x0 ; dlambda=lambda-lambda0 ;
 
-   % if isLSQ
-        Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
-    %else
-    %    Q=R0'*dx+dx'*H0*dx/2 ;
-    %end
 
 
     [R,K]=fun(x) ;
@@ -329,11 +323,25 @@ while iteration <= ItMax
 
     r2=full([g;h]'*[g;h])/Normalisation ;
 
-  
 
-   %%
+    Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
+    if isLSQ
+        rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+    else
+        %   if isempty(L)
+        %      Q=R0'*dx + dx'*H0*dx ;
+        % else
+        %    Q=(R0+L'*lambda0)'*dx+(L*x0-c)'*dlambda ...
+        %       + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
+        %end
+        rho=(r2-r20)/Q;      % Actual reduction / Modelled Reduction
+    end
 
-    rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+
+
+%%
+
+    
     r2Ratio=r2/r20 ;
     R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;

@@ -3,7 +3,7 @@
 
 
 
-function  J=Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0)
+function  J=Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0,K0)
 
 
 

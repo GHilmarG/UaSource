@@ -14,7 +14,7 @@ x0=[-10 ; 15] ;
 problemtype="[x1,x2]" ;                     %                   24.5                   24.5
 problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
 problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-% problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
+problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
 % problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
@@ -33,9 +33,14 @@ CtrlVar.lsqUa.gTol=1e-20 ;
 CtrlVar.lsqUa.dR2Tol=1e-10 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
 
-CtrlVar.lsqUa.isLSQ=true ;
-CtrlVar.lsqUa.CostMeasure="r2" ;
 
+% Consistent are both:
+%
+% isLSQ=true and CostMeasure="r2" AND % isLSQ=false and CostMeasure="R2"
+%
+
+CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
+% CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
@@ -48,7 +53,7 @@ CtrlVar.lsqUa.Algorithm="DogLeg" ;
 CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
 
 CtrlVar.InfoLevelBackTrack=1000; 
-CompareWithMatlabOpt=true;
+CompareWithMatlabOpt=false;
 
 % xSol =
 %
@@ -149,7 +154,7 @@ ls="-"; ms="o";
 if FigFound
     hold on    % to be able to compare with previous resutls, overplots and change marker
     ls="--" ;
-    ms="*";
+    ms="v";
 end
 
 
@@ -157,7 +162,7 @@ npoints=numel(output.R2Array);
 itVector=0:npoints-1;
 
 yyaxis left
-semilogy(itVector, output.R2Array,'o-',color='b',Marker=ms)
+semilogy(itVector, output.R2Array,'-',color='b',Marker=ms)
 ylabel("$\|R\|^2$",Interpreter="latex")
 
 yyaxis right

@@ -2,7 +2,7 @@
 
 
 
-function [Jmin,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c,R20)
+function [Jmin,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c)
 
 
 %
@@ -14,7 +14,7 @@ function [Jmin,dx,dlambda,gammamin,Slope0,BackTrackInfo,gammaEst,exitflag]=lsqSt
 
 
 nargoutchk(8,8)
-narginchk(9,9)
+narginchk(8,8)
 
 exitflag=0 ;
 
@@ -106,7 +106,7 @@ end
 
 CtrlVar.BacktrackingGammaMin=gammaEst*CtrlVar.BacktrackStepRatio ;
 
-funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0) ;
+funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0,K0) ;
 
 J=nan;
 
