@@ -53,7 +53,7 @@ r2Array=nan(ItMax+1,1) ;
 JArray=nan(ItMax+1,1) ;
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
-WorkArray=nan(ItMax+1,1) ;
+% WorkArray=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
 
@@ -328,12 +328,12 @@ while iteration <= ItMax
     if isLSQ
         rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
     else
-        %   if isempty(L)
-        %      Q=R0'*dx + dx'*H0*dx ;
+        % if isempty(L)
+        %     Q=R0'*dx + dx'*H0*dx/2 ;
         % else
-        %    Q=(R0+L'*lambda0)'*dx+(L*x0-c)'*dlambda ...
-        %       + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
-        %end
+        %     Q=(R0+L'*lambda0)'*dx/2+(L*x0-c)'*dlambda/2 ...
+        %         + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
+        % end
         rho=(r2-r20)/Q;      % Actual reduction / Modelled Reduction
     end
 
@@ -360,7 +360,7 @@ while iteration <= ItMax
     % the direction dx.
 
 
-    WorkArray(iteration+1)=[dx;dlambda]'*[g ; h] ;
+  %  WorkArray(iteration+1)=[dx;dlambda]'*[g ; h] ;
 
     if SaveIterate
         xVector(:,iteration+1)=x(:) ;
@@ -425,7 +425,7 @@ output.r2Array=r2Array;
 output.R2Array=R2Array;
 output.dxArray=dxArray;
 output.Slope0Array=Slope0Array;
-output.WorkArray=WorkArray;
+% output.WorkArray=WorkArray;
 
 output.xVector=xVector;
 output.nIt=iteration;

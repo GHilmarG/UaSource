@@ -14,17 +14,17 @@ x0=[-10 ; 15] ;
 problemtype="[x1,x2]" ;                     %                   24.5                   24.5
 problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
 problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
+% problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
 % problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
 % problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;
 % problemtype="[x1^2,x2^2]" ;
-% problemtype="[x1^-100 x1,0]" ;
+  % problemtype="[x1^-100 x1,0]" ;
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
-% problemtype="Beale" ; x0=[2 ; 0] ; 
+problemtype="Beale" ; x0=[2 ; 0] ; 
 
-isConstraint=true;
+isConstraint=false;
 
 
 CtrlVar.lsqUa.ItMax=50 ;
@@ -40,7 +40,7 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 %
 
 CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
-% CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
+CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
