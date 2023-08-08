@@ -282,6 +282,13 @@ if options.PlotUnderMesh
 
 end
 
+if isempty(F.GF)
+
+    
+    
+
+end
+
 
 
 if options.PlotGroundingLines

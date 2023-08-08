@@ -812,7 +812,8 @@ else
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
         ylabel('J','interpreter','latex')
         
-        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm))
+        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm)) ...
+                &&  numel(RunInfo.Inverse.Iterations) == numel(RunInfo.Inverse.GradNorm)
 
             hold off
             yyaxis right

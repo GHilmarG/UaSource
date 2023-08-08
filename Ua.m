@@ -205,7 +205,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
-% 'Ua2D_DefaultParamters.m'
+% 'Ua2D_DefaultParameters.m'
 %%
 
 %
@@ -224,6 +224,13 @@ end
 
 
 UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin{:});
+
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars UserVar
+end
+
+
 
 
 end
