@@ -38,7 +38,7 @@ arguments
     CtrlVar struct
     MUA     struct
     F       {mustBeA(F,{'struct','UaFields','numeric'})}
-    Variable   {string, double}
+    Variable {mustBeA(Variable,{'string','numeric'})}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"
@@ -85,11 +85,11 @@ if isnumeric(Variable)
 
     [nV,mV]=size(Variable);
     if nV==MUA.Nnodes && mV==2
-        F.ub=Variable(:,1);
-        F.vb=Variable(:,2);
+        F.ub=full(Variable(:,1));
+        F.vb=full(Variable(:,2));
         Variable="-uv-";
     else
-        Variable=Variable(:);
+        Variable=full(Variable(:));
     end
 end
 

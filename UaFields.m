@@ -91,6 +91,9 @@ classdef UaFields
         LSFqx=[] ;
         LSFqy=[] ; 
 
+        N=[] ; 
+        aw=[];
+
         txx=[];
         txy=[];
         tyy=[];

@@ -1,4 +1,6 @@
-function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
+
+    function [UserVar,BCs]=DefineBoundaryConditions(UserVar,CtrlVar,MUA,F,BCs)
+
 %%
 % BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub,vb,ud,vd,GF)
 %
@@ -50,8 +52,8 @@ function  BCs=DefineBoundaryConditions(UserVar,CtrlVar,MUA,BCs,time,s,b,h,S,B,ub
 %
 % 
 %%
-x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-xd=max(x(:)) ; xu=min(x(:)); yl=max(y(:)) ; yr=min(y(:));
+
+xd=max(F.x) ; xu=min(F.x); yl=max(F.y) ; yr=min(F.y);
 
 
 % find nodes along boundary, simple approach
