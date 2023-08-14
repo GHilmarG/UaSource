@@ -283,6 +283,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: Mesh with several holes and islands
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.PlotXYscale=1; 
 CtrlVar.MeshGenerator='gmsh';  
 % CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
@@ -303,7 +304,9 @@ CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
-figure ; PlotMuaMesh(CtrlVar,MUA); 
+figex=FindOrCreateFigure("meshing example") ; clf(figex) ;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=true;
+PlotMuaMesh(CtrlVar,MUA); 
 hold on
 % also calculate and plot normals
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);

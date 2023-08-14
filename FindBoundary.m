@@ -4,7 +4,7 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 % [Boundary.Nodes,Boundary.EdgeCornerNodes,Boundary.Free,Elements]=FindBoundary(connectivity,coordinates)
 %
 %           Boundary.Nodes : list of all nodes on the boundary, ie not only corner nodes (it is not a linked list).
-% Boundary.EdgeCornerNodes : a linked array of the corner nodes of free edges.
+% Boundary.EdgeCornerNodes : an ordered array of the corner nodes of free edges.
 %
 %    Boundary.FreeElements : a list of elements with free edges, each edge listed once, ie if an
 %                            element has more than one free edge, it is listed more than once.
@@ -16,7 +16,9 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 % Note that the first and last of Boundary.EdgeCornerNodes are not the same nodes
 % i.e. the loop does note close. If doing inside-out tests, then this loops must be closed first
 %
-
+% Plot boundary, with all edge nodes included
+%
+% figure ; plot(F.x(MUA.Boundary.Edges)',F.y(MUA.Boundary.Edges)','-*r',LineWidth=2)
 
 [Nele,nod]=size(connectivity);
 
@@ -54,7 +56,7 @@ TR=CreateFEmeshTriRep(connectivity,coordinates);
 Boundary.Edges=freeBoundary(TR) ; % misses the interor nodes for higher order tri
 %Boundary.EdgeCornerNodes=unique(Boundary.Edges(:));
 Boundary.EdgeCornerNodes=Boundary.Edges(:,1);
-Boundary.FreeElements=cell2mat(edgeAttachments(TR,Boundary.Edges));  % OK of every type
+Boundary.FreeElements=cell2mat(edgeAttachments(TR,Boundary.Edges));  % OK for every type
 % edgeAttachments returns a cell array, but because each boundary edge only belongs to one element
 % each element of that cell array has the same number of elements, or just 1
 nBoundary.Edges=size(Boundary.Edges,1);

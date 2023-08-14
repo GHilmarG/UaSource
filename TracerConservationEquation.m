@@ -4,12 +4,14 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 % Solves the linear tracer conservation equation for the tracer c on the form:
 % 
 % $$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$
+%
+% $$\partial c/\partial t + \nabla (c \mathbf{v} )- \nabla \cdot (\kappa \nabla c) = a$$
 % 
 % The natural boundary condition is 
 %
 % $$\nabla c \cdot \hat{n} = 0 $$
 %
-% ie,  the free outflow condition 
+% 
 %
 % It gives c1 at the end of the time step, i.e. time=time+dt
 %

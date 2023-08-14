@@ -5,9 +5,9 @@ function [UserVar,R,K]=NEquationAssembly(UserVar,CtrlVar,MUA,F0,F1,K,Sw,Phi)
 %% Effective water pressure equation
 %
 % 
-% $$\frac{S_w}{\rho g}  \partial_t N +  \mathbf{V} \cdot \nabla N  - \nabla \cdot (\kappa h_w \nabla N) = m + \nabla \cdot ( k h_w ((\rho_w-\rho) g \nabla b - \rho g \nabla s)) $$ 
+% $$\frac{S_w}{\rho g}  \partial_t N +  \mathbf{V} \cdot \nabla N  + \nabla \cdot (\kappa h_w \nabla N) = m + \nabla \cdot ( k h_w ((\rho_w-\rho) g \nabla b - \rho g \nabla s)) $$ 
 %
-% $$\frac{S_w}{\rho g}  \partial_t N +  \mathbf{V} \cdot \nabla N  - \nabla \cdot (\kappa h_w \nabla N) = m + \nabla \cdot (k h_w \Phi )  $$ 
+% $$\frac{S_w}{\rho g}  \partial_t N +  \mathbf{V} \cdot \nabla N  + \nabla \cdot (\kappa h_w \nabla N) = m + \nabla \cdot (k h_w \Phi )  $$ 
 %
 % 
 %%
@@ -20,6 +20,7 @@ dt=CtrlVar.dt ;
 %tauSUPG=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0,v0,dt,MUA);
 
 N0nod=reshape(F0.N(MUA.connectivity,1),MUA.Nele,MUA.nod);
+N1nod=reshape(F1.N(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 s0nod=reshape(F0.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 s1nod=reshape(F1.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -73,6 +74,7 @@ for Iint=1:MUA.nip
     % values at integration point
     
     N0int=N0nod*fun;
+    N1int=N1nod*fun;
     % 
     % Vx0int=Vx0nod*fun; Vy0int=Vy0nod*fun;
     % Vx1int=Vx1nod*fun; Vy1int=Vy1nod*fun;
@@ -92,6 +94,8 @@ for Iint=1:MUA.nip
     db1dx=zeros(MUA.Nele,1); db1dy=zeros(MUA.Nele,1); 
     
     dN0dx=zeros(MUA.Nele,1); dN0dy=zeros(MUA.Nele,1); 
+    dN1dx=zeros(MUA.Nele,1); dN1dy=zeros(MUA.Nele,1); 
+    
     dPhidx=zeros(MUA.Nele,1); dPhidy=zeros(MUA.Nele,1); 
     
     
@@ -115,6 +119,9 @@ for Iint=1:MUA.nip
         dN0dx=dN0dx+Deriv(:,1,Inod).*N0nod(:,Inod);
         dN0dy=dN0dy+Deriv(:,2,Inod).*N0nod(:,Inod);
 
+        dN1dx=dN1dx+Deriv(:,1,Inod).*N1nod(:,Inod);
+        dN1dy=dN1dy+Deriv(:,2,Inod).*N1nod(:,Inod);
+
         dPhidx=dPhidx+Deriv(:,1,Inod).*Phinod(:,Inod);
         dPhidy=dPhidy+Deriv(:,2,Inod).*Phinod(:,Inod);
         
@@ -122,62 +129,37 @@ for Iint=1:MUA.nip
     
     detJw=detJ*MUA.weights(Iint);
     
-    % dt theta ( d(u1 h1)/dx    + d(v1 h1)/dy) + h1=
-    %  h0+dt { (1-theta) a0+theta a1-(1-theta) (d(u0 h0)/dx+d(v0 h0)/dy}
-    
-    
-    % SUPG parameter calculation taken inside int-loop on 20 Sept, 2021
-    
-    % speed0=sqrt(Vx0int.*Vx0int+Vy0int.*Vy0int+CtrlVar.SpeedZero^2);
-    speed0=0 ; 
+   
 
-    tau=SUPGtau(CtrlVar,speed0,l,dt,CtrlVar.Tracer.SUPG.tau) ; 
-    tauSUPGint=CtrlVar.SUPG.beta0*tau;
-    
 
     for Inod=1:MUA.nod
-
-        % SUPG=fun(Inod)+CtrlVar.Tracer.SUPG.Use*tauSUPGint.*(Vx0int.*Deriv(:,1,Inod)+Vy0int.*Deriv(:,2,Inod));
-        SUPG=fun(Inod) ;   % not using this for the time being
-
-        SUPGdetJw=SUPG.*detJw;
-
         for Jnod=1:MUA.nod
 
-            N1term=Sw.*fun(Jnod).*fun(Inod).*detJw ; % 
+            dN1term=Sw.*fun(Jnod).*fun(Inod);
+            dKdN1=-dt*theta.*K.*(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+ Deriv(:,2,Jnod).*Deriv(:,2,Inod));
 
-            %
-            % Vx1dN1dx=dt*theta*Vx1int.*Deriv(:,1,Jnod).*SUPGdetJw;
-            % Vy1dN1dy=dt*theta*Vy1int.*Deriv(:,2,Jnod).*SUPGdetJw;
-            Vx1dN1dx=0 ;
-            Vy1dN1dy=0 ;
-
-            KdN1dx=-dt*theta.*K.*Deriv(:,1,Jnod).*Deriv(:,1,Inod).*detJw;
-            KdN1dy=-dt*theta.*K.*Deriv(:,2,Jnod).*Deriv(:,2,Inod).*detJw;
-
-            d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+N1term+Vx1dN1dx+Vy1dN1dy+KdN1dx+KdN1dy;
+            d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+(dN1term+dKdN1).*detJw;
 
         end
 
-        N0term=Sw.*N0int.*fun(Inod).*detJw;  % this is the h term, ie not \Delta h term (because the system is linear in h no need to write it in incremental form)
+        N0term=Sw.*N0int.*fun(Inod);
+        N1term=-Sw.*N1int.*fun(Inod);
 
-        % Vx0dN0dx=-dt*(1-theta)*Vx0int.*dN0dx.*SUPGdetJw;
-        % Vy0dN0dy=-dt*(1-theta)*Vy0int.*dN0dy.*SUPGdetJw;
-        Vx0dN0dx=0 ;
-        Vy0dN0dy=0 ;
 
-        NTerm=dt*(1-theta)*K.*(dN0dx.*Deriv(:,1,Inod)+dN0dy.*Deriv(:,2,Inod)) .*detJw;
+        K0dN0term=dt*(1-theta)*K.*(dN0dx.*Deriv(:,1,Inod)+dN0dy.*Deriv(:,2,Inod));
+        K1dN1term=dt*theta    *K.*(dN1dx.*Deriv(:,1,Inod)+dN1dy.*Deriv(:,2,Inod));
 
         % total contribution, to be changed later
         % PhiTerm =-dt*Kint.*g.*  (((rhow-rho).*db0dx-rho.*ds0dx) .*Deriv(:,1,Inod) + ((rhow-rho).*db0dy-rho.*ds0dy) .*Deriv(:,2,Inod) ).*detJw;
 
-        PhiTerm=-dt*K.*(dPhidx.*Deriv(:,1,Inod)+dPhidy.*Deriv(:,2,Inod)).*detJw;
+        Phi01Term=-dt.*K.*(dPhidx.*Deriv(:,1,Inod)+dPhidy.*Deriv(:,2,Inod));
+        
 
-        aw0term=dt*(1-theta)*aw0int.*fun(Inod).*detJw;
-        aw1term=dt*theta*aw1int.*fun(Inod).*detJw;
+        aw0term=dt*(1-theta)*aw0int.*fun(Inod);
+        aw1term=dt*theta*aw1int.*fun(Inod);
 
 
-        b1(:,Inod)=b1(:,Inod)+N0term+Vx0dN0dx+Vy0dN0dy+NTerm+PhiTerm+aw0term+aw1term ;
+        b1(:,Inod)=b1(:,Inod)+(N0term+N1term+K0dN0term+K1dN1term+Phi01Term+aw0term+aw1term).*detJw;
 
     end
 end

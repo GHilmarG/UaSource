@@ -93,6 +93,7 @@ classdef UaFields
 
         N=[] ; 
         aw=[];
+        phi=[] ;
 
         txx=[];
         txy=[];
