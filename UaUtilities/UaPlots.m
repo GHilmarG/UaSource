@@ -89,7 +89,7 @@ if isnumeric(Variable)
         F.vb=full(Variable(:,2));
         Variable="-uv-";
     else
-        Variable=full(Variable(:));
+        Variable=full(Variable);
     end
 end
 
