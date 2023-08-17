@@ -44,9 +44,11 @@ function [Qn,Qt,qn,qt,xc,yc,normal,t]=PathIntegral(CtrlVar,x,y,qx,qy)
 % points at fixed distance along a cure, consider uisng "interparc.m" by John D'Errico which is included in the UaSource
 % directory, or can be donwloaded from Matlab central file exchange.
 %
-% 
+% Npoints=300 ; pt=interparc(Npoints,x,y,'linear');  figure(1) ; plot(pt(:,1),pt(:,2),"o-") ; axis equal
 %
 %
+
+
 
 
 isInterpolant=isa(qx,"scatteredInterpolant") || isa(qx,"griddedInterpolant") ; 
