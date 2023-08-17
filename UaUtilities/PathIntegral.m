@@ -20,6 +20,9 @@ function [Qn,Qt,qn,qt,xc,yc,normal,t]=PathIntegral(CtrlVar,x,y,qx,qy)
 %         1) vectors with the q values at the locations (x,y)
 %         2) interpolants providing qx and qy values at (x,y)
 %
+%
+%
+%
 % Example:
 %
 % 
@@ -37,7 +40,13 @@ function [Qn,Qt,qn,qt,xc,yc,normal,t]=PathIntegral(CtrlVar,x,y,qx,qy)
 % [Qn,Qt,qn,qt,xc,yc,normal]=PathIntegral(CtrlVar,F.x(BoundaryNodes),F.y(BoundaryNodes),Fqx,Fqy);
 %
 %
-% %%
+% Note: This simple routine just takes the (x,y) values provided, and does not subdivide the curve further. To create set of
+% points at fixed distance along a cure, consider uisng "interparc.m" by John D'Errico which is included in the UaSource
+% directory, or can be donwloaded from Matlab central file exchange.
+%
+% 
+%
+%
 
 
 isInterpolant=isa(qx,"scatteredInterpolant") || isa(qx,"griddedInterpolant") ; 
