@@ -1,4 +1,5 @@
 function y = DiracDelta(k,x,x0)
+
 	% Approximation to the Dirac Delta function
 	%  The width of the approximation is about 1/k
 	%  the limit k -> infty is the Dirac Delta  function

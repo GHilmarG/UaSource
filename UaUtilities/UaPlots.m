@@ -44,6 +44,7 @@ arguments
     options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
     options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.GetRidOfValuesDownStreamOfGroundingLines=false;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
@@ -120,6 +121,22 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
     if isnumeric(Variable)
         if numel(Variable)==MUA.Nnodes
             Variable(~F.LSFMask.NodesIn)=NaN;
+        end
+    end
+
+
+end
+
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)
+
+ 
+
+    F.ub(F.GF.node<0.5)=NaN;
+    F.vb(F.GF.node<0.5)=NaN;
+
+    if isnumeric(Variable)
+        if numel(Variable)==MUA.Nnodes
+            Variable(F.GF.node<0.5)=NaN;
         end
     end
 

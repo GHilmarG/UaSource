@@ -7,46 +7,64 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 
 
 
-if isempty(CtrlVar) || ~isstruct(CtrlVar) || ~isfield(CtrlVar,"lsqUa") 
 
-    ItMax=5;
-    gTol=1e-20;
-    dR2Tol=1e-3;
-    dxTol=1e-20;
 
-    isLSQ=true;
-    Normalize=false ;
-    SaveIterate=false;
-    LevenbergMarquardt="auto" ; % "fixed"
-    LMlambda=1 ;
-    ScaleProblem=false;
-    LMlambdaUpdateMethod=1;
-    InfoLevelNonLinIt=10;
-    lsqDogLeg="-Newton-Cauchy-";
-    CostMeasure="R2" ; % "r2"
+ItMax=5;
+gTol=1e-20;
+dR2Tol=1e-3;
+dxTol=1e-20;
+isLSQ=true;
+Normalize=false ;
+SaveIterate=false;
+lsqDogLeg="-Newton-Cauchy-";
+CostMeasure="R2" ; % "r2"
 
-else
+if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
 
-    ItMax=CtrlVar.lsqUa.ItMax ;
-    gTol=CtrlVar.lsqUa.gTol ;
-    dR2Tol=CtrlVar.lsqUa.dR2Tol ;
-    dxTol=CtrlVar.lsqUa.dxTol ;
+    if isfield(CtrlVar.lsqUa,"ItMax")
+        ItMax=CtrlVar.lsqUa.ItMax ;
+    end
 
-    isLSQ=CtrlVar.lsqUa.isLSQ ;
-    Normalize=CtrlVar.lsqUa.Normalize;
-    LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
-    LMlambda=CtrlVar.lsqUa.LMlambda0 ;
-    ScaleProblem=CtrlVar.lsqUa.ScaleProblem;
+    if isfield(CtrlVar.lsqUa,"gTol")
+        gTol=CtrlVar.lsqUa.gTol ;
+    end
 
-    LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
+    if isfield(CtrlVar.lsqUa,"dR2Tol")
 
-    SaveIterate=CtrlVar.lsqUa.SaveIterate;
-    InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
-    lsqDogLeg=CtrlVar.lsqUa.DogLeg ; 
-    CostMeasure=CtrlVar.lsqUa.CostMeasure;
+        dR2Tol=CtrlVar.lsqUa.dR2Tol ;
+    end
 
+    if isfield(CtrlVar.lsqUa,"dxTol")
+        dxTol=CtrlVar.lsqUa.dxTol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"isLSQ")
+        isLSQ=CtrlVar.lsqUa.isLSQ ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"Normalize")
+        Normalize=CtrlVar.lsqUa.Normalize;
+    end
+    if isfield(CtrlVar.lsqUa,"SaveIterate")
+        SaveIterate=CtrlVar.lsqUa.SaveIterate;
+    end
+
+    if isfield(CtrlVar.lsqUa,"InfoLevelNonLinIt")
+        InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
+    end
+
+    if isfield(CtrlVar.lsqUa,"DogLeg")
+        lsqDogLeg=CtrlVar.lsqUa.DogLeg ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"CostMeasure")
+        CostMeasure=CtrlVar.lsqUa.CostMeasure;
+
+
+    end
 
 end
+
 
 R2Array=nan(ItMax+1,1) ;
 r2Array=nan(ItMax+1,1) ;
@@ -128,7 +146,7 @@ else
 end
 iteration=0 ;
 
-fprintf("\n\t Start lsqUa: \t  r2=%g \t         R2=%g \n \n",r2,R2)
+% fprintf("\n\t Start lsqUa: \t  r2=%g \t         R2=%g \n \n",r2,R2)
 
 
 %%
@@ -149,8 +167,8 @@ while iteration <= ItMax
     iteration=iteration+1 ;
 
     K0=K ; R0=R; x0=x ; lambda0=lambda ; h0=h ; g0=g;
-    R20=R2;  r20=r2 ;  J0=J ;  
-    r2=nan ; JminN=nan ; JminC=nan ; R2minCN=nan ; Slope0=nan ; 
+    R20=R2;  r20=r2 ;  J0=J ;
+    r2=nan ; JminN=nan ; JminC=nan ; R2minCN=nan ; Slope0=nan ;
 
     if isLSQ
         KK0=K0'*K0;
@@ -172,7 +190,7 @@ while iteration <= ItMax
         CtrlVar.BacktrackStepRatio=1e-2;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
-        
+
 
         [JminN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
 
@@ -268,7 +286,7 @@ while iteration <= ItMax
             % funcCN=@(gamma) R2func(gamma,dxC2N,dlambdaC2N,fun,xC,lambdaC) ;
 
 
-            funcCN=@(gamma)  Jlsqfunc(CtrlVar,gamma,dxC2N,dlambdaC2N,fun,L,c,xC,lambdaC)
+            funcCN=@(gamma)  Jlsqfunc(CtrlVar,gamma,dxC2N,dlambdaC2N,fun,L,c,xC,lambdaC);
 
 
             TolX=0.01;
@@ -384,7 +402,7 @@ while iteration <= ItMax
     end
 
     if r2 < gTol
-        fprintf("lsqUa: Exiting iteration because |g|^2 within set tolerance of %g \n",gTol)
+        fprintf("lsqUa: Exiting iteration because |g|^2=%g within set tolerance of %g \n",r2,gTol)
         break
     end
 
@@ -396,7 +414,7 @@ while iteration <= ItMax
 
     maxdR2=max(dR2);
     if maxdR2 < dR2Tol
-        fprintf("lsqUa: Exiting iteration because max change in |R|^2 over last two iterations (%g) less than the set tolerance of %g \n",maxdR2,dR2Tol)
+        fprintf("lsqUa: Exiting iteration because max change in |R|^2=%g over last two iterations, less than the set tolerance of %g \n",maxdR2,dR2Tol)
         break
     end
 
@@ -409,10 +427,10 @@ while iteration <= ItMax
 
 end
 
-Slope0=2*R'*K*dx ;
+Slope0=full(2*R'*K*dx) ;
 Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based on final R and K values
 
-fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
+% fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
 
 
 if CostMeasure=="R2"

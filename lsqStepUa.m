@@ -67,8 +67,8 @@ if CostMeasure=="R2"
 
     J0=full(R0'*R0) ;
     K0dx=K0*dx ;
-    Slope0=2*R0'*K0dx ;
-    gammaEst=-(R0'*K0dx)/(K0dx'*K0dx);
+    Slope0=full(2*R0'*K0dx) ;
+    gammaEst=-full((R0'*K0dx)/(K0dx'*K0dx));
 
 elseif CostMeasure=="r2"
     
@@ -83,13 +83,13 @@ elseif CostMeasure=="r2"
     else
         Hd=H0*dx ;
     end
-    Slope0=-2*d'*Hd;              % this should be equal to -2*d'*d
-    gammaEst=d'*Hd/(Hd'*Hd) ;     % I have the minus in the solve
+    Slope0=-full(2*d'*Hd);              % this should be equal to -2*d'*d
+    gammaEst=full(d'*Hd/(Hd'*Hd)) ;     % I have the minus in the solve
 
 end
 
 s=-2*J0; 
-fprintf("Slope0=%g \t -2J0=%g \t Slope0/(-2J0)=%g \n ",Slope0,s,Slope0/s)
+% fprintf("Slope0=%g \t -2J0=%g \t Slope0/(-2J0)=%g \n ",Slope0,s,Slope0/s)
 
 
 
@@ -110,14 +110,17 @@ funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0,K0) 
 
 J=nan;
 
-CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
+% CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
 
 %CtrlVar.NewtonAcceptRatio=0.001;
 
 [gammamin,Jmin,BackTrackInfo]=BackTracking(Slope0,gammaEst,J0,J,funcBackTrack,CtrlVar);
 
 
-
+Jmin=full(Jmin) ;
+gammamin=full(gammamin) ;
+Slope0=full(Slope0); 
+gammaEst=full(gammaEst);
 
 
 

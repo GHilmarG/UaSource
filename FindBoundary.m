@@ -8,18 +8,32 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 %
 %    Boundary.FreeElements : a list of elements with free edges, each edge listed once, ie if an
 %                            element has more than one free edge, it is listed more than once.
-%           Boundary.Edges : all free boundary edges of the FE mesh, each edge defined by the two corner nodes
-%            Boundary.Edge : cell array with three elements listing the relative node numbers for each edge depending on the type of element.
+%           Boundary.Edges : all edge nodes ever every edge. size is: number of free edges \times number of edge nodes
+%                            For example: 
+%                            For a 3-node element, the size would be: number of free edges in mesh \times 2
+%                            For a 6-node element, the size would be: number of free edges in mesh \times 3                            
+%                            For a 10-node element, the size would be: number of free edges in mesh \times 4
+%            Boundary.Edge : cell array with three elements, listing the relative node numbers for each edge depending on the type of element.
+%   Boundary.x, Boundary.y : x,y coordinates of corner nodes along the boundary, ordered in a sequence.
+%
 %
 % The boundary can be plotted using PlotBoundary(Boundary,connectivity,coordinates,CtrlVar)
 %
 % Note that the first and last of Boundary.EdgeCornerNodes are not the same nodes
 % i.e. the loop does note close. If doing inside-out tests, then this loops must be closed first
 %
-% Plot boundary, with all edge nodes included
+% Plot boundary, with all edge nodes included.
 %
-% figure ; plot(F.x(MUA.Boundary.Edges)',F.y(MUA.Boundary.Edges)','-*r',LineWidth=2)
-
+%   figure ; plot(F.x(MUA.Boundary.Edges)',F.y(MUA.Boundary.Edges)','-*r',LineWidth=2)
+%
+% This is an ordered list tracing the boundary.
+%
+% Also:
+%
+%   plot(x(MUA.Boundary.Nodes(:,1)) /CtrlVar.PlotXYscale,y(MUA.Boundary.Nodes(:,1))/CtrlVar.PlotXYscale,"*b")
+%
+% this is not an ordered list tracing the boundary.
+%
 [Nele,nod]=size(connectivity);
 
 if Nele==0
@@ -97,6 +111,22 @@ xa=coordinates(Boundary.Edges(:,1),1); xb=coordinates(Boundary.Edges(:,end),1);
 ya=coordinates(Boundary.Edges(:,1),2); yb=coordinates(Boundary.Edges(:,end),2);
 
 [Boundary.x,Boundary.y]=LineUpEdges2([],xa,xb,ya,yb);
+
+%% Added 19 August, 2023
+% This is a ordered list of (x,y) boundary coordinates. Includes all boundary nodes, also those for 6 and 10 node elements
+% However, this will almost certainly not work if the mesh is split into several disconected regions.
+% For that to work, I would need to construct 2-point edges from the Boundary.Edges, and then use LineUpEdges
+%
+%
+
+
+x=coordinates(:,1); y=coordinates(:,2); 
+xx=x(Boundary.Edges(:,1:end-1))'; xx=xx(:) ;
+yy=y(Boundary.Edges(:,1:end-1))'; yy=yy(:) ;
+
+xLast=x(Boundary.Edges(end,end)); yLast=y(Boundary.Edges(end,end));
+Boundary.Coordinates=[xx yy ; xLast yLast ];
+
 
 
 
