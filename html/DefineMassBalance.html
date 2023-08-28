@@ -6,8 +6,8 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineMassBalance</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-18"><meta name="DC.source" content="DefineMassBalance.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      --><title>DefineMassBalance</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-08-25"><meta name="DC.source" content="DefineMassBalance.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +23,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +52,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,18 +67,25 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 </pre><p>Defines mass balance along upper and lower ice surfaces.</p><pre class="language-matlab">[UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+</pre><pre class="language-matlab">[UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
 </pre><pre class="language-matlab">[UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 </pre><pre class="language-matlab">as        <span class="string">mass</span> <span class="string">balance</span> <span class="string">along</span> <span class="string">upper</span> <span class="string">surface</span>
 ab        <span class="string">mass</span> <span class="string">balance</span> <span class="string">along</span> <span class="string">lower</span> <span class="string">ice</span> <span class="string">surface</span>
 dasdh     <span class="string">upper</span> <span class="string">surface</span> <span class="string">mass</span> <span class="string">balance</span> <span class="string">gradient</span> <span class="string">with</span> <span class="string">respect</span> <span class="string">to</span> <span class="string">ice</span> <span class="string">thickness</span>
 dabdh     <span class="string">lower</span> <span class="string">surface</span> <span class="string">mass</span> <span class="string">balance</span> <span class="string">gradient</span> <span class="string">with</span> <span class="string">respect</span> <span class="string">to</span> <span class="string">ice</span> <span class="string">thickness</span>
-</pre><p>dasdh and dabdh only need to be specified if the mass-balance feedback option is being used.</p><p>In &Uacute;a the mass balance, as returned by this m-file, is multiplied internally by the local ice density.</p><p>The units of as and ab are water equivalent per time, i.e. usually as and ab will have the same units as velocity (something like m/yr or m/day).</p><p>Examples:</p><p>To set upper surface mass balance to zero, and melt along the lower ice surface to 10 over all ice shelves:</p><pre class="language-matlab">as=zeros(MUA.Nnodes,1);
-ab=-(1-GF.node)*10
-</pre><p>To set upper surface mass balance as a function of local surface elevation and prescribe mass-balance feedback for the upper surface:</p><pre class="language-matlab">as=0.1*h+b;
+</pre><p>dasdh and dabdh only need to be specified if the mass-balance feedback option is being used.</p><p>In &Uacute;a the mass balance, as returned by this m-file, is multiplied internally by the local ice density.</p><p>The units of as and ab are water equivalent per time, i.e. usually as and ab will have the same units as velocity (something like m/yr or m/day).</p><p>As in all other calls:</p><pre>F.s           is upper ice surface
+F.b           is lower ice surface
+F.B           is bedrock
+F.S           is ocean surface</pre><pre class="language-matlab">F.rhow    :  ocean density (scalar variable)
+F.rho     :  ice density (nodal variable)
+F.g       :  gravitational acceleration
+</pre><p>These fields need to be returned at the nodal coordinates. The nodal x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y</p><p>Examples:</p><p>To set upper surface mass balance to zero, and melt along the lower ice surface to 10 over all ice shelves:</p><pre class="language-matlab">as=zeros(MUA.Nnodes,1);
+ab=-(1-F.GF.node)*10
+</pre><p>To set upper surface mass balance as a function of local surface elevation and prescribe mass-balance feedback for the upper surface:</p><pre class="language-matlab">as=0.1*F.h+F.b;
 dasdh=zeros(MUA.Nnodes,1)+0.1;
-ab=s*0;
+ab=F.s*0;
 dabdh=zeros(MUA.Nnodes,1);
 </pre><pre class="codeinput"><span class="comment">%rhofw=1000;</span>
 <span class="comment">%L=3.34e5;</span>
@@ -113,7 +121,7 @@ as=0.3;
             Hc0=75;
             Omega=0.2 ;
             z0=-100;
-            ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+            ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
 
 
             <span class="comment">% when b&gt;-100, for example b=-50 , then   z0-b=-100+50 =-50 &lt; 0</span>
@@ -128,15 +136,15 @@ as=0.3;
         Hc0=75;
         Omega=0.2 ;
         z0=-100;
-        ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+        ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
 
     <span class="keyword">case</span> <span class="string">'ice2ra'</span>
 
-        <span class="comment">% basal metl at 100 m/a for x&gt;48km for the first 100 years, then zero</span>
+        <span class="comment">% basal melt at 100 m/a for x&gt;48km for the first 100 years, then zero</span>
         <span class="keyword">if</span> time&lt;=100
 
             ab=zeros(MUA.Nnodes,1);
-            I=MUA.coordinates(:,1)&gt;480e3;
+            I=F.x&gt;480e3;
             ab(I)=-100;
 
         <span class="keyword">else</span>
@@ -146,7 +154,7 @@ as=0.3;
     <span class="keyword">case</span> <span class="string">'ice2rr'</span>
 
         ab=zeros(MUA.Nnodes,1);
-        I=MUA.coordinates(:,1)&gt;480e3;
+        I=F.x&gt;480e3;
         ab(I)=-100;
 
     <span class="keyword">otherwise</span>
@@ -154,19 +162,18 @@ as=0.3;
         error(<span class="string">'case not found'</span>)
 
 <span class="keyword">end</span>
-</pre><pre class="codeoutput error">Not enough input arguments.
-
-Error in DefineMassBalance (line 63)
-switch UserVar.MisExperiment
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
-function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
+
 
 %%
 % Defines mass balance along upper and lower ice surfaces.
 %
 %   [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+%
+%   [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
 %
 %   [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 %
@@ -183,21 +190,35 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rh
 % The units of as and ab are water equivalent per time, i.e. usually
 % as and ab will have the same units as velocity (something like m/yr or m/day).
 %
+% As in all other calls:
+%
+%  F.s           is upper ice surface
+%  F.b           is lower ice surface
+%  F.B           is bedrock
+%  F.S           is ocean surface
+%
+%   F.rhow    :  ocean density (scalar variable)
+%   F.rho     :  ice density (nodal variable)
+%   F.g       :  gravitational acceleration
+%
+% These fields need to be returned at the nodal coordinates. The nodal
+% x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y
+%
 % Examples:  
 %
 % To set upper surface mass balance to zero, and melt along the lower ice
 % surface to 10 over all ice shelves:
 %
 %   as=zeros(MUA.Nnodes,1);
-%   ab=-(1-GF.node)*10 
+%   ab=-(1-F.GF.node)*10 
 %
 %
 % To set upper surface mass balance as a function of local surface elevation and
 % prescribe mass-balance feedback for the upper surface:
 %
-%   as=0.1*h+b;
+%   as=0.1*F.h+F.b;
 %   dasdh=zeros(MUA.Nnodes,1)+0.1;
-%   ab=s*0;
+%   ab=F.s*0;
 %   dabdh=zeros(MUA.Nnodes,1);
 %
 % 
@@ -238,7 +259,7 @@ switch UserVar.MisExperiment
             Hc0=75;
             Omega=0.2 ;
             z0=-100;
-            ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+            ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
             
             
             % when b>-100, for example b=-50 , then   z0-b=-100+50 =-50 < 0 
@@ -253,15 +274,15 @@ switch UserVar.MisExperiment
         Hc0=75;
         Omega=0.2 ;
         z0=-100;
-        ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+        ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
         
     case 'ice2ra'
         
-        % basal metl at 100 m/a for x>48km for the first 100 years, then zero
+        % basal melt at 100 m/a for x>48km for the first 100 years, then zero
         if time<=100
             
             ab=zeros(MUA.Nnodes,1);
-            I=MUA.coordinates(:,1)>480e3;
+            I=F.x>480e3;
             ab(I)=-100;
             
         else
@@ -271,7 +292,7 @@ switch UserVar.MisExperiment
     case 'ice2rr'
         
         ab=zeros(MUA.Nnodes,1);
-        I=MUA.coordinates(:,1)>480e3;
+        I=F.x>480e3;
         ab(I)=-100;
         
     otherwise

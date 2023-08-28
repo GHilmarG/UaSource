@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Ua</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-02-25"><meta name="DC.source" content="Ua.m"><style type="text/css">
+      --><title>Ua</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-08-25"><meta name="DC.source" content="Ua.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -93,7 +93,9 @@ alpha       : Slope of the coordinate system with respect to gravity.
 g           : The gravitational acceleration.
 GF          : a floating/grounded mask. This is a structure with the two
               fields: node and ele. This are 1 if a node/element is grounded, 0 if
-              node/element is afloat.</pre><h2 id="9">The variable CtrlVar</h2><p>&Uacute;a uses a the variable `CtrlVar' to define various run parameters.</p><p>This variable is defined by the user in `Ua2D_InitialUserInput.m'. The variable has a large number of fields. List of all fields with descriptions can be found in  `Ua2D_DefaultParameters.m'</p><pre class="language-matlab">help <span class="string">Ua2D_Defaultparameters</span>
+              node/element is afloat.</pre><p>All field variables, ie all values defined over nodes, can be accessed through the variable F. For example</p><pre class="language-matlab">s    <span class="string">is</span>   <span class="string">F.s</span>
+b    <span class="string">is</span>   <span class="string">F</span>,b
+</pre><p>and so on</p><h2 id="9">The variable CtrlVar</h2><p>&Uacute;a uses a the variable `CtrlVar' to define various run parameters.</p><p>This variable is defined by the user in `Ua2D_InitialUserInput.m'. The variable has a large number of fields. List of all fields with descriptions can be found in  `Ua2D_DefaultParameters.m'</p><pre class="language-matlab">help <span class="string">Ua2D_Defaultparameters</span>
 doc <span class="string">Ua2D_DefaultParameters</span>
 </pre><p>CtlrVar is only defined at the start of the run in Ua2D_InitialUserInput. It can not be modified in any of the other user m-input files.</p><p>In a restart run, CtrlVar is again always defined at the beginning of the run in Ua2D_InitialUserInput. It is not read from the restart file.</p><h2 id="10">The variable UserVar</h2><p>The variable UserVar is given as an input and output to all user m-files.</p><p>It is never used by &Uacute;a.</p><p>The user can use this variable to exchange information between his/her own user m-files, or for whatever other purpose required.</p><p>UserVar can be modified at the start of the run in Ua2D_InitialUserInput. as well as in all user m-input files.</p><p>In a restart run, UserVar is again always defined at the beginning of the run in Ua2D_InitialUserInput. It is not read from the restart file.</p><h2 id="11">Getting information about the FE mesh from within user m-files:</h2><p>In all user m-files the variable MUA is given as an input. MUA contains all information about the FE mesh.</p><p>MUA is a structured variable with the following fields:</p><pre>    coordinates:  Nnodes x 2 array with the x and y coordinates of all nodal
                   points
@@ -109,7 +111,7 @@ doc <span class="string">Ua2D_DefaultParameters</span>
                   MUA.Boundary=FindBoundary(connectivity,coordinates); and
                   info about the fields can be found in `FindBoundary.m'
           Deriv:  element derivatives
-           DetJ:  element determinants</pre><p>The values of MUA should never be changed directly by the user.</p><h2 id="12">Meshing</h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput. In that case &Uacute;a will call an external mesh generator. The external mesh generator used by &Uacute;a is "gmsh" which is a well known and well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>). The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p>For examples of how to generate different type of meshes run <b>ExamplesOfMeshGeneration</b></p><p>The ExamplesOfMeshGeneration.m contains information and examples on how to define inputs for various types of meshes.</p><p>There are also various ways of refining the mesh. Both global and local (explicit) adaptive meshing is supported. See further explanations in 'Ua2D_DefaultParamters.m'</p><pre class="codeinput"><span class="comment">%</span>
+           DetJ:  element determinants</pre><p>The values of MUA should never be changed directly by the user.</p><h2 id="12">Meshing</h2><p>There are various ways of meshing the computational domain.</p><p>In almost all cases the simplest option tends to be to define the outlines of the computational domain in Ua2D_InitialUserInput. In that case &Uacute;a will call an external mesh generator. The external mesh generator used by &Uacute;a is "gmsh" which is a well known and well supported open source mesh generator (<a href="http://geuz.org/gmsh/">http://geuz.org/gmsh/</a>). The outlines of the mesh are defined by the variable 'MeshBoundaryCoordinates' set in Ua2D_InitialUserInput.m. This approach is quite flexible and allows for complicated computational domains containing holes and/or separated domains.</p><p>For examples of how to generate different type of meshes run <b>ExamplesOfMeshGeneration</b></p><p>The ExamplesOfMeshGeneration.m contains information and examples on how to define inputs for various types of meshes.</p><p>There are also various ways of refining the mesh. Both global and local (explicit) adaptive meshing is supported. See further explanations in 'Ua2D_DefaultParameters.m'</p><pre class="codeinput"><span class="comment">%</span>
 <span class="comment">%</span>
 
 
@@ -125,8 +127,13 @@ doc <span class="string">Ua2D_DefaultParameters</span>
 
 
 UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin{:});
+
+
+<span class="keyword">if</span> ~nargout   <span class="comment">% A trick to suppress any function output if no output requested. No need to suppress output using ;</span>
+    clearvars <span class="string">UserVar</span>
+<span class="keyword">end</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 
@@ -255,8 +262,12 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %                fields: node and ele. This are 1 if a node/element is grounded, 0 if
 %                node/element is afloat.
 %    
+% All field variables, ie all values defined over nodes, can be accessed through the variable F. For example
 %
+%   s    is   F.s
+%   b    is   F,b
 %
+% and so on
 %
 %% The variable CtrlVar
 % Úa uses a the variable `CtrlVar' to define various run parameters.
@@ -335,7 +346,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
-% 'Ua2D_DefaultParamters.m'
+% 'Ua2D_DefaultParameters.m'
 %%
 
 %
@@ -354,6 +365,13 @@ end
 
 
 UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin{:});
+
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars UserVar
+end
+
+
 
 
 end

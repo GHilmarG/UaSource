@@ -392,8 +392,8 @@ while iteration <= ItMax
 
     elseif CostMeasure=="r2"
 
-        fprintf("lsqUa: \t it=%2i%s  \t     |r|^2=%-13g \t     |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
-            iteration,StepString,r2,r2Ratio,gammamin,R2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+        fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+            iteration,StepString,r2,r20,r2Ratio,gammamin,R2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
 
     else
 
@@ -419,7 +419,7 @@ while iteration <= ItMax
     end
 
     if iteration >= ItMax
-        fprintf("lsqUa: Exiting iteration because number of iterations has reached the set maximum of %i \n",ItMax)
+        fprintf("lsqUa: [\b Exiting]\b  iteration because number of iterations has reached the set maximum of %i \n",ItMax)
         break
 
     end

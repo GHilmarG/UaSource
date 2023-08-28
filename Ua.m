@@ -125,8 +125,12 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %                fields: node and ele. This are 1 if a node/element is grounded, 0 if
 %                node/element is afloat.
 %    
+% All field variables, ie all values defined over nodes, can be accessed through the variable F. For example
 %
+%   s    is   F.s
+%   b    is   F.b
 %
+% and so on.
 %
 %% The variable CtrlVar
 % Úa uses a the variable `CtrlVar' to define various run parameters.
