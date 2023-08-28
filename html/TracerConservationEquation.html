@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>TracerConservationEquation</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-01-02"><meta name="DC.source" content="TracerConservationEquation.m"><style type="text/css">
+      --><title>TracerConservationEquation</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-08-13"><meta name="DC.source" content="TracerConservationEquation.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -68,7 +68,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
-</pre><p>Solves the linear tracer conservation equation for the tracer c on the form:</p><p><img src="TracerConservationEquation_eq17410225549572698178.png" alt="$$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$" style="width:291px;height:15px;"></p><p>The natural boundary condition is</p><p><img src="TracerConservationEquation_eq00604090360271690522.png" alt="$$\nabla c \cdot \hat{n} = 0 $$" style="width:64px;height:11px;"></p><p>ie,  the free outflow condition</p><p>It gives c1 at the end of the time step, i.e. time=time+dt</p><p>c is solved implicitly using the theta method ie:  \Delta c / Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt</p><p>with   theta=CtrlVar.theta; and SUPG with tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);</p><p>Boundary conditions: The BCs are identical to define thickness boundary conditions. So define the relevant BCs as you were defining BCs for h and these will be used for c.</p><pre class="codeinput">[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
+</pre><p>Solves the linear tracer conservation equation for the tracer c on the form:</p><p><img src="TracerConservationEquation_eq17410225549572698178.png" alt="$$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$" style="width:291px;height:15px;"></p><p><img src="TracerConservationEquation_eq08534622643356629570.png" alt="$$\partial c/\partial t + \nabla (c \mathbf{v} )- \nabla \cdot (\kappa \nabla c) = a$$" style="width:199px;height:15px;"></p><p>The natural boundary condition is</p><p><img src="TracerConservationEquation_eq00604090360271690522.png" alt="$$\nabla c \cdot \hat{n} = 0 $$" style="width:64px;height:11px;"></p><p>It gives c1 at the end of the time step, i.e. time=time+dt</p><p>c is solved implicitly using the theta method ie:  \Delta c / Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt</p><p>with   theta=CtrlVar.theta; and SUPG with tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);</p><p>Boundary conditions: The BCs are identical to define thickness boundary conditions. So define the relevant BCs as you were defining BCs for h and these will be used for c.</p><pre class="codeinput">[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
 
 <span class="comment">% Now apply BCs.</span>
 <span class="comment">% Note: When defining tracer boundary conditions, use the thickness fields (h) in the BCs structure</span>
@@ -82,7 +82,7 @@ L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;
 [c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);
 c1=full(c1);
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa,BCsTracer)
 
@@ -90,12 +90,14 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 % Solves the linear tracer conservation equation for the tracer c on the form:
 % 
 % $$\partial c/\partial t + d (u c)/dx + d (v c)/dy - \nabla \cdot (\kappa \nabla c) = a$$
+%
+% $$\partial c/\partial t + \nabla (c \mathbf{v} )- \nabla \cdot (\kappa \nabla c) = a$$
 % 
 % The natural boundary condition is 
 %
 % $$\nabla c \cdot \hat{n} = 0 $$
 %
-% ie,  the free outflow condition 
+% 
 %
 % It gives c1 at the end of the time step, i.e. time=time+dt
 %

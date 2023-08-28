@@ -1,8 +1,12 @@
 function [UserVar,RunInfo,LSF,LSFMask,LSFnodes,l,LSFqx,LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
+% 
+% 
+% $$\partial_t f +  \mathbf{v} \cdot \nabla f  - \nabla \cdot (\kappa \nabla f) = c \, \|(\nabla f)\|$$
+% 
 %
-%    df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
+%  df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f)
 %
 %    df/dt + (u-cx) df/dx + (v-cy) df/dy - div (kappa grad f) = 0
 %
@@ -121,7 +125,7 @@ else
 end
 
 
-%% TestIng: Calculating  various potential calving-law related quantities ahead of a call to the level-set equation sovler
+%% TestIng: Calculating  various potential calving-law related quantities ahead of a call to the level-set equation solver
 if CtrlVar.LevelSetMethodTest 
 
     [F0.exx,F0.eyy,F0.exy]=CalcNodalStrainRates(MUA,F0.ub,F0.vb);

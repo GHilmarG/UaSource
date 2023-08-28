@@ -1,6 +1,6 @@
 function [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue)
 
-% Úa
+% �a
 
 
 narginchk(8,9)
@@ -110,14 +110,22 @@ if CtrlVar.TimeDependentRun
 
         end
 
+
+        CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
+        % Here within GetGeometryAndDensities, here b and h are calculated from s, S and B
+        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
+        % Important to do this ahead of call the GetCalving in case the user wants to define LSF in terms of GF (as points out by
+        % Sainan Sun on 2nd August, 2023)
+
+
         if  CtrlVar.LevelSetMethod
 
             if CtrlVar.LevelSetEvolution=="-Prescribed-"
 
                 fprintf("MapFbetweenMeshes: LevelSetEvolution is prescribed, so when mapping onto a new mesh, the levelset is defined through a call to DefineCalving.m \n")
                 BCsNew=[] ; % BCs have yet to be defined
-                Fnew.LSF=[] ; 
-                [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ; 
+                Fnew.LSF=[] ;
+                [UserVar,Fnew]=GetCalving(UserVar,CtrlVar,MUAnew,Fnew,BCsNew) ;
 
             else
 
@@ -133,9 +141,6 @@ if CtrlVar.TimeDependentRun
         end
 
 
-        CtrlVar.Calculate.Geometry=CtrlVar.MapOldToNew.Transient.Geometry ;
-        % Here within GetGeometryAndDensities, here b and h are calculated from s, S and B 
-        [UserVar,Fnew]=GetGeometryAndDensities(UserVar,CtrlVar,MUAnew,Fnew,"-S-B-rho-");
 
 
         if CtrlVar.MapOldToNew.Test

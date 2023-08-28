@@ -38,12 +38,13 @@ arguments
     CtrlVar struct
     MUA     struct
     F       {mustBeA(F,{'struct','UaFields','numeric'})}
-    Variable   {string, double}
+    Variable {mustBeA(Variable,{'string','numeric'})}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
     options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.GetRidOfValuesDownStreamOfGroundingLines=false;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
@@ -85,11 +86,11 @@ if isnumeric(Variable)
 
     [nV,mV]=size(Variable);
     if nV==MUA.Nnodes && mV==2
-        F.ub=Variable(:,1);
-        F.vb=Variable(:,2);
+        F.ub=full(Variable(:,1));
+        F.vb=full(Variable(:,2));
         Variable="-uv-";
     else
-        Variable=Variable(:);
+        Variable=full(Variable);
     end
 end
 
@@ -120,6 +121,22 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
     if isnumeric(Variable)
         if numel(Variable)==MUA.Nnodes
             Variable(~F.LSFMask.NodesIn)=NaN;
+        end
+    end
+
+
+end
+
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)
+
+ 
+
+    F.ub(F.GF.node<0.5)=NaN;
+    F.vb(F.GF.node<0.5)=NaN;
+
+    if isnumeric(Variable)
+        if numel(Variable)==MUA.Nnodes
+            Variable(F.GF.node<0.5)=NaN;
         end
     end
 
@@ -282,6 +299,13 @@ if options.PlotUnderMesh
 
 end
 
+if isempty(F.GF)
+
+    
+    
+
+end
+
 
 
 if options.PlotGroundingLines
@@ -310,5 +334,13 @@ end
 
 
 axis tight
+
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars cbar
+end
+
+
+
 
 end
