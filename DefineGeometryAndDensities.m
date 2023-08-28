@@ -25,15 +25,16 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 % As in all other calls:
 %
-%  s           is upper ice surface
-%  b           is lower ice surface
-%  B           is bedrock
-%  S           is ocean surface
-%
-%   rhow    :  ocean density (scalar variable)
-%   rho     :  ice density (nodal variable)
-
-%   g       :  gravitational acceleration
+%  F.s       : is upper ice surface
+%  F.b       : lower ice surface
+%  F.B       : bedrock
+%  F.S       : ocean surface
+%  F.rhow    :  ocean density (scalar variable)
+%  F.rho     :  ice density (nodal variable)
+%  F.g       :  gravitational acceleration
+%  F.x       : x nodal coordinates 
+%  F.y       : y nodal coordinates 
+%  F.GF      : The nodal grounded/floating mask (has other subfields)
 %
 % These fields need to be returned at the nodal coordinates. The nodal
 % x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y

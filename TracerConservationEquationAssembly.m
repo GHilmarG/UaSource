@@ -2,7 +2,7 @@
 
 function [UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,h0,u0,v0,a0,u1,v1,a1,kappa)
 
-% Note: Assembly for the linear tracer equationU
+% Note: Assembly for the linear tracer equation
 %  dc/dt + d (u c)/dx + d (v c)/dy - div (kappa grad c) = a
 
 %%

@@ -125,8 +125,12 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %                fields: node and ele. This are 1 if a node/element is grounded, 0 if
 %                node/element is afloat.
 %    
+% All field variables, ie all values defined over nodes, can be accessed through the variable F. For example
 %
+%   s    is   F.s
+%   b    is   F.b
 %
+% and so on.
 %
 %% The variable CtrlVar
 % Úa uses a the variable `CtrlVar' to define various run parameters.
@@ -205,7 +209,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
-% 'Ua2D_DefaultParamters.m'
+% 'Ua2D_DefaultParameters.m'
 %%
 
 %
@@ -224,6 +228,13 @@ end
 
 
 UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin{:});
+
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars UserVar
+end
+
+
 
 
 end

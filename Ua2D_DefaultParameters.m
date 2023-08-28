@@ -726,7 +726,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='-A-C-'
 %
 %
-%% Inversion algorithim: 
+%% Inversion algorithm: 
 %
 % The inversion can be done using either only the gradient, or gradient and an estimate of the Hessian
 % 
@@ -2006,8 +2006,8 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
-CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithim
-CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithim
+CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithm
+CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor

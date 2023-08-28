@@ -1,6 +1,14 @@
 function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F,ZeroFields)
 
-
+%%
+%
+%   [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F,ZeroFields)
+%
+%  uv SSA/SSTREAM assembly
+%
+%
+%
+%%
 
 if nargin<4
     CtrlVar.uvAssembly.ZeroFields=false;

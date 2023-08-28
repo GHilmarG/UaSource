@@ -2,6 +2,11 @@
 
 %%
 %
+% *Release Notes* _July 2023_
+%
+% * uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.
+%
+%
 % *Release Notes* _July 2022_
 %
 % * Call to DefineOutputs is now only done at the beginning and end of runs if the variables

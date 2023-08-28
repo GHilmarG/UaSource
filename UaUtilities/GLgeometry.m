@@ -129,7 +129,7 @@ GLgeo=zeros(Nele,10)+NaN ;  % I'm being a bit wastefull here with memory, but on
 % going in anti-clockwise direction there can only be one edge for each element for which
 % first node has a value less than threshold and the second one a value greater than threshold
 %
-% I'm assuming all elements have the right orientation, if not the algorithim
+% I'm assuming all elements have the right orientation, if not the algorithm
 % can fail!
 
 for iEdge=1:3

@@ -2,17 +2,7 @@ function MLC=BCs2MLC(CtrlVar,MUA,BCs)
 
 narginchk(3,3)
 
-%
-% this only works if MUA has not changed either, if MUA has changed, but BCs
-% have not, this will results in an error!
-% persistent LastMLC LastBCs
-%
-% if isequal(BCs,LastBCs)
-%     MLC=LastMLC;
-%     return
-% end
-%
-%
+
 
 MLC=MultiLinearConstraints;
 

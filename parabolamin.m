@@ -75,7 +75,7 @@ end
 %  rather than returning NaN I try to do something that might be reasonable in a one-sided line search
 if isnan(xmin) || (fa+(b-a)*(fc-fa)/(c-a)<fb)  %  not convex
     
-    if InfoLevel>=10
+    if InfoLevel>=10000
         fprintf(' parabolic fit not successful, try to improve.\n  ')
     end
     if fc < fb && fb < fa      % decreasing values

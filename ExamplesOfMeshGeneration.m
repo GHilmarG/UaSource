@@ -1,8 +1,8 @@
-%% Generating FE meshes from with Úa
+%% Generating FE meshes from with Ua
 %
 % Several examples of how to define meshes
 %
-% Note that when using Úa, the call to genmesh2d is not needed as this call is done from within Úa
+% Note that when using Ua, the call to genmesh2d is not needed as this call is done from within Ua
 % Also the call CtrlVar=Ua2D_DefaultParameters() is not needed either.
 %
 % To run individual examples you can use the matlab option of running code sections from within editor. 
@@ -11,13 +11,13 @@
 %
 %% Example: A simple polygon 
 % mesh boundary coordinates should go clockwise around the domain
-% (although if this is done incorrectly, Úa will automatically correct for this anyhow.)
+% (although if this is done incorrectly, Ua will automatically correct for this anyhow.)
 %
 UserVar=[];
 CtrlVar=Ua2D_DefaultParameters(); %
 CtrlVar.PlotXYscale=1; 
  CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
-% Note; When creating this mesh using Úa, only the following 
+% Note; When creating this mesh using Ua, only the following 
 % three lines are required in the Ua2D_InitialUserInput.m
 CtrlVar.MeshSizeMax=1; 
 CtrlVar.MeshSizeMin=0.01;
@@ -26,7 +26,7 @@ CtrlVar.MeshSize=0.025;
 MeshBoundaryCoordinates=[-1 -1 ; -1 0 ; 0 1 ; 1 0 ; 1 -1 ; 0 0];
 
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
-% Now generate mesh (When using Úa this is done internally, no such call
+% Now generate mesh (When using Ua this is done internally, no such call
 % then needed).
 
 
@@ -63,6 +63,8 @@ ElementsToBeCoarsened=false(MUAold.Nele,1);
 ElementsToBeRefined=true(MUAold.Nele,1);
 
 CtrlVar.MeshRefinementMethod='explicit:local:red-green' ;
+CtrlVar.LocalAdaptMeshSmoothingIterations=0;   % Maximum number of smoothing iteration using the 'red-green' local mesh refinement option. 
+                                                % Set to zero to disable mesh-smoothing after red-green refinement operation.
 RunInfo=UaRunInfo; 
 [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ; 
 
@@ -120,7 +122,7 @@ FindOrCreateFigure("MUAnew: Mesh unrefined local:newest vertex bisection") ; Plo
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
-% When using Úa only the following lines are needed in the input file
+% When using ï¿½a only the following lines are needed in the input file
 % Ua2D_InitialUserInput.m
 L=5e3 ; H=1e3;
 CtrlVar.MeshSizeMax=H/5;
@@ -142,8 +144,8 @@ CtrlVar.GmshGeoFileAdditionalInputLines{4}='Physical Line(4) = {4};';
 CtrlVar.GmshGeoFileAdditionalInputLines{5}='Physical Surface(1) = {1};';  
 CtrlVar.GmshGeoFileAdditionalInputLines{6}='Periodic Line {1,2} = {3,4};';
 % Now everything needed for mesh generation has been defined. If we are running
-% Úa this is all we need to do. But to see the resulting mesh we now
-% generate the mesh in the exact same way as Úa would do, i.e. through a call to
+% ï¿½a this is all we need to do. But to see the resulting mesh we now
+% generate the mesh in the exact same way as ï¿½a would do, i.e. through a call to
 % 'genmesh2d'.
 UserVar=[];
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
@@ -281,6 +283,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 %% Example: Mesh with several holes and islands
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.PlotXYscale=1; 
 CtrlVar.MeshGenerator='gmsh';  
 % CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
@@ -301,7 +304,9 @@ CtrlVar.GmshMeshingAlgorithm=8;    % see gmsh manual
 
 UserVar=[];
 [UserVar,MUA]=genmesh2d(UserVar,CtrlVar); 
-figure ; PlotMuaMesh(CtrlVar,MUA); 
+figex=FindOrCreateFigure("meshing example") ; clf(figex) ;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=true;
+PlotMuaMesh(CtrlVar,MUA); 
 hold on
 % also calculate and plot normals
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
