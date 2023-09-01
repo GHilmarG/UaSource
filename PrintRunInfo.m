@@ -2,7 +2,7 @@
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');
-fprintf(CtrlVar.fidlog,' **************************     Úa version: 28 August 2023 (alpha)  ********************** \n');
+fprintf(CtrlVar.fidlog,' **************************     Ãša version: 28 August 2023 (alpha)  ********************** \n');
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
@@ -30,6 +30,7 @@ if  CtrlVar.doDiagnostic
         fprintf(CtrlVar.fidlog,'   Time-independent model run.  \n ');
     end
 end
+
 
 if  CtrlVar.doPrognostic
     if CtrlVar.Restart

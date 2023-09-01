@@ -6,6 +6,7 @@ function lsqUaExample
 
 
 x0=[-10 ; 15] ;
+x0=[-5 ; 2] ;
 
 %  R=(x1,x2)
 
@@ -14,15 +15,15 @@ x0=[-10 ; 15] ;
 problemtype="[x1,x2]" ;                     %                   24.5                   24.5
 problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
 problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-% problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
+problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
 % problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
-% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;
+% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
 % problemtype="[x1^2,x2^2]" ;
   % problemtype="[x1^-100 x1,0]" ;
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
-problemtype="Beale" ; x0=[2 ; 0] ; 
+% problemtype="Beale" ; x0=[2 ; 0] ; 
 
 isConstraint=false;
 
@@ -51,9 +52,14 @@ CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.lsqUa.Algorithm="DogLeg" ;
 CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
+% CtrlVar.lsqUa.DogLeg="-Newton-" ; 
+CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
 
-CtrlVar.InfoLevelBackTrack=1000; 
+
 CompareWithMatlabOpt=false;
+
+CtrlVar.InfoLevelBackTrack=10000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
+
 
 % xSol =
 %
@@ -86,10 +92,9 @@ else
     L=[]; c=[];
 end
 
+ 
 [xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
 
-xSol
-lambda
 
 if numel(xSol)==2
 

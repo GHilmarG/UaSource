@@ -18,7 +18,7 @@ Normalize=false ;
 SaveIterate=false;
 lsqDogLeg="-Newton-Cauchy-";
 CostMeasure="R2" ; % "r2"
-
+StepString="  ";
 if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
 
     if isfield(CtrlVar.lsqUa,"ItMax")
@@ -245,7 +245,8 @@ while iteration <= ItMax
         CtrlVar.BacktrackStepRatio=1e-5;
         CtrlVar.LineSearchAllowedToUseExtrapolation=true;
       
-        
+        CtrlVar.BacktrackingGammaMin=1e-10;
+        CtrlVar.BacktrackStepRatio=1e-10; 
         [JminC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
       
         xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;

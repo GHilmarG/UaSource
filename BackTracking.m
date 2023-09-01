@@ -153,7 +153,7 @@ end
 target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
     
 if ~NoSlopeInformation
-    targetwithslope=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
+    targetwithslope=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa)
     target=max(target,targetwithslope);
     
     if target< 0
@@ -570,7 +570,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     
     if b<BacktrackingGammaMin
         if CtrlVar.InfoLevelBackTrack>=10000
-            fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size (%g).\n',b,BacktrackingGammaMin)
+            fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size CtrlVar.BacktrackingGammaMin=%g.\n',b,BacktrackingGammaMin)
         end
         break
     end
