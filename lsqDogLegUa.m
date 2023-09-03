@@ -19,6 +19,8 @@ SaveIterate=false;
 lsqDogLeg="-Newton-Cauchy-";
 CostMeasure="R2" ; % "r2"
 StepString="  ";
+InfoLevelNonLinIt= 1;
+
 if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
 
     if isfield(CtrlVar.lsqUa,"ItMax")
@@ -59,8 +61,10 @@ if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
 
     if isfield(CtrlVar.lsqUa,"CostMeasure")
         CostMeasure=CtrlVar.lsqUa.CostMeasure;
+    end
 
-
+    if isfield(CtrlVar,"CtrlVar.InfoLevelNonLinIt")
+        InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
     end
 
 end
@@ -110,6 +114,12 @@ end
 
 % Evaluate cost function, don't solve system
 [R,K]=fun(x) ;
+
+[nK,mK]=size(K);
+
+if ~isLSQ && nK~= mK
+    error(" The Jacobian does not have same columns as rows. This problem must be solved as a least-squares problem. Set CtrlVar.lsqUa.isLSQ=true \n")
+end
 
 if isLSQ
     g =- (2*K'*R + LTlambda) ;
