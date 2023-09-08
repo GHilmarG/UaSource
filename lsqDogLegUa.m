@@ -6,7 +6,52 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 
 
 
-
+%%
+% Examples of solving a least-squares problem such as
+%
+% 
+% $$\min_{x}  R^2 = \| \mathbf{R} \|^2 $$
+% 
+% with $\mathbf{R}$ being a vector.
+%
+% We assume we know
+%
+% $$K=\nabla \mathbf{R}$$
+%
+%
+% And we find that 
+%
+% $$ \nabla R = K'\mathbf{R}  $$
+%
+% and
+%
+% $$ \nabla^2 R  \approx K' K$$
+%
+%
+% The quadradic approximation is therefore
+%
+% $$ R \approx Q := R_0 + K' \mathbf{R} \, \Delta x + \frac{1}{2} \Delta x \, K' K \Delta x $$
+%
+%
+% and the Newton system is 
+%
+% $$ K' K \Delta x =  -K' \mathbf{R}$  
+%
+% If $K$ is $n \times n$ and invertable, this is same as solving
+%
+% $$ K \Delta x = - \mathbf{R} $$
+%
+% and gives the same update and direction.
+%
+% So the Newton system is the same. 
+% 
+% However, when finding the Cauchy step we must search in the direction
+%
+% $$ K' \mathbf{R} $$
+%
+% and not simply along $\mathbf{R}$ 
+%
+%%
 
 
 ItMax=5;
@@ -72,7 +117,6 @@ end
 
 R2Array=nan(ItMax+1,1) ;
 r2Array=nan(ItMax+1,1) ;
-JArray=nan(ItMax+1,1) ;
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
 % WorkArray=nan(ItMax+1,1) ;
@@ -176,18 +220,11 @@ while iteration <= ItMax
 
     iteration=iteration+1 ;
 
-    K0=K ; R0=R; x0=x ; lambda0=lambda ; h0=h ; g0=g;
+    K0=K ; R0=R; x0=x ; lambda0=lambda ; 
     R20=R2;  r20=r2 ;  J0=J ;
-    r2=nan ; JminN=nan ; JminC=nan ; R2minCN=nan ; Slope0=nan ;
-
-    if isLSQ
-        KK0=K0'*K0;
-        H0=2*KK0;
-
-    else
-        H0=K0;
-        KK0=K0'*K0;
-    end
+    JminN=nan ; Slope0=nan ;
+    KK0=K0'*K0;
+    
 
 
     CtrlVar.BacktrackIteration=iteration  ;
@@ -202,7 +239,7 @@ while iteration <= ItMax
 
 
 
-        [JminN,dxN,dlambdaN,gammaminN,Slope0N,BackTrackInfo,gammaEstN,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
+        [JminN,dxN,dlambdaN,gammaminN,Slope0N,~,~,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
 
         % xN=x0+dxN ; lambdaN=lambda0+dlambdaN ;
         xN=x0+gammaminN*dxN ; lambdaN=lambda0+gammaminN*dlambdaN ;
@@ -257,7 +294,7 @@ while iteration <= ItMax
       
         CtrlVar.BacktrackingGammaMin=1e-10;
         CtrlVar.BacktrackStepRatio=1e-10; 
-        [JminC,dxC,dlambdaC,gammaminC,Slope0C,BackTrackInfo,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
+        [JminC,dxC,dlambdaC,gammaminC,Slope0C,~,gammaEstC,exitflag]=lsqStepUa(CtrlVar,fun,x0,lambda0,K0,R0,L,c);
       
         xC=x0+gammaminC*dxC ; lambdaC=lambda0+gammaminC*dlambdaC ;
         if JminC < J
@@ -266,7 +303,7 @@ while iteration <= ItMax
             lambda=lambda0+gammaminC*dlambdaC ;
             Slope0=Slope0C ;  % Even if I then do the C2N step, this will be the estimate for Slop0, ie in the Cauchy direction.
             StepString="C ";
-            TryCauchy2Newton=false;
+        
             gammamin=gammaminC ;
             if contains(lsqDogLeg,"-Newton-")
                 fprintf("Cauchy step outperformes Newton. R2minC/R2minN=%g \n",JminC/JminN  )
@@ -308,11 +345,11 @@ while iteration <= ItMax
             end
 
 
-            [gammaminCN,R2CN,exitflag,outputfminbnd]=fminbnd(funcCN,0,1,options) ;
+            [gammaminCN,R2CN]=fminbnd(funcCN,0,1,options) ;
            
             if CtrlVar.InfoLevelBackTrack>=1000
 
-                [stop,Outs]=outfunFminbnd();
+                [~,Outs]=outfunFminbnd();
                 PlotCauchy2NewtonPath(CtrlVar,Outs.x,Outs.f,JminC,JminN,gammaminCN,R2CN,R20);
 
             end
@@ -333,7 +370,8 @@ while iteration <= ItMax
 
 
 
-    [R,K]=fun(x) ;
+    [R,K,funOuts]=fun(x) ;
+    
     R2=full(R'*R);
 
     if ~isempty(L)
@@ -458,6 +496,7 @@ output.Slope0Array=Slope0Array;
 
 output.xVector=xVector;
 output.nIt=iteration;
+output.fun=funOuts ; 
 
 end
 

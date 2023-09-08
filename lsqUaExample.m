@@ -38,9 +38,8 @@ function lsqUaExample
 %
 % $$ K \Delta x = - \mathbf{R} $$
 %
-% and gives the same updated and direction.
+% and gives the same update and the same direction.
 %
-% So the Newton system is the same. 
 % 
 % However, when finding the Cauchy step we must search in the direction
 %

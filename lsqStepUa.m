@@ -146,7 +146,7 @@ end
 
 CtrlVar.BacktrackingGammaMin=gammaEst*CtrlVar.BacktrackStepRatio ;
 
-funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0,K0) ;
+funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0) ;
 
 J=nan;
 

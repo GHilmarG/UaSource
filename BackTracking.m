@@ -153,7 +153,7 @@ end
 target=max([CtrlVar.NewtonAcceptRatio*fa CtrlVar.NLtol]);
     
 if ~NoSlopeInformation
-    targetwithslope=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa)
+    targetwithslope=min(fa+beta*slope0*b,CtrlVar.NewtonAcceptRatio*fa);
     target=max(target,targetwithslope);
     
     if target< 0

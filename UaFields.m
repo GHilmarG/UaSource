@@ -5,6 +5,8 @@ classdef UaFields
         
         x=[];
         y=[];
+        xint=[];
+        yint=[]; 
         
         ub=[];
         vb=[];

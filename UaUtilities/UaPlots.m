@@ -127,7 +127,7 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
 end
 
-if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && Variable~="-strain rates-"
 
  
 
@@ -236,7 +236,30 @@ else
             title(cbar,"(1/a)",Interpreter="latex")
             title(sprintf("effective strain rates at integration points at t=%f",CtrlVar.time),Interpreter="latex")
 
+        case "-strain rates-"
 
+           [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+
+           if options.GetRidOfValuesDownStreamOfGroundingLines
+
+               II=F.GF.ElementsDownstreamOfGroundingLines;
+               exx(II,:)=0;
+               eyy(II,:)=0;
+               exy(II,:)=0;
+    
+
+           end
+
+           scale=1000 ; 
+           LineWidth=1; 
+           nStride=10;
+           xint=xint(1:nStride:end,1);
+           yint=yint(1:nStride:end,1);
+           exx=exx(1:nStride:end,1);
+           eyy=eyy(1:nStride:end,1);
+           exy=exy(1:nStride:end,1);
+
+           PlotTensor(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,exx,exy,eyy,scale,LineWidth)
 
         case "eta node"  % effective strain rate
 
