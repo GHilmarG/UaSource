@@ -2,7 +2,7 @@
 function TestGPU
 %%
 %
-% conclusion on 19 April,2019.
+% conclusion on 19 April,2019. Same conclusions on 14 Sep, 2023.
 % GPU linsolve using sparse matrices about 3 to 4 times slower than CPU
 % GPU linsolve using full matrices a bit faster than CPU
 %
@@ -11,11 +11,11 @@ function TestGPU
 
 iExperiment=0;
 density=0.05 ;
-timings=zeros(10,6)+NaN;
+timings=zeros(10,7)+NaN;
 
 nRepeat=2;
 
-for N=[100 1000 3000 5000 ] % 500 1000 2000 3000 20000]
+for N=[100 1000 5000 10000] % 500 1000 2000 3000 20000]
     
     
     iExperiment=iExperiment+1;
@@ -31,6 +31,7 @@ for N=[100 1000 3000 5000 ] % 500 1000 2000 3000 20000]
     Adistsparse=distributed(Asparse) ;
     Agpufull=gpuArray(Afull);
     xgpu=gpuArray(x) ;
+    Agpusparse=gpuArray(Asparse) ;
     xdist=distributed(x);
     
     fprintf('A CPU distributed full. \n')
@@ -71,18 +72,26 @@ for N=[100 1000 3000 5000 ] % 500 1000 2000 3000 20000]
         ygpu=Agpufull\xgpu;
         GPUfull=toc(GPUfull);
     end
-    
+
+    fprintf('A GPU sparse \n')
+    for k=1:nRepeat
+        GPUsparse=tic ;
+        y=Agpusparse\xgpu;
+        GPUsparse=toc(GPUsparse);
+    end
+
     %     Agpu=single(gpuArray(A));
     %     xgpu=single(gpuArray(x)) ;
     %     GPUsingle=tic;
     %     ygpu=Agpu\xgpu;
     %     GPUsingle=toc(GPUsingle);
-    
+
     timings(iExperiment,1)= N ;  timings(iExperiment,2)= CPUfull ;
     timings(iExperiment,3)= GPUfull ;
     timings(iExperiment,4)= CPUdistfull ;
     timings(iExperiment,5)= CPUsparse ;
     timings(iExperiment,6)= CPUdistsparse ;
+    timings(iExperiment,7)= GPUsparse ;
     
 end
 
@@ -93,7 +102,8 @@ plot(timings(:,1),timings(:,3),'x-b')
 plot(timings(:,1),timings(:,4),'+-g')
 plot(timings(:,1),timings(:,5),'*-c')
 plot(timings(:,1),timings(:,6),'^-m')
-legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse')
+plot(timings(:,1),timings(:,7),'o-k')
+legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse','GPU sparse')
 xlabel("Problem size N")
 ylabel("time (sec)")
 
