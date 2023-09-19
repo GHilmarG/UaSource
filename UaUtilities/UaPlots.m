@@ -191,7 +191,7 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         case "dhdt"
@@ -199,7 +199,7 @@ else
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("$dh/dt$ at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("$dh/dt$ at t=%g",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
 
         case {"basal drag","taub"}
@@ -212,7 +212,7 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             cbar=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
             title(cbar,"(kPa)",Interpreter="latex")
-            title(sprintf("basal drag vectors at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("basal drag vectors at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         case "e node"  % effective strain rate
@@ -223,7 +223,7 @@ else
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
-            title(sprintf("effective strain rates at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective strain rates at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         case {"-e-","e int","-e int-"}  % effective strain rate at integration points
@@ -234,7 +234,7 @@ else
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
-            title(sprintf("effective strain rates at integration points at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective strain rates at integration points at t=%g",CtrlVar.time),Interpreter="latex")
 
         case "-strain rates-"
 
@@ -269,7 +269,7 @@ else
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
             title(cbar,"(kPa yr)",Interpreter="latex")
-            title(sprintf("effective viscosity eta at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective viscosity eta at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         case {"-eta-","eta int","etaint","-eta int-","eta"}  % effective strain rate at integration points
@@ -288,7 +288,7 @@ else
             fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
             title(cbar,"(kPa yr)",Interpreter="latex")
-            title(sprintf("log10 of effective viscosity at integration points \n t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("log10 of effective viscosity at integration points \n t=%g",CtrlVar.time),Interpreter="latex")
 
 
 
@@ -301,7 +301,7 @@ else
             slope=ProjectFintOntoNodes(MUA,slope) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.rho.*F.h.*slope);
             title(cbar,"()",Interpreter="latex")
-            title(sprintf("surface slope at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("surface slope at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         otherwise

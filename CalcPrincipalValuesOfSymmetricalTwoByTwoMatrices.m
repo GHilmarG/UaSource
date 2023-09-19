@@ -1,3 +1,11 @@
+
+
+
+
+
+
+
+
 function [pV,eV1,eV2]=CalcPrincipalValuesOfSymmetricalTwoByTwoMatrices(txx,txy,tyy,options)
 
 %%
@@ -9,7 +17,7 @@ function [pV,eV1,eV2]=CalcPrincipalValuesOfSymmetricalTwoByTwoMatrices(txx,txy,t
 %
 % Outputs:
 %
-%   pV   : principal strain rates, pV(:,1) is the firs, and pV(:,2) the second.
+%   pV   : principal strain rates, pV(:,1) is the first, and pV(:,2) the second.
 %
 %%
 
@@ -36,10 +44,12 @@ eV2=[];
 if options.eigenvalues && ~options.eigenvectors
 
     % If only the eigenvalues are needed, presumably quickest to calculate this directly
+    % The way I calculate this, pV(:,2) will always be the larger eigenvalue of the two.
+
 
     SQ=sqrt( 4*txy.*txy + (txx-tyy).^2) ;
     pV(:,1)=( (txx+tyy) - SQ )/2;
-    pV(:,2)=( (txx+tyy) + SQ ) /2;
+    pV(:,2)=( (txx+tyy) + SQ )/2;
 
 
 else

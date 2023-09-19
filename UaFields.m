@@ -78,7 +78,7 @@ classdef UaFields
       
         
         g=[];
-        alpha=[];
+        alpha=0;
         
         time=[]; 
         dt=[] ; 
@@ -99,6 +99,9 @@ classdef UaFields
         phi=[] ;
         uw=[];
         vw=[];
+
+        D=[] ; % Damage (SSD)
+        aD=[] ; % Damage accumulation
 
         txx=[];
         txy=[];

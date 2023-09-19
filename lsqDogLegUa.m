@@ -372,6 +372,13 @@ while iteration <= ItMax
 
     [R,K,funOuts]=fun(x) ;
     
+    if anynan(R)
+
+      error("lsqDogLegUa:nan","R returned contains nan")
+
+    end
+
+
     R2=full(R'*R);
 
     if ~isempty(L)

@@ -65,7 +65,7 @@ if ~isempty(Meas.dhdt)
     title('dh/dt Meas on numerical grid') ;
 end
 
-usError=sqrt(spdiags(Meas.usCov));
+usError=sqrt(spdiags(Meas.usCov)); 
 vsError=sqrt(spdiags(Meas.vsCov));
 dhdtError=sqrt(spdiags(Meas.dhdtCov));
 

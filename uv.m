@@ -17,6 +17,9 @@ if numel(F.n)==1
     F.n=zeros(MUA.Nnodes,1)+F.n;
 end
 
+if isempty(l)
+    l=UaLagrangeVariables; 
+end
 
 
 F.h=F.s-F.b;
