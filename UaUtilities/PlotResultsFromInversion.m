@@ -135,12 +135,12 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title('log10(InvFinalValues.C)','interpreter','latex');
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     
     fig=FindOrCreateFigure('C at the beginning of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
     title('log10(Cstart)') ; 
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -148,7 +148,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     fig=FindOrCreateFigure('Change in C during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ; 
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -220,6 +220,7 @@ title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
 cbar=colorbar; title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
 hold on
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+clim([0 500]) % Here I'm guessing that this is a reasonable range for plotting, most likely will be the case when using kPa as units for stress
 
 %%
 % uAdjoint vAdjoint
@@ -375,19 +376,25 @@ PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
 title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
-%%  % Difference in speed
+%%  Prior
 
-SpeedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
-SpeedCalc=sqrt(us.^2+vs.^2);
+if numel(Priors.AGlen)==1
+Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1);
+end
 
-SpeedDiff=100*(SpeedCalc-SpeedMeas)./SpeedMeas;
-fig=FindOrCreateFigure('Normalized speed misfit') ;
+cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.AGlen),FigureTitle="log10(APrior)") ; 
+title(cbar, '($\mathrm{yr}^{-1}\,\mathrm{kPa}^{-n}$)','interpreter','latex');
+title("$\log_{10}(A_{\mathrm{Prior}})$",Interpreter="latex")
 
-PlotMeshScalarVariable(CtrlVar,MUA,SpeedDiff);
-hold on 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-title('100*(SpeedCalc-SpeedMeas)./SpeedMeas')
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+
+cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.C),FigureTitle="log10(CPrior)") ; 
+title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+title("$\log_{10}(C_{\mathrm{Prior}})$",Interpreter="latex")
+
+
+
+
 
 %%
 
