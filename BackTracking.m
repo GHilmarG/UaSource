@@ -490,6 +490,9 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
                     [varargin{listInF}]=varargout{listOutF-1} ;
                 end
             else
+                if isnan(gamma)
+                    error("BackTrack:nan","nan in gamma")
+                end
                 fgamma=Func(gamma);
                 nFuncEval=nFuncEval+1; 
             end

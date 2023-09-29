@@ -4,6 +4,9 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     narginchk(15,15)
     nargoutchk(1,6)
     
+    if isnan(gamma)
+        error("CalcCostFunctionNRuvh:nan","nan in gamma")
+    end
     
     F1.ub=F1.ub+gamma*dub;
     F1.vb=F1.vb+gamma*dvb;
