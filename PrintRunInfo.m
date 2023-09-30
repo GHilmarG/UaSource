@@ -32,6 +32,7 @@ if  CtrlVar.doDiagnostic
     end
 end
 
+
 if  CtrlVar.doPrognostic
     if CtrlVar.Restart
         fprintf(CtrlVar.fidlog,'   Time-dependent restart run.  \n ');

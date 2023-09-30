@@ -97,7 +97,9 @@ end
 
 
 
-if any(isnan(F1.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); end
+if any(isnan(F1.ub)) 
+    fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); 
+end
 if any(isnan(F1.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to uvhMatrixAssembly \n'); end
 if any(isnan(F1.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h on input to uvhMatrixAssembly \n'); end
 if any(isnan(F0.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u0 on input to uvhMatrixAssembly \n'); end

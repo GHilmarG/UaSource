@@ -1,3 +1,8 @@
+
+
+
+
+
 function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 
 %%
@@ -51,25 +56,38 @@ xmin=tt(1) ; xmax=tt(2) ; ymin=tt(3) ; ymax=tt(4) ;
 ax2=[] ; 
 %%
 
-if nargin<2 || isempty(dlat)
-    dlat=5;
-end
 
-if nargin<3 || isempty(dlon)
-    dlon=10;
-end
+% set some plausible values if user has not defined those already
+if isCircumpolar && isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
+    
+    dlat=10;
+    dlon=45;
+    LabelSpacing=200;
 
-if nargin<4 || isempty(LabelSpacing)
-    LabelSpacing=400;
-end
-
-if nargin<4 || isempty(Colour)
-   Colour='black'; 
-end
+else
 
 
-if nargin<6
-    isCircumpolar=0;
+    if nargin<2 || isempty(dlat)
+        dlat=5;
+    end
+
+    if nargin<3 || isempty(dlon)
+        dlon=10;
+    end
+
+    if nargin<4 || isempty(LabelSpacing)
+        LabelSpacing=400;
+    end
+
+    if nargin<4 || isempty(Colour)
+        Colour='black';
+    end
+
+
+    if nargin<6
+        isCircumpolar=0;
+    end
+
 end
 
 lcol='k';
@@ -91,7 +109,13 @@ end
 
 
 hold on
-[Clat,hlat]=contour(ax1,X0,Y0,-Lat,[0:dlat:90],'LineColor',lcol,"LabelFormat","%2.0fS");
+
+if isCircumpolar
+    [Clat,hlat]=contour(ax1,X0,Y0,-Lat,[5:dlat:90],'LineColor',lcol,"LabelFormat","%2.0fS");
+else
+    [Clat,hlat]=contour(ax1,X0,Y0,-Lat,[0:dlat:90],'LineColor',lcol,"LabelFormat","%2.0fS");
+end
+
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 

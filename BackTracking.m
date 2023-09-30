@@ -391,9 +391,12 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     iarm=iarm+1; BackTrackInfo.iarm=iarm;
     
     
-    
+
     if  NoSlopeInformation
         [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc,CtrlVar.InfoLevelBackTrack);
+        if isnan(gamma)
+            error("BackTrack:nan","nan in gamma")
+        end
     else
         [gamma,cStatus]=CubicFit(slope0,fa,fb,fc,b,c,CtrlVar.InfoLevelBackTrack);
         % if cStatus==1
@@ -403,6 +406,10 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
         %         fprintf('parabolamin returns status 1 with gamma%-g \n ',gamma);
         %     end
         % end
+        if isnan(gamma)
+            error("BackTrack:nan","nan in gamma")
+        end
+        
     end
     
     if iarm==2  && Extrapolation>0
@@ -473,8 +480,10 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
             % general backtracking step
- 
-            
+            if isnan(gamma)
+                error("BackTrack:nan","nan in gamma")
+            end
+
             if gamma > (a+CtrlVar.BackTrackGuardUpper*(b-a))
                 gamma=a+CtrlVar.BackTrackGuardUpper*(b-a) ;
             elseif gamma < (a+CtrlVar.BackTrackGuardLower*(b-a)) 
@@ -490,6 +499,9 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
                     [varargin{listInF}]=varargout{listOutF-1} ;
                 end
             else
+                if isnan(gamma)
+                    error("BackTrack:nan","nan in gamma")
+                end
                 fgamma=Func(gamma);
                 nFuncEval=nFuncEval+1; 
             end
@@ -570,7 +582,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     
     if b<BacktrackingGammaMin
         if CtrlVar.InfoLevelBackTrack>=10000
-            fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size (%g).\n',b,BacktrackingGammaMin)
+            fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size CtrlVar.BacktrackingGammaMin=%g.\n',b,BacktrackingGammaMin)
         end
         break
     end

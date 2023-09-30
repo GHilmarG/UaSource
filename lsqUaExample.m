@@ -3,9 +3,54 @@
 
 function lsqUaExample
 
-
+%%
+% Examples of solving a least-squares problem such as
+%
+% 
+% $$\min_{x}  R^2 = \| \mathbf{R} \|^2 $$
+% 
+% with $\mathbf{R}$ being a vector.
+%
+% We assume we know
+%
+% $$K=\nabla \mathbf{R}$$
+%
+%
+% And we find that 
+%
+% $$ \nabla R = K'\mathbf{R}  $$
+%
+% and
+%
+% $$ \nabla^2 R  \approx K' K$$
+%
+%
+% The quadradic approximation is therefore
+%
+% $$ R \approx Q := R_0 + K' \mathbf{R} \, \Delta x + \frac{1}{2} \Delta x \, K' K \Delta x $$
+%
+%
+% and the Newton system is 
+%
+% $$ K' K \Delta x =  -K' \mathbf{R}$  
+%
+% If $K$ is $n \times n$ and invertable, this is same as solving
+%
+% $$ K \Delta x = - \mathbf{R} $$
+%
+% and gives the same update and the same direction.
+%
+% 
+% However, when finding the Cauchy step we must search in the direction
+%
+% $$ K' \mathbf{R} $$
+%
+% and not simply along $\mathbf{R}$ 
+%
+%%
 
 x0=[-10 ; 15] ;
+x0=[-5 ; 2] ;
 
 %  R=(x1,x2)
 
@@ -14,15 +59,15 @@ x0=[-10 ; 15] ;
 problemtype="[x1,x2]" ;                     %                   24.5                   24.5
 problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
 problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-% problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
+problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
-% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
+ problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
 % problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
-% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;
+% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
 % problemtype="[x1^2,x2^2]" ;
-  % problemtype="[x1^-100 x1,0]" ;
+% problemtype="[x1^-100 x1,0]" ;
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
-problemtype="Beale" ; x0=[2 ; 0] ; 
+% problemtype="Beale" ; x0=[2 ; 0] ; % This is asymmetrical, can only be solved using lsq
 
 isConstraint=false;
 
@@ -40,7 +85,7 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 %
 
 CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
-CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
+% CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
@@ -51,9 +96,14 @@ CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.lsqUa.Algorithm="DogLeg" ;
 CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
+% CtrlVar.lsqUa.DogLeg="-Newton-" ; 
+CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
 
-CtrlVar.InfoLevelBackTrack=1000; 
+
 CompareWithMatlabOpt=false;
+
+CtrlVar.InfoLevelBackTrack=10000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
+
 
 % xSol =
 %
@@ -86,10 +136,9 @@ else
     L=[]; c=[];
 end
 
+ 
 [xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
 
-xSol
-lambda
 
 if numel(xSol)==2
 
@@ -106,7 +155,7 @@ if numel(xSol)==2
 
 
 
-    x1Vector=linspace(xmin,xmax);
+    x1Vector=linspace(xmin,xmax,200);
     x2Vector=linspace(ymin,ymax);
 
 
@@ -122,8 +171,8 @@ if numel(xSol)==2
 
 
     flsqUa=FindOrCreateFigure("lsqUa test") ; clf(flsqUa) ;
-    f=log10(RR'); 
-    contourf(x1Vector,x2Vector,f,50,LineStyle="none") ; 
+    f=log10(RR); 
+    contourf(x1Vector,x2Vector,f',50,LineStyle="none") ; 
     axis equal tight; 
     cbar=colorbar ;
     title(cbar,"$\log_{10} \|R^2\|$",interpreter="latex")
