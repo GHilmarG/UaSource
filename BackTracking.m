@@ -391,9 +391,12 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     iarm=iarm+1; BackTrackInfo.iarm=iarm;
     
     
-    
+
     if  NoSlopeInformation
         [gamma,pStatus] = parabolamin(a,b,c,fa,fb,fc,CtrlVar.InfoLevelBackTrack);
+        if isnan(gamma)
+            error("BackTrack:nan","nan in gamma")
+        end
     else
         [gamma,cStatus]=CubicFit(slope0,fa,fb,fc,b,c,CtrlVar.InfoLevelBackTrack);
         % if cStatus==1
@@ -403,6 +406,10 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
         %         fprintf('parabolamin returns status 1 with gamma%-g \n ',gamma);
         %     end
         % end
+        if isnan(gamma)
+            error("BackTrack:nan","nan in gamma")
+        end
+        
     end
     
     if iarm==2  && Extrapolation>0
@@ -473,8 +480,10 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
             b=gamma ; fb=fgamma ; % this shifts b to the right
         else
             % general backtracking step
- 
-            
+            if isnan(gamma)
+                error("BackTrack:nan","nan in gamma")
+            end
+
             if gamma > (a+CtrlVar.BackTrackGuardUpper*(b-a))
                 gamma=a+CtrlVar.BackTrackGuardUpper*(b-a) ;
             elseif gamma < (a+CtrlVar.BackTrackGuardLower*(b-a)) 
