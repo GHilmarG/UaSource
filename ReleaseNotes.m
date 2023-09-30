@@ -2,10 +2,18 @@
 
 %%
 %
+% *Release Notes* _September 2023_
+%
+% * Thanks to Sebastian Rosier for providing an example where the backtracking algorithm failed. This has now been corrected.
+%
+%
+%
 % *Release Notes* _July 2023_
 %
 % * uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.
 %
+% * Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and
+% densities. This has now been corrected.
 %
 % *Release Notes* _July 2022_
 %

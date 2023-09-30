@@ -17,9 +17,15 @@ function [ForceFig,WorkFig]=PlotCostFunctionsVersusGamma(CtrlVar,RunInfo,gamma,r
     ylabel('Force Residuals')
     
     if CtrlVar.MinimisationQuantity=="Force Residuals"
-       
-         plot(RunInfo.BackTrack.Infovector(:,1),RunInfo.BackTrack.Infovector(:,2),"ok",MarkerFaceColor="k"); 
-         plot(gamma,r,'Marker','o','MarkerEdgeColor','r','MarkerFaceColor','r',MarkerSize=10)
+
+
+        if size(RunInfo.BackTrack.Infovector,2)>1
+
+            plot(RunInfo.BackTrack.Infovector(:,1),RunInfo.BackTrack.Infovector(:,2),"ok",MarkerFaceColor="k");
+            plot(gamma,r,'Marker','o','MarkerEdgeColor','r','MarkerFaceColor','r',MarkerSize=10)
+
+        end
+
     end
     
     yyaxis right
