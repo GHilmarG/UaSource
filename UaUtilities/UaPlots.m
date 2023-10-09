@@ -346,13 +346,10 @@ end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 
-if CtrlVar.PlotXYscale==1000
-    xlabel("xps (km)",Interpreter="latex")
-    ylabel("yps (km)",Interpreter="latex")
-else
-    xlabel("x (m)",Interpreter="latex")
-    ylabel("y (m)",Interpreter="latex")
-end
+
+xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex") 
+ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+
 
 
 
