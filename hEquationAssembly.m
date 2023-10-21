@@ -14,7 +14,20 @@ function [UserVar,kv,rh]=hEquationAssembly(UserVar,CtrlVar,MUA,u,v,a,kIso,kAlong
 % $$  \partial  ( u h)/ \partial x + \partial  ( v h)/\partial y - \nabla \cdot (\kappa \nabla h ) = a$$
 %
 %
-%    
+% Isotropic:
+%
+%  $$ \kappa = k_{\mathrm{iso}} \; \mathbf{1}  $$ 
+%
+% Cross wind:
+%
+%  $$ \kappa = k_{\mathrm{cross}} \; ( \mathbf{1} - \hat{\mathbf{n}} \otimes \hat{\mathbf{n}})  $$ 
+%
+% Along wind:
+%
+%  $$ \kappa = k_{\mathrm{along}} \; (\hat{\mathbf{n}} \otimes \hat{\mathbf{n}} ) $$ 
+%
+% where $\hat{\mathbf{n}}$ is a unit vector pointing along the local flow direction.
+% 
 %%
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
@@ -104,16 +117,13 @@ for Iint=1:MUA.nip
             udhdxvdhdy=(uint.*Deriv(:,1,Jnod)+vint.*Deriv(:,2,Jnod)).*SUPGdetJw;
 
 
-            % Isotropic diffusion
+            % Isotropic diffusion term
             Diso=(Deriv(:,1,Jnod).*Deriv(:,1,Inod)+Deriv(:,2,Jnod).*Deriv(:,2,Inod)).*detJw;
+
+            % along-flow diffusion term
             Dalong=(nx.*Deriv(:,1,Jnod)+ny.*Deriv(:,2,Jnod)).*(nx.*Deriv(:,1,Inod)+ny.*Deriv(:,2,Inod)).*detJw;
 
-            %kdxh1=kappaint.*Deriv(:,1,Jnod).*Deriv(:,1,Inod).*detJw;
-            %kdyh1=kappaint.*Deriv(:,2,Jnod).*Deriv(:,2,Inod).*detJw;
-
-            % along-wind diffusion
-
-
+            
 
             Diffusion=kIsoint.*Diso+kAlongint.*Dalong+kCrossint.*(Diso-Dalong) ;
 

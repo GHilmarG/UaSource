@@ -8,6 +8,7 @@ classdef PriorProbabilityDistribution
         Bmin=[];
         CovB=[];
         
+        h=[]; 
         
         rho=[];
         rhow=[];

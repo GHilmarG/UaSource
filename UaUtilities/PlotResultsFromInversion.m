@@ -109,6 +109,8 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title("$\log_{10}(A)$ at end of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('A at the start of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
@@ -117,14 +119,17 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('Change in A during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
 
 end
 
@@ -141,6 +146,8 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title("$\log_{10}(C)$ at end of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('C at the beginning of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
@@ -149,6 +156,8 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('Change in C during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
@@ -156,8 +165,9 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-   
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
 end
 
 if contains(CtrlVar.Inverse.InvertFor,'b')
