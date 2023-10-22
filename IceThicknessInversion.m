@@ -19,18 +19,21 @@
 %
 
 CtrlVar=Ua2D_DefaultParameters(); 
+UserVar=[]; 
 
-[UserVar,CtrlVar,MUA,F,BCs,Priors,Meas,htrue,kIso,kAlong,kCross,Method]=DefineDataForThicknessInversion(CtrlVar) ; 
+[UserVar,CtrlVar,MeshBoundaryCoordinates]=DefineInitialInputs(UserVar,CtrlVar) ; 
 
-
-
-PlotDataForThicknessInversion(UserVar,CtrlVar,MUA,F,BCs,Priors,Meas,htrue,kIso,kAlong,kCross,Method) ;
-
-
-[UserVar,hest,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,kIso,kAlong,kCross,Method,Priors,Meas); 
+[UserVar,CtrlVar,MUA,F,BCs,Priors,Meas,htrue]=DefineDataForThicknessInversion(UserVar,CtrlVar) ; 
 
 
-PlotResultsFromThicknessInversion(CtrlVar,MUA,F,BCs,Priors,Meas,Method,hest,htrue,kIso,kAlong,kCross);
+
+PlotDataForThicknessInversion(UserVar,CtrlVar,MUA,F,BCs,Priors,Meas,htrue) ;
+
+
+[UserVar,hest,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,Priors,Meas); 
+
+
+PlotResultsFromThicknessInversion(CtrlVar,MUA,F,BCs,Priors,Meas,hest,htrue);
 
 
 

@@ -4,7 +4,7 @@
 
 
 
-function [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,kIso,kAlong,kCross,Method,Priors,Meas)
+function [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,Priors,Meas)
 
 %%
 % Solves the linear h-equation on the form:
@@ -46,31 +46,18 @@ function [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,kIso,kAlong,kCro
 %
 %%
 
-if nargin< 9
-    Method="Fh +  <l hMeas>";
-end
-
-if nargin< 10
-    Priors=PriorProbabilityDistribution;
-    Priors.h=F.h*0; 
-end
-
-if nargin< 11
-    Meas.h=zeros(MUA.Nnodes,1);
-    Meas.hCov=inf(MUA.Nnodes,1);  % very high errors
-end
+narginchk(7,7)
 
 
+CtrlVar.hEq.Method=replace(CtrlVar.hEq.Method,"  "," ");  % get rid of any double spaces in the string Method 
 
-Method=replace(Method,"  "," ");  % get rid of any double spaces in the string Method 
-
-switch Method
+switch CtrlVar.hEq.Method
 
     case "Fh + <l , hMeas>"
 
         % Forward model, Fh=0, and measurements are hard constraints
 
-        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as,kIso,kAlong,kCross);
+        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as);
 
 
         MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -106,7 +93,7 @@ switch Method
 
         c=P*hmeas ;
 
-        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as,kIso,kAlong,kCross);
+        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as);
 
 
         h0=F.x*0; lambda=F.x*0 ;
@@ -137,7 +124,7 @@ switch Method
         M=gFa*MUA.M ;
 
         % forward model assembly
-        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as,kIso,kAlong,kCross);
+        [UserVar,K,b]=hEquationAssembly(UserVar,CtrlVar,MUA,F.ub,F.vb,F.as);
 
         A=P+Q+K'*M*K ;
         B=P*Meas.h+Q*Priors.h+K'*M*b ;

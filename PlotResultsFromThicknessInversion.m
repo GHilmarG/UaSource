@@ -3,11 +3,11 @@
 
 
 
-function PlotResultsFromThicknessInversion(CtrlVar,MUA,F,BCs,Priors,Meas,Method,hest,htrue,kIso,kAlong,kCross)
+function PlotResultsFromThicknessInversion(CtrlVar,MUA,F,BCs,Priors,Meas,hest,htrue)
+
+narginchk(8,8)
 
 
-
-FigTitle=sprintf("kIso=%5.1f kAlong=%5.1f kAcross=%5.1f",mean(kIso),mean(kAlong),mean(kCross));
 
 
 UaPlots(CtrlVar,MUA,F,hest,FigureTitle="hest") ;
@@ -41,9 +41,9 @@ end
 
 
 
-if ~isnan(htrue) && ~isempty(htrue)
+if ~anynan(htrue) && ~isempty(htrue)
 
-    UaPlots(CtrlVar,MUA,F,htrue,FigureTitle="h true") ; title(FigTitle)
+    UaPlots(CtrlVar,MUA,F,htrue,FigureTitle="h true") ; title("$h$ true",Interpreter="latex")
     axis tight
 
     FindOrCreateFigure("compare")

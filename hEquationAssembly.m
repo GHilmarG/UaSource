@@ -1,5 +1,5 @@
 
-function [UserVar,kv,rh]=hEquationAssembly(UserVar,CtrlVar,MUA,u,v,a,kIso,kAlong,kCross)
+function [UserVar,kv,rh]=hEquationAssembly(UserVar,CtrlVar,MUA,u,v,a)
 
 % Note: Assembly for the linear  h-equation:
 %  d (u h)/dx + d (v h)/dy - div (kappa grad h) =  a 
@@ -30,7 +30,16 @@ function [UserVar,kv,rh]=hEquationAssembly(UserVar,CtrlVar,MUA,u,v,a,kIso,kAlong
 % 
 %%
 
+
+narginchk(6,6)
+
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
+
+
+kIso=CtrlVar.hEq.kIso;
+kAlong=CtrlVar.hEq.kAlong;
+kCross=CtrlVar.hEq.kCross;
+
 
 
 unod=reshape(u(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
