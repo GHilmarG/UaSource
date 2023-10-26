@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineCalving</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-09-11"><meta name="DC.source" content="DefineCalving.m"><style type="text/css">
+      -->
+<title>DefineCalving</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-10-26">
+<meta name="DC.source" content="DefineCalving.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,50 +72,201 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
-</pre><pre class="language-matlab">[UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
-</pre><p>Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)</p><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>Think of the LSF as a ice/ocean mask where positive number indicates ice and negative number ocean.</p><p>LSF is a nodal variable.</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
-       NodesSelected=MUA.coordinates(:,1)&gt;500e3 &amp; F.GF.NodesDownstreamOfGroundingLines;
-       LSF=zeros(MUA.Nnodes,1)+ 1 ;
-       LSF(NodesSelected)=-1;</pre><pre class="codeinput">LSF=[];
-c=[];
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#4">initialize LSF</a>
+</li>
+<li>
+<a href="#5">Define calving rate (if needed)</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">
+<span class="keyword">function</span> [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
+</pre>
+<pre class="language-matlab">[UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
+</pre>
+<p>Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)</p>
+<p>Both the Level-Set Field (LSF) and the Calving-Rate Field (c) must be defined over the whole computational domain.</p>
+<p>The level-set option must be activated by setting</p>
+<pre>CtrlVar.LevelSetMethod=1;</pre>
+<p>in DefineInitialInputs.m</p>
+<p>The LSF should, in general, only be defined in the beginning of the run and set the initial value for the LSF. However, if required, the user can change LSF at any time step. The LSF is evolved by solving the Level-Set equation, so any changes done to LSF in this m-file will overwrite/replace the previously calculated values for LSF.</p>
+<p>The calving-rate field, c, is an input field to the Level-Set equation and needs to be defined in this m-file in each call.</p>
+<p>The variable F has F.LSF and F.c as subfields. In a transient run, these will be the corresponding values from the previous time step.</p>
+<p>In contrast to LSF, c is never evolved by &Uacute;a. (Think of c as an input variable similar to the input as and ab for upper and lower surface balance, etc.)</p>
+<p>If c is returned as a NaN, ie</p>
+<pre>     c=NaN;</pre>
+<p>then the level-set is NOT evolved in time using by solving the level-set equation. This can be usefull if, for example, the user simply wants to manually prescribe the calving front position at each time step.</p>
+<p>See more information in Ua2D_DefaultParameters.</p>
+<h2 id="4">initialize LSF</h2>
+<pre class="codeinput">
+<span class="keyword">if</span> isempty(F.LSF)   <span class="comment">% Do I need to initialize the level set function?</span>
+
+    <span class="keyword">if</span> contains(UserVar.RunType,<span class="string">"-c0isGL0-"</span>)  <span class="comment">% -&gt; Initial calving front (c0) is set a initial grounding line position (GL0)</span>
+
+        LSF=-ones(MUA.Nnodes,1) ;
+        LSF(F.GF.node&gt;0.5)=+1;
+        Xc=[] ;  <span class="comment">% If Xc and Yc are left empty, the Xc and Yc will be calculated as the zero contorl of the LSF field</span>
+        Yc=[] ;
+
+    <span class="keyword">else</span>
+
+        Xc=UserVar.CalvingFront0.Xc;
+        Yc=UserVar.CalvingFront0.Yc;
+
+        <span class="comment">% A rough sign-correct initialisation for the LSF</span>
+        io=inpoly2([F.x F.y],[Xc(:) Yc(:)]);
+        LSF=-ones(MUA.Nnodes,1) ;
+        LSF(io)=+1;
+    <span class="keyword">end</span>
+
+    <span class="comment">% figure ; PlotMuaMesh(CtrlVar,MUA);   hold on ; plot(F.x(io)/1000,F.y(io)/1000,'or')</span>
+
+    [xc,yc,LSF]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,LSF,plot=true,ResampleCalvingFront=true);
+
+
+<span class="keyword">end</span>
+</pre>
+<h2 id="5">Define calving rate (if needed)</h2>
+<pre class="codeinput">
+<span class="keyword">if</span>  CtrlVar.LevelSetEvolution==<span class="string">"-Prescribed-"</span>
+
+    c=nan;   <span class="comment">% setting the calving rate to nan implies that the level set is not evolved</span>
+
+<span class="keyword">elseif</span>  CtrlVar.CalvingLaw.Evaluation==<span class="string">"-int-"</span>
+
+    <span class="comment">% c=0; % Must not be nan or otherwise the LSF will not be evolved.</span>
+    <span class="comment">% But otherwise these c values are of no importance and the c defined at int points is the one used</span>
+
+    <span class="comment">% This value for the calving rate will actually not be used directly by the code</span>
+    <span class="comment">% because the calving rate is here defined at integration points.</span>
+    <span class="comment">% But for plotting purposes it is good to define the calving at nodal points as well</span>
+    <span class="comment">% so here a call is made to define c at the nodes.</span>
+    <span class="comment">% c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;</span>
+    c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F) ;
+
+<span class="keyword">else</span>
+
+    <span class="comment">% It's assumed that the calving is defined at integration points only, or prescribed directly.</span>
+    <span class="comment">% Anything else is deemed an error.</span>
+    error(<span class="string">"Define calving rate at integration points"</span>)
+
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
-    
+function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
+
+
 
 %%
 %
-%   [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
+%   [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 %
 % Define calving the Level-Set Field (LSF) and the Calving Rate Field (c)
 %
+% Both the Level-Set Field (LSF) and the Calving-Rate Field (c) must be defined over the whole computational domain.
 %
-% NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step
+% The level-set option must be activated by setting
 %
-% Think of the LSF as a ice/ocean mask where positive number indicates ice and negative number ocean.
+%  CtrlVar.LevelSetMethod=1; 
 %
-% LSF is a nodal variable.
+% in DefineInitialInputs.m
 %
-% If you wanted, for example to get rid of all floating ice for x>500e3, do:
+% The LSF should, in general, only be defined in the beginning of the run and set the initial value for the LSF. However, if
+% required, the user can change LSF at any time step. The LSF is evolved by solving the Level-Set equation, so any changes
+% done to LSF in this m-file will overwrite/replace the previously calculated values for LSF.
+%
+% The calving-rate field, c, is an input field to the Level-Set equation and needs to be defined in this m-file in each call.
+%
+% The variable F has F.LSF and F.c as subfields. In a transient run, these will be the corresponding values from the previous
+% time step.
 %
 %
+% In contrast to LSF, c is never evolved by Úa.  (Think of c as an input variable similar to the input as and ab for upper
+% and lower surface balance, etc.)
+%
+% If c is returned as a NaN, ie
+%
+%       c=NaN;
+%
+% then the level-set is NOT evolved in time using by solving the level-set equation. This can be usefull if, for example, the
+% user simply wants to manually prescribe the calving front position at each time step.
 %
 %
-%         F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
-%         NodesSelected=MUA.coordinates(:,1)>500e3 & F.GF.NodesDownstreamOfGroundingLines;
-%         LSF=zeros(MUA.Nnodes,1)+ 1 ;
-%         LSF(NodesSelected)=-1;
+% See more information in Ua2D_DefaultParameters.
 %
-%
-%     
 %%
 
-LSF=[];
-c=[];
+%% initialize LSF
+if isempty(F.LSF)   % Do I need to initialize the level set function?
+
+    if contains(UserVar.RunType,"-c0isGL0-")  % -> Initial calving front (c0) is set a initial grounding line position (GL0)
+
+        LSF=-ones(MUA.Nnodes,1) ;
+        LSF(F.GF.node>0.5)=+1;
+        Xc=[] ;  % If Xc and Yc are left empty, the Xc and Yc will be calculated as the zero contorl of the LSF field
+        Yc=[] ; 
+
+    else
+
+        Xc=UserVar.CalvingFront0.Xc;
+        Yc=UserVar.CalvingFront0.Yc;
+
+        % A rough sign-correct initialisation for the LSF
+        io=inpoly2([F.x F.y],[Xc(:) Yc(:)]);
+        LSF=-ones(MUA.Nnodes,1) ;
+        LSF(io)=+1;
+    end
+
+    % figure ; PlotMuaMesh(CtrlVar,MUA);   hold on ; plot(F.x(io)/1000,F.y(io)/1000,'or')
+
+    [xc,yc,LSF]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,LSF,plot=true,ResampleCalvingFront=true);
+
 
 end
 
+%% Define calving rate (if needed)
+
+if  CtrlVar.LevelSetEvolution=="-Prescribed-"
+
+    c=nan;   % setting the calving rate to nan implies that the level set is not evolved
+
+elseif  CtrlVar.CalvingLaw.Evaluation=="-int-"
+
+    % c=0; % Must not be nan or otherwise the LSF will not be evolved.
+    % But otherwise these c values are of no importance and the c defined at int points is the one used
+
+    % This value for the calving rate will actually not be used directly by the code
+    % because the calving rate is here defined at integration points.
+    % But for plotting purposes it is good to define the calving at nodal points as well
+    % so here a call is made to define c at the nodes. 
+    % c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;
+    c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F) ;
+
+else
+
+    % It's assumed that the calving is defined at integration points only, or prescribed directly.
+    % Anything else is deemed an error.
+    error("Define calving rate at integration points")
+
+end
+
+
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
