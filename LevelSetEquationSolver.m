@@ -25,14 +25,6 @@ if isempty(nCallCounter)
 end
 
 
-if CtrlVar.LevelSetMethod && ~CtrlVar.DevelopmentVersion
-    
-    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
-    
-end
-
-
-
 
 if ~CtrlVar.LevelSetMethod
  
