@@ -92,7 +92,7 @@ if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,
     if  contains(CtrlVar.rLineMinUa,"-Auto-") &&  gammaminNewton < gammaminNewtonAccepted  && rminNewtonRatio > rminNewtonRatioAccepted
 
         if CtrlVar.InfoLevelNonLinIt >= 10 
-            fprintf(' rLineminUa: Newton step is %f and smaller that %f  \n ',gammaminNewton,gammaminNewtonAccepted) ;
+            fprintf(' rLineminUa: Newton step is %f and smaller than %f  \n ',gammaminNewton,gammaminNewtonAccepted) ;
             fprintf(' rLineminUa: Will now try using Cauchy step Steepest Descent were the mass matrix replaces the Hessian \n ') ;
         end
         CtrlVar.rLineMinUa="-Auto-Cauchy M-step-" ;
@@ -204,11 +204,13 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
         %  Try simply to reverse direction...
         CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
         if Variables=="-uvl-"
-            funcCauchyM=@(gamma) func(gamma,-DuM,-DvM,-DlM) ;
-            sM=-[DuM;DvM;DlM];
+            DuM=-DuM; DvM=-DvM ; DlM=-DlM ; 
+            funcCauchyM=@(gamma) func(gamma,DuM,DvM,DlM) ;
+            sM=[DuM;DvM;DlM];
         else
-            funcCauchyM=@(gamma) func(gamma,-DuM,-DvM,-DhM,-DlM) ;
-            sM=-[DuM;DvM;DhM;DlM];
+            DuM=-DuM; DvM=-DvM ; DhM=-DhM ; DlM=-DlM ; 
+            funcCauchyM=@(gamma) func(gamma,DuM,DvM,DhM,DlM) ;
+            sM=[DuM;DvM;DhM;DlM];
 
         end
         CauchyMSlope0=(-2*R'*H*sM)/Normalisation;
@@ -714,14 +716,14 @@ end
 
 if CtrlVar.InfoLevelNonLinIt >= 10
     fprintf(" [---------- rLineminUa: \n")
-    fprintf("\t r0=%-13.7g \t r1/r0=%-13.7g \t rNewton/r0=%-13.7g \t rminCauchyM/r0=%-13.7g \t rDescent/r0=%-13.7g \t rCN/r0=%-13.7g \n",r0,r1/r0,rminNewton/r0,rminCauchyM/r0,rminCauchyD/r0,rCN/r0)
+    fprintf("\t r0=%-13.7g \t r1/r0=%-13.7g \t rminNewton/r0=%-13.7g \t rminCauchyM/r0=%-13.7g \t rDescent/r0=%-13.7g \t rCN/r0=%-13.7g \n",r0,r1/r0,rminNewton/r0,rminCauchyM/r0,rminCauchyD/r0,rCN/r0)
     fprintf("\t g0=%-13.8g \t    g1=%-13.7g \t    gNewton=%-13.7g \t             gM=%-13.7g \t    gDescent=%-13.7g \t    gCM=%-13.7g \n",0,1,gammaminNewton,gammaminCauchyM/gammaCauchyM,gammaminCauchyD,gammaminCN)
     fprintf("\t      \t      \t     \t \t               \t normNewton=%-13.7g \t    normCauchyM=%-13.7g \t normCauchyD=%-13.7g \t normCN=%-13.7g \n ",...
         normNewton/normNewtonStep,normCauchyM/normNewtonStep,normCauchyD/normNewtonStep,normCN/normNewtonStep)
     if BestMethod=="Cauchy2Newton"
         fprintf("\t \t \t \t minC2N/rCauchy=%f \t minC2N/minN=%f   \n",rCN/rminCauchyM,rCN/rminNewton)
     end
-    fprintf("\t =================>  Best method is %s  with rmin/r0=%g    <=====================\n",BestMethod,rmin/r0)
+    fprintf("\t =================>  Best method is %s  with rmin/r0=%g  with rmin=%g  <=====================\n",BestMethod,rmin/r0,rmin)
     fprintf(" -------------------------] \n")
 end
 %%

@@ -1,16 +1,57 @@
 function  [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
 
-% function  [c,dcDdphidx,dcDdphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dfdx,dfdy,u,v,h,s,S,x,y)
-
+%%
+%
+% Defines calving at integration points. 
 %
 %  phi is the level set function
 %
-
 %  dcddphidx is   dc/d (dphidx) = \frac{ d c]{d (dphidx)}, ie it is the derivative of c with respect to dphidx
 %  where dphidx is in turn d(phi)/dx              
 %
-% cint=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nx,ny,uint,vint)
-
+% Note: F is here provided at the integration points, i.e. this is not the usual F variable provided at nodes!
+%       Not all the usual fields of F are available. The fields available include:
+%       u,v,h,s,S,rho,exx,exy,eyy.
+%
+% Also note that F.x,F.y are here the (x,y) coordinates of the integration points, ie not the (x,y) nodal coordinates. 
+% 
+% The level-set option must be activated by setting
+%
+%  CtrlVar.LevelSetMethod=1; 
+%
+% in DefineInitialInputs.m
+%
+% If the calving rate is a function of the gradients of the level-set, the calving rate must be defined at the element
+% integration points using this function as:
+%
+%
+%   [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
+%
+% which provies dphi/dx and dphi/dy where phi is the level-set function
+%
+% This option is activated by the usuer by setting
+%
+%
+%   CtrlVar.CalvingLaw.Evaluation="-int-" ; 
+%
+% in DefineInitialInputs.m
+%
+% The default is to prescribe the calving rate at the nodes, i.e. by default we have
+%
+%    CtrlVar.CalvingLaw.Evaluation="-node-" ; 
+%
+% Prescribing the calving rate at the integration points is, for example, required if the calving rate is a function of velocities normal to the calving front.
+%
+% The user must then also return derivatives of the calving rate, c, with respect to x and y derivatives of the level set,
+% ie 
+% 
+% $$\frac{dc}{d (d \phi/dx)}$$
+%
+% $$\frac{dc}{d (d \phi/dy)}$$
+% 
+% More details are provided in the UaCompendium
+%
+%%
 
 narginchk(5,5)
 

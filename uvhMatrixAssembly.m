@@ -154,6 +154,7 @@ end
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
     if isempty(F1.LSFMask)
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        
     end
     LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
 else

@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>HelmholtzEquation</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-17"><meta name="DC.source" content="HelmholtzEquation.m"><style type="text/css">
+      -->
+<title>HelmholtzEquation</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-10-26">
+<meta name="DC.source" content="HelmholtzEquation.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,13 +72,36 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
-</pre><p>Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimentions:</p><p><img src="HelmholtzEquation_eq01471109207232534691.png" alt="$$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla d(x,y) $$" style="width:385px;height:15px;"></p><p>Also possible to specify the right-hand-side directly through</p><pre class="language-matlab">RHS
-</pre><p>If RHS is given as input, c and d are not used.</p><p>The in-homogeneous Helmholtz equation with variable coefficents in two spatial dimentions is</p><p><img src="HelmholtzEquation_eq09497764449799483310.png" alt="$$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla  d(x,y) $$" style="width:385px;height:15px;"></p><p>which we can also write as</p><p><img src="HelmholtzEquation_eq01950210437778155504.png" alt="$$  a ( f - \tilde{f} ) - \nabla \cdot (b \nabla (f-\tilde{f})) = 0 $$" style="width:199px;height:18px;"></p><p>where  <img src="HelmholtzEquation_eq06444168545079738416.png" alt="$c= -a \tilde{f}$" style="width:54px;height:17px;"> and <img src="HelmholtzEquation_eq05397933670334748401.png" alt="$d= -b \tilde{f}$" style="width:54px;height:17px;">, and <img src="HelmholtzEquation_eq02187778057748804630.png" alt="$\tilde{f}$" style="width:9px;height:17px;"> is a given function</p><p>Examples:</p><p>Smooth a given field over a FE mesh:</p><pre>  load('PIG-TWG-RestartFile.mat') ; CtrlVar=CtrlVarInRestartFile;
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
+</pre>
+<p>Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimensions:</p>
+<p>
+<img src="HelmholtzEquation_eq01471109207232534691.png" alt="$$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla d(x,y) $$" style="width:462px;height:18px;"></p>
+<p>Also possible to specify the right-hand-side directly through</p>
+<pre class="language-matlab">RHS
+</pre>
+<p>If RHS is given as input, c and d are not used.</p>
+<p>The in-homogeneous Helmholtz equation with variable coefficents in two spatial dimensions is</p>
+<p>
+<img src="HelmholtzEquation_eq09497764449799483310.png" alt="$$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla  d(x,y) $$" style="width:462px;height:18px;"></p>
+<p>which we can also write as</p>
+<p>
+<img src="HelmholtzEquation_eq01950210437778155504.png" alt="$$  a ( f - \tilde{f} ) - \nabla \cdot (b \nabla (f-\tilde{f})) = 0 $$" style="width:238px;height:22px;"></p>
+<p>where  <img src="HelmholtzEquation_eq06444168545079738416.png" alt="$c= -a \tilde{f}$" style="width:65px;height:21px;"> and <img src="HelmholtzEquation_eq05397933670334748401.png" alt="$d= -b \tilde{f}$" style="width:65px;height:21px;">, and <img src="HelmholtzEquation_eq02187778057748804630.png" alt="$\tilde{f}$" style="width:10px;height:21px;"> is a given function</p>
+<p>Examples:</p>
+<p>Smooth a given field over a FE mesh:</p>
+<pre>  load('PIG-TWG-RestartFile.mat') ; CtrlVar=CtrlVarInRestartFile;
   L=1e3 ;  % Smoothing length scale
-  [UserVar,SmoothedField]=HelmholtzEquation([],CtrlVar,MUA,1,L^2,F.B,0);</pre><pre>  figure(1) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField) ; title(' Smoothed field') ; xlabel('x (km)') ; ylabel('y (km)')
+  [UserVar,SmoothedField]=HelmholtzEquation([],CtrlVar,MUA,1,L^2,F.B,0);</pre>
+<pre>  figure(1) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField) ; title(' Smoothed field') ; xlabel('x (km)') ; ylabel('y (km)')
   figure(2) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,F.B) ; title(' Original field')  ; xlabel('x (km)') ; ylabel('y (km)')
-  figure(3) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField-F.B) ; title(' Smoothed-Original')  ; xlabel('x (km)') ; ylabel('y (km)')</pre><pre class="codeinput">narginchk(7,8)
+  figure(3) ; PlotMeshScalarVariable(CtrlVarInRestartFile,MUA,SmoothedField-F.B) ; title(' Smoothed-Original')  ; xlabel('x (km)') ; ylabel('y (km)')</pre>
+<pre class="codeinput">narginchk(7,8)
 
 
 [UserVar,HEmatrix,HErhs]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d);
@@ -91,13 +119,22 @@ f=full(f);
 <span class="comment">% L=MLC.hL ; Lrhs=MLC.hRhs ; lambda=Lrhs*0;</span>
 <span class="comment">% [c1,lambda]=solveKApe(kv,L,rh,Lrhs,c0,lambda,CtrlVar);</span>
 <span class="comment">% c1=full(c1);</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA,a,b,c,d,RHS)
 
 %% 
-% Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimentions:
+% Solves the in-homogeneous Helmholtz equation with variable coefficients in two dimensions:
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla d(x,y) $$
 %
@@ -108,7 +145,7 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 % If RHS is given as input, c and d are not used. 
 %
 % The in-homogeneous Helmholtz equation with variable coefficents in two spatial
-% dimentions is
+% dimensions is
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla  d(x,y) $$
 %
@@ -159,4 +196,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

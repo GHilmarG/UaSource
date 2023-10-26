@@ -18,7 +18,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 % where   K=grad J
 %
 %
-%  fun = @(x) FunctionThatReturnsRandK(x, ...other variables whos value do not change as the function is called repeatedly...)  ;
+%  fun = @(x) FunctionThatReturnsRandK(x, ...other variables which values do not change as the function is called repeatedly...)  ;
 %
 %
 % Note that R is a vector and K a matrix.  The value that is minimized is
