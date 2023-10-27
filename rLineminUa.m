@@ -472,7 +472,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M to Newton-")
     end
 
 
-    if CtrlVar.InfoLevelNonLinIt >= 1000
+    if  CtrlVar.InfoLevelBackTrack>=1000
         
         
         % r2Newton=rNewtonFunc(1) ;
@@ -714,7 +714,7 @@ end
 
 %% Summary
 
-if CtrlVar.InfoLevelNonLinIt >= 10
+if CtrlVar.InfoLevelNonLinIt >= 5
     fprintf(" [---------- rLineminUa: \n")
     fprintf("\t r0=%-13.7g \t r1/r0=%-13.7g \t rminNewton/r0=%-13.7g \t rminCauchyM/r0=%-13.7g \t rDescent/r0=%-13.7g \t rCN/r0=%-13.7g \n",r0,r1/r0,rminNewton/r0,rminCauchyM/r0,rminCauchyD/r0,rCN/r0)
     fprintf("\t g0=%-13.8g \t    g1=%-13.7g \t    gNewton=%-13.7g \t             gM=%-13.7g \t    gDescent=%-13.7g \t    gCM=%-13.7g \n",0,1,gammaminNewton,gammaminCauchyM/gammaCauchyM,gammaminCauchyD,gammaminCN)

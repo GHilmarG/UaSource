@@ -1,6 +1,6 @@
 function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
-%% Driver for the 2HD Úa model
+%% Driver for the 2HD �a model
 % 
 
 
