@@ -17,7 +17,7 @@ if ~contains(msg,'h-only')  % uvh residuals
     % uv-residuals
 
     quiver(x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,R(1:Nnodes),R(Nnodes+1:2*Nnodes))
-    title("Nodal-force residuals (R+L^T \lambda)")
+    title("\textbf{Nodal-force residuals} ($R+L^T \lambda$)",Interpreter="latex")
 
     % h residuals
     if contains(msg,'h')
@@ -30,9 +30,15 @@ if ~contains(msg,'h-only')  % uvh residuals
 
         %PlotScale=0.1*max(abs(R(2*Nnodes+1:end)))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
         PlotCircles(x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,R(2*Nnodes+1:end)/PlotScale,'r')
+        subtitle("The vectors are $(R_u,R_v)+L^T \lambda_{uv} $ and the circles $R_h+L^T \lambda_h$",interpreter="latex")
+        
     end
     PlotGroundingLines(CtrlVar,MUA,F.GF) ;
     PlotCalvingFronts(CtrlVar,MUA,F);
+    PlotMuaBoundary(CtrlVar,MUA,"b--");
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex") 
+    ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+
     axis equal tight
 
     Ru=R(1:MUA.Nnodes);
@@ -63,7 +69,7 @@ else % h residuals only
 
 
     hold on
-    title('Nodal Force residuals (R+L^T \lambda)')
+    title('h Nodal Force residuals (R+L^T \lambda)')
 
     PlotScale=0.1*max(abs(R))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
     xmax=max(x) ; xmin=min(x) ; ymax=max(y) ;ymin=min(y);

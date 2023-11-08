@@ -341,7 +341,7 @@ end
 
 
 if options.PlotMuaBoundary
-    PlotMuaBoundary(CtrlVar,MUA,"k--");
+    PlotMuaBoundary(CtrlVar,MUA,"b--");
 end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.

@@ -1,6 +1,6 @@
 function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
-%% Driver for the 2HD Úa model
+%% Driver for the 2HD a model
 % 
 
 
@@ -13,15 +13,19 @@ end
 
 
 
-SetUaPath() %% 
+SetUaPath() %%
 
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
- parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
- parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 
+ParPool = gcp('nocreate') ;
+
+if ~isempty(ParPool)
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+end
  
 %% initialize some variables
 RunInfo=UaRunInfo; 
