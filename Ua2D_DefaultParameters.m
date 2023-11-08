@@ -580,6 +580,21 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % Depending on info levels, figures might be plotted as well. However, this is only done
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
+% Further description of what infomation is provided depending on the values of the info parameters is provided below. 
+%
+% If you, for example set,
+%
+%    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
+%
+% and provided that furthermore
+%
+%   CtrlVar.doplots=1
+%
+% several figures will be produced showing the change in velocity and ice thickness (if solving uvh) during each time increment.
+% and also a figure showing the values calculated as a part of the back-tracking step.
+%
+%
+
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
  
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
@@ -601,6 +616,7 @@ CtrlVar.InfoLevelNonLinIt=1;
 %   1  : basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
 % >=2  : info on backtracking step as well.
+% >=5  : plots change in velocites and ice thickness over each uvh time step, and basal drag vectors
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
 %
@@ -633,7 +649,13 @@ CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implic
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
-CtrlVar.InfoLevelBackTrack=1;
+
+CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking.
+                                % As with other info parameters, higher values provide more information
+                                % 10   : 
+                                % 100  : plots evaluated function values along the backtracking direciton 
+                                % 1000 : plots backtracking with further addional values calculated at regular intervales along the step, and prints detailed info about backtracking
+
 CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log

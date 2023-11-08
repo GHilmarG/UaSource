@@ -1,6 +1,23 @@
 function PlotRunInfo(RunInfo,FigName)
 
 %%
+%
+% The RunInfo variable is saved in restart files and provided in DefineOutouts.
+% 
+% It contains information about time-step sizes, numer of non-linear iterations per times step, and time-step size as a funciton
+% of time and run steps.
+%
+%
+% 
+%
+%
+% Example:
+%
+%  PlotRunInfo(RunInfo)
+%
+%
+%
+%%
 
 if nargin< 2
     FigName="";
@@ -64,6 +81,20 @@ xlabel('Run steps',Interpreter='latex')
 legend(Location="best",Interpreter="latex");
 
 
+
+Fdt=FindOrCreateFigure("RunInfo: iterations versus run-steps"+FigName) ; clf(Fdt) ;
+
+yyaxis left
+stairs(RunInfo.Forward.uvhIterations,'-',DisplayName="$uvh$ Iterations",LineWidth=2) ;
+ylabel('$uvh$ Iterations',Interpreter='latex')
+
+yyaxis right
+stairs(RunInfo.Forward.uvIterations,'-',DisplayName="$uv$ iterations",LineWidth=2) ;
+ylabel('$uv$ iterations',Interpreter='latex')
+
+
+xlabel('Run Step',Interpreter='latex')
+legend(Location="best",Interpreter="latex");
 
 
 

@@ -299,7 +299,7 @@ c=b; fc=fb ; b=gamma ; fb=fgamma ;
 %    target=fa+beta*slope0*gmin  ; % Armijo criteria
 %end
 
-if CtrlVar.InfoLevelBackTrack>=10000
+if CtrlVar.InfoLevelBackTrack>=1000
     fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
         iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
     fprintf('               a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g   \t    g=%-10.5g     \t    gmin=%-10.5g \n ',a,b,c,gamma,gmin)
@@ -313,7 +313,7 @@ if CtrlVar.LineSearchAllowedToUseExtrapolation
         Extrapolation=Extrapolation+1;
         
         
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
             fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
                 Extrapolation-1,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
@@ -346,7 +346,7 @@ if CtrlVar.LineSearchAllowedToUseExtrapolation
         %
         
         if Extrapolation > MaxExtrapolations
-            if CtrlVar.InfoLevelBackTrack>=10000
+            if CtrlVar.InfoLevelBackTrack>=1000
                 fprintf(' exiting extrapolation step because number of extrapolation steps greater than maximum %-i allowed \n',MaxExtrapolations)
             end
             break
@@ -358,7 +358,7 @@ end
 %%
 
 % if I just came out of extrapolation step, I need to give the final exit results
-if CtrlVar.InfoLevelBackTrack>=10000 && Extrapolation>0
+if CtrlVar.InfoLevelBackTrack>=1000 && Extrapolation>0
     %    fprintf('Extrapolation step # %-i. fa=%-g \t fb=%-g \t fc=%-g \t fg=%-g \t fmin=%-g \n ',Extrapolation,fa,fb,fc,fgamma,fmin)
     fprintf('E: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t f(g)/ft=%-10.5g \t f(g)/f0=%-g \n ',...
         Extrapolation,fa,fb,fc,fgamma,fmin,fgamma/target,fgamma/f0)
@@ -550,7 +550,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     
     %% Print info
     
-    if CtrlVar.InfoLevelBackTrack>=10000
+    if CtrlVar.InfoLevelBackTrack>=1000
         fprintf('B: step # %-i. f(a)=%-10.5g \t f(b)=%-10.5g \t f(c)=%-10.5g \t f(g)=%-10.5g \t fmin=%-10.5g  \t fmin/ft=%-10.5g \t fmin/f0=%-g \n ',...
             iarm,fa,fb,fc,fgamma,fmin,fmin/target,fmin/f0)
         fprintf('                a=%-10.5g  \t    b=%-10.5g  \t    c=%-10.5g  \t   g=%-10.5g \t gmin=%-10.5g \n ',a,b,c,gamma,gmin)
@@ -560,28 +560,28 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     %% break criterion
     
     if  iMinSame> MaxFuncSame && fmin < f0
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             fprintf(' exiting backtracking because no further reduction in function over last %-i iterations \n',MaxFuncSame)
         end
         break
     end
     
     if   iarm>5  && iMinSameWhileBacktracking> 2 && fmin < f0
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             fprintf(' exiting backtracking because two subsequent backtracking steps did not result in any further reduction \n')
         end
         break
     end
     
     if xfrac<MinXfrac && fmin < f0
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             fprintf(' exiting backtracking because change in position of minimum %-g less than %-g of interval \n',xfrac,MinXfrac)
         end
         break
     end
     
     if b<BacktrackingGammaMin
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             fprintf(' exiting backtracking because step size (%g) less than minimum allowed step size CtrlVar.BacktrackingGammaMin=%g.\n',b,BacktrackingGammaMin)
         end
         break
@@ -589,7 +589,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
     
     
     if iarm>MaxIterations
-        if CtrlVar.InfoLevelBackTrack>=10000
+        if CtrlVar.InfoLevelBackTrack>=1000
             fprintf(' exiting backtracking because number of iteration greater than maximum %-i allowed \n',MaxIterations)
         end
         break
@@ -629,11 +629,15 @@ I=~isnan(Infovector(:,1));  Infovector=Infovector(I,:);
 %% Info
 if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
 
-    warning('off','MATLAB:decomposition:SaveNotSupported')
-    warning('off','MATLAB:decomposition:genericError')
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+    ParPool = gcp('nocreate') ;
 
+    if ~isempty(ParPool)
+
+        warning('off','MATLAB:decomposition:SaveNotSupported')
+        warning('off','MATLAB:decomposition:genericError')
+        parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+        parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+    end
 
     if CtrlVar.InfoLevelBackTrack>=1000
         nnn=10 ;
@@ -649,6 +653,9 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
             gammaTestVector(I)=gammaTest ;
             rTestVector(I)=rTest;
         end
+    else
+        gammaTestVector=[] ;
+        rTestVector=[];
     end
 
     if isfield(CtrlVar,"BacktracFigName")
@@ -665,13 +672,13 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     end
 
     fig=FindOrCreateFigure(FigName) ;  clf(fig) ;
-    plot(Infovector(:,1),Infovector(:,2),'or-') ;
+    plot(Infovector(:,1),Infovector(:,2),'or-',DisplayName="backtracking values") ;
 
     xlabel('$\gamma$',Interpreter='latex') ;
     ylabel('Cost',Interpreter='latex') ;
     
     hold on
-    plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10)
+    plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10,DisplayName="estimated minimum")
     
      % add Infovector the the TestVector values
 
@@ -681,7 +688,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     [gammaTestVector,Ind]=sort(gammaTestVector) ; rTestVector=rTestVector(Ind) ; 
 
     if CtrlVar.InfoLevelBackTrack>=1000
-       plot(gammaTestVector,rTestVector,'xk-') 
+       plot(gammaTestVector,rTestVector,'xk-',DisplayName="cost curve") 
         
     end
     
@@ -690,14 +697,14 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     if ~isempty(slope0)
         hold on
         dx=min(Infovector(2:end,1)/10) ;
-        plot([0 dx],[f0 f0+slope0*dx],'g','LineWidth',2)
+        plot([0 dx],[f0 f0+slope0*dx],'g','LineWidth',2,DisplayName="estimated slope at origin")
         
     end
 
 
-    plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5); 
+    plot(xStart,fStart,"o",MarkerFaceColor="r",MarkerSize=5,DisplayName="starting point"); 
 
-    legend("backtracking curve values","estimated minimum","cost curve","estimated slope at origin","starting point",Location="best",interpreter="latex")
+    legend(Location="best",interpreter="latex")
 
 
     title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")

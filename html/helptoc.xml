@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding="utf-8"?>
 <toc version="2.0">
     
-    <tocitem target="Ua.html">�a
+    <tocitem target="Ua.html">Ua
         <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
         <tocitem target="UserInputRoutines.html">User input 
@@ -46,6 +46,7 @@
                 <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
                 <tocitem target="UaPLots.html">Plots variables, calving fronts and grounding lines </tocitem>
+                <tocitem target="PlotRunInfo.html">Plots time-step sizes and number of iterations as functions of time. </tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
