@@ -710,7 +710,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
     title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
 
     if isfield(CtrlVar,"time")
-        subtitle(sprintf("t=%f   dt=%f",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+        subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
     end
 
     drawnow
