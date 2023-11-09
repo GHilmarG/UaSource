@@ -98,7 +98,7 @@ if isCircumpolar
             if nargin< 3
                 dlon=45;
                 if nargin< 2
-                    dlat=10;
+                    dlat=5;
                     if nargin==0
                         scale=1000 ;
                     end
@@ -163,7 +163,7 @@ lcol='k';
 climCopy=clim;
 
 
-[X0,Y0]=meshgrid(linspace(xmin,xmax,400),linspace(ymin,ymax,400));
+[X0,Y0]=meshgrid(linspace(xmin,xmax,800),linspace(ymin,ymax,800));
 
 [Lat,Lon]=pol_to_geog_wgs84_71S(X0*scale,Y0*scale);
 
@@ -171,7 +171,7 @@ if isCircumpolar
     I=Lat>-62; Lon(I)=NaN ; Lat(I)=NaN;
     I=Lat>-64.9;  Lon(I)=NaN;
     I=Lat<-85.1 ; Lon(I)=NaN;
-    I=Lat<-86 ; Lat(I)=NaN ;
+    I=Lat<-85.1 ; Lat(I)=NaN ;
     I=Lon<-171 ; Lon(I)=Lon(I)+360;
     I=Lon<-170 ; Lon(I)=NaN;
 end
