@@ -473,7 +473,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
     %% print/plot some info
     
-    if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 2 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 1 && CtrlVar.doplots==1
         
         
         figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;
