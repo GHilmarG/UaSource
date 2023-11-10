@@ -614,7 +614,8 @@ while 1
             end
             
 
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;exit
+            
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             % Recalulating geometry based on floation not really needed here because uvh
             % does this implicitly.
