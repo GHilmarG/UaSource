@@ -52,7 +52,9 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 
 if isempty(CtrlVar)
-    CtrlVar.PlotLabels=0;
+    
+    CtrlVar.PlotEleLabels=0;
+    CtrlVar.PlotNodalLabels=0; 
     CtrlVar.MeshColor='k';
     CtrlVar.NodeColor='k';
     CtrlVar.PlotXYscale=1;

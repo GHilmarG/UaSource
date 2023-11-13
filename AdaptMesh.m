@@ -354,7 +354,10 @@ if contains(AdaptMeshMethod,"-activation-")
     end
 
  
-    MUAnew=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
+    [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
+    %[Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
+
+
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
     Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
    

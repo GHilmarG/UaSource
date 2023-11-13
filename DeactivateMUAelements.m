@@ -1,7 +1,11 @@
-function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
+function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kIn,lIn)
 
+%%
 %
 % Deactivates elements in the list iDeactivatedElements
+%
+% The variable ElementsToBeDeactivated can be either a logical or an index array.
+%
 %
 % Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly
 %
@@ -40,7 +44,21 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 %   ~isnan(l)             ;   % logical list of nodes in the old mesh used/kept in the new mesh.
 %
+% If elements are deactivated repeatedly and one needs to know the mapping between the original and the final mesh do:
+%
+%
+%   k=k1(k2(k3))     % where k1 results from the first, k2 from the second, etc, deactivations
+%
+% and then:
+%
+%     l=1:nNodesIn ; l=l(:)+nan;      % l gives the mapping betwenen old and new, i=l(j) gives the new node number i for the old node number j
+%     l(k(1:numel(k)))=1:numel(k);    %  i=l(j) is nan if the original j node was deleted
+%
+% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.
+%
+%%
 
+% This works equally for both logical and index arrays. 
 if ~any(ElementsToBeDeactivated)
     k=1:MUA.Nnodes; 
     l=1:MUA.Nnodes; 
@@ -48,6 +66,9 @@ if ~any(ElementsToBeDeactivated)
 end
 
 nNodesIn=MUA.Nnodes;
+
+
+
 
 MUA.connectivity(ElementsToBeDeactivated,:)=[];
 
@@ -65,15 +86,40 @@ MUA.coordinates=MUA.coordinates(k,:);
 if CtrlVar.sweep
     [MUA.coordinates,MUA.connectivity,p] = NodalSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
     [MUA.coordinates,MUA.connectivity] = ElementSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
-    k=k(p) ; 
+    k=k(p) ;
 end
 
 if CtrlVar.UpdateMUAafterDeactivating
     MUA=UpdateMUA(CtrlVar,MUA);
+else
+    MUA.M=[];
+    MUA.Deriv=[];
+    MUA.DetJ=[];
+    MUA.TR=[];
+    MUA.Boundary=[];
+    MUA.dM=[];
+    MUA.xEle=[];
+    MUA.yEla=[];
+    MUA.Nnodes=size(MUA.coordinates,1);
+    MUA.Nele=size(MUA.connectivity,1);
+    MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each element
+    MUA.Area=sum(MUA.EleAreas);
+
 end
 
+if nargin>4  && ~isempty(kIn)
+    k=kIn(k);
+end
+
+
+
 if nargout==3   % create a mapping from old to new node numbers
-    l=1:nNodesIn ; l=l(:)+nan;
+    if nargin==5  && ~isempty(lIn)
+        l=lIn+nan;
+    else
+        %l=1:nNodesIn ; l=l(:)+nan;
+        l=nan(nNodesIn,1) ;
+    end
     l(k(1:numel(k)))=1:numel(k);
 end
 
