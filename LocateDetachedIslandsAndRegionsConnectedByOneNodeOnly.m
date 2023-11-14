@@ -6,6 +6,46 @@
 function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA)
 
 
+
+%%
+%
+%   [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA)
+%
+% Identifies elements that are detached from the main part of the mesh. The `main part' being defined as the isolated region with
+% the largest number of elements.
+%
+% Also can identify boundary nodes that are parts of two boundaries or more, ie are contained more than once in the list of
+% boundary nodes tracing the boundary. In most cases, this situation arises when an element group is connected to another group of
+% elements by just one node. But this can also happen if there is a hole in the mesh (ie internal bounday) and a node is also on
+% the boundary of another hole, or an external boundary.
+%
+%
+% If only isolated islands are to be identified set:
+%
+%   CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-";
+%
+% If regions connected by one node are to be identified, set
+%
+%   CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-OneNodeOrLessConnections-" ;
+%
+% Note that one-node-or-less always includes isolated element islands as well.
+%
+% This routine is typically used to get rid of seperate islands and regions just connected by one node. Keeping such regions in
+% the mesh can lead to numerical difficultied, expecially if those elements are floating elements.
+%
+% Ouputs:
+%
+%   Islands.Free           logical list of element islands, ie groups of elements not connected to the largest group of elements
+%                          in the mesh.
+%
+%   Islands.OneNode        logical list of elements connected to the rest by one node or less. (This will include the elements
+%                          islands as well)
+%
+%
+% The m-file TestLocateEleIslands provides an example of the use of this routine.
+% 
+%%
+
 if ~isfield(CtrlVar,"LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly")
 
   CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
@@ -50,12 +90,12 @@ if ~contains(CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly,"-One
 else
 
 
-    % 2) Get rid of elements only connected by one node to the main part of the mesh
+    % 2) Get rid of elements only connected by one node, or less, to the main part of the mesh
     %
     % The key idea is to identify boundary nodes that appear twice or more. At those node the freeBoundary of the triangulation
     % `crosses over'.  Each such node is then split up in several new nodes by giving new nodal labels to the duplicates (keeping the
     % first instance unchanged). This changes the topology of the mesh. Only the connectivity is affected, not the
-    % coordinates, which play no role. The effect is that the mesh, as a graph, is now detached at this node. A graph is created
+    % coordinates. The effect is that the mesh, as a graph, is now split up at this node. A graph is created
     % for this new connectivity and islands detected in the usual way.
     %
     % Note that this will always include all the original islands as well. So if we want to get rid of all islands and all
@@ -65,7 +105,7 @@ else
     %
     %   MUA.Boundary.EdgeCornerNodes
     %
-    % which is calculagted as
+    % which is calculated as
     %
     %   TR=CreateFEmeshTriRep(connectivity,coordinates);
     %   Boundary.Edges=freeBoundary(TR) ;

@@ -1,7 +1,7 @@
 
 
 
-TestCase=2;
+TestCase=3;
 
 %%
 
@@ -117,23 +117,25 @@ switch TestCase
             2 NaN ; -2.0 -0.5 ; -2.0 0.5 ; -1.5 0.5 ; -1.5 -0.5 ; ...
             3 NaN ; 2.0 -0.5 ; 2.0 0.5 ; 1.5 0.5 ; 1.5 -0.5 ];
 
+     
+
         [UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
 
-        nNodesIn=MUA.Nnodes ; % the original number of nodes 
+        nNodesIn=MUA.Nnodes ; % the original number of nodes
 
 
-        FindOrCreateFigure("Mesh Original") ; PlotMuaMesh(CtrlVar,MUA); 
+        FindOrCreateFigure("Mesh Original") ; PlotMuaMesh(CtrlVar,MUA);
 
-        F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
+        F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ;
         UaPlots(CtrlVar,MUA,[],F.x,FigureTitle="x on original mesh") ;
 
-        ElementsToBeDeactivated=[2 29]  ;  
+        ElementsToBeDeactivated=[2 29]  ;
         [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)  ;
 
         FindOrCreateFigure("Mesh after First Deactivation") ; PlotMuaMesh(CtrlVar,MUA); 
         UaPlots(CtrlVar,MUA,[],F.x(k),FigureTitle="First deactivation") ;
 
-        ElementsToBeDeactivated=[2 21]  ;  
+        ElementsToBeDeactivated=[2 16 ]  ;  
         [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,k,l)  ;
 
         FindOrCreateFigure("Mesh after Second Deactivation") ; PlotMuaMesh(CtrlVar,MUA); 

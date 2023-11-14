@@ -76,6 +76,7 @@
                 <tocitem target="FluxAcrossEleGL.html">Calculates flux across edges of grounded elements. </tocitem>
                 <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
                 <tocitem target="DraftDependentMeltParameterisations.html">Returns several pre-defined draft-dependent melt-parameterisations. </tocitem>
+                <tocitem target="LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.html">Locate detached element islands and regions connected one node only. </tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

@@ -2,14 +2,26 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 
 %%
 %
-% Deactivates elements in the list iDeactivatedElements
+% Deactivates elements in the list 
+%
+%   ElementsToBeDeactivated
 %
 % The variable ElementsToBeDeactivated can be either a logical or an index array.
 %
+% kIn and lIn are optional inputs.
 %
 % Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly
 %
-% 
+% Set
+%
+%   CtrlVar.UpdateMUAafterDeactivating=true
+%
+% ahead of call, if the MUA should be updated. This will typically involve re-calculating various MUA-related quantities required
+% for the FE solver. Often this is not needed if, for example, several element deactivations are performed in a sequence, or if this
+% is one of several modifications to the mesh.  MUA is always updated in Ua automatically ahead of a solve, so this updated may not be
+% needed at all.
+%
+%
 % If CtrlVar.sweep is true, elements and nodes are then renumbered.
 %
 %  k gives me the mapping between new and old node numbers, that is:
@@ -34,7 +46,9 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 %
 % gives the new node number i for the old node number j.
 %
-%   l(j) is nan where there is no node in the new mesh corresponding to the old node j, ie for all deleted nodes.
+%   l(j)=nan
+% 
+% if no node in the new mesh corresponds to the old node j, ie for all deleted nodes.
 %
 % To get a list of deleted old node numbers use:
 %
@@ -51,12 +65,17 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 %
 % and then:
 %
-%     l=1:nNodesIn ; l=l(:)+nan;      % l gives the mapping betwenen old and new, i=l(j) gives the new node number i for the old node number j
-%     l(k(1:numel(k)))=1:numel(k);    %  i=l(j) is nan if the original j node was deleted
+%     l=1:nNodesIn ; l=l(:)+nan;      
+%     l(k(1:numel(k)))=1:numel(k);    
 %
-% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.
+% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.  Alternativily, provide
+% k and l from the previous deactivation as an input. These are the optional input variables kIn and lIn. The k and l will then be
+% updated as k=kIn(k), providing the mapping with respect to the original mesh.
 %
 %%
+
+narginchk(3,5)
+
 
 % This works equally for both logical and index arrays. 
 if ~any(ElementsToBeDeactivated)
@@ -86,7 +105,7 @@ MUA.coordinates=MUA.coordinates(k,:);
 if CtrlVar.sweep
     [MUA.coordinates,MUA.connectivity,p] = NodalSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
     [MUA.coordinates,MUA.connectivity] = ElementSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
-    k=k(p) ;
+    k=k(p) ;   % keep track of how k changes
 end
 
 if CtrlVar.UpdateMUAafterDeactivating

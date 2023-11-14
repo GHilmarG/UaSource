@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DeactivateMUAelements</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-01-07"><meta name="DC.source" content="DeactivateMUAelements.m"><style type="text/css">
+      -->
+<title>DeactivateMUAelements</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-11-14">
+<meta name="DC.source" content="DeactivateMUAelements.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,55 +72,62 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span>  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span>  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kIn,lIn)
+</pre>
+<p>Deactivates elements in the list</p>
+<pre class="language-matlab">ElementsToBeDeactivated
+</pre>
+<p>The variable ElementsToBeDeactivated can be either a logical or an index array.</p>
+<p>kIn and lIn are optional inputs.</p>
+<p>Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly</p>
+<p>If CtrlVar.sweep is true, elements and nodes are then renumbered.</p>
+<pre>k gives me the mapping between new and old node numbers, that is:</pre>
+<pre>     j=k(i)</pre>
+<p>gives the old node number j for the new node number i</p>
+<p>If needed, one can transfer/map the old nodal values, fOld, onto the new subset of nodes using:</p>
+<pre>   fNew=fOld(k) ;</pre>
+<p>and</p>
+<pre class="language-matlab">fNew(i)=fOld(k(i)) ;
+</pre>
+<p>where fNew are the nodal values over the new mesh MUA (ie MUA returned).</p>
+<pre>l gives the mapping between old and new nodes numbers, that is:</pre>
+<pre>      i=l(j)</pre>
+<p>gives the new node number i for the old node number j.</p>
+<pre class="language-matlab">l(j)=nan
+</pre>
+<p>if no node in the new mesh corresponds to the old node j, ie for all deleted nodes.</p>
+<p>To get a list of deleted old node numbers use:</p>
+<pre class="language-matlab">find(isnan(l))
+</pre>
+<p>And to get a logical list of the nodes on the old mesh that were kept in the new:</p>
+<pre class="language-matlab">~isnan(l)             ;   <span class="comment">% logical list of nodes in the old mesh used/kept in the new mesh.</span>
+</pre>
+<p>If elements are deactivated repeatedly and one needs to know the mapping between the original and the final mesh do:</p>
+<pre class="language-matlab">k=k1(k2(k3))     <span class="comment">% where k1 results from the first, k2 from the second, etc, deactivations</span>
+</pre>
+<p>and then:</p>
+<pre>   l=1:nNodesIn ; l=l(:)+nan;
+   l(k(1:numel(k)))=1:numel(k);</pre>
+<p>where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations. Alternativily, provide k and l from the previous deactivation as an input. These are the optional input variables kIn and lIn. The k and l will then be updated as k=kIn(k), providing the mapping with respect to the original mesh.</p>
+<pre class="codeinput">narginchk(3,5)
 
-<span class="comment">%</span>
-<span class="comment">% Deactivates elements in the list iDeactivatedElements</span>
-<span class="comment">%</span>
-<span class="comment">% Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly</span>
-<span class="comment">%</span>
-<span class="comment">%</span>
-<span class="comment">% If CtrlVar.sweep is true, elements and nodes are then renumbered.</span>
-<span class="comment">%</span>
-<span class="comment">%  k gives me the mapping between new and old node numbers, that is:</span>
-<span class="comment">%</span>
-<span class="comment">%       j=k(i)</span>
-<span class="comment">%</span>
-<span class="comment">% gives the old node number j for the new node number i</span>
-<span class="comment">%</span>
-<span class="comment">% If needed, one can transfer/map the old nodal values, fOld, onto the new subset of nodes using:</span>
-<span class="comment">%</span>
-<span class="comment">%     fNew=fOld(k) ;</span>
-<span class="comment">%</span>
-<span class="comment">% and</span>
-<span class="comment">%</span>
-<span class="comment">%   fNew(i)=fOld(k(i)) ;</span>
-<span class="comment">%</span>
-<span class="comment">% where fNew are the nodal values over the new mesh MUA (ie MUA returned).</span>
-<span class="comment">%</span>
-<span class="comment">%  l gives the mapping between old and new nodes numbers, that is:</span>
-<span class="comment">%</span>
-<span class="comment">%        j=l(i)</span>
-<span class="comment">%</span>
-<span class="comment">% gives the new node number j for the old node number i.</span>
-<span class="comment">%</span>
-<span class="comment">%   l(i) is nan where there is no node in the new mesh corresponding to the old node i, ie for all deleted nodes.</span>
-<span class="comment">%</span>
-<span class="comment">% To get a list of deleted old node numbers use:</span>
-<span class="comment">%</span>
-<span class="comment">%   find(isnan(l))</span>
-<span class="comment">%</span>
-<span class="comment">% And to get a logical list of the nodes on the old mesh that were kept in the new:</span>
-<span class="comment">%</span>
-<span class="comment">%   ~isnan(l)             ;   % logical list of nodes in the old mesh used/kept in the new mesh.</span>
-<span class="comment">%</span>
 
+<span class="comment">% This works equally for both logical and index arrays.</span>
 <span class="keyword">if</span> ~any(ElementsToBeDeactivated)
-    k=[];
+    k=1:MUA.Nnodes;
+    l=1:MUA.Nnodes;
     <span class="keyword">return</span>
 <span class="keyword">end</span>
 
 nNodesIn=MUA.Nnodes;
+
+
+
 
 MUA.connectivity(ElementsToBeDeactivated,:)=[];
 
@@ -123,11 +135,6 @@ MUA.connectivity(ElementsToBeDeactivated,:)=[];
 [k,~,ic]=unique(MUA.connectivity(:));
 MUA.connectivity=reshape(ic,size(MUA.connectivity));
 MUA.coordinates=MUA.coordinates(k,:);
-
-<span class="comment">% What nodes were eliminated</span>
-
-
-
 
 
 <span class="comment">% K is the subset of nodes that I keep.</span>
@@ -138,31 +145,69 @@ MUA.coordinates=MUA.coordinates(k,:);
 <span class="keyword">if</span> CtrlVar.sweep
     [MUA.coordinates,MUA.connectivity,p] = NodalSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
     [MUA.coordinates,MUA.connectivity] = ElementSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
-    k=k(p) ;
+    k=k(p) ;   <span class="comment">% keep track of how k changes</span>
 <span class="keyword">end</span>
 
 <span class="keyword">if</span> CtrlVar.UpdateMUAafterDeactivating
     MUA=UpdateMUA(CtrlVar,MUA);
+<span class="keyword">else</span>
+    MUA.M=[];
+    MUA.Deriv=[];
+    MUA.DetJ=[];
+    MUA.TR=[];
+    MUA.Boundary=[];
+    MUA.dM=[];
+    MUA.xEle=[];
+    MUA.yEla=[];
+    MUA.Nnodes=size(MUA.coordinates,1);
+    MUA.Nele=size(MUA.connectivity,1);
+    MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); <span class="comment">% areas for each element</span>
+    MUA.Area=sum(MUA.EleAreas);
+
 <span class="keyword">end</span>
 
+<span class="keyword">if</span> nargin&gt;4  &amp;&amp; ~isempty(kIn)
+    k=kIn(k);
+<span class="keyword">end</span>
+
+
+
 <span class="keyword">if</span> nargout==3   <span class="comment">% create a mapping from old to new node numbers</span>
-    l=1:nNodesIn ; l=l(:)+nan;
+    <span class="keyword">if</span> nargin==5  &amp;&amp; ~isempty(lIn)
+        l=lIn+nan;
+    <span class="keyword">else</span>
+        <span class="comment">%l=1:nNodesIn ; l=l(:)+nan;</span>
+        l=nan(nNodesIn,1) ;
+    <span class="keyword">end</span>
     l(k(1:numel(k)))=1:numel(k);
 <span class="keyword">end</span>
 
 
 <span class="comment">% MUA.RefineMesh=[] ; %  As I now have a new mesh I need to reset the newest vertex bisection data structure.</span>
 <span class="comment">%                    %  Therefore no further unrefinement over the previous mesh can be done.</span>
-
-
-
+</pre>
+<pre class="codeinput">
 <span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
+function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kIn,lIn)
 
+%%
 %
-% Deactivates elements in the list iDeactivatedElements
+% Deactivates elements in the list 
+%
+%   ElementsToBeDeactivated
+%
+% The variable ElementsToBeDeactivated can be either a logical or an index array.
+%
+% kIn and lIn are optional inputs.
 %
 % Nodes that are no longer part of the FE mesh are deleted and the connectivity updated accordingly
 %
@@ -187,11 +232,13 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 %  l gives the mapping between old and new nodes numbers, that is:
 %
-%        j=l(i) 
+%        i=l(j) 
 %
-% gives the new node number j for the old node number i.
+% gives the new node number i for the old node number j.
 %
-%   l(i) is nan where there is no node in the new mesh corresponding to the old node i, ie for all deleted nodes.
+%   l(j)=nan
+% 
+% if no node in the new mesh corresponds to the old node j, ie for all deleted nodes.
 %
 % To get a list of deleted old node numbers use:
 %
@@ -201,13 +248,36 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated)
 %
 %   ~isnan(l)             ;   % logical list of nodes in the old mesh used/kept in the new mesh.
 %
+% If elements are deactivated repeatedly and one needs to know the mapping between the original and the final mesh do:
+%
+%
+%   k=k1(k2(k3))     % where k1 results from the first, k2 from the second, etc, deactivations
+%
+% and then:
+%
+%     l=1:nNodesIn ; l=l(:)+nan;      
+%     l(k(1:numel(k)))=1:numel(k);    
+%
+% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.  Alternativily, provide
+% k and l from the previous deactivation as an input. These are the optional input variables kIn and lIn. The k and l will then be
+% updated as k=kIn(k), providing the mapping with respect to the original mesh.
+%
+%%
 
+narginchk(3,5)
+
+
+% This works equally for both logical and index arrays. 
 if ~any(ElementsToBeDeactivated)
-    k=[];
+    k=1:MUA.Nnodes; 
+    l=1:MUA.Nnodes; 
     return
 end
 
 nNodesIn=MUA.Nnodes;
+
+
+
 
 MUA.connectivity(ElementsToBeDeactivated,:)=[];
 
@@ -215,11 +285,6 @@ MUA.connectivity(ElementsToBeDeactivated,:)=[];
 [k,~,ic]=unique(MUA.connectivity(:));
 MUA.connectivity=reshape(ic,size(MUA.connectivity));
 MUA.coordinates=MUA.coordinates(k,:);
-
-% What nodes were eliminated
-
-
-
 
 
 % K is the subset of nodes that I keep.
@@ -230,15 +295,40 @@ MUA.coordinates=MUA.coordinates(k,:);
 if CtrlVar.sweep
     [MUA.coordinates,MUA.connectivity,p] = NodalSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
     [MUA.coordinates,MUA.connectivity] = ElementSweep(MUA.coordinates,MUA.connectivity,CtrlVar.SweepAngle);
-    k=k(p) ; 
+    k=k(p) ;   % keep track of how k changes
 end
 
 if CtrlVar.UpdateMUAafterDeactivating
     MUA=UpdateMUA(CtrlVar,MUA);
+else
+    MUA.M=[];
+    MUA.Deriv=[];
+    MUA.DetJ=[];
+    MUA.TR=[];
+    MUA.Boundary=[];
+    MUA.dM=[];
+    MUA.xEle=[];
+    MUA.yEla=[];
+    MUA.Nnodes=size(MUA.coordinates,1);
+    MUA.Nele=size(MUA.connectivity,1);
+    MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each element
+    MUA.Area=sum(MUA.EleAreas);
+
 end
 
+if nargin>4  && ~isempty(kIn)
+    k=kIn(k);
+end
+
+
+
 if nargout==3   % create a mapping from old to new node numbers
-    l=1:nNodesIn ; l=l(:)+nan;
+    if nargin==5  && ~isempty(lIn)
+        l=lIn+nan;
+    else
+        %l=1:nNodesIn ; l=l(:)+nan;
+        l=nan(nNodesIn,1) ;
+    end
     l(k(1:numel(k)))=1:numel(k);
 end
 
@@ -251,4 +341,6 @@ end
 end
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
