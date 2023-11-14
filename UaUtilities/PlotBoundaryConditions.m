@@ -19,7 +19,7 @@ function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 
 CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 I=0; L=[];
-PlotMuaMesh(CtrlVar,MUA,[],varargin{:})  ; hold on
+PlotMuaMesh(CtrlVar,MUA,nan,varargin{:})  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
 

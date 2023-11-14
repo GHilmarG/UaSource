@@ -80,7 +80,9 @@ if nargin<3
     ElementList=1:MUA.Nele;
 end
 
-
+if isnan(ElementList)   % this is a special short cut which allows nan to imply that all elements should be plotted
+    ElementList=1:MUA.Nele;
+end
 
 if ischar(ElementList) && nargin==3
     % silently ignore the fact that the user clearly did not read the comments and 

@@ -354,9 +354,15 @@ if contains(AdaptMeshMethod,"-activation-")
     end
 
  
+    CtrlVar.UpdateMUAafterDeactivating=false ;
     [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
-    %[Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
 
+    CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
+
+    if CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly
+        [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
+        [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,Islands.OneNode,k,l) ;
+    end
 
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
     Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
