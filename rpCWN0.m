@@ -27,7 +27,7 @@ function [Tauu,Tauv,dTauudu,dTauvdv,dTauudv,dTauvdu,dTauudh,dTauvdh] = rpCWN0(C,
     t17 = mu.^t5;
     t18 = t4-1.0;
     t20 = t15.*2.0;
-    % t21 = h+t13;
+    % t21 = h+t13;  % this really is h+t13=h-hf, so dirac(t21) is delta and heaviside(t1) is He, and those are provided as inputs
     t22 = t2.^t5;
     t23 = -t15;
     t28 = t15./2.0;

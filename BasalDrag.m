@@ -94,7 +94,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 % 
                 % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
                 
-                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;
+                dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
                 
             case {"B","Budd","W-N0"}
     
