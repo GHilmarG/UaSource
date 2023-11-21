@@ -53,6 +53,7 @@ classdef UaFields
         
         q=[]; 
         muk=[];
+        V0=[] ; % This is a parameter in Joughin's sliding law, rCW-V0
         
         Co=[];
         mo=[]

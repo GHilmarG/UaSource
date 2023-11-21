@@ -110,6 +110,11 @@ if ~isempty(F.q)
     qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
+if ~isempty(F.V0)
+    V0nod=reshape(F.V0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+
 if ~isempty(F.muk)
     muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
@@ -195,7 +200,7 @@ for Iint=1:MUA.nip
 
     end
 
- 
+
 
     Cint=Cnod*fun;
     Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin; % for higher order elements it is possible that Cint is less than any of the nodal values
@@ -213,6 +218,11 @@ for Iint=1:MUA.nip
         mukint=[];
     end
 
+    if ~isempty(F.V0)
+        V0int=V0nod*fun;
+    else
+        V0int=[];
+    end
 
 
 
@@ -307,7 +317,7 @@ for Iint=1:MUA.nip
     
 
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
-        BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
+        BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
   

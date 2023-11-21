@@ -1,7 +1,15 @@
+
+
+
+
+
+
+
+
 function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
-        BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk)
+        BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk,V0)
     
-    narginchk(24,24)
+    narginchk(25,25)
     
     %%
     % Returns basal drag and the directional derivatives of basal drag with respect to u,
@@ -119,13 +127,13 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 
                 U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
-                dFuvdC=(U.^(1.0./m-1.0).*muk.^(m+1.0).*N.^(m+1.0).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1.0./m)).^m).^(-1.0./m-1.0).*(C+C0).^(-1.0./m-1.0))./m;
+                dFuvdC=(U.^(1./m-1).*muk.^(m+1).*N.^(m+1).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1./m)).^m).^(-1./m-1).*(C+C0).^(-1./m-1))./m;
                 
             case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
                 
                 U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
-                dFuvdC=(U.^(1.0./m).*muk.^2.*N.^2.*He.*1.0./(U.^(1.0./m).*He+muk.*N.*(C+C0).^(1.0./m)).^2.*(C+C0).^(1.0./m-1.0))./(U.*m) ;
+                dFuvdC=(U.^(1./m).*muk.^2.*N.^2.*He.*1./(U.^(1./m).*He+muk.*N.*(C+C0).^(1./m)).^2.*(C+C0).^(1./m-1))./(U.*m) ;
                 
             case {"Tsai","minCW-N0"}
                 
@@ -147,6 +155,12 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 
                 fprintf("Inversion using Coulomb sliding law not implemented. \n")
                 error("BasalDrag:InvalidCase","Inversion using Tsai sliding law not implemented.")
+
+            case {"Joughan","rCW-v0"}
+
+                 U=speed;
+                 dFuvdC=   (U.^(1./m-1).*He.*(U+V0).^(-1./m).*(C+C0).^(-1./m-1))./m ;
+                 
                 
             otherwise
                 
@@ -210,21 +224,28 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulom
             dtaubxdhi(isCoulomb)=dtaubxdhiC(isCoulomb);
             dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
-            
-            
+
+
         case {"rpCW-N0","Cornford"}
-            
+
             [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rpCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
-            
+
         case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
-            
+
             [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
-            
-            
+
+        case {"Joughin","rCW-v0"}
+
+            C0=CtrlVar.Czero;
+            u0=CtrlVar.SpeedZero;
+
+            [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = rCWV0(C,C0,V0,He,delta,m,ub,vb,u0)   ;
+
+
         otherwise
-            
+
             error("BasalDrag:CaseNotFound","what sliding law?")
     end
     
