@@ -241,15 +241,20 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             C0=CtrlVar.Czero;
             u0=CtrlVar.SpeedZero;
 
+
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] = rCWV0(C,C0,V0,He,delta,m,ub,vb,u0)   ;
 
+            % [taubxiW,taubyiW,dtaubxduiW,dtaubxdviW,dtaubyduiW,dtaubydviW,dtaubxdhiW,dtaubydhiW] = Weertman(CtrlVar,He,delta,ub,vb,beta2i,Dbeta2i) ;
+            % 
+            % norm(taubxi-taubxiW)
+            % norm(taubyi-taubyiW)
 
         otherwise
 
             error("BasalDrag:CaseNotFound","what sliding law?")
     end
-    
-    
+
+
     %% Sea ice drag term : ocean
     
     if CtrlVar.IncludeMelangeModelPhysics
