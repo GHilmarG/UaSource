@@ -16,6 +16,7 @@ classdef PriorProbabilityDistribution
         n=[];
         q=[];
         muk=[];
+        V0=[];
         
         AGlen=[];
         CovAGlen=[]

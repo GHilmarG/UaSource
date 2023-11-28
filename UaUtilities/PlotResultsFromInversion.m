@@ -859,16 +859,17 @@ else
             hold off
             yyaxis left
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-            ylabel('J','interpreter','latex')
+            ylabel('$J$','interpreter','latex')
             
             hold on
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
-            ylabel('J and I')
+            ylabel('$J$ and $I$',Interpreter='latex')
          
             yyaxis right
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
-            ylabel('R','interpreter','latex')
-            legend('Objective function','I','R','Location','southwest','interpreter','latex')
+            ylabel('$R$','interpreter','latex')
+            xlabel('Inverse iteration','interpreter','latex');
+            legend('Objective function','$I$','$R$','Location','southwest','interpreter','latex')
 
         end
         

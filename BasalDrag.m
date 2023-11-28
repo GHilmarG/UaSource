@@ -156,7 +156,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 fprintf("Inversion using Coulomb sliding law not implemented. \n")
                 error("BasalDrag:InvalidCase","Inversion using Tsai sliding law not implemented.")
 
-            case {"Joughan","rCW-v0"}
+            case {"Joughin","rCW-v0"}
 
                  U=speed;
                  dFuvdC=   (U.^(1./m-1).*He.*(U+V0).^(-1./m).*(C+C0).^(-1./m-1))./m ;
