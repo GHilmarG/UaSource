@@ -22,7 +22,7 @@ function [PatchObject,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinat
 
 %% Check inputs
 if nargin<4 || isempty(CtrlVar)
-    CtrlVar.PlotXYscale=1;
+    CtrlVar(1).PlotXYscale=1;
     CtrlVar.PlotsXaxisLabel=' ';
     CtrlVar.PlotsYaxisLabel=' ';
 end

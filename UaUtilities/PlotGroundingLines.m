@@ -99,7 +99,7 @@ if nargin==0
 end
 
 if isempty(CtrlVar)
-    CtrlVar.PlotXYscale=1000;
+    CtrlVar(1).PlotXYscale=1000;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
