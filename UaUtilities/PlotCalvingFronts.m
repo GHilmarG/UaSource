@@ -1,47 +1,104 @@
 function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
-    
-    %
-    % Plots calving fronts, just a simple wrapper around PlotGroundingLines
-    %
-    %
-    % To suppress plotting set CtrlVar.PlotGLs=false
-    %
-    %
-    % F is the Ua field variable, but it can also be given as LSF or any other nodal variable 
-    %
-    % Example:
-    %
-    % figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,F,color="r");
-    %
-    % figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,color="r");
-    %
-    %
-    %  figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,"k--");
-    %
-    % Also consider using: 
-    %
-    %   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
-   
-    if  isnumeric(F) && numel(F)==MUA.Nnodes 
-        LSF=F;
+
+%
+% Plots calving fronts, just a simple wrapper around PlotGroundingLines
+%
+%
+% To suppress plotting set CtrlVar.PlotGLs=false
+%
+%
+% F is the Ua field variable, but it can also be given as LSF or any other nodal variable
+%
+% Example:
+%
+% figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,F,color="r");
+%
+% figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,color="r");
+%
+%
+%  figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,"k--");
+%
+% Also consider using:
+%
+%   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
+%
+%
+% Note: If called with not arguments, or with the second argument equal to "ITS-LIVE" , the outlines of the Antarctic Ice
+% Sheet are plotted based on the ITS-LIVE120  ocean mask
+%
+%%
+
+
+
+if nargin==0
+
+    CtrlVar=[];
+    MUA="ITS-LIVE" ;
+
+end
+
+if isempty(CtrlVar)
+    CtrlVar(1).PlotXYscale=1000;
+end
+
+
+if isstring(MUA)
+
+    GroundingLineDataSet=MUA ;
+
+    switch GroundingLineDataSet
+
+        case "ITS-LIVE"
+
+            load("ITS-LIVE-ANT-G0120-0000-AntarticIceSheetBoundary-nStride5.mat","AISBoundaryITS") ;
+            xc=AISBoundaryITS(:,1);
+            yc=AISBoundaryITS(:,2);
+
+
+        otherwise
+
+            error("case not found")
+
+    end
+
+    tt=axis;
+    if isempty(varargin)
+        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'b') ;
     else
-        LSF=F.LSF ;
+        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,varargin{:}) ;
     end
-    
-    if isempty(LSF)
-        xc=[] ; yc=[] ;
-        return
+    ax=gca; ax.DataAspectRatio=[1 1 1];
+
+    if ~isequal(tt,[0 1 0 1])
+        axis(tt)
     end
 
+    return
 
-    CtrlVar.LineUpGLs=true ;
+end
 
-    GF.node=LSF ;
 
-    CtrlVar.GLthreshold=0;
-    [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
 
- 
+if  isnumeric(F) && numel(F)==MUA.Nnodes
+    LSF=F;
+else
+    LSF=F.LSF ;
+end
+
+if isempty(LSF)
+    xc=[] ; yc=[] ;
+    return
+end
+
+
+CtrlVar.LineUpGLs=true ;
+
+GF.node=LSF ;
+
+CtrlVar.GLthreshold=0;
+[xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
+
+
 
 
 

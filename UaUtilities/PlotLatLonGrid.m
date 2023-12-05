@@ -100,7 +100,7 @@ if isCircumpolar
             if nargin< 3
                 dlon=45;
                 if nargin< 2
-                    dlat=5;
+                    dlat=10;
                     if nargin==0
                         scale=1000 ;
                     end
@@ -182,7 +182,7 @@ end
 hold on
 
 
-[Clat,hlat]=contour(ax1,X0,Y0,Lat,-90:dlat:90,LineColor=lcol,LabelFormat=@mylabelfunLat);
+[Clat,hlat]=contour(ax1,X0,Y0,Lat,-85:dlat:85,LineColor=lcol,LabelFormat=@mylabelfunLat);
 
 
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)

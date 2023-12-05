@@ -137,7 +137,11 @@ if isstring(MUA)
     if CtrlVar.PlotGLs
 
         tt=axis;
-        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        if isempty(varargin)
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r') ;
+        else
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        end
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
         if ~isequal(tt,[0 1 0 1])
