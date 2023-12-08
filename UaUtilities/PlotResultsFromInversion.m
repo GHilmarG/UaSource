@@ -54,7 +54,7 @@ xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('vs Meas on numerical grid') ;
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot)
     PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
@@ -86,7 +86,7 @@ PlotMeshScalarVariable(CtrlVar,MUA,vsError) ; hold on ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot)
     PlotMeshScalarVariable(CtrlVar,MUA,dhdtError) ; hold on ;
@@ -325,7 +325,7 @@ hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     
     [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
      
@@ -363,7 +363,7 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
      
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot);
