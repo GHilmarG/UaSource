@@ -63,7 +63,7 @@ switch N
 
         else
 
-            [UserVar,F.C,F.m,F.q,F.muk.F.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+            [UserVar,F.C,F.m,F.q,F.muk,F.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,F);
 
         end
 

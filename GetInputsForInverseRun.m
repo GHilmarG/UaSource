@@ -24,7 +24,7 @@ Meas=TestMeas(CtrlVar,MUA,Meas);
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
 %[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
 
-[InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk,InvStartValues.V0);
+[InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk,InvStartValues.V0]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk,InvStartValues.V0);
 %[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);
 
 %[Priors.rho,Priors.rhow]=TestDensityInputValues(CtrlVar,MUA,Priors.rho,Priors.rhow);
