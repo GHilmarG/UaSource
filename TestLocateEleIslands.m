@@ -1,8 +1,24 @@
 
 
+%
+%  Tests and examples of the use of:
+%
+%   LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.m
+%
+%
 
-TestCase=3;
+TestCase=3;  % There are currenlty 3 test cases available. 
 
+%%  
+%
+%
+% Note:  For TestCase=2 you will need an input file. You can get this input file from:
+%
+% https://livenorthumbriaac-my.sharepoint.com/:f:/g/personal/hilmar_gudmundsson_northumbria_ac_uk/EulRApgZzIlMq7mgx33DD5UB1_MDwEFIah-_CWrQcxJNnA?e=3om5cp
+%
+% There are several .mat files in this directory and you might want to download them all into a seperate folder and add to
+% the matlab path.  These mat fiels are used in various Ua examples and tests and for plotting purposes, but none of them are required to run Ua.
+%
 %%
 
 switch TestCase
