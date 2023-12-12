@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Matern</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-11-17"><meta name="DC.source" content="Matern.m"><style type="text/css">
+      -->
+<title>Matern</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-12-11">
+<meta name="DC.source" content="Matern.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,22 +72,52 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
-</pre><pre>[r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)</pre><p>Calculates the Matern covariance defined as</p><p><img src="Matern_eq05274058284973367452.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$" style="width:189px;height:36px;"></p><p>Inputs:</p><pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
+</pre>
+<pre>[r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)</pre>
+<p>Calculates the Matern covariance defined as</p>
+<p>
+<img src="Matern_eq05274058284973367452.png" alt="$$ r(x)=\frac{\sigma^2}{2^{\nu-1} \Gamma(\nu)} (\kappa \, x )^{\nu} K_{\nu}(\kappa x)$$" style="width:189px;height:36px;"></p>
+<p>Inputs:</p>
+<pre>  alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
   rho     :   distance where correlation falls to 0.1
-  d       :   spatial dimention</pre><pre>  sigma2  :   marginal variance, (optional input)
- DoPlots  :   plots of realisations if set to true (optional input)</pre><p>Outputs:</p><pre>     nu              :   nu=alpha-d/2;
+  d       :   spatial dimention</pre>
+<pre>  sigma2  :   marginal variance, (optional input)
+ DoPlots  :   plots of realisations if set to true (optional input)</pre>
+<p>Outputs:</p>
+<pre>     nu              :   nu=alpha-d/2;
   kappa              :   the wave-number inthe Helmholtz equation
   sigma2Helmholtz    :   marginal variance of the Helmholtz equation for the given
                          kappa and alpha values
   Cov                :   covariance matrix with the marginal covariance
                          sigma2, if sigma2 is provided, otherwise with the
                          marginal covariance sigma2Helmholtz
-  Realisation        :   One realisation of a Matern process.</pre><p><img src="Matern_eq16450844572194849622.png" alt="$$\nu=\alpha-d/2$$" style="width:76px;height:15px;"></p><p>for d=2 (i.e. two spatial dimentions) we have nu=2-1=1</p><pre>rho=sqrt(8 nu)/kappa then given rho</pre><p><img src="Matern_eq13404251335405118097.png" alt="$$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$" style="width:57px;height:36px;"></p><p>If sigma2 is not given on input, it is calculated based on expression in:   Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).</p><p>Note that if <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:13px;height:13px;"> is specified, the marginal variance of the Helmoltz equation with the specified alpha, rho and dimention will still be sigma2 as given</p><p><img src="Matern_eq02034593208247293835.png" alt="$$ \sigma^2=\frac{\Gamma(\nu) }{\Gamma(\nu+d/2) (4 \pi)^{d/2} \kappa^{2 \nu} } $$" style="width:169px;height:35px;"></p><p>by the equation above!</p><p>Only input sigma2 if you interested in returning and using the covariance matrix Cov and the Realisation.</p><p>Example :</p><pre class="language-matlab">d=2; alpha=2 ; rho=4e3 ;
+  Realisation        :   One realisation of a Matern process.</pre>
+<p>
+<img src="Matern_eq16450844572194849622.png" alt="$$\nu=\alpha-d/2$$" style="width:76px;height:15px;"></p>
+<p>for d=2 (i.e. two spatial dimentions) we have nu=2-1=1</p>
+<pre>rho=sqrt(8 nu)/kappa then given rho</pre>
+<p>
+<img src="Matern_eq13404251335405118097.png" alt="$$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$" style="width:57px;height:36px;"></p>
+<p>If sigma2 is not given on input, it is calculated based on expression in: Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).</p>
+<p>Note that if <img src="Matern_eq10721032911203797104.png" alt="$\sigma^2$" style="width:13px;height:13px;"> is specified, the marginal variance of the Helmoltz equation with the specified alpha, rho and dimention will still be sigma2 as given</p>
+<p>
+<img src="Matern_eq02034593208247293835.png" alt="$$ \sigma^2=\frac{\Gamma(\nu) }{\Gamma(\nu+d/2) (4 \pi)^{d/2} \kappa^{2 \nu} } $$" style="width:169px;height:35px;"></p>
+<p>by the equation above!</p>
+<p>Only input sigma2 if you interested in returning and using the covariance matrix Cov and the Realisation.</p>
+<p>Example :</p>
+<pre class="language-matlab">d=2; alpha=2 ; rho=4e3 ;
 dist=linspace(0,1e4,1e3) ; [r,nu,kappa,sigma2]=Matern(alpha,rho,d,dist);
 figure ; plot(dist,r) ; xlabel(<span class="string">'distance'</span>) ; ylabel(<span class="string">'Matern'</span>)
 title([<span class="string">'$$ \sigma^2= $$'</span>,num2str(sigma2),<span class="string">' $$ \rho=$$'</span>,num2str(rho)],<span class="string">'interpreter'</span>,<span class="string">'latex'</span>)
-</pre><pre class="codeinput"><span class="keyword">if</span> nargin&lt;6
+</pre>
+<pre class="codeinput">
+<span class="keyword">if</span> nargin&lt;6
     DoPlots=false;
 <span class="keyword">end</span>
 
@@ -108,9 +143,11 @@ x=kappa * x ;
 <span class="comment">% appear to be 1/2 of the rho I use here</span>
 <span class="comment">% My notation is based on:</span>
 <span class="comment">%   Lindgren, F., Rue, H., &amp; Lindstr&ouml;m, J. (2011).</span>
-<span class="comment">%   An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 73(4), 423&#8211;498. https://doi.org/10.1111/j.1467-9868.2011.00777.x</span>
+<span class="comment">%   An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 73(4), 423&ndash;498. https://doi.org/10.1111/j.1467-9868.2011.00777.x</span>
 r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
-</pre><pre class="codeinput"><span class="keyword">if</span> nargout&gt;4 || DoPlots
+</pre>
+<pre class="codeinput">
+<span class="keyword">if</span> nargout&gt;4 || DoPlots
     F = griddedInterpolant(x,r) ;
     D=ndgrid(x,x) ;
     D=abs(D-D') ;
@@ -131,9 +168,24 @@ r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
     <span class="keyword">end</span>
 
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
+
+
+
+
+
+
 function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
 
 %%
@@ -259,4 +311,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
