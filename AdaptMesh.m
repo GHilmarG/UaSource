@@ -19,7 +19,7 @@ lnew=lold;
 RuvNew=RuvOld;
 
 %%
-isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of eliments,
+isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of elements,
 % some new nodes are introduced that are OUTSIDE of any of the elements in the old mesh
 
 %%

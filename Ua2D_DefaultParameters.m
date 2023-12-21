@@ -581,8 +581,7 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
 % Further description of what infomation is provided depending on the values of the info parameters is provided below. 
-%
-% If you, for example set,
+%% If you, for example set,
 %
 %    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
 %
@@ -2129,11 +2128,10 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Note: It appears using about 6 workers on parfor and smpd options both on is the best approach. 
 %       However, results are likely to be somewhat problem dependent. 
 %
-CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     % assembly over integration points done in parallel using parfor
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
-CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
+CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
