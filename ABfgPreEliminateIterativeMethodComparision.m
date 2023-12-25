@@ -1,4 +1,9 @@
-function [x,y,tolA,tolB,Peq,Req,Ceq]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,Peq,Req,Ceq)
+
+
+
+
+
+function [x,y,tolA,tolB,Peq,Req,Ceq,L1,U1,L1eq,U1eq]=ABfgPreEliminateIterativeMethodComparision(CtrlVar,A,B,f,g,x0,y0,Peq,Req,Ceq,L1,U1,L1eq,U1eq)
 
 %% This is a test run
 %
@@ -11,6 +16,10 @@ if nargin < 8
     Peq=[];
     Req=[];
     Ceq=[];
+    L1=[];
+    U1=[];
+    L1eq=[];
+    U1eq=[];
 end
 
 if nargin<6
@@ -22,6 +31,18 @@ end
 [nA,mA]=size(A);
 [nB,mB]=size(B);
 [nf,mf]=size(f);
+
+
+if ~isempty(x0) && ~isempty(y0)
+
+    tolA=norm(A*x0+B'*y0-f)/norm(f);
+    tolB=norm(B*x0-g);
+    fprintf(" Initial normed residuals are: \n")
+    fprintf("   norm(A*x+B'*y-f)/norm(f) = %g \n",tolA) 
+    fprintf("                  norm(B*x-g)= %g \n",tolB)
+
+end
+
 
 if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
 
@@ -80,8 +101,8 @@ else
         if isempty(Peq)
             [Peq,Req,Ceq] = equilibrate(Atilde);
         end
-        Beq = Req*Peq*Atilde*Ceq;
-        deq = Req*Peq*btilde;
+        AtildeEquilibrated = Req*Peq*Atilde*Ceq;
+        btildeEquilibrated = Req*Peq*btilde;
 
 
         teq=toc(teq) ;
@@ -91,7 +112,7 @@ else
 
 
         setup.type = 'nofill'; setup.milu = 'off';  isReorder=false;
-        setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  isReorder=true; % must be used with re-ordering
+        setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-8;    setup.udiag=0 ;  isReorder=true; % must be used with re-ordering
 
         
 
@@ -103,18 +124,18 @@ else
             tdissectAtilde=toc(tdissectAtilde);
 
             tdissectBeq=tic;
-            pBeq=dissect(Beq);
+            pAtildeEquilibrated=dissect(AtildeEquilibrated);
             % pBeq=symrcm(Beq);
             tdissectBeq=toc(tdissectBeq);
 
             invpAtilde(pAtilde)=1:length(pAtilde);   % inverse of the permutation vector
-            invpBeq(pBeq)=1:length(pBeq);            % inverse of the permutation vector
+            invpBeq(pAtildeEquilibrated)=1:length(pAtildeEquilibrated);            % inverse of the permutation vector
 
             Atilde=Atilde(pAtilde,pAtilde) ;
             btilde=btilde(pAtilde);
 
-            Beq=Beq(pBeq,pBeq) ;
-            deq=deq(pBeq);
+            AtildeEquilibrated=AtildeEquilibrated(pAtildeEquilibrated,pAtildeEquilibrated) ;
+            btildeEquilibrated=btildeEquilibrated(pAtildeEquilibrated);
         else
 
             tdissectAtilde=0;
@@ -123,17 +144,21 @@ else
         end
 
         tluincEq=tic;
-        [L1eq,U1eq] = ilu(Beq,setup);
+        if isempty(L1eq)
+            [L1eq,U1eq] = ilu(AtildeEquilibrated,setup);
+        end
         tluincEq=toc(tluincEq);
 
         tluinc=tic;
-        [L1,U1] = ilu(Atilde,setup);
+        if isempty(L1)
+            [L1,U1] = ilu(Atilde,setup);
+        end
         tluinc=toc(tluinc);
 
 
 
         tol=1e-15 ; maxit=1; restart=300;
-        tol=1e-15 ; maxit=30; restart=1;   % quick for testing purposes
+        tol=1e-15 ; restart=10;  maxit=floor(15/restart) ; % quick for testing purposes
 
 
 
@@ -143,6 +168,7 @@ else
             x0=f*0;
         end
 
+        % gmres without preconditioners
         tgmres=tic;
         [x,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,[],[],x0);
 
@@ -152,6 +178,7 @@ else
         tgmres=toc(tgmres);
 
 
+        % gmres with il0 preconditioners
         tgmresPre=tic;
         [xPre,flagPre,relresPre,iterPre,resvecPre]=gmres(Atilde,btilde,restart,tol,maxit,L1,U1,x0);
         if isReorder
@@ -159,17 +186,19 @@ else
         end
         tgmresPre=toc(tgmresPre);
 
+         % gmres, equilibrated matrix but no preconditioner
         xEq0=f*0;
         tgmresEq=tic;
-        [xeq,flagEq,relresEq,iterEq,resvecEq]=gmres(Beq,deq,restart,tol,maxit,[],[],xEq0);
+        [xeq,flagEq,relresEq,iterEq,resvecEq]=gmres(AtildeEquilibrated,btildeEquilibrated,restart,tol,maxit,[],[],xEq0);
         if isReorder
             xeq=xeq(invpBeq) ;
         end
         xeq=Ceq*xeq;
         tgmresEq=toc(tgmresEq);
 
+        % gmres, equilibrated matrix with preconditioners
         tgmresEqPre=tic;
-        [xeqPre,flagEqPre,relresEqPre,iterEqPre,resvecEqPre]=gmres(Beq,deq,restart,tol,maxit,L1eq,U1eq,xEq0);
+        [xeqPre,flagEqPre,relresEqPre,iterEqPre,resvecEqPre]=gmres(AtildeEquilibrated,btildeEquilibrated,restart,tol,maxit,L1eq,U1eq,xEq0);
         if isReorder
             xeqPre=xeqPre(invpBeq) ;
         end
@@ -182,6 +211,8 @@ else
         sol{3}=xeq;    text(3)="eq    ";
         sol{4}=xeqPre; text(4)="xeqPre" ;
 
+
+        
 
         if CtrlVar.InfoLevelLinSolve>=1
             
@@ -233,36 +264,53 @@ else
 
 
         fprintf("\n\n")
-        for I=1:4
+        TolAmin=inf;
+        isScaled=true; 
+        for I=1:4   % now plug the four solutions into the system and estimate norm of residuals
 
 
-            x=sol{I} ;
+            xx=sol{I} ;
 
             % x=Atilde\btilde;
-            y=B*(f-A*x);
 
-            % Now the solution of the scaled system has been found.
-
-            y=y/factor;
-
-            
-            if nargout>2
-                % check if within tolerances
+            if isScaled
 
                 A=A/factor ;
                 f=f/factor ;
 
-                tolA=norm(A*x+B'*y-f)/norm(f);
-                tolB=norm(B*x-g);
+                B=B/Scale;
+                g=g/Scale;
+                isScaled=false;
 
-                %                if tolA>1e-6 || tolB>1e-6
-
-                fprintf('\t %s \t %g \t %g \n ',text(I),tolA,tolB)
-                %
             end
+
+
+            % yy=B*(f-A*xx);  %   B' yy= (f-A*xx); but since B B'= 1 this is correct, but then must use the scaled B here
+
+            yy= ( B*B') \ (B*(f-A*xx)) ;
+
+            tolA=norm(A*xx+B'*yy-f)/norm(f);
+            tolB=norm(B*xx-g);
+
+            %                if tolA>1e-6 || tolB>1e-6
+
+            fprintf('\t %s \t %g \t %g \n ',text(I),tolA,tolB)
+            %
+
+            % Select the solution with the lowers tolerance as the one returned
+
+   %         yy=Scale*yy; % and now scale y in case B and g were scaled above.
+
+            if tolA < TolAmin
+                x=xx;
+                y=yy;
+                TolAmin=tolA;
+            end
+
+
         end
 
-        y=Scale*y; % and now scale y in case B and g were scaled above.
+        
 
 
 

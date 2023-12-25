@@ -27,6 +27,9 @@ if isempty(x0)
 end
 
 
+
+
+
 setup.type = 'nofill'; setup.milu = 'off'; 
 setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  isReorder=true; % must be used with re-ordering
 
@@ -51,6 +54,8 @@ else
 
     if isdiag(BBT)  % the method assumes that B B' is diagonal
 
+
+        tCPUtotal=tic;
 
         % It also assumes that B B' is a unity matrix, but if not then simple scaling can be used
         % to ensure that this is the case.
@@ -107,14 +112,8 @@ else
 
         tgmres=tic;
 
-
-
-        tic
-
         [x,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,x0);
-        
 
-        toc
 
 %         tic
 %         AtildeGPU=gpuArray(Atilde) ; M=L*U ; MGPU=gpuArray(M) ; btildeGPU=gpuArray(btilde) ;
@@ -127,12 +126,14 @@ else
         x=x(iperm) ;
         tgmres=toc(tgmres);
 
+        tCPUtotal=toc(tCPUtotal) ;
+
         if CtrlVar.InfoLevelLinSolve>=10
 
-            fprintf("  dissect Atilde %f sec\n",tdissectAtilde)
-            fprintf("             ilu %f sec\n",tluinc)
-            fprintf("          gmres %f sec\n",tgmres)
-            fprintf("total time for nonEq with  is about %f",tdissectAtilde+tluinc+tgmres)
+            fprintf("                   dissect Atilde %f sec\n",tdissectAtilde)
+            fprintf("                              ilu %f sec\n",tluinc)
+            fprintf("                            gmres %f sec\n",tgmres)
+            fprintf("total time for iterative solution %f sec",tCPUtotal)
 
             figure
             fprintf("\n\n")

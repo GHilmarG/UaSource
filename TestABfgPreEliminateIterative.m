@@ -1,13 +1,27 @@
 %
 
 
+%%
 %
+% These are various ideas that I've tested while trying to get an interative solver performance that is better then direct
+% solver
+%
+% I have never been able to get the iterative solver to be even close to the direct one in terms of performance.
+%
+% The best option so far was use of gmres with ilu preconditioner combined with dissect. This was 'only' about 2 to 5 times slover than
+% the direct solver. Also found the performance of the iterative solver to be highly problem dependent.
+%
+% Seems impossible to speed this up using paralle options as disect not supported for distributed arrays (2023b)
+% 
+%
+%%
 
 
 TestCase="-direct-" ;
-% TestCase="-compare-" ;
-% TestCase="-best-"  ;
+TestCase="-compare-" ;
+TestCase="-best-"  ;
 
+load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
 
 switch TestCase
 
@@ -16,7 +30,7 @@ switch TestCase
 
         % Comaprision with Direct solver
 
-        load solveKApePIGTWGuvh250896.mat
+        
         tic
         [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
         toc
@@ -32,11 +46,40 @@ switch TestCase
         Peq=[] ;
         Req=[] ;
         Ceq=[] ;
+        L1=[];
+        U1=[];
+        L1eq=[];
+        U1eq=[];
+
+        
+
+        load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g")
+        CtrlVar.InfoLevelLinSolve=100;
+        
+        
+        % A=distributed(A) ; B=distributed(B) ; f=distributed(f) ; g=distributed(g); % equilibrate and dissect do not work with
+        % either distributed nor gpuarrays
+
         x0=[];
         y0=[];
 
-        CtrlVar.InfoLevelLinSolve=100;
-        [x,y,tolA,tolB,Peq,Req,Ceq]=ABfgPreEliminateIterativeMethodComparision(CtrlVar,A,B,f,g,x0,y0,Peq,Req,Ceq) ;
+                        
+        fprintf("\n\n\n-----------------------------------------------------------------------------------------\n\n")
+
+        [x,y,tolA,tolB,Peq,Req,Ceq,L1,U1,L1eq,U1eq]=ABfgPreEliminateIterativeMethodComparision(CtrlVar,A,B,f,g,x0,y0,Peq,Req,Ceq,L1,U1,L1eq,U1eq) ; 
+
+        % Now call again using previous preconditioners and equilibrated matrix
+
+         fprintf("\n\n\n-----------------------------------------------------------------------------------------\n\n")
+
+         % Now load a matrix from next NR iteration
+         load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g") ; 
+         CtrlVar.InfoLevelLinSolve=100;
+         
+         x0=x ; y0=y ; % use previous solution as an initial guess, and the previous preconditioners as well
+
+
+        [x,y,tolA,tolB,Peq,Req,Ceq,L1,U1,L1eq,U1eq]=ABfgPreEliminateIterativeMethodComparision(CtrlVar,A,B,f,g,x0,y0,Peq,Req,Ceq,L1,U1,L1eq,U1eq) ; 
 
 
     case "-best-"
@@ -84,13 +127,13 @@ switch TestCase
         load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;
         CtrlVar.InfoLevelLinSolve=100;
-        % x0=x ; y0=y; % L=[] ; U=[] ; perm=[] ; 
+        x0=x ; y0=y; % L=[] ; U=[] ; perm=[] ; 
         tstart2=tic ;
         [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,perm) ;
         tend2=toc(tstart2) ; 
 
 
-        fprintf("tend1=%f \t tend2=%f \n",tend1,tend2)
+        fprintf("tend1=%f sec \t tend2=%f sec \n",tend1,tend2)
 
 
     otherwise
