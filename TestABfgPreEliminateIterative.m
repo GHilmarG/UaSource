@@ -3,15 +3,15 @@
 
 %%
 %
-% These are various ideas that I've tested while trying to get an interative solver performance that is better then direct
+% These are various ideas that I've tested while trying to get an iterative solver performance that is better then direct
 % solver
 %
 % I have never been able to get the iterative solver to be even close to the direct one in terms of performance.
 %
-% The best option so far was use of gmres with ilu preconditioner combined with dissect. This was 'only' about 2 to 5 times slover than
+% The best option so far was use of gmres with ilu preconditioner combined with dissect. This was 'only' about 2 to 5 times slower than
 % the direct solver. Also found the performance of the iterative solver to be highly problem dependent.
 %
-% Seems impossible to speed this up using paralle options as disect not supported for distributed arrays (2023b)
+% Seems impossible to speed this up using parallel options as dissect not supported for distributed arrays (2023b)
 % 
 %
 %%
@@ -19,7 +19,7 @@
 
 TestCase="-direct-" ;
 TestCase="-compare-" ;
-TestCase="-best-"  ;
+% TestCase="-best-"  ;
 
 load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
 
@@ -40,7 +40,7 @@ switch TestCase
 
     case "-compare-"
 
-        % Iterative method comparision
+        % Iterative method comparison
 
 
         Peq=[] ;
@@ -56,7 +56,7 @@ switch TestCase
         load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g")
         CtrlVar.InfoLevelLinSolve=100;
         
-        
+        parpool('Threads')
         % A=distributed(A) ; B=distributed(B) ; f=distributed(f) ; g=distributed(g); % equilibrate and dissect do not work with
         % either distributed nor gpuarrays
 
@@ -84,11 +84,11 @@ switch TestCase
 
     case "-best-"
 
-%         From the method comparsion it is concluded that ilutp+dissect+gmrs is the best approach.
-%         Using equlibriate does not improve the convergence signficantly, and takes lot of time (30 sec, for the typical example
+%         From the method comparison it is concluded that ilutp+dissect+gmrs is the best approach.
+%         Using equlibriate does not improve the convergence significantly, and takes lot of time (30 sec, for the typical example
 %         used here).
 % 
-%         So fastes approach appearse to be:
+%         So fastest approach appears to be:
 % 
 %         1) Preconditoner based in ilutp with droptolerance around 1e-6 or so
 %         2) dissect  (a must to limit memory)

@@ -33,7 +33,7 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 %
 %       c=NaN;
 %
-% then the level-set is NOT evolved in time using by solving the level-set equation. This can be usefull if, for example, the
+% then the level-set is NOT evolved in time using by solving the level-set equation. This can be useful if, for example, the
 % user simply wants to manually prescribe the calving front position at each time step.
 %
 %
@@ -48,15 +48,15 @@ if isempty(F.LSF)   % Do I need to initialize the level set function?
 
         LSF=-ones(MUA.Nnodes,1) ;
         LSF(F.GF.node>0.5)=+1;
-        Xc=[] ;  % If Xc and Yc are left empty, the Xc and Yc will be calculated as the zero contorl of the LSF field
+        Xc=[] ;  % If Xc and Yc are left empty, the Xc and Yc will be calculated as the zero control of the LSF field
         Yc=[] ; 
 
     else
 
-        Xc=UserVar.CalvingFront0.Xc;
+        Xc=UserVar.CalvingFront0.Xc;  % Here is is assumed that the user has defined the desired initial location of the calving front, and stored those in UserVar
         Yc=UserVar.CalvingFront0.Yc;
 
-        % A rough sign-correct initialisation for the LSF
+        % A rough sign-correct initialization for the LSF
         io=inpoly2([F.x F.y],[Xc(:) Yc(:)]);
         LSF=-ones(MUA.Nnodes,1) ;
         LSF(io)=+1;

@@ -16,7 +16,7 @@ function [coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,
 %    DeactivatedElements=[10 ; 11] ;  % list of elements to be deactivated
 %    [coordinates,connectivity]=DeactivateElements(CtrlVar,iDeactivatedElements,coordinates,connectivity);
 %
-% Example: Deactivate elements whose centrepoints are within a given polygon: 
+% Example: Deactivate elements whose center-points are within a given polygon: 
 %     
 %     load('NameOfFileWithPolygonEdges',xPoly,yPoly);
 %     xEle=Nodes2EleMean(connectivity,coordinates(:,1));

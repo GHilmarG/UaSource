@@ -7,7 +7,7 @@ function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
 % What you need to define are:
 %
 %
-% # Measurments and data errors (data errors are specified as diagonal covariance matrices.)
+% # Measurements and data errors (data errors are specified as diagonal covariance matrices.)
 % # Start values for inversion. (These are some values for the model parameters that you want to invert for.)
 % # Priors for the inverted fields. (Currently the only priors that are used the the priors for C and AGlen.)
 %
@@ -18,14 +18,14 @@ function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
 
 persistent FuMeas FvMeas FerrMeas  % keep scattered interpolants for the data in memory.
 
-%% get measurments and define error covariance matrices
+%% get measurements and define error covariance matrices
 if isempty(FuMeas)
     
     % Here I'm assuming the user has defined the field
     %
     %   UserVar.SurfaceVelocityInterpolant
     %
-    % which is the name of a mat file containint surface velocity data interpolants.
+    % which is the name of a mat file containing surface velocity data interpolants.
     %
     %
     

@@ -27,9 +27,9 @@ function  [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlV
 %
 %   [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
 %
-% which provies dphi/dx and dphi/dy where phi is the level-set function
+% which provides dphi/dx and dphi/dy where phi is the level-set function
 %
-% This option is activated by the usuer by setting
+% This option is activated by the user by setting
 %
 %
 %   CtrlVar.CalvingLaw.Evaluation="-int-" ; 
@@ -82,7 +82,7 @@ switch UserVar.CalvingLaw.Type
         fI=3.2e-17*365.25 ; c=fI*CliffHeight.^(7.2) ;
         % Now set calving rate to zero for cliff less than 135meters
         c(CliffHeight<135)=0 ;
-        % and set maximum at at cliff height equalt to 450m
+        % and set maximum at at cliff height equal to 450m
         cMax=fI*450.^(7.2) ;
         c(c>cMax)=cMax ;
 

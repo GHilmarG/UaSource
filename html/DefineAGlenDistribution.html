@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>DefineAGlenDistribution</title>
-<meta name="generator" content="MATLAB 23.2">
+<meta name="generator" content="MATLAB 24.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2023-10-26">
+<meta name="DC.date" content="2023-12-26">
 <meta name="DC.source" content="DefineAGlenDistribution.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -84,17 +84,20 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre>
 <pre class="language-matlab">[UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 </pre>
-<p>Usually A is defined on the nodes (but sometimes in an inverse run A might be defined as an element variable.)</p>
+<p>Note: Use</p>
+<pre class="language-matlab">[AGlen,B]=AGlenVersusTemp(T)
+</pre>
+<p>to get A in the units kPa^{-3} yr^{-1} for some temperature T (degrees Celsius)</p>
 <pre class="codeinput">n=3 ;
-A=6.338e-25;
-AGlen=A*1e9*365.2422*24*60*60+zeros(MUA.Nnodes,1);
+A=6.338e-25;                                           <span class="comment">% A in SI units for temperate ice ;</span>
+AGlen=A*1e9*365.2422*24*60*60+zeros(MUA.Nnodes,1);     <span class="comment">% A in the units kPa^{-3} yr^{-1}</span>
 </pre>
 <pre class="codeinput">
 <span class="keyword">end</span>
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
 <br>
 </p>
 </div>
@@ -102,8 +105,6 @@ AGlen=A*1e9*365.2422*24*60*60+zeros(MUA.Nnodes,1);
 ##### SOURCE BEGIN #####
 
 function  [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,F)
-
-
 
 
 %%
@@ -114,14 +115,17 @@ function  [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,F)
 % 
 %   [UserVar,AGlen,n]=DefineAGlenDistribution(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
 %
-% Usually A is defined on the nodes (but sometimes in an inverse run A might be
-% defined as an element variable.)
-% 
+% Note: Use
+%
+%   [AGlen,B]=AGlenVersusTemp(T)
+%
+% to get A in the units kPa^{-3} yr^{-1} for some temperature T (degrees Celsius) 
+%
 %% 
 
 n=3 ;
-A=6.338e-25;
-AGlen=A*1e9*365.2422*24*60*60+zeros(MUA.Nnodes,1);
+A=6.338e-25;                                           % A in SI units for temperate ice ; 
+AGlen=A*1e9*365.2422*24*60*60+zeros(MUA.Nnodes,1);     % A in the units kPa^{-3} yr^{-1}
 
 
 end

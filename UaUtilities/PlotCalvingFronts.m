@@ -18,6 +18,9 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
 %
 %  figure ; [xC,yC]=PlotCalvingFronts(CtrlVar,MUA,LSF,"k--");
 %
+%
+%  figure ; PlotCalvingFronts([],"ITS-LIVE",[],"r");
+%
 % Also consider using:
 %
 %   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
@@ -50,12 +53,21 @@ if isstring(MUA)
 
         case "ITS-LIVE"
 
-            load("ITS-LIVE-ANT-G0120-0000-AntarticIceSheetBoundary-nStride5.mat","AISBoundaryITS") ;
-            xc=AISBoundaryITS(:,1);
-            yc=AISBoundaryITS(:,2);
+            DataFile="ITS-LIVE-ANT-G0120-0000-AntarticIceSheetBoundary-nStride5.mat";
+
+            if isfile(DataFile)
+                load(DataFile,"AISBoundaryITS") ;
+                xc=AISBoundaryITS(:,1);
+                yc=AISBoundaryITS(:,2);
+            else
+                fprintf("Can not plot calving fronts based on ITS-LIVE data because the data file %f \n",DataFile)
+                fprintf("is not found.\n")
+                xc=[] ; yc=[]; 
+            end
 
 
-        otherwise
+
+            otherwise
 
             error("case not found")
 

@@ -104,7 +104,7 @@ end
 
 
 
-% do some basic test on the vality of the CtrlVar fields, validate CtlrVar
+% do some basic test on the validity of the CtrlVar fields, validate CtlrVar
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
 
 
@@ -225,10 +225,10 @@ end
 %  For convenience I assume that the user defines S, B, s and b.  The program
 %  then calculates h=s-b and then s and b from h, B and S given the ice and
 %  ocean specific density.  The thickness is preserved, and s and b are
-%  consistent with the floating condition for a given ice tickness h, rho and
+%  consistent with the floating condition for a given ice thickness h, rho and
 %  rhow.
 if ~isfield(RunInfo,'Message') ; RunInfo.Message=[] ; end
-RunInfo.Message="All initial inputs now defined.";  % this is a string, will only work correclty post Matlab 2017b.
+RunInfo.Message="All initial inputs now defined.";  % this is a string, will only work correctly post MATLAB 2017b.
 CtrlVar.RunInfoMessage=RunInfo.Message;
 
 
@@ -459,7 +459,7 @@ while 1
         F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
  
-    % get mass-balance after any modifications to geometry, as mass balance might depent
+    % get mass-balance after any modifications to geometry, as mass balance might depend
     % on geometry. 
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
     
@@ -540,7 +540,7 @@ while 1
             end
             
             
-            if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
+            if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
                 CtrlVar.InitialDiagnosticStep=0;
                 
@@ -617,7 +617,7 @@ while 1
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
             
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-            % Recalulating geometry based on floation not really needed here because uvh
+            % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
@@ -666,7 +666,7 @@ while 1
         end
     end   % CtrlVar.TimeDependentRun
     
-    %% calculations for this rund step are now done, only some plotting/writing issues do deal with
+    %% calculations for this run step are now done, only some plotting/writing issues do deal with
 
 
     
