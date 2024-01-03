@@ -2,18 +2,16 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
 
 
 
-
-
 nargoutchk(4,7);
 narginchk(7,7)
 
 tdiagnostic=tic;
 
-if numel(F.m)==1
+if isscalar(F.m)
     F.m=zeros(MUA.Nnodes,1)+F.m;
 end
 
-if numel(F.n)==1
+if isscalar(F.n)
     F.n=zeros(MUA.Nnodes,1)+F.n;
 end
 

@@ -12,6 +12,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     RunInfo.Forward.uvConverged=1; 
  
     
+    
     if isempty(CtrlVar.CurrentRunStepNumber) || CtrlVar.CurrentRunStepNumber==0 
         CtrlVar.CurrentRunStepNumber=1;
     end
@@ -19,7 +20,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
    % RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
    % RunInfo.Forward.Residual=NaN; BackTrackInfo.iarm=NaN;
     
-    Kuv=[] ; Ruv=[]; 
+    Kuv=[] ; Ruv=[]; MUAworkers=[]; 
    
     
     % MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -94,7 +95,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     %
     
     
-    %% Make sure iterate is feasable
+    %% Make sure iterate is feasible
     F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     %%
     
@@ -113,8 +114,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
      
     
  
-
-    fext0=KRTFgeneralBCs(CtrlVar,MUA,F,true); % RHS with velocities set to zero, i.e. only external forces
+    CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; MUAworkers=[]; 
+    fext0=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers); % RHS with velocities set to zero, i.e. only external forces
     
     %% New normalisation idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
@@ -129,8 +130,8 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     %%
 
     
-    
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
+    CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; MUAworkers=[]; 
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);     % RHS with calculated velocities, i.e. difference between external and internal forces
     
     RunInfo.CPU.Solution.uv=0;
 
@@ -192,12 +193,14 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
             
             tAssembly=tic;
-            [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
+            CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
+            [Ruv,Kuv,~,~,MUAworkers]=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);
             RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
             NRincomplete=0;
         else
             tAssembly=tic;
-            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+            CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
+            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);
             RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
             NRincomplete=1;
         end

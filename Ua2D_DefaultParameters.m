@@ -9,6 +9,7 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
+
 %%
 %  
 %  Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed. 
@@ -2131,8 +2132,12 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel using parfeval over sub-domain (domain decomposition)  
+
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+
 CtrlVar.Parallel.isTest=false;
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
