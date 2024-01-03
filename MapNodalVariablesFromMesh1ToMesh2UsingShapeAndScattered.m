@@ -165,10 +165,10 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
            
             tt=axis;
             hold off
-            p0=PlotMuaMesh(CtrlVar,MUAnew,[],'b');
+            p0=PlotMuaMesh(CtrlVar,MUAnew,nan,'b');
             hold on
             
-            p1=PlotMuaMesh(CtrlVar,MUAold,[],'k');
+            p1=PlotMuaMesh(CtrlVar,MUAold,nan,'k');
             if ~isequal(tt,[0 1 0 1])
                 axis(tt)
             end
