@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [iK,jK,Kval,iR,jR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(CtrlVar,MUA,F,Partition)
 
 %
@@ -10,7 +16,6 @@ nargoutchk(7,7)
 
 %%  I'm guessing that it is best to do the partition here when using the parfeval option
 MUA.connectivity=MUA.connectivity(Partition,:) ;
-MUA.connectivity=MUA.connectivity(Partition,:);
 MUA.Nele=numel(Partition);
 MUA.Deriv=MUA.Deriv(Partition,:,:,:);
 MUA.DetJ=MUA.DetJ(Partition,:);
@@ -450,6 +455,8 @@ for Inod=1:MUA.nod
 
     Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
     Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
+
+    istak=istak+MUA.Nele;
 
 
 end
