@@ -1,5 +1,8 @@
 
 
+% n=200 ; A = sprandsym(n,.1,0.1);  x=ones(n,1) ;
+
+
 % delete(gcp('nocreate')); parpool('Processes',8)
  
 % delete(gcp('nocreate')); parpool('Threads',8)
