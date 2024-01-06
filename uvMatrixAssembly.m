@@ -29,7 +29,7 @@ switch lower(CtrlVar.FlowApproximation)
               
                 [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers);
 
-            else
+            else  % this is the otherwise default sequencial assembly 
 
                 [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
 
@@ -37,10 +37,12 @@ switch lower(CtrlVar.FlowApproximation)
 
             if CtrlVar.Parallel.isTest
 
-                % MUAworkers=[];
+             
 
+                % There might be an argument for doing this a few times, but if one does a number of NR iterations, which generally is the
+                % case, then that should not be needed.
                 tSeq=tic ;  [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F); tSeq=toc(tSeq) ;
-                % tSeq2=tic ;  [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F); tSeq2=toc(tSeq2) ;   [tSeq tSeq2]
+             
 
                 if CtrlVar.Parallel.uvAssembly.spmd.isOn
                     MUAworkers=[]; 

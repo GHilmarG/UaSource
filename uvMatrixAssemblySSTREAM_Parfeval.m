@@ -1,3 +1,7 @@
+
+
+
+
 function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F)
 
 %%
@@ -39,22 +43,26 @@ f(1:nW)=parallel.FevalFuture;
 tParfeval=tic;
 for idx=1:nW
 
-    f(idx)=parfeval(backgroundPool,@uvMatrixAssemblySSTREAMpartitionTriplets,7,CtrlVar,MUA,F,Partition{idx}); 
+    f(idx)=parfeval(backgroundPool,@uvMatrixAssemblySSTREAMpartitionTriplets,6,CtrlVar,MUA,F,Partition{idx}); 
 end
 tParfeval=toc(tParfeval);
 
 
 tFetching=tic ;
-[iK,jK,Kval,iR,jR,Tval,Fval]=fetchOutputs(f); %  Each output from f is concatenated, so here I get 7 vectors with all triplet values from all the workers
+[iK,jK,Kval,iR,Tval,Fval]=fetchOutputs(f); %  Each output from f is concatenated, so here I get 7 vectors with all triplet values from all the workers
 tFetching=toc(tFetching);
 
 cancel(f)  ; % Not sure if this is needed
 
 tSparse=tic ;
 dof=2;   neq=dof*MUA.Nnodes;
+
+
 Kuv=sparseUA(iK,jK,Kval,neq,neq);
-Tint=sparseUA(iR,jR,Tval);
-Fext=sparseUA(iR,jR,Fval);
+% Kuv=sparseSPMD(CtrlVar,iK,jK,Kval,neq,neq,nW) ;
+
+Tint=sparseUA(iR,1,Tval);
+Fext=sparseUA(iR,1,Fval);
 Ruv=Tint-Fext;
 tSparse=toc(tSparse);
 

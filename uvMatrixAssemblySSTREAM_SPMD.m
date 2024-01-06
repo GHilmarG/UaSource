@@ -1,3 +1,7 @@
+
+
+
+
 function [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers)
 
 narginchk(4,4)
@@ -10,13 +14,16 @@ end
 
 nW=CtrlVar.Parallel.uvAssembly.spmd.nWorkers;
 
-Partition=cell(nW,1);
+
+
 
 
 
 %% create element lists for each partition
 % Use round to make sure that there are exactly nW partitions
 % and ensure that all elements are included.
+tPartition=tic;
+Partition=cell(nW,1);
 N=round(MUA.Nele/nW) ; i1=1 ; i2=N;
 for iWorker=1:(nW-1)
     Partition{iWorker}=i1:i2 ;
@@ -26,11 +33,12 @@ end
 
 i2=MUA.Nele;
 Partition{nW}=i1:i2 ;
+tPartition=toc(tPartition);
 %
 
 
 % outside of spmd  M is  composite
-% inside of spmd M is struct
+% inside of spmd M is struct on each worker
 
 MUA.dM=[] ;
 
@@ -75,17 +83,20 @@ spmd (0,nW)
     rrsum = spmdPlus(rr,1);
     kksum = spmdPlus(kk,1);
 end
+% rrsum and kksum are composites
+% Ruv and Kuv are double sparse
+Ruv=rrsum{1}; Kuv=kksum{1};
+
 tSum=toc(tSum) ;
 
 
-Ruv=rrsum{1};
-Kuv=kksum{1};
+
 
 Tint=[] ; Fext=[];
 
 
 if CtrlVar.Parallel.isTest
-    fprintf("uvMatrixAssemblySSTREAM_SPMD: Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",tBuild,tAssembly,tSum)
+    fprintf("uvMatrixAssemblySSTREAM_SPMD: Creating partition arrays %f sec. \t Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",tPartition,tBuild,tAssembly,tSum)
 end
 
 

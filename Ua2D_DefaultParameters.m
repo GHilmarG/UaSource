@@ -26,6 +26,7 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
 %% Types of run
 % 
 
+
 CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
