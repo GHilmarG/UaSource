@@ -8,7 +8,7 @@
 
 % Set output files directory
 [~,hostname]=system('hostname') ;
-if contains(hostname,"DESKTOP-G5TCRTD")
+if contains(hostname,"DESKTOP-G5TCRTD")  % office Dell
 
     UserVar.ResultsFileDirectory="F:\Runs\Calving\PIG-TWG\ResultsFiles\";
     UserVar.InverseRestartFileDirectory="F:\Runs\Calving\PIG-TWG\InverseRestartFiles\";
