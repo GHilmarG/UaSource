@@ -117,7 +117,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; MUAworkers=[]; 
     fext0=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers); % RHS with velocities set to zero, i.e. only external forces
     
-    %% New normalisation idea, 10 April 2023
+    %% New normalization idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
     % then calculate the const function for this value and use as normalisation
     % gamma=0; fext0=1; 

@@ -1,3 +1,7 @@
+
+
+
+
 function [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers)
 
 narginchk(4,4)

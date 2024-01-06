@@ -4,7 +4,7 @@
 
 
 
-function [iK,jK,Kval,iR,jR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(CtrlVar,MUA,F,Partition)
+function [iK,jK,Kval,iR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(CtrlVar,MUA,F,Partition)
 
 %
 % Ruv=Tint-Fext;
@@ -12,7 +12,7 @@ function [iK,jK,Kval,iR,jR,Tval,Fval]=uvMatrixAssemblySSTREAMpartitionTriplets(C
 % Fint   : external nodal forces
 
 narginchk(4,4)
-nargoutchk(7,7)
+nargoutchk(6,6)
 
 %%  I'm guessing that it is best to do the partition here when using the parfeval option
 MUA.connectivity=MUA.connectivity(Partition,:) ;
@@ -434,7 +434,6 @@ for Iint=1:MUA.nip
 end
 
 iR=zeros(MUA.nod*MUA.Nele*2,1);
-jR=zeros(MUA.nod*MUA.Nele*2,1);
 Tval=zeros(MUA.nod*MUA.Nele*2,1);
 Fval=zeros(MUA.nod*MUA.Nele*2,1);
 istak=0;
@@ -443,7 +442,7 @@ for Inod=1:MUA.nod
 
 
     iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-    jR(istak+1:istak+MUA.Nele)=ones(MUA.Nele,1) ;
+    
 
     Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
     Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
@@ -451,7 +450,7 @@ for Inod=1:MUA.nod
     istak=istak+MUA.Nele;
 
     iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
-    jR(istak+1:istak+MUA.Nele)=ones(MUA.Nele,1) ;
+    
 
     Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
     Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
@@ -461,20 +460,7 @@ for Inod=1:MUA.nod
 
 end
 
-% Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
-%
-% for Inod=1:MUA.nod
-%
-%
-%     Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-%     Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-%
-%     Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-%     Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-%
-% end
-%
-% Ruv=Tint-Fext;
+
 
 if ~Ronly
 

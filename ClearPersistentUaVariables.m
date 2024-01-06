@@ -32,5 +32,7 @@ clear PlotMeshScalarVariable
 clear PlotFEmesh
 clear FindOrCreateFigure
 clear LevelSetEquation
+clear p2F
+
 
 end

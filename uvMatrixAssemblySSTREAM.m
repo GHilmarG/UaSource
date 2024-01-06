@@ -169,12 +169,10 @@ for Iint=1:MUA.nip
 
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
 
-    % if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+  
     Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
     detJ=MUA.DetJ(:,Iint);
-    % else
-    %     [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
-    % end
+  
 
     
     %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
@@ -270,16 +268,7 @@ for Iint=1:MUA.nip
         deltaint=deltanod*fun;
         Heint=Henod*fun;
 
-      % if any(dint<0)
-      %     fprintf(" dint negative \n")
-      % end
-      % if any(deltaint<0)
-      %     fprintf(" deltaint negative \n")
-      % end
-      % if any(Heint<0)
-      %     fprintf(" Heint negative \n")
-      % end
-
+    
     else
         %% evaluating dint, hfint, Heint and deltaint at integration points#
         hfint=F.rhow*Hint./rhoint;
@@ -423,7 +412,7 @@ for Iint=1:MUA.nip
     end
 end
 
-% add boundary integral relatedto Dirichlet boundary conditions
+% add boundary integral related to Dirichlet boundary conditions
 
 
 % assemble right-hand side
@@ -443,58 +432,49 @@ end
 Ruv=Tint-Fext;
 
 if ~Ronly
-    iSparse=1;  %	faster
-    if iSparse==1
-        % uses the sparse function less often
-        
-        
-        %Iind=zeros(nod*Nele*4,1); Jind=zeros(nod*Nele*4,1);Xval=zeros(nod*Nele*4,1);
-        Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); istak=0;
-        for Inod=1:MUA.nod
-            %istak=0;
-            for Jnod=1:MUA.nod
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=d2d2(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=d1d2(:,Inod,Jnod);
-                istak=istak+MUA.Nele;
-                
-                Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=d2d1(:,Inod,Jnod);
-                %Iind(istak+1:istak+Nele)=connectivity(:,Inod)+neqx; Jind(istak+1:istak+Nele)=connectivity(:,Jnod); Xval(istak+1:istak+Nele)=d1d2(:,Jnod,Inod);
-                istak=istak+MUA.Nele;
-                
-            end
-            %K=K+sparse(Iind,Jind,Xval,neq,neq);
+
+
+    % uses the sparse function less often
+
+
+    %Iind=zeros(nod*Nele*4,1); Jind=zeros(nod*Nele*4,1);Xval=zeros(nod*Nele*4,1);
+    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); istak=0;
+    for Inod=1:MUA.nod
+        %istak=0;
+        for Jnod=1:MUA.nod
+
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=d1d1(:,Inod,Jnod);
+            istak=istak+MUA.Nele;
+
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=d2d2(:,Inod,Jnod);
+            istak=istak+MUA.Nele;
+
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+neqx; Xval(istak+1:istak+MUA.Nele)=d1d2(:,Inod,Jnod);
+            istak=istak+MUA.Nele;
+
+            Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=d2d1(:,Inod,Jnod);
+            %Iind(istak+1:istak+Nele)=connectivity(:,Inod)+neqx; Jind(istak+1:istak+Nele)=connectivity(:,Jnod); Xval(istak+1:istak+Nele)=d1d2(:,Jnod,Inod);
+            istak=istak+MUA.Nele;
+
         end
-        % nzmax=size(unique([Iind Jind],'rows'),1) ; K=sparse(Iind,Jind,Xval,neq,neq,nzmax); not sure why this
-        % does not work
-        
-        Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
-        
-    else
-        % creates the sparse matrix in steps, requires no extra
-        for Inod=1:MUA.nod
-            for Jnod=1:MUA.nod
-                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod),d1d1(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod)+neqx,d2d2(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod),MUA.connectivity(:,Jnod)+neqx,d1d2(:,Inod,Jnod),neq,neq);
-                Kuv=Kuv+sparseUA(MUA.connectivity(:,Inod)+neqx,MUA.connectivity(:,Jnod),d2d1(:,Inod,Jnod),neq,neq);
-                %K=K+sparse(connectivity(:,Inod)+neqx,connectivity(:,Jnod),d1d2(:,Jnod,Inod),neq,neq);
-            end
-        end
+        %K=K+sparse(Iind,Jind,Xval,neq,neq);
     end
-    
+
+    % tSparse=tic;
+    Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
+    % tSparse=toc(tSparse);
+   
+    %if CtrlVar.Parallel.isTest
+    %    fprintf("uvMatrixAssemblySSTREAM: sparse takes %f sec. \n",tSparse)
+    %end
+
     if CtrlVar.TestForRealValues
         Kuv=(Kuv+Kuv.')/2 ;
     else
         Kuv=(Kuv+Kuv')/2 ;
     end
-    
-    
+
+
     % I know that the matrix must be symmetric, but numerically this may not be strickly so
     % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
