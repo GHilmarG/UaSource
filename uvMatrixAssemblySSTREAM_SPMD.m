@@ -6,6 +6,12 @@ function [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA
 
 narginchk(4,4)
 
+persistent iCount
+
+if isempty(iCount)
+    iCount=0;
+end
+
 
 if isempty(CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
     poolobj = gcp;
@@ -90,13 +96,18 @@ Ruv=rrsum{1}; Kuv=kksum{1};
 tSum=toc(tSum) ;
 
 
+spmd ; rr=[] ; kk=[] ; rrsum=[] ; kksum=[] ; end
 
+% for ii=1:nW ; rr{ii}=[] ; kk{ii}=[] ; rrsum{ii}=[] ; kksum{ii}= 0 ; end
 
 Tint=[] ; Fext=[];
 
 
 if CtrlVar.Parallel.isTest
-    fprintf("uvMatrixAssemblySSTREAM_SPMD: Creating partition arrays %f sec. \t Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",tPartition,tBuild,tAssembly,tSum)
+
+    iCount=iCount+1;
+    fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): Creating partition arrays %f sec. \t Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...
+        iCount,tPartition,tBuild,tAssembly,tSum)
 end
 
 

@@ -45,7 +45,7 @@ switch lower(CtrlVar.FlowApproximation)
              
 
                 if CtrlVar.Parallel.uvAssembly.spmd.isOn
-                    MUAworkers=[]; 
+                    % MUAworkers=[]; 
                     tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers); tSPMD=toc(tSPMD) ;
                     fprintf(' tSeq=%f sec     tSPMD=%f sec \t MUA.Nnodes=%i \t     norm(Ruv-RuvSPMD)/norm(Ruv)=%g \t     norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv))=%g \n',...
                         tSeq,tSPMD,MUA.Nnodes,norm(full(Ruv-RuvSPMD))/norm(full(Ruv)),norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv)))

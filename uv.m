@@ -1,9 +1,13 @@
-function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
 
 
 
-nargoutchk(4,7);
-narginchk(7,7)
+
+
+function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb,MUAworkers]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers)
+         
+
+nargoutchk(4,8);
+narginchk(8,8)
 
 tdiagnostic=tic;
 
@@ -80,7 +84,8 @@ switch lower(CtrlVar.FlowApproximation)
 
         if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
 
-        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb,MUAworkers]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+        %[UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
         if ~RunInfo.Forward.uvConverged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')

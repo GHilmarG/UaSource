@@ -1,11 +1,15 @@
-function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
+% function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
+
+
+
+function  [UserVar,RunInfo,F,l,Kuv,Ruv,L,MUAworkers]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers)
     
     
     % Solves SSA/SSTREAM for u and v
 
 
-    nargoutchk(7,7)
-    narginchk(7,7)
+    nargoutchk(8,8)
+    narginchk(8,8)
     
     
     tStart=tic;
@@ -20,7 +24,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
    % RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=NaN;  
    % RunInfo.Forward.Residual=NaN; BackTrackInfo.iarm=NaN;
     
-    Kuv=[] ; Ruv=[]; MUAworkers=[]; 
+    Kuv=[] ; Ruv=[]; 
    
     
     % MLC=BCs2MLC(CtrlVar,MUA,BCs);
@@ -114,7 +118,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
      
     
  
-    CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; MUAworkers=[]; 
+    CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
     fext0=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers); % RHS with velocities set to zero, i.e. only external forces
     
     %% New normalization idea, 10 April 2023
@@ -130,7 +134,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     %%
 
     
-    CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; MUAworkers=[]; 
+    CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
     Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);     % RHS with calculated velocities, i.e. difference between external and internal forces
     
     RunInfo.CPU.Solution.uv=0;

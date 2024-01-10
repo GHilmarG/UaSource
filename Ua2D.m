@@ -277,7 +277,8 @@ if CtrlVar.doInverseStep   % -inverse
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
     
-    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+    MUAworkers=[] ; % replace once this becomes` a part of MUA
+    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb,MUAworkers]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
     
     
     if CtrlVar.Inverse.WriteRestartFile

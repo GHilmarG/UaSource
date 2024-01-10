@@ -16,6 +16,8 @@ end
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 
+MUAworkers=[]; % replace later with MUA field
+
 
 F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -35,15 +37,18 @@ F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
 
 CtrlVar.Inverse.ResetPersistentVariables=1;
-[J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+
+
+
+[J0,dJdp,Hessian,JGHouts,F,RunInfo,MUAworkers]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo,MUAworkers);
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
 CtrlVar.WriteRunInfoFile=0;
-func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo,MUAworkers);
 
-Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo,MUAworkers);
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
@@ -111,8 +116,10 @@ else
         error('what case? ')
     end
     
+    
     F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
-    [J,dJdp,Hessian,JGHouts,F]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+   
+    [J,dJdp,Hessian,JGHouts,F,RunInfo,MUAworkers]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo,MUAworkers);
     fprintf('\n +++++++++++ At end of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
     
     
