@@ -44,20 +44,23 @@ end
 
 %load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Joughin-Ca1-Cs100000-Aa1-As100000-5km-Alim-Clim-.mat","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
 
-load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Cornford-Ca1-Cs100000-Aa1-As100000-10km-Alim-Clim-.mat","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
+load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Cornford-Ca1-Cs100000-Aa1-As100000-5km-Alim-Clim-.mat","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
 
 CtrlVar=CtrlVarInRestartFile;
 CtrlVar.InfoLevelNonLinIt=1;  CtrlVar.InfoLevel=1;
 CtrlVar.uvGroupAssembly=false;
 CtrlVar.uvhGroupAssembly=false;
-CtrlVar.Parallel.isTest=true; CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[]; 
+
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[]; 
 
 CtrlVar.Parallel.uvAssembly.spmd.isOn=false; 
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=true;
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+CtrlVar.Parallel.isTest=false; 
+
 
 CtrlVar.etaZero=10; 
 
-F.ub=F.ub*0 ; F.vb=F.vb*0; 
+% F.ub=F.ub*0 ; F.vb=F.vb*0; 
 [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l) ; 
 
 UaPlots(CtrlVar,MUA,F,"-uv-")

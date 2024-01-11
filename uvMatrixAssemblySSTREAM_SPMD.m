@@ -96,9 +96,11 @@ Ruv=rrsum{1}; Kuv=kksum{1};
 tSum=toc(tSum) ;
 
 
+% Delete on workers. This should not be needed, but for some reason the permanence in threaded environment degrades with the
+% number of calls. This is an attempt to reset this, but this did not have the desired effect.  This performance degrade does
+% not happen in process environment.  (11 Jan 2024)
 spmd ; rr=[] ; kk=[] ; rrsum=[] ; kksum=[] ; end
 
-% for ii=1:nW ; rr{ii}=[] ; kk{ii}=[] ; rrsum{ii}=[] ; kksum{ii}= 0 ; end
 
 Tint=[] ; Fext=[];
 
