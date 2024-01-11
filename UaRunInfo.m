@@ -90,6 +90,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.CPU.Assembly.uvh=0;
             obj.CPU.Solution.uvh=0;
             obj.CPU.WallTime="";
+            obj.CPU.Inversion=0;
 
 
             obj.Message="" ;

@@ -267,10 +267,13 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
         
+
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
+
+    RunInfo.CPU.Inversion=tic;
     [UserVar,F,l,InvFinalValues,RunInfo]=...
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-    
+    RunInfo.CPU.Inversion=toc(RunInfo.CPU.Inversion); 
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
     F.AGlen=InvFinalValues.AGlen  ; %fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
