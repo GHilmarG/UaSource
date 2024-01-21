@@ -28,7 +28,7 @@ switch TestCase
 
     case "-direct-"
 
-        % Comaprision with Direct solver
+        % Comparison with Direct solver
 
         
         tic
