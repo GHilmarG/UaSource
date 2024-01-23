@@ -549,8 +549,8 @@ while 1
                 CtrlVar.InitialDiagnosticStep=0;
                 
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
-                
-                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                MUAworkers=[]; 
+                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
                 
                 
                 %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;
