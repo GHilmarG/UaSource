@@ -480,8 +480,8 @@ while 1
 
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-
-        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        MUAworkers=[]; 
+        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
 
 
     elseif CtrlVar.UaRunType=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
