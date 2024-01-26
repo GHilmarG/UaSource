@@ -125,7 +125,7 @@ CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 % The geometrical variables are: s, b, B and S.
 %
 % To specify which geometrical variables should be updated/modified set the following
-% stings acordingly: 
+% stings accordingly: 
 %
 CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
 CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
