@@ -13,6 +13,7 @@ tdiagnostic=tic;
 
 if isscalar(F.m)
     F.m=zeros(MUA.Nnodes,1)+F.m;
+    
 end
 
 if isscalar(F.n)

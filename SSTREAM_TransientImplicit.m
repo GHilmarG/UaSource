@@ -73,7 +73,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
-    % that the geometrical fields are consistent with floation condition.
+    % that the geometrical fields are consistent with flotation condition.
     % However, since the uvh formulation is with respect to h
     % alone, this will not affect the solution since this does not
     % change h.
@@ -172,12 +172,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
    
         
-        % I define two types of exit critera:
+        % I define two types of exit criteria:
         %  1) if residuals are below a given tolerance, exit and call it a success
         %  2) if step size is below a prescribed fraction of the Newton step in two
         %     consecutive iterations, the minimisation procedure is judged to have
         %     stagnated. There can be good or bad reasons for this: Possibly the
-        %     minimisation procedure has converged on the miniumum and the norm of the
+        %     minimisation procedure has converged on the minimum and the norm of the
         %     gradient is small-enough (good) or it is too-large (bad).
         %
         
@@ -396,7 +396,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
         % update the surface mass balance within this non-linear loop. Actually I here
         % only need to consider option 1 because if options 2 or 3 are used the
-        % mass-blance is updated anyhow witin the assmebly loop.
+        % mass-balance is updated anyhow within the assembly loop.
         if CtrlVar.MassBalanceGeometryFeedback>0
             
             rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;

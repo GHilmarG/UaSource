@@ -4,18 +4,18 @@ function [Emin,Emax,Emean,Emedian,Tlength]=PrintInfoAboutElementsSizes(CtrlVar,M
 %
 % Calculates equivalent element lengths
 %
-% Equivalent length can be defined in two ways: 
+% Equivalent length can be defined in two ways:
 %
 % # as the leg of an isosceles right triangle with the same area as the triangular element, or
 % # as the length of a perfect square that has the same area as the triangular element.
-% 
+%
 % Option 1) is the default, however after some thought it now feels to me that option 2) should be the default.
 %
 %
 % Example:
 %
 %   [Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=true,plot=true,LengthMeasure="-side of a perfect square of equal area-");
-% 
+%
 %%
 
 arguments
@@ -23,7 +23,7 @@ arguments
     MUA     struct
     options.print logical = true ;
     options.LengthMeasure string="-leg of an isosceles right triangle-" ;  % "-side of a perfect square of equal area-";
-    options.plot logical = false ; 
+    options.plot logical = false ;
 end
 
 
@@ -50,35 +50,36 @@ end
 
 if options.plot
 
-cbar=UaPlots(CtrlVar,MUA,[],Tlength/CtrlVar.PlotXYscale) ;
-title(cbar,"$l$",Interpreter="latex")
-title("Equivalent element lengths",Interpreter="latex")
+    cbar=UaPlots(CtrlVar,MUA,[],Tlength/CtrlVar.PlotXYscale) ;
+    title(cbar,"$l$",Interpreter="latex")
+    title("Equivalent element lengths",Interpreter="latex")
 
-if CtrlVar.PlotXYscale~=1
+    if CtrlVar.PlotXYscale~=1
+
+        StAdd="(/"+num2str(CtrlVar.PlotXYscale)+")" ;
+        title(cbar,["$l$",StAdd],Interpreter="latex")
+        title("Equivalent element lengths "+StAdd,Interpreter="latex")
+
+
+    end
+
+
+    FindOrCreateFigure("histogram of element sizes")
+    histogram(Tlength/CtrlVar.PlotXYscale)
+
+    title("Histogram of element sizes",Interpreter="latex")
     
-    StAdd="(/"+num2str(CtrlVar.PlotXYscale)+")" ;
-    title(cbar,["$l$",StAdd],Interpreter="latex")
-    title("Equivalent element lengths "+StAdd,Interpreter="latex")
-   
 
-end
+    xlabel("Effective element size",Interpreter="latex")
+    ylabel("Number of elements",Interpreter="latex")
 
+    if CtrlVar.PlotXYscale~=1
 
-FindOrCreateFigure("histogram of element sizes")
-histogram(Tlength/CtrlVar.PlotXYscale)
+        StAdd="(/"+num2str(CtrlVar.PlotXYscale)+")" ;
+        title("Histogram of element sizes "+StAdd,Interpreter="latex")
+        xlabel("Effective element size "+StAdd,Interpreter="latex")
 
-title("Histogram of element sizes",Interpreter="latex")
-
-xlabel("Effective element size",Interpreter="latex")
-ylabel("Number of elements",Interpreter="latex")
-
-if CtrlVar.PlotXYscale~=1
-    
-    StAdd="(/"+num2str(CtrlVar.PlotXYscale)+")" ;
-    title("Histogram of element sizes "+StAdd,Interpreter="latex")
-    xlabel("Effective element size "+StAdd,Interpreter="latex")
-
-end
+    end
 
 end
 

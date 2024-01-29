@@ -2,9 +2,9 @@
 
 
 
-function [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers)
+function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F)
 
-narginchk(4,4)
+narginchk(3,3)
 
 persistent iCount
 
@@ -21,64 +21,15 @@ end
 nW=CtrlVar.Parallel.uvAssembly.spmd.nWorkers;
 
 
-
-
-
-
-%% create element lists for each partition
-% Use round to make sure that there are exactly nW partitions
-% and ensure that all elements are included.
-tPartition=tic;
-Partition=cell(nW,1);
-N=round(MUA.Nele/nW) ; i1=1 ; i2=N;
-for iWorker=1:(nW-1)
-    Partition{iWorker}=i1:i2 ;
-    i1=i2+1 ;
-    i2=i2+N ;
-end
-
-i2=MUA.Nele;
-Partition{nW}=i1:i2 ;
-tPartition=toc(tPartition);
-%
-
-
 % outside of spmd  M is  composite
 % inside of spmd M is struct on each worker
 
 MUA.dM=[] ;
 
 
-
-tBuild=tic;
-if isempty(MUAworkers)
-    spmd (0,nW)
-
-        % Build M directly on the workers to avoid communication
-
-        MUAworkers.nod=MUA.nod;
-        MUAworkers.nip=MUA.nip;
-
-        MUAworkers.Nnodes=MUA.Nnodes;
-        MUAworkers.points=MUA.points;
-        MUAworkers.weights=MUA.weights;
-
-        MUAworkers.coordinates=MUA.coordinates;
-        %
-        MUAworkers.connectivity=MUA.connectivity(Partition{spmdIndex},:);
-        MUAworkers.Nele=numel(Partition{spmdIndex});
-        MUAworkers.Deriv=MUA.Deriv(Partition{spmdIndex},:,:,:);
-        MUAworkers.DetJ=MUA.DetJ(Partition{spmdIndex},:);
-
-    end
-end
-tBuild=toc(tBuild) ;
-
-
-
 tAssembly=tic;
 spmd (0,nW)
-    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUAworkers,F);
+    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUA.workers,F);
 end
 tAssembly=toc(tAssembly);
 
@@ -108,8 +59,8 @@ Tint=[] ; Fext=[];
 if CtrlVar.Parallel.isTest
 
     iCount=iCount+1;
-    fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): Creating partition arrays %f sec. \t Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...
-        iCount,tPartition,tBuild,tAssembly,tSum)
+    fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...
+        iCount,tBuild,tAssembly,tSum)
 end
 
 
