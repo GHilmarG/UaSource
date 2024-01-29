@@ -10,8 +10,9 @@
 ParPool = gcp('nocreate') ;
 
 if isempty(ParPool)
-    parpool('Processes',8)
+    parpool('Processes',12)
 end
+
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 warning('off','MATLAB:decomposition:genericError')
@@ -57,7 +58,11 @@ load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Cornford-Ca1-Cs1000
 
 load(UserVar.ForwardRestartFileDirectory+"Restart-FT-P-Duvh-TWIS-MR4-SM-TM001-Cornford-2k5km-Alim-Clim-Ca1-Cs100000-Aa1-As100000-InvMR5","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
 
+tic
+MUA.dM=decomposition(MUA.M,'chol','upper') ;
+toc
 
+RunInfo=UaRunInfo;  % reset runinfo
 
 
 CtrlVar=CtrlVarInRestartFile;
@@ -67,13 +72,19 @@ CtrlVar.uvGroupAssembly=false; CtrlVar.uvhGroupAssembly=false; CtrlVar.etaZero=1
 
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
+
 CtrlVar.Parallel.uvAssembly.spmd.isOn=true;
 CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
-CtrlVar.Parallel.isTest=true;
 
 
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
 
-MUAworkers=[]; 
+
+CtrlVar.Parallel.isTest=false;
+
+
+MUA=UpdateMUA(CtrlVar,MUA) ;
+
 
 if contains(Solving,"-uv-")
     % F.ub=F.ub*0 ; F.vb=F.vb*0;
@@ -85,16 +96,20 @@ end
 
 
 
-MUA.workers=[]; 
-MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
-
-% CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
-% [UserVar,RunInfo,R2,K2]=uvhAssemblySPMD2(UserVar,RunInfo,CtrlVar,MUA,F,F);
-
 
 if contains(Solving,"-uvh-")
     %% uvh
     CtrlVar.dt=0.001;
+
+    tTotal=tic;
     [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F,F,l,l,BCs) ;
+    tTotal=toc(tTotal);
+
+    fprintf("Total time=%g \t Solver=%g \t Assembly=%g \n",tTotal,RunInfo.CPU.Solution.uvh,RunInfo.CPU.Assembly.uvh)
+
+    % Total time=98.2963 	 Solver=51.8608 	 Assembly=22.2396    C23000099  SPMD
+    % Total time=158.332 	 Solver=51.4621 	 Assembly=68.7052    C23000099  ~SPMD
+
+    
 
 end

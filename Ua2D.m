@@ -20,13 +20,12 @@ warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
 
-ParPool = gcp('nocreate') ;
 
-if ~isempty(ParPool)
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
-end
- 
+
+
+
+
+
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;
@@ -126,6 +125,25 @@ if CtrlVar.WriteRunInfoFile
         RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
     end
 end
+
+
+%% Check and set some parallel variables
+ParPool = gcp('nocreate') ;
+if ~isempty(ParPool)
+
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+    if  CtrlVar.Parallel.uvhAssembly.spmd.isOn
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+    if CtrlVar.Parallel.uvAssembly.spmd.isOn  
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+end
+
 
 %% Get input data
 if CtrlVar.InverseRun %  inverse run

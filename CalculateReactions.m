@@ -31,7 +31,7 @@ narginchk(4,4)
 % are already physically correct and I only need to split them up in uv and h reactions.
 %
 % If L is a point-contraint matrix (default) then I need to map these into physical space
-% usuing
+% using
 %
 %   lambda^* = M^{-1} L' lambda 
 %
@@ -58,13 +58,21 @@ if ~CtrlVar.LinFEbasis
 end
 
 if ~isempty(l.ubvb)
-    
-        luv=MLC.ubvbL'*l.ubvb;
-        Rx=MUA.M\luv(1:MUA.Nnodes);
-        Ry=MUA.M\luv(MUA.Nnodes+1:end); 
-        Reactions.ubvb=full([Rx;Ry]);
-        
-        
+
+    luv=MLC.ubvbL'*l.ubvb;
+
+    try
+        Rx=MUA.dM\luv(1:MUA.Nnodes);  % I can't see how I can know if the decomposition is in a valid state without just trying
+    catch
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+        Rx=MUA.dM\luv(1:MUA.Nnodes);
+    end
+
+
+    Ry=MUA.dM\luv(MUA.Nnodes+1:end);
+    Reactions.ubvb=full([Rx;Ry]);
+
+
 end
 
 if ~isempty(l.udvd)
@@ -75,10 +83,10 @@ if ~isempty(l.udvd)
 end
 
 if ~isempty(l.h)
-    M=MUA.M;
+    
     L=MLC.hL;
     lambda=l.h ;
-    Reactions.h=full(M\(L'*lambda));
+    Reactions.h=full(MUA.dM\(L'*lambda));
     
     if nargout>1
         lStar.h=full((L*L')\(L*Reactions.h));

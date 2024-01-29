@@ -1,6 +1,8 @@
 function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 
 
+warning("DefineCalving:UsSource","This is the UaSource version of DefineCalving.m")
+
 
 %%
 %
@@ -26,7 +28,7 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 % time step.
 %
 %
-% In contrast to LSF, c is never evolved by Úa.  (Think of c as an input variable similar to the input as and ab for upper
+% In contrast to LSF, c is never evolved by �a.  (Think of c as an input variable similar to the input as and ab for upper
 % and lower surface balance, etc.)
 %
 % If c is returned as a NaN, ie
@@ -44,10 +46,13 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 %% initialize LSF
 if isempty(F.LSF)   % Do I need to initialize the level set function?
 
+    % If, for example, all floating ice should be removed at the beginning of the simulations
+    % then the level-set can simply be defined in such a way that LSF>0 where the ice is grounded, and <0 otherwise
+
     if contains(UserVar.RunType,"-c0isGL0-")  % -> Initial calving front (c0) is set a initial grounding line position (GL0)
 
         LSF=-ones(MUA.Nnodes,1) ;
-        LSF(F.GF.node>0.5)=+1;
+        LSF(F.GF.node>0.5)=+1;    % LSF set dependent on the values grounded-floating mask
         Xc=[] ;  % If Xc and Yc are left empty, the Xc and Yc will be calculated as the zero control of the LSF field
         Yc=[] ; 
 
@@ -60,10 +65,14 @@ if isempty(F.LSF)   % Do I need to initialize the level set function?
         io=inpoly2([F.x F.y],[Xc(:) Yc(:)]);
         LSF=-ones(MUA.Nnodes,1) ;
         LSF(io)=+1;
+
     end
 
     % figure ; PlotMuaMesh(CtrlVar,MUA);   hold on ; plot(F.x(io)/1000,F.y(io)/1000,'or')
 
+    % Not really neeed, but it might then be good to initialize the level set so that LSF is approximatly a signed distance
+    % function.  
+    %
     [xc,yc,LSF]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,LSF,plot=true,ResampleCalvingFront=true);
 
 
@@ -77,21 +86,30 @@ if  CtrlVar.LevelSetEvolution=="-Prescribed-"
 
 elseif  CtrlVar.CalvingLaw.Evaluation=="-int-"
 
-    % c=0; % Must not be nan or otherwise the LSF will not be evolved.
-    % But otherwise these c values are of no importance and the c defined at int points is the one used
+    % Generally, one would define the calving rate at the nodes, unless the calving rate is a function of the level-set itself.
+    %
+    % It the calving rate, c, depends on the level set function, LSF, then various derivatives involving c and LSF (phi) need to be
+    % calculatwed as well for the Newton-Raphson methods to achieve second-order convergence
 
-    % This value for the calving rate will actually not be used directly by the code
-    % because the calving rate is here defined at integration points.
-    % But for plotting purposes it is good to define the calving at nodal points as well
-    % so here a call is made to define c at the nodes. 
-    % c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F.ub,F.vb,F.h,F.s,F.S,F.x,F.y) ;
+    % If the calving law is defined at nodes, you still need to use DefineCalving.m as well to define LSF. 
+
+    % Generally there is no need to call 'DefineCalvingAtIntegrationPoints' from within DefineCalving.m and the calving rate, c,
+    % returned by DefineCalving.m is not used.
+    %
+    % However, one might find it convenient to define c here as otherwise c is not defined at nodes and can not be plotted at a
+    % nodal variable.
+    %
+    % 
+    %
     c=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,nan,nan,F) ;
 
 else
 
-    % It's assumed that the calving is defined at integration points only, or prescribed directly.
-    % Anything else is deemed an error.
-    error("Define calving rate at integration points")
+    % Here the calving rate is defined at the nodes. This is presumbaly the most typical case
+   
+    CliffHeight=min((F.s-F.S),F.h) ;
+    c=10*CliffHeight ;  % an example of calving law which depends linearly on the freeboard height. 
+
 
 end
 

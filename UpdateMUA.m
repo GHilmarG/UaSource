@@ -162,15 +162,23 @@ if MeshHasChanged
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
     end
     
-    
-   % if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-   %     MUA.L=chol(MUA.M,'upper');
-   % end
-    
-    
+
+    % if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+    %     MUA.L=chol(MUA.M,'upper');
+    % end
+
+
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
-    
-    
+
+    MUA.workers=[];
+
+    if CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn
+
+        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
+
+    end
+
+
 end
 
 
@@ -237,6 +245,13 @@ MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas if each elemen
 MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
 
 
+
+if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
+    if ~isfield(MUA,"workers")  || isempty(MUA.workers)
+        MUA.workers=[]; 
+        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
+    end
+end
 
 
 

@@ -28,7 +28,7 @@ MUA.dM=[] ;
 
 
 tAssembly=tic;
-spmd (0,nW)
+spmd (nW)
     [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUA.workers,F);
 end
 tAssembly=toc(tAssembly);
@@ -36,7 +36,7 @@ tAssembly=toc(tAssembly);
 
 
 tSum=tic ;
-spmd (0,nW)
+spmd (nW)
     rrsum = spmdPlus(rr,1);
     kksum = spmdPlus(kk,1);
 end
@@ -50,7 +50,7 @@ tSum=toc(tSum) ;
 % Delete on workers. This should not be needed, but for some reason the permanence in threaded environment degrades with the
 % number of calls. This is an attempt to reset this, but this did not have the desired effect.  This performance degrade does
 % not happen in process environment.  (11 Jan 2024)
-spmd ; rr=[] ; kk=[] ; rrsum=[] ; kksum=[] ; end
+% spmd ; rr=[] ; kk=[] ; rrsum=[] ; kksum=[] ; end
 
 
 Tint=[] ; Fext=[];

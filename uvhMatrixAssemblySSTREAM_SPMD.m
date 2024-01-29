@@ -1,6 +1,6 @@
 
 
-function [UserVar,RunInfo,Ruvh,Kuvh]=uvhAssemblySPMD2(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 narginchk(6,6)
 
@@ -12,20 +12,16 @@ end
 
 nW=CtrlVar.Parallel.uvhAssembly.spmd.nWorkers;
 
-% tBuild=tic;
-% MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers) ; 
-% tBuild=toc(tBuild) ;
+
 
 MUAworkers=MUA.workers;
-tAssembly=tic;
-spmd (0,nW)
+
+spmd (nW) 
 
     [~,~,rr,kk]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUAworkers,F0,F1);
+
 end
-tAssembly=toc(tAssembly);
 
-
-tSum=tic ;
 spmd (0,nW)
     rrsum = spmdPlus(rr,1);
     kksum = spmdPlus(kk,1);
@@ -37,6 +33,6 @@ end
 Ruvh=rrsum{1}; 
 Kuvh=kksum{1};
 
-tSum=toc(tSum) ;
+
 
 end

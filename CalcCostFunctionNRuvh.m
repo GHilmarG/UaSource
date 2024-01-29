@@ -1,3 +1,14 @@
+
+
+
+
+
+
+
+
+
+
+
 function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
     
     

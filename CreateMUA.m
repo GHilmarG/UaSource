@@ -2,8 +2,8 @@ function MUA=CreateMUA(CtrlVar,connectivity,coordinates,RefineMesh)
 
 % MUA=CreateMUA(CtrlVar,connectivity,coordinates,CalcMUA_Derivatives,FindMUA_Boundary)
 %
-% Creates the Úa mesh structure containing all information about the FE mesh
-% such as coordinates, connectivity, boundary nodes, etc Also (optionally)
+% Creates the Ua mesh structure containing all information about the FE mesh
+% such as coordinates, connectivity, boundary nodes, etc. Also (optionally)
 % calculates element derivatives used in the matrix assembly.
 %
 % Example: MUA=CreateMUA(CtrlVar,connectivity,coordinates);
@@ -90,6 +90,16 @@ end
 
 MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each element
 MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
+
+
+MUA.workers=[]; 
+
+if CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn
+
+    MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
+
+end
+
 
 
 

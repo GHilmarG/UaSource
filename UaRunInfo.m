@@ -16,6 +16,7 @@ classdef (ConstructOnLoad) UaRunInfo
 
     methods
 
+        % Constructor
         function obj = UaRunInfo()
 
 
@@ -111,6 +112,75 @@ classdef (ConstructOnLoad) UaRunInfo
 
 
         end
+
+
+        function obj=ExtendAllocations(obj,CtrlVar,index)
+
+            n=numel(obj.Forward.time) ;
+
+
+            if CtrlVar.UaRunType=="-uvh-"
+
+                if index> n
+
+                    if index>2*n
+                        n=2*index;
+                    end
+
+                    Padding=NaN(n,1);
+                    obj.Forward.time=[obj.Forward.time;Padding];
+                    obj.Forward.dt=[obj.Forward.dt;Padding];
+
+                    obj.Forward.uvhIterations=[obj.Forward.uvhIterations;Padding];
+                    obj.Forward.uvhResidual=[obj.Forward.uvhResidual;Padding];
+                    obj.Forward.uvhBackTrackSteps=[obj.Forward.uvhBackTrackSteps;Padding];
+
+                    obj.Forward.uvhActiveSetIterations=[obj.Forward.uvhActiveSetIterations;Padding];
+                    obj.Forward.uvhActiveSetCyclical=[obj.Forward.uvhActiveSetCyclical;Padding];
+                    obj.Forward.uvhActiveSetConstraints=[obj.Forward.uvhActiveSetConstraints;Padding];
+
+                    obj.Forward.uvIterations=[obj.Forward.uvIterations;Padding];
+                    obj.Forward.uvResidual=[obj.Forward.uvResidual;Padding];
+                    obj.Forward.uvBackTrackSteps=[obj.Forward.uvhBackTrackSteps;Padding];
+
+                end
+
+            elseif CtrlVar.UaRunType=="-h-"
+
+                obj.Forward.hIterations=[obj.Forward.hIterations;Padding];
+                obj.Forward.hResidual=[obj.Forward.hResidual;Padding];
+                obj.Forward.hBackTrackSteps=[obj.Forward.hBackTrackSteps;Padding];
+
+
+            end
+
+            if CtrlVar.LevelSetMethod
+
+                n=numel(obj.LevelSet.time) ;
+
+                if index> n
+
+                    if index>2*n
+                        n=2*index;
+                    end
+
+
+                    Padding=NaN(n,1);
+                    obj.LevelSet.time=[obj.LevelSet.time;Padding];
+                    obj.LevelSet.Iterations=[obj.LevelSet.Iterations;Padding];
+                    obj.LevelSet.Residual=[obj.LevelSet.Residual;Padding];
+                    obj.LevelSet.BackTrackSteps=[obj.LevelSet.BackTrackSteps;Padding];
+                    obj.LevelSet.Phase=[obj.LevelSet.Phase;strings(n,1)];
+
+
+                end
+
+            end
+
+
+
+        end
+
 
     end
 
