@@ -1,11 +1,11 @@
-function [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssembly(CtrlVar,MUA,F,MUAworkers)
+function [Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(CtrlVar,MUA,F)
 
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-narginchk(4,4)
+narginchk(3,3)
 nargoutchk(1,5)
 
 
@@ -27,7 +27,7 @@ switch lower(CtrlVar.FlowApproximation)
             elseif CtrlVar.Parallel.uvAssembly.spmd.isOn
 
               
-                [Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers);
+                [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F);
 
             else  % this is the otherwise default sequencial assembly 
 
@@ -45,8 +45,8 @@ switch lower(CtrlVar.FlowApproximation)
              
 
                 if CtrlVar.Parallel.uvAssembly.spmd.isOn
-                    % MUAworkers=[]; 
-                    tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext,MUAworkers]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,MUAworkers); tSPMD=toc(tSPMD) ;
+               
+                    tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F); tSPMD=toc(tSPMD) ;
                     fprintf(' tSeq=%f sec     tSPMD=%f sec \t MUA.Nnodes=%i \t     norm(Ruv-RuvSPMD)/norm(Ruv)=%g \t     norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv))=%g \n',...
                         tSeq,tSPMD,MUA.Nnodes,norm(full(Ruv-RuvSPMD))/norm(full(Ruv)),norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv)))
                 end

@@ -1,57 +1,21 @@
 
 %%
-clc
-load TestSaveuvhAssembly
 
-tic
 
-for Iint=1:MUA.nip
-    
-    
-    [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
-        uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-        bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
-        uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-        CtrlVar,rhow,g,Ronly,ca,sa,dt,...
-        Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
-    
-    Tx=Tx+Tx1;  Fx=Fx+Fx1;
-    Ty=Ty+Ty1;  Fy=Fy+Fy1;
-    Th=Th+Th1;  Fh=Fh+Fh1;
-    
-    Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
-    Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
-    Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
-    Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
-    
+NumWorkers=12 ;
+
+ParPool = gcp('nocreate') ;
+
+if isempty(ParPool)
+
+    parpool('Processes',NumWorkers)
+
+elseif (ParPool.NumWorkers~=NumWorkers)
+
+    delete(gcp('nocreate'))
+    parpool('Processes',NumWorkers)
+
 end
-toc
-
-
-tic
-
-parfor Iint=1:MUA.nip
-    
-    
-    [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
-        uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-        bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
-        uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
-        CtrlVar,rhow,g,Ronly,ca,sa,dt,...
-        Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
-    
-    Tx=Tx+Tx1;  Fx=Fx+Fx1;
-    Ty=Ty+Ty1;  Fy=Fy+Fy1;
-    Th=Th+Th1;  Fh=Fh+Fh1;
-    
-    Kxu=Kxu+Kxu1;        Kxv=Kxv+Kxv1;
-    Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
-    Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
-    Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
-    
-end
-toc
-
 
 %%
 N=10000;
@@ -85,9 +49,35 @@ fprintf('t=%f \t tspmd=%f \n',t,tspmd)
 
 
 
+%%
 
 
 
+load("TestSolveKApe.mat","A","B","f","g","x0","y0","CtrlVar")
+
+
+%%
+
+tSeq=tic;
+[x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+tSeq=toc(tSeq);
+
+tDistribute=tic;
+Adist=distributed(A);
+Bdist=distributed(B);
+fdist=distributed(f);
+gdist=distributed(g);
+tDistribute=toc(tDistribute);
+
+tPar=tic;
+[xDist,yDist]=ABfgPreEliminate(CtrlVar,Adist,Bdist,fdist,gdist);
+x2=gather(xDist) ; y2=gather(yDist) ;   
+tPar=toc(tPar);
+
+fprintf("tSeq=%g \t tDistribute=%g \t tPar=%g \t gain=%g \n",tSeq,tDistribute,tPar,tSeq/(tDistribute+tPar))
+
+% tSeq=26.2609 	 tDistribute=1.36496 	 tPar=13.7741 	 gain=1.73465  C23000099     8 workers
+%%
 
 
 

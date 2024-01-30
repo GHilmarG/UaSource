@@ -341,15 +341,9 @@ end
 
 
 
+FewerSparseEvaluations=1 ;
 
-%     if CtrlVar.InfoLevelCPU ;
-%         UaInfo.CPUuvhAssembly=UaInfo.CPUuvhAssembly+toc(tAssembly) ;
-%         UaInfo.CPUuvhAssemblyCounter=UaInfo.CPUuvhAssemblyCounter+1 ;
-%     end
-%
-
-RFewerSparse=1 ;
-if ~RFewerSparse
+if ~FewerSparseEvaluations
 
     %% assemble right-hand side  (older approach with more sparse calls)
     Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
@@ -414,11 +408,8 @@ R=Tint-Fext;
 
 if ~Ronly
     
-    
-    
-    % large memory version
-    largeMemory=1;
-    if largeMemory==1
+ 
+    if FewerSparseEvaluations
         
         Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
         istak=0;

@@ -28,8 +28,9 @@ MUA.dM=[] ;
 
 
 tAssembly=tic;
+MUAworkers=MUA.workers; 
 spmd (nW)
-    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUA.workers,F);
+    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUAworkers,F);
 end
 tAssembly=toc(tAssembly);
 

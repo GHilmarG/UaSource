@@ -11,8 +11,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostF
     l.ubvb=l.ubvb+gamma*dl;
     
    
-    CtrlVar.uvMatrixAssembly.Ronly=true;  MUAworkers=[];
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);
+    CtrlVar.uvMatrixAssembly.Ronly=true;  
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
     
     if ~isempty(L)
         frhs=-Ruv-L'*l.ubvb;

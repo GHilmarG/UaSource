@@ -55,11 +55,32 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             Q=speye(nA,nA)-BtB ; 
             Atilde=Q*A+ BtB ;
             btilde=(Q*f+B'*g) ;
-            
-            
-            %dAtilde=factorize(Atilde);  % for some reason, this does make things slower
-            
+
+            if CtrlVar.Distribute
+                if ~isdistributed(Atilde)
+                    Atilde=distributed(Atilde);
+                end
+                if ~isdatetime(btilde)
+                    btilde=distributed(btilde);
+                end
+            end
+
+            %  decomposition is about the same, and as expected this only speeds things up if several solves with the same matrix
+            %  are needed.
+            %
+            % tic
+            % dAtilde=decomposition(Atilde);
+            % dx=dAtilde\btilde;
+            % toc
+
+            % tic
             x=Atilde\btilde;
+
+            if CtrlVar.Distribute
+                x=gather(x) ;
+            end
+            % toc
+
             y=B*(f-A*x);
             
             % Now the solution of the scaled system has been found.

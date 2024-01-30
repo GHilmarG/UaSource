@@ -2,14 +2,14 @@
 
 
 
-function  [UserVar,RunInfo,F,l,Kuv,Ruv,L,MUAworkers]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers)
+function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
     
     
     % Solves SSA/SSTREAM for u and v
 
 
-    nargoutchk(8,8)
-    narginchk(8,8)
+    nargoutchk(7,7)
+    narginchk(7,7)
     
     
     tStart=tic;
@@ -119,7 +119,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L,MUAworkers]=SSTREAM2dNR2(UserVar,RunInf
     
  
     CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
-    fext0=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers); % RHS with velocities set to zero, i.e. only external forces
+    fext0=KRTFgeneralBCs(CtrlVar,MUA,F); % RHS with velocities set to zero, i.e. only external forces
     
     %% New normalization idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
@@ -135,7 +135,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L,MUAworkers]=SSTREAM2dNR2(UserVar,RunInf
 
     
     CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);     % RHS with calculated velocities, i.e. difference between external and internal forces
+    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
     
     RunInfo.CPU.Solution.uv=0;
 
@@ -198,13 +198,13 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L,MUAworkers]=SSTREAM2dNR2(UserVar,RunInf
             
             tAssembly=tic;
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
-            [Ruv,Kuv,~,~,MUAworkers]=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);
+            [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
             RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
             NRincomplete=0;
         else
             tAssembly=tic;
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
-            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers);
+            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
             RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
             NRincomplete=1;
         end

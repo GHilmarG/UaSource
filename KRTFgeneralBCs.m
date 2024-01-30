@@ -1,4 +1,4 @@
-function [Ruv,Kuv,Tint,Fext,MUAworkers]=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers)
+function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F)
 
 %%
 %
@@ -10,7 +10,7 @@ function [Ruv,Kuv,Tint,Fext,MUAworkers]=KRTFgeneralBCs(CtrlVar,MUA,F,MUAworkers)
 %
 %%
 
-narginchk(4,4)
+narginchk(3,3)
 
 
 
@@ -30,7 +30,7 @@ if nargout==1 && ~CtrlVar.uvMatrixAssembly.Ronly
 end
 
 
-[Ruv,Kuv,Tint,Fext,MUAworkers]=uvMatrixAssembly(CtrlVar,MUA,F,MUAworkers);
+[Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(CtrlVar,MUA,F);
 
 
 
