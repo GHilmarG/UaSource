@@ -7,10 +7,19 @@
 
 % delete(gcp('nocreate')); parpool('Threads',8)
 
+NumWorkers=12 ;
+
 ParPool = gcp('nocreate') ;
 
 if isempty(ParPool)
-    parpool('Processes',12)
+
+    parpool('Processes',NumWorkers)
+
+elseif (ParPool.NumWorkers~=NumWorkers)
+
+    delete(gcp('nocreate'))
+    parpool('Processes',NumWorkers)
+
 end
 
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
@@ -73,11 +82,11 @@ CtrlVar.uvGroupAssembly=false; CtrlVar.uvhGroupAssembly=false; CtrlVar.etaZero=1
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
 
-CtrlVar.Parallel.uvAssembly.spmd.isOn=true;
+CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
 CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
 
 
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;
 
 
 CtrlVar.Parallel.isTest=false;
@@ -107,9 +116,12 @@ if contains(Solving,"-uvh-")
 
     fprintf("Total time=%g \t Solver=%g \t Assembly=%g \n",tTotal,RunInfo.CPU.Solution.uvh,RunInfo.CPU.Assembly.uvh)
 
-    % Total time=98.2963 	 Solver=51.8608 	 Assembly=22.2396    C23000099  SPMD
-    % Total time=158.332 	 Solver=51.4621 	 Assembly=68.7052    C23000099  ~SPMD
+    % Total time=98.2963 	 Solver=51.8608 	 Assembly=22.2396       C23000099        SPMD(12)
+    % Total time=158.332 	 Solver=51.4621 	 Assembly=68.7052       C23000099       ~SPMD(12)
 
+    % Total time=116.786 	 Solver=62.4066 	 Assembly=29.1553       DESKTOP-BU2IHIR  SPMD(12)
+    % Total time=174.072 	 Solver=62.0067 	 Assembly=69.6168       DESKTOP-BU2IHIR ~SPMD(12)
+    
     
 
 end

@@ -348,21 +348,62 @@ end
 %     end
 %
 
-%% assemble right-hand side
+RFewerSparse=1 ;
+if ~RFewerSparse
 
-Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
+    %% assemble right-hand side  (older approach with more sparse calls)
+    Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
 
-for Inod=1:MUA.nod
-    
-    
-    Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-    Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
-    
-    Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
-    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
+    for Inod=1:MUA.nod
+
+
+        Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Th(:,Inod),neq,1);
+
+        Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+2*neqx,ones(MUA.Nele,1),Fh(:,Inod),neq,1);
+    end
+
+else
+    %% assemble right-hand side (fewer sparse calls, 30 Jan 2023)
+
+    iR=zeros(MUA.nod*MUA.Nele*3,1);
+    Tval=zeros(MUA.nod*MUA.Nele*3,1);
+    Fval=zeros(MUA.nod*MUA.Nele*3,1);
+    istak=0;
+
+    for Inod=1:MUA.nod
+
+
+        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+
+
+        Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
+        Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
+
+        istak=istak+MUA.Nele;
+        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
+        Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
+        Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
+
+        istak=istak+MUA.Nele;
+        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx;
+        Tval(istak+1:istak+MUA.Nele)=Th(:,Inod);
+        Fval(istak+1:istak+MUA.Nele)=Fh(:,Inod);
+
+        istak=istak+MUA.Nele;
+
+
+    end
+
+    Tint=sparseUA(iR,1,Tval,neq,1);
+    Fext=sparseUA(iR,1,Fval,neq,1);
+
 end
+
+
 %%
 
 R=Tint-Fext;

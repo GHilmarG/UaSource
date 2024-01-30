@@ -116,7 +116,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
             iActiveSetIteration=iActiveSetIteration+1;
 
             if ~isActiveSetModified
-                fprintf(' Leaving active-set loop because active set did not change in last active-set iteration. \n')
+                fprintf(' Leaving active-set loop because active set unchanged in last active-set iteration. \n')
                 break
 
             end
