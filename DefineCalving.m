@@ -28,7 +28,7 @@ warning("DefineCalving:UsSource","This is the UaSource version of DefineCalving.
 % time step.
 %
 %
-% In contrast to LSF, c is never evolved by �a.  (Think of c as an input variable similar to the input as and ab for upper
+% In contrast to LSF, c is never evolved by Úa.  (Think of c as an input variable similar to the input as and ab for upper
 % and lower surface balance, etc.)
 %
 % If c is returned as a NaN, ie
@@ -70,7 +70,7 @@ if isempty(F.LSF)   % Do I need to initialize the level set function?
 
     % figure ; PlotMuaMesh(CtrlVar,MUA);   hold on ; plot(F.x(io)/1000,F.y(io)/1000,'or')
 
-    % Not really neeed, but it might then be good to initialize the level set so that LSF is approximatly a signed distance
+    % Not really needed, but it might then be good to initialize the level set so that LSF is approximately a signed distance
     % function.  
     %
     [xc,yc,LSF]=CalvingFrontLevelSetGeometricalInitialisation(CtrlVar,MUA,Xc,Yc,LSF,plot=true,ResampleCalvingFront=true);
@@ -89,7 +89,7 @@ elseif  CtrlVar.CalvingLaw.Evaluation=="-int-"
     % Generally, one would define the calving rate at the nodes, unless the calving rate is a function of the level-set itself.
     %
     % It the calving rate, c, depends on the level set function, LSF, then various derivatives involving c and LSF (phi) need to be
-    % calculatwed as well for the Newton-Raphson methods to achieve second-order convergence
+    % calculated as well for the Newton-Raphson methods to achieve second-order convergence
 
     % If the calving law is defined at nodes, you still need to use DefineCalving.m as well to define LSF. 
 
@@ -105,7 +105,7 @@ elseif  CtrlVar.CalvingLaw.Evaluation=="-int-"
 
 else
 
-    % Here the calving rate is defined at the nodes. This is presumbaly the most typical case
+    % Here the calving rate is defined at the nodes. This is presumably the most typical case
    
     CliffHeight=min((F.s-F.S),F.h) ;
     c=10*CliffHeight ;  % an example of calving law which depends linearly on the freeboard height. 
