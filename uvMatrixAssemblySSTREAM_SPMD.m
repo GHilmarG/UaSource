@@ -60,8 +60,8 @@ Tint=[] ; Fext=[];
 if CtrlVar.Parallel.isTest
 
     iCount=iCount+1;
-    fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): Building arrays on workers %f sec. \t SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...
-        iCount,tBuild,tAssembly,tSum)
+    fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...
+        iCount,tAssembly,tSum)
 end
 
 

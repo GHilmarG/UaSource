@@ -10,6 +10,9 @@ function [Ruv,Kuv,Tint,Fext]=KRTFgeneralBCs(CtrlVar,MUA,F)
 %
 %%
 
+error("KRTF:NoLongerUSed","replace with a call to uvMatrixAssembly")
+
+
 narginchk(3,3)
 
 

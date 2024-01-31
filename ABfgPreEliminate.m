@@ -56,6 +56,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             Atilde=Q*A+ BtB ;
             btilde=(Q*f+B'*g) ;
 
+            % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
             if CtrlVar.Distribute
                 if ~isdistributed(Atilde)
                     Atilde=distributed(Atilde);

@@ -1,3 +1,8 @@
+
+
+
+
+
 function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl)
     
     nargoutchk(1,9)
@@ -12,7 +17,8 @@ function [r,UserVar,RunInfo,rForce,rWork,D2,frhs,grhs,Normalisation] = CalcCostF
     
    
     CtrlVar.uvMatrixAssembly.Ronly=true;  
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
     
     if ~isempty(L)
         frhs=-Ruv-L'*l.ubvb;

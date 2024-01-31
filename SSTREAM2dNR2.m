@@ -119,8 +119,8 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
  
     CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
-    fext0=KRTFgeneralBCs(CtrlVar,MUA,F); % RHS with velocities set to zero, i.e. only external forces
-    
+    % fext0=KRTFgeneralBCs(CtrlVar,MUA,F);            % RHS with velocities set to zero, i.e. only external forces
+    [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);   % RHS with velocities set to zero, i.e. only external forces
     %% New normalization idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
     % then calculate the const function for this value and use as normalisation
@@ -135,8 +135,9 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
 
     
     CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
-    
+    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     
+    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);  % RHS with calculated velocities, i.e. difference between external and internal forces
+
     RunInfo.CPU.Solution.uv=0;
 
  
@@ -149,7 +150,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     rWork=0 ; % I set rWork to zero to disable it as initial criterion
     gamma=1;
     
-    iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
+    iteration=0;  ResidualReduction=1e10; 
 
     BackTrackInfo.iarm=nan;
     while true
@@ -196,16 +197,18 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         % step ahead of the cost function
         if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
             
-            tAssembly=tic;
+          
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
-            [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
-            RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
+            % [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
+            [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
+           
             NRincomplete=0;
         else
-            tAssembly=tic;
+          
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
-            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-            RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
+            % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+            [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
+            
             NRincomplete=1;
         end
 

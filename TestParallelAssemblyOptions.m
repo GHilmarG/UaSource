@@ -19,7 +19,9 @@ end
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 warning('off','MATLAB:decomposition:genericError')
- 
+warning('off','MATLAB:decomposition:LoadNotSupported') 
+
+
 Solving="-uv-" ;
 
 % Set output files directory
@@ -78,12 +80,12 @@ CtrlVar.uvGroupAssembly=false; CtrlVar.uvhGroupAssembly=false; CtrlVar.etaZero=1
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
 
-CtrlVar.Parallel.uvAssembly.spmd.isOn=true;
+CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
 CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
 
 
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
-CtrlVar.Distribute=true ; 
+CtrlVar.Distribute=false ; 
 
 CtrlVar.Parallel.isTest=false;
 
@@ -93,15 +95,18 @@ MUA=UpdateMUA(CtrlVar,MUA) ;
 
 if contains(Solving,"-uv-")
     % F.ub=F.ub*0 ; F.vb=F.vb*0;
+    tTotal=tic;
     [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l) ;
+    tTotal=toc(tTotal);
+
+    fprintf("Total time=%g \t Solver=%g \t Assembly=%g \n",tTotal,RunInfo.CPU.Solution.uv,RunInfo.CPU.Assembly.uv)
 
     UaPlots(CtrlVar,MUA,F,"-uv-")
 
 
-    % 19.2 sec
-    % 14.2 sec with SPMD assembly
-    % 11.9 sec with SPMD assembly and distributed solve
-
+    % Total time=5.5462 	 Solver=2.02292 	 Assembly=3.44374   C23000099        12  SPMD   Distributed
+    % Total time=17.3182 	 Solver=6.08226 	 Assembly=11.1686   C23000099        12 ~SPMD  ~Distributed
+    
 end
 
 
