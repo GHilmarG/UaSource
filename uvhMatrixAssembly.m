@@ -363,7 +363,8 @@ if ~FewerSparseEvaluations
 else
     %% assemble right-hand side (fewer sparse calls, 30 Jan 2023)
 
-    iR=zeros(MUA.nod*MUA.Nele*3,1);
+    iR=zeros(MUA.nod*MUA.Nele*3,1,"uint32");
+    
     Tval=zeros(MUA.nod*MUA.Nele*3,1);
     Fval=zeros(MUA.nod*MUA.Nele*3,1);
     istak=0;
@@ -392,8 +393,9 @@ else
 
     end
 
-    Tint=sparseUA(iR,1,Tval,neq,1);
-    Fext=sparseUA(iR,1,Fval,neq,1);
+    One=ones(1,1,"uint32");
+    Tint=sparseUA(iR,One,Tval,neq,1);
+    Fext=sparseUA(iR,One,Fval,neq,1);
 
 end
 
@@ -411,7 +413,10 @@ if ~Ronly
  
     if FewerSparseEvaluations
         
-        Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
+        %Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
+        Iind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1,"uint32"); Jind=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1,"uint32");
+        
+        Xval=zeros(9*MUA.nod*MUA.nod*MUA.Nele,1);
         istak=0;
         for Inod=1:MUA.nod
             for Jnod=1:MUA.nod

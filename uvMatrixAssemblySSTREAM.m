@@ -419,15 +419,46 @@ end
 
 Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
 
-for Inod=1:MUA.nod
-    
-    
-    Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-    
-    Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-    Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+FewerSparseEvaluations=true ;
+if ~FewerSparseEvaluations
+    for Inod=1:MUA.nod
+
+
+        Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+
+        Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
+        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+
+
+    end
+else
+
+    iR=zeros(MUA.nod*MUA.Nele*2,1,"uint32");
+    One=ones(1,1,"uint32");
+    Tval=zeros(MUA.nod*MUA.Nele*2,1);
+    Fval=zeros(MUA.nod*MUA.Nele*2,1);
+    istak=0;
+
+    for Inod=1:MUA.nod
+
+
+        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+        Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
+        Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
+
+        istak=istak+MUA.Nele;
+        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
+        Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
+        Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
+
+        istak=istak+MUA.Nele;
+
+    end
+    Tint=sparseUA(iR,One,Tval,neq,1);
+    Fext=sparseUA(iR,One,Fval,neq,1);
 end
+
 
 Ruv=Tint-Fext;
 
@@ -436,9 +467,12 @@ if ~Ronly
 
     % uses the sparse function less often
 
-
-    %Iind=zeros(nod*Nele*4,1); Jind=zeros(nod*Nele*4,1);Xval=zeros(nod*Nele*4,1);
-    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); istak=0;
+    %Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);
+    Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1,'uint32'); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1,'uint32');
+    
+    Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); 
+    istak=0;
+    
     for Inod=1:MUA.nod
         %istak=0;
         for Jnod=1:MUA.nod

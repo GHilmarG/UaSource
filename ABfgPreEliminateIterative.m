@@ -6,6 +6,12 @@ function [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y
 %
 %
 
+persistent iFigure
+
+if isempty(iFigure)
+    iFigure=100;
+end
+
 if nargin < 8
     L=[];
     U=[];
@@ -31,7 +37,10 @@ end
 
 
 setup.type = 'nofill'; setup.milu = 'off'; 
-setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  isReorder=true; % must be used with re-ordering
+setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  
+%setup.type = "nofill"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  
+
+% isReorder=true; % must be used with re-ordering
 
 tol=1e-13 ; maxit=2; restart=10;   % quick for testing purposes
 
@@ -113,18 +122,39 @@ else
         tgmres=tic;
 
         [x,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,x0);
-
-
-%         tic
-%         AtildeGPU=gpuArray(Atilde) ; M=L*U ; MGPU=gpuArray(M) ; btildeGPU=gpuArray(btilde) ;
-%         toc
-% 
-%         tic
-%         [xGPU,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,MGPU,[],x0);
-%         toc
-
         x=x(iperm) ;
         tgmres=toc(tgmres);
+
+        % Not particularly fast, and less good convergence, possibly because not possible to provide L and U seperatly 
+        % fprintf(" GPU \n ")
+        % tic
+        % AtildeGPU=gpuArray(Atilde) ; M=L*U ; MGPU=gpuArray(M) ; btildeGPU=gpuArray(btilde) ;
+        % toc
+        % 
+        % tic
+        % [xGPU,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,MGPU,[],x0);
+        % toc
+        % 
+
+
+
+        % For some reason, very slow
+        % tic
+        % AtildeDist=distributed(Atilde) ; Ldist=distributed(L) ; Udist=distributed(U) ; x0dist=distributed(x0) ; 
+        % [x,flag,relres,iter,resvec]=gmres(AtildeDist,btilde,restart,tol,maxit,Ldist,Udist,x0dist);
+        % toc
+
+
+        % fprintf(" spmd \n ")
+        % For some reason, very slow
+        % tic
+        % % AtildeDist=distributed(Atilde) ; Ldist=distributed(L) ; Udist=distributed(U) ; x0dist=distributed(x0) ;
+        % spmd
+        %     AtildeDist=codistributed(Atilde); 
+        %     [x,flag,relres,iter,resvec]=gmres(AtildeDist,btilde,restart,tol,maxit,L,U,x0);
+        % end
+        % toc
+
 
         tCPUtotal=toc(tCPUtotal) ;
 
@@ -133,11 +163,11 @@ else
             fprintf("                   dissect Atilde %f sec\n",tdissectAtilde)
             fprintf("                              ilu %f sec\n",tluinc)
             fprintf("                            gmres %f sec\n",tgmres)
-            fprintf("total time for iterative solution %f sec",tCPUtotal)
+            fprintf("total time for iterative solution %f sec\n",tCPUtotal)
 
-            figure
-            fprintf("\n\n")
-            fprintf(' flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
+            figure(iFigure) ; iFigure=iFigure+100;
+           
+            fprintf('\n flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
 
             nnn=numel(resvec);
             semilogy(0:nnn-1,resvec,'-o',LineWidth=2)

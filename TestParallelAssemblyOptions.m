@@ -1,7 +1,7 @@
 
 
 
-NumWorkers=12 ;
+NumWorkers=16 ;
 
 ParPool = gcp('nocreate') ;
 
@@ -22,7 +22,7 @@ warning('off','MATLAB:decomposition:genericError')
 warning('off','MATLAB:decomposition:LoadNotSupported') 
 
 
-Solving="-uv-" ;
+Solving="-uvh-" ;
 
 % Set output files directory
 [~,hostname]=system('hostname') ;
@@ -80,12 +80,24 @@ CtrlVar.uvGroupAssembly=false; CtrlVar.uvhGroupAssembly=false; CtrlVar.etaZero=1
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
 
-CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+CtrlVar.Parallel.Options="-none-" ;
+CtrlVar.Parallel.Options="-auto-" ;
 
+if CtrlVar.Parallel.Options=="-auto-"
 
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
-CtrlVar.Distribute=false ; 
+    CtrlVar.Parallel.uvAssembly.spmd.isOn=true;
+    CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+    CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;
+    CtrlVar.Distribute=true ;
+
+elseif CtrlVar.Parallel.Options=="-none-"
+
+    CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
+    CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+    CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
+    CtrlVar.Distribute=false ;
+    
+end
 
 CtrlVar.Parallel.isTest=false;
 
@@ -105,8 +117,10 @@ if contains(Solving,"-uv-")
 
 
     % Total time=5.5462 	 Solver=2.02292 	 Assembly=3.44374   C23000099        12  SPMD   Distributed
-    % Total time=17.3182 	 Solver=6.08226 	 Assembly=11.1686   C23000099        12 ~SPMD  ~Distributed
-    
+    % Total time=6.41722 	 Solver=2.10235 	 Assembly=4.25054   C23000099         8  SPMD   Distributed
+
+    % Total time=17.3182 	 Solver=6.08226 	 Assembly=11.1686   C23000099           ~SPMD  ~Distributed
+
 end
 
 

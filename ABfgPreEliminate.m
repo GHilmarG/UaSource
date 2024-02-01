@@ -61,7 +61,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
                 if ~isdistributed(Atilde)
                     Atilde=distributed(Atilde);
                 end
-                if ~isdatetime(btilde)
+                if ~isdistributed(btilde)
                     btilde=distributed(btilde);
                 end
             end
@@ -77,7 +77,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             % tic
             x=Atilde\btilde;
 
-            if CtrlVar.Distribute
+            if isdistributed(x)
                 x=gather(x) ;
             end
             % toc

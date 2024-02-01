@@ -19,7 +19,7 @@
 
 TestCase="-direct-" ;
 TestCase="-compare-" ;
-% TestCase="-best-"  ;
+TestCase="-best-"  ;
 
 load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
 
@@ -109,7 +109,7 @@ switch TestCase
         CtrlVar.InfoLevelLinSolve=100;
 
         x0=[] ; y0=[] ; 
-        fprintf("\n\n\n-----------------------------------------------------------------------------------------\n\n")
+        fprintf("\n-----------------------------------------------------------------------------------------\n\n")
         tstart1=tic ;
         [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,perm) ;
         tend1=toc(tstart1) ; 
@@ -120,7 +120,7 @@ switch TestCase
         
         CtrlVar.InfoLevelLinSolve=100;
 
-        fprintf("\n\n\n-----------------------------------------------------------------------------------------\n\n")
+        fprintf("\n-----------------------------------------------------------------------------------------\n\n")
         % x0=x+1e-8*abs(x).*rand(length(x0),1) ; % for this slight modification of x0, a repeated solve is fast and does not require
         % new LU factorisation.
         
