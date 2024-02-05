@@ -79,7 +79,9 @@ MUA=UpdateMUA(CtrlVar,MUA) ;
 
 
 %% modified NR options
-CtrlVar.ModifiedNRuvIntervalCriterion=2  ; CtrlVar.ModifiedNRuvReductionCriterion=0.5 ; 
+CtrlVar.ModifiedNRuvIntervalCriterion=4  ; CtrlVar.ModifiedNRuvReductionCriterion=0.5 ;    % Total time=237.335  Solver=49.1201 	 Assembly=92.7946 
+% CtrlVar.ModifiedNRuvIntervalCriterion=2  ; CtrlVar.ModifiedNRuvReductionCriterion=0.5 ;  % Total time=193.215  Solver=53.4797 	 Assembly=79.4635
+% CtrlVar.ModifiedNRuvIntervalCriterion=1  ; CtrlVar.ModifiedNRuvReductionCriterion=0.5 ;  % Total time=202.01 	 Solver=71.846 	     Assembly=78.921 
  CtrlVar.InfoLevelNonLinIt=5 ;
 %%
 
