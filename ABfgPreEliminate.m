@@ -1,11 +1,14 @@
-function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
+function [x,y,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde)
     
     
-    
+narginchk(6,6)    
+
+
     [nA,mA]=size(A);
     [nB,mB]=size(B);
     [nf,mf]=size(f);
-    
+   
+
     if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
         
         % Possibly not needed, but check if this is not just a very simple case of B=g=[]
@@ -13,7 +16,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
         x=A\f;
         y=NaN;
         
-        if nargout>2
+        if nargout>3
             tolB=NaN;
             tolA=norm(A*x-f)/norm(f);
         end
@@ -69,13 +72,21 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             %  decomposition is about the same, and as expected this only speeds things up if several solves with the same matrix
             %  are needed.
             %
-            % tic
-            % dAtilde=decomposition(Atilde);
-            % dx=dAtilde\btilde;
-            % toc
+            tDecomposition=tic;
+            if isempty(dAtilde)
+                dAtilde=decomposition(Atilde);
+            end
+            tDecomposition=toc(tDecomposition) ;
 
-            % tic
-            x=Atilde\btilde;
+            tSolve=tic;
+            x=dAtilde\btilde;
+            tSolve=toc(tSolve);
+
+            % tSolve=tic;
+            % x=Atilde\btilde;
+            % tSolve=toc(tSolve);
+
+            [tDecomposition tSolve]
 
             if isdistributed(x)
                 x=gather(x) ;
@@ -88,7 +99,7 @@ function [x,y,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g)
             
             y=y/factor;
             
-            if nargout>2
+            if nargout>3
                 % check if within tolerances
                 
                 A=A/factor ;

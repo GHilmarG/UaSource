@@ -195,21 +195,24 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         %% Newton step
         % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
         % step ahead of the cost function
+
+        CtrlVar.NRuvIncomplete=0;
         if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
             
           
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
             % [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
             [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
-           
-            NRincomplete=0;
+            dAtilde=[]; 
+
         else
           
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
             % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
             [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
             
-            NRincomplete=1;
+             CtrlVar.NRuvIncomplete=1;
+            
         end
 
         
@@ -242,9 +245,9 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         tSolution=tic;
         
         if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
-            [sol,dl]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+            [sol,dl,dAtilde]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
         else
-            [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+            [sol,dl,dAtilde]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
         end
         
         RunInfo.CPU.Solution.uv=toc(tSolution)+RunInfo.CPU.Solution.uv;
@@ -375,7 +378,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             PlotForceResidualVectors2(CtrlVar,MUA,F,'uv',Ruv,L,l.ubvb,iteration);
         end
         
-        if NRincomplete
+        if CtrlVar.NRuvIncomplete
             stri='i';
         else
             stri=[];
@@ -395,7 +398,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         
     end
     
-    if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=5 && iteration >= 2 && CtrlVar.doplots==1
   
             
             figruv=FindOrCreateFigure("NR-uv r"); clf(figruv) ;

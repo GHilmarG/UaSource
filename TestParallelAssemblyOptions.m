@@ -22,9 +22,10 @@ warning('off','MATLAB:decomposition:genericError')
 warning('off','MATLAB:decomposition:LoadNotSupported') 
 
 
-Solving="-uvh-" ;
+Solving="-uv-" ;
 
-UserVar=FileDirectories(UserVar) ;
+
+UserVar=FileDirectories;
 
 
 %load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Joughin-Ca1-Cs100000-Aa1-As100000-5km-Alim-Clim-.mat","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
@@ -34,6 +35,8 @@ if contains(Solving,"-uv-")
 else
     load(UserVar.ForwardRestartFileDirectory+"Restart-FT-P-Duvh-TWIS-MR4-SM-TM001-Cornford-2k5km-Alim-Clim-Ca1-Cs100000-Aa1-As100000-InvMR5","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
 end
+
+load(UserVar.ForwardRestartFileDirectory+"Restart-FT-P-Duvh-TWIS-MR4-SM-TM001-Cornford-2k5km-Alim-Clim-Ca1-Cs100000-Aa1-As100000-InvMR5","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
 
 tic
 MUA.dM=decomposition(MUA.M,'chol','upper') ;
@@ -51,7 +54,7 @@ CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
 
 CtrlVar.Parallel.Options="-none-" ;
-% CtrlVar.Parallel.Options="-auto-" ;
+CtrlVar.Parallel.Options="-auto-" ;
 
 if CtrlVar.Parallel.Options=="-auto-"
 
@@ -74,6 +77,11 @@ CtrlVar.Parallel.isTest=false;
 
 MUA=UpdateMUA(CtrlVar,MUA) ;
 
+
+%% modified NR options
+CtrlVar.ModifiedNRuvIntervalCriterion=2  ; CtrlVar.ModifiedNRuvReductionCriterion=0.5 ; 
+ CtrlVar.InfoLevelNonLinIt=5 ;
+%%
 
 if contains(Solving,"-uv-")
     % F.ub=F.ub*0 ; F.vb=F.vb*0;
