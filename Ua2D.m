@@ -288,6 +288,8 @@ if CtrlVar.doInverseStep   % -inverse
 
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
 
+    MUA=UpdateMUA(CtrlVar,MUA);
+
     RunInfo.CPU.Inversion=tic;
     [UserVar,F,l,InvFinalValues,RunInfo]=...
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -298,8 +300,8 @@ if CtrlVar.doInverseStep   % -inverse
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
     
-    MUAworkers=[] ; % replace once this becomes` a part of MUA
-    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb,MUAworkers]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+  
+    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     
     if CtrlVar.Inverse.WriteRestartFile
@@ -498,8 +500,8 @@ while 1
 
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-        MUAworkers=[]; 
-        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+   
+        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
     elseif CtrlVar.UaRunType=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
@@ -567,8 +569,8 @@ while 1
                 CtrlVar.InitialDiagnosticStep=0;
                 
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
-                MUAworkers=[]; 
-                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+              
+                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 
                 
                 %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;

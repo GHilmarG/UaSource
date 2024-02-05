@@ -3,7 +3,7 @@
 
 
 
-function [J,dJdp,Hessian,JGHouts,F,RunInfo,MUAworkers]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo,MUAworkers)
+function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 
 
@@ -12,7 +12,7 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo,MUAworkers]=JGH(p,plb,pub,UserVar,Ctr
 
 persistent ubP vbP
 
-narginchk(15,15)
+narginchk(14,14)
 CtrlVar.nargoutJGH=nargout;
 
 if nargout==1
@@ -52,7 +52,7 @@ if any(isnan(F.C))
     error( ' C nan ') ; 
 end
 
-[UserVar,RunInfo,F,l,dFduv,~,~,MUAworkers]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+[UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
 if nargout==1

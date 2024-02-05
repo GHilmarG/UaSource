@@ -5,6 +5,7 @@ function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,Elemen
 % Estimates optimal element sizes based on number of explicit error estimators
 % The estimates are given at the nodal points of the current FE mesh
 %
+
 % Scales element sizes to fit within the range of CtrlVar.MeshSizeMin to CtrlVar.MeshSizeMax
 %
 
@@ -12,9 +13,10 @@ function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,Elemen
 
 % Calculate current element sizes
 EleArea=TriAreaFE(MUA.coordinates,MUA.connectivity);
+
 M= Ele2Nodes(MUA.connectivity,MUA.Nnodes);
 EleSizeCurrent=sqrt(M*EleArea);  % Elesizes around nodes
- MUAworkers=[]; % 
+ 
 
 xNod=MUA.coordinates(:,1) ; yNod=MUA.coordinates(:,2);
 
@@ -57,7 +59,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             u=F.ub+F.ud ; v=F.vb+F.vd;
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
-                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
                 RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
@@ -73,7 +75,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                
-                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,MUAworkers);
+                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
                 RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end

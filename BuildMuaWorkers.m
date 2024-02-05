@@ -34,7 +34,7 @@ Partition{nW}=i1:i2 ;
 MUA.dM=[] ;
 
 
-if isempty(MUAworkers)
+if isempty(MUAworkers) || numel(MUAworkers)==0
     spmd (0,nW)
 
         % Build M directly on the workers to avoid communication

@@ -247,7 +247,7 @@ MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
 
 
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
-    if ~isfield(MUA,"workers")  || isempty(MUA.workers)
+    if ~isfield(MUA,"workers")  || isempty(MUA.workers) || numel(MUA.workers) ==0 
         MUA.workers=[]; 
         MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
     end

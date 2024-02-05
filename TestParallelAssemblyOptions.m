@@ -1,7 +1,7 @@
 
 
 
-NumWorkers=16 ;
+NumWorkers=8 ;
 
 ParPool = gcp('nocreate') ;
 
@@ -24,37 +24,7 @@ warning('off','MATLAB:decomposition:LoadNotSupported')
 
 Solving="-uvh-" ;
 
-% Set output files directory
-[~,hostname]=system('hostname') ;
-if contains(hostname,"DESKTOP-G5TCRTD")  % office Dell
-
-    UserVar.ResultsFileDirectory="F:\Runs\Calving\PIG-TWG\ResultsFiles\";
-    UserVar.InverseRestartFileDirectory="F:\Runs\Calving\PIG-TWG\InverseRestartFiles\";
-    UserVar.InversionFileDirectory="F:\Runs\Calving\PIG-TWG\InversionFiles\";
-    UserVar.MeshFileDirectory="F:\Runs\Calving\PIG-TWG\MeshFiles\";
-    UserVar.ForwardRestartFileDirectory="F:\Runs\Calving\PIG-TWG\RestartFiles\";
-
-elseif contains(hostname,"DESKTOP-BU2IHIR")   % home
-
-    UserVar.ResultsFileDirectory="D:\Runs\Calving\PIG-TWG\ResultsFiles\";
-    UserVar.InverseRestartFileDirectory="D:\Runs\Calving\PIG-TWG\InverseRestartFiles\";
-    UserVar.InversionFileDirectory="D:\Runs\Calving\PIG-TWG\InversionFiles\";
-    UserVar.MeshFileDirectory="D:\Runs\Calving\PIG-TWG\MeshFiles\";
-    UserVar.ForwardRestartFileDirectory="D:\Runs\Calving\PIG-TWG\RestartFiles\";
-    
-elseif contains(hostname,"C23000099")   % home
-
-    UserVar.ResultsFileDirectory="E:\Runs\Calving\PIG-TWG\ResultsFiles\";
-    UserVar.InverseRestartFileDirectory="E:\Runs\Calving\PIG-TWG\InverseRestartFiles\";
-    UserVar.InversionFileDirectory="E:\Runs\Calving\PIG-TWG\InversionFiles\";
-    UserVar.MeshFileDirectory="E:\Runs\Calving\PIG-TWG\MeshFiles\";
-    UserVar.ForwardRestartFileDirectory="E:\Runs\Calving\PIG-TWG\RestartFiles\";
-else
-    UserVar.ResultsFileDirectory=pwd+"\ResultsFiles\";
-end
-
-
-
+UserVar=FileDirectories(UserVar) ;
 
 
 %load(UserVar.InverseRestartFileDirectory+"InverseRestartFile-Joughin-Ca1-Cs100000-Aa1-As100000-5km-Alim-Clim-.mat","CtrlVarInRestartFile","RunInfo","MUA","F","BCs","l")
@@ -81,7 +51,7 @@ CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
 
 CtrlVar.Parallel.Options="-none-" ;
-CtrlVar.Parallel.Options="-auto-" ;
+% CtrlVar.Parallel.Options="-auto-" ;
 
 if CtrlVar.Parallel.Options=="-auto-"
 
