@@ -2147,6 +2147,8 @@ CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA impl
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 
+CtrlVar.Distribute=false;
+
 %%
 
 CtrlVar.UseMexFiles=false ; 

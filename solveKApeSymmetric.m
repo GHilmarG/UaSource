@@ -1,7 +1,11 @@
 function  [x,y,dAtilde]=solveKApeSymmetric(A,B,f,g,x0,y0,CtrlVar,dAtilde)
 
 
-narginchk(8,8)
+narginchk(7,8)
+
+if nargin==7
+    dAtilde=[];
+end
 
 % Solves:
 %
