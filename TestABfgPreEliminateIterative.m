@@ -13,15 +13,42 @@
 %
 % Seems impossible to speed this up using parallel options as dissect not supported for distributed arrays (2023b)
 % 
-%
+% If series of similar solves, then by only doing the ilu and dissect for the first solve, the following solves are faster than
+% direcct solve.
 %%
 
+NumWorkers=8 ;
+
+ParPool = gcp('nocreate') ;
+
+if isempty(ParPool)
+
+    parpool('Processes',NumWorkers)
+
+elseif (ParPool.NumWorkers~=NumWorkers)
+
+    delete(gcp('nocreate'))
+    parpool('Processes',NumWorkers)
+
+end
+
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+warning('off','MATLAB:decomposition:genericError')
+warning('off','MATLAB:decomposition:LoadNotSupported') 
+
+
+
+%%
 
 TestCase="-direct-" ;
-TestCase="-compare-" ;
+% TestCase="-compare-" ;
 TestCase="-best-"  ;
 
+
 load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
+
+CtrlVar.Distribute=false;
 
 switch TestCase
 
@@ -95,28 +122,33 @@ switch TestCase
 %         3) gmres with tol=1e-15 and maxit around 30 (Usually only five or so needed)
 
 
-        L=[]; U=[] ; x0=[] ; y0=[] ; perm=[] ; 
+        L=[]; U=[] ; P=[] ; x0=[] ; y0=[] ; perm=[] ; 
         
 
 
 
         % load solveKApePIGTWGuvh250896.mat ;
         load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g","x0","y0")
-
+        
+        CtrlVar.Distribute=true;
         % A=distributed(A) ; B=distributed(B) ;  f=distributed(f) ; g=distributed(g) ; x0=distributed(x0) ; y0=distributed(y0) ;  % this does not work because dissect does not support distributed arrays
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;  % this does not work because dissect does not support distributed arrays
 
         CtrlVar.InfoLevelLinSolve=100;
 
-        x0=[] ; y0=[] ; 
+        x0=[] ; y0=[] ; xtilde0=[]; 
         fprintf("\n-----------------------------------------------------------------------------------------\n\n")
         tstart1=tic ;
-        [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,perm) ;
-        tend1=toc(tstart1) ; 
+        [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0) ;
+        tend1=toc(tstart1) ;
 
+        tDirect=tic;
+        [xTest,yTest,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
+        tDirect=toc(tDirect);
+
+        fprintf(" Iterative solve in %g sec \t Direct solve in %g sec \t norm(xTest-x)=%g \t norm(yTest-y)=%g \n ",tend1,tDirect,norm(xTest-x),norm(yTest-y))
         
-        
-        
+
         
         CtrlVar.InfoLevelLinSolve=100;
 
@@ -125,13 +157,21 @@ switch TestCase
         % new LU factorisation.
         
         load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
+        CtrlVar.Distribute=true;
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;
         CtrlVar.InfoLevelLinSolve=100;
-        x0=x ; y0=y; % L=[] ; U=[] ; perm=[] ; 
+        x0=x ; y0=y;  xtilde0=xtilde ; % L=[] ; U=[] ; perm=[] ; 
         tstart2=tic ;
-        [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,perm) ;
+        [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0) ;
         tend2=toc(tstart2) ; 
 
+
+        tDirect=tic;
+        [xTest,yTest,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
+        tDirect=toc(tDirect);
+
+        fprintf(" Iterative solve in %g sec \t Direct solve in %g sec \t norm(xTest-x)=%g \t norm(yTest-y)=%g \n ",tend2,tDirect,norm(xTest-x),norm(yTest-y))
+        
 
         fprintf("tend1=%f sec \t tend2=%f sec \n",tend1,tend2)
 

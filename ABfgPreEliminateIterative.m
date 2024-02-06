@@ -1,10 +1,19 @@
-function [x,y,tolA,tolB,L,U,perm]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,perm)
+
+
+
+
+
+
+function [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0)
 
 %%
 %
 %
 %
 %
+
+nargoutchk(9,9)
+narginchk(12,12)
 
 persistent iFigure
 
@@ -32,17 +41,25 @@ if isempty(x0)
     x0=f*0;
 end
 
+if isempty(xtilde0)
+    xtilde=f*0;
+end
 
 
 
 
-setup.type = 'nofill'; setup.milu = 'off'; 
+
+% ilutp results in much smaller residuals at fewer iterations, but ilu takes long time
+
+setup.type = "nofill"; setup.milu = "off"; 
+tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
+
+% takes forever
+% setup.type = "crout"; setup.milu = "off"; setup.droptol = 1e-6 ; 
+% tol=1e-13 ; maxit=5; restart=5;   % quick for testing purposes
+
 setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  
-%setup.type = "nofill"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  
-
-% isReorder=true; % must be used with re-ordering
-
-tol=1e-13 ; maxit=2; restart=10;   % quick for testing purposes
+tol=1e-13 ; maxit=2; restart=50;   % quick for testing purposes
 
 
 if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
@@ -98,7 +115,7 @@ else
 
 
         tdissectAtilde=tic;
-        if isempty(perm)
+        if isempty(perm)  % If the matrix has the same sparsity structure, then I don't need to do the permutation again
             perm=dissect(Atilde);  % does not work for disstributed or gpuarrays 
         end
         % pAtilde=symrcm(Atilde);      % ilu appears to take longer as compared to using dissect
@@ -107,23 +124,36 @@ else
         iperm(perm)=1:length(perm);   % inverse of the permutation vector
         Atilde=Atilde(perm,perm) ;
         btilde=btilde(perm);
-        x0=x0(perm) ; 
+        x0=x0(perm) ;
 
+        % can't use setup.type = "ilutp" with distributed arrays
+        % but even for setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;
+        % using distributed arrays is slower...
         tluinc=tic;
         if isempty(L)
-            [L,U] = ilu(Atilde,setup);
+            [L,U,P] = ilu(Atilde,setup);
         end
         tluinc=toc(tluinc);
 
+        if setup.type == "ilutp"
+            Atilde=P*Atilde ; btilde=P*btilde;
+        end
+       
+        %fprintf("norm(Atilde-L*U)/norm(Atilde)=%g \n",norm(Atilde-L*U,"fro")/norm(Atilde,"fro"))
 
-        %[sol,flag,relres,iter,resvec]=bicgstabl(AA,ff,tol,maxit,L1,U1,xx0);
+   %     [sol,flag,relres,iter,resvec]=bicgstabl(Atilde,btilde,tol,maxit,L,U,xtilde0);
 
 
         tgmres=tic;
 
-        [x,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,x0);
-        x=x(iperm) ;
+        [xtilde,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,xtilde0);
+
+        x=xtilde(iperm) ;
         tgmres=toc(tgmres);
+
+
+
+      
 
         % Not particularly fast, and less good convergence, possibly because not possible to provide L and U seperatly 
         % fprintf(" GPU \n ")
