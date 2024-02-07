@@ -280,7 +280,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 subplot(2,1,1)
                 hold off
 
-                PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+                PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
                 hold on ;
                 [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
                 PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
@@ -291,7 +291,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 hold off
                 xGL=[] ; yGL=[]; GLgeo=[];
                 CtrlVar.PlotGLs=1;
-                PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+                PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
                 title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
                     JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
                 hold on ;
@@ -410,7 +410,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     subplot(2,1,1)
     hold off
     xGL=[] ; yGL=[]; GLgeo=[];
-    PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+    PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
     hold on ;  PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     title(sprintf('Before remeshing \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
@@ -420,7 +420,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     hold off
     xGL=[] ; yGL=[]; GLgeo=[];
     CtrlVar.PlotGLs=1;
-    PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+    PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
     title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
     hold on ;  PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');

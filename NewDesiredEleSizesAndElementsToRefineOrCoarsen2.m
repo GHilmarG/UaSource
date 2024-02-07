@@ -390,7 +390,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
             clf(fig)
             CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
             
-            PlotMuaMesh(CtrlVar,MUA,[],'k');
+            PlotMuaMesh(CtrlVar,MUA,nan,'k');
             hold on
             PlotMuaMesh(CtrlVar,MUA,ElementsToBeRefined,'b');
             PlotMuaMesh(CtrlVar,MUA,ElementsToBeCoarsened,'r');

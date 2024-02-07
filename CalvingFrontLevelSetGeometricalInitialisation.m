@@ -247,7 +247,7 @@ if options.plot
 
     CtrlVar.PlotNodes=1;
      CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],"w");
+    PlotMuaMesh(CtrlVar,MUA,nan,"w");
     %tt=axis;
     plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6,DisplayName="Calving fronts before re-initialisation")
     hold on
@@ -263,7 +263,7 @@ if options.plot
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,LSFonInput/CtrlVar.PlotXYscale);
     hold on
     CtrlVar.PlotNodes=0;
-    PlotMuaMesh(CtrlVar,MUA,[],"w");
+    PlotMuaMesh(CtrlVar,MUA,nan,"w");
     %tt=axis;
     plot(Xc/CtrlVar.PlotXYscale,Yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)
     hold on
@@ -275,7 +275,7 @@ if options.plot
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(LSF-LSFonInput)/CtrlVar.PlotXYscale);
     hold on
 
-    PlotMuaMesh(CtrlVar,MUA,[],"w");
+    PlotMuaMesh(CtrlVar,MUA,nan,"w");
     %tt=axis;
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-g.',LineWidth=1)
     hold on
