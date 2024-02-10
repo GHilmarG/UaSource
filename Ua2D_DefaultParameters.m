@@ -640,7 +640,10 @@ CtrlVar.InfoLevelNonLinIt=1;
 %
 %
 %
-CtrlVar.InfoLevelAdaptiveMeshing=1;  
+CtrlVar.InfoLevelAdaptiveMeshing=1;  % Information related to adapt meshing
+                                     %  1   : default basic information
+                                     % 10   : additional plots, e.g showing element to be deactivated, refine or coarsened.
+                                     % But plots are only produced if additionally  CtrlVar.doplots=true ; 
 
 CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it sometimes uses a inner and outer loop to deal with indefinite systems)
                               % then increasing this number will give further information. G
@@ -654,7 +657,7 @@ CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking.
                                 % As with other info parameters, higher values provide more information
                                 % 10   : 
-                                % 100  : plots evaluated function values along the backtracking direciton 
+                                % 100  : plots evaluated function values along the backtracking direction 
                                 % 1000 : plots backtracking with further additional values calculated at regular intervals along the step, and prints detailed info about backtracking
 
 CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given

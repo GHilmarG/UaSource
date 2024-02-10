@@ -7,11 +7,9 @@ narginchk(8,8)
 
 %% 1) Calculate uv at the beginning of the time step.
 %
-% This is not expected to be
-% strictly needed as uv should have been calculated on the basis of the new
-% geometry (not the F0 geometry) at the end of last semi-implicit time step
-% (Step 4 below). So I could consider getting rid of this, but it should not cost
-% too much time.
+% This is not expected to be strictly needed as uv should have been calculated on the basis of the new geometry (not the F0
+% geometry) at the end of last semi-implicit time step (Step 4 below). So I could consider getting rid of this, but it should
+% not cost too much time.
 %
 % [UserVar,RunInfo,F0,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,l);
 
@@ -19,12 +17,13 @@ narginchk(8,8)
 
 if CtrlVar.InfoLevel>=10
     fprintf("uvhSemiImplicit:Getting an explicit estimate for u,v and h at t=t1.\n")
+
 end
 
 
 
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
-    %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
+    %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if requested by the user.
     CtrlVar.InitialDiagnosticStep=0;
 
     fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);

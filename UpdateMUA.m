@@ -214,7 +214,7 @@ if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(
 end
 
 
-if CtrlVar.MUA.DecomposeMassMatrix  && ( ~isfield(MUA,'dM')  || isempty(MUA.dM) || MUADerivHasChanged)
+if CtrlVar.MUA.DecomposeMassMatrix  && ( ~isfield(MUA,'dM')  ||isempty(MUA.dM)  || ~all(MUA.dM.MatrixSize==size(MUA.M)) || MUADerivHasChanged)
     MUA.dM=decomposition(MUA.M,'chol','upper') ;
 end
 
@@ -248,6 +248,9 @@ MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
 
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
     if ~isfield(MUA,"workers")  || isempty(MUA.workers) || numel(MUA.workers) ==0 
+        MUA.workers=[]; 
+        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
+    elseif MUA.workers{1}.Nnodes~=MUA.Nnodes
         MUA.workers=[]; 
         MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
     end

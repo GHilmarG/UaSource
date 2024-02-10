@@ -22,7 +22,7 @@ end
 
 
 % To reduce the size of output files, I delete some of the MUA fields
-% If requred this can always be recreated by the call:
+% If required this can always be recreated by the call:
 %
 %   MUA=UpdateMUA(CtrlVar,MUA);
 %

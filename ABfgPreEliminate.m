@@ -62,6 +62,36 @@ else
         Atilde=Q*A+ BtB ;
         btilde=(Q*f+B'*g) ;
 
+
+        if CtrlVar.Parallel.isTest
+
+            % seq:
+
+            % distribute
+            tSeq=tic ;
+            dAtilde=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
+            xSeq=dAtilde\btilde;
+            tSeq=toc(tSeq) ; 
+
+
+            % distribute
+            tDistributed=tic ;
+            Atilde=distributed(Atilde);
+            btilde=distributed(btilde);
+            dAtilde=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
+            xDist=dAtilde\btilde;
+            tDistributed=toc(tDistributed) ; 
+        
+
+            fprintf('\n ----------------------------- Info on distributed solve performance : \n')
+            fprintf(' tSeq=%f \t tDistributed=%f \t tSeq/rDistributed=%f \n',tSeq,tDistributed,tSeq/tDistributed) ;
+            fprintf(' norm(xSeq-xDist)/norm(xSeq)=%g    \n',full(norm(xSeq-xDist)/norm(xSeq)))
+            fprintf(' ----------------------------- \n')
+
+
+        end
+
+
         % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
         if CtrlVar.Distribute
             if ~isdistributed(Atilde)
@@ -95,6 +125,15 @@ else
             x=gather(x) ;
         end
         % toc
+
+
+     
+
+
+
+
+
+
 
         y=B*(f-A*x);
 

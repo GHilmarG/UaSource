@@ -116,7 +116,7 @@ switch TestCase
 
     case 3
 
-        % Shows how to map fields between meshes for repeted element deactivation
+        % Shows how to map fields between meshes for repeated element deactivation
 
         CtrlVar=Ua2D_DefaultParameters();
         CtrlVar.UpdateMUAafterDeactivating=false;

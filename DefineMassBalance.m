@@ -34,17 +34,17 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 %
 % The units of as and ab are the same units as those of velocity (something like m/yr or m/day).
 %
-% IMPORTANT: Often surface mass balance is given as mass flux and in the units kg/(m^2 yr).  This is as if we prescribe the value
-% of the product of density and accumulation rate, ie rho a, which has the units kg/(m^2 yr). In Ua this translation to mass flux
-% is done internally, i.e. the rho is included in the mass conservation equaition. The surface mass balance (as and ab) prescibed
-% here as an input to Ua MUST BE IN THE UNITS distance/time, e.g. m/yr.
+% IMPORTANT: Often surface mass balance is provided my climate models as mass flux and in the units kg/(m^2 yr).  This is as
+% if we prescribe the value of the product of density and accumulation rate, ie rho a, which has the units kg/(m^2 yr). In Ua
+% this translation to mass flux is done internally, i.e. the rho is included in the mass conservation equation. The surface
+% mass balance (as and ab) prescribed here as an input to Ua MUST BE IN THE UNITS distance/time, e.g. m/yr.
 %
 % If you have external data sets providing the mass flux in the units kg/(m^2 yr) you must divide those values here by the
 % density, and this density must be the same density as is given in DefineGeometryAndDensities.m
 %
-% Also, if an external data sets provides the surface mass balance in the units of water equivalent, you must modify this value by
-% the ratio between the density of water and the density of ice that you prescribe in DefineGeometryAndDensities.m, for example as
-% 1000/rho, assuming rho is given in the units kg/m^3.
+% Also, if an external data sets provides the surface mass balance in the units of water equivalent, you must modify this
+% value by the ratio between the density of water and the density of ice that you prescribe in DefineGeometryAndDensities.m,
+% for example as 1000/rho, assuming rho is given in the units kg/m^3.
 %
 % For example, if you use a constant density for ice of 920 kg/m^3 and the surface mass balance is given as 1 m/yr of water
 % equivalent (ie 1000 kg/(m^2 yr) ), the surface mass balance you need here is 1000/920 m/yr.
@@ -100,7 +100,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 % *To add basal melt due to sliding as a mass-balance term:* 
 %
 %   [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,F.C,F.m,F.GF);
-%   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gramm = kJ/kg]  Make sure that the units are correct.
+%   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gram = kJ/kg]  Make sure that the units are correct.
 %   F.ab=-(tbx.*F.ub+tby.*F.vb)./(F.rho.*L);          % Ablation (Melt) is always negative, accumulation is positive
 %
 % 

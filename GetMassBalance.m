@@ -77,19 +77,19 @@ if any(isnan(F.dabdh))
     error(errorStruct)
 end
 
-if numel(F.as)==1
+if isscalar(F.as)
     F.as=F.as+zeros(MUA.Nnodes,1);
 end
 
-if numel(F.ab)==1
+if isscalar(F.ab)
     F.ab=F.ab+zeros(MUA.Nnodes,1);
 end
 
-if numel(F.dasdh)==1
+if isscalar(F.dasdh)
     F.dasdh=F.dasdh+zeros(MUA.Nnodes,1);
 end
 
-if numel(F.dabdh)==1
+if isscalar(F.dabdh)
     F.dabdh=F.dabdh+zeros(MUA.Nnodes,1);
 end
 

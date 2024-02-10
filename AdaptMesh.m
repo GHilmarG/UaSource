@@ -109,7 +109,7 @@ if AdaptMeshMethod==""
     return
 end
 
-%% Now finally we procede to do either mesh refinement/unrefinement, or element deactivation/reactivation
+%% Now finally we proceed to do either mesh refinement/unrefinement, or element deactivation/reactivation
 
 JJ=0 ;
 nNewElements=inf;
@@ -235,7 +235,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
 
         %  Remesh: either global-remeshing or local-mesh refinement.
         %
-        % If a local refinement/unrefinement is done using the newest-vertec bisection method,
+        % If a local refinement/unrefinement is done using the newest-vertex bisection method,
         % the original MUA.RefineMesh structure is used. If the number of elements
         % changes, MUA is recreated using the elements and the coordinates in
         % MUA.RefineMesh.  Therefore, if some elements within MUA where previously
@@ -354,7 +354,7 @@ if contains(AdaptMeshMethod,"-activation-")
     end
 
  
-    CtrlVar.UpdateMUAafterDeactivating=false ;
+    CtrlVar.UpdateMUAafterDeactivating=false ;  % Because I always do this here afterwards 
     [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
 
     CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
@@ -471,7 +471,7 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
 
 
-% Do I need to recalcualte uv velocities?
+% Do I need to recalculate uv velocities?
 if ~isMeshChanged  || CtrlVar.AdaptMeshAndThenStop
 
     isRecalculateVelocities=false ;

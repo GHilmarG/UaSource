@@ -1,4 +1,4 @@
-function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
+function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
 %
@@ -9,6 +9,12 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 % Note: Sometimes the default labels on the plots assume some typical
 %       physical dimensions such as m/yr for velocities, and kPa for stresses.
 % 
+%
+% Note:  To produce two velocity plots with the same scaling, use the CtrlVar from previous call again, but in the second
+% call set
+% 
+%   CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+%
 %
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
@@ -189,7 +195,7 @@ else
         case {"ubvb","-ubvb-","uv","-uv-"}
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
 
@@ -210,7 +216,7 @@ else
             % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
+            [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
             title(cbar,"(kPa)",Interpreter="latex")
             title(sprintf("basal drag vectors at t=%g",CtrlVar.time),Interpreter="latex")
 

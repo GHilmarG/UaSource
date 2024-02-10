@@ -68,7 +68,7 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 %     l=1:nNodesIn ; l=l(:)+nan;      
 %     l(k(1:numel(k)))=1:numel(k);    
 %
-% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.  Alternativily, provide
+% where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.  Alternatively, provide
 % k and l from the previous deactivation as an input. These are the optional input variables kIn and lIn. The k and l will then be
 % updated as k=kIn(k), providing the mapping with respect to the original mesh.
 %
@@ -118,7 +118,7 @@ else
     MUA.Boundary=[];
     MUA.dM=[];
     MUA.xEle=[];
-    MUA.yEla=[];
+    MUA.yEle=[];
     MUA.Nnodes=size(MUA.coordinates,1);
     MUA.Nele=size(MUA.connectivity,1);
     MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each element
@@ -144,7 +144,7 @@ end
 
 
 % MUA.RefineMesh=[] ; %  As I now have a new mesh I need to reset the newest vertex bisection data structure.
-%                    %  Therefore no further unrefinement over the previous mesh can be done.
+%                    %  Therefore no further un-refinement over the previous mesh can be done.
 
 
 
