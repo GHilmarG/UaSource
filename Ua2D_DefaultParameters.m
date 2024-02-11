@@ -510,7 +510,7 @@ CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size 
 CtrlVar.BackTrackMinXfrac=1e-10 ;         % exit backtracking if pos. of minimum is changing by less than this fraction of initial step 
 CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evaluations of cost function resulted in no further decrease of cost function
     
-% Limit stepsize based on quadradic/cubic interpolation to these lower/upper
+% Limit stepsize based on quadratic/cubic interpolation to these lower/upper
 % limits withing the current lower/upper range.
 CtrlVar.BackTrackGuardLower=0.25;
 CtrlVar.BackTrackGuardUpper=0.95;
@@ -547,12 +547,12 @@ CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
-                            % If the standard Matlab backslash algorithm is used, default Matlab values apply and this number is not used
+                            % If the standard MATLAB backslash algorithm is used, default Matlab values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
                             % the relative residual is defined in standard way as: 
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
-                            % A value of 1e-8 is arguably alread a relativily small number, in many cases 1e-6 would be considered acceptable
-CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider seeting to true if memory an issue                            
+                            % A value of 1e-8 is arguably already a relatively small number, in many cases 1e-6 would be considered acceptable
+CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider setting to true if memory an issue                            
 
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
@@ -2131,7 +2131,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %   myCluster.NumWorkers = 6;
 %   saveProfile(myCluster)
 %
-% Consult the matlab documentation for further information.
+% Consult the MATLAB documentation for further information.
 %
 % Note: It appears using about 6 workers on parfor and smpd options both on is the best approach. 
 %       However, results are likely to be somewhat problem dependent. 

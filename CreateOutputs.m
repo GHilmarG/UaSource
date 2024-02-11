@@ -28,7 +28,7 @@ end
 %
 %
 
-MUA.DetJ=[] ; MUA.Deriv=[] ; MUA.dM=[] ;  MUA.M=[] ;  MUA.TR=[] ; 
+MUA.DetJ=[] ; MUA.Deriv=[] ; MUA.dM=[] ;  MUA.M=[] ;  MUA.TR=[] ;    MUA.workers=[]; 
 
 N=nargout('DefineOutputs');
 
