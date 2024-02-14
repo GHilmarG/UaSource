@@ -116,7 +116,12 @@ else
 
         tdissectAtilde=tic;
         if isempty(perm)  % If the matrix has the same sparsity structure, then I don't need to do the permutation again
-            perm=dissect(Atilde);  % does not work for disstributed or gpuarrays 
+            perm=dissect(Atilde);  % does not work for disstributed or gpuarrays
+
+            % The nested dissection algorithm produces high quality reorderings and performs particularly well with finite element
+            % matrices compared to other reordering techniques. For more information about the nested dissection ordering
+            % algorithm, see https://uk.mathworks.com/help/matlab/math/sparse-matrix-operations.html
+
         end
         % pAtilde=symrcm(Atilde);      % ilu appears to take longer as compared to using dissect
         tdissectAtilde=toc(tdissectAtilde);
