@@ -660,7 +660,7 @@ CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking
                                 % 100  : plots evaluated function values along the backtracking direction 
                                 % 1000 : plots backtracking with further additional values calculated at regular intervals along the step, and prints detailed info about backtracking
 
-CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
+CtrlVar.InfoLevelCPU=0;  % if 10 or higher then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
 

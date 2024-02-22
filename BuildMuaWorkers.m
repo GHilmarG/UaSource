@@ -5,12 +5,12 @@
 function MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers)
 
 
-if isempty(CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
+if isempty(CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
     poolobj = gcp;
-    CtrlVar.Parallel.uvAssembly.spmd.nWorkers=poolobj.NumWorkers;
+    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 end
 
-nW=CtrlVar.Parallel.uvAssembly.spmd.nWorkers;
+nW=CtrlVar.Parallel.uvhAssembly.spmd.nWorkers;
 
 
 %% create element lists for each partition

@@ -69,22 +69,22 @@ else
 
             % distribute
             tSeq=tic ;
-            dAtilde=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
-            xSeq=dAtilde\btilde;
+            dAtildeSeq=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
+            xSeq=dAtildeSeq\btilde;
             tSeq=toc(tSeq) ; 
 
 
             % distribute
             tDistributed=tic ;
-            Atilde=distributed(Atilde);
-            btilde=distributed(btilde);
-            dAtilde=decomposition(Atilde);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
-            xDist=dAtilde\btilde;
+            AtildeDist=distributed(Atilde);
+            btildeDist=distributed(btilde);
+            dAtildeDist=decomposition(AtildeDist);  % this might not be needed if this has been done already, but for speed comparison this is done here each time
+            xDist=dAtildeDist\btildeDist;
             tDistributed=toc(tDistributed) ; 
         
-
+            [nAtilde,mAtilde]=size(Atilde);
             fprintf('\n ----------------------------- Info on distributed solve performance : \n')
-            fprintf(' tSeq=%f \t tDistributed=%f \t tSeq/rDistributed=%f \n',tSeq,tDistributed,tSeq/tDistributed) ;
+            fprintf('%i x %i :  tSeq=%f \t tDistributed=%f \t tSeq/rDistributed=%f \n',nAtilde,mAtilde,tSeq,tDistributed,tSeq/tDistributed) ;
             fprintf(' norm(xSeq-xDist)/norm(xSeq)=%g    \n',full(norm(xSeq-xDist)/norm(xSeq)))
             fprintf(' ----------------------------- \n')
 

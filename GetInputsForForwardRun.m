@@ -58,6 +58,7 @@ end
 PrintInfoAboutElementsSizes(CtrlVar,MUA); 
 
 if ~isempty(CtrlVar.SaveInitialMeshFileName)
+    MUA.workers=[];  % saving composites not supported, MATLAB2024a 
     save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
     fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
 end
