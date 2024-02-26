@@ -5,6 +5,9 @@ classdef UaFields
         
         x=[];
         y=[];
+        time=[]; 
+        dt=[] ; 
+
         xint=[];
         yint=[]; 
         
@@ -81,8 +84,7 @@ classdef UaFields
         g=[];
         alpha=0;
         
-        time=[]; 
-        dt=[] ; 
+  
         
         GF=[];
         GFInit=[];

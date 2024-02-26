@@ -107,7 +107,7 @@ CtrlVar.LinFEbasis=false;  % test parameter, do not change
 % This is done internally at various different stages. Note that s and b, as
 % returned by the user in DefineGeometry.m, will be changed to ensure flotation.
 % 
-% It is possible to change the default behaviour and calculate h and b from s, B
+% It is possible to change the default behavior and calculate h and b from s, B
 % and S. 
 CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 
@@ -151,7 +151,7 @@ CtrlVar.TestForRealValues=1;
 
 CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical system,
                               % numerical errors cause the solution to no longer be real.
-                              % In that case, set to true to simply ignor complex part.
+                              % In that case, set to true to simply ignore complex part.
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
@@ -429,9 +429,9 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
-CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
-CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
-CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implicitly for u, v, and h
+CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implicitly for velocities.
+CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -530,14 +530,14 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 % Solver (ALS)
 % 
 %
-% The matlab \ operator sometimes fails for indefinite block matrices. For
+% The MATLAB \ operator sometimes fails for indefinite block matrices. For
 % that reason the default linear solver is Augmented Lagrangian Solver (ALS)
 %
 % ALS uses an outer iteration and the inner problem is solved direction. Usually
 % only a few outer iterations are required.
 %
 % For asymmetrical indefinite block-structured systems the ALS method is almost
-% always better than the default Matlab backslash operator. ALS is an iterative
+% always better than the default MATLAB backslash operator. ALS is an iterative
 % method with an inner and outer iteration. Convergence depends on
 % ALSpower. If ALS does not converge then tying a smaller ALSpower
 % usually does the trick.
@@ -547,7 +547,7 @@ CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
-                            % If the standard MATLAB backslash algorithm is used, default Matlab values apply and this number is not used
+                            % If the standard MATLAB backslash algorithm is used, default MATLAB values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
                             % the relative residual is defined in standard way as: 
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
@@ -809,7 +809,7 @@ CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 
 %%
 %
-% Inversion can be done using mesurements of:
+% Inversion can be done using measurements of:
 % 
 % * horizontal velocities (uv)
 % * rate of thickness change (dh/dt).
@@ -1667,7 +1667,7 @@ CtrlVar.LevelSetPhase="" ;
 %
 % Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback
 %
-% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).
+% The recommended option is to use 3), consider using 2) and 3) together, but never to use 1).
 %
 %
 % The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses
@@ -2123,7 +2123,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % 
 %
 % The parallel profile is not modified within a. Set the properties of the local
-% profile through the general Matlab settings. See the matlab manual for further
+% profile through the general MATLAB settings. See the MATLAB manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
 %
@@ -2133,9 +2133,26 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %
 % Consult the MATLAB documentation for further information.
 %
-% Note: It appears using about 6 workers on parfor and smpd options both on is the best approach. 
-%       However, results are likely to be somewhat problem dependent. 
+% Note: Generally it appears that the parfor option does not speed up the assembly.
+%       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
+%       sometimes 20 to 25 times faster. However, the problem needs to be of a certain size for this speedup to be observed.
 %
+%       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
+%       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
+%       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
+%       the gain is greater and shows good scaling properties.
+%
+% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
+% test the performance in a short run by setting isTest=true, that is set:
+% 
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.isTest=true;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
+%
+% Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.
+%
+%
+
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
@@ -2145,14 +2162,16 @@ CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel usin
 
 CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
 
-CtrlVar.Parallel.isTest=false;
+CtrlVar.Parallel.isTest=false;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
+                                               % Good for testing if switching on the parallel options speeds things up, and by how much.
+
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 
-CtrlVar.Distribute=false;
+CtrlVar.Distribute=false;                      % linear system is solved using distributed arrays. 
 
-%%
+%%  
 
 CtrlVar.UseMexFiles=false ; 
 CtrlVar.UseMexFilesCPUcompare=false;

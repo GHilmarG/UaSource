@@ -57,7 +57,7 @@ tSum=toc(tSum) ;
 Tint=[] ; Fext=[];
 
 
-if CtrlVar.Parallel.isTest
+if CtrlVar.Parallel.isTest  && CtrlVar.InfoLevelCPU>=10
 
     iCount=iCount+1;
     fprintf("uvMatrixAssemblySSTREAM_SPMD (%i): SPMD Assembly %f sec. \t Summing up results from workers %f sec.  \n",...

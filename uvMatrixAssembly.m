@@ -36,7 +36,7 @@ switch lower(CtrlVar.FlowApproximation)
 
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F);
 
-        else  % this is the otherwise default sequencial assembly
+        else  % this is the otherwise default sequential assembly
 
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
 
@@ -44,7 +44,7 @@ switch lower(CtrlVar.FlowApproximation)
 
         %% Test spmd speedup
 
-        if CtrlVar.Parallel.isTest  && ~CtrlVar.uvMatrixAssembly.Ronly
+        if CtrlVar.Parallel.isTest  && CtrlVar.Parallel.uvAssembly.spmd.isOn && ~CtrlVar.uvMatrixAssembly.Ronly
 
 
             % There might be an argument for doing this a few times, but if one does a number of NR iterations, which generally is the
@@ -55,8 +55,7 @@ switch lower(CtrlVar.FlowApproximation)
             if CtrlVar.Parallel.uvAssembly.spmd.isOn
 
                 tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F); tSPMD=toc(tSPMD) ;
-                fprintf(' tSeq=%f sec     tSPMD=%f sec \t MUA.Nnodes=%i \t     norm(Ruv-RuvSPMD)/norm(Ruv)=%g \t     norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv))=%g \n',...
-                    tSeq,tSPMD,MUA.Nnodes,norm(full(Ruv-RuvSPMD))/norm(full(Ruv)),norm(diag(Kuv)-diag(KuvSPMD))/norm(diag(Kuv)))
+               
             end
 
             if CtrlVar.Parallel.uvAssembly.parfeval.isOn
@@ -65,22 +64,14 @@ switch lower(CtrlVar.FlowApproximation)
                     tSeq,tParfeval,MUA.Nnodes,norm(full(Ruv-RuvParfeval))/norm(full(Ruv)),norm(diag(Kuv)-diag(KuvParfeval))/norm(diag(Kuv)))
             end
 
-            fprintf(" \n [------------------- Comparing speedup in uv assembly using parallel options: \n ")
-
-
-
             if CtrlVar.Parallel.uvAssembly.spmd.isOn
-                fprintf(' Speedup in matrix assembly by using the parallel SPMD approach is %f \n',tSeq/tSPMD)
+                fprintf('\n ----------------------------- Info on parallel uv SPMD assembly performance : nEle=%i  \t nWorkers=%i \n',MUA.Nele,CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
+                fprintf('SPMD used for uv assembly:  tSeq=%f \t tSPMD=%f \t Speedup=%g \n',tSeq,tSPMD,tSeq/tSPMD) ;
+                fprintf(' R-Rspmd=%g \t K-Kspmd=%g   \n',full(norm(Ruv-RuvSPMD)/norm(Ruv)),normest(Kuv-KuvSPMD)/normest(Kuv))
+                fprintf(' ----------------------------- \n')
             end
-
-            if CtrlVar.Parallel.uvAssembly.parfeval.isOn
-                fprintf(' Speedup in matrix assembly by using the parallel parfeval approach is %f \n',tSeq/tParfeval)
-            end
-
-            fprintf(" -------------------------------------------------------------------------------------] \n ")
 
         end
-
 
 
     case "sstream-rho"

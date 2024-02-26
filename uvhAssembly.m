@@ -56,8 +56,8 @@ function [UserVar,RunInfo,R,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
             end
         end
 
-        fprintf('\n ----------------------------- Info on parallel SPMD assembly performance : nEle=%i  \t nWorkers=%i \n',MUA.Nele,CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
-        fprintf('SPMD used for uvh assembly:  tSeq=%f \t tSPMD=%f \t tSeq/rSPMD=%f \n',tSeq,tSPMD,tSeq/tSPMD) ;
+        fprintf('\n ----------------------------- Info on parallel uvh SPMD assembly performance : nEle=%i  \t nWorkers=%i \n',MUA.Nele,CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
+        fprintf('SPMD used for uvh assembly:  tSeq=%f \t tSPMD=%f \t speedup=%g \n',tSeq,tSPMD,tSeq/tSPMD) ;
         fprintf(' R-Rspmd=%g \t K-Kspmd=%g   \n',full(norm(R-Rspmd)/norm(R)),normest(K-Kspmd)/normest(K))
         fprintf(' ----------------------------- \n')
 

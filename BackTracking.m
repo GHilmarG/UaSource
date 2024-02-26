@@ -647,7 +647,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
         gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
-        parfor I=1:numel(gammaTestVector)
+        for I=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
             gammaTest=gammaTestVector(I);
             rTest=Func(gammaTest);
             gammaTestVector(I)=gammaTest ;
