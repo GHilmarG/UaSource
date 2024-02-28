@@ -707,7 +707,7 @@ end
 rRatioMin=0.99999 ;
 if NoReduction || rmin/r0 >  rRatioMin
     BackTrackInfo.Converged = false ;
-    CtrlVar.InfoLevelNonLinIt = 10 ;
+    % CtrlVar.InfoLevelNonLinIt = 10 ;
 else
     BackTrackInfo.Converged = true ;
 end

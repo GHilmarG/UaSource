@@ -3,7 +3,28 @@
 %%
 %
 %
+% *Release Notes* _February 2024_
 %
+% Parallel spmd assembly option now improved and shows good scalability, although speedup always somewhat problem dependent.  
+% On local workstations with 12 workers, speedup ranging from 6 to 10 seems easily obtainable, and on machines with 24 workers a
+% speedup of 20 has been observed. 
+%
+% To switch on the smpd parallel assembly do:
+%
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%
+%
+% The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
+%
+%   CtrlVar.Distribute=true/false;                       % linear system is solved using distributed arrays. 
+%
+% Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated
+% by Ua and other FE programs. 
+%
+%   CtrlVar.Parallel.isTest=false/true;             % Runs both with and without parallel approach, and prints out some information on relative performance. 
+%                                                   % Good for testing if switching on the parallel options speeds things up, and by how much.
+% 
 % *Release Notes* _October 2023_
 %
 % A (rare) case where the Cauchy direction is not a direction of descent was incorrectly updated. This has now been addressed. 
@@ -16,7 +37,7 @@
 %
 % *Release Notes* _July 2023_
 %
-% * uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.
+% * uv and uvh solver now uses dog-leg search if Newton back-tracking results in small steps.
 %
 % * Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and
 % densities. This has now been corrected.
@@ -34,7 +55,7 @@
 % still considered not fully testet, this option appears to work quite well. Further details can be found in
 % Ua2D_DefaultParameters.m and in the DefineCalving.m files. 
 %
-% * In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a
+% * In the active-set method a minimum number of new active nodes can be specified for the active set to be updated ahead of a
 % new uvh solve, e.g.:
 %
 %   CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5; 
@@ -58,7 +79,7 @@
 %
 % The ice-free areas are automatically melted away using a mass-balance feedback
 % option implemented at the integration points. Second-order NR convergence is
-% obtained even if the reulting mass balance distribution varies sigificantly
+% obtained even if the resulting mass balance distribution varies significantly
 % spatially within an element
 %
 % To use this calving option set:
@@ -133,8 +154,8 @@
 %
 %      DefineGeometryAndDensities.m 
 %
-% The previous approach of using seperate m-files to define geometry
-% (DefineGeometry.m) and densitites (DefineDensities.m) still works. But if you
+% The previous approach of using separate m-files to define geometry
+% (DefineGeometry.m) and densities (DefineDensities.m) still works. But if you
 % have a "DefineGeometryAndDensities.m" in the run folder, only
 % "DefineGeometryAndDensities.m"  is used and "DefineGeometry.m" and
 % "DefineDensities.m" ignored.
@@ -154,9 +175,9 @@
 %
 %   plot(F.x.F,s,'.')
 %
-% * Default inverse algorithim has changed. Now the defaul options is a
+% * Default inverse algorithim has changed. Now the default options is a
 % Hessian-based inversion.  The older-approach is still available by selecting a
-% Gradien-based inversion. This is specificed using the CtrlVar field:
+% Gradien-based inversion. This is specified using the CtrlVar field:
 %
 %       CtrlVar.Inverse.MinimisationMethod
 %
@@ -166,7 +187,7 @@
 %
 % and this field is not used.
 %   
-% * Ocean and wind-indued drag over floating ice can be included. This is defined in 
+% * Ocean and wind-induced drag over floating ice can be included. This is defined in 
 %
 %   DefineSeaIceParameters.m
 %
@@ -188,7 +209,7 @@
 % * The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.
 %
 % The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to
-% the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the
+% the thickness using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the
 % deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.
 %
 % *Release Notes*
@@ -303,7 +324,7 @@
 % potential violation of mass conservation. However, this also ensures smooth upper
 % surfaces even when refining mesh over areas with very uneven bedrock topography.
 % 
-% * Inversion can be done using all implemented sliding laws except Coulumb. 
+% * Inversion can be done using all implemented sliding laws except Coulomb. 
 % 
 %
 % * u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the

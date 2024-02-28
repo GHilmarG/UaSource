@@ -21,7 +21,7 @@ end
 connectivity=reshape(J,size(connectivity));
 coordinates=coordinates(K,:);
 
-% First check if element type on input is as reqested by user, and if not change
+% First check if element type on input is as requested by user, and if not change
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(coordinates,connectivity,CtrlVar.TriNodes);
 MUA.Nnodes=size(MUA.coordinates,1);
 MUA.Nele=size(MUA.connectivity,1);
@@ -29,7 +29,7 @@ MUA.nod=size(MUA.connectivity,2);
 
 if CtrlVar.QuadRules2021
     % This uses the new quad rules implemented in 2021
-    % The old ones are there for comparision and compatability
+    % The old ones are there for comparison and compatibility
     Degree=QuadratureRuleDegree(CtrlVar);
     MUA.QuadratureRuleDegree=Degree;
     Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;

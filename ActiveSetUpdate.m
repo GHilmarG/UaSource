@@ -72,7 +72,7 @@ lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I alway
 % remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
 % actually most likely only need to do this if numel(hPosNode)>0
 % If the L matrix was not in the FE basis, I simply calculate the reactions.
-% The Reactions are calculated correctly irrespectivly of how the
+% The Reactions are calculated correctly irrespective of how the
 %
 if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
@@ -109,7 +109,7 @@ end
 % Now I've solved for h1 and if needed a new active set must be defined
 %
 % The new active set contains all nodes where h1 less than hmin that were not in the previous active set
-% Those of the nodes in the previous active set with positve slack values
+% Those of the nodes in the previous active set with positive slack values
 % Nodes in the previous set with negative slack values must be taken out of the set
 % if the active-set method is selected, update active set
 % The active set is created/modified and the problem solved again if the active set has changed

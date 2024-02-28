@@ -4,7 +4,7 @@ function [ab,qx,qy,dqxdx,dqxdy,dqydx,dqydy]=CalcIceShelfMeltRates(CtrlVar,MUA,u,
 %
 %   ab=CalcIceShelfMeltRates(CtrlVar,MUA,u,v,s,b,S,B,rho,rhow,dsdt,as,dhdt)
 %
-% Calculates basal meltrate from ice-flux divergence, surface mass balance (as) and surface elevation rate changes (dsdt) or alternativily from
+% Calculates basal melt-rate from ice-flux divergence, surface mass balance (as) and surface elevation rate changes (dsdt) or alternatively from
 % rates of thickness change (dhdt).
 %
 % Just a rough way of doing this...please look through the code and adjust as you feel needed.
@@ -15,7 +15,7 @@ function [ab,qx,qy,dqxdx,dqxdy,dqydx,dqydy]=CalcIceShelfMeltRates(CtrlVar,MUA,u,
 %
 % where:
 %           dhdt is the rate of thickness change
-%           dqxdx and dqydy are the flux gradients calcuated from u, v, h, and rho
+%           dqxdx and dqydy are the flux gradients calculated from u, v, h, and rho
 %           as is the surface accumulation in meters of water equivalent
 % 
 % Note: It is very likely that the calculated ab values need to me smoothed or regularized. Smoothing can, for example, be done
@@ -25,7 +25,7 @@ function [ab,qx,qy,dqxdx,dqxdy,dqydx,dqydy]=CalcIceShelfMeltRates(CtrlVar,MUA,u,
 %
 % giving the system   (R+P) ab = P F
 %
-% where F is this function, and R and P regularisation and likelyhood inverse covariances. 
+% where F is this function, and R and P regularization and likelihood inverse covariance. 
 % 
 % 
 % Example would be: 
