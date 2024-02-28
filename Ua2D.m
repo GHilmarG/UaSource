@@ -623,6 +623,7 @@ while 1
             
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             
+            
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             
             if ~RunInfo.Forward.uvhConverged

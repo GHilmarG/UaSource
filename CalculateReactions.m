@@ -29,7 +29,19 @@ function [Reactions,lStar]=CalculateReactions(CtrlVar,MUA,BCs,l,options)
 %
 %   ah=Reactions.h/(F.rho*F.time)
 %
-% So if, for example, rho and time are in IS units, the units of ah are kg/m^2
+% So if, for example, rho and time are in IS units, the units of ah are kg/m^2.
+%
+% *Sign Convention:*  Same sign convention is used as when introducing the Lagrange parameters. It follows that if, for
+% example, ADDITONAL mass flux is needed to keep the thickness at a given value, the resulting thickness reactions
+% (Reactions.h) are NEGATIVE. This sign convention makes sense if active constraints are identified by the sign of the
+% corresponding Lagrange parameters being negative. But this sign is presumably the opposite of what one might otherwise
+% expect. So if the thickness reactions are NEGATIVE, then one needs to add a POSITIVE surface mass balance equal to
+% 
+%   -Reactions.h/(F.rho*F.time) 
+% 
+% to keep the thickness at desired value.
+%
+%
 %
 % l  : Lagrange variables
 %

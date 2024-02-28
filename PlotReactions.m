@@ -29,10 +29,10 @@ if numel(Reactions.h)>0
     end
 
     [AreaTri]=TriAreaFE(MUA.coordinates,MUA.connectivity);
-    Reactions.h= 3*Reactions.h*min(AreaTri)/max(abs(Reactions.h))/CtrlVar.PlotXYscale^2;
+    Rh= 3*Reactions.h*min(AreaTri)/max(abs(Reactions.h))/CtrlVar.PlotXYscale^2;
 
-    I=Reactions.h>0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,Reactions.h(I),'b','d','filled')
-    I=Reactions.h<0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,-Reactions.h(I),'r','c','filled')
+    I=Rh>0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,Rh(I),'b','d','filled')
+    I=Rh<0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,-Rh(I),'r','c','filled')
     title('h Reactions') ;
 
 

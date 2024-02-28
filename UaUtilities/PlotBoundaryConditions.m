@@ -164,4 +164,8 @@ else
 end
 
 
+if nargout==0
+    clearvars lgd
+end
+
 end
