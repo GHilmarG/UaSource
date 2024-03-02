@@ -83,8 +83,6 @@ end
 
 
 if islogical(Variable)
-
-
     Variable=double(Variable) ;
 end
 
@@ -328,12 +326,6 @@ if options.PlotUnderMesh
 
 end
 
-if isempty(F.GF)
-
-    
-    
-
-end
 
 
 
