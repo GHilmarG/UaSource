@@ -39,8 +39,9 @@ if numel(Reactions.h)>0
     if nargin> 3
         ah=Reactions.h./F.rho/F.dt;
         UaPlots(CtrlVar,MUA,F,ah,FigureTitle=" Reactions.h/(F.rho F.dt) Reactions ")
-        title(sprintf("t=%g Reactions.h/F.rho/F.dt",F.time)) ;
-        xlabel('x (km)') ; ylabel('y (km)')
+        title("Thickness Reactions/($\rho \, \Delta t)$",Interpreter="latex") ;
+        subtitle(sprintf("t=%g",F.time),Interpreter="latex") ;
+       
     end
 
 end

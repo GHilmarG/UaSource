@@ -14,7 +14,7 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=10
     fprintf(CtrlVar.fidlog,'  Enforcing min thickness of %-g using active-set method \n',CtrlVar.ThickMin);
 end
 
-%% Special case:  Check if all thicknesses are positive, in which case all thickness constraints should be deactiated
+%% Special case:  Check if all thicknesses are positive, in which case all thickness constraints should be deactivated
 if min(F1.h) > 1.1*CtrlVar.ThickMin
     if CtrlVar.ThicknessConstraintsInfoLevel>=10
         fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F0.h),CtrlVar.ThickMin);
@@ -29,10 +29,11 @@ end
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
-    Active=find(F1.h<=CtrlVar.ThickMin);
+    Active=find(F1.h<CtrlVar.ThickMin);
+    Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
+                                             % even if this means that thicknesses at those nodes are less then MinThick
     BCs1.hPosNode=Active ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
-    % F1.ub(BCs1.hPosNode)=0 ; F1.vb(BCs1.hPosNode)=0; 
-    F1.h(BCs1.hPosNode)=CtrlVar.ThickMin; % 
+    
     if numel(BCs1.hPosNode)>0
         if CtrlVar.ThicknessConstraintsInfoLevel>=1
             fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h0  \n', numel(BCs1.hPosNode));
@@ -41,9 +42,9 @@ if isempty(BCs1.hPosNode)
 end
 
 
-II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
-
-F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
+% II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
+% F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
+                                                                           % this is now done as ahead of uvh solve as iterate is made feasable
 
 % However, I concluded (17 Dec, 2018) that it was better not to do this, as this can significantly increase the number of NR iterations.
 % Better to do this only if the iteration does not converge.

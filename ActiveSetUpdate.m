@@ -61,7 +61,7 @@ end
 % keep a copy of the old active set
 LastActiveSet=BCs1.hPosNode;
 
-%must now find the lambda values corresponding to nodes that where constrainted to pos thickness
+%must now find the lambda values corresponding to nodes that where constrained to positive thickness
 
 % hLambda=l1.h;
 % lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
@@ -141,9 +141,11 @@ NodesReleased=LastActiveSet(NewInActiveConstraints);
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 I=F1.h<=(CtrlVar.ThickMin-100*eps); % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
-NodesWithTooSmallThick=find(I);
-NewActive=setdiff(NodesWithTooSmallThick,BCs1.hPosNode);  % exclude those already in the active set
-NewActive=setdiff(NewActive,NodesReleased);  % do not include those nodes at min thick that I now must release
+NewActive=find(I);
+NewActive=setdiff(NewActive,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
+                                               % even if this means that thicknesses at those nodes are less then MinThick
+NewActive=setdiff(NewActive,BCs1.hPosNode);    % exclude those already in the active set
+NewActive=setdiff(NewActive,NodesReleased);    % do not include those nodes at min thick that I now must release
 
 
 iNewActiveConstraints=numel(NewActive);
@@ -270,7 +272,7 @@ end
 % I now have a dilemma, since the set has become cyclical it is
 % clear that if I deactivate any new nodes the thickness at
 % those nodes will become too small in the next active-set
-% interation. A solution is simply not to deactivate and to add
+% interaction. A solution is simply not to deactivate and to add
 % the cyclically deactivated nodes to the active set.
 
 if isActiveSetCyclical

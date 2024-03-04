@@ -65,18 +65,18 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
         LastReleased=Released;
         LastActivated=Activated;
         iCounter=1;
-                
+
         while true   % active-set loop
-            
+
             fprintf(CtrlVar.fidlog,' ----------> Active-set Iteration #%-i <----------  \n',iActiveSetIteration);
-            
+
             if CtrlVar.ThicknessConstraintsInfoLevel>=1
                 if numel(BCs1.hPosNode)>0 || CtrlVar.ThicknessConstraintsInfoLevel>=10
                     fprintf(CtrlVar.fidlog,' Number of active thickness constraints is %-i \n',numel(BCs1.hPosNode));
                 end
             end
 
-            F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % Make sure iterate is feasible, but this should be delt with by the BCs anyhow
+            F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % Make sure iterate is feasible, but this should be dealt with by the BCs anyhow
             F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
             F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
 
@@ -85,6 +85,21 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
             if ~RunInfo.Forward.uvhConverged
                 [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1);
             end
+
+            if any(F1.h(BCs1.hPosNode) < CtrlVar.ThickMin)
+
+                % Due to numerical errors it can sometimes happen that
+                % on return even nodes in the active set
+                % violate the pos thickness constraint.
+
+                F1.h(BCs1.hPosNode) = CtrlVar.ThickMin ;
+                if CtrlVar.ThicknessConstraintsInfoLevel>=1
+                    fprintf('Active-set: Resetting to limit. \n')
+                end
+            end
+
+          
+
 
             switch CtrlVar.FlowApproximation
                 case "SSTREAM"
@@ -135,9 +150,27 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 break
             end
 
-        end   % active set loop
-        
-        
+        end   % end of active set loop
+
+
+        % nodes where thickness still is too small
+        ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;  % This should not really be needed as this must be equal to the "Activated" set, except that Active set is not updated if
+                                                                                % number of to-be-activated nodes less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
+
+        if numel(ToBeActivated)>0
+
+            warning('some h1 <ThickMin on return from active-set loop. min(h1)=%-g',min(F1.h)) ;
+
+            fprintf('Nodes with thickness<ThickMin: ') ; fprintf('%i ',ToBeActivated)  ; fprintf('\n')
+            fprintf('                    thickness: ') ; fprintf('%g ',F1.h(ToBeActivated))  ; fprintf('\n')
+            if CtrlVar.ResetThicknessToMinThickness
+                F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
+                %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
+                fprintf(CtrlVar.fidlog,' Setting h1(h1<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+            end
+        end
+
+
         if  ~RunInfo.Forward.ActiveSetConverged
             fprintf(CtrlVar.fidlog,' Warning: In enforcing thickness constraints and finding a critical point, the loop was exited due to maximum number of iterations (%i) being reached. \n',CtrlVar.ThicknessConstraintsItMax);
         else
@@ -145,38 +178,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
                 fprintf(CtrlVar.fidlog,'----- Active-set iteration converged after %-i iterations, constraining %-i thicknesses  \n \n ',iActiveSetIteration-1,numel(BCs1.hPosNode));
             end
         end
-        
-        
-        if any(F1.h<CtrlVar.ThickMin)
-            
-            % Due to numerical errors it can sometimes happen that
-            % on return even nodes in the active set
-            % violate the pos thickness constraint.
-            % If violated by less than 1e-10, I reset those to CtrlVar.ThickMin
-            
-            I=find(F1.h<CtrlVar.ThickMin) ;
-            if max(F1.h(I))>(CtrlVar.ThickMin-1e-10)
-                F1.h(I)=CtrlVar.ThickMin;
-                if CtrlVar.ThicknessConstraintsInfoLevel>=1
-                    fprintf('Active-set: Resetting to limit. \n')
-                end
-            end
-        end
 
-        if any(F1.h<CtrlVar.ThickMin)
 
-            warning('some h1 <ThickMin on return from FIuvh2D. min(h1)=%-g',min(F1.h)) ;
-            I=find(F1.h<CtrlVar.ThickMin) ;
-            fprintf('Nodes with thickness<ThickMin: ') ; fprintf('%i ',I)  ; fprintf('\n')
-            fprintf('                    thickness: ') ; fprintf('%g ',F1.h(I))  ; fprintf('\n')
-            if CtrlVar.ResetThicknessToMinThickness
-                F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
-                %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
-                fprintf(CtrlVar.fidlog,' Setting h1(h1<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
-            end
-        end
+
     end
-    
+
+
     
     RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
     RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;
