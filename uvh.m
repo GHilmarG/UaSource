@@ -62,7 +62,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     else   %  Thickness constraints used
 
         [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
-        LastReleased=Released;
+        LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
         LastActivated=Activated;
         iCounter=1;
 
@@ -161,8 +161,8 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 
             warning('some h1 <ThickMin on return from active-set loop. min(h1)=%-g',min(F1.h)) ;
 
-            fprintf('Nodes with thickness<ThickMin: ') ; fprintf('%i ',ToBeActivated)  ; fprintf('\n')
-            fprintf('                    thickness: ') ; fprintf('%g ',F1.h(ToBeActivated))  ; fprintf('\n')
+            fprintf('\tNodes with thickness<ThickMin: ') ; fprintf('\t %10i \t %10i \t %10i \t %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \n  ',ToBeActivated)  ; fprintf('\n')
+            fprintf('\t                    thickness: ') ; fprintf('\t %10g \t %10g \t %10g \t %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \n  ',F1.h(ToBeActivated))  ;  fprintf('\n')
             if CtrlVar.ResetThicknessToMinThickness
                 F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
                 %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));

@@ -78,10 +78,13 @@ if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
 
         Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+        ah=-Reactions.h./(F1.rho.*F1.dt) ;
+        ah=ah(BCs1.hPosNode); 
         lambdahpos=Reactions.h(BCs1.hPosNode);
 
     else
         lambdahpos=[];
+        ah=[]; 
     end
 end
 %%
@@ -96,10 +99,17 @@ end
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=10
     [~,I]=sort(lambdahpos);  % print out fixed nodes in the order of increasing lambda values
-    fprintf(CtrlVar.fidlog,'            Nodes fixed: ')   ;
+    fprintf(CtrlVar.fidlog,' Pos. thick. contraints: ')   ;
     fprintf(CtrlVar.fidlog,' \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \n \t \t \t \t \t \t',BCs1.hPosNode(I));
     fprintf(CtrlVar.fidlog,'\n   Lagrange multipliers: ') ;
-    fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',lambdahpos(I)) ;
+    fprintf(CtrlVar.fidlog,' \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',lambdahpos(I)) ;
+
+  
+    fprintf(CtrlVar.fidlog,'\n            mass flux: ') ;
+
+    fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',ah(I)) ;
+
+
     fprintf(CtrlVar.fidlog,'\n');
 end
 
@@ -122,7 +132,7 @@ if numel(BCs1.hPosNode)>0   % are there any thickness constraints? If so see if 
 
     % I divide here with rho for this to have the same units as the mass balance
     % (distance/time)
-    I=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./F1.rho(BCs1.hPosNode);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
+    I=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./(F1.rho(BCs1.hPosNode).*F1.dt);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
     NewInActiveConstraints=find(I);
     iNewInActiveConstraints=numel(NewInActiveConstraints);
     if iNewInActiveConstraints>0   % have any become inactive?

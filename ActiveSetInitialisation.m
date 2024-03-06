@@ -6,7 +6,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,Released]=Act
 
 
  
- BCs1Input=BCs1 ; 
+BCs1Input=BCs1 ; 
 
 LastActiveSet=BCs1.hPosNode;
 
@@ -29,7 +29,10 @@ end
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
-    Active=find(F1.h<CtrlVar.ThickMin);
+    Active=find(F1.h<=CtrlVar.ThickMin);     % Although I might only want to add nodes to the active set if thickness is somewhat less than MinThick, I might here
+                                             % have a situation where this is a restart run where the active set has been set to empty, or a run after re-meshing, and I
+                                             % want the initial active sets to be similar to previous active set. 
+                                             %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
                                              % even if this means that thicknesses at those nodes are less then MinThick
     BCs1.hPosNode=Active ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
@@ -44,7 +47,7 @@ end
 
 % II= (F0.h<=CtrlVar.ThickMin) | (F1.h<=CtrlVar.ThickMin) ;
 % F1.h(II)=CtrlVar.ThickMin;  F1.ub(II)=F0.ub(II) ; F1.vb(II)=F0.vb(II) ;  % modify initial guess for h1, POSSIBLY important for convergence
-                                                                           % this is now done as ahead of uvh solve as iterate is made feasable
+                                                                           % this is now done as ahead of uvh solve as iterate is made feasible
 
 % However, I concluded (17 Dec, 2018) that it was better not to do this, as this can significantly increase the number of NR iterations.
 % Better to do this only if the iteration does not converge.
@@ -77,7 +80,7 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 end
 
 
-
+% I think the way LastActiveSet is initialized, both Released  will always be empty by construction 
 Released=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 

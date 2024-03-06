@@ -8,14 +8,14 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %%
 % Plots a lat lon grid
 %
-% This is written for the Antarctica setting using polar stereographic coordinate system.
+% This is written for the Antarctica setting using polar stereo-graphic coordinate system.
 %
 %
 %
 % [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 %
 %
-% Inputes:
+% Inputs:
 %
 %  scale   ;    scales the x and the y axis. For example if the x,y units are meters, but you want to plot using km as a
 %               distance units, set scale=1000
@@ -28,21 +28,21 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 % Colour:   color of the lat, lon lines
 
 
-% 
-% isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.  
+%
+% isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.
 %
 %
 % Outputs:
 %
 %     Clat,hlat,Clon,hlon  : These are the contour matrices and the contour objects. The contour objects allow the properties
-%     of the countour plots to be easily edited after the call.
+%     of the contour plots to be easily edited after the call.
 %
 %
 %
 % NOTE #1: Do not use figure zoom after this or the lat/lon lin will get misaligned!
-%       Despite best atempts I have not been able to link the axis and get the right behaviour.
+%       Despite best attempts I have not been able to link the axis and get the right behavior.
 %
-% NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news! 
+% NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news!
 %
 %
 % Example:
@@ -131,15 +131,23 @@ end
 
 %%
 
+if nargin ==0
+
+    % guessing here a bit
+
+    if (xmax-xmin)< 300 % assuming km as units
+        dlon=5;
+    end
+
+    if (ymax-ymin)< 400 % assuming km as units
+        dlat=1;
+    end
+
+
+end
+
 % set some plausible values if user has not defined those already
-if isCircumpolar && isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
-
-    dlat=10;
-    dlon=45;
-    LabelSpacing=200;
-
-else
-
+if isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
 
     if isempty(dlat)
         dlat=5;
@@ -205,7 +213,7 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 
 
 clim(climCopy) % set color axis limit to the value at the beginning of the call
-               % this is done here because the contour functions above might change the existing limites
+% this is done here because the contour functions above might change the existing limites
 
     function labels=mylabelfunLon(vals)
 

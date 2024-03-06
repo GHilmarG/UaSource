@@ -128,7 +128,9 @@ end
 
 
 %% Check and set some parallel variables
-ParPool = gcp('nocreate') ;
+ParPool = gcp;
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+
 if ~isempty(ParPool)
 
     parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');

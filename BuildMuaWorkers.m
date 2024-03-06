@@ -6,7 +6,7 @@ function MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers)
 
 
 if isempty(CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
-    poolobj = gcp;
+    poolobj = gcp ;
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 end
 

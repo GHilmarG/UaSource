@@ -24,12 +24,12 @@ function [Reactions,lStar]=CalculateReactions(CtrlVar,MUA,BCs,l,options)
 %
 % any positive thickness constraints that were added automatically, ie not by the user, during the run are excluded. 
 %
-% Note that, for example, the h reactions are related to the additional mass flux required to keep the thickness at
+% Note that, for example, the h reactions are related to the additional mass per area required to keep the thickness at
 % prescribed values. This fictitious mass flux (a_h) can be calculated as
 %
 %   ah=Reactions.h/(F.rho*F.time)
 %
-% So if, for example, rho and time are in IS units, the units of ah are kg/m^2.
+% So if, for example, rho and time are in IS units, the units of the reactions are kg/m^2, and that of ah is m/yr.
 %
 % *Sign Convention:*  Same sign convention is used as when introducing the Lagrange parameters. It follows that if, for
 % example, ADDITONAL mass flux is needed to keep the thickness at a given value, the resulting thickness reactions
