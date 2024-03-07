@@ -729,7 +729,9 @@ while 1
     end
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
-        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
+        
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+
     end
     
     
@@ -777,7 +779,8 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
+   
+
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
