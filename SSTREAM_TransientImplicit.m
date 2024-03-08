@@ -31,7 +31,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %
     % All matrices are Nnodes x Nnodes, apart from:
     % Luv is #uv constraints x 2 Nnodes, i.e. Luv [u;v]= cuv
-    % Lh  is # h contraints x Nnodes, i.e.    Lh h= ch
+    % Lh  is # h constraints x Nnodes, i.e.    Lh h= ch
     %  or
     %
     % [K L'] [ duvh ]      =  [ -R- L' l ]

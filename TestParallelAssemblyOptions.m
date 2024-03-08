@@ -61,14 +61,14 @@ if CtrlVar.Parallel.Options=="-auto-"
     CtrlVar.Parallel.uvAssembly.spmd.isOn=true;
     CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
     CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;
-    CtrlVar.Distribute=true ;
+    CtrlVar.Parallel.Distribute=true ;
 
 elseif CtrlVar.Parallel.Options=="-none-"
 
     CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
     CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
     CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
-    CtrlVar.Distribute=false ;
+    CtrlVar.Parallel.Distribute=false ;
     
 end
 

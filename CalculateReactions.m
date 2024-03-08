@@ -4,6 +4,7 @@ function [Reactions,lStar]=CalculateReactions(CtrlVar,MUA,BCs,l,options)
 
 %%
 %
+
 % Calculates nodal reactions.
 %
 %   Reactions=CalculateReactions(MLC,l)

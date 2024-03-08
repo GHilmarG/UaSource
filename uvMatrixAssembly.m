@@ -66,7 +66,7 @@ switch lower(CtrlVar.FlowApproximation)
 
             if CtrlVar.Parallel.uvAssembly.spmd.isOn
                 fprintf('\n ----------------------------- Info on parallel uv SPMD assembly performance : nEle=%i  \t nWorkers=%i \n',MUA.Nele,CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
-                fprintf('SPMD used for uv assembly:  tSeq=%f \t tSPMD=%f \t Speedup=%g \n',tSeq,tSPMD,tSeq/tSPMD) ;
+                fprintf('#Ele=%i \t SPMD used for uv assembly:  tSeq=%f \t tSPMD=%f \t speedup=%g \n',MUA.nEle,tSeq,tSPMD,tSeq/tSPMD) ;
                 fprintf(' R-Rspmd=%g \t K-Kspmd=%g   \n',full(norm(Ruv-RuvSPMD)/norm(Ruv)),normest(Kuv-KuvSPMD)/normest(Kuv))
                 fprintf(' ----------------------------- \n')
             end

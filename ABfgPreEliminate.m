@@ -93,7 +93,7 @@ else
 
 
         % https://uk.mathworks.com/help/parallel-computing/benchmarking-a-b.html
-        if CtrlVar.Distribute
+        if CtrlVar.Parallel.Distribute
             if ~isdistributed(Atilde)
                 Atilde=distributed(Atilde);
             end

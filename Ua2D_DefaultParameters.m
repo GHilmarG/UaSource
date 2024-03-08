@@ -2169,7 +2169,7 @@ CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA impl
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 
-CtrlVar.Distribute=false;                      % linear system is solved using distributed arrays. 
+CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
 %%  
 

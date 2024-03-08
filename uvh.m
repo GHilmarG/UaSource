@@ -2,7 +2,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
     
 
     narginchk(9,9)
-    nargoutchk(6,6)
+   % nargoutchk(6,6)
     
     dt=CtrlVar.dt;
 

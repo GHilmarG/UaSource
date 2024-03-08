@@ -137,13 +137,13 @@ figure(100) ; plot(Gain,'or')
 load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
 
 
-CtrlVar.Distribute=false ;
+CtrlVar.Parallel.Distribute=false ;
 
 tSeq=tic;
 [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar);
 tSeq=toc(tSeq);
 
-CtrlVar.Distribute=true ;
+CtrlVar.Parallel.Distribute=true ;
 
 tDist=tic;
 [x,y]=solveKApe(A,B,f,g,x0,y0,CtrlVar);

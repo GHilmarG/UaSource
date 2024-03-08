@@ -2,11 +2,21 @@
 
 
 
-function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
+function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
 
  
 BCs1Input=BCs1 ; 
+
+
+
+%%  Make sure that no thickness constraints have been added to nodes with user-defined boundary conditions
+% or because the user-defined boundary conditions have changed the last active set was updated/created.
+
+BCs1.hPosNode=setdiff(BCs1.hPosNode,BCs1.hFixedNode) ;
+
+
+%%
 
 LastActiveSet=BCs1.hPosNode;
 
@@ -19,7 +29,7 @@ if min(F1.h) > 1.1*CtrlVar.ThickMin
     if CtrlVar.ThicknessConstraintsInfoLevel>=10
         fprintf(CtrlVar.fidlog,' Eliminating any possible previous thickness constraints as min(h1)=%-g>1.1*CtrlVar.ThickMin=%-g \n',min(F0.h),CtrlVar.ThickMin);
     end
-    BCs1.hPosNode=[] ; BCs1.hPosValue=[];
+    BCs1.hPosNode=[] ; 
 end
 
 %% Special case:  Check if there are no previous thickness constraints, in which case new should be introduced based on ice thickness
@@ -35,7 +45,7 @@ if isempty(BCs1.hPosNode)
                                              %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
                                              % even if this means that thicknesses at those nodes are less then MinThick
-    BCs1.hPosNode=Active ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+    BCs1.hPosNode=Active ;
     
     if numel(BCs1.hPosNode)>0
         if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -75,16 +85,16 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
     end
 
     BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode); 
-    BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+    
     
 end
 
 
 % I think the way LastActiveSet is initialized, both Released  will always be empty by construction 
-Released=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
+DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 
-nReleased=numel(Released);
+nReleased=numel(DeActivated);
 nActivated=numel(Activated);
 
 %%
@@ -98,7 +108,7 @@ if nReleased> 0 || nActivated>0
         BCs1=BCs1Input;
    
         Activated=[];
-        Released=[];
+        DeActivated=[];
         nReleased=0;
         nActivated=0;
     end
@@ -116,7 +126,9 @@ end
 
 
 
-
+%% Set the hPosValues, only need to do this once at the end
+BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+%%
 
 
 

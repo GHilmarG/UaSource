@@ -14,7 +14,7 @@
 % Seems impossible to speed this up using parallel options as dissect not supported for distributed arrays (2023b)
 % 
 % If series of similar solves, then by only doing the ilu and dissect for the first solve, the following solves are faster than
-% direcct solve.
+% direct solve.
 %%
 
 NumWorkers=8 ;
@@ -48,7 +48,7 @@ TestCase="-best-"  ;
 
 load("solveKApePIGTWGuvh250896.mat","A","B","CtrlVar","f","g","x0","y0")
 
-CtrlVar.Distribute=false;
+CtrlVar.Parallel.Distribute=false;
 
 switch TestCase
 
@@ -130,7 +130,7 @@ switch TestCase
         % load solveKApePIGTWGuvh250896.mat ;
         load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g","x0","y0")
         
-        CtrlVar.Distribute=true;
+        CtrlVar.Parallel.Distribute=true;
         % A=distributed(A) ; B=distributed(B) ;  f=distributed(f) ; g=distributed(g) ; x0=distributed(x0) ; y0=distributed(y0) ;  % this does not work because dissect does not support distributed arrays
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;  % this does not work because dissect does not support distributed arrays
 
@@ -154,10 +154,10 @@ switch TestCase
 
         fprintf("\n-----------------------------------------------------------------------------------------\n\n")
         % x0=x+1e-8*abs(x).*rand(length(x0),1) ; % for this slight modification of x0, a repeated solve is fast and does not require
-        % new LU factorisation.
+        % new LU factorization.
         
         load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
-        CtrlVar.Distribute=true;
+        CtrlVar.Parallel.Distribute=true;
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;
         CtrlVar.InfoLevelLinSolve=100;
         x0=x ; y0=y;  xtilde0=xtilde ; % L=[] ; U=[] ; perm=[] ; 

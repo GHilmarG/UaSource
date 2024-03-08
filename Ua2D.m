@@ -610,24 +610,29 @@ while 1
 
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
-            
-            
-            
+
+
+
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-            
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
             % speed up the non-linear solver.
-            
+
+            if CtrlVar.Parallel.isTest
+                uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
+            end
+
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
-            
-            
+
+
+
             CtrlVar.dt=dt;  % I might have changed dt within uvh
-            
+            F.dt=dt; 
             if ~RunInfo.Forward.uvhConverged
                 
                 warning("Ua2D:WTSHTF","uvh did not converge")

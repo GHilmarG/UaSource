@@ -17,7 +17,7 @@
 %
 % The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
 %
-%   CtrlVar.Distribute=true/false;                       % linear system is solved using distributed arrays. 
+%   CtrlVar.Parallel.Distribute=true/false;                       % linear system is solved using distributed arrays. 
 %
 % Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated
 % by Ua and other FE programs. 
