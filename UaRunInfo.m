@@ -35,7 +35,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Inverse.fmincon=struct;
             obj.Inverse.fminunc=struct;
 
-            N=1000; % initial memory allocation
+            N=2; % initial memory allocation
             obj.Forward.uvConverged=false;
             obj.Forward.uvIterations=NaN(N,1);
             obj.Forward.uvResidual=NaN(N,1);
@@ -46,7 +46,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.dtRestart=NaN;
 
 
-            N=1000; % initial memory allocation
+            N=2; % initial memory allocation
             obj.Forward.time=zeros(N,1)+NaN;
             obj.Forward.dt=zeros(N,1)+NaN;
             obj.Forward.uvhConverged=false;
@@ -62,7 +62,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.hResidual=NaN(N,1);
             obj.Forward.hBackTrackSteps=zeros(N,1)+NaN;
             obj.Forward.hiCount=0;
-            
+
 
             obj.Forward.ubvbRecalculatedOnNewMesh=false;
 
@@ -112,40 +112,57 @@ classdef (ConstructOnLoad) UaRunInfo
 
 
         end
+        % 
+        % function  obj=set.Forward(obj,val)
+        % 
+        %     obj.Forward=val ;
+        % 
+        % 
+        % end
+        % 
+        % function  a=get.Forward(obj)
+        % 
+        %     fprintf("here\n")
+        %     a=obj.Forward;
+        % 
+        % 
+        % end
 
 
         function obj=ExtendAllocations(obj,CtrlVar,index)
 
-            n=numel(obj.Forward.time) ;
+            nElements=numel(obj.Forward.time) ;
+
+            if index>nElements
+                nPadding=max(2*nElements,index) ;
+                Padding=nan(nPadding,1);
+            else
+                return
+            end
+
+            if contains(CtrlVar.UaRunType,["-uvh-","-uv-"])
 
 
-            if CtrlVar.UaRunType=="-uvh-"
 
-                if index> n
+                obj.Forward.time=resize(obj.Forward.time,nPadding,FillValue=nan) ; 
+                obj.Forward.dt=resize(obj.Forward.dt,nPadding,FillValue=nan) ; 
 
-                    if index>2*n
-                        n=2*index;
-                    end
+                obj.Forward.uvhIterations=resize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhResidual=resize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhBackTrackSteps=resize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
 
-                    Padding=NaN(n,1);
-                    obj.Forward.time=[obj.Forward.time;Padding];
-                    obj.Forward.dt=[obj.Forward.dt;Padding];
+                obj.Forward.uvhActiveSetIterations=resize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetCyclical=resize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetConstraints=resize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
 
-                    obj.Forward.uvhIterations=[obj.Forward.uvhIterations;Padding];
-                    obj.Forward.uvhResidual=[obj.Forward.uvhResidual;Padding];
-                    obj.Forward.uvhBackTrackSteps=[obj.Forward.uvhBackTrackSteps;Padding];
+                obj.Forward.uvIterations=resize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvResidual=resize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvBackTrackSteps=resize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
 
-                    obj.Forward.uvhActiveSetIterations=[obj.Forward.uvhActiveSetIterations;Padding];
-                    obj.Forward.uvhActiveSetCyclical=[obj.Forward.uvhActiveSetCyclical;Padding];
-                    obj.Forward.uvhActiveSetConstraints=[obj.Forward.uvhActiveSetConstraints;Padding];
 
-                    obj.Forward.uvIterations=[obj.Forward.uvIterations;Padding];
-                    obj.Forward.uvResidual=[obj.Forward.uvResidual;Padding];
-                    obj.Forward.uvBackTrackSteps=[obj.Forward.uvhBackTrackSteps;Padding];
+            end
 
-                end
-
-            elseif CtrlVar.UaRunType=="-h-"
+            if contains(CtrlVar.UaRunType,"-h-")
 
                 obj.Forward.hIterations=[obj.Forward.hIterations;Padding];
                 obj.Forward.hResidual=[obj.Forward.hResidual;Padding];
@@ -156,32 +173,16 @@ classdef (ConstructOnLoad) UaRunInfo
 
             if CtrlVar.LevelSetMethod
 
-                n=numel(obj.LevelSet.time) ;
+                Padding=NaN(nPadding,1);
+                obj.LevelSet.time=[obj.LevelSet.time;Padding];
+                obj.LevelSet.Iterations=[obj.LevelSet.Iterations;Padding];
+                obj.LevelSet.Residual=[obj.LevelSet.Residual;Padding];
+                obj.LevelSet.BackTrackSteps=[obj.LevelSet.BackTrackSteps;Padding];
+                obj.LevelSet.Phase=[obj.LevelSet.Phase;strings(nPadding,1)];
 
-                if index> n
-
-                    if index>2*n
-                        n=2*index;
-                    end
-
-
-                    Padding=NaN(n,1);
-                    obj.LevelSet.time=[obj.LevelSet.time;Padding];
-                    obj.LevelSet.Iterations=[obj.LevelSet.Iterations;Padding];
-                    obj.LevelSet.Residual=[obj.LevelSet.Residual;Padding];
-                    obj.LevelSet.BackTrackSteps=[obj.LevelSet.BackTrackSteps;Padding];
-                    obj.LevelSet.Phase=[obj.LevelSet.Phase;strings(n,1)];
-
-
-                end
 
             end
-
-
-
         end
-
-
     end
 
     methods (Static)
@@ -197,7 +198,7 @@ classdef (ConstructOnLoad) UaRunInfo
 
             if ~isfield(s.Forward,'uvhIterations')
 
-                N=1000; % initial memory allocation
+                N=2; % initial memory allocation
                 obj.Forward.time=zeros(N,1)+NaN;
                 obj.Forward.dt=zeros(N,1)+NaN;
                 obj.Forward.uvhIterations=zeros(N,1)+NaN;
@@ -223,20 +224,7 @@ classdef (ConstructOnLoad) UaRunInfo
             if ~isfield(s.Forward,'hiCount')
                 obj.Forward.hiCount=0;
             end
-
-            %             I got rid of this counter, if I keep this in here, these fields will always be set to zero on load
-            %             if ~isfield(s.Forward,'iCounter')
-            %
-            %                 N=1000; % initial memory allocation
-            %                 obj.Forward.time=zeros(N,1)+NaN;
-            %                 obj.Forward.dt=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhIterations=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhResidual=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
-            %                 obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
-            %             end
+          
 
             if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
                 obj.Forward.ubvbRecalculatedOnNewMesh=false;

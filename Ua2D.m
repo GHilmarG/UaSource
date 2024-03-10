@@ -480,8 +480,8 @@ while 1
         end
     end
 
-    if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
-        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
+    if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep   
+        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F); % update boundary conditions at each time step
         F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
  
@@ -532,10 +532,7 @@ while 1
 
 
 
-        if numel(RunInfo.Forward.time) < CtrlVar.CurrentRunStepNumber 
-            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
-        end
+        RunInfo=ExtendAllocations(RunInfo,CtrlVar,CtrlVar.CurrentRunStepNumber);
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
         RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         

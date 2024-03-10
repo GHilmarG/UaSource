@@ -116,9 +116,9 @@ else
 
         tdissectAtilde=tic;
         if isempty(perm)  % If the matrix has the same sparsity structure, then I don't need to do the permutation again
-            perm=dissect(Atilde);  % does not work for disstributed or gpuarrays
+            perm=dissect(Atilde);  % does not work for distributed or gpuarrays
 
-            % The nested dissection algorithm produces high quality reorderings and performs particularly well with finite element
+            % The nested dissection algorithm produces high quality reordering and performs particularly well with finite element
             % matrices compared to other reordering techniques. For more information about the nested dissection ordering
             % algorithm, see https://uk.mathworks.com/help/matlab/math/sparse-matrix-operations.html
 
@@ -129,7 +129,9 @@ else
         iperm(perm)=1:length(perm);   % inverse of the permutation vector
         Atilde=Atilde(perm,perm) ;
         btilde=btilde(perm);
-        x0=x0(perm) ;
+        x0=x0(perm) ; 
+        % If I return xtilde and the re-use the same ordering (i.e. perm) then I can take the previous xtilde as a starting point,
+        % and I don't need to re-order that initial guess.
 
         % can't use setup.type = "ilutp" with distributed arrays
         % but even for setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;
@@ -156,20 +158,27 @@ else
         x=xtilde(iperm) ;
         tgmres=toc(tgmres);
 
+        % Important to replace zeros on diagonal, but does not converge well, much worse that using ilu
+        % k = 3;
+        % M = tril(triu(Atilde,-k),k);
+        % I=find(abs(diag(M))==0 );   % must make sure to replace 0 on the diagonal with 1
+        % [n,m]=size(Atilde) ;
+        % M=M+sparse(I,I,1,n,m); 
+        % [xtilde,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,M);
+        % 
 
 
-      
 
-        % Not particularly fast, and less good convergence, possibly because not possible to provide L and U seperatly 
+        % % Not particularly fast, and less good convergence, possibly because not possible to provide L and U separately 
         % fprintf(" GPU \n ")
         % tic
         % AtildeGPU=gpuArray(Atilde) ; M=L*U ; MGPU=gpuArray(M) ; btildeGPU=gpuArray(btilde) ;
         % toc
         % 
         % tic
-        % [xGPU,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,MGPU,[],x0);
+        % [xGPU,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,MGPU,[],xtilde0);
         % toc
-        % 
+        % % 
 
 
 

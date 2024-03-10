@@ -2,6 +2,14 @@
 
 %%
 %
+% *Release Notes* _March 2024_
+%
+% Positive thickness constraints --- added dynamically when using the active-set option --- are not added to nodes already
+% contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
+% that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
+% with thickness less than CtrlVar.ThicMin, even if
+%
+%
 %
 % *Release Notes* _February 2024_
 %

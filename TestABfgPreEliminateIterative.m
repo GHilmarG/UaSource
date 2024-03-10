@@ -15,6 +15,8 @@
 % 
 % If series of similar solves, then by only doing the ilu and dissect for the first solve, the following solves are faster than
 % direct solve.
+%
+%
 %%
 
 NumWorkers=8 ;
@@ -130,7 +132,7 @@ switch TestCase
         % load solveKApePIGTWGuvh250896.mat ;
         load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g","x0","y0")
         
-        CtrlVar.Parallel.Distribute=true;
+        CtrlVar.Parallel.Distribute=false;
         % A=distributed(A) ; B=distributed(B) ;  f=distributed(f) ; g=distributed(g) ; x0=distributed(x0) ; y0=distributed(y0) ;  % this does not work because dissect does not support distributed arrays
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;  % this does not work because dissect does not support distributed arrays
 
@@ -157,7 +159,7 @@ switch TestCase
         % new LU factorization.
         
         load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
-        CtrlVar.Parallel.Distribute=true;
+        CtrlVar.Parallel.Distribute=false;
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;
         CtrlVar.InfoLevelLinSolve=100;
         x0=x ; y0=y;  xtilde0=xtilde ; % L=[] ; U=[] ; perm=[] ; 
