@@ -482,7 +482,6 @@ while 1
 
     if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep   
         [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F); % update boundary conditions at each time step
-        F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
     end
  
     % get mass-balance after any modifications to geometry, as mass balance might depend
@@ -781,8 +780,7 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
-   
-
+    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end

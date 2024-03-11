@@ -769,8 +769,8 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %
 % The default option is Hessian-based optimization using the matlab optimization toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, Matlab toolbox
-%                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, MATLAB toolbox
+%                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
 
@@ -924,10 +924,10 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 %
 % Refer to the matlab documentation for further information. 
 %
-% The optimization routines used are either the matlab routine fminunc or
+% The optimization routines used are either the MATLAB routine fminunc or
 % fmincon.
 %
-% You will need to have the matlab optimisation toolbox to be able to do this.
+% You will need to have the MATLAB optimization toolbox to be able to do this.
 %  
 % The Matlab optimization toolbox has various algorithms to choose from, each of
 % which has large number of parameters.
