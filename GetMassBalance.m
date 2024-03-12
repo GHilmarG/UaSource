@@ -8,7 +8,7 @@ InputFile="DefineMassBalance.m" ; TestIfInputFileInWorkingDirectory(InputFile) ;
 
 
 
-N=nargout('DefineMassBalance');
+N=nargout(InputFile);
 NargInputFile=nargin(InputFile);
 
 switch N

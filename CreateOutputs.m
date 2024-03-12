@@ -3,7 +3,7 @@ function UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFin
 warning('off','MATLAB:structOnObject')
 
 % convert objects to structures. Otherwise it will not be possible to save/re-use these
-% objects outside of Úa.
+% objects outside of ï¿½a.
 %
 l=struct(l);
 BCs=struct(BCs) ;
@@ -36,7 +36,7 @@ switch N
     
     case 0
         
-        DefineOutputs(UserVar,CtrlVar,MUA,BCs,F,l,F.GF);
+        DefineOutputs(UserVar,CtrlVar,MUA,BCs,F,l);
         
     case 1
         
