@@ -27,6 +27,7 @@ velscale=min([max(x)-min(x) ; max(y)-min(y)])/30;
 velscale=velscale*CtrlVar.BoundaryConditionsFixedNodeArrowScale;
 headscale=0.3; sharp=0.3; head=1; lw=1; io=-1; col='r';
 
+
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
     
     [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
@@ -163,6 +164,14 @@ if ~isempty(L)
 else
     lgd=[]; 
 end
+
+%%
+% x=MUA.coordinates(:,1) ;   y=MUA.coordinates(:,2) ; 
+% x=x(BCs.ubFixedNode) ;  y=y(BCs.ubFixedNode) ; 
+% ub=BCs.ubFixedValue ; vb=BCs.vbFixedValue ;
+% figure
+% [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(x,y,ub,vb,CtrlVar) ;
+% %%
 
 
 if nargout==0

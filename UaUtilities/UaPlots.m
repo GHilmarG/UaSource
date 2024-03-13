@@ -255,6 +255,7 @@ else
            end
 
            scale=1000 ; 
+           scale=0.1 ; 
            LineWidth=1; 
            nStride=10;
            xint=xint(1:nStride:end,1);
