@@ -6,7 +6,7 @@ function [UserVar,RunInfo,F,l,BCs,dt]=uvhSolveCompareSequencialAndParallelPerfor
 CtrlVar.Parallel.isTest=false ; % set this to false to suppress further performance comparisons within the uvh call.
 RunInfo.CPU.Assembly.uvh=0 ;  RunInfo.CPU.Solution.uvh=0 ; % Reset this cumulative sum of CPU sec used for assembly and linsolve.
 
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=true; CtrlVar.Parallel.uvAssembly.spmd.isOn=true; CtrlVar.Parallel.Distribute=true;
+% CtrlVar.Parallel.uvhAssembly.spmd.isOn=true; CtrlVar.Parallel.uvAssembly.spmd.isOn=true; CtrlVar.Parallel.Distribute=true;
 MUA=UpdateMUA(CtrlVar,MUA) ;
 
 tParallel=tic ;
@@ -19,7 +19,7 @@ tSolvePar=RunInfo.CPU.Solution.uvh ;
 %% And now for comparison turn all parallel options off, and repeat the uvh solve.
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=false; CtrlVar.Parallel.uvAssembly.spmd.isOn=false; CtrlVar.Parallel.Distribute=false;
 
-RunInfo.CPU.Assembly.uvh=0 ;  RunInfo.CPU.Solution.uvh=0 ; % Again, teset this cumulative sum of CPU sec used for assembly and linsolve.
+RunInfo.CPU.Assembly.uvh=0 ;  RunInfo.CPU.Solution.uvh=0 ; % Again, reset this cumulative sum of CPU sec used for assembly and linsolve.
 
 
 tSeq=tic ;

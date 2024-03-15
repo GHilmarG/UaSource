@@ -2147,7 +2147,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % 
 %   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
-%   CtrlVar.Parallel.isTest=true;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
+%   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %
 % Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.
 %
