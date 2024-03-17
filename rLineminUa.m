@@ -202,7 +202,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
 
         %% OK, this is a breakdown as the direction does not lead to a reduction
         %  Try simply to reverse direction...
-        CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
+        % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
         if Variables=="-uvl-"
             DuM=-DuM; DvM=-DvM ; DlM=-DlM ; 
             funcCauchyM=@(gamma) func(gamma,DuM,DvM,DlM) ;

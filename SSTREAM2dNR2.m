@@ -342,7 +342,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             
             Up=2;
             if gamma>0.7*Up ; Up=2*gamma; end
-            parfor I=1:nnn
+            for I=1:nnn
                 gammaTest=Up*(I-1)/(nnn-1)+gamma/1000;
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
