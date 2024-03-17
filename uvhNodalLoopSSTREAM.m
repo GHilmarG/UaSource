@@ -144,7 +144,9 @@ for Inod=1:nod
     Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
     Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
     
-    
+    % Lrhow = 1000/(L*rhow) ; 
+    % aw=invLrhow*    dt* (theta*(u0int.*taux+v0int.*tauy)+(1-theta)*(u2int.*taux+v1int.*tauy))
+
     qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;
     dhdt=  rhoint.*(h0int-hint+dt*(1-theta)*h0barr+dt*theta*h1barr).*SUPG;
     accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;

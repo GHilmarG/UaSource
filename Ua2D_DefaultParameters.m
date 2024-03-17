@@ -580,6 +580,21 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % Depending on info levels, figures might be plotted as well. However, this is only done
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
+% Further description of what infomation is provided depending on the values of the info parameters is provided below. 
+%
+% If you, for example set,
+%
+%    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
+%
+% and provided that furthermore
+%
+%   CtrlVar.doplots=1
+%
+% several figures will be produced showing the change in velocity and ice thickness (if solving uvh) during each time increment.
+% and also a figure showing the values calculated as a part of the back-tracking step.
+%
+%
+
 CtrlVar.InfoLevel=1;        % Overall level of information (forward runs)  
  
 CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs). 
@@ -601,6 +616,7 @@ CtrlVar.InfoLevelNonLinIt=1;
 %   1  : basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
 % >=2  : info on backtracking step as well.
+% >=5  : plots change in velocites and ice thickness over each uvh time step, and basal drag vectors
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
 %
@@ -633,7 +649,13 @@ CtrlVar.hInfoLevel=1;         % Infolevel for the h solve when using semi-implic
 CtrlVar.InfoLevelThickMin=0 ; % if >=1 prints out info related to resetting thickness to min thick
                               % if >=10, plots locations of min thickness within mesh
 CtrlVar.SymmSolverInfoLevel=0 ;
-CtrlVar.InfoLevelBackTrack=1;
+
+CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking.
+                                % As with other info parameters, higher values provide more information
+                                % 10   : 
+                                % 100  : plots evaluated function values along the backtracking direciton 
+                                % 1000 : plots backtracking with further addional values calculated at regular intervales along the step, and prints detailed info about backtracking
+
 CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
@@ -726,7 +748,7 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 %   CtrlVar.Inverse.Regularize.Field='-A-C-'
 %
 %
-%% Inversion algorithim: 
+%% Inversion algorithm: 
 %
 % The inversion can be done using either only the gradient, or gradient and an estimate of the Hessian
 % 
@@ -1546,10 +1568,86 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 
 
 %% Calving :  including Level Set Method
-% Calving using the level-set method is currently experimental.
-% For the time being use other options such as the manual element deactivation
 %
-
+% When using the level-set method, the calving fronts can evolve dynamically. The initial position of the calving fronts, and
+% the calving law are defined by the user in 
+% 
+%   DefineCalving.m
+%
+% The level set itself is a field of F,  ie F.LSF
+%
+% Remember that F.LSF is a field and is defined over all nodes of the mesh, ie it is not a line or a collection of lines.
+%
+% The calving fronts locations are calculated by calculating the zero-levels (zero value contour lines) of F.LSF.
+%
+% The user initializes the level-set, ie F.LSF, by setting F.LSF < 0 downstream of calving fronts, and F.LSF > 0 upstream of
+% calving fronts in DefineCalving.m. If a node happens to be exactly at a desired calving front location set F.LSF=0 over
+% those nodes.
+%
+% One simple use of the level-set is simply to prescribe the level-set directly at any given time. This option can be
+% selected by setting
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-prescribed-"  ;
+%
+% When using this option, the user can prescribe the calving front locations by setting F.LSF accordingly. In general, this
+% only needs to be done if F.LSF=[] at entry to the DefineCalving.m or if the user wants to change F.LSF from its previous
+% value.  Note that when mapping LSF to a new mesh when using this option (ie when  the new
+% CtrlVar.LevelSetEvolution="-prescribed-") F.LSF is defined by call to DefineCalving.m and is set to empty ahead of this
+% call (F.LSF=[]).  It is the responsibility of the user to define F.LSF in DefineCalving.m whenever F.LSF=[] at entry.
+% 
+%
+% To evolve the calving fronts dynamically based on a calving law
+% 
+%
+%   CtrlVar.LevelSetMethod=true; 
+%   CtrlVar.LevelSetEvolution="-By solving the level set equation-" ;
+%
+% The calving rate
+%
+%   F.c
+%
+% can then be defined in 
+% 
+%   DefineCalving.m  
+% 
+% Again, remember that the calving rate, F.c, is a field just like F.LSF and defined
+% everywhere within the domain.  
+% 
+% To, for example, define a calving rate that is directly propotional to ice thicness, set
+%
+%   F.c=F.h
+%
+% and if calving is a linear function of cliff height set
+%
+%   F.c= k*CliffHeight
+%
+% where, for example, 
+%
+%   CliffHeight=min((F.s-F.S),F.h).*F.rho./1000;  
+% 
+% and k is some number.
+%
+%
+% If the calving rate is a function of the gradients of the level-set, the calving rate must be defined at the element
+% integration points using
+%
+%
+%   [c,dcddphidx,dcddphidy]=DefineCalvingAtIntegrationPoints(UserVar,CtrlVar,dphidx,dphidy,F) 
+%
+% which provies dphi/dx and dphi/dy where phi is the level-set function
+%
+% This is, for example, required if the calving rate is a function of velocities normal to the calving front.
+%
+% The user must then also return derivatives of the calving rate, c, with respect to x and y derivatives of the level set,
+% ie 
+% 
+% $$\frac{dc}{d (d \phi/dx)}$$
+%
+% $$\frac{dc}{d (d \phi/dy)}$$
+% 
+% More details are provided in the UaCompendium
+%
 CtrlVar.LevelSetMethod=0; 
 CtrlVar.LevelSetMethodTest=0;  %  
 
@@ -1930,8 +2028,8 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
-CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithim
-CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithim
+CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithm
+CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor

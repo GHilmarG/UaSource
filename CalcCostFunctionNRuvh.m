@@ -4,6 +4,9 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     narginchk(15,15)
     nargoutchk(1,6)
     
+    if isnan(gamma)
+        error("CalcCostFunctionNRuvh:nan","nan in gamma")
+    end
     
     F1.ub=F1.ub+gamma*dub;
     F1.vb=F1.vb+gamma*dvb;
@@ -61,11 +64,19 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     
     D2=[frhs;grhs]'*[dub;dvb;dh;dl];
     rWork=full(D2^2);
+
+
+    
     
     % rForce=ResidualCostFunction(CtrlVar,MUA,L,frhs,grhs,fext0,"-uvh-");
     % rForce=(frhs'*frhs+grhs'*grhs)/(fext0'*fext0+1000*eps);
     rForce=full([frhs;grhs]'*[frhs;grhs]./(fext0'*fext0+1000*eps));
     
+    %% Testing TestIng
+    % rForce=(R'*R)/(fext0'*fext0); 
+    % rForce=full(rForce) ;
+    %%
+
     switch CtrlVar.uvhMinimisationQuantity
         case "Force Residuals"
             r=rForce;

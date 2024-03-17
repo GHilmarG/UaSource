@@ -6,6 +6,10 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Simple plot utility to plot variables and calving fronts and grounding lines as well.
 %
+% Note: Sometimes the default labels on the plots assume some typical
+%       physical dimensions such as m/yr for velocities, and kPa for stresses.
+% 
+%
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
 % Calving fronts
@@ -34,17 +38,19 @@ arguments
     CtrlVar struct
     MUA     struct
     F       {mustBeA(F,{'struct','UaFields','numeric'})}
-    Variable   {string, double}
+    Variable {mustBeA(Variable,{'string','numeric'})}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
-    options.CalvingFrontColor char = "k"
+    options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
     options.GetRidOfValuesDownStreamOfCalvingFronts=true;
+    options.GetRidOfValuesDownStreamOfGroundingLines=false;
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
+    options.MeshColor char="w"
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -71,11 +77,21 @@ end
 
 
 if islogical(Variable)
+
+
     Variable=double(Variable) ;
 end
 
 if isnumeric(Variable)
-    Variable=Variable(:);
+
+    [nV,mV]=size(Variable);
+    if nV==MUA.Nnodes && mV==2
+        F.ub=full(Variable(:,1));
+        F.vb=full(Variable(:,2));
+        Variable="-uv-";
+    else
+        Variable=full(Variable);
+    end
 end
 
 if isempty(F)
@@ -83,8 +99,9 @@ if isempty(F)
 end
 
 if isscalar(Variable)
-
-    if contains(Variable,"int")
+% {"-eta-","eta int","etaint","-eta int-"}
+    if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
+            || contains(Variable,"tau")  || contains(Variable,"basal drag") 
         options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     end
 
@@ -110,6 +127,22 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
 end
 
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && Variable~="-strain rates-"
+
+ 
+
+    F.ub(F.GF.node<0.5)=NaN;
+    F.vb(F.GF.node<0.5)=NaN;
+
+    if isnumeric(Variable)
+        if numel(Variable)==MUA.Nnodes
+            Variable(F.GF.node<0.5)=NaN;
+        end
+    end
+
+
+end
+
 
 xGL=nan ; yGL=nan ; xCF=nan ; yCF=nan ;
 
@@ -121,7 +154,7 @@ end
 
 if options.PlotOverMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA) ;
+    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
     hold on
 
 end
@@ -158,7 +191,7 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("velocities at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         case "dhdt"
@@ -166,23 +199,23 @@ else
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("$dh/dt$ at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("$dh/dt$ at t=%g",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
 
-        case "basal drag"
+        case {"basal drag","taub"}
 
 
+            [tbx,tby,tb] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
 
-
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,txzb,tyzb,CtrlVar) ;
-            title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("basal drag vectors at t=%f",CtrlVar.time),Interpreter="latex")
+            cbar=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
+            title(cbar,"(kPa)",Interpreter="latex")
+            title(sprintf("basal drag vectors at t=%g",CtrlVar.time),Interpreter="latex")
 
 
-        case "e"  % effective strain rate
+        case "e node"  % effective strain rate
 
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
@@ -190,10 +223,10 @@ else
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
-            title(sprintf("effective strain rates at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective strain rates at t=%g",CtrlVar.time),Interpreter="latex")
 
 
-        case "e int"  % effective strain rate at integration points
+        case {"-e-","e int","-e int-"}  % effective strain rate at integration points
 
 
 
@@ -201,11 +234,34 @@ else
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
-            title(sprintf("effective strain rates at integration points at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective strain rates at integration points at t=%g",CtrlVar.time),Interpreter="latex")
 
+        case "-strain rates-"
 
+           [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
-        case "eta"  % effective strain rate
+           if options.GetRidOfValuesDownStreamOfGroundingLines
+
+               II=F.GF.ElementsDownstreamOfGroundingLines;
+               exx(II,:)=0;
+               eyy(II,:)=0;
+               exy(II,:)=0;
+    
+
+           end
+
+           scale=1000 ; 
+           LineWidth=1; 
+           nStride=10;
+           xint=xint(1:nStride:end,1);
+           yint=yint(1:nStride:end,1);
+           exx=exx(1:nStride:end,1);
+           eyy=eyy(1:nStride:end,1);
+           exy=exy(1:nStride:end,1);
+
+           PlotTensor(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,exx,exy,eyy,scale,LineWidth)
+
+        case "eta node"  % effective strain rate
 
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
@@ -213,10 +269,10 @@ else
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
             title(cbar,"(kPa yr)",Interpreter="latex")
-            title(sprintf("effective viscosity eta at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("effective viscosity eta at t=%g",CtrlVar.time),Interpreter="latex")
 
 
-        case {"eta int","etaint"}  % effective strain rate at integration points
+        case {"-eta-","eta int","etaint","-eta int-","eta"}  % effective strain rate at integration points
 
 
 
@@ -232,7 +288,7 @@ else
             fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
             title(cbar,"(kPa yr)",Interpreter="latex")
-            title(sprintf("log10 of effective viscosity at integration points at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("log10 of effective viscosity at integration points \n t=%g",CtrlVar.time),Interpreter="latex")
 
 
 
@@ -245,7 +301,7 @@ else
             slope=ProjectFintOntoNodes(MUA,slope) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.rho.*F.h.*slope);
             title(cbar,"()",Interpreter="latex")
-            title(sprintf("surface slope at t=%f",CtrlVar.time),Interpreter="latex")
+            title(sprintf("surface slope at t=%g",CtrlVar.time),Interpreter="latex")
 
 
         otherwise
@@ -261,8 +317,15 @@ hold on ;
 
 if options.PlotUnderMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],"w") ;
+    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
     hold on
+
+end
+
+if isempty(F.GF)
+
+    
+    
 
 end
 
@@ -278,21 +341,26 @@ end
 
 
 if options.PlotMuaBoundary
-    PlotMuaBoundary(CtrlVar,MUA,"k");
+    PlotMuaBoundary(CtrlVar,MUA,"b--");
 end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 
-if CtrlVar.PlotXYscale==1000
-    xlabel("xps (km)",Interpreter="latex")
-    ylabel("yps (km)",Interpreter="latex")
-else
-    xlabel("x (m)",Interpreter="latex")
-    ylabel("y (m)",Interpreter="latex")
-end
+
+xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex") 
+ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+
 
 
 
 axis tight
+
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars cbar
+end
+
+
+
 
 end

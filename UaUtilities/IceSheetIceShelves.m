@@ -10,6 +10,9 @@ function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnode
 % from a previous call, speeds things up. (But only do so if GF and MUA has not
 % changed between calls!)
 %
+% All calculated fields are logical variables, ie not nodal numbers. 
+%
+%
 % Element is defined as crossing a grounding line if not all of its nodes are either
 % afloat or grounded, as based on the value of the  GL.node floating mask with respect to the
 % CtrlVar.GLthreshold value (typically set to 0.5).

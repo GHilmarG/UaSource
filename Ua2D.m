@@ -1,6 +1,6 @@
 function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
-%% Driver for the 2HD Úa model
+%% Driver for the 2HD a model
 % 
 
 
@@ -13,15 +13,19 @@ end
 
 
 
-SetUaPath() %% 
+SetUaPath() %%
 
 
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
- parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
- parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 
+ParPool = gcp('nocreate') ;
+
+if ~isempty(ParPool)
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+end
  
 %% initialize some variables
 RunInfo=UaRunInfo; 
@@ -321,7 +325,7 @@ CtrlVar.time0=CtrlVar.time;
 
 
 RunInfo.Forward.IterationsTotal=0; 
-RunInfo.Forward.Converged=true; 
+RunInfo.Forward.uvhConverged=true; 
 %%  RunStep Loop
 while 1
     
@@ -592,11 +596,11 @@ while 1
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
             % speed up the non-linear solver.
-            [UserVar,RunInfo,F,l,BCs,dt]=uvh2(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
             
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             
-            if ~RunInfo.Forward.Converged
+            if ~RunInfo.Forward.uvhConverged
                 
                 warning("Ua2D:WTSHTF","uvh did not converge")
                 filename="DumpWTSHTD.mat";

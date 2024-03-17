@@ -1,6 +1,23 @@
 function PlotRunInfo(RunInfo,FigName)
 
 %%
+%
+% The RunInfo variable is saved in restart files and provided in DefineOutouts.
+% 
+% It contains information about time-step sizes, numer of non-linear iterations per times step, and time-step size as a funciton
+% of time and run steps.
+%
+%
+% 
+%
+%
+% Example:
+%
+%  PlotRunInfo(RunInfo)
+%
+%
+%
+%%
 
 if nargin< 2
     FigName="";
@@ -39,13 +56,46 @@ tt=axis; axis([tt(1) tt(2) 0 tt(4)])
 
 
 
-FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName)
+fHist=FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName) ; clf(fHist) ; 
 
 items=numel(find(~isnan( RunInfo.Forward.dt)));
 nbins=max(10,fix(items/20));
 histogram(RunInfo.Forward.dt,nbins,Normalization="probability") ; 
 xlabel('time step, $\mathrm{d}t$',Interpreter='latex')
 title('dt Histogram')
+
+
+
+Fdt=FindOrCreateFigure("RunInfo: time-steps versus run-steps"+FigName) ; clf(Fdt) ;
+
+yyaxis left
+semilogy(RunInfo.Forward.dt,'-',DisplayName="time step",LineWidth=2) ;
+ylabel('time step, $\mathrm{d}t$',Interpreter='latex')
+
+yyaxis right
+plot(RunInfo.Forward.time,'-',DisplayName="time",LineWidth=2) ;
+ylabel('time, $t$',Interpreter='latex')
+
+
+xlabel('Run steps',Interpreter='latex')
+legend(Location="best",Interpreter="latex");
+
+
+
+Fdt=FindOrCreateFigure("RunInfo: iterations versus run-steps"+FigName) ; clf(Fdt) ;
+
+yyaxis left
+stairs(RunInfo.Forward.uvhIterations,'-',DisplayName="$uvh$ Iterations",LineWidth=2) ;
+ylabel('$uvh$ Iterations',Interpreter='latex')
+
+yyaxis right
+stairs(RunInfo.Forward.uvIterations,'-',DisplayName="$uv$ iterations",LineWidth=2) ;
+ylabel('$uv$ iterations',Interpreter='latex')
+
+
+xlabel('Run Step',Interpreter='latex')
+legend(Location="best",Interpreter="latex");
+
 
 
 

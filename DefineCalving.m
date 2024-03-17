@@ -10,6 +10,11 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 %
 % Both the Level-Set Field (LSF) and the Calving-Rate Field (c) must be defined over the whole computational domain.
 %
+% The level-set option must be activated by setting
+%
+%  CtrlVar.LevelSetMethod=1; 
+%
+% in DefineInitialInputs.m
 %
 % The LSF should, in general, only be defined in the beginning of the run and set the initial value for the LSF. However, if
 % required, the user can change LSF at any time step. The LSF is evolved by solving the Level-Set equation, so any changes
@@ -30,6 +35,9 @@ function [UserVar,LSF,c]=DefineCalving(UserVar,CtrlVar,MUA,LSF,c,F,BCs)
 %
 % then the level-set is NOT evolved in time using by solving the level-set equation. This can be usefull if, for example, the
 % user simply wants to manually prescribe the calving front position at each time step.
+%
+%
+% See more information in Ua2D_DefaultParameters.
 %
 %%
 

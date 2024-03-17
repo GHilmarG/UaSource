@@ -103,7 +103,13 @@ end
 [Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
 
 
-title(sprintf("Ele=%i Nodes=%i nod=%i \n (max/mean,median,min)=(%6.1f/%6.1f/%6.1f/%6.1f) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+title(sprintf("#Ele=%i #Nodes=%i #nod=%i \n (max,mean,median,min)=(%g,%g,%g,%g) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars hTri
+end
+
 
 
 end
+

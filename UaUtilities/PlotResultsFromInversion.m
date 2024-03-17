@@ -65,7 +65,7 @@ if ~isempty(Meas.dhdt)
     title('dh/dt Meas on numerical grid') ;
 end
 
-usError=sqrt(spdiags(Meas.usCov));
+usError=sqrt(spdiags(Meas.usCov)); 
 vsError=sqrt(spdiags(Meas.vsCov));
 dhdtError=sqrt(spdiags(Meas.dhdtCov));
 
@@ -107,21 +107,30 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title('log10(InvFinalValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
+    title("$\log_{10}(A)$ at end of inversion",Interpreter="latex")
+    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
-    fig=FindOrCreateFigure('A at the beginning of inversion') ;
+    fig=FindOrCreateFigure('A at the start of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
-    title('log10(Astart)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
+    title("$\log_{10}(A)$ at start of inversion",Interpreter="latex")
+    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('Change in A during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
+
 end
 
 %%
@@ -132,26 +141,33 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title('log10(InvFinalValues.C)','interpreter','latex');
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    title("$\log_{10}(C)$ at end of inversion",Interpreter="latex")
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('C at the beginning of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
-    title('log10(Cstart)') ; 
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    title("$\log_{10}(C)$ at start of inversion",Interpreter="latex")
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
     
     fig=FindOrCreateFigure('Change in C during inversion run') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ; 
-    cbar=colorbar; title(cbar, '($m\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    colormap(othercolor("Mtemperaturemap",1028))
+    PlotMuaBoundary(CtrlVar,MUA,'k');
 end
 
 if contains(CtrlVar.Inverse.InvertFor,'b')
@@ -160,19 +176,21 @@ if contains(CtrlVar.Inverse.InvertFor,'b')
     title('InvFinalValues.b') ; cbar=colorbar; title(cbar, '(m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+    
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.b);
     title('bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
+ 
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b-InvStartValues.b);
     title('InvFinalValues.b-bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     
     %[TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
     AspectRatio=1;
@@ -220,6 +238,7 @@ title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
 cbar=colorbar; title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
 hold on
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+clim([0 500]) % Here I'm guessing that this is a reasonable range for plotting, most likely will be the case when using kPa as units for stress
 
 %%
 % uAdjoint vAdjoint
@@ -375,19 +394,25 @@ PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
 title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
 hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
 
-%%  % Difference in speed
+%%  Prior
 
-SpeedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
-SpeedCalc=sqrt(us.^2+vs.^2);
+if numel(Priors.AGlen)==1
+Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1);
+end
 
-SpeedDiff=100*(SpeedCalc-SpeedMeas)./SpeedMeas;
-fig=FindOrCreateFigure('Normalized speed misfit') ;
+cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.AGlen),FigureTitle="log10(APrior)") ; 
+title(cbar, '($\mathrm{yr}^{-1}\,\mathrm{kPa}^{-n}$)','interpreter','latex');
+title("$\log_{10}(A_{\mathrm{Prior}})$",Interpreter="latex")
 
-PlotMeshScalarVariable(CtrlVar,MUA,SpeedDiff);
-hold on 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
-title('100*(SpeedCalc-SpeedMeas)./SpeedMeas')
-axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+
+cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.C),FigureTitle="log10(CPrior)") ; 
+title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+title("$\log_{10}(C_{\mathrm{Prior}})$",Interpreter="latex")
+
+
+
+
 
 %%
 
@@ -812,7 +837,8 @@ else
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
         ylabel('J','interpreter','latex')
         
-        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm))
+        if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm)) ...
+                &&  numel(RunInfo.Inverse.Iterations) == numel(RunInfo.Inverse.GradNorm)
 
             hold off
             yyaxis right

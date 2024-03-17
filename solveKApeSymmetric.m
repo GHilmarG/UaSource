@@ -16,6 +16,12 @@ function  [x,y]=solveKApeSymmetric(A,B,f,g,x0,y0,CtrlVar)
 
 [nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;  
 %[nx0,mx0]=size(x0) ; 
+
+if isempty(y0)
+  y0=zeros(nB,1); % This is a special case, allowing for the initial estimate for y to be empty
+                  % in which case the initial estimate is set to zero.
+end
+
 [ny0,my0]=size(y0);
 
 if nA~=mA
@@ -42,6 +48,8 @@ end
 %     fprintf('x0 must have same number of elements as there are rows in A\n')
 %     error('error in solveKApeSymmetric')
 % end
+
+
 
 if ny0~=nB
     fprintf('y0 must have same number of elements as there are rows in B\n')

@@ -5,6 +5,8 @@ classdef UaFields
         
         x=[];
         y=[];
+        xint=[];
+        yint=[]; 
         
         ub=[];
         vb=[];
@@ -76,7 +78,7 @@ classdef UaFields
       
         
         g=[];
-        alpha=[];
+        alpha=0;
         
         time=[]; 
         dt=[] ; 
@@ -90,6 +92,16 @@ classdef UaFields
         c=[] ; % calving rate
         LSFqx=[] ;
         LSFqy=[] ; 
+
+        N=[] ; 
+        aw=[];
+        hw=[]; 
+        phi=[] ;
+        uw=[];
+        vw=[];
+
+        D=[] ; % Damage (SSD)
+        aD=[] ; % Damage accumulation
 
         txx=[];
         txy=[];

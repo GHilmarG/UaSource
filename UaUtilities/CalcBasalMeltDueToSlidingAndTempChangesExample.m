@@ -27,7 +27,7 @@ xlabel(' xps (km)')
 ylabel(' yps (km)') 
 
 
-%% temperature changes due to horizontal interal deformation
+%% temperature changes due to horizontal internal deformation
 %
 %  dT/dt = \dot{eps} tau/(C rho)
 %

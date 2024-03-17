@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineGeometryAndDensities</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-07-26"><meta name="DC.source" content="DefineGeometryAndDensities.m"><style type="text/css">
+      -->
+<title>DefineGeometryAndDensities</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-10-26">
+<meta name="DC.source" content="DefineGeometryAndDensities.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,16 +72,37 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span>  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
-</pre><p>Defines model geometry and ice densities</p><pre>[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre><p>FieldsToBeDefined is a string indicating which return values are required. For example if</p><pre class="language-matlab">FieldsToBeDefined=<span class="string">"-s-b-S-B-rho-rhow-g-"</span>
-</pre><p>then s, b, S, B, rho, rhow and g needed to be defined.</p><p>Typically, in a transient run</p><pre class="language-matlab">FieldsToBeDefined=<span class="string">"-S-B-rho-rhow-g-"</span>
-</pre><p>implying that only s and b do not needed to be defined, and s and b can be set to any value, for example s=NaN and b=NaN.</p><p>It is OK to define values that are not needed, these will simply be ignored by &Uacute;a.</p><p>As in all other calls:</p><pre>s           is upper ice surface
-b           is lower ice surface
-B           is bedrock
-S           is ocean surface</pre><pre class="language-matlab">rhow    :  ocean density (scalar variable)
-rho     :  ice density (nodal variable)
-g       :  gravitational acceleration
-</pre><p>These fields need to be returned at the nodal coordinates. The nodal x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y</p><pre class="codeinput">B=MismBed(F.x,F.y);
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span>  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
+</pre>
+<p>Defines model geometry and ice densities</p>
+<pre>[UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)</pre>
+<p>FieldsToBeDefined is a string indicating which return values are required. For example if</p>
+<pre class="language-matlab">FieldsToBeDefined=<span class="string">"-s-b-S-B-rho-rhow-g-"</span>
+</pre>
+<p>then s, b, S, B, rho, rhow and g needed to be defined.</p>
+<p>Typically, in a transient run</p>
+<pre class="language-matlab">FieldsToBeDefined=<span class="string">"-S-B-rho-rhow-g-"</span>
+</pre>
+<p>implying that only s and b do not needed to be defined, and s and b can be set to any value, for example s=NaN and b=NaN.</p>
+<p>It is OK to define values that are not needed, these will simply be ignored by &Uacute;a.</p>
+<p>As in all other calls:</p>
+<pre>F.s       : is upper ice surface
+F.b       : lower ice surface
+F.B       : bedrock
+F.S       : ocean surface
+F.rhow    :  ocean density (scalar variable)
+F.rho     :  ice density (nodal variable)
+F.g       :  gravitational acceleration
+F.x       : x nodal coordinates
+F.y       : y nodal coordinates
+F.GF      : The nodal grounded/floating mask (has other subfields)</pre>
+<p>These fields need to be returned at the nodal coordinates. The nodal x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y</p>
+<pre class="codeinput">B=MismBed(F.x,F.y);
 
 S=B*0;
 b=B;
@@ -86,8 +112,17 @@ s=b+h0;
 rho=917+zeros(MUA.Nnodes,1) ;
 rhow=1030;
 g=9.81/1000;
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
 
@@ -116,14 +151,16 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 % As in all other calls:
 %
-%  s           is upper ice surface
-%  b           is lower ice surface
-%  B           is bedrock
-%  S           is ocean surface
-%
-%   rhow    :  ocean density (scalar variable)
-%   rho     :  ice density (nodal variable)
-%   g       :  gravitational acceleration
+%  F.s       : is upper ice surface
+%  F.b       : lower ice surface
+%  F.B       : bedrock
+%  F.S       : ocean surface
+%  F.rhow    :  ocean density (scalar variable)
+%  F.rho     :  ice density (nodal variable)
+%  F.g       :  gravitational acceleration
+%  F.x       : x nodal coordinates 
+%  F.y       : y nodal coordinates 
+%  F.GF      : The nodal grounded/floating mask (has other subfields)
 %
 % These fields need to be returned at the nodal coordinates. The nodal
 % x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y
@@ -151,4 +188,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

@@ -24,7 +24,7 @@ nargoutchk(1,3)
 %
 % Note: This will not conserve thickness.
 %
-% Because the floating mask depents on b through h, this is a non-linear
+% Because the floating mask depends on b through h, this is a non-linear
 % problem.
 %
 % Solved using the NR method. Usually only one single NR iteration is
@@ -50,11 +50,13 @@ nargoutchk(1,3)
 %
 %  h_f = rhow (S-B) / rho
 %
-%  b=s-h_f = 
+%  b=s-h_f 
+
+
 hf=rhow*(S-B)./rho ;
 
 
-b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; 
+b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; % a rough initial estimate for b
 
 b=b0;
 h=s-b;

@@ -2,6 +2,25 @@
 
 %%
 %
+%
+%
+% *Release Notes* _October 2023_
+%
+% A (rare) case where the Cauchy direction is not a direction of descent was incorrectly updated. This has now been addressed. 
+%
+%
+% *Release Notes* _September 2023_
+%
+% * Thanks to Sebastian Rosier for providing an example where the backtracking algorithm failed. This has now been corrected.
+%
+%
+% *Release Notes* _July 2023_
+%
+% * uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.
+%
+% * Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and
+% densities. This has now been corrected.
+%
 % *Release Notes* _July 2022_
 %
 % * Call to DefineOutputs is now only done at the beginning and end of runs if the variables
@@ -222,7 +241,7 @@
 %
 %   CtrlVar.DefineOutputsDt 
 %
-% If you define these old fields in your (new) DefineInitialInputs.m, Úa will spot this and complain bitterly. 
+% If you define these old fields in your (new) DefineInitialInputs.m, ï¿½a will spot this and complain bitterly. 
 %
 % Those using Unix might want to systematically change names of some of the CtrlVar fields
 % in there old input files. You might be able to use something like:
@@ -259,7 +278,7 @@
 % _February 2020_
 %
 %
-% * Úa can now be called with CtrlVar as second argument, e.g 
+% * ï¿½a can now be called with CtrlVar as second argument, e.g 
 %
 %   Ua([],CtrlVar) 
 %

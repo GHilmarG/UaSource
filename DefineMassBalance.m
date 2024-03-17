@@ -1,9 +1,12 @@
-function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
+
 
 %%
 % Defines mass balance along upper and lower ice surfaces.
 %
 %   [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
+%
+%   [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
 %
 %   [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 %
@@ -15,29 +18,55 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rh
 % dasdh and dabdh only need to be specified if the mass-balance feedback option is
 % being used. 
 %
-% In Úa the mass balance, as returned by this m-file, is multiplied internally by the local ice density. 
+% In Ãša the mass balance, as returned by this m-file, is multiplied internally by the local ice density. 
 %
 % The units of as and ab are water equivalent per time, i.e. usually
 % as and ab will have the same units as velocity (something like m/yr or m/day).
 %
-% Examples:  
+% As in all other calls:
 %
-% To set upper surface mass balance to zero, and melt along the lower ice
-% surface to 10 over all ice shelves:
+%  F.s       : is upper ice surface
+%  F.b       : lower ice surface
+%  F.B       : bedrock
+%  F.S       : ocean surface
+%  F.rhow    :  ocean density (scalar variable)
+%  F.rho     :  ice density (nodal variable)
+%  F.g       :  gravitational acceleration
+%  F.x       : x nodal coordinates 
+%  F.y       : y nodal coordinates 
+%  F.GF      : The nodal grounded/floating mask (has other subfields)
+%
+%
+%
+% These fields need to be returned at the nodal coordinates. The nodal
+% x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y
+%
+%
+% *Examples* : 
+%
+% *To set upper surface mass balance to zero, and melt along the lower ice
+% surface to 10 over all ice shelves:* 
 %
 %   as=zeros(MUA.Nnodes,1);
-%   ab=-(1-GF.node)*10 
+%   ab=-(1-F.GF.node)*10 
 %
 %
-% To set upper surface mass balance as a function of local surface elevation and
-% prescribe mass-balance feedback for the upper surface:
+% *To set upper surface mass balance as a function of local surface elevation and
+% prescribe mass-balance feedback for the upper surface:* 
 %
-%   as=0.1*h+b;
+%   as=0.1*F.h+F.b;
 %   dasdh=zeros(MUA.Nnodes,1)+0.1;
-%   ab=s*0;
+%   ab=F.s*0;
 %   dabdh=zeros(MUA.Nnodes,1);
 %
+% *To add basal melt due to sliding as a mass-balance term:* 
+%
+%   [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,F.C,F.m,F.GF);
+%   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gramm = kJ/kg]  Make sure that the units are correct.
+%   F.ab=-(tbx.*F.ub+tby.*F.vb)./(F.rho.*L);          % Ablation (Melt) is always negative, accumulation is positive
+%
 % 
+%
 %%
 
 
@@ -75,7 +104,7 @@ switch UserVar.MisExperiment
             Hc0=75;
             Omega=0.2 ;
             z0=-100;
-            ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+            ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
             
             
             % when b>-100, for example b=-50 , then   z0-b=-100+50 =-50 < 0 
@@ -90,15 +119,15 @@ switch UserVar.MisExperiment
         Hc0=75;
         Omega=0.2 ;
         z0=-100;
-        ab=-Omega*tanh((b-B)/Hc0).* max(z0-b,0);
+        ab=-Omega*tanh((F.b-F.B)/Hc0).* max(z0-F.b,0);
         
     case 'ice2ra'
         
-        % basal metl at 100 m/a for x>48km for the first 100 years, then zero
+        % basal melt at 100 m/a for x>48km for the first 100 years, then zero
         if time<=100
             
             ab=zeros(MUA.Nnodes,1);
-            I=MUA.coordinates(:,1)>480e3;
+            I=F.x>480e3;
             ab(I)=-100;
             
         else
@@ -108,7 +137,7 @@ switch UserVar.MisExperiment
     case 'ice2rr'
         
         ab=zeros(MUA.Nnodes,1);
-        I=MUA.coordinates(:,1)>480e3;
+        I=F.x>480e3;
         ab(I)=-100;
         
     otherwise

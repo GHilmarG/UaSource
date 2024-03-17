@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>ReleaseNotes</title><meta name="generator" content="MATLAB 9.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-09-14"><meta name="DC.source" content="ReleaseNotes.m"><style type="text/css">
+      -->
+<title>ReleaseNotes</title>
+<meta name="generator" content="MATLAB 23.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2023-09-30">
+<meta name="DC.source" content="ReleaseNotes.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,39 +72,312 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><p><b>Release Notes</b> <i>July 2022</i></p><div><ul><li>Call to DefineOutputs is now only done at the beginning and end of runs if the variables</li></ul></div><pre>     CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
-     CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop</pre><p>are set to true.</p><div><ul><li>Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although still considered not fully testet, this option appears to work quite well. Further details can be found in Ua2D_DefaultParameters.m and in the DefineCalving.m files.</li></ul></div><div><ul><li>In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a new uvh solve, e.g.:</li></ul></div><pre class="language-matlab">CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;
-</pre><div><ul><li>UaPlots is a new plotting utility function.</li></ul></div><div><ul><li>Some minor bugs have been corrected, but nothing that should affect calculated solutions.</li></ul></div><div><ul><li>This version requires MATLAB2021a or later.</li></ul></div><p><b>Release Notes</b> <i>Sept 2021</i></p><div><ul><li>Calving</li></ul></div><p>Calving can now be prescribed by defining a ice/ocean mask at each time step. The implementation is more general and faster than other similar manual calving options such as deactivating elements or prescribing an additional mass balance term.</p><p>The ice-free areas are automatically melted away using a mass-balance feedback option implemented at the integration points. Second-order NR convergence is obtained even if the reulting mass balance distribution varies sigificantly spatially within an element</p><p>To use this calving option set:</p><pre>    CtrlVar.LevelSetMethod=1;</pre><p>and then define the ice/ocean mask at each time step using the m-file</p><pre>    DefineCalving.m</pre><p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p><p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p><pre>       [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
+  </style>
+</head>
+<body>
+<div class="content">
+<h1></h1>
+<!--introduction-->
+<!--/introduction-->
+<p>
+<b>Release Notes</b> <i>September 2023</i>
+</p>
+<div>
+<ul>
+<li>Thanks to Sebastian Rosier for providing an example where the backtracking algorithm failed. This has now been corrected.</li>
+</ul>
+</div>
+<p>
+<b>Release Notes</b> <i>July 2023</i>
+</p>
+<div>
+<ul>
+<li>uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and densities. This has now been corrected.</li>
+</ul>
+</div>
+<p>
+<b>Release Notes</b> <i>July 2022</i>
+</p>
+<div>
+<ul>
+<li>Call to DefineOutputs is now only done at the beginning and end of runs if the variables</li>
+</ul>
+</div>
+<pre>     CtrlVar.CreateOutputsBeginningOfRun=true;   % If true, then call DefineOutputs at the beginning of a run, that is ahead of the runstep/transient loop.
+     CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs at the end of a run, that is after the runstep/transient loop</pre>
+<p>are set to true.</p>
+<div>
+<ul>
+<li>Calving options have been greaty improved and a flexible framework for implementing calving laws implemented. Although still considered not fully testet, this option appears to work quite well. Further details can be found in Ua2D_DefaultParameters.m and in the DefineCalving.m files.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>In the active-set method a minimum number of new active nodes can be specifed for the active set to be updated ahead of a new uvh solve, e.g.:</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;
+</pre>
+<div>
+<ul>
+<li>UaPlots is a new plotting utility function.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Some minor bugs have been corrected, but nothing that should affect calculated solutions.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>This version requires MATLAB2021a or later.</li>
+</ul>
+</div>
+<p>
+<b>Release Notes</b> <i>Sept 2021</i>
+</p>
+<div>
+<ul>
+<li>Calving</li>
+</ul>
+</div>
+<p>Calving can now be prescribed by defining a ice/ocean mask at each time step. The implementation is more general and faster than other similar manual calving options such as deactivating elements or prescribing an additional mass balance term.</p>
+<p>The ice-free areas are automatically melted away using a mass-balance feedback option implemented at the integration points. Second-order NR convergence is obtained even if the reulting mass balance distribution varies sigificantly spatially within an element</p>
+<p>To use this calving option set:</p>
+<pre>    CtrlVar.LevelSetMethod=1;</pre>
+<p>and then define the ice/ocean mask at each time step using the m-file</p>
+<pre>    DefineCalving.m</pre>
+<p>NOTE: Currently the only supported calving option is based on directly prescribing the LSF at each time step</p>
+<p>If you wanted, for example to get rid of all floating ice for x&gt;500e3, do:</p>
+<pre>       [UserVar,LSF,CalvingRate]=DefineCalving(UserVar,CtrlVar,MUA,F,BCs)
          F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF);
          OceanNodes=MUA.coordinates(:,1)&gt;500e3 &amp; F.GF.NodesDownstreamOfGroundingLines;
          LSF=zeros(MUA.Nnodes,1)+ 1 ;
          LSF(OceanNodes)=-1;
-       end</pre><p>Think of the LSF as a ice/ocean nodal mask, positive for ice and negative for ocean.</p><p>The the ice thickness in ice-free areas is</p><pre class="language-matlab">CtrlVar.LevelSetMinIceThickness
-</pre><p>While this could in principle be set to zero, doing so might create isolated islands of ice, resulting in an undetermined system. So put this to a some small positive value (small compared to typical ice thicknesses of interest). By default:</p><pre>  CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;</pre><p>where</p><pre>   CtrlVar.ThickMin=1;</pre><p>Automated mesh refinement based on distance to calving from is possible in similar way as around grounding lines. For example to locally refine all elements with 10e3 distance units from the calving front to 1e3, use:</p><pre class="language-matlab">CtrlVar.MeshAdapt.CFrange=[10e3 1e3] ;
-</pre><p>Remember also to set</p><pre class="language-matlab">CtrlVar.AdaptMesh=1;
-</pre><p>as always needed to activate the remeshing options.</p><div><ul><li>New argument list option with F as an input</li></ul></div><p>New:</p><pre>    DefineMassBalance(UserVar,CtrlVar,MUA,time,F)</pre><p>Old:</p><pre>    DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</pre><p>The old approach still works and is generally recommended.</p><div><ul><li>Geometry and densities can now be defined in the same m-file, using</li></ul></div><pre>    DefineGeometryAndDensities.m</pre><p>The previous approach of using seperate m-files to define geometry (DefineGeometry.m) and densitites (DefineDensities.m) still works. But if you have a "DefineGeometryAndDensities.m" in the run folder, only "DefineGeometryAndDensities.m"  is used and "DefineGeometry.m" and "DefineDensities.m" ignored.</p><div><ul><li>x and y nodal values now a field of F, ie F.x and F.y</li></ul></div><p>The (x,y) coordinates of the nodes are now also accessible through F as</p><pre class="language-matlab">(F.x,F.y)
-</pre><p>These are always identical to MUA.coordinates, that is</p><pre class="language-matlab">F.x=MUA.coordinates(:,1)
+       end</pre>
+<p>Think of the LSF as a ice/ocean nodal mask, positive for ice and negative for ocean.</p>
+<p>The the ice thickness in ice-free areas is</p>
+<pre class="language-matlab">CtrlVar.LevelSetMinIceThickness
+</pre>
+<p>While this could in principle be set to zero, doing so might create isolated islands of ice, resulting in an undetermined system. So put this to a some small positive value (small compared to typical ice thicknesses of interest). By default:</p>
+<pre>  CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin+1;</pre>
+<p>where</p>
+<pre>   CtrlVar.ThickMin=1;</pre>
+<p>Automated mesh refinement based on distance to calving from is possible in similar way as around grounding lines. For example to locally refine all elements with 10e3 distance units from the calving front to 1e3, use:</p>
+<pre class="language-matlab">CtrlVar.MeshAdapt.CFrange=[10e3 1e3] ;
+</pre>
+<p>Remember also to set</p>
+<pre class="language-matlab">CtrlVar.AdaptMesh=1;
+</pre>
+<p>as always needed to activate the remeshing options.</p>
+<div>
+<ul>
+<li>New argument list option with F as an input</li>
+</ul>
+</div>
+<p>New:</p>
+<pre>    DefineMassBalance(UserVar,CtrlVar,MUA,time,F)</pre>
+<p>Old:</p>
+<pre>    DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)</pre>
+<p>The old approach still works and is generally recommended.</p>
+<div>
+<ul>
+<li>Geometry and densities can now be defined in the same m-file, using</li>
+</ul>
+</div>
+<pre>    DefineGeometryAndDensities.m</pre>
+<p>The previous approach of using seperate m-files to define geometry (DefineGeometry.m) and densitites (DefineDensities.m) still works. But if you have a "DefineGeometryAndDensities.m" in the run folder, only "DefineGeometryAndDensities.m" is used and "DefineGeometry.m" and "DefineDensities.m" ignored.</p>
+<div>
+<ul>
+<li>x and y nodal values now a field of F, ie F.x and F.y</li>
+</ul>
+</div>
+<p>The (x,y) coordinates of the nodes are now also accessible through F as</p>
+<pre class="language-matlab">(F.x,F.y)
+</pre>
+<p>These are always identical to MUA.coordinates, that is</p>
+<pre class="language-matlab">F.x=MUA.coordinates(:,1)
 F.y=MUA.coordinates(:,2)
-</pre><p>This was simply done for convenience, and now one can, for example, create a plot showing the upper surface, s, as a function of x as</p><pre class="language-matlab">plot(F.x.F,s,<span class="string">'.'</span>)
-</pre><div><ul><li>Default inverse algorithim has changed. Now the defaul options is a Hessian-based inversion.  The older-approach is still available by selecting a Gradien-based inversion. This is specificed using the CtrlVar field:</li></ul></div><pre>     CtrlVar.Inverse.MinimisationMethod</pre><p>When using this Hessian-based inversion, there is no need to specify the value of</p><pre>     CtrlVar.Inverse.AdjointGradientPreMultiplier</pre><p>and this field is not used.</p><div><ul><li>Ocean and wind-indued drag over floating ice can be included. This is defined in</li></ul></div><pre class="language-matlab">DefineSeaIceParameters.m
-</pre><p>and you need to switch this option on by setting</p><pre class="language-matlab">CtrlVar.IncludeMelangeModelPhysics=true;
-</pre><p>in DefineInitialInputs.m</p><div><ul><li>The quadrature degree can now be directly specified using</li></ul></div><pre class="language-matlab">CtrlVar.QuadratureRuleDegree=N
-</pre><p>where N is a number that can be as high as 25 (Previously the highest possible degree was 13). Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining second-order convergence of the Newton-Raphson system.</p><div><ul><li>The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.</li></ul></div><p>The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to the thickneess using the NR method.  When using SSHEET you will, in general, need to specify boundary conditions for both the deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.</p><p><b>Release Notes</b> <i>June 2020</i></p><div><ul><li>Naming of some user input m-files has changed:</li></ul></div><pre>     Ua2D_InitialUserInput.m</pre><p>is now named:</p><pre>     DefineInitialInputs.m</pre><p>And</p><pre>     UaOutputs.m</pre><p>is now:</p><pre>     DefineOutputs.m</pre><p>These changes were done so that names of all user-input files start with 'Define'</p><p>Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and UaOutputs.m files you can, for example, consider using the m-file utility file:</p><pre>     RenameFileRecursively.m</pre><div><ul><li>Naming of a few CtrlVar fields has changed. For example</li></ul></div><pre>     CtrlVar.ATStimeStepTarget</pre><p>is for example no longer used. Use:</p><pre>     CtrlVar.ATSdtMax</pre><p>instead.</p><p>You can now specify a minimum selected time step in the automated-time-stepping (ATM) algorithm settting the field</p><pre>     CtrlVar.ATSdtMin</pre><p>Also</p><pre class="language-matlab">CtrlVar.UaOutputsDt
-</pre><p>has also been replaced by</p><pre class="language-matlab">CtrlVar.DefineOutputsDt
-</pre><p>If you define these old fields in your (new) DefineInitialInputs.m, &Uacute;a will spot this and complain bitterly.</p><p>Those using Unix might want to systematically change names of some of the CtrlVar fields in there old input files. You might be able to use something like:</p><pre class="language-matlab">find <span class="string">.</span> <span class="string">-name</span> <span class="string">"DefineInitialInputs.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g'</span> <span class="string">{}</span> <span class="string">+</span>
+</pre>
+<p>This was simply done for convenience, and now one can, for example, create a plot showing the upper surface, s, as a function of x as</p>
+<pre class="language-matlab">plot(F.x.F,s,<span class="string">'.'</span>)
+</pre>
+<div>
+<ul>
+<li>Default inverse algorithim has changed. Now the defaul options is a Hessian-based inversion. The older-approach is still available by selecting a Gradien-based inversion. This is specificed using the CtrlVar field:</li>
+</ul>
+</div>
+<pre>     CtrlVar.Inverse.MinimisationMethod</pre>
+<p>When using this Hessian-based inversion, there is no need to specify the value of</p>
+<pre>     CtrlVar.Inverse.AdjointGradientPreMultiplier</pre>
+<p>and this field is not used.</p>
+<div>
+<ul>
+<li>Ocean and wind-indued drag over floating ice can be included. This is defined in</li>
+</ul>
+</div>
+<pre class="language-matlab">DefineSeaIceParameters.m
+</pre>
+<p>and you need to switch this option on by setting</p>
+<pre class="language-matlab">CtrlVar.IncludeMelangeModelPhysics=true;
+</pre>
+<p>in DefineInitialInputs.m</p>
+<div>
+<ul>
+<li>The quadrature degree can now be directly specified using</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.QuadratureRuleDegree=N
+</pre>
+<p>where N is a number that can be as high as 25 (Previously the highest possible degree was 13). Generally, the default option should be fine, but there might be instances were increasing the degree could help with obtaining second-order convergence of the Newton-Raphson system.</p>
+<div>
+<ul>
+<li>The shallow-ice sheet (SIA/SSHEET) option now includes basal sliding.</li>
+</ul>
+</div>
+<p>The SSHEET option is implemented for the Weertman sliding law only. The transient SSHEET solution is done implicitly with respect to the thickneess using the NR method. When using SSHEET you will, in general, need to specify boundary conditions for both the deformational and the basal sliding velocities. Note the SSHEET option is based on the shallow-ice approximation.</p>
+<p>
+<b>Release Notes</b> <i>June 2020</i>
+</p>
+<div>
+<ul>
+<li>Naming of some user input m-files has changed:</li>
+</ul>
+</div>
+<pre>     Ua2D_InitialUserInput.m</pre>
+<p>is now named:</p>
+<pre>     DefineInitialInputs.m</pre>
+<p>And</p>
+<pre>     UaOutputs.m</pre>
+<p>is now:</p>
+<pre>     DefineOutputs.m</pre>
+<p>These changes were done so that names of all user-input files start with 'Define'</p>
+<p>Note: To systematically change the names of all your old Ua2D_InitialUserInput.m and UaOutputs.m files you can, for example, consider using the m-file utility file:</p>
+<pre>     RenameFileRecursively.m</pre>
+<div>
+<ul>
+<li>Naming of a few CtrlVar fields has changed. For example</li>
+</ul>
+</div>
+<pre>     CtrlVar.ATStimeStepTarget</pre>
+<p>is for example no longer used. Use:</p>
+<pre>     CtrlVar.ATSdtMax</pre>
+<p>instead.</p>
+<p>You can now specify a minimum selected time step in the automated-time-stepping (ATM) algorithm settting the field</p>
+<pre>     CtrlVar.ATSdtMin</pre>
+<p>Also</p>
+<pre class="language-matlab">CtrlVar.UaOutputsDt
+</pre>
+<p>has also been replaced by</p>
+<pre class="language-matlab">CtrlVar.DefineOutputsDt
+</pre>
+<p>If you define these old fields in your (new) DefineInitialInputs.m, &Uacute;a will spot this and complain bitterly.</p>
+<p>Those using Unix might want to systematically change names of some of the CtrlVar fields in there old input files. You might be able to use something like:</p>
+<pre class="language-matlab">find <span class="string">.</span> <span class="string">-name</span> <span class="string">"DefineInitialInputs.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.ATStimeStepTarget/CtrlVar.ATSdtMax/g'</span> <span class="string">{}</span> <span class="string">+</span>
 find <span class="string">.</span> <span class="string">-name</span> <span class="string">"Define*.m"</span> <span class="string">-exec</span> <span class="string">sed</span> <span class="string">-i</span> <span class="string">'s/CtrlVar.UaOutputsDt/CtrlVar.DefineOutputsDt/g'</span> <span class="string">{}</span> <span class="string">+</span>
-</pre><div><ul><li>Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for more options. See comments in</li></ul></div><pre>     Ua2D_DefaultParameters.m</pre><p>for more details.</p><p>The</p><pre class="language-matlab">RunInfo
-</pre><p>variable now contains more information about the run, such as time step and number of non-linear iterations per runstep.</p><p>Most of the changes since last Feb 2020 have been 'under the hood'. For example solving a KKT type system can now be done with a much more flexible pre-elimination method than before.</p><p>All line searches are now done using one single backtracking algorithm (before at least 4 different backtracking routines were used.)</p><p>The KKT system is now always solved using the primal-dual method. (Previously the initial iterative was made feasible and the primal method then used.)</p><p><b>Release Notes</b> <i>February 2020</i></p><div><ul><li>&Uacute;a can now be called with CtrlVar as second argument, e.g</li></ul></div><pre class="language-matlab">Ua([],CtrlVar)
-</pre><p>in which case the fields of the CtrlVar on input will be those used in the run even if these same fields are also defined in Ua2D_InitialUserInput.m</p><div><ul><li>The combination of local mesh refinement using the newest-vertex bisection method with mesh deactivation is now very flexible and allows for both reduction and extension of the computational domain during the run.</li></ul></div><div><ul><li>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and  Umbi. Refer to the Ua compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</li></ul></div><div><ul><li>The semi-implicit time-stepping method now uses SUPG by default and when used the automated time-stepping algorithm ensures that time step fulfils the CFL condition.</li></ul></div><div><ul><li>When using automated mesh refinement/coarsening in a time-dependent run, the upper surfaces are mapped between meshes and the thickness calculated afterwards. (Previously, the thickness was mapped and the surface calculated afterwards.) This may cause a potential violation of mass conservation. However, this also ensures smooth upper surfaces even when refining mesh over areas with very uneven bedrock topography.</li></ul></div><div><ul><li>Inversion can be done using all implemented sliding laws except Coulumb.</li></ul></div><div><ul><li>u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the past.</li></ul></div><p><b>New user input file options:</b></p><pre class="language-matlab">DefineRunStopCriterion.m
-</pre><pre class="language-matlab">DefineFinalReturnedValueOfUserVar.m
-</pre><pre class="language-matlab">DefineOutsideValues
-</pre><p><b>Several new computational utilities</b></p><pre class="language-matlab">LakeOrOcean3.m
-</pre><p>is both fast and robust (Thanks to Sebastian Rosier).</p><pre class="language-matlab">EleFlooding.m
-</pre><p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022a</a><br></p></div><!--
+</pre>
+<div>
+<ul>
+<li>Exit criteria for the non-linear uv and uvh loops are now more flexible and allow for more options. See comments in</li>
+</ul>
+</div>
+<pre>     Ua2D_DefaultParameters.m</pre>
+<p>for more details.</p>
+<p>The</p>
+<pre class="language-matlab">RunInfo
+</pre>
+<p>variable now contains more information about the run, such as time step and number of non-linear iterations per runstep.</p>
+<p>Most of the changes since last Feb 2020 have been 'under the hood'. For example solving a KKT type system can now be done with a much more flexible pre-elimination method than before.</p>
+<p>All line searches are now done using one single backtracking algorithm (before at least 4 different backtracking routines were used.)</p>
+<p>The KKT system is now always solved using the primal-dual method. (Previously the initial iterative was made feasible and the primal method then used.)</p>
+<p>
+<b>Release Notes</b> <i>February 2020</i>
+</p>
+<div>
+<ul>
+<li>&Uacute;a can now be called with CtrlVar as second argument, e.g</li>
+</ul>
+</div>
+<pre class="language-matlab">Ua([],CtrlVar)
+</pre>
+<p>in which case the fields of the CtrlVar on input will be those used in the run even if these same fields are also defined in Ua2D_InitialUserInput.m</p>
+<div>
+<ul>
+<li>The combination of local mesh refinement using the newest-vertex bisection method with mesh deactivation is now very flexible and allows for both reduction and extension of the computational domain during the run.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and Umbi. Refer to the Ua compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>The semi-implicit time-stepping method now uses SUPG by default and when used the automated time-stepping algorithm ensures that time step fulfils the CFL condition.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>When using automated mesh refinement/coarsening in a time-dependent run, the upper surfaces are mapped between meshes and the thickness calculated afterwards. (Previously, the thickness was mapped and the surface calculated afterwards.) This may cause a potential violation of mass conservation. However, this also ensures smooth upper surfaces even when refining mesh over areas with very uneven bedrock topography.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>Inversion can be done using all implemented sliding laws except Coulumb.</li>
+</ul>
+</div>
+<div>
+<ul>
+<li>u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the past.</li>
+</ul>
+</div>
+<p>
+<b>New user input file options:</b>
+</p>
+<pre class="language-matlab">DefineRunStopCriterion.m
+</pre>
+<pre class="language-matlab">DefineFinalReturnedValueOfUserVar.m
+</pre>
+<pre class="language-matlab">DefineOutsideValues
+</pre>
+<p>
+<b>Several new computational utilities</b>
+</p>
+<pre class="language-matlab">LakeOrOcean3.m
+</pre>
+<p>is both fast and robust (Thanks to Sebastian Rosier).</p>
+<pre class="language-matlab">EleFlooding.m
+</pre>
+<p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 
 
 %%
+%
+% *Release Notes* _September 2023_
+%
+% * Thanks to Sebastian Rosier for providing an example where the backtracking algorithm failed. This has now been corrected.
+%
+%
+%
+% *Release Notes* _July 2023_
+%
+% * uv and uvh solver now uses dog-leg seach if Newton back-tracking results in small steps.
+%
+% * Thanks to Sainan Sun for spotting that in an adaptive mesh step, call to calving was ahead of call to geometry and
+% densities. This has now been corrected.
 %
 % *Release Notes* _July 2022_
 %
@@ -413,4 +691,6 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %%
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

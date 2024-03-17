@@ -13,7 +13,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %
 %   Par.RelativeVelArrowSize                   : affects the size of the velocity arrows. 
-%                                                by default Par.RelativeVelArrowSize=0.
+%                                                by default Par.RelativeVelArrowSize=1.
 %                                                Increase value for larger arrows.
 %   Par.QuiverColorSpeedLimits=[min max]        : Speed range being colored, leave empty for auto.
 %                                                Note however that when plotting
@@ -68,7 +68,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   CtrlVar=CtrlVarInRestartFile;
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
 %   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
-%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % finds nodes within computational grid closest to the regularly scape X and Y grid points.
 %   FigVelocities=figure; 
 %   Par.PlotXYscale=CtrlVar.PlotXYscale ; 
 %   Par.MinPlottedSpeed=0; 

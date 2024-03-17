@@ -14,6 +14,10 @@ classdef Measurements
         % wsCov=[];
         dhdtCov=[];
 
+
+        h=[];
+        hCov=[]; 
+
     end
     
 end

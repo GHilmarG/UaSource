@@ -1,11 +1,26 @@
 
 
-function [UserVar,Matrix,rh]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
+function [UserVar,K,r]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
 
-
+%%
+%
+% The equation is
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla d(x,y) $$
 %
+% where $f(x,y)$ is the unknown.
+%
+%
+% And the assembly is of the inner product system
+%
+% $$\langle a(x,y) f(x,y)   , \phi \rangle + \langle b(x,y) \nabla f(x,y) , \nabla \phi \rangle =  \langle c(x,y) + \nabla d(x,y) , \phi \rangle $$ 
+%
+% resulting in the system
+%
+% $$K h = r $$
+%%
+
+
 
 narginchk(7,7)
 
@@ -93,9 +108,9 @@ end
 
 % assemble right-hand side
 
-rh=sparseUA(neq,1);
+r=sparseUA(neq,1);
 for Inod=1:MUA.nod
-    rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHS(:,Inod),neq,1);
+    r=r+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),ElementRHS(:,Inod),neq,1);
 end
 
 
@@ -111,7 +126,7 @@ for Inod=1:MUA.nod
     end
 end
 
-Matrix=sparseUA(Iind,Jind,Xval,neq,neq);
+K=sparseUA(Iind,Jind,Xval,neq,neq);
 
 
 end

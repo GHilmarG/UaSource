@@ -2,6 +2,12 @@ function [UserVar,RunInfo,LSF,l,LSFqx,LSFqy]=LevelSetEquationSolver(UserVar,RunI
 %%
 %
 %
+% 
+% 
+% $$\partial_t f +  \mathbf{v} \cdot \nabla f  - \nabla \cdot (\kappa \nabla f) = c \, \|(\nabla f)\|$$
+% 
+%
+%
 %    df/dt + u df/dx + v df/dy - div (kappa grad f) = c norm(grad f0)
 %
 %    df/dt + (u-cx) df/dx + (v-cy) df/dy - div (kappa grad f) = 0
@@ -17,14 +23,6 @@ persistent nCallCounter
 if isempty(nCallCounter)
     nCallCounter=0;
 end
-
-
-if CtrlVar.LevelSetMethod && ~CtrlVar.DevelopmentVersion
-    
-    error('LevelSetEquation:Development','LevelSetEquation is in deveopment. Do not use.')
-    
-end
-
 
 
 

@@ -1,6 +1,8 @@
 function PlotForceResidualVectors(msg,R,L,lambda,coordinates,CtrlVar)
     
     
+    error("No longer used. Use PlotForceResidualVectors2 instead")
+
     x=coordinates(:,1);
     y=coordinates(:,2);
     
@@ -10,7 +12,7 @@ function PlotForceResidualVectors(msg,R,L,lambda,coordinates,CtrlVar)
     end
     
     FigName='Nodal force residuals' ;
-    figNRr=FindOrCreateFigure(FigName);
+    figNRr=FindOrCreateFigure(FigName); clf(figNRr) ;
     
     
     if ~contains(msg,'h-only')  % uvh residuals
@@ -23,11 +25,19 @@ function PlotForceResidualVectors(msg,R,L,lambda,coordinates,CtrlVar)
         if contains(msg,'h')
             hold on
             
-            PlotScale=0.1*max(abs(R(2*Nnodes+1:end)))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
+            Rmax=max(abs(R(2*Nnodes+1:end))) ;  
+            L=min([max(x)-min(x),max(y)-min(y)])/CtrlVar.PlotXYscale ; 
+            alpha=0.01 ;  
+            PlotScale=Rmax/(alpha*L);
+            
+            %PlotScale=0.1*max(abs(R(2*Nnodes+1:end)))*min([max(x)-min(x) max(y)-min(y)])/CtrlVar.PlotXYscale;
             PlotCircles(x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,R(2*Nnodes+1:end)/PlotScale,'r')
         end
-        
+
         axis equal tight
+
+    
+
     else % h residuals only
         
         

@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding="utf-8"?>
 <toc version="2.0">
     
-    <tocitem target="Ua.html">Úa
+    <tocitem target="Ua.html">Ua
         <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
         <tocitem target="UserInputRoutines.html">User input 
@@ -22,7 +22,8 @@
             <tocitem target="DefineOutsideValues.html">Define values to use when extrapolating outside of a previous mesh</tocitem>
             <tocitem target="DefineCalving.html">Define level set and calving rate fields</tocitem>
             <tocitem target="DefineSeaIceParameters.html">Define ocean and wind induced drag</tocitem>
-            <tocitem target="DefineCalving.html">Define ice-ocean mask which can be updated at each time step (by the user)</tocitem>
+            <tocitem target="DefineCalving.html">Define the level-set and the calving rate at nodal points </tocitem>
+            <tocitem target="DefineCalvingAtIntegrationPoints.html">Define the level-set and the calving rate at integration points </tocitem>
         </tocitem>
         <tocitem target="ExamplesOfMeshGeneration.html">Examples of how to specify FE mesh</tocitem>
         <tocitem target="DefineOutputs.html">Output </tocitem>
@@ -45,6 +46,7 @@
                 <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
                 <tocitem target="UaPLots.html">Plots variables, calving fronts and grounding lines </tocitem>
+                <tocitem target="PlotRunInfo.html">Plots time-step sizes and number of iterations as functions of time. </tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>

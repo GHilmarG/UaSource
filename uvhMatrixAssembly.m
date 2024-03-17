@@ -74,7 +74,7 @@ if ZeroFields
     % least the units of the rhs are identical for all unknonws
     %
     % On the other hand this can hardly be too much of an issue as the
-    % dh/dt equation is liner in h and all the residuals will be caused by
+    % dh/dt equation is linear in h and all the residuals will be caused by
     % the u v residuals.
     %
     
@@ -97,7 +97,9 @@ end
 
 
 
-if any(isnan(F1.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); end
+if any(isnan(F1.ub)) 
+    fprintf(CtrlVar.fidlog,' NaN in u on input to uvhMatrixAssembly \n'); 
+end
 if any(isnan(F1.vb)) ;  fprintf(CtrlVar.fidlog,' NaN in v on input to uvhMatrixAssembly \n'); end
 if any(isnan(F1.h)) ;  fprintf(CtrlVar.fidlog,' NaN in h on input to uvhMatrixAssembly \n'); end
 if any(isnan(F0.ub)) ;  fprintf(CtrlVar.fidlog,' NaN in u0 on input to uvhMatrixAssembly \n'); end
@@ -152,6 +154,7 @@ end
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
     if isempty(F1.LSFMask)
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
+        
     end
     LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
 else
