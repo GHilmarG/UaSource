@@ -24,7 +24,7 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % * ElementsToBeRefined and ElementsToBeCoarsened when using local mesh refinement with the the newest vertex bisection
 % 
 %
-% On input EleSize are desired ele sizes at (x,y) as
+% On input EleSize are desired element sizes at (x,y) as
 % calculated by Úa based on some user-defined criteria.
 %
 % On output EleSize are user-modified values.
@@ -32,7 +32,7 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % Do not modify the size of the (nodal) vector `EleSizeDesired' or the logical (element)
 % vector 'ElementsToBeRefine', only the values.
 %
-% When using the gobal remeshing option x,y are the locations where new element sizes are specifed (these are the coordinates of the mesh)
+% When using the global remeshing option x,y are the locations where new element sizes are specified (these are the coordinates of the mesh)
 % 
 % *Note: When using the local remeshing option, x and y as given on input are not relevant. 
 %       In this case use MUA.xEle and MUA.yEle as the x, y locations where the elements are to be refined or coarsened.* 
@@ -57,7 +57,7 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 %   I=inpoly([x y],Boundary) ;
 %   EleSizeDesired(I)=1000; 
 %
-% Here Boundary doese not have to be just a simple square, it can be a polygon of any shape.   
+% Here Boundary does not have to be just a simple square, it can be a polygon of any shape.   
 %
 % *Example:* To set all ele size of all floating elements (i.e. ice shelves)
 % to 1000:

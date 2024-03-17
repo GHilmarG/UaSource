@@ -84,7 +84,7 @@ if isequal(lower(CtrlVar.AsymmSolver),'auto')
 
 end
 
-
+% BB=B*B' ; [row,col,v]=find(BB); find(row~=col)
 
 tSolve=tic;
 

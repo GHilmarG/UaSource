@@ -15,11 +15,11 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 % Plot Mesh in red:
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
-%   figure ; PlotMuaMesh([],MUA,[],'r')
+%   figure ; PlotMuaMesh([],MUA,nan,'r')
 %
 % or
 %
-%   figure ; PlotMuaMesh(CtrlVar,MUA,[],color="r");
+%   figure ; PlotMuaMesh(CtrlVar,MUA,nan,color="r");
 %
 %
 % Plot the first 10000 elements in black:
@@ -52,7 +52,9 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
 
 if isempty(CtrlVar)
-    CtrlVar.PlotLabels=0;
+    
+    CtrlVar.PlotEleLabels=0;
+    CtrlVar.PlotNodalLabels=0; 
     CtrlVar.MeshColor='k';
     CtrlVar.NodeColor='k';
     CtrlVar.PlotXYscale=1;
@@ -78,7 +80,9 @@ if nargin<3
     ElementList=1:MUA.Nele;
 end
 
-
+if isnan(ElementList)   % this is a special short cut which allows nan to imply that all elements should be plotted
+    ElementList=1:MUA.Nele;
+end
 
 if ischar(ElementList) && nargin==3
     % silently ignore the fact that the user clearly did not read the comments and 

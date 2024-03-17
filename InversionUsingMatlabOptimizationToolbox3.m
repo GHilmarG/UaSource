@@ -1,8 +1,19 @@
 
 function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc)
 
-CtrlVar.Inverse.MatlabOptimisationGradientParameters= optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
+CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
+CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
+CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance);
+CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
+
+
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
+CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
+CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance);
+CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
+
+
+
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
 
 Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;

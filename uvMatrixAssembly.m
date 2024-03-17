@@ -1,54 +1,77 @@
-function [Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(CtrlVar,MUA,F)
+
+
+
+
+
+
+function [RunInfo,Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F)
 
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-narginchk(3,5)
-nargoutchk(1,5)
+narginchk(4,4)
+nargoutchk(2,4)
+
+
+
+if nargout==2 && ~CtrlVar.uvMatrixAssembly.Ronly
+    error("KRTFgeneralBCs: More than one output, but assembly only required for R. ")
+end
+
+tAssembly=tic;
 
 switch lower(CtrlVar.FlowApproximation)
 
     case "sstream"
 
 
-        if CtrlVar.Parallel.uvAssembly.spmdInt.isOn  && ~CtrlVar.uvMatrixAssembly.Ronly
+        if CtrlVar.Parallel.uvAssembly.parfeval.isOn
 
-            % This uses spmd over integration points with one worker per integration point
-            % Does speed things up somewhat with increasing number of elements and nip
-            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMspmd(CtrlVar,MUA,F) ;
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F);
 
-        else
+        elseif CtrlVar.Parallel.uvAssembly.spmd.isOn
+
+
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F);
+
+        else  % this is the otherwise default sequential assembly
 
             [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
 
         end
 
-        %% Do both sequential and parallel spmd assembly and compare times, and save data for further analysis
-        if CtrlVar.Parallel.isTest && CtrlVar.Parallel.uvAssembly.spmdInt.isOn &&  ~CtrlVar.uvMatrixAssembly.Ronly
+        %% Test spmd speedup
 
-            tSeq=tic;
-            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
-            tSeq=toc(tSeq) ;
+        if CtrlVar.Parallel.isTest  && CtrlVar.Parallel.uvAssembly.spmd.isOn && ~CtrlVar.uvMatrixAssembly.Ronly
 
-            tSPMD=tic;
-            [Ruv2,Kuv2,Tint2,Fext2]=uvMatrixAssemblySSTREAMspmd(CtrlVar,MUA,F) ;
-            tSPMD=toc(tSPMD);
 
-            fprintf('\n \n ----------------------------- \n')
-            fprintf(' tSeq=%f \t tSPMD=%f \t speedup=%f \n',tSeq,tSPMD,tSeq/tSPMD)
-            fprintf(' norm(Ruv-Ruv2)/norm(Ruv)=%g \t Kuv error=%g \n',norm(full(Ruv-Ruv2))/norm(full(Ruv)),norm(diag(Kuv2-Kuv))/max(abs(diag(Kuv))))
-             
-            
+            % There might be an argument for doing this a few times, but if one does a number of NR iterations, which generally is the
+            % case, then that should not be needed.
+            tSeq=tic ;  [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F); tSeq=toc(tSeq) ;
 
-            FileName="TestSaveuvMatrixAssembly"+"nEle"+num2str(MUA.Nele ...
-                ) ;
-            fprintf("Saving MUA and F in %s \n",FileName)
-            save(FileName,"CtrlVar","MUA","F")
+
+            if CtrlVar.Parallel.uvAssembly.spmd.isOn
+
+                tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F); tSPMD=toc(tSPMD) ;
+               
+            end
+
+            if CtrlVar.Parallel.uvAssembly.parfeval.isOn
+                tParfeval=tic ;  [RuvParfeval,KuvParfeval,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F); tParfeval=toc(tParfeval) ;
+                fprintf(' tSeq=%f sec  tParfval=%f sec \t MUA.Nnodes=%i \t norm(Ruv-RuvParfeval)/norm(Ruv)=%g \t norm(diag(Kuv)-diag(KuvParfeval))/norm(diag(Kuv))=%g \n',...
+                    tSeq,tParfeval,MUA.Nnodes,norm(full(Ruv-RuvParfeval))/norm(full(Ruv)),norm(diag(Kuv)-diag(KuvParfeval))/norm(diag(Kuv)))
+            end
+
+            if CtrlVar.Parallel.uvAssembly.spmd.isOn
+                fprintf('\n ----------------------------- Info on parallel uv SPMD assembly performance : Nele=%i  \t nWorkers=%i \n',MUA.Nele,CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
+                fprintf('#Ele=%i \t SPMD used for uv assembly:  tSeq=%f \t tSPMD=%f \t speedup=%g \n',MUA.Nele,tSeq,tSPMD,tSeq/tSPMD) ;
+                fprintf(' R-Rspmd=%g \t K-Kspmd=%g   \n',full(norm(Ruv-RuvSPMD)/norm(Ruv)),normest(Kuv-KuvSPMD)/normest(Kuv))
+                fprintf(' ----------------------------- \n')
+            end
 
         end
-
 
 
     case "sstream-rho"
@@ -61,6 +84,8 @@ switch lower(CtrlVar.FlowApproximation)
 
 end
 
+
+RunInfo.CPU.Assembly.uv=RunInfo.CPU.Assembly.uv+toc(tAssembly);
 
 end
 

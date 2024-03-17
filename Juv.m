@@ -11,11 +11,17 @@ F.vb=uv(N+1:2*N);
 
 if nargout>2
 
-    [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
+    % [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
+    CtrlVar.uvMatrixAssembly.Ronly=false;
+    [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
 
 else
 
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+
+    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+
+    CtrlVar.uvMatrixAssembly.Ronly=true;
+    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
     Kuv=[];
 
 end

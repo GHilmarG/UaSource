@@ -19,14 +19,13 @@ SetUaPath() %%
 warning('off','MATLAB:triangulation:PtsNotInTriWarnId')
 warning('off','MATLAB:decomposition:SaveNotSupported')
 warning('off','MATLAB:decomposition:genericError')
+warning("off","matlab:decomposition:LoadNotSupported")
 
-ParPool = gcp('nocreate') ;
 
-if ~isempty(ParPool)
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
-end
- 
+
+
+
+
 %% initialize some variables
 RunInfo=UaRunInfo; 
 Fm1=UaFields;
@@ -104,7 +103,7 @@ end
 
 
 
-% do some basic test on the vality of the CtrlVar fields, validate CtlrVar
+% do some basic test on the validity of the CtrlVar fields, validate CtlrVar
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
 
 
@@ -126,6 +125,27 @@ if CtrlVar.WriteRunInfoFile
         RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
     end
 end
+
+
+%% Check and set some parallel variables
+ParPool = gcp;
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+
+if ~isempty(ParPool)
+
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+    if  CtrlVar.Parallel.uvhAssembly.spmd.isOn
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+    if CtrlVar.Parallel.uvAssembly.spmd.isOn  
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+end
+
 
 %% Get input data
 if CtrlVar.InverseRun %  inverse run
@@ -225,10 +245,10 @@ end
 %  For convenience I assume that the user defines S, B, s and b.  The program
 %  then calculates h=s-b and then s and b from h, B and S given the ice and
 %  ocean specific density.  The thickness is preserved, and s and b are
-%  consistent with the floating condition for a given ice tickness h, rho and
+%  consistent with the floating condition for a given ice thickness h, rho and
 %  rhow.
 if ~isfield(RunInfo,'Message') ; RunInfo.Message=[] ; end
-RunInfo.Message="All initial inputs now defined.";  % this is a string, will only work correclty post Matlab 2017b.
+RunInfo.Message="All initial inputs now defined.";  % this is a string, will only work correctly post MATLAB 2017b.
 CtrlVar.RunInfoMessage=RunInfo.Message;
 
 
@@ -267,16 +287,22 @@ if CtrlVar.doInverseStep   % -inverse
     %x=coordinates(:,1); y=coordinates(:,2); DT = DelaunayTri(x,y); TRI=DT.Triangulation;
     %figure(21) ; trisurf(TRI,x/CtrlVar.PlotXYscale,y/CtrlVar.PlotXYscale,h) ;  title(' h')
         
+
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
+
+    MUA=UpdateMUA(CtrlVar,MUA);
+
+    RunInfo.CPU.Inversion=tic;
     [UserVar,F,l,InvFinalValues,RunInfo]=...
         InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-    
+    RunInfo.CPU.Inversion=toc(RunInfo.CPU.Inversion); 
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
     F.AGlen=InvFinalValues.AGlen  ; %fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
     
+  
     [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     
@@ -454,12 +480,11 @@ while 1
         end
     end
 
-    if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep
-        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
-        F=StartVelocity(CtrlVar,MUA,BCs,F);  % start velocity might be a function of GF
+    if CtrlVar.UpdateBoundaryConditionsAtEachTimeStep   
+        [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F); % update boundary conditions at each time step
     end
  
-    % get mass-balance after any modifications to geometry, as mass balance might depent
+    % get mass-balance after any modifications to geometry, as mass balance might depend
     % on geometry. 
     [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
     
@@ -476,7 +501,7 @@ while 1
 
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-
+   
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
@@ -506,10 +531,7 @@ while 1
 
 
 
-        if numel(RunInfo.Forward.time) < CtrlVar.CurrentRunStepNumber 
-            RunInfo.Forward.time=[RunInfo.Forward.time;RunInfo.Forward.time+NaN];
-            RunInfo.Forward.dt=[RunInfo.Forward.dt;RunInfo.Forward.dt+NaN];
-        end
+        RunInfo=ExtendAllocations(RunInfo,CtrlVar,CtrlVar.CurrentRunStepNumber);
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
         RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
@@ -540,12 +562,12 @@ while 1
             end
             
             
-            if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an inital dignostic step
+            if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
                 CtrlVar.InitialDiagnosticStep=0;
                 
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
-                
+              
                 [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 
                 
@@ -584,22 +606,29 @@ while 1
 
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
-            
-            
-            
+
+
+
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-            
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+
             % uvh implicit step  (The F on input is based on an explicit estimate, on
             % return I have the implicit estimate. The explicit estimate is only there to
             % speed up the non-linear solver.
+
+            if CtrlVar.Parallel.isTest
+                uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
+            end
+
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
-            
+
+
+
             CtrlVar.dt=dt;  % I might have changed dt within uvh
-            
+            F.dt=dt; 
             if ~RunInfo.Forward.uvhConverged
                 
                 warning("Ua2D:WTSHTF","uvh did not converge")
@@ -614,8 +643,9 @@ while 1
             
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+            
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-            % Recalulating geometry based on floation not really needed here because uvh
+            % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
@@ -664,7 +694,7 @@ while 1
         end
     end   % CtrlVar.TimeDependentRun
     
-    %% calculations for this rund step are now done, only some plotting/writing issues do deal with
+    %% calculations for this run step are now done, only some plotting/writing issues do deal with
 
 
     
@@ -700,7 +730,9 @@ while 1
     end
     
     if CtrlVar.WriteRestartFile==1 && mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)==0
-        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
+        
+        WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
+
     end
     
     
@@ -748,7 +780,7 @@ end
 %% saving outputs
 
 if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
-    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo); 
+    WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end

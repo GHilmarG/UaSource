@@ -19,7 +19,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 % using Augmented-Lagrangian method, where the inner problem is solved directly
 %
 % LU/LDL factorisation done outside of loop, hence cost of each additional iteration fairly small
-% The inner iteration is so cheap in comparision to the LU/LDL factorisation
+% The inner iteration is so cheap in comparison to the LU/LDL factorisation
 % that it seems justified to always do at least two iterations
 %
 % Method:
@@ -27,7 +27,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 % For
 % [A B'] [x]= [f]
 % [B 0 ] [y]  [g]
-% the Uzawa method is somtimes defined as:
+% the Uzawa method is sometimes defined as:
 %                       A x_{i+1}= f - B' y_i
 %                         y_{i+1}=g y_i + iW B x_{i+1}
 %  where iW is `small' but not too small.
@@ -44,7 +44,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 % This idea of replacing the lower-left 0 block matrix with something small, and redefining the
 % rhs accordingly, is usually referred to as the Augmented-Lagrangian method. 
 % Note that the iteration, once converged, gives 
-% answer that is a correct solution to the unmodifed system, and that this final answer does not
+% answer that is a correct solution to the unmodified system, and that this final answer does not
 % depend on what iW is chosen to be. So iW does not need to be `small'. However, usually 
 % the convergence is fastest if iW is small compared to A.  If setting iW=0 works,
 % then only one solve is needed (fastest possible rate of convergence).
@@ -80,7 +80,7 @@ if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
 elseif luvector
     
     if isdistributed(T)
-        T=full(T);                 % can only be done for full martices 
+        T=full(T);                 % can only be done for full matrices 
         [L,U,p] = lu(T,'vector');  % apparently this can be used in a parallel mode, but used in non-parallel this is very slow!
         % sol=U\(L(p,:)\fg) ;
     else

@@ -2,7 +2,7 @@
 
 
 
-function [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclical,Activated,Released]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated)
+function [UserVar,RunInfo,BCs1,lambdahpos,isActiveSetModified,isActiveSetCyclical,Activated,DeActivated]=ActiveSetUpdate(UserVar,RunInfo,CtrlVar,MUA,F1,l1,BCs1,iActiveSetIteration,LastReleased,LastActivated)
 
 
 narginchk(10,10)
@@ -21,7 +21,7 @@ end
 
 %  Thickness constraints used
 
-%    NodesFixed: holdes the nodal numbers nodes in the active set
+%    NodesFixed: holds the nodal numbers nodes in the active set
 %      ihactive: number nodes in active set
 %
 % -If min thickness is significantly greater than CtrlVar.ThickMin, eliminate all thickness constraints
@@ -46,10 +46,11 @@ end
 
 
 
+%%  Make sure that no thickness constraints have been added to nodes with user-defined boundary conditions
+
+BCs1.hPosNode=setdiff(BCs1.hPosNode,BCs1.hFixedNode) ;
+
 %%
-
-
-
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
     if numel(BCs1.hPosNode)>0 || CtrlVar.ThicknessConstraintsInfoLevel>=10
@@ -61,7 +62,7 @@ end
 % keep a copy of the old active set
 LastActiveSet=BCs1.hPosNode;
 
-%must now find the lambda values corresponding to nodes that where constrainted to pos thickness
+%must now find the lambda values corresponding to nodes that where constrained to positive thickness
 
 % hLambda=l1.h;
 % lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I always put the hPos constraints at end of all other h constraints
@@ -72,16 +73,19 @@ lambdahpos=l1.h(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end) ;%  I alway
 % remember lambdahpos=hLambda(numel(BCs1.hFixedNode)+numel(BCs1.hTiedNodeA)+1:end)
 % actually most likely only need to do this if numel(hPosNode)>0
 % If the L matrix was not in the FE basis, I simply calculate the reactions.
-% The Reactions are calculated correctly irrespectivly of how the
+% The Reactions are calculated correctly irrespective of how the
 %
 if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
 
         Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+        ah=-Reactions.h./(F1.rho.*F1.dt) ;
+        ah=ah(BCs1.hPosNode);
         lambdahpos=Reactions.h(BCs1.hPosNode);
 
     else
         lambdahpos=[];
+        ah=[];
     end
 end
 %%
@@ -96,10 +100,17 @@ end
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=10
     [~,I]=sort(lambdahpos);  % print out fixed nodes in the order of increasing lambda values
-    fprintf(CtrlVar.fidlog,'            Nodes fixed: ')   ;
+    fprintf(CtrlVar.fidlog,' Pos. thick. contraints: ')   ;
     fprintf(CtrlVar.fidlog,' \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \t %9i \n \t \t \t \t \t \t',BCs1.hPosNode(I));
     fprintf(CtrlVar.fidlog,'\n   Lagrange multipliers: ') ;
-    fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',lambdahpos(I)) ;
+    fprintf(CtrlVar.fidlog,' \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0g \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',lambdahpos(I)) ;
+
+
+    fprintf(CtrlVar.fidlog,'\n            mass flux: ') ;
+
+    fprintf(CtrlVar.fidlog,' \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \t %+9.0f \n \t \t \t \t \t \t',ah(I)) ;
+
+
     fprintf(CtrlVar.fidlog,'\n');
 end
 
@@ -109,7 +120,7 @@ end
 % Now I've solved for h1 and if needed a new active set must be defined
 %
 % The new active set contains all nodes where h1 less than hmin that were not in the previous active set
-% Those of the nodes in the previous active set with positve slack values
+% Those of the nodes in the previous active set with positive slack values
 % Nodes in the previous set with negative slack values must be taken out of the set
 % if the active-set method is selected, update active set
 % The active set is created/modified and the problem solved again if the active set has changed
@@ -120,14 +131,26 @@ end
 
 if numel(BCs1.hPosNode)>0   % are there any thickness constraints? If so see if some should be in-activated
 
-    % I divide here with rho for this to have the same units as the mass balance
+    % I divide here with rho and dt for this to have the same units as the mass balance
     % (distance/time)
-    I=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./F1.rho(BCs1.hPosNode);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
-    NewInActiveConstraints=find(I);
+    % 
+    % isNegavtiveMassFluxSmall=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./(F1.rho(BCs1.hPosNode).*F1.dt);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
+
+    % Clearly only inactivate if the mass flux needed to keep them active (ah) is negative.
+    % But to also consider only inactivate if the negative flux is 
+    % 
+    %   ah < 0.01 hMin /dt 
+    %
+    % that is, if one were to stop subtracting this mass balance, then the thickness would increase to 0.01 above the minimum
+    % thickness value over a time interval corresponding to one time unit.
+    
+    isNegavtiveMassFluxSmall=ah < -0.001*CtrlVar.ThickMin/F1.dt ; 
+
+    NewInActiveConstraints=find(isNegavtiveMassFluxSmall);
     iNewInActiveConstraints=numel(NewInActiveConstraints);
     if iNewInActiveConstraints>0   % have any become inactive?
-        BCs1.hPosNode(I)=[]; BCs1.hPosValue(I)=[];
-     
+        BCs1.hPosNode(isNegavtiveMassFluxSmall)=[]; 
+
     end
 
 else
@@ -139,11 +162,13 @@ NodesReleased=LastActiveSet(NewInActiveConstraints);
 
 % Do I need to activate some new thickness constraints?
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
-I=F1.h<=(CtrlVar.ThickMin-100*eps); % if thickness is less than ThickMin then further new thickness constraints must be introduced
+I=F1.h<CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
-NodesWithTooSmallThick=find(I);
-NewActive=setdiff(NodesWithTooSmallThick,BCs1.hPosNode);  % exclude those already in the active set
-NewActive=setdiff(NewActive,NodesReleased);  % do not include those nodes at min thick that I now must release
+NewActive=find(I);
+NewActive=setdiff(NewActive,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions,
+% even if this means that thicknesses at those nodes are less then MinThick
+NewActive=setdiff(NewActive,BCs1.hPosNode);    % exclude those already in the active set
+NewActive=setdiff(NewActive,NodesReleased);    % do not include those nodes at min thick that I now must release
 
 
 iNewActiveConstraints=numel(NewActive);
@@ -164,8 +189,8 @@ if iNewActiveConstraints>0
     if CtrlVar.ThicknessConstraintsInfoLevel>=1
         fprintf(CtrlVar.fidlog,' %i new active constraints \n',iNewActiveConstraints);
     end
-   
-    BCs1.hPosNode=[BCs1.hPosNode;NewActive] ; BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+
+    BCs1.hPosNode=[BCs1.hPosNode;NewActive] ; 
 end
 
 
@@ -173,49 +198,32 @@ end
 
 if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 
-    if isempty(F1.LSFMask)  % 
+    if isempty(F1.LSFMask)  %
         F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
     end
 
     LSFhPosNode=find(F1.LSFMask.NodesOut);
-    LSFhAdditionalPosNodes=setdiff(LSFhPosNode,BCs1.hPosNode) ; 
+    LSFhAdditionalPosNodes=setdiff(LSFhPosNode,BCs1.hPosNode) ;
 
-   if CtrlVar.ThicknessConstraintsInfoLevel>=1
+    if CtrlVar.ThicknessConstraintsInfoLevel>=1
         fprintf(' %i additional LSF active constraints \n',numel(LSFhAdditionalPosNodes))
     end
 
-    BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode); 
-    BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+    BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode);
+    
 
 
 end
 
-Released=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
+% LastActiveSet is simply a copy of hPosNode at the beginning of the call
+DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 
-nReleased=numel(Released);
+nReleased=numel(DeActivated);
 nActivated=numel(Activated);
 
-% modify initial guess for h1, important for convergence
-%h1(NewActive)=ThickMin;
-
-
-% %% print information on new active set
-% if CtrlVar.ThicknessConstraintsInfoLevel>=1
-%     if iNewInActiveConstraints> 0 || iNewActiveConstraints> 0
-%         fprintf(CtrlVar.fidlog,' Updating pos. thickness constraints: in-activated: %-i,  activated: %-i, total number of thickness constrains: %-i \n',...
-%             iNewInActiveConstraints,iNewActiveConstraints,numel(BCs1.hPosNode));
-%         fprintf(CtrlVar.fidlog,'  Nodes inactivated: ')   ;
-%         fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',NodesReleased);
-% 
-%         fprintf(CtrlVar.fidlog,'\n    Nodes activated: ')   ;
-%         fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',NewActive);
-%         fprintf(CtrlVar.fidlog,'\n ')   ;
-%     else
-%         fprintf(CtrlVar.fidlog,'No pos.-thickness constraints activated or deactivated. \n')   ;
-%     end
-% 
-% end
+BCs1.hPosNodeDeActivated=DeActivated;  % I'm not really using this at the moment, but in the future it might be best to use this to determine if set has become cyclical 
+BCs1.hPosNodeActivated=Activated;
 
 %% print information on new active set
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
@@ -223,7 +231,7 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=1
         fprintf(CtrlVar.fidlog,'\n  Updating pos. thickness constraints: in-activated: %-i,  activated: %-i, total number of thickness constrains: %-i \n',...
             nReleased,nActivated,numel(BCs1.hPosNode));
         fprintf(CtrlVar.fidlog,'  Nodes inactivated: ')   ;
-        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',Released);
+        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',DeActivated);
 
         fprintf(CtrlVar.fidlog,'\n    Nodes activated: ')   ;
         fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',Activated);
@@ -245,7 +253,7 @@ isActiveSetCyclical=false ;
 
 
 ActivatedAndPreviouslyReleasedDifference=setxor(Activated,LastReleased); % if empty then the sets of activated and previously de-activated nodes are identical
-ReleasedAndPreviouslyActivatedDifference=setxor(Released,LastActivated); % if empty then the sets of de-activated and previously activated nodes are identical
+ReleasedAndPreviouslyActivatedDifference=setxor(DeActivated,LastActivated); % if empty then the sets of de-activated and previously activated nodes are identical
 
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
     if ~isempty(LastReleased)
@@ -262,24 +270,26 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=1
     end
 end
 
-if isempty(ActivatedAndPreviouslyReleasedDifference)  && isempty(ReleasedAndPreviouslyActivatedDifference)
-    isActiveSetCyclical=true ;
-    fprintf(' Active-set is cyclical. \n')
+if ~(isempty(Activated) && isempty(DeActivated))  
+    if isempty(ActivatedAndPreviouslyReleasedDifference)  && isempty(ReleasedAndPreviouslyActivatedDifference)
+        isActiveSetCyclical=true ;
+        fprintf(' Active-set is cyclical. \n')
+    end
 end
 
 % I now have a dilemma, since the set has become cyclical it is
 % clear that if I deactivate any new nodes the thickness at
 % those nodes will become too small in the next active-set
-% interation. A solution is simply not to deactivate and to add
+% interaction. A solution is simply not to deactivate and to add
 % the cyclically deactivated nodes to the active set.
 
 if isActiveSetCyclical
-    BCs1.hPosNode=[BCs1.hPosNode;Released] ; 
-    BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+    BCs1.hPosNode=[BCs1.hPosNode;DeActivated] ;
 end
 
-
-
+%% Set the hPosValues, only need to do this once at the end
+BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;
+%%
 
 if nReleased> 0 || nActivated>0
     if nReleased<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
@@ -287,7 +297,7 @@ if nReleased> 0 || nActivated>0
         fprintf("\t #released=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nReleased,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
         BCs1=BCs1Input;
         Activated=[];
-        Released=[];
+        DeActivated=[];
 
     end
 end
@@ -309,4 +319,8 @@ end
 RunInfo.Forward.uvhActiveSetIterations(CtrlVar.CurrentRunStepNumber)=iActiveSetIteration-1 ;
 RunInfo.Forward.uvhActiveSetCyclical(CtrlVar.CurrentRunStepNumber)=isActiveSetCyclical;
 RunInfo.Forward.uvhActiveSetConstraints(CtrlVar.CurrentRunStepNumber)=numel(BCs1.hPosNode);
+
+
+
+end
 

@@ -142,7 +142,7 @@ if CtrlVar.LevelSetMethodTest
     PSR(F0.LSFMask.NodesOut,:)=NaN;
     FindOrCreateFigure("P1") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,1)) ;
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
+    hold on ; PlotMuaMesh(CtrlVar,MUA,nan,'w') ;
     hold on ; PlotCalvingFronts(CtrlVar,MUA,F0,'r');
 
     FindOrCreateFigure("P2") ; PlotMeshScalarVariable(CtrlVar,MUA,PSR(:,2)) ;

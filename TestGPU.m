@@ -9,6 +9,24 @@ function TestGPU
 % 
 %%
 
+
+
+NumWorkers=8 ;
+
+ParPool = gcp('nocreate') ;
+
+if isempty(ParPool)
+
+    parpool('Processes',NumWorkers)
+
+elseif (ParPool.NumWorkers~=NumWorkers)
+
+    delete(gcp('nocreate'))
+    parpool('Processes',NumWorkers)
+
+end
+
+%%
 iExperiment=0;
 density=0.05 ;
 timings=zeros(10,7)+NaN;

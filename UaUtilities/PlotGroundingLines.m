@@ -99,7 +99,7 @@ if nargin==0
 end
 
 if isempty(CtrlVar)
-    CtrlVar.PlotXYscale=1000;
+    CtrlVar(1).PlotXYscale=1000;
     CtrlVar.PlotIndividualGLs=0;
     CtrlVar.PlotGLs=1;
 end
@@ -137,7 +137,11 @@ if isstring(MUA)
     if CtrlVar.PlotGLs
 
         tt=axis;
-        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        if isempty(varargin)
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r') ;
+        else
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        end
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
         if ~isequal(tt,[0 1 0 1])

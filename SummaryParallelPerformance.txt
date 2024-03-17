@@ -1,0 +1,11 @@
+
+
+
+UaTests\MassConservationTests\Peaks: 
+ Comparision between sequential and parallel uvh solve using the user-defined parallel options set in DefineInitialInputs.m 
+ #Elements=23134 	 #Nodes=104704 	 #Workers=12 	 
+ Note: Parallel options not switched on by user are not used in the parallel solve.
+ uvh Solve:  	 tSeq=166.809805 sec 	 tPar= 98.034216 sec 	 tSeq/tPar=1.701547 
+  assembly:  	 tSeq= 82.043358 sec 	 tPar= 28.190217 sec 	 tSeq/tPar=2.910349 
+  linsolve:  	 tSeq= 68.323926 sec 	 tPar= 56.581688 sec 	 tSeq/tPar=1.207527 
+

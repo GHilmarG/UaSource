@@ -7,7 +7,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % x , y , u , v : vectors of same length. But if using regular velocity grid, x and y can
-% be grid vectors. (In matlab speak grid vectors xg and yg are a set of vectors that serve
+% be grid vectors. (In MATLAB speak grid vectors xg and yg are a set of vectors that serve
 % as a compact representation of a grid in ndgrid format. For example, [X,Y] =
 % ndgrid(xg,yg) )
 %
@@ -34,12 +34,12 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %                                                  Default is min(speed(:)).
 %                                                  However, if using log10 the minimum plotted speed is never smaller than 10^QshouldiverColorPowRange times MaxPlottedSpeed
 % Par.SpeedTickLabels                        : numerical array of values
-% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the greates possible range of magnitudes shown in colobar.
+% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the creates possible range of magnitudes shown in colobar.
 %                                              Default is
 %                                              Par.QuiverColorPowRange=3, i.e.
 %                                              the smallest colored speed is 
 %                                              10^3 smaller than the largest speed
-% Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scalings as in previous call. 
+% Par.QuiverSameVelocityScalingsAsBefore      : set to true (ie 1) to get same velocity scaling as in previous call. 
 %                                           
 %
 % varargin is passed on to quiver
@@ -50,7 +50,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %  load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
 %  QuiverColorGHG(MUA.coordinates(:,1),MUA.coordinates(:,2),F.ub,F.vb);
 %
-% Plot all velocites with arrows of equal length:
+% Plot all velocities with arrows of equal length:
 %
 %  load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
 %   CtrlVar=CtrlVarInRestartFile;
@@ -97,12 +97,12 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 % Two calls with same velocity scaling:
 %
-%   [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par)  ; % first call, here Par is not strickly needed as an input
+%   [cbar,~,Par]=QuiverColorGHG(x,y,u,v,Par)  ; % first call, here Par is not strictly needed as an input
 %   Par.QuiverSameVelocityScalingsAsBefore=1;
-%   QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scalings as previous one
+%   QuiverColorGHG(x,y,u,v,Par) ; % second call uses same scaling as previous one
 %                                        
 %
-% Note: When doing further contour plots on top of velocity plot, matlab will possibly change the
+% Note: When doing further contour plots on top of velocity plot, MATLAB will possibly change the
 % limits of the colorbar and the position of the ticklables will no longer be correct.
 % If this happens then reset range and ticks, for example:
 %
@@ -438,7 +438,7 @@ for J=1:numel(Par.SpeedPlotIntervals)-1
             I=speed>Par.SpeedPlotIntervals(J) & speed <= Par.SpeedPlotIntervals(J+1) & speed>Par.MinSpeedToPlot;
     end
     
-    if numel(x(I))>0  % This should not really be needed, but veving resulting figures in matlab fig format
+    if numel(x(I))>0  % This should not really be needed, but 
                       % results in errors in Matlab2016a
         QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
             'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
@@ -462,7 +462,7 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
             tickpos=1+N*log10(ticklabel)/log10(Par.SpeedPlotIntervals(N+1));
             set(cbar,'Ytick',tickpos,'YTicklabel',ticklabel);
         else
-            caxis([0 max(Par.SpeedPlotIntervals)]);
+            clim([0 max(Par.SpeedPlotIntervals)]);
         end
 
 

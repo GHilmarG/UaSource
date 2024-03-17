@@ -90,7 +90,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % Not all of these user m-files are always needed. For example
 % `DefineInverseModellingVariables.m' is only needed for inverse runs. Also
 % 'DefineStartVelValues.m' is not often required as setting start velocities to
-% zero (the default opton) is usually a good approach. And DefineDesiredEleSizes
+% zero (the default option) is usually a good approach. And DefineDesiredEleSizes
 % is only needed if one finds that the standard remeshing options within Úa are
 % too limited.
 %

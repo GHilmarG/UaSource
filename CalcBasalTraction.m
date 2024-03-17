@@ -47,7 +47,7 @@ He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  % 1
 delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
 
 [tbx,tby] = ...
-    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk);
+    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk,F.V0);
 
 tb=sqrt(tbx.^2+tby.^2);
 

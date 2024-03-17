@@ -1,4 +1,9 @@
-classdef (Sealed) decomposition < matlab.mixin.CustomDisplay & matlab.mixin.internal.Scalar
+
+
+
+
+
+classdef (Sealed) decompositionUa < matlab.mixin.CustomDisplay & matlab.mixin.internal.Scalar
     %DECOMPOSITION Matrix decomposition
     %   DA = DECOMPOSITION(A) returns a decomposition of matrix A, which
     %   can be used to solve the linear system A*X = B efficiently. The
@@ -141,7 +146,7 @@ classdef (Sealed) decomposition < matlab.mixin.CustomDisplay & matlab.mixin.inte
     end
     
     methods
-        function f = decomposition(A, varargin)
+        function f = decompositionUa(A, varargin)
             
             if nargin == 0
                 A = [];

@@ -1,19 +1,22 @@
 function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,CtrlVar,nOut,listInF,listOutF,varargin)
 
+%%
+%
 % backtracking to minimize F(x0+gamma DF)
 %
 % required inputs are slope0, b, fa, fb, F
-% if on input slop0 is empty, slope information is not used
-% also if on input fa and/or fb are empty they are calculated using a=0 and b=1
-% the funcion F must return as a first argument the (scalar) value which is to be minimized
-% if nOut is given then further nOut-1 outputs from F are collected in varargout and returned,
-% (nOut is then the total number of output variables collected from F)
-% the first input to F is the step variable gamma, varargin is then in addition given over to F
 %
-% F can be called several times. If the output from F are needed as input in a later call to F
-% then that can be deal with by defining listInf and litOutF. When F is called
-% additional nOut-1 outputs are collected, i.e. the total number of outputs collected from F in nOut
-% These additional outputs are then given as additional inputs to F:
+% It is assumed that the function is positive, ie f(x)>= 0.
+%
+%
+% if on input slop0 is empty, slope information is not used also if on input fa and/or fb are empty they are calculated using
+% a=0 and b=1 the function F must return as a first argument the (scalar) value which is to be minimized if nOut is given
+% then further nOut-1 outputs from F are collected in varargout and returned, (nOut is then the total number of output
+% variables collected from F) the first input to F is the step variable gamma, varargin is then in addition given over to F
+%
+% F can be called several times. If the output from F are needed as input in a later call to F then that can be deal with by
+% defining listInf and litOutF. When F is called additional nOut-1 outputs are collected, i.e. the total number of outputs
+% collected from F in nOut These additional outputs are then given as additional inputs to F:
 %
 %
 %  [fa,varargout{1:nOut-1}]=F(a,varargin{:}) ;
@@ -25,16 +28,11 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 % when extrapolating: c=gamma ; b is the previous extrapolation value
 %                      b < c=gamma , fb> fc=fgamma
 %
-%
-%
 % Example:
-%
 % 
 %%
 % 
-% 
-% 
-%   c1=0 ; c2=0.5  ; c3=1.1 ; Func=@(x)  -(x-c1).* (x-c2).*(x-c3) ; slope0=-(c1*c2+c1*c3+c2*c3);  f0=Func(0) ; f1=Func(1) ; 
+%   c1=0 ; c2=0.5  ; c3=1.1 ; Func=@(x)  -(x-c1).* (x-c2).*(x-c3) +1 ; slope0=-(c1*c2+c1*c3+c2*c3);  f0=Func(0) ; f1=Func(1) ; 
 %
 %   [gmin,fmin,BackTrackInfo]=BackTracking(slope0,1,f0,f1,Func);
 %
@@ -42,8 +40,12 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %   figure
 %   plot(xvector,yvector) ; hold on
 %   plot(gmin,fmin,'or')
-%   plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'+b')
-%
+%   plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'*r')
+%   ylabel("$f(\gamma)$",Interpreter="latex") ; xlabel("$\gamma$",interpreter="latex")
+%   hold on ; g=linspace(0,1) ; Armijo=Func(0)+slope0*0.1*g; plot(g,am)
+%   plot([0 0.1],[Func(0) Func(0)+slope0*0.1],'k')
+%   legend("function","returned value","function evaluations","Armijo criterion","slope at zero")
+%    
 %%
 BackTrackInfo.Converged=0;
 BackTrackInfo.Direction="   " ;
@@ -184,6 +186,7 @@ if isempty(fa) || isnan(fa)
     if Fargcollect
         
         [fa,varargout{1:nOut-1}]=Func(a,varargin{:}) ;
+        fa=full(fa); 
         nFuncEval=nFuncEval+1; 
         
         if ~isempty(listOutF) && ~isempty(listInF)
@@ -191,6 +194,7 @@ if isempty(fa) || isnan(fa)
         end
     else
         fa=Func(a);
+        fa=full(fa); 
         nFuncEval=nFuncEval+1; 
     end
     
@@ -204,6 +208,7 @@ if isempty(fb) || isnan(fb)
     end
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
+        fb=full(fb);
         nFuncEval=nFuncEval+1; 
         
         if ~isempty(listOutF) && ~isempty(listInF)
@@ -211,6 +216,7 @@ if isempty(fb) || isnan(fb)
         end
     else
         fb=Func(b);
+        fb=full(fb);
         nFuncEval=nFuncEval+1; 
     end
 end
@@ -238,11 +244,12 @@ if fb<target
 
     if ~isempty(nOut) && nOut> 0
         [fmin,varargout{1:nOut-1}]=Func(gmin,varargin{:}) ;
+        fmin=full(fmin);
     end
     % now fmin < ftarget
     % I can now return
     % The only exception is if the user requests information about the
-    % backtracking and some pltos
+    % backtracking and some plots
 
     if ~(CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1 )
         return
@@ -271,12 +278,14 @@ if fmin>target
     iarm=1 ;     BackTrackInfo.iarm=iarm;
     if Fargcollect
         [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{:}) ;
+        fgamma=full(fgamma); 
         nFuncEval=nFuncEval+1;
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
         fgamma=Func(gamma);
+        fgamma=full(fgamma); 
         nFuncEval=nFuncEval+1;
     end
 
@@ -326,12 +335,14 @@ if CtrlVar.LineSearchAllowedToUseExtrapolation
         
         if Fargcollect
             [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
+            fgamma=full(fgamma);
             nFuncEval=nFuncEval+1;
             if ~isempty(listOutF) && ~isempty(listInF)
                 [varargin{listInF}]=varargout{listOutF-1} ;
             end
         else
-            fgamma=Func(gamma);
+            fgamma=Func(gamma); 
+            fgamma=full(fgamma);
             nFuncEval=nFuncEval+1;
         end
         iq=iq+1 ; Infovector(iq,1)=gamma ;  Infovector(iq,2)=fgamma ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
@@ -374,6 +385,7 @@ if  Extrapolation>0
     NoSlopeInformation=1;
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{1:end}) ;
+        fb=full(fb);
         nFuncEval=nFuncEval+1; 
         
         if ~isempty(listOutF) && ~isempty(listInF)
@@ -381,6 +393,7 @@ if  Extrapolation>0
         end
     else
         fb=Func(b);
+        fb=full(fb);
         nFuncEval=nFuncEval+1; 
     end
     iq=iq+1 ; Infovector(iq,1)=b ;  Infovector(iq,2)=fb ; [fmin,I]=min(Infovector(:,2)) ; gmin=Infovector(I,1) ;
@@ -423,6 +436,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
         
         if Fargcollect
             [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
+            fgamma=full(fgamma) ;
             nFuncEval=nFuncEval+1; 
             
             if ~isempty(listOutF) && ~isempty(listInF)
@@ -430,6 +444,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
             end
         else
             fgamma=Func(gamma);
+            fgamma=full(fgamma) ;
             nFuncEval=nFuncEval+1; 
         end
         
@@ -437,7 +452,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
         % Jan 2020: Just changed the limits on gamma so now gamma is somewhere between a and c
         %            But I do not know if gamma is greater or less than b
         
-        % I want the minimum to be bracked by a and b
+        % I want the minimum to be bracketed by a and b
          % b=c ; fb=fc ;
         
         if gamma < b  && fgamma< fb    % min is between a and b
@@ -468,6 +483,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
             
             if Fargcollect
                 [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
+                fgamma=full(fgamma) ;
                 nFuncEval=nFuncEval+1;
                 
                 if ~isempty(listOutF) && ~isempty(listInF)
@@ -475,6 +491,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
                 end
             else
                 fgamma=Func(gamma);
+                fgamma=full(fgamma) ;
                 nFuncEval=nFuncEval+1;
             end
             b=gamma ; fb=fgamma ; % this shifts b to the right
@@ -493,6 +510,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
             
             if Fargcollect
                 [fgamma,varargout{1:nOut-1}]=Func(gamma,varargin{1:end}) ;
+                fgamma=full(fgamma) ;
                 nFuncEval=nFuncEval+1; 
                 
                 if ~isempty(listOutF) && ~isempty(listInF)
@@ -503,6 +521,7 @@ while (fgamma>target || fLastReduction < CtrlVar.BackTrackContinueIfLastReductio
                     error("BackTrack:nan","nan in gamma")
                 end
                 fgamma=Func(gamma);
+                fgamma=full(fgamma) ;
                 nFuncEval=nFuncEval+1; 
             end
             
@@ -647,9 +666,10 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         gammaTestVector=linspace(Lower,Upper,nnn) ;
         dx=min(Infovector(2:end,1)/10) ;
         gammaTestVector=[Lower,dx/1000,dx/50,dx,2*dx,gammaTestVector(2:end)];
-        parfor I=1:numel(gammaTestVector)
+        for I=1:numel(gammaTestVector)  % parfor does not work if using MUA.Workers as composites not supported within a parfor loop
             gammaTest=gammaTestVector(I);
             rTest=Func(gammaTest);
+            rTest=full(rTest);
             gammaTestVector(I)=gammaTest ;
             rTestVector(I)=rTest;
         end

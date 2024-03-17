@@ -19,13 +19,14 @@ function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 
 CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 I=0; L=[];
-PlotMuaMesh(CtrlVar,MUA,[],varargin{:})  ; hold on
+PlotMuaMesh(CtrlVar,MUA,nan,varargin{:})  ; hold on
 
 x=MUA.coordinates(:,1)/CtrlVar.PlotXYscale; y=MUA.coordinates(:,2)/CtrlVar.PlotXYscale;
 
 velscale=min([max(x)-min(x) ; max(y)-min(y)])/30;
 velscale=velscale*CtrlVar.BoundaryConditionsFixedNodeArrowScale;
 headscale=0.3; sharp=0.3; head=1; lw=1; io=-1; col='r';
+
 
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
     
@@ -129,11 +130,12 @@ end
 if ~isempty(BCs.hFixedNode)
     xfixed=x(BCs.hFixedNode); yfixed=y(BCs.hFixedNode);
     plot(xfixed,yfixed,'oc','MarkerFaceColor','c')
+     I=I+1 ; L{I}=plot(xfixed,yfixed,'oc','MarkerFaceColor','c','DisplayName','$h$'); 
 end
 
 if ~isempty(BCs.hPosNode)
     xfixed=x(BCs.hPosNode); yfixed=y(BCs.hPosNode);
-    I=I+1 ; L{I}=plot(xfixed,yfixed,'*b','MarkerFaceColor','b','DisplayName','$h$'); 
+    I=I+1 ; L{I}=plot(xfixed,yfixed,'*b','MarkerFaceColor','b','DisplayName','$h_{\mathrm{min}}$'); 
 end
 
 
@@ -147,12 +149,12 @@ end
 
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
 title(...
-    sprintf('Boundary conditions: \n Arrows represent fixed ub,vb, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and grean lines are (ub,vb,h) nodal ties (%i,%i,%i)',...
+    sprintf('Boundary conditions: \n Arrows represent fixed $u_b$,$v_b$, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are $(u_b,v_b,h)$ nodal ties (%i,%i,%i)',...
     numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
-    'FontSize',9)
+    'FontSize',9,Interpreter='latex')
 elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
     title(...
-    sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and grean lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
+    sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
     numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
     'FontSize',9)
 end
@@ -163,5 +165,17 @@ else
     lgd=[]; 
 end
 
+%%
+% x=MUA.coordinates(:,1) ;   y=MUA.coordinates(:,2) ; 
+% x=x(BCs.ubFixedNode) ;  y=y(BCs.ubFixedNode) ; 
+% ub=BCs.ubFixedValue ; vb=BCs.vbFixedValue ;
+% figure
+% [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(x,y,ub,vb,CtrlVar) ;
+% %%
+
+
+if nargout==0
+    clearvars lgd
+end
 
 end

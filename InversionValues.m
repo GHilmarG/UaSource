@@ -8,6 +8,7 @@ classdef InversionValues
         n=[];
         q=[];
         muk=[];
+        V0=[];
         C=[];
         AGlen=[];
         B=[];

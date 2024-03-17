@@ -11,11 +11,11 @@ function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 %  ab is :    abMin for F.b>dMin
 %             abMax for F.b<dMax
 %
-%  and varies linearly inbetween.
+%  and varies linearly in between.
 %
 %
 % These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in
-% previous publicatioins.
+% previous publications.
 %
 %
 % Note !!!

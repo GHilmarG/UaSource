@@ -26,7 +26,7 @@ function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 %%
 
 if nargin < 4 || isempty(CtrlVar)
-    CtrlVar.PlotLabels=0;
+    CtrlVar(1).PlotLabels=0;
     CtrlVar.MeshColor='k';
     CtrlVar.NodeColor='k';
     CtrlVar.PlotXYscale=1;

@@ -66,7 +66,7 @@ else
 
     if ab(1) == 0 || ~isreal(xmin) || isnan(xmin)
 
-        if ~isnan(Slope0)
+        if ~isnan(Slope)
             D=((y1-y0)/x1-Slope) ;
             xmin=-x1*Slope/2/D;
             if ~isnan(xmin)

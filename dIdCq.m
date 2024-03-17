@@ -48,6 +48,12 @@ else
     muknod=mnod*0 ;
 end
 
+if ~isempty(F.V0)
+    V0nod=reshape(F.V0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+else
+    V0nod=mnod*0 ;
+end
+
 
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -74,6 +80,7 @@ for Iint=1:MUA.nip
     mint=mnod*fun;
     qint=qnod*fun;
     mukint=muknod*fun;
+    V0int=V0nod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
     Hint=Sint-Bint;
@@ -94,7 +101,7 @@ for Iint=1:MUA.nip
     % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
-        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint);
+        BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
     
     if ~CtrlVar.DevelopmentVersion

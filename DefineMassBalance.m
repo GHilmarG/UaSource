@@ -2,6 +2,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 
 
 %%
+%
 % Defines mass balance along upper and lower ice surfaces.
 %
 %   [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,time,s,b,h,S,B,rho,rhow,GF)
@@ -10,18 +11,45 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 %
 %   [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time,s,b,h,S,B,rho,rhow,GF);
 %
+%   [UserVar,as,ab,dasdh,dabdh]=DefineMassBalance(UserVar,CtrlVar,MUA,F);
+%
 %   as        mass balance along upper surface 
 %   ab        mass balance along lower ice surface
-%   dasdh     upper surface mass balance gradient with respect to ice thickness
-%   dabdh     lower surface mass balance gradient with respect to ice thickness
+%   dasdh     upper surface mass balance gradient with respect to ice thickness (optional)
+%   dabdh     lower surface mass balance gradient with respect to ice thickness (optional)
 %  
-% dasdh and dabdh only need to be specified if the mass-balance feedback option is
-% being used. 
+% dasdh and dabdh only need to be specified if the implicit mass-balance feedback option is
+% being used. To use the implicit mass-balance feedback option you must set
 %
-% In Úa the mass balance, as returned by this m-file, is multiplied internally by the local ice density. 
+%   CtrlVar.MassBalanceGeometryFeedback=3;
 %
-% The units of as and ab are water equivalent per time, i.e. usually
-% as and ab will have the same units as velocity (something like m/yr or m/day).
+% in DefineInitialInputs.m. Otherwise, the default value of 
+%
+%   CtrlVar.MassBalanceGeometryFeedback=0;
+%
+% is used, which does not include the implicit mass-balance feedback.
+%
+%
+% IMPORTANT: In Ua the mass balance, as returned by this m-file, is multiplied internally by the local ice density. 
+%
+% The units of as and ab are the same units as those of velocity (something like m/yr or m/day).
+%
+% IMPORTANT: Often surface mass balance is provided my climate models as mass flux and in the units kg/(m^2 yr).  This is as
+% if we prescribe the value of the product of density and accumulation rate, ie rho a, which has the units kg/(m^2 yr). In Ua
+% this translation to mass flux is done internally, i.e. the rho is included in the mass conservation equation. The surface
+% mass balance (as and ab) prescribed here as an input to Ua MUST BE IN THE UNITS distance/time, e.g. m/yr.
+%
+% If you have external data sets providing the mass flux in the units kg/(m^2 yr) you must divide those values here by the
+% density, and this density must be the same density as is given in DefineGeometryAndDensities.m
+%
+% Also, if an external data sets provides the surface mass balance in the units of water equivalent, you must modify this
+% value by the ratio between the density of water and the density of ice that you prescribe in DefineGeometryAndDensities.m,
+% for example as 1000/rho, assuming rho is given in the units kg/m^3.
+%
+% For example, if you use a constant density for ice of 920 kg/m^3 and the surface mass balance is given as 1 m/yr of water
+% equivalent (ie 1000 kg/(m^2 yr) ), the surface mass balance you need here is 1000/920 m/yr.
+%
+%
 %
 % As in all other calls:
 %
@@ -29,9 +57,9 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 %  F.b       : lower ice surface
 %  F.B       : bedrock
 %  F.S       : ocean surface
-%  F.rhow    :  ocean density (scalar variable)
-%  F.rho     :  ice density (nodal variable)
-%  F.g       :  gravitational acceleration
+%  F.rhow    : ocean density (scalar variable)
+%  F.rho     : ice density (nodal variable)
+%  F.g       : gravitational acceleration
 %  F.x       : x nodal coordinates 
 %  F.y       : y nodal coordinates 
 %  F.GF      : The nodal grounded/floating mask (has other subfields)
@@ -59,10 +87,20 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 %   ab=F.s*0;
 %   dabdh=zeros(MUA.Nnodes,1);
 %
+% Note: To use the implicit mass-balance feedback option you must set
+%
+%   CtrlVar.MassBalanceGeometryFeedback=3;
+%
+% in DefineInitialInputs.m. Otherwise, the default value of 
+%
+%   CtrlVar.MassBalanceGeometryFeedback=0;
+%
+% is used, which does not include the implicit mass-balance feedback.
+%
 % *To add basal melt due to sliding as a mass-balance term:* 
 %
 %   [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,F.C,F.m,F.GF);
-%   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gramm = kJ/kg]  Make sure that the units are correct.
+%   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gram = kJ/kg]  Make sure that the units are correct.
 %   F.ab=-(tbx.*F.ub+tby.*F.vb)./(F.rho.*L);          % Ablation (Melt) is always negative, accumulation is positive
 %
 % 
