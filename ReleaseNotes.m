@@ -7,7 +7,7 @@
 % Positive thickness constraints --- added dynamically when using the active-set option --- are not added to nodes already
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
-% with thickness less than CtrlVar.ThicMin, even if
+% with thickness less than CtrlVar.ThicMin.
 %
 %
 %
@@ -307,7 +307,7 @@
 % _February 2020_
 %
 %
-% * �a can now be called with CtrlVar as second argument, e.g 
+% * Úa can now be called with CtrlVar as second argument, e.g 
 %
 %   Ua([],CtrlVar) 
 %
@@ -335,7 +335,7 @@
 % * Inversion can be done using all implemented sliding laws except Coulomb. 
 % 
 %
-% * u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the
+% * u, v and h residuals now calculated in the L2 norm instead of the l2 norm as in the
 % past. 
 %
 % *New user input file options:*
