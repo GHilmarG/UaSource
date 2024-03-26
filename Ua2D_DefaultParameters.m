@@ -2135,7 +2135,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %
 % Note: Generally it appears that the parfor option does not speed up the assembly.
 %       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
-%       sometimes 20 to 25 times faster. However, the problem needs to be of a certain size for this speedup to be observed.
+
 %
 %       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
 %       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
