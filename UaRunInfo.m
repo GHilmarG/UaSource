@@ -47,20 +47,20 @@ classdef (ConstructOnLoad) UaRunInfo
 
 
             N=2; % initial memory allocation
-            obj.Forward.time=zeros(N,1)+NaN;
-            obj.Forward.dt=zeros(N,1)+NaN;
+            obj.Forward.time=NaN(N,1);
+            obj.Forward.dt=NaN(N,1);
             obj.Forward.uvhConverged=false;
-            obj.Forward.uvhIterations=zeros(N,1)+NaN;
-            obj.Forward.uvhResidual=zeros(N,1)+NaN;
-            obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
-            obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
-            obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
-            obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+            obj.Forward.uvhIterations=NaN(N,1);
+            obj.Forward.uvhResidual=NaN(N,1);
+            obj.Forward.uvhBackTrackSteps=NaN(N,1);
+            obj.Forward.uvhActiveSetIterations=NaN(N,1);
+            obj.Forward.uvhActiveSetCyclical=NaN(N,1);
+            obj.Forward.uvhActiveSetConstraints=NaN(N,1);
 
             obj.Forward.hConverged=0;
             obj.Forward.hIterations=NaN(N,1);
             obj.Forward.hResidual=NaN(N,1);
-            obj.Forward.hBackTrackSteps=zeros(N,1)+NaN;
+            obj.Forward.hBackTrackSteps=NaN(N,1);
             obj.Forward.hiCount=0;
 
 
@@ -79,10 +79,10 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.BackTrack.nExtrapolationSteps=NaN;
 
             obj.LevelSet.iCount=0;
-            obj.LevelSet.time=zeros(N,1)+NaN;
-            obj.LevelSet.Iterations=zeros(N,1)+NaN;
-            obj.LevelSet.Residual=zeros(N,1)+NaN;
-            obj.LevelSet.BackTrackSteps=zeros(N,1)+NaN;
+            obj.LevelSet.time=NaN(N,1);
+            obj.LevelSet.Iterations=NaN(N,1);
+            obj.LevelSet.Residual=NaN(N,1);
+            obj.LevelSet.BackTrackSteps=NaN(N,1);
             obj.LevelSet.Phase=strings(N,1);
 
             obj.CPU.Total=0;
@@ -199,14 +199,14 @@ classdef (ConstructOnLoad) UaRunInfo
             if ~isfield(s.Forward,'uvhIterations')
 
                 N=2; % initial memory allocation
-                obj.Forward.time=zeros(N,1)+NaN;
-                obj.Forward.dt=zeros(N,1)+NaN;
-                obj.Forward.uvhIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhResidual=zeros(N,1)+NaN;
-                obj.Forward.uvhBackTrackSteps=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetIterations=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetCyclical=zeros(N,1)+NaN;
-                obj.Forward.uvhActiveSetConstraints=zeros(N,1)+NaN;
+                obj.Forward.time=NaN(N,1);
+                obj.Forward.dt=NaN(N,1);
+                obj.Forward.uvhIterations=NaN(N,1);
+                obj.Forward.uvhResidual=NaN(N,1);
+                obj.Forward.uvhBackTrackSteps=NaN(N,1);
+                obj.Forward.uvhActiveSetIterations=NaN(N,1);
+                obj.Forward.uvhActiveSetCyclical=NaN(N,1);
+                obj.Forward.uvhActiveSetConstraints=NaN(N,1);
 
             end
 

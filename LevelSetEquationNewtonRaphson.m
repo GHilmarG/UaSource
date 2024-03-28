@@ -267,11 +267,11 @@ end
 
 
 
-RunInfo.LevelSet.time(RunInfo.LevelSet.iCount)=CtrlVar.time;
-RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount)=iteration ;
-RunInfo.LevelSet.Residual(RunInfo.LevelSet.iCount)=r;
-RunInfo.LevelSet.BackTrackSteps( RunInfo.LevelSet.iCount)=BackTrackInfo.iarm ;
-RunInfo.LevelSet.Phase(RunInfo.LevelSet.iCount)=CtrlVar.LevelSetPhase;
+RunInfo.LevelSet.time(RunInfo.LevelSet.iCount,1)=CtrlVar.time;
+RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount,1)=iteration ;
+RunInfo.LevelSet.Residual(RunInfo.LevelSet.iCount,1)=r;
+RunInfo.LevelSet.BackTrackSteps( RunInfo.LevelSet.iCount,1)=BackTrackInfo.iarm ;
+RunInfo.LevelSet.Phase(RunInfo.LevelSet.iCount,1)=CtrlVar.LevelSetPhase;
 
 
 
