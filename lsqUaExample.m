@@ -32,13 +32,13 @@ function lsqUaExample
 %
 % and the Newton system is 
 %
-% $$ K' K \Delta x =  -K' \mathbf{R}$  
+% $$ K' K \Delta x =  -K' \mathbf{R}$$  
 %
 % If $K$ is $n \times n$ and invertable, this is same as solving
 %
 % $$ K \Delta x = - \mathbf{R} $$
 %
-% and gives the same update and the same direction.
+% and gives the same Newton update and the same Newton direction.
 %
 % 
 % However, when finding the Cauchy step we must search in the direction
@@ -94,7 +94,9 @@ CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.ScaleProblem=true;
 CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
-CtrlVar.lsqUa.Algorithm="DogLeg" ;
+CtrlVar.lsqUa.Algorithm="DogLeg" ; % ["LevenbergMarquardt"|"DogLeg"]
+CtrlVar.lsqUa.Algorithm="LevenbergMarquardt";
+
 CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
 % CtrlVar.lsqUa.DogLeg="-Newton-" ; 
 CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
@@ -102,7 +104,7 @@ CtrlVar.lsqUa.DogLeg="-Cauchy-" ;
 
 CompareWithMatlabOpt=false;
 
-CtrlVar.InfoLevelBackTrack=10000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
+CtrlVar.InfoLevelBackTrack=1;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
 
 
 % xSol =
@@ -170,7 +172,8 @@ if numel(xSol)==2
     end
 
 
-    flsqUa=FindOrCreateFigure("lsqUa test") ; clf(flsqUa) ;
+    flsqUa=FindOrCreateFigure("lsqUa test") ; 
+    
     f=log10(RR); 
     contourf(x1Vector,x2Vector,f',50,LineStyle="none") ; 
     axis equal tight; 
@@ -178,16 +181,23 @@ if numel(xSol)==2
     title(cbar,"$\log_{10} \|R^2\|$",interpreter="latex")
     axis([xmin xmax ymin ymax])
     hold on  ;
-    if isConstraint
-        plot(x1Vector,c-a*x1Vector,'r')
+
+    if CtrlVar.lsqUa.Algorithm=="LevenbergMarquardt"
+        Col="r";
+    else
+        Col="m";
     end
 
-    plot(xSol(1),xSol(2),'o',MarkerFaceColor='r',MarkerEdgeColor="w",MarkerSize=12)
+    if isConstraint
+        plot(x1Vector,c-a*x1Vector,Col)
+    end
+
+    plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
     plot(output.xVector(1,:),output.xVector(2,:),color="r")
     for I=1:output.nIt
 
         % plot(output.xVector(1,I),output.xVector(2,I),'+r')
-        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color="r")
+        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color=Col)
 
         % txt = input("RET to continue\n") ;
 

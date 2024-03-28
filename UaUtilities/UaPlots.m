@@ -44,7 +44,7 @@ arguments
     CtrlVar struct
     MUA     struct
     F       {mustBeA(F,{'struct','UaFields','numeric'})}
-    Variable {mustBeA(Variable,{'string','numeric'})}
+    Variable {mustBeA(Variable,{'string','numeric','logical'})}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"

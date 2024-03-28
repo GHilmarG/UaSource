@@ -1,7 +1,8 @@
-function [R,K]=fRK(x,problemtype)
+function [R,K,outs]=fRK(x,problemtype)
 
 x=x(:) ;
 
+outs=[]; % various other outputs variables can be 
 % nargout
 
 switch problemtype
