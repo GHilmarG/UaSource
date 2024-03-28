@@ -27,7 +27,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLev
 %   lsqUaExample
 %
 %%
-if isempty(CtrlVar) || ~isstruct(CtrlVar)
+
 
     ItMax=5;
     gTol=1e-20;
@@ -36,34 +36,76 @@ if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
     isLSQ=true;
     Normalize=false ;
-    SaveIterate=true; 
+    SaveIterate=false;  
     LevenbergMarquardt="auto" ; % "fixed"
+    CostMeasure="R2" ; % "r2"
+
     LMlambda=1 ;
     ScaleProblem=false;
     LMlambdaUpdateMethod=1; 
 
 
-else
+if ~isempty(CtrlVar) && isstruct(CtrlVar)
 
-    ItMax=CtrlVar.lsqUa.ItMax ;
-    gTol=CtrlVar.lsqUa.gTol ;
-    dR2Tol=CtrlVar.lsqUa.dR2Tol ;
-    dxTol=CtrlVar.lsqUa.dxTol ;
+    if isfield(CtrlVar.lsqUa,"ItMax")
+        ItMax=CtrlVar.lsqUa.ItMax ;
+    end
 
-    isLSQ=CtrlVar.lsqUa.isLSQ ;
-    Normalize=CtrlVar.lsqUa.Normalize;
-    LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
-    LMlambda=CtrlVar.lsqUa.LMlambda0 ;
-    ScaleProblem=CtrlVar.lsqUa.ScaleProblem; 
+    if isfield(CtrlVar.lsqUa,"gTol")
+        gTol=CtrlVar.lsqUa.gTol ;
+    end
 
-    LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
+    if isfield(CtrlVar.lsqUa,"dR2Tol")
 
-    SaveIterate=CtrlVar.lsqUa.SaveIterate;
+        dR2Tol=CtrlVar.lsqUa.dR2Tol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"dxTol")
+        dxTol=CtrlVar.lsqUa.dxTol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"isLSQ")
+        isLSQ=CtrlVar.lsqUa.isLSQ ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"Normalize")
+        Normalize=CtrlVar.lsqUa.Normalize;
+    end
+
+    if isfield(CtrlVar.lsqUa,"SaveIterate")
+        SaveIterate=CtrlVar.lsqUa.SaveIterate;
+    end
+
+    if isfield(CtrlVar.lsqUa,"LevenbergMarquardt")
+        LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
+    end
+    
+   if isfield(CtrlVar.lsqUa,"CostMeasure")
+        CostMeasure=CtrlVar.lsqUa.CostMeasure;
+   end
+
+    if isfield(CtrlVar.lsqUa,"LMlambda0")
+        LMlambda=CtrlVar.lsqUa.LMlambda0 ;
+
+    end
+
+    if isfield(CtrlVar.lsqUa,"ScaleProblem")
+        ScaleProblem=CtrlVar.lsqUa.ScaleProblem;
+    end
+
+    if isfield(CtrlVar.lsqUa,"LMlambdaUpdateMethod")
+        LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
+
+    end
+
+
 
 end
 
 R2Array=nan(ItMax+1,1) ;
-g2Array=nan(ItMax+1,1) ;
+r2Array=nan(ItMax+1,1) ;
+dxArray=nan(ItMax+1,1) ;
+
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
 Slope0=nan ; % need to calculate final slope
@@ -76,7 +118,7 @@ if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estima
     if BCres>1e-6   % make feasable
         x=L\c ;
     end
-    if isempty(lambda)  || isnan(lambda)
+    if isempty(lambda)  || any(isnan(lambda))
         lambda=c*0;
     end
 end
@@ -103,7 +145,7 @@ end
 %%
 
 % Evaluate cost function, don't solve system
-[R,K]=fun(x) ;
+[R,K,funOuts]=fun(x) ;
 
 if isLSQ
     g =- (2*K'*R + LTlambda) ;
@@ -118,13 +160,17 @@ else
 end
 
 R2=full(R'*R); 
-r2 = full(g'*g)/Normalisation;
+% r2 = full(g'*g)/Normalisation;
+r2=full([g;h]'*[g;h])/Normalisation ;
 
 
 
 
-g2Array(1)=r2;
+
+r2Array(1)=r2;
 R2Array(1)=R2;
+dxArray(1)=nan; % not sure I need this, because of I increase the iteration
+
 if SaveIterate
     xVector=nan(numel(x),100);
     xVector(:,1)=x(:) ;
@@ -172,7 +218,7 @@ while iteration <= ItMax
 
     R0=R ; K0=K ; g0=g ; h0=h ; % If I reject the step, I need to reuse these variables
 
-    [R,K]=fun(x) ;
+    [R,K,funOuts]=fun(x) ;
 
     if ~isempty(L)
         LTlambda=L'*lambda ;
@@ -190,7 +236,8 @@ while iteration <= ItMax
 
 
     g2Old=r2;  R2Old=R2;
-    r2=full(g'*g)/Normalisation ;
+    % r2=full(g'*g)/Normalisation ;
+    r2=full([g;h]'*[g;h])/Normalisation ;
     R2=full(R'*R);
 
     rho=(R2-R2Old)/Q;      % Actual reduction / Modelled Reduction
@@ -246,8 +293,10 @@ while iteration <= ItMax
         LMlambda=nan;
     end
 
-    g2Array(iteration+1)=r2;
+    r2Array(iteration+1)=r2;
     R2Array(iteration+1)=R2;
+    dxArray(iteration)=dxNorm ;
+
     if SaveIterate
         xVector(:,iteration+1)=x(:) ;
     end
@@ -284,13 +333,22 @@ end
 
 fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
+if CostMeasure=="R2"
+    residual=R2;
+elseif CostMeasure=="r2"
+    residual=r2;
+else
+    error("what cost measure?")
+end
 
-residual=R ;
-output.g2Array=g2Array;
+output.r2Array=r2Array;
 output.R2Array=R2Array;
+output.dxArray=dxArray;
+output.Slope0Array=nan; 
+
 output.xVector=xVector; 
 output.nIt=iteration; 
-
+output.fun=funOuts ; 
 
 
 end
