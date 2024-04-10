@@ -208,7 +208,7 @@ else
         
     else % New forward run (ie not a restart)
         
-        
+        CtrlVar.CurrentRunStepNumber=1; 
         RunInfo.Message="Getting inputs for a new forward run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
