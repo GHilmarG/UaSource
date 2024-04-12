@@ -2,9 +2,9 @@
 
 
 
-function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F)
+function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,BCs)
 
-narginchk(3,3)
+narginchk(4,4)
 
 persistent iCount
 
@@ -30,7 +30,7 @@ MUA.dM=[] ;
 tAssembly=tic;
 MUAworkers=MUA.workers; 
 spmd (nW)
-    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUAworkers,F);
+    [rr,kk]=uvMatrixAssemblySSTREAM(CtrlVar,MUAworkers,F,BCs);
 end
 tAssembly=toc(tAssembly);
 

@@ -120,7 +120,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
  
     CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
     % fext0=KRTFgeneralBCs(CtrlVar,MUA,F);            % RHS with velocities set to zero, i.e. only external forces
-    [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);   % RHS with velocities set to zero, i.e. only external forces
+    [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);   % RHS with velocities set to zero, i.e. only external forces
     %% New normalization idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
     % then calculate the const function for this value and use as normalisation
@@ -136,7 +136,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
     % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     
-    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);  % RHS with calculated velocities, i.e. difference between external and internal forces
+    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);  % RHS with calculated velocities, i.e. difference between external and internal forces
 
     RunInfo.CPU.Solution.uv=0;
 
@@ -202,14 +202,14 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
           
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
             % [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
-            [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
+            [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);
             dAtilde=[]; 
 
         else
           
             CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
             % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-            [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F);
+            [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);
             
              CtrlVar.NRuvIncomplete=1;
             

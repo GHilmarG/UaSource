@@ -4,20 +4,24 @@
 
 
 
-function [RunInfo,Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F)
+function [RunInfo,Ruv,Kuv,Tint,Fext]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs)
 
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-narginchk(4,4)
+narginchk(4,5)
 nargoutchk(2,4)
 
 
 
 if nargout==2 && ~CtrlVar.uvMatrixAssembly.Ronly
     error("KRTFgeneralBCs: More than one output, but assembly only required for R. ")
+end
+
+if nargin==4
+    BCs=[];
 end
 
 tAssembly=tic;
@@ -29,16 +33,16 @@ switch lower(CtrlVar.FlowApproximation)
 
         if CtrlVar.Parallel.uvAssembly.parfeval.isOn
 
-            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F);
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_Parfeval(CtrlVar,MUA,F,BCs);
 
         elseif CtrlVar.Parallel.uvAssembly.spmd.isOn
 
 
-            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F);
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,BCs);
 
         else  % this is the otherwise default sequential assembly
 
-            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F) ;
+            [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs) ;
 
         end
 
@@ -49,12 +53,12 @@ switch lower(CtrlVar.FlowApproximation)
 
             % There might be an argument for doing this a few times, but if one does a number of NR iterations, which generally is the
             % case, then that should not be needed.
-            tSeq=tic ;  [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F); tSeq=toc(tSeq) ;
+            tSeq=tic ;  [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs); tSeq=toc(tSeq) ;
 
 
             if CtrlVar.Parallel.uvAssembly.spmd.isOn
 
-                tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F); tSPMD=toc(tSPMD) ;
+                tSPMD=tic ;  [RuvSPMD,KuvSPMD,Tint,Fext]=uvMatrixAssemblySSTREAM_SPMD(CtrlVar,MUA,F,BCs); tSPMD=toc(tSPMD) ;
                
             end
 
@@ -76,7 +80,7 @@ switch lower(CtrlVar.FlowApproximation)
 
     case "sstream-rho"
 
-        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrho(CtrlVar,MUA,F) ;
+        [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAMrho(CtrlVar,MUA,F,BCs) ;
 
     otherwise
 

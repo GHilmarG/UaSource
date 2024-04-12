@@ -238,7 +238,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
     CtrlVar.uvMinimisationQuantity="Force Residuals" ;  
     CtrlVar.BacktracFigName="Line Search in Cauchy M direction" ;
 
-    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+    CtrlVar.LineSearchAllowedToUseExtrapolation=false;
     CtrlVar.NewtonAcceptRatio=0.9; % use the Armijo's condition based on slope0
     CtrlVar.BacktrackingGammaMin=1e-10 ; 
     [gammaminCauchyM,rminCauchyM,BackTrackInfoCauchyM]=BackTracking(CauchyMSlope0,gammaCauchyM,r0,rCauchyM,funcCauchyM,CtrlVar);

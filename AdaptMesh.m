@@ -413,7 +413,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
     hold on ;  PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
-    title(sprintf('Before remeshing \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+    title(sprintf('Before remeshing \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod),Interpreter="latex")
     axis tight
 
     subplot(2,1,2)
@@ -421,7 +421,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     xGL=[] ; yGL=[]; GLgeo=[];
     CtrlVar.PlotGLs=1;
     PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
-    title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+    title(sprintf('After remeshing  \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod),Interpreter="latex")
     hold on ;  PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     axis tight
