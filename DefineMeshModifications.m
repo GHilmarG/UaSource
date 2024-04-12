@@ -1,10 +1,12 @@
-function [coordinates,connectivity]=DefineMeshModifications(CtrlVar,coordinates,connectivity)
+function  [UserVar,coordinates,connectivity]=DefineMeshModifications(UserVar,CtrlVar,coordinates,connectivity);
+
+
 
 %%
 % This m-file is called directly after each meshing step to allow for 
 % further modifications of the FE mesh.
 %
-% [coordinates,connectivity]=UserMeshModifications(CtrlVar,coordinates,connectivity)
+%  [UserVar,coordinates,connectivity]=DefineMeshModifications(UserVar,CtrlVar,coordinates,connectivity);
 %
 % A typical use is to deactivate some elements. 
 % When deactivating elements, use the m-file 
