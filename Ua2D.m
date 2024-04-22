@@ -623,6 +623,10 @@ while 1
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
             end
 
+            if CtrlVar.time>=0.1026
+                fprintf("here the error on Worker 32 occured in uvhMatrixAssemblySSTREAM_SPMD line 19 \n")
+            end
+            MUA.workers{32}.Nele
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 
