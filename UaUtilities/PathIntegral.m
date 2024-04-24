@@ -10,34 +10,38 @@ function [Qn,Qt,qn,qt,xc,yc,normal,t]=PathIntegral(CtrlVar,x,y,qx,qy)
 %
 %
 % Qn    : total summed flux normal to the curve
+%
 % Qt    : total summed flux tangential to the curve
 %
 % qn    : normal flux for each line segment
+%
 % qt    : tangential flux for each line segment
 %
+% 
+% 
 %
 % qx and qy can be either:
-%         1) vectors with the q values at the locations (x,y)
-%         2) interpolants providing qx and qy values at (x,y)
-%
-%
-%
+% 
+% # vectors with the q values at the locations (x,y) ,or
+% # interpolants providing qx and qy values at (x,y)
+% 
 %
 % Example:
 %
 % 
-% BoundaryNodes=MUA.Boundary.EdgeCornerNodes ;      % Here the boundary is defined as the boundary of the mesh
-%                                                   % But note that this only includes corner nodes
-% BoundaryNodes=[BoundaryNodes;BoundaryNodes(1)] ;  % Make sure to close the loop
-% BoundaryNodes=flipud(BoundaryNodes) ;             % Depending on the desired orientation of the normals, it might be
-%                                                   % required to flip the orientation of the curve.
+%   BoundaryNodes=MUA.Boundary.EdgeCornerNodes ;      % Here the boundary is defined as the boundary of the mesh
+%                                                     % But note that this only includes corner nodes
+%   BoundaryNodes=[BoundaryNodes;BoundaryNodes(1)] ;  % Make sure to close the loop
+%   BoundaryNodes=flipud(BoundaryNodes) ;             % Depending on the desired orientation of the normals, it might be
+%                                                     % required to flip the orientation of the curve.
 % 
-% [Qn,Qt,qn,qt,xc,yc,normal]=PathIntegral(CtrlVar,F.x(BoundaryNodes),F.y(BoundaryNodes),qxN(BoundaryNodes),qyN(BoundaryNodes));
+%   [Qn,Qt,qn,qt,xc,yc,normal]=PathIntegral(CtrlVar,F.x(BoundaryNodes),F.y(BoundaryNodes),qxN(BoundaryNodes),qyN(BoundaryNodes));
 % 
 % Example using interpolants
 %
-% Fqx=scatteredInterpolant(F.x,F.y,qx) ;  Fqy=scatteredInterpolant(F.x,F.y,qy) ;
-% [Qn,Qt,qn,qt,xc,yc,normal]=PathIntegral(CtrlVar,F.x(BoundaryNodes),F.y(BoundaryNodes),Fqx,Fqy);
+%   qx=F.h.*F.ub ;  qy=F.h.*F.vb ; 
+%   Fqx=scatteredInterpolant(F.x,F.y,qx) ;  Fqy=scatteredInterpolant(F.x,F.y,qy) ;
+%   [Qn,Qt,qn,qt,xc,yc,normal]=PathIntegral(CtrlVar,F.x(BoundaryNodes),F.y(BoundaryNodes),Fqx,Fqy);
 %
 %
 % Note: This simple routine just takes the (x,y) values provided, and does not subdivide the curve further. To create set of

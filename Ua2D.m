@@ -290,6 +290,7 @@ if CtrlVar.doInverseStep   % -inverse
 
     fprintf('\n =========================   Inverting for model parameters. =========================  \n')
 
+    CtrlVar.Parallel.BuildWorkers=true;
     MUA=UpdateMUA(CtrlVar,MUA);
 
     RunInfo.CPU.Inversion=tic;
@@ -303,6 +304,8 @@ if CtrlVar.doInverseStep   % -inverse
     F.n=InvFinalValues.n ;
     
   
+    
+    
     [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     
@@ -501,7 +504,10 @@ while 1
 
         RunInfo.Message="-RunStepLoop- Diagnostic step. Solving for velocities.";
         CtrlVar.RunInfoMessage=RunInfo.Message;
-   
+
+        CtrlVar.Parallel.BuildWorkers=true;
+        MUA=UpdateMUA(CtrlVar,MUA);
+
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
@@ -560,16 +566,19 @@ while 1
                     RunInfo.Forward.IterationsTotal,datetime('now'),...
                     duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
             end
-            
-            
+
+
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
                 CtrlVar.InitialDiagnosticStep=0;
-                
+
                 fprintf(CtrlVar.fidlog,' initial diagnostic step at t=%-.15g \n ',CtrlVar.time);
-              
+
+
+                CtrlVar.Parallel.BuildWorkers=true;
+                MUA=UpdateMUA(CtrlVar,MUA);
                 [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-                
+
                 
                 %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;
                 
@@ -623,10 +632,8 @@ while 1
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
             end
 
-            if CtrlVar.time>=0.1026
-                fprintf("here the error on Worker 32 occured in uvhMatrixAssemblySSTREAM_SPMD line 19 \n")
-            end
-            MUA.workers{32}.Nele
+            CtrlVar.Parallel.BuildWorkers=true;
+            MUA=UpdateMUA(CtrlVar,MUA);
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 

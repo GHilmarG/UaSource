@@ -26,6 +26,9 @@ isNewOutsideNodes=false  ; % true if during remeshing, in particular during manu
 xGLold=[] ; yGLold=[]; GLgeoold=[];
 %%
 
+CtrlVar.Parallel.BuildWorkers=false ; % don't build workers during adapt meshing, only do so ahead of a uv or uvh solve
+
+%%
 
 
 if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"
@@ -487,7 +490,10 @@ else
 end
 
 if isRecalculateVelocities
+    CtrlVar.Parallel.BuildWorkers=true;  % ahead of a uv call I may need to update workes
+    MUAnew=UpdateMUA(CtrlVar,MUAnew);
     [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+    CtrlVar.Parallel.BuildWorkers=false;
 end
 
 

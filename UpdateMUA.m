@@ -251,29 +251,8 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
     poolobj = gcp;
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 
+    MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
 
-
-
-    if ~isfield(MUA,"workers")  || isempty(MUA.workers) || numel(MUA.workers) ==0
-        MUA.workers=[];
-        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
-    else
-
-        % Not clear to me how to test if composite is in a correct state.
-        % The only option seems to be just to try to access it and see if it produces an error.
-        try
-            isCompoositeInCorrectState=MUA.workers{1}.Nnodes==MUA.Nnodes ;
-        catch
-            isCompoositeInCorrectState=false;
-        end
-
-        if ~isCompoositeInCorrectState
-            MUA.workers=[];
-            MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
-        end
-
-
-    end
 end
 
 

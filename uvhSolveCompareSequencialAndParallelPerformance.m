@@ -29,7 +29,6 @@ RunInfo.CPU.Assembly.uvh=0 ;  RunInfo.CPU.Solution.uvh=0 ; % Again, reset this c
 
 
 tSeq=tic ;
-
 [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 tSeq=toc(tSeq);
 
@@ -38,17 +37,20 @@ tSolveSeq=RunInfo.CPU.Solution.uvh ;
 
 %% Summarize info
 [status,hostname]=system('hostname');
-fprintf("\n \n Comparision between sequential and parallel uvh solve using the user-defined parallel options set in DefineInitialInputs.m \n ")
-fprintf("Machine: %s \n #Elements=%i \t #Nodes=%i \t #Workers=%i \t \n",hostname,MUA.Nele,MUA.Nnodes,CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
+hostname=strtrim(convertCharsToStrings(hostname)) ;
+fprintf("\n \n ------------- Comparision between sequential and parallel uvh solve using the user-defined parallel options set in DefineInitialInputs.m ------------ \n ")
+fprintf("Machine: %s :  #Elements=%i \t #Nodes=%i \t #Workers=%i \t \n",hostname,MUA.Nele,MUA.Nnodes,CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
 fprintf(" Note: Parallel options not switched on by user are not used in the parallel solve.\n")
-fprintf(" uvh Solve:  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n",tSeq,tParallel,tSeq/tParallel)
+fprintf(" uvh-Solve (total time):  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n",tSeq,tParallel,tSeq/tParallel)
 
 if User.CtrlVar.Parallel.uvhAssembly.spmd.isOn
-    fprintf("  assembly:  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n",tAssemblySeq,tAssemblyPar,tAssemblySeq/tAssemblyPar)
+    fprintf("              assembly:  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n",tAssemblySeq,tAssemblyPar,tAssemblySeq/tAssemblyPar)
 end
 
 if User.CtrlVar.Parallel.Distribute
     fprintf("  linsolve:  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n \n",tSolveSeq,tSolvePar,tSolveSeq/tSolvePar)
+else
+   fprintf("  distributed option was not used when solving the matrix equation \n ")
 end
 
 end 
