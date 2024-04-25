@@ -7,7 +7,7 @@
 %
 %
 
-TestCase=3;  % There are currenlty 3 test cases available. 
+TestCase=2;  % There are currenlty 3 test cases available. 
 
 %%  
 %
@@ -91,7 +91,7 @@ switch TestCase
         CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
         [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA) ;
 
-        numel(find(Islands.OneNode))
+      
 
         FindOrCreateFigure("Islands") ;
         CtrlVar.PlotNodalLabels=0;

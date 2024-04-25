@@ -42,7 +42,8 @@ function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar
 %                          islands as well)
 %
 %
-% The m-file TestLocateEleIslands provides an example of the use of this routine.
+% The m-file TestLocateEleIslands.m provides an example of the use of this routine.
+%
 %
 %%
 

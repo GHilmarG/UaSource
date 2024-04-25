@@ -360,7 +360,7 @@ if contains(AdaptMeshMethod,"-activation-")
     CtrlVar.UpdateMUAafterDeactivating=false ;  % Because I always do this here afterwards 
     [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
 
-    CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
+   
 
     if CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly
         [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
