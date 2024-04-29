@@ -7,7 +7,7 @@
 %
 %
 
-TestCase=2;  % There are currenlty 3 test cases available. 
+TestCase=4;  % There are currenlty 3 test cases available. 
 
 %%  
 %
@@ -181,6 +181,50 @@ switch TestCase
         fprintf(" done \n")
 
 
+    case 4 
+
+
+        doPLots=true;
+
+        CtrlVar=Ua2D_DefaultParameters();
+        load("UaLogoMUA.mat","MUA")
+
+    
+        if doPLots
+            FindOrCreateFigure("Mesh") ; PlotMuaMesh(CtrlVar,MUA);
+        end
+
+     
+
+        CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
+        % 
+        CtrlVar.MaxNumberOfIslands=2 ;
+        [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA);
+
+
+
+        FindOrCreateFigure("Islands") ;
+        CtrlVar.PlotNodalLabels=0;
+        PlotMuaMesh(CtrlVar,MUA);
+        hold on
+        PlotMuaMesh(CtrlVar,MUA,Islands.Free,color="r",LineWidth=2);
+        PlotMuaMesh(CtrlVar,MUA,Islands.OneNode,color="b",LineStyle="--",LineWidth=2);
+        title("Islands (red) and one-node or less connection (blue)")
+
+        if CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly=="-Islands-OneNodeOrLessConnections-"
+            ElementsToBeDeactivated=Islands.OneNode; %
+        elseif  CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly=="-Islands-"
+            ElementsToBeDeactivated=Islands.Free;
+        end
+
+        [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated) ;
+
+
+        if doPLots
+            FindOrCreateFigure("MUAnew mesh: After deactivation and island removal")
+            PlotMuaMesh(CtrlVar,MUA);
+            title("Mesh remaining after element deactivation")
+        end
 
 
 end

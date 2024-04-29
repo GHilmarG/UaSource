@@ -42,9 +42,39 @@ function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar
 %                          islands as well)
 %
 %
+%  CtrlVar: 
+%
+%   CtrlVar.MinNumberOfNodesPerIslands :    A seperated mesh region (i.e. an island) will only be contained if it contains at least this
+%                                   number of nodes
+% 
+%   CtrlVar.MaxNumberOfIslands          :   A maximum number of seperated mesh regions to be kept in the computational mesh
+%
+%
+% My defauls an mesh island must contain at least one node and only one region is kept.
+%
+%
 % The m-file TestLocateEleIslands.m provides an example of the use of this routine.
 %
 %
+%%
+
+
+
+
+if ~isfield(CtrlVar,"MinNumberOfNodesPerIslands")
+
+    CtrlVar.MinNumberOfNodesPerIslands=1; 
+
+end
+
+
+if ~isfield(CtrlVar,"MaxNumberOfIslands") 
+
+    CtrlVar.MaxNumberOfIslands=1 ;
+
+end
+
+
 %%
 
 
@@ -84,7 +114,17 @@ if ~contains(CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly,"-One
     % size of bin is equal length to the number of nodes
     % bin(i) is the bin number to which node i belongs
 
-    idx = binsize(bin) == max(binsize);
+    BinSizeSorted=sort(binsize,'descend') ;
+
+    if numel(BinSizeSorted) >  CtrlVar.MaxNumberOfIslands
+        MinNodesPerIsland=max(BinSizeSorted(CtrlVar.MaxNumberOfIslands),CtrlVar.MinNumberOfNodesPerIslands) ;
+    else
+        MinNodesPerIsland=CtrlVar.MinNumberOfNodesPerIslands ;
+    end
+
+    idx=   binsize(bin) >= MinNodesPerIsland;
+
+    % idx = binsize(bin) == max(binsize);
     nodes=find(~idx);   % all nodes not belonging to the subgraph with the largest number of nodes
 
     ElementsToBeDeleted=AllElementsContainingGivenNodes(MUA.connectivity,nodes) ;
@@ -166,7 +206,17 @@ else
     [bin,binsize]=conncomp(G) ;
 
 
-    idx = binsize(bin) == max(binsize);
+    BinSizeSorted=sort(binsize,'descend') ;
+
+    if numel(BinSizeSorted) >  CtrlVar.MaxNumberOfIslands
+          MinNodesPerIsland=max(BinSizeSorted(CtrlVar.MaxNumberOfIslands),CtrlVar.MinNumberOfNodesPerIslands) ;
+    else
+        MinNodesPerIsland=CtrlVar.MinNumberOfNodesPerIslands ;
+    end
+
+     idx=   binsize(bin) >= MinNodesPerIsland;
+
+    % idx = binsize(bin) == max(binsize);
     nodes=find(~idx);   % all nodes not belonging to the subgraph with the largest number of nodes
 
 

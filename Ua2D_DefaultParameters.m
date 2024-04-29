@@ -1590,6 +1590,12 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
 CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
 
+% More control over how many detaced element islands are kept, and how many nodes they must contained can be achived by setting: 
+CtrlVar.MinNumberOfNodesPerIslands=1 ;  %    A seperated mesh region (i.e. an island) will only be contained if it contains at least this number of nodes
+CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of seperated mesh regions to be kept in the computational mesh
+% By default only one element island is kept. This might be fine in many simulations involving ice sheets, but would not be a good
+% approach when, for example, simulating a group of glaciers. 
+
 %% Calving :  including Level Set Method
 %
 % When using the level-set method, the calving fronts can evolve dynamically. The initial position of the calving fronts, and
