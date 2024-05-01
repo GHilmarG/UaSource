@@ -6,7 +6,7 @@ function MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers)
 
 
 if ~CtrlVar.Parallel.BuildWorkers  % Somtimes building workers is suppressed.
-                                   % For example when adapting the mesh repeadidly, there is no need to build workers for each
+                                   % For example when adapting the mesh repeatedly, there is no need to build workers for each
                                    % mesh. Generally, only build workers ahead of a uv of uvh solve
 
     
