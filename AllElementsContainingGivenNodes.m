@@ -1,4 +1,6 @@
 
+
+
 function  I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 
     
@@ -19,8 +21,12 @@ function  I=AllElementsContainingGivenNodes(connectivity,NodeList,EleList)
 %
 %
 %  I=AllElementsContainingGivenNodes(MUA.connectivity,[1 10 11]); 
-%  figure ; PlotMuaMesh(CtrlVar,MUA,[],'k') ;  hold on ; PlotMuaMesh(CtrlVar,MUA,I,'r') ;
+%  figure ; PlotMuaMesh(CtrlVar,MUA,nan,'k') ;  hold on ; PlotMuaMesh(CtrlVar,MUA,I,'r') ;
 %
+%
+% see also:  
+% 
+%  MuaElementsContainingGivenNodes(CtrlVar,MUA,NodeList,EleList,AllOrAny)
 %
 %
 %%

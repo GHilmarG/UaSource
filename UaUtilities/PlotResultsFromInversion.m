@@ -14,6 +14,19 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,
 %
 %%
 
+if isstring(UserVar) && isfile(UserVar)
+
+    fprintf("loading and printing results from %s \n",UserVar)
+
+    load(UserVar,"UserVarInRestartFile","CtrlVarInRestartFile","MUA","BCs","F","l","InvStartValues","InvFinalValues","Priors","Meas","BCsAdjoint","RunInfo") ; 
+
+    CtrlVar=CtrlVarInRestartFile; 
+    UserVar=UserVarInRestartFile;
+
+end
+
+%%
+
 fprintf(' Plotting results from inversion...')
 
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
@@ -21,7 +34,7 @@ us=F.ub+F.ud; vs=F.vb+F.vd;
 
 x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
 
-GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
+GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar); xGL=[] ; yGL=[] ;
 
 %%
 
@@ -38,7 +51,7 @@ Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ; 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');  
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
@@ -48,17 +61,17 @@ Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
 
 PlotMeshScalarVariable(CtrlVar,MUA,Meas.vs) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');  
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('vs Meas on numerical grid') ;
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot)
     PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     
     xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
     ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
@@ -75,22 +88,22 @@ subplot(Iplot,Jplot,Kplot)
 
 
 PlotMeshScalarVariable(CtrlVar,MUA,usError) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us error on numerical grid') ;
 
 Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
 PlotMeshScalarVariable(CtrlVar,MUA,vsError) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot)
     PlotMeshScalarVariable(CtrlVar,MUA,dhdtError) ; hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     title('dh/dt error on numerical grid') ;
     
@@ -104,7 +117,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     fig=FindOrCreateFigure('A at the end of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
     title("$\log_{10}(A)$ at end of inversion",Interpreter="latex")
@@ -117,7 +130,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     title("$\log_{10}(A)$ at start of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
@@ -126,7 +139,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
@@ -140,7 +153,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     fig=FindOrCreateFigure('C at the end of inversion') ;
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
@@ -154,7 +167,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     title("$\log_{10}(C)$ at start of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
@@ -164,7 +177,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     title('log10(InvFinalValues.C)-log10(Cstart)') ; 
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
@@ -175,21 +188,21 @@ if contains(CtrlVar.Inverse.InvertFor,'b')
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b);
     title('InvFinalValues.b') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.b);
     title('bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
  
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.b-InvStartValues.b);
     title('InvFinalValues.b-bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     
     %[TRI,DT,LightHandle]=Plot_sbB(CtrlVar,MUA,s,b,B,TRI,DT,AspectRatio,ViewAndLight,LightHandle,sCol,bCol,BCol);
@@ -204,19 +217,19 @@ if contains(CtrlVar.Inverse.InvertFor,'B')
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
     title('InvFinalValues.B') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.B);
     title('Bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-InvStartValues.B);
     title('InvFinalValues.B-Bstart') ; cbar=colorbar; title(cbar, '(m)');
     hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
     AspectRatio=1;
@@ -237,7 +250,7 @@ PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
 title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
 cbar=colorbar; title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
 hold on
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 clim([0 500]) % Here I'm guessing that this is a reasonable range for plotting, most likely will be the case when using kPa as units for stress
 
 %%
@@ -247,12 +260,12 @@ if isprop(InvFinalValues,'uAdjoint')
         fig=FindOrCreateFigure('Adjoint variables') ;
         subplot(1,2,1)
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.uAdjoint);
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title(' u Adjoint variable')
         
         subplot(1,2,2)
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.vAdjoint);
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title(' v Adjoint variable')
     end
 end
@@ -273,7 +286,7 @@ if ~exist('usError','var')
     wsError=sqrt(spdiags(Meas.wsCov));
 end
 if ~exist('GLgeo','var')
-    GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,GF,CtrlVar); xGL=[] ; yGL=[] ;
+    GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar); xGL=[] ; yGL=[] ;
 end
 
 %%
@@ -285,24 +298,24 @@ ErrSpeed=sqrt(usError.^2+vsError.^2);
 
 subplot(2,2,1)
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(speedMeas)) ; title('log10(measured speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 cAxisMeas=caxis; 
 
 subplot(2,2,2)
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(speedCalc)) ; title('log10(calculated speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 caxis(cAxisMeas);
 
 subplot(2,2,3)
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(ErrSpeed)) ; title('log10(Meas error in speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
 subplot(2,2,4)
 [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(speedMeas-speedCalc)./ErrSpeed) ; title('speed residuals: (meas-calc)/error') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 %%
 fig=FindOrCreateFigure('velocity misfit') ;
@@ -313,7 +326,7 @@ subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar);
 title('((us-Meas.us)/usError,(vs-Meas.vs)/vsError)') ;
 hold on
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
@@ -321,11 +334,11 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 Kplot=Kplot+1;    
 subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ;
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     
     [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
      
@@ -333,7 +346,7 @@ if ~isempty(Meas.dhdt)
     subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,(dhdt-Meas.dhdt)./dhdtError);
     hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
@@ -347,7 +360,7 @@ subplot(Iplot,Jplot,Kplot);
 [~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
 title('(Meas.us,Meas.vs)') ;
 hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
@@ -356,21 +369,21 @@ Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot);
 QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('(us,vs)') ;
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 
 
-if ~isempty(Meas.dhdt)
+if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
      
     Kplot=Kplot+1;
     subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
     title('(dh/dt modelled)') ;
     hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
@@ -383,7 +396,7 @@ fig=FindOrCreateFigure('calculated velocities') ;
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('Calculated horizontal velocities') ;
-hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 
 [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs); 
 
@@ -392,7 +405,7 @@ PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
 title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
-hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 
 %%  Prior
 
@@ -489,26 +502,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdC Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('$dJ/dC$ Brute force gradient','interpreter','latex')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC./InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigC.Position=[948.43 41.571 1246.3 1115.4];
@@ -525,26 +538,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen-InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen./InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
@@ -561,26 +574,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdB Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdB Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB-InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB./InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
@@ -599,26 +612,26 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdB Adjoint gradient')
         
         subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdB Brute force gradient')
         
         
         subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB-InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
         
         subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB./InvFinalValues.dJdBTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
         IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
@@ -634,7 +647,7 @@ else
         fig=FindOrCreateFigure('dJdA');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ; 
         title('$dJ/dA$','interpreter','latex')
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdC)
@@ -642,7 +655,7 @@ else
         fig=FindOrCreateFigure('dJdC');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ; 
         title('$dJ/dC$','interpreter','latex');
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     end
     
     if ~isempty(InvFinalValues.dJdB)
@@ -650,7 +663,7 @@ else
         fig=FindOrCreateFigure('dJdB');
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
         title('$dJ/dC$','interpreter','latex');
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     end
     
     
@@ -759,28 +772,28 @@ else
                   
             subplot(2,2,1)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Inv. start field: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,2)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Inverted: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,3)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB);            
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("True: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
             
             subplot(2,2,4)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-Priors.TrueB);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Estimated-True: "+CtrlVar.Inverse.InvertFor)
             colorbar('southoutside')
@@ -792,7 +805,7 @@ else
             
             subplot(1,3,1)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.B);
-            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("Inverted: h")
             colorbar('off')
@@ -800,7 +813,7 @@ else
             
             subplot(1,3,2)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.TrueB)  ; % this may need to be adjusted
-            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
             SetLabels(CtrlVar,"km","km","m");
             title("True: h")
             colorbar('off')
@@ -808,7 +821,7 @@ else
             
             subplot(1,3,3)
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.B)-(F.s-Priors.TrueB));
-            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,'r');
+            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
            SetLabels(CtrlVar,"km","km","m");
             title("Inverted-True: h ")
             colorbar('off')
@@ -859,16 +872,17 @@ else
             hold off
             yyaxis left
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-            ylabel('J','interpreter','latex')
+            ylabel('$J$','interpreter','latex')
             
             hold on
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.I,'-gx')
-            ylabel('J and I')
+            ylabel('$J$ and $I$',Interpreter='latex')
          
             yyaxis right
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.R,'-r+')
-            ylabel('R','interpreter','latex')
-            legend('Objective function','I','R','Location','southwest','interpreter','latex')
+            ylabel('$R$','interpreter','latex')
+            xlabel('Inverse iteration','interpreter','latex');
+            legend('Objective function','$I$','$R$','Location','southwest','interpreter','latex')
 
         end
         

@@ -151,7 +151,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
             Lower=-0.5 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
             parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-            parfor I=1:nnn
+            for I=1:nnn
                 gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;

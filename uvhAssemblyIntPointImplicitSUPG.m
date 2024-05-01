@@ -1,13 +1,13 @@
 function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
-    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
+    bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     Henod,deltanod,Hposnod,dnod,Dddhnod,...
     LSFMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(60,60)
+narginchk(61,61)
 
 
 % I've added here the rho terms in the mass-conservation equation
@@ -83,10 +83,17 @@ else
     mukint=[];
 end
 
+if ~isempty(V0nod)
+    V0int=V0nod*fun;
+else
+    V0int=[];
+end
+
+
 if CtrlVar.IncludeMelangeModelPhysics
     Coint=Conod*fun;
     moint=monod*fun;
-    
+
     Caint=Canod*fun;
     maint=manod*fun;
 end
@@ -249,35 +256,36 @@ drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
 
 % derivatives at integration points
 
-Deriv1=squeeze(Deriv(:,1,:)) ;
-Deriv2=squeeze(Deriv(:,2,:)) ;
+% Deriv1=squeeze(Deriv(:,1,:)) ; % turned out that if only one element is handed to a worker, this squeeze command gets rid of the
+                                 % first-dimention as well, causing errors further down. 
+% Deriv2=squeeze(Deriv(:,2,:)) ;
 
 for Inod=1:MUA.nod
     
-    dhdx=dhdx+Deriv1(:,Inod).*hnod(:,Inod);
-    dhdy=dhdy+Deriv2(:,Inod).*hnod(:,Inod);
+    dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
+    dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
     
-    %    dHdx=dHdx+Deriv1(:,Inod).*Hnod(:,Inod);
-    %    dHdy=dHdy+Deriv2(:,Inod).*Hnod(:,Inod);
+    %    dHdx=dHdx+Deriv(:,1,Inod).*Hnod(:,Inod);
+    %    dHdy=dHdy+Deriv(:,2,Inod).*Hnod(:,Inod);
     
-    dBdx=dBdx+Deriv1(:,Inod).*Bnod(:,Inod);
-    dBdy=dBdy+Deriv2(:,Inod).*Bnod(:,Inod);
+    dBdx=dBdx+Deriv(:,1,Inod).*Bnod(:,Inod);
+    dBdy=dBdy+Deriv(:,2,Inod).*Bnod(:,Inod);
     
-    dh0dx=dh0dx+Deriv1(:,Inod).*h0nod(:,Inod);
-    dh0dy=dh0dy+Deriv2(:,Inod).*h0nod(:,Inod);
+    dh0dx=dh0dx+Deriv(:,1,Inod).*h0nod(:,Inod);
+    dh0dy=dh0dy+Deriv(:,2,Inod).*h0nod(:,Inod);
     
-    exx0=exx0+Deriv1(:,Inod).*u0nod(:,Inod);  % exx0
-    eyy0=eyy0+Deriv2(:,Inod).*v0nod(:,Inod);
+    exx0=exx0+Deriv(:,1,Inod).*u0nod(:,Inod);  % exx0
+    eyy0=eyy0+Deriv(:,2,Inod).*v0nod(:,Inod);
     
-    dbdx=dbdx+Deriv1(:,Inod).*bnod(:,Inod);
-    dbdy=dbdy+Deriv2(:,Inod).*bnod(:,Inod);
+    dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
+    dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
     
-    drhodx=drhodx+Deriv1(:,Inod).*rhonod(:,Inod);
-    drhody=drhody+Deriv2(:,Inod).*rhonod(:,Inod);
+    drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
+    drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
     
-    exx=exx+Deriv1(:,Inod).*unod(:,Inod);
-    eyy=eyy+Deriv2(:,Inod).*vnod(:,Inod);
-    exy=exy+0.5*(Deriv1(:,Inod).*vnod(:,Inod) + Deriv2(:,Inod).*unod(:,Inod));
+    exx=exx+Deriv(:,1,Inod).*unod(:,Inod);
+    eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
+    exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod));
     
     
 end
@@ -288,7 +296,7 @@ end
 
 %uoint=[];voint=[];Coint=[] ;moint=[] ;uaint=[] ;vaint=[] ;Caint=[]; maint=[];
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
-    BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint);
+    BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
 
 
 

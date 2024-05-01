@@ -25,12 +25,18 @@ persistent iCounter
 
 
 
-if nargin>3 && ~isempty(ElementList)
-    connectivity=connectivity(ElementList,:);
-    if islogical(ElementList)
-        ElementNumbers=find(ElementList);
+if nargin>3
+    if isempty(ElementList)
+        % fprintf("PlotFEmesh:Element list is empty. Not plotting any elements.\n")
+        hTri=[];
+        return
     else
-        ElementNumbers=ElementList;
+        connectivity=connectivity(ElementList,:);
+        if islogical(ElementList)
+            ElementNumbers=find(ElementList);
+        else
+            ElementNumbers=ElementList;
+        end
     end
 else
     ElementNumbers=1:size(connectivity,1);

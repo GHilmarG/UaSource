@@ -35,13 +35,13 @@ for k=1:numel(varargin)
             FindOrCreateFigure('I gradient') ;
             PlotMeshScalarVariable(CtrlVar,MUA,varargin{k}) ;
             hold on
-            PlotMuaMesh(CtrlVar,MUA,[],'w');
+            PlotMuaMesh(CtrlVar,MUA,nan,'w');
             title('Derivative Mesh Dependent')
             
             FindOrCreateFigure('P gradient') ;
             PlotMeshScalarVariable(CtrlVar,MUA,varargout{k}) ;
             hold on
-            PlotMuaMesh(CtrlVar,MUA,[],'w');
+            PlotMuaMesh(CtrlVar,MUA,nan,'w');
             title('Derivative Mesh Independent')
         end
     end

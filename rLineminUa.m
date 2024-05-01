@@ -1,3 +1,6 @@
+
+
+
 function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
 
 %%
@@ -7,9 +10,10 @@ function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(
 %  [ K  L ]  [dx0]  = [ dJdx ]
 %  [ L' 0 ]  [dl0]    [ dJdl ]
 %
-
-
+%
+%
 % func=@(gamma,Du,Dv,Dl) CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,Du,Dv,Dl) ;
+%
 %%
 
 % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ;
@@ -50,7 +54,7 @@ else
     Variables="-uvhl-";
 end
 
-rRatioReductionAccepted=0.65 ; 
+rRatioReductionAccepted=0.7 ; 
 
 
 if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,"-Auto-")
@@ -202,7 +206,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
 
         %% OK, this is a breakdown as the direction does not lead to a reduction
         %  Try simply to reverse direction...
-        CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
+        % CtrlVar.InfoLevelBackTrack=1000;  CtrlVar.InfoLevelNonLinIt=10 ; CtrlVar.doplots=1;
         if Variables=="-uvl-"
             DuM=-DuM; DvM=-DvM ; DlM=-DlM ; 
             funcCauchyM=@(gamma) func(gamma,DuM,DvM,DlM) ;
@@ -234,7 +238,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
     CtrlVar.uvMinimisationQuantity="Force Residuals" ;  
     CtrlVar.BacktracFigName="Line Search in Cauchy M direction" ;
 
-    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+    CtrlVar.LineSearchAllowedToUseExtrapolation=false;
     CtrlVar.NewtonAcceptRatio=0.9; % use the Armijo's condition based on slope0
     CtrlVar.BacktrackingGammaMin=1e-10 ; 
     [gammaminCauchyM,rminCauchyM,BackTrackInfoCauchyM]=BackTracking(CauchyMSlope0,gammaCauchyM,r0,rCauchyM,funcCauchyM,CtrlVar);
@@ -707,7 +711,7 @@ end
 rRatioMin=0.99999 ;
 if NoReduction || rmin/r0 >  rRatioMin
     BackTrackInfo.Converged = false ;
-    CtrlVar.InfoLevelNonLinIt = 10 ;
+    % CtrlVar.InfoLevelNonLinIt = 10 ;
 else
     BackTrackInfo.Converged = true ;
 end

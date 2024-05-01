@@ -7,6 +7,9 @@ CtrlVarInRestartFile=CtrlVar;
 UserVarInRestartFile=UserVar;
 time=CtrlVar.time;
 dt=CtrlVar.dt;
+
+MUA.workers=[]; % saving composites is not supported, MATLAB 2024
+
 save(CtrlVar.Inverse.NameOfRestartOutputFile,...
     'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
@@ -42,7 +45,7 @@ if CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile
 end
 
 if CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile
-    fprintf(CtrlVar.fidlog,' saving AGlen and m in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+    fprintf(CtrlVar.fidlog,' saving AGlen and n in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
     AGlen=F.AGlen;
     n=F.n;
     save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA','CtrlVarInRestartFile')

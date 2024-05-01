@@ -9,9 +9,10 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
+
 %%
 %  
-%  Most likely when running a, only a fairly limited number of the parameters listed below need to be set/changed. 
+%  Most likely when running Ua, only a fairly limited number of the parameters listed below need to be set/changed. 
 %  Changing the parameter values from their default values should be done by the user in `DefineInitialUserInput.m'. 
 %  That user m-file should be located in a separate run-directory, together with all the other user m-files
 
@@ -24,6 +25,7 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
+
 
 CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
@@ -64,7 +66,7 @@ CtrlVar.alpha=0 ;
 %
 % Several sliding laws can be defined. These include *Weertman* (power-law relationship
 % between basal drag and velocity, i.e. u=C tau^m ) and *Coulomb* friction (basal drag equal a constant times
-% effective pressure, i.e. tau = mu N).  When using Columb friction define mu in
+% effective pressure, i.e. tau = mu N).  When using Coulomb friction define mu in
 % DefineSlipperiness.m instead of C.
 %
 % The other sliding laws are all just different ways of combining Weertman and Coulomb.
@@ -85,7 +87,7 @@ CtrlVar.alpha=0 ;
 % model, where N=rho g (h-h_f) where h_f is the flotation thickness. 
 %
 CtrlVar.SlidingLaw="Weertman" ;
-CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0"]  ;
+CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","Joughin","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0","rCW-V0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
                                                    % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
@@ -105,7 +107,7 @@ CtrlVar.LinFEbasis=false;  % test parameter, do not change
 % This is done internally at various different stages. Note that s and b, as
 % returned by the user in DefineGeometry.m, will be changed to ensure flotation.
 % 
-% It is possible to change the default behaviour and calculate h and b from s, B
+% It is possible to change the default behavior and calculate h and b from s, B
 % and S. 
 CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 
@@ -122,8 +124,8 @@ CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 %
 % The geometrical variables are: s, b, B and S.
 %
-% To specify which geometrical variables should be updated/modifed set the following
-% stings acordingly: 
+% To specify which geometrical variables should be updated/modified set the following
+% stings accordingly: 
 %
 CtrlVar.GeometricalVarsDefinedEachDiagnosticRunStepByDefineGeometry="";  
 CtrlVar.GeometricalVarsDefinedEachTransienRunStepByDefineGeometry="";
@@ -149,12 +151,12 @@ CtrlVar.TestForRealValues=1;
 
 CtrlVar.IgnoreComplexPart=1;  % it is possible that when solving an asymmetrical system,
                               % numerical errors cause the solution to no longer be real.
-                              % In that case, set to true to simply ignor complex part.
+                              % In that case, set to true to simply ignore complex part.
 %% Element type
 %
 % The options are: linear, quadratic, or cubic Lagrangian triangle elements
-CtrlVar.TriNodes=3 ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
-CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/quadradic/cubic)
+CtrlVar.TriNodes=3 ;  % Possible values are 3, 6, 10 node (linear/quadratic/cubic)
+CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/quadratic/cubic)
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
@@ -169,7 +171,7 @@ CtrlVar.InitialDiagnosticStep=0; % Start a transient run with an initial diagnos
                                  % 1) so demanded by the user, i.e. if the user sets CtrlVar.InitialDiagnosticStep=1, and
                                  % 2) at always at the start of an implicit uvh transient run which is not a
                                  %    restart run.
-                                 % Howere, unless demanded by the user, no initial diagnostic step is done at the beginning of a transient restart run.
+                                 % However, unless demanded by the user, no initial diagnostic step is done at the beginning of a transient restart run.
 
 CtrlVar.InitialDiagnosticStepAfterRemeshing=0 ; % Forces a diagnostic calculation after re-meshing.
                                                 % Note: a diagnostic calculation is always done after global re-meshing
@@ -291,7 +293,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
   
 %% Explicit estimation 
 %
-% In a transient run u, v and h can estimated explicity ahead of an implicit uvh
+% In a transient run u, v and h can estimated explicitly ahead of an implicit uvh
 % calculation.  If the explicit estimate is a good starting point, then the number of
 % non-linear uvh iterations is reduced. One can either use second-order Adams-Bashforth
 % method for a variable time step, or calculate dh/dt explicitly from flux convergence and
@@ -305,7 +307,7 @@ CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
-% Note: Some of those paramters have physical dimentions and these values may have to be
+% Note: Some of those parameters have physical dimensions and these values may have to be
 %       adjusted to the specific situation. 
 CtrlVar.SpeedZero=1e-4;     % needs to be larger than 0 but should also be much smaller than any velocities of interest.
 CtrlVar.EpsZero=1e-10;      % needs to be larger than 0 but should also be much smaller than any effective strain rates of interest.
@@ -318,7 +320,7 @@ CtrlVar.etaZero=10; %  Minimum value for the effective viscosity
 %                      taking A for temperate ice and strain rates of 1 (1/yr).
 %                      giving:
 %                      n=3 ; eps=1 ; 0.5*AGlenVersusTemp(0)^(-1/n) *181 eps^((1-n)/n) =181
-%                      So settting etaZero=10 kPa/yr would not affect the effective viscosity
+%                      So setting etaZero=10 kPa/yr would not affect the effective viscosity
 %                      in all realistic cases.  However, this might
 %                      sometimes need to me adjusted. Before May-2023 the
 %                      default value was etaZero=0, ie no lower limit on
@@ -398,7 +400,7 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
-% while at the same time these Work and Force tolerances also fullfilled:
+% while at the same time these Work and Force tolerances also fulfilled:
 CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
 
@@ -427,9 +429,9 @@ CtrlVar.LSFAcceptableWorkOrForceTolerances=[Inf 1e-12];
 
 
 
-CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implictly for u, v, and h
-CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implictly for velocities.
-CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implictly for h
+CtrlVar.uvhMinimisationQuantity="Force Residuals";   % used in SSTREAM/SSA when solving implicitly for u, v, and h
+CtrlVar.uvMinimisationQuantity="Force Residuals";    % used in SSTREAM/SSA when solving implicitly for velocities.
+CtrlVar.hMinimisationQuantity="Force Residuals";     % used in SSHEET/SIA when solving implicitly for h
 CtrlVar.LSFMinimisationQuantity="Force Residuals";     
 
 CtrlVar.MustBe.uvhMinimisationQuantity=["Force Residuals","Work Residuals"]; 
@@ -471,7 +473,7 @@ CtrlVar.ModifiedNRuvIntervalCriterion=1;  % interval between matrix updates, alw
 CtrlVar.ModifiedNRuvReductionCriterion=0.5; % fractional reduction forcing an update
 CtrlVar.ModifiedNRuvhIntervalCriterion=1;  
 CtrlVar.ModifiedNRuvhReductionCriterion=0.5;
-% Settingn for example:
+% Setting for example:
 % CtrlVar.ModifiedNRuvIntervalCriterion=10;     
 % CtrlVar.ModifiedNRuvReductionCriterion=0.95;
 % will cause the matrix only to be updated every 10-th non-linear iteration, unless
@@ -490,7 +492,7 @@ CtrlVar.NewtonAcceptRatio=0.5;  % accepted reduction in NR without going into ba
 CtrlVar.NewtonBacktrackingBeta=1e-4;  %  affects the Amarijo exit criteria in the back-stepping
 CtrlVar.LineSearchAllowedToUseExtrapolation=0; % If true, backtracking algorithm may start with an extrapolation step.
 CtrlVar.BacktrackingGammaMin=1e-10;  % smallest step-size in Newton/Picard backtracking as a fraction of the full Newton/Picard step.
-CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolut step size, i.e. not a fraction of initial step size.)
+CtrlVar.BacktrackingGammaMinAdjoint=1e-20; % smallest step-size allowed while backtracking in adjoint step. (This is an absolute step size, i.e. not a fraction of initial step size.)
 
 CtrlVar.GuardAgainstWildExtrapolationInExplicit_uvh_Step=0;
 
@@ -508,7 +510,7 @@ CtrlVar.BackTrackExtrapolationRatio=2.5 ; % ratio between new and old step size 
 CtrlVar.BackTrackMinXfrac=1e-10 ;         % exit backtracking if pos. of minimum is changing by less than this fraction of initial step 
 CtrlVar.BackTrackMaxFuncSame=3 ;          % exit backtracking if this many evaluations of cost function resulted in no further decrease of cost function
     
-% Limit stepsize based on quadradic/cubic interpolation to these lower/upper
+% Limit stepsize based on quadratic/cubic interpolation to these lower/upper
 % limits withing the current lower/upper range.
 CtrlVar.BackTrackGuardLower=0.25;
 CtrlVar.BackTrackGuardUpper=0.95;
@@ -517,10 +519,10 @@ CtrlVar.BackTrackGuardUpper=0.95;
 % ratio is smaller than:
 CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;  
 % The ratio is CurrentValue/LastValue, so smaller ratio means greater reduction.                  
-% Note: The inital target is CtrlVar.NewtonAcceptRatio, and
+% Note: The initial target is CtrlVar.NewtonAcceptRatio, and
 % after that target=f(0)+CtrlVar.BackTrackBeta slope step 
 % CurrentValue/InitalValue < CtrlVar.NewtonAcceptRatio
-% unless some other exit critera are reached. 
+% unless some other exit criteria are reached. 
 
 %% Lin equation solver parameters
 %
@@ -528,14 +530,14 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 % Solver (ALS)
 % 
 %
-% The matlab \ operator sometimes fails for indefinite block matrices. For
+% The MATLAB \ operator sometimes fails for indefinite block matrices. For
 % that reason the default linear solver is Augmented Lagrangian Solver (ALS)
 %
 % ALS uses an outer iteration and the inner problem is solved direction. Usually
 % only a few outer iterations are required.
 %
 % For asymmetrical indefinite block-structured systems the ALS method is almost
-% always better than the default Matlab backslash operator. ALS is an iterative
+% always better than the default MATLAB backslash operator. ALS is an iterative
 % method with an inner and outer iteration. Convergence depends on
 % ALSpower. If ALS does not converge then tying a smaller ALSpower
 % usually does the trick.
@@ -545,12 +547,12 @@ CtrlVar.AsymmSolver='Auto';  %   {'Backslash','Uzawa','AugmentedLagrangian'}
 CtrlVar.ALSIterationMin=3;     CtrlVar.ALSIterationMax=25;   CtrlVar.ALSpower=5;  % ALS parameters
 CtrlVar.UzawaIterationMin=3;   CtrlVar.UzawaIterationMax=25; CtrlVar.UzawaPower=5;  % Uzawa parameters
 CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
-                            % If the standard Matlab backslash algorithm is used, default Matlab values apply and this number is not used
+                            % If the standard MATLAB backslash algorithm is used, default MATLAB values apply and this number is not used
                             % For indefinite block-structured systems of the type [A B' ; B 0] [x;y]=[f;g]
                             % the relative residual is defined in standard way as: 
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
-                            % A value of 1e-8 is arguably alread a relativily small number, in many cases 1e-6 would be considered acceptable
-CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider seeting to true if memory an issue                            
+                            % A value of 1e-8 is arguably already a relatively small number, in many cases 1e-6 would be considered acceptable
+CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider setting to true if memory an issue                            
 
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
@@ -580,9 +582,8 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % Depending on info levels, figures might be plotted as well. However, this is only done
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
-% Further description of what infomation is provided depending on the values of the info parameters is provided below. 
-%
-% If you, for example set,
+% Further description of what information is provided depending on the values of the info parameters is provided below. 
+%% If you, for example set,
 %
 %    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
 %
@@ -616,7 +617,7 @@ CtrlVar.InfoLevelNonLinIt=1;
 %   1  : basic convergence information at end of non-linear step.
 %  >1  : detailed info on residuals given at the end of non-linear step.
 % >=2  : info on backtracking step as well.
-% >=5  : plots change in velocites and ice thickness over each uvh time step, and basal drag vectors
+% >=5  : plots change in velocities and ice thickness over each uvh time step, and basal drag vectors
 % >=10 : calculates/plots additional info on residuals as a function of step size within line search, and rate of convergence
 % >=100 : plots residual vectors
 %
@@ -634,12 +635,15 @@ CtrlVar.InfoLevelNonLinIt=1;
 % are both true.
 %
 %   0   : no information on adaptive meshing printed.
-% >=10  : plots showing mesh before and at the end of each mesh adaptaion.
+% >=10  : plots showing mesh before and at the end of each mesh adaption.
 % >=100 : Further plots on changes in mesh during an adapt mesh iteration produced. 
 %
 %
 %
-CtrlVar.InfoLevelAdaptiveMeshing=1;  
+CtrlVar.InfoLevelAdaptiveMeshing=1;  % Information related to adapt meshing
+                                     %  1   : default basic information
+                                     % 10   : additional plots, e.g showing element to be deactivated, refine or coarsened.
+                                     % But plots are only produced if additionally  CtrlVar.doplots=true ; 
 
 CtrlVar.InfoLevelLinSolve=0;  % If the linear solver does not converge (it sometimes uses a inner and outer loop to deal with indefinite systems)
                               % then increasing this number will give further information. G
@@ -653,10 +657,10 @@ CtrlVar.SymmSolverInfoLevel=0 ;
 CtrlVar.InfoLevelBackTrack=1;   % Controls information given during backtracking.
                                 % As with other info parameters, higher values provide more information
                                 % 10   : 
-                                % 100  : plots evaluated function values along the backtracking direciton 
-                                % 1000 : plots backtracking with further addional values calculated at regular intervales along the step, and prints detailed info about backtracking
+                                % 100  : plots evaluated function values along the backtracking direction 
+                                % 1000 : plots backtracking with further additional values calculated at regular intervals along the step, and prints detailed info about backtracking
 
-CtrlVar.InfoLevelCPU=0;  % if 1 then some info on CPU time usage is given
+CtrlVar.InfoLevelCPU=0;  % if 10 or higher then some info on CPU time usage is given
 CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a logfile
 % name of logfile is  $Experiment.log
 
@@ -754,28 +758,28 @@ CtrlVar.StandartOutToLogfile=false ; % if true standard output is directed to a 
 % 
 % The gradient calculation is exact, well as exact as a numerical method can be expected to be exact.
 %
-% The Hessian of the regularisation term is exact, but the Hessian of the misfit term is approximated (see details in the Ua
+% The Hessian of the regularization term is exact, but the Hessian of the misfit term is approximated (see details in the Ua
 % Compendium)
 %
-% The optimisation step in the inversion can then be done using either the Matlab optimisationo toolbox, or an some Ua optimisation
+% The optimization step in the inversion can then be done using either the Matlab optimization toolbox, or an some Ua optimization
 % routines.
 % 
-% Default is to use Hessian based optimisation, which uses both the gradient and the Hessian approximation, or gradient-based
-% minimisation, which only uses the gradient and builds up an approximation of the Hessian from the gradient.
+% Default is to use Hessian based optimization, which uses both the gradient and the Hessian approximation, or gradient-based
+% minimization, which only uses the gradient and builds up an approximation of the Hessian from the gradient.
 %
-% The default option is Hessian-based optimisation using the matlab optimisation toolbox.
+% The default option is Hessian-based optimization using the matlab optimization toolbox.
 %
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, Matlab toolbox
-%                                  ="MatlabOptimization-GradientBased";     % gradient-based, Matlab toolbox
-%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimisation toolbox
-%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimisation toolbox
+CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hessian-based, MATLAB toolbox
+%                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
+%                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
+%                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
 
-% If a Hessian-based optimisation is used, the the expressions for the Hessians can be selected as follows:
+% If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
 CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
-% Here R stands for Regularisation and I stands for Misfit.
+% Here R stands for Regularization and I stands for Misfit.
 % E stands for 'exact' and 'FP' for 'fixed-point'
 %
-% So RHA=E implies that the Hessian (H) for the AGlen (A) regularisation term (R) is based on the exact (E) expression for H. 
+% So RHA=E implies that the Hessian (H) for the AGlen (A) regularization term (R) is based on the exact (E) expression for H. 
 % So IHC=FP implies that the Hessian (H) for the AGlen (C) misfit term (I) is based on the exact 'fixed-point' (FP) expression for H. 
 
 
@@ -789,7 +793,10 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % and with respect to the l2 inner product when using the I pre-multiplier.
 %
 
-CtrlVar.Inverse.Iterations=1; % Number of inverse iterations
+CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
+CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
+CtrlVar.Inverse.FunctionTolerance=1 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
+CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 
 CtrlVar.Inverse.NameOfRestartOutputFile='InverseRestart.mat';
@@ -802,9 +809,9 @@ CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
 
 %%
 %
-% Inversion can be done using mesurements of:
+% Inversion can be done using measurements of:
 % 
-% * horizontal velocites (uv)
+% * horizontal velocities (uv)
 % * rate of thickness change (dh/dt).
 % 
 % To select which types of surface measurements to use in the inversion set: 
@@ -878,7 +885,7 @@ CtrlVar.Inverse.Regularize.B.ga=[];
  %  -]
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%
-% I and R are multiplied by these following DataMisit and Regularisation
+% I and R are multiplied by these following DataMisit and Regularization
 % multipliers. This is a convening shortcut of getting rid of either the misfit
 % (I) or the regularization term (R) in the objective function (J) altogether.
 CtrlVar.Inverse.DataMisfit.Multiplier=1;
@@ -917,10 +924,10 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
 %
 % Refer to the matlab documentation for further information. 
 %
-% The optimization routines used are either the matlab routine fminunc or
+% The optimization routines used are either the MATLAB routine fminunc or
 % fmincon.
 %
-% You will need to have the matlab optimisation toolbox to be able to do this.
+% You will need to have the MATLAB optimization toolbox to be able to do this.
 %  
 % The Matlab optimization toolbox has various algorithms to choose from, each of
 % which has large number of parameters.
@@ -995,11 +1002,11 @@ if license('test','Optimization_Toolbox')
         'FunValCheck','off',...
         'MaxFunctionEvaluations',1e6,...
         'MaxIterations',CtrlVar.Inverse.Iterations,...,...
-        'OptimalityTolerance',1e-20,...
+        'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance,...
         'OutputFcn',@fminuncOutfun,...
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
-        'StepTolerance',1e-30,...
-        'FunctionTolerance',1,...
+        'StepTolerance',CtrlVar.Inverse.StepTolerance,...
+        'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
         'UseParallel',true,...
         'HessianApproximation',{'lbfgs',250},...
         'HessianFcn',[],...
@@ -1010,7 +1017,7 @@ if license('test','Optimization_Toolbox')
         'SubproblemAlgorithm','cg');  % here the options are '
     
     % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
-    Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estmation.
+    Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
         'Algorithm','interior-point',...
         'CheckGradients',false,...
@@ -1023,11 +1030,11 @@ if license('test','Optimization_Toolbox')
         'FunValCheck','off',...
         'MaxFunctionEvaluations',1e6,...
         'MaxIterations',CtrlVar.Inverse.Iterations,...,...
-        'OptimalityTolerance',1e-20,...
+        'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance,...
         'OutputFcn',@fminuncOutfun,...
         'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
-        'StepTolerance',1e-30,...
-        'FunctionTolerance',1,...
+        'StepTolerance',CtrlVar.Inverse.StepTolerance,...
+        'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
         'UseParallel',true,...
         'HessianFcn',Hfunc,...
         'HessianMultiplyFcn',[],...
@@ -1163,7 +1170,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 % *By default a uses mesh2d*
 %
 %
-% When generating the mesh from within a the procedures involved are identical, irrespectivly of whether it is gmsh or mesh2d wich is being
+% When generating the mesh from within a the procedures involved are identical, irrespective of whether it is gmsh or mesh2d wich is being
 % used. In either case the outlines of the mesh are
 % defined by the variable
 %
@@ -1236,7 +1243,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no
 %
 %
 %CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}
-CtrlVar.MeshGenerator="mesh2d";  % this is the deault option 
+CtrlVar.MeshGenerator="mesh2d";  % this is the default option 
 CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"]; 
 %% Options related to the use of the gmsh external mesh generator
 
@@ -1365,8 +1372,8 @@ CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickn
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
 
-CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;     % In any active-set iteration, this is the min number of additional new constraints.
-                                                                    % This can be used to surpress new active-set iteration if only a few new constraints are identified.
+CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any active-set iteration, this is the min number of additional new constraints.
+                                                                    % This can be used to suppress new active-set iteration if only a few new constraints are identified.
                                                                     % The exact number here can be expected to be problem dependent, but it seems safe to assume that if only 
                                                                     % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
                                                                     % been defined as being "a few". 
@@ -1374,15 +1381,18 @@ CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=5;     % In any act
 
 % thickness barrier, option 3
 CtrlVar.ThicknessBarrier=1;                                         % set to 1 for using the barrier method  (Option 3)
-                                                                    % additonal mass-balance term, ab,  on the form:
+                                                                    % additional mass-balance term, ab,  on the form:
                                                                     %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
                                                                     % is added, and applied at integration points where  h<hmin.
-CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equaiton for the additional mass balance term (should always be negative)
-CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equaiton for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
 
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
+%
+% Note: this is now an outdated approach, used the more general Adapt Mesh options below.
+%
 % A `background' FE mesh is required. In most cases this background FE mesh will simply be the initial FE mesh
 % used at the start of the calculation.
 % For advancing glaciers this option must be combined with the active-set method (set CtrlVar.ThicknessConstraints=1)
@@ -1541,6 +1551,10 @@ CtrlVar.RefineMeshOnStart=0;
 % Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
+%
+%
+%
+
 CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
 
 CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
@@ -1566,6 +1580,21 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 %
 
+% Sometimes when deactivating elements, one ends with isolated elemnents that are either not connected to the rest of the mesh, or
+% only connected by one node. If those elements are afloat, it is generally better to get rid of the alltogether.  As so many Ua
+% users are working with ice shelves/sheets, by default such isolated element groups are eliminated. However, it is possible that
+% in some cases this is not the desired behavious, in which case this option needs to be disabled by setting the flag to false.
+%
+% See the documentation in LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.m for further information.
+
+CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
+CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
+
+% More control over how many detaced element islands are kept, and how many nodes they must contained can be achived by setting: 
+CtrlVar.MinNumberOfNodesPerIslands=1 ;  %    A seperated mesh region (i.e. an island) will only be contained if it contains at least this number of nodes
+CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of seperated mesh regions to be kept in the computational mesh
+% By default only one element island is kept. This might be fine in many simulations involving ice sheets, but would not be a good
+% approach when, for example, simulating a group of glaciers. 
 
 %% Calving :  including Level Set Method
 %
@@ -1614,7 +1643,7 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 % Again, remember that the calving rate, F.c, is a field just like F.LSF and defined
 % everywhere within the domain.  
 % 
-% To, for example, define a calving rate that is directly propotional to ice thicness, set
+% To, for example, define a calving rate that is directly proportional to ice thickness, set
 %
 %   F.c=F.h
 %
@@ -1660,7 +1689,7 @@ CtrlVar.LevelSetPhase="" ;
 %
 % Three methods are possible: 1) reset thickness, 2) active-set approach , 3) mass-balance feedback
 %
-% The recomended option is to use 3), consider using 2) and 3) together, but never to use 1).
+% The recommended option is to use 3), consider using 2) and 3) together, but never to use 1).
 %
 %
 % The key advantage of using the active-set approach, ie method 2), is that then the calving fronts are sharp and thicknesses
@@ -1669,7 +1698,7 @@ CtrlVar.LevelSetPhase="" ;
 %
 % The mass-balance feedback method, ie method 3), will not give sharp calving fronts and the thickness downstream
 % of the calving front will in general go down to the min thickness over some distance. This distance can be shortened by
-% increasing the mass balance feedback, which can be done by making the paramters
+% increasing the mass balance feedback, which can be done by making the parameters
 % 
 %   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin 
 %   CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic
@@ -1678,13 +1707,13 @@ CtrlVar.LevelSetPhase="" ;
 % the active-set method.
 %
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recomended!
+CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
 CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additonal mass-balance term, ab,  on the form:
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additional mass-balance term, ab,  on the form:
                                                                %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
                                                                % is added. This is quite similar to the "barrier method", 
                                                                % but the thickness  barrier method does not have to be activated as
@@ -1703,7 +1732,7 @@ CtrlVar.LevelSetDownstreamAGlen=nan;                      % Since the value is h
 
 CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is here set to nan, there AGlen stress exponent will NOT be modified
 
-% It is possibly to automatically deactive elements from the uv and the uvh solution based on the value of the level set function.
+% It is possibly to automatically deactivate elements from the uv and the uvh solution based on the value of the level set function.
 % This is generally a good idea as this means that possibly large parts of the computational domain can be eliminated, resulting
 % in faster solution. 
 %
@@ -1712,7 +1741,7 @@ CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    %
 
 CtrlVar.LevelSetMethodSolveOnAStrip=0;
 CtrlVar.LevelSetMethodStripWidth=NaN;   % This value is used to define:
-                                        % 1) the width of the strip over which the LSF is solved arount the zero level,
+                                        % 1) the width of the strip over which the LSF is solved around the zero level,
                                         % 2) the distance downstream of the calving front where elements are deactivated
                                         % Case 1 is only relevant if CtrlVar.LevelSetMethodSolveOnAStrip=true
                                         % Case 2 is only relevant if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true
@@ -1726,7 +1755,7 @@ CtrlVar.LSFslope=1;  % This is the desired value of the norm of the gradient of 
 CtrlVar.LevelSetFABCostFunction="p2q2" ; % can be ["p2q1","p2q2","p4q2","p4q4","Li2010"]
 
 CtrlVar.LevelSetFABmu.Value=0.1 ; % This "best" value is a bit uncertain. It is expected to be on the order of unity.
-                                  % The value of 0.1 was found by conducting diffusion test for a circular geomety with a circular velocity field.
+                                  % The value of 0.1 was found by conducting diffusion test for a circular geometry with a circular velocity field.
                                   % It was decided that 1 is a bit too large. Possibly a value of 0.2 could be selected as well.
 
 CtrlVar.LevelSetFABmu.Scale="-u-cl-" ; % can be ["-u-cl-","-ucl-","-constant-"]; 
@@ -1745,7 +1774,7 @@ CtrlVar.CalvingLaw.Evaluation="-node-"  ; % nodal or integration-point evaluatio
 
 
 CtrlVar.LevelSetInitBCsZeroLevel=true ; % use BCs to fix LSF around the zero level during (re)initialisation
-CtrlVar.LSF.C=0;   % consistent/in-consistent assemply (consistent messes up the 2-nd order NR convergence)
+CtrlVar.LSF.C=0;   % consistent/in-consistent assembly (consistent messes up the 2-nd order NR convergence)
 CtrlVar.LevelSetMethodEquationForm="scalar";
 CtrlVar.LevelSetInfoLevel=1;
 
@@ -1753,7 +1782,7 @@ CtrlVar.LevelSetInfoLevel=1;
 CtrlVar.LevelSetPseudoFixPointSolverTolerance=10;
 CtrlVar.LevelSetPseudoFixPointSolverMaxIterations=10;
 
-CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialisation
+CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geometrical initialization
                                                            % the (signed) distance to the calving front to each node is calculated.
                                                            % For this purpose the calving front, as described either initially by the user
                                                            % or as calculated as the zero contour of a previous level set, will need to be resampled
@@ -1784,7 +1813,7 @@ CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of 
 
 % one can specify how often the mesh is adapted during a run by specifying:
 %   a) the number of run-steps, and
-%   b) the time intervale
+%   b) the time interval
 % between mesh adaptations.
 %
 CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation (zero value means this condition is always true)
@@ -1794,12 +1823,12 @@ CtrlVar.AdaptMeshTimeInterval=0    ; % Time interval between between mesh adapta
 %
 % Example: 
 %
-% Mesh adaptation every 5th runstep irrespectivly of time:
+% Mesh adaptation every 5th runstep irrespective of time:
 %
 %      CtrlVar.AdaptMeshRunStepInterval=5 ; CtrlVar.AdaptMeshTimeInterval=0  ;
 %  
 %   
-% Mesh adaptation every second year irrespectivly of runstep number:
+% Mesh adaptation every second year irrespective of runstep number:
 %
 %      CtrlVar.AdaptMeshRunStepInterval=0 ; CtrlVar.AdaptMeshTimeInterval=2  ;
 %  
@@ -1815,7 +1844,7 @@ CtrlVar.AdaptMeshTimeInterval=0    ; % Time interval between between mesh adapta
 %  
 % Note that this option is unlikely to be what you would ever want. Hence,
 % generally specify one of these options to be always true (by setting the
-% respectiv value to 0) so that the other option controls the adapt meshing
+% respective value to 0) so that the other option controls the adapt meshing
 % interval. 
 
 CtrlVar.AdaptMeshMaxIterations=1;    % Maximum number of adapt mesh iterations within each run-step.
@@ -1837,7 +1866,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).EleMin=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).EleMax=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).p=[];
 CtrlVar.ExplicitMeshRefinementCriteria(I).InfoLevel=1;
-CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;  % One can turn each refinement criteria on or off by setting this field to true or false, respectivily. 
+CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;  % One can turn each refinement criteria on or off by setting this field to true or false, respectively. 
 
 
 I=I+1;
@@ -1918,7 +1947,7 @@ CtrlVar.ExplicitMeshRefinementCriteria(I).Use=false;
 % Mesh smoothing is disabled when using the 'newest vertex bisection' local mesh refinement option.
 %
 % Note that mesh smoothing is not needed using the 'newest vertex bisection' method, as this method 'preserves' the element quality of the
-% original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usualy required to avoid bad quality
+% original mesh (hence disabled). On the other hand, using the 'red-green' local mesh refinement option, mesh smoothing is usually required to avoid bad quality
 % elements (hence on by default).
 %
 % 
@@ -1953,7 +1982,7 @@ CtrlVar.kH=1;   % kH -> infty gives an exact Heaviside and delta functions.
                 % kH=10 implies a grounding line "width" of 1/10 m up and down from floating condition
                 % Note: This variable has UNITS!!!  The units are those of an inverse distance.
                 %       So if your distance units is meters, the unit of hH is 1/meters.
-                %       You must make sure that kH is suffiantly large so that 1/kH corresponds to a (vertical) distance
+                %       You must make sure that kH is sufficiently large so that 1/kH corresponds to a (vertical) distance
                 %       that is small compared to other distances of interest.
 CtrlVar.Hh0=0;  % offset is Heaviside function when calculating GF field
 
@@ -1967,14 +1996,14 @@ CtrlVar.GLsubdivide=0;    % If 0/false the grounding line is determined based on
 %%
 % Grounding/Floating mask
 % The grounding/floating mask (GF) can be accessed as F.GF
-% By default GF has one field, GF.nodes, with values betweon 0 and 1. 
-% The value 0 indicates that the corrsponding node is afloat, and the value 1 that it is
+% By default GF has one field, GF.nodes, with values between 0 and 1. 
+% The value 0 indicates that the corresponding node is afloat, and the value 1 that it is
 % grounded.
 %
-% Sometimes it is usefull to have additional information about which nodes are strickly
-% upstream/downstream of grounding lines. For node to be "stricly afloat" all the nodes of
+% Sometimes it is useful to have additional information about which nodes are strictly
+% upstream/downstream of grounding lines. For node to be "strictly afloat" all the nodes of
 % all the elements containing that particular node must all be afloat. For example, generally
-% ocean-induced melt should only be applied to nodes that are "strickly afloat". 
+% ocean-induced melt should only be applied to nodes that are "strictly afloat". 
 %
 CtrlVar.GroundingFloatingMaskContains="GF nodes only" ; 
 CtrlVar.MustBe.GroundingFloatingMaskContains=["GF nodes only","GF nodes and strickly afloat/grounded nodes and elements"];
@@ -2029,7 +2058,7 @@ CtrlVar.AutomaticallyMapAGlenBetweenNodesAndEleIfEnteredIncorrectly=1;
 %
 CtrlVar.AdaptiveTimeStepping=1 ;    % Adaptive time stepping
 CtrlVar.ATSdtMax=1000.0;           % maximum time step size (ie dt) set by the automated-time-stepping algorithm
-CtrlVar.ATSdtMin=1e-6           ;   % mimimum time step size (ie dt) set by the automated-time-stepping algorithm
+CtrlVar.ATSdtMin=1e-6           ;   % minimum time step size (ie dt) set by the automated-time-stepping algorithm
 CtrlVar.ATStimeStepFactorUp=1.5 ;   % when time step is increased, it is increased by this factor
 CtrlVar.ATStimeStepFactorDown=5  ;  % when time step is decreased, it is decreased by this factor
 CtrlVar.ATStimeStepFactorDownNOuvhConvergence=10 ;  % when NR uvh iteration does not converge, the time step is decreased by this factor
@@ -2116,7 +2145,7 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % 
 %
 % The parallel profile is not modified within a. Set the properties of the local
-% profile through the general Matlab settings. See the matlab manual for further
+% profile through the general MATLAB settings. See the MATLAB manual for further
 % information.  For example, to change the number of local workers to 6, one can do the
 % following: 
 %
@@ -2124,23 +2153,50 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 %   myCluster.NumWorkers = 6;
 %   saveProfile(myCluster)
 %
-% Consult the matlab documentation for further information.
+% Consult the MATLAB documentation for further information.
 %
-% Note: It appears using about 6 workers on parfor and smpd options both on is the best approach. 
-%       However, results are likely to be somewhat problem dependent. 
+% Note: Generally it appears that the parfor option does not speed up the assembly.
+%       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
+
 %
-CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;     % assembly over integration points done in parallel using parfor
-CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
-CtrlVar.Parallel.uvAssembly.spmd.isOn=0;       % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % If left empty, all workers available are used
-CtrlVar.Parallel.uvAssembly.spmdInt.isOn=false ; %
-CtrlVar.Parallel.isTest=false;
+%       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
+%       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
+%       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
+%       the gain is greater and shows good scaling properties.
+%
+% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
+% test the performance in a short run by setting isTest=true, that is set:
+% 
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance. 
+%
+% Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.
+%
+%
+
+CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
+CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+
+CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel using parfeval over sub-domain (domain decomposition)  
+
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+
+CtrlVar.Parallel.isTest=false;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
+                                               % Good for testing if switching on the parallel options speeds things up, and by how much.
+
 CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA implicit transient solution  (which always is with respect to h only)
 
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 
-%%
+CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
+
+CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+                                   
+
+%%  
 
 CtrlVar.UseMexFiles=false ; 
 CtrlVar.UseMexFilesCPUcompare=false;
@@ -2167,9 +2223,9 @@ CtrlVar.UseMexFilesCPUcompare=false;
 CtrlVar.Tracer.SUPG.Use=1;  
 % several different definitions of the SUPG parameter can be used:
 CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}  
-% tau1 : often recomended in textbooks for linear diffusion equations with
+% tau1 : often recommended in textbooks for linear diffusion equations with
 %        spatially constant non-zero advection velocity
-% taut : dt/2,  'temporal' definition, independed of velocity
+% taut : dt/2,  'temporal' definition, independent of velocity
 % taus : l/(2u) 'spatial definition', independent of time step
 % tau2 : 1./(1./taut+1./taus), an 'inverse' average of taus and taut
 %
@@ -2186,7 +2242,7 @@ CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 %% Mapping variables from one FE mesh to another
 % Remeshing during a run requires variables to be mapped from the older mesh to
 % the new mesh. Both geometrical variables (s, b, S, B) and other calculated
-% quantaties such as ub, vb, dhdt, etc. need to be mapped.
+% quantities such as ub, vb, dhdt, etc. need to be mapped.
 %
 % In a diagnostic run (time-independent run) geometrical variables are defined
 % by calls to 'DefineGeometry.m'
@@ -2209,9 +2265,9 @@ CtrlVar.MapOldToNew.Transient.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FR
 CtrlVar.MapOldToNew.method="scatteredInterpolant" ; % {"FE form functions","scatteredInterpolant","ShapeAndScattered"}
 CtrlVar.MapOldToNew.method="ShapeAndScattered"    ; % This is the new default option as of 2 April 2023.
                                                     % The old method was based on the MATLAB scatteredinterpolant, and it was discovered that this MATLAB function sometimes
-                                                    % produced bizzare results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and
+                                                    % produced bizarre results for points at the edges of the triangulation. As far as I can see, this is a MATLAB issue and
                                                     % there is noting that can be done about this except using alternative approaches not dependent on the MATLAB interpolant for
-                                                    % boundary points of the triangulation. See examples and tests in the UaTest subfolder "MappingVariablesFromMesh1toMesh2"
+                                                    % boundary points of the triangulation. See examples and tests in the UaTest sub-folder "MappingVariablesFromMesh1toMesh2"
 CtrlVar.MapOldToNew.Test=false;   %  
 
 

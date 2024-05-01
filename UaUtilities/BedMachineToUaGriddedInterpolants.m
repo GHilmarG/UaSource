@@ -1,7 +1,7 @@
 function [Fs,Fb,FB,Frho,Boundary]=BedMachineToUaGriddedInterpolants(filename,N,LakeVostok,BoundaryResolution,SaveOutputs) 
 
 %%  
-% Reads BedMachine nc file and creates Úa gridded interpolants with s, b, B and rho.
+% Reads BedMachine nc file and creates Ua gridded interpolants with s, b, B and rho.
 % 
 % Note: This is just a rough idea as to how this could be done and most likely will need some modifications for some particular
 % applications.

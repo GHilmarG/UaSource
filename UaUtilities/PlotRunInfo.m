@@ -26,7 +26,7 @@ end
 fig=FindOrCreateFigure("RunInfo: time steps and iterations"+FigName) ; clf(fig) ;
 yyaxis left
 semilogy(RunInfo.Forward.time,RunInfo.Forward.dt,'o-',DisplayName="time step") ;
-ylabel('time step, $\mathrm{d}t$',Interpreter='latex')
+ylabel('time step, $\Delta t$',Interpreter='latex')
 
 yyaxis right
 
@@ -61,8 +61,8 @@ fHist=FindOrCreateFigure("RunInfo: time step histogram and iterations"+FigName) 
 items=numel(find(~isnan( RunInfo.Forward.dt)));
 nbins=max(10,fix(items/20));
 histogram(RunInfo.Forward.dt,nbins,Normalization="probability") ; 
-xlabel('time step, $\mathrm{d}t$',Interpreter='latex')
-title('dt Histogram')
+xlabel('time step, $\Delta t$',Interpreter='latex')
+title("$\Delta t$ Histogram",Interpreter="latex")
 
 
 
@@ -70,7 +70,7 @@ Fdt=FindOrCreateFigure("RunInfo: time-steps versus run-steps"+FigName) ; clf(Fdt
 
 yyaxis left
 semilogy(RunInfo.Forward.dt,'-',DisplayName="time step",LineWidth=2) ;
-ylabel('time step, $\mathrm{d}t$',Interpreter='latex')
+ylabel('time step, $\Delta t$',Interpreter='latex')
 
 yyaxis right
 plot(RunInfo.Forward.time,'-',DisplayName="time",LineWidth=2) ;

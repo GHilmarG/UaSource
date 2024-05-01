@@ -5,6 +5,9 @@ classdef UaFields
         
         x=[];
         y=[];
+        time=[]; 
+        dt=[] ; 
+
         xint=[];
         yint=[]; 
         
@@ -53,6 +56,7 @@ classdef UaFields
         
         q=[]; 
         muk=[];
+        V0=[] ; % This is a parameter in Joughin's sliding law, rCW-V0
         
         Co=[];
         mo=[]
@@ -80,8 +84,7 @@ classdef UaFields
         g=[];
         alpha=0;
         
-        time=[]; 
-        dt=[] ; 
+  
         
         GF=[];
         GFInit=[];

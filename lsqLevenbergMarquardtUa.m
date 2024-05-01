@@ -9,7 +9,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLev
 %
 %  The function 'fun' should provide both R and the Jacobian, i.e.
 %
-%   [R,K]=fun(x) 
+%   [R,K]=fun(x)
 %
 % where   K=grad J
 %
@@ -19,7 +19,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLev
 %
 % Algorithm: Solves repeatedly the linearized min problem:
 %
-%  |R0+J dx|^2 
+%  |R0+J dx|^2
 %
 %
 % Example:
@@ -27,43 +27,86 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLev
 %   lsqUaExample
 %
 %%
-if isempty(CtrlVar) || ~isstruct(CtrlVar)
-
-    ItMax=5;
-    gTol=1e-20;
-    dR2Tol=1e-3; 
-    dxTol=1e-20;
-
-    isLSQ=true;
-    Normalize=false ;
-    SaveIterate=true; 
-    LevenbergMarquardt="auto" ; % "fixed"
-    LMlambda=1 ;
-    ScaleProblem=false;
-    LMlambdaUpdateMethod=1; 
 
 
-else
+ItMax=5;
+gTol=1e-20;
+dR2Tol=1e-3;
+dxTol=1e-20;
+isLSQ=true;
+Normalize=false ;
+SaveIterate=false;
+CostMeasure="R2" ; % "r2"
 
-    ItMax=CtrlVar.lsqUa.ItMax ;
-    gTol=CtrlVar.lsqUa.gTol ;
-    dR2Tol=CtrlVar.lsqUa.dR2Tol ;
-    dxTol=CtrlVar.lsqUa.dxTol ;
+LevenbergMarquardt="auto" ; % "fixed"
+StepString="LM";
 
-    isLSQ=CtrlVar.lsqUa.isLSQ ;
-    Normalize=CtrlVar.lsqUa.Normalize;
-    LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
-    LMlambda=CtrlVar.lsqUa.LMlambda0 ;
-    ScaleProblem=CtrlVar.lsqUa.ScaleProblem; 
+LMlambda=1 ;
+ScaleProblem=false;
+LMlambdaUpdateMethod=1;
 
-    LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
 
-    SaveIterate=CtrlVar.lsqUa.SaveIterate;
+if ~isempty(CtrlVar) && isstruct(CtrlVar)
+
+    if isfield(CtrlVar.lsqUa,"ItMax")
+        ItMax=CtrlVar.lsqUa.ItMax ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"gTol")
+        gTol=CtrlVar.lsqUa.gTol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"dR2Tol")
+
+        dR2Tol=CtrlVar.lsqUa.dR2Tol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"dxTol")
+        dxTol=CtrlVar.lsqUa.dxTol ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"isLSQ")
+        isLSQ=CtrlVar.lsqUa.isLSQ ;
+    end
+
+    if isfield(CtrlVar.lsqUa,"Normalize")
+        Normalize=CtrlVar.lsqUa.Normalize;
+    end
+
+    if isfield(CtrlVar.lsqUa,"SaveIterate")
+        SaveIterate=CtrlVar.lsqUa.SaveIterate;
+    end
+
+    if isfield(CtrlVar.lsqUa,"LevenbergMarquardt")
+        LevenbergMarquardt=CtrlVar.lsqUa.LevenbergMarquardt;
+    end
+
+    if isfield(CtrlVar.lsqUa,"CostMeasure")
+        CostMeasure=CtrlVar.lsqUa.CostMeasure;
+    end
+
+    if isfield(CtrlVar.lsqUa,"LMlambda0")
+        LMlambda=CtrlVar.lsqUa.LMlambda0 ;
+
+    end
+
+    if isfield(CtrlVar.lsqUa,"ScaleProblem")
+        ScaleProblem=CtrlVar.lsqUa.ScaleProblem;
+    end
+
+    if isfield(CtrlVar.lsqUa,"LMlambdaUpdateMethod")
+        LMlambdaUpdateMethod=CtrlVar.lsqUa.LMlambdaUpdateMethod ;
+
+    end
+
+
 
 end
 
 R2Array=nan(ItMax+1,1) ;
-g2Array=nan(ItMax+1,1) ;
+r2Array=nan(ItMax+1,1) ;
+dxArray=nan(ItMax+1,1) ;
+
 dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
 Slope0=nan ; % need to calculate final slope
@@ -76,7 +119,7 @@ if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estima
     if BCres>1e-6   % make feasable
         x=L\c ;
     end
-    if isempty(lambda)  || isnan(lambda)
+    if isempty(lambda)  || any(isnan(lambda))
         lambda=c*0;
     end
 end
@@ -92,7 +135,6 @@ end
 if Normalize
     x0=x*0 ;
     R=fun(x0) ;
-
     g =- (R + LTlambda) ;
     Normalisation=full(g'*g);
 else
@@ -103,7 +145,12 @@ end
 %%
 
 % Evaluate cost function, don't solve system
-[R,K]=fun(x) ;
+[R,K,funOuts]=fun(x) ;
+
+[nK,mK]=size(K);
+if ~isLSQ && nK~= mK
+    error(" The Jacobian does not have same columns as rows. This problem must be solved as a least-squares problem. Set CtrlVar.lsqUa.isLSQ=true \n")
+end
 
 if isLSQ
     g =- (2*K'*R + LTlambda) ;
@@ -117,28 +164,29 @@ else
     h=[];
 end
 
-R2=full(R'*R); 
-r2 = full(g'*g)/Normalisation;
+R2=full(R'*R);
+r2=full([g;h]'*[g;h])/Normalisation ;
 
 
-
-
-g2Array(1)=r2;
+r2Array(1)=r2;
 R2Array(1)=R2;
+dxArray(1)=nan; % not sure I need this, because of I increase the iteration
+
 if SaveIterate
     xVector=nan(numel(x),100);
     xVector(:,1)=x(:) ;
 else
     xVector=[];
 end
-iteration=0 ;  
+iteration=0 ;
 
 fprintf("\n\t Start lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
 while iteration <= ItMax
 
     iteration=iteration+1 ;
-
+   
+    % I don't think this has been done for the ~isLSQ case, looks like LMlambda is never modified if ~isLSQ
     if isLSQ
         KK=K'*K;
         H=2*KK;
@@ -157,12 +205,12 @@ while iteration <= ItMax
     [dx,dlambda]=solveKApe(H,L,g,h,x,lambda,CtrlVar);
 
 
-   if isLSQ
-       Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
-   else
-       Q=R'*dx+dx'*H*dx/2 ;
-   end
-    
+    if isLSQ
+        Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
+    else
+        Q=R'*dx+dx'*H*dx/2 ;
+    end
+
     x0=x ; lambda0=lambda ;
 
     x=x+dx ;
@@ -172,7 +220,7 @@ while iteration <= ItMax
 
     R0=R ; K0=K ; g0=g ; h0=h ; % If I reject the step, I need to reuse these variables
 
-    [R,K]=fun(x) ;
+    [R,K,funOuts]=fun(x) ;
 
     if ~isempty(L)
         LTlambda=L'*lambda ;
@@ -189,18 +237,20 @@ while iteration <= ItMax
     end
 
 
-    g2Old=r2;  R2Old=R2;
-    r2=full(g'*g)/Normalisation ;
+    r20=r2;  R20=R2;
+    % r2=full(g'*g)/Normalisation ;
+    r2=full([g;h]'*[g;h])/Normalisation ;
     R2=full(R'*R);
 
-    rho=(R2-R2Old)/Q;      % Actual reduction / Modelled Reduction
-    g2Ratio=r2/g2Old ;
-    dR2=[abs(R2-R2Old); dR2(1)] ; 
 
+    rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+    r2Ratio=r2/r20 ;
+    dR2=[abs(R2-R20); dR2(1)] ;
+    R2Ratio=R2/R20 ;
 
-    if r2 > g2Old  % reject step
-        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; r2=g2Old ; R2=R2Old ;
-        
+    if r2 > r20  % reject step
+        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; r2=r20 ; R2=R20 ;
+
         if LMlambda==0
             LMlambda=1;
         else
@@ -224,12 +274,12 @@ while iteration <= ItMax
         switch LMlambdaUpdateMethod
             % now update LMlambda based on agreement with Quad model
             case 1
-                
-                factor=max(1/3,1-(2*rho-1)^3) ;  % 
+
+                factor=max(1/3,1-(2*rho-1)^3) ;  %
                 LMlambda=factor*LMlambda ;
 
             case 2
-                
+
                 if rho>0.9  && rho<1.1       % Quad model very good, decrease lambda
                     LMlambda=LMlambda/10 ;
                 elseif rho>0.75  && rho<1.5
@@ -246,14 +296,33 @@ while iteration <= ItMax
         LMlambda=nan;
     end
 
-    g2Array(iteration+1)=r2;
+    r2Array(iteration+1)=r2;
     R2Array(iteration+1)=R2;
+    dxArray(iteration)=dxNorm ;
+
     if SaveIterate
         xVector(:,iteration+1)=x(:) ;
     end
 
 
-    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",iteration,g2Old,r2,g2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+    fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",...
+        iteration,r20,r2,r2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+
+    if CostMeasure=="R2"
+
+        fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t LMlambda=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+            iteration,StepString,R2,R2Ratio,LMlambda,r2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+
+    elseif CostMeasure=="r2"
+
+        fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t LMlambda=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+            iteration,StepString,r2,r20,r2Ratio,LMlambda,R2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+
+    else
+
+        error("what cost measure?")
+
+    end
 
 
     if r2 < gTol
@@ -266,16 +335,16 @@ while iteration <= ItMax
         break
     end
 
-    
+
     maxdR2=max(dR2);
     if maxdR2 < dR2Tol
         fprintf("lsqUa: Exiting iteration because max change in |R|^2 over last two iterations (%g) less than the set tolerance of %g \n",maxdR2,dR2Tol)
         break
     end
-    
+
     if iteration >= ItMax
-       fprintf("lsqUa: Exiting iteration because number of iterations has reached the set maximum of %i \n",ItMax)
-       break
+        fprintf("lsqUa: Exiting iteration because number of iterations has reached the set maximum of %i \n",ItMax)
+        break
 
     end
 
@@ -284,13 +353,22 @@ end
 
 fprintf("\n\t Exit lsqUa: \t  g=%g \t         r=%g \n \n",r2,R2)
 
+if CostMeasure=="R2"
+    residual=R2;
+elseif CostMeasure=="r2"
+    residual=r2;
+else
+    error("what cost measure?")
+end
 
-residual=R ;
-output.g2Array=g2Array;
+output.r2Array=r2Array;
 output.R2Array=R2Array;
-output.xVector=xVector; 
-output.nIt=iteration; 
+output.dxArray=dxArray;
+output.Slope0Array=nan;
 
+output.xVector=xVector;
+output.nIt=iteration;
+output.fun=funOuts ;
 
 
 end

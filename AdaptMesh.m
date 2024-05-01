@@ -19,13 +19,16 @@ lnew=lold;
 RuvNew=RuvOld;
 
 %%
-isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of eliments,
+isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of elements,
 % some new nodes are introduced that are OUTSIDE of any of the elements in the old mesh
 
 %%
 xGLold=[] ; yGLold=[]; GLgeoold=[];
 %%
 
+CtrlVar.Parallel.BuildWorkers=false ; % don't build workers during adapt meshing, only do so ahead of a uv or uvh solve
+
+%%
 
 
 if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"
@@ -109,7 +112,7 @@ if AdaptMeshMethod==""
     return
 end
 
-%% Now finally we procede to do either mesh refinement/unrefinement, or element deactivation/reactivation
+%% Now finally we proceed to do either mesh refinement/unrefinement, or element deactivation/reactivation
 
 JJ=0 ;
 nNewElements=inf;
@@ -235,7 +238,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
 
         %  Remesh: either global-remeshing or local-mesh refinement.
         %
-        % If a local refinement/unrefinement is done using the newest-vertec bisection method,
+        % If a local refinement/unrefinement is done using the newest-vertex bisection method,
         % the original MUA.RefineMesh structure is used. If the number of elements
         % changes, MUA is recreated using the elements and the coordinates in
         % MUA.RefineMesh.  Therefore, if some elements within MUA where previously
@@ -280,7 +283,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 subplot(2,1,1)
                 hold off
 
-                PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+                PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
                 hold on ;
                 [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
                 PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
@@ -291,7 +294,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 hold off
                 xGL=[] ; yGL=[]; GLgeo=[];
                 CtrlVar.PlotGLs=1;
-                PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
+                PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
                 title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
                     JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
                 hold on ;
@@ -354,7 +357,16 @@ if contains(AdaptMeshMethod,"-activation-")
     end
 
  
-    MUAnew=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
+    CtrlVar.UpdateMUAafterDeactivating=false ;  % Because I always do this here afterwards 
+    [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
+
+   
+
+    if CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly
+        [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
+        [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,Islands.OneNode,k,l) ;
+    end
+
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
     Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
    
@@ -401,18 +413,18 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     subplot(2,1,1)
     hold off
     xGL=[] ; yGL=[]; GLgeo=[];
-    PlotMuaMesh(CtrlVar,MUAold,[],CtrlVar.MeshColor);
+    PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
     hold on ;  PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
-    title(sprintf('Before remeshing \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+    title(sprintf('Before remeshing \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod),Interpreter="latex")
     axis tight
 
     subplot(2,1,2)
     hold off
     xGL=[] ; yGL=[]; GLgeo=[];
     CtrlVar.PlotGLs=1;
-    PlotMuaMesh(CtrlVar,MUAnew,[],CtrlVar.MeshColor);
-    title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+    PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
+    title(sprintf('After remeshing  \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod),Interpreter="latex")
     hold on ;  PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     axis tight
@@ -462,7 +474,7 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
 
 
-% Do I need to recalcualte uv velocities?
+% Do I need to recalculate uv velocities?
 if ~isMeshChanged  || CtrlVar.AdaptMeshAndThenStop
 
     isRecalculateVelocities=false ;
@@ -478,7 +490,10 @@ else
 end
 
 if isRecalculateVelocities
+    CtrlVar.Parallel.BuildWorkers=true;  % ahead of a uv call I may need to update workes
+    MUAnew=UpdateMUA(CtrlVar,MUAnew);
     [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+    CtrlVar.Parallel.BuildWorkers=false;
 end
 
 

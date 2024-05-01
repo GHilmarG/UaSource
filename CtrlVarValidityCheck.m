@@ -255,6 +255,15 @@ if CtrlVar.InverseRun
 
     end
 
+if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && CtrlVar.TriNodes>3
+    
+
+    fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
+    fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
+    warning("UaInputs:ParameterCombinationNotRecommented","ParameterCombinationNotRecommented")
+
+end
+
 
 
     if contains(CtrlVar.Inverse.MinimisationMethod,'Hessian')
@@ -265,7 +274,7 @@ if CtrlVar.InverseRun
 
 end
 
-
+%%
 
 if isfield(CtrlVar,'AdaptMeshInterval')
 

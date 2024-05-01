@@ -34,10 +34,12 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %  F.g       :  gravitational acceleration
 %  F.x       : x nodal coordinates 
 %  F.y       : y nodal coordinates 
+%  F.time    : time (i.e. model time)
 %  F.GF      : The nodal grounded/floating mask (has other subfields)
 %
-% These fields need to be returned at the nodal coordinates. The nodal
-% x and y coordinates are stored in MUA.coordinates, and also in F as F.x and F.y
+% These fields need to be returned at the nodal coordinates. 
+% 
+% The nodal x and y coordinates are also stored in MUA.coordinates in addition to F.x and F.y.
 %
 %%
 

@@ -165,10 +165,10 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
            
             tt=axis;
             hold off
-            p0=PlotMuaMesh(CtrlVar,MUAnew,[],'b');
+            p0=PlotMuaMesh(CtrlVar,MUAnew,nan,'b');
             hold on
             
-            p1=PlotMuaMesh(CtrlVar,MUAold,[],'k');
+            p1=PlotMuaMesh(CtrlVar,MUAold,nan,'k');
             if ~isequal(tt,[0 1 0 1])
                 axis(tt)
             end
@@ -184,16 +184,19 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
             elseif  ~isempty(p2)
                 legend([p0 p1 p2 p4],'New Mesh','Old Mesh','New and outside','Identical','Location','northeastoutside')
             end
-            
-            
+
+
             axis equal
             hold off
-            
-            
+
+
             % fprintf('#Outside=%i \t   #Inside and not same=%i \n',numel(NodesOutside),numel(NodesInsideAndNotSame))
-            FigTitle=sprintf('             #Nodes in new mesh=%i \t #Nodes in old mesh=%i \t \n #Same Nodes=%i \t  #~Same Nodes=%i \t #Nodes inside and new=%i \t #Outside nodes=%i ',...
-                nNewNodes,nOldNodes,nIdenticalNodes,nNotIdendicalNodes,numel(NodesInsideAndNotSame),numel(NodesOutside)) ;
-            title(FigTitle)
+
+            FigTitle=sprintf("Nodes in new mesh=%i,  Nodes in old mesh=%i",nNewNodes,nOldNodes) ;
+
+            FigSubTitle=sprintf("Same Nodes=%i,   Not same Nodes=%i,  Nodes inside and new=%i,  Nodes outside=%i ",nIdenticalNodes,nNotIdendicalNodes,numel(NodesInsideAndNotSame),numel(NodesOutside)) ;
+            title(FigTitle,Interpreter="latex")
+            subtitle(FigSubTitle,Interpreter="latex")
         end
 
         %% Form-function interpolation for inside nodes

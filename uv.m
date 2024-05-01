@@ -1,19 +1,24 @@
+
+
+
+
+
 function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
+         
 
-
-
-
-
-nargoutchk(4,7);
+nargoutchk(4,8);
 narginchk(7,7)
 
 tdiagnostic=tic;
 
-if numel(F.m)==1
+
+
+if isscalar(F.m)
     F.m=zeros(MUA.Nnodes,1)+F.m;
+
 end
 
-if numel(F.n)==1
+if isscalar(F.n)
     F.n=zeros(MUA.Nnodes,1)+F.n;
 end
 
@@ -82,12 +87,14 @@ switch lower(CtrlVar.FlowApproximation)
 
         if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
 
-        [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        %[UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
         if ~RunInfo.Forward.uvConverged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
             F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
-            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+            % [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+            [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         end
 
     case 'ssheet'

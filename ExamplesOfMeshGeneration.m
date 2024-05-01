@@ -121,6 +121,7 @@ FindOrCreateFigure("MUAnew: Mesh unrefined local:newest vertex bisection") ; Plo
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
 %% Example: periodic boundary conditions
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 % When using �a only the following lines are needed in the input file
 % Ua2D_InitialUserInput.m
@@ -159,6 +160,7 @@ drawnow
 %% Example: sinusoidal bed
 
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 UserVar=[];
 xL=-20e3 ; xR=20e3 ; yB=0 ; yT=2e3;
@@ -194,6 +196,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 L=20e3; h0=250;
@@ -222,6 +225,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %% Example:  house without a window
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
@@ -237,6 +241,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % when creating holes within a mesh, separate boundaries by NaN NaN
 %
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
@@ -253,6 +258,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % When generating separate meshed domains, label each domain with a number.
 % The label is the specified by putting `Label NaN' ahead of the corresponding boundary
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
@@ -322,6 +328,7 @@ QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundar
 % when creating holes within a mesh, separate boundaries by NaN NaN
 %
 CtrlVar=Ua2D_DefaultParameters(); 
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=1e3; 
@@ -359,6 +366,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % the 'plane surface' (gmsh terminology) separatly. This is done in CtrlVar.GmshPlaneSurface
 
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1; CtrlVar.MeshSize=0.1;
@@ -382,10 +390,11 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % This can be done using both gmsh and mesh2d, but the format for MeshBoundaryCoordinates is different!
 
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
-CtrlVar.MeshGenerator="gmsh";  % this option only works with gmsh...
+CtrlVar.MeshGenerator="gmsh";  
 CtrlVar.MeshGenerator="mesh2d";  
 UserVar=[];
 
@@ -402,11 +411,36 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 %str=input('Next example? y/n [y] ? ','s'); if strcmpi(str,'n') ; return ; end
 
+
+
+%% Two meshes connected at just one node
+
+
+CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
+
+CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSizeMin=0.1;  CtrlVar.MeshSize=0.1;
+CtrlVar.MeshGenerator="mesh2d";
+UserVar=[];
+
+
+CtrlVar.MeshBoundaryCoordinates=[0 0  ; 0  1 ; 1 1  ; 1 0 ; ...
+                                 0 0  ; -1 0 ; -1 1 ; 0 0 ] ;
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
+figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+
+
+
 %% Example: Internal boundaries # 1
 
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 CtrlVar.PlotXYscale=1;
 
@@ -449,6 +483,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 % For example internal calving front 
 
 CtrlVar=Ua2D_DefaultParameters();
+CtrlVar.PlotXYscale=1;
 CtrlVar.MeshGenerator='gmsh';  
 CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.PlotXYscale=1;
@@ -859,6 +894,12 @@ FindOrCreateFigure("UA Logo") ; PlotMuaMesh(CtrlVar,MUA,'k') ; axis ij off ; tit
 
 
 FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
+
+MUA.dM=[]; 
+MUA.coordinates(:,2)=-(MUA.coordinates(:,2)) ;
+MUA.coordinates=MUA.coordinates-mean(MUA.coordinates);
+FindOrCreateFigure("Ua Logo Mesh") ; PlotMuaMesh([],MUA) ; axis xy
+save("UaLogoMUA.mat","MUA")
 
 
 

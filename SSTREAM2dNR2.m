@@ -1,4 +1,8 @@
-function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
+% function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
+
+
+
+function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
     
     
     % Solves SSA/SSTREAM for u and v
@@ -11,6 +15,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     tStart=tic;
     RunInfo.Forward.uvConverged=1; 
  
+    
     
     if isempty(CtrlVar.CurrentRunStepNumber) || CtrlVar.CurrentRunStepNumber==0 
         CtrlVar.CurrentRunStepNumber=1;
@@ -94,7 +99,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     %
     
     
-    %% Make sure iterate is feasable
+    %% Make sure iterate is feasible
     F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     %%
     
@@ -113,10 +118,10 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
      
     
  
-
-    fext0=KRTFgeneralBCs(CtrlVar,MUA,F,true); % RHS with velocities set to zero, i.e. only external forces
-    
-    %% New normalisation idea, 10 April 2023
+    CtrlVar.uvAssembly.ZeroFields=true;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
+    % fext0=KRTFgeneralBCs(CtrlVar,MUA,F);            % RHS with velocities set to zero, i.e. only external forces
+    [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);   % RHS with velocities set to zero, i.e. only external forces
+    %% New normalization idea, 10 April 2023
     % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
     % then calculate the const function for this value and use as normalisation
     % gamma=0; fext0=1; 
@@ -129,9 +134,10 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     %%
 
     
-    
-    Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     % RHS with calculated velocities, i.e. difference between external and internal forces
-    
+    CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=true ; 
+    % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);     
+    [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);  % RHS with calculated velocities, i.e. difference between external and internal forces
+
     RunInfo.CPU.Solution.uv=0;
 
  
@@ -144,7 +150,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
     rWork=0 ; % I set rWork to zero to disable it as initial criterion
     gamma=1;
     
-    iteration=0;  ResidualReduction=1e10; RunInfo.CPU.solution.uv=0 ; RunInfo.CPU.Assembly.uv=0;
+    iteration=0;  ResidualReduction=1e10; 
 
     BackTrackInfo.iarm=nan;
     while true
@@ -189,17 +195,24 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         %% Newton step
         % If I want to use the Newton Decrement (work) criterion I must calculate the Newton
         % step ahead of the cost function
+
+        CtrlVar.NRuvIncomplete=0;
         if rem(iteration-1,CtrlVar.ModifiedNRuvIntervalCriterion)==0  || ResidualReduction> CtrlVar.ModifiedNRuvReductionCriterion
             
-            tAssembly=tic;
-            [Ruv,Kuv]=KRTFgeneralBCs(CtrlVar,MUA,F);
-            RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
-            NRincomplete=0;
+          
+            CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=false;
+            % [Ruv,Kuv,~,~]=KRTFgeneralBCs(CtrlVar,MUA,F);
+            [RunInfo,Ruv,Kuv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);
+            dAtilde=[]; 
+
         else
-            tAssembly=tic;
-            Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
-            RunInfo.CPU.Assembly.uv=toc(tAssembly)+RunInfo.CPU.Assembly.uv;
-            NRincomplete=1;
+          
+            CtrlVar.uvAssembly.ZeroFields=false;   CtrlVar.uvMatrixAssembly.Ronly=1; 
+            % Ruv=KRTFgeneralBCs(CtrlVar,MUA,F);
+            [RunInfo,Ruv]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);
+            
+             CtrlVar.NRuvIncomplete=1;
+            
         end
 
         
@@ -232,9 +245,9 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         tSolution=tic;
         
         if CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical
-            [sol,dl]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+            [sol,dl,dAtilde]=solveKApeSymmetric(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
         else
-            [sol,dl]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+            [sol,dl,dAtilde]=solveKApe(Kuv,L,frhs,grhs,[dub;dvb],dl,CtrlVar,dAtilde);
         end
         
         RunInfo.CPU.Solution.uv=toc(tSolution)+RunInfo.CPU.Solution.uv;
@@ -329,7 +342,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
             
             Up=2;
             if gamma>0.7*Up ; Up=2*gamma; end
-            parfor I=1:nnn
+            for I=1:nnn
                 gammaTest=Up*(I-1)/(nnn-1)+gamma/1000;
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
@@ -365,7 +378,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
             PlotForceResidualVectors2(CtrlVar,MUA,F,'uv',Ruv,L,l.ubvb,iteration);
         end
         
-        if NRincomplete
+        if CtrlVar.NRuvIncomplete
             stri='i';
         else
             stri=[];
@@ -385,7 +398,7 @@ function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F
         
     end
     
-    if CtrlVar.InfoLevelNonLinIt>=10 && iteration >= 2 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=5 && iteration >= 2 && CtrlVar.doplots==1
   
             
             figruv=FindOrCreateFigure("NR-uv r"); clf(figruv) ;

@@ -1,4 +1,11 @@
-function  [x,y]=solveKApeSymmetric(A,B,f,g,x0,y0,CtrlVar)
+function  [x,y,dAtilde]=solveKApeSymmetric(A,B,f,g,x0,y0,CtrlVar,dAtilde)
+
+
+narginchk(7,8)
+
+if nargin==7
+    dAtilde=[];
+end
 
 % Solves:
 %
@@ -96,7 +103,8 @@ switch CtrlVar.SymmSolver
         
     case 'EliminateBCsSolveSystemDirectly'
      
-        [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+        %[x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde);
+        [x,y,dAtilde]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde) ; 
 
     otherwise
         

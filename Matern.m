@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
 
 %%
@@ -67,17 +73,18 @@ end
 Cov=[] ; Realisation=[] ; 
 
 % this gives a correlation of about 0.1 at the distance r
-nu=alpha-d/2;  % ie nu=1 for alpha=2 and dimention=2
+nu=alpha-d/2;  % ie nu=1 for alpha=2 and dimension=2
 
 kappa=sqrt(8*nu)/rho;
 
 sigma2Helmholtz=gamma(nu) /  ( gamma(nu+d/2)*(4*pi)^(d/2)*kappa^(2*nu));
 
-if nargin<5
+if nargin<5 || isempty(sigma2)
     % Eq 1
     sigma2=sigma2Helmholtz ; 
 end
 
+dist=x ; % for plotting purposes
 x=kappa * x ;
 
 % this sigma2 should be referred to as sigma^2
@@ -87,8 +94,16 @@ x=kappa * x ;
 % My notation is based on: 
 %   Lindgren, F., Rue, H., & Lindström, J. (2011). 
 %   An explicit link between Gaussian fields and Gaussian Markov random fields: the stochastic partial differential equation approach. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 73(4), 423–498. https://doi.org/10.1111/j.1467-9868.2011.00777.x
+
 r = real(sigma2 * x.^nu .* besselk(nu,x)  / (2^(nu-1)*gamma(nu)) );
 
+% the expression above for r fails for x=0, although the limit x^nu beselk(nu,x)  for x  to 0 is well defined, in fact
+%
+%   lim x to 0 of x^nu besselk(nu,x) = 1 
+%
+
+Ix0=x==0 ; 
+r(Ix0) = real(sigma2  / (2^(nu-1)*gamma(nu)) );
 
 %%
 
@@ -105,7 +120,7 @@ if nargout>4 || DoPlots
         figure;
         for I=1:3
             y=R*randn(numel(x),1) ;
-            plot(x/1000,y) ; ylabel('Matern realisation') ; xlabel('distance (km)')
+            plot(dist/1000,y) ; ylabel('Matern realisation') ; xlabel('distance (km)')
             hold on
             fprintf(' Expected variance %f  \t  estimated variance %f \n ',sigma2,var(y))
         end

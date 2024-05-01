@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DraftDependentMeltParameterisations</title><meta name="generator" content="MATLAB 9.13"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-12-28"><meta name="DC.source" content="DraftDependentMeltParameterisations.m"><style type="text/css">
+      --><title>DraftDependentMeltParameterisations</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-05-14"><meta name="DC.source" content="DraftDependentMeltParameterisations.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -70,46 +70,53 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
   </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 </pre><pre class="language-matlab">[ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 </pre><p>Returns basal melt rates, based on several depth-dependent parameterisations.</p><pre>ab is :    abMin for F.b&gt;dMin
-           abMax for F.b&lt;dMax</pre><pre>and varies linearly inbetween.</pre><p>These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in previous publicatioins.</p><pre class="codeinput"><span class="keyword">switch</span> MRP
+           abMax for F.b&lt;dMax</pre><pre>and varies linearly inbetween.</pre><p>These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in previous publicatioins.</p><p>Note !!! The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line This can be done in DefineMassBalance.m as follows:</p><pre class="language-matlab">[LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],<span class="string">"Strict"</span>) ;
+ab(~OceanNodes)=0;
+dabdh(~OceanNodes)=0;
+</pre><pre class="codeinput"><span class="keyword">switch</span> MRP
 
 
-    <span class="keyword">case</span> <span class="string">"0"</span>
+    <span class="keyword">case</span> {<span class="string">"0"</span>,<span class="string">"l0"</span>}
 
         fprintf(<span class="string">' MeltRate0 \n '</span>);
         dMin=-400 ;  abMin=0 ;
         dMax=-800 ;  abMax=-100  ;
 
-    <span class="keyword">case</span> <span class="string">"1"</span>
+    <span class="keyword">case</span> {<span class="string">"1"</span>,<span class="string">"l1"</span>}
 
         fprintf(<span class="string">' MeltRate1 \n '</span>);
         dMin=-400 ;  abMin=0 ;
         dMax=-800 ;  abMax=-200  ;
 
 
-    <span class="keyword">case</span> <span class="string">"2"</span>
+    <span class="keyword">case</span> {<span class="string">"2"</span>,<span class="string">"l2"</span>}
 
         fprintf(<span class="string">' MeltRate2 \n '</span>);
         dMin=-200 ;  abMin=0 ;
         dMax=-800 ;  abMax=-100  ;
 
 
-    <span class="keyword">case</span> <span class="string">"3"</span>
+    <span class="keyword">case</span> {<span class="string">"3"</span>,<span class="string">"l3"</span>}
 
         fprintf(<span class="string">' MeltRate3 \n '</span>);
         dMin=-200 ;  abMin=0 ;
         dMax=-800 ;  abMax=-200  ;
 
-    <span class="keyword">case</span> <span class="string">"4"</span>
+    <span class="keyword">case</span> {<span class="string">"4"</span>,<span class="string">"l4"</span>}
 
-        fprintf(<span class="string">' MeltRate4 \n '</span>);
+        <span class="comment">% fprintf(' MeltRate4 \n ');</span>
         dMin=-400 ;  abMin=0 ;
         dMax=-500 ;  abMax=-50  ;
 
-    <span class="keyword">case</span> <span class="string">"5"</span>
+    <span class="keyword">case</span> {<span class="string">"5"</span>,<span class="string">"l5"</span>}
 
         fprintf(<span class="string">' MeltRate5 \n '</span>);
         dMin=-400 ;  abMin=0 ;
         dMax=-600 ;  abMax=-100  ;
+
+
+
+
 
     <span class="keyword">otherwise</span>
 
@@ -121,18 +128,57 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <span class="keyword">end</span>
 
 
-dabdh=F.ab;
-ab=F.dabdh;
+
+F.as=zeros(size(F.h)) ;
+F.ab=zeros(size(F.h)) ;
+F.dasdh=zeros(size(F.h)) ;
+F.dabdh=zeros(size(F.h)) ;
 
 
-I=F.b&gt;dMin ; ab(I)=abMin; dabdh(I)=abMin;        <span class="comment">% above dMin</span>
 
-I= F.b&lt; dMin &amp; F.b &gt;= dMax ; ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin);
-dabdh(I)=(-F.rho(I)/F.rhow)/(abMax/(dMax-dMin));
 
-I=F.b&lt;dMax ; ab(I)=abMax; dabdh(I)=abMax;        <span class="comment">% below dMax</span>
+
+<span class="keyword">if</span> contains(MRP,<span class="string">"l"</span>)
+
+    b0=(dMin+dMax)/2 ;
+    k=2/(dMin-dMax) ;
+    ab=abMin+    (1-HeavisideApprox(k,F.b,b0))*(abMax-abMin) ;
+
+    dabdh=-DiracDelta(k,F.b,b0).*(abMax-abMin).*(-F.rho/F.rhow) ;
+    <span class="comment">%   dab/db  db/dh</span>
+
+<span class="keyword">else</span>
+
+    dabdh=zeros(size(F.x)) ;
+    ab=zeros(size(F.x)) ;
+
+
+    <span class="comment">% Note, the dab/dh calculation is not exact, as it is missing a Dirac delta</span>
+    <span class="comment">% term</span>
+
+    I=F.b&gt;dMin ; ab(I)=abMin; dabdh(I)=0;        <span class="comment">% above dMin</span>
+
+    I= F.b&lt;= dMin &amp; F.b &gt;= dMax ;
+
+    <span class="comment">% b= -h rho/rhow</span>
+    ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); <span class="comment">% negative values, because it is a basal ablation</span>
+    dabdh(I)=(-F.rho(I)/F.rhow)  .* (abMax/(dMax-dMin));
+
+    I=F.b&lt;dMax ; ab(I)=abMax; dabdh(I)=0;        <span class="comment">% below dMax</span>
+
+
+<span class="keyword">end</span>
+
+<span class="comment">% Note !!!</span>
+<span class="comment">% The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line</span>
+<span class="comment">% This can be done in DefineMassBalance.m as follows:</span>
+<span class="comment">%</span>
+<span class="comment">%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;</span>
+<span class="comment">%   ab(~OceanNodes)=0;</span>
+<span class="comment">%   dabdh(~OceanNodes)=0;</span>
+<span class="comment">%</span>
 </pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2022b</a><br></p></div><!--
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 
@@ -141,61 +187,74 @@ function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 %   [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 %
 %
-% Returns basal melt rates, based on several depth-dependent parameterisations. 
+% Returns basal melt rates, based on several depth-dependent parameterisations.
 %
 %
-%  ab is :    abMin for F.b>dMin  
-%             abMax for F.b<dMax  
+%  ab is :    abMin for F.b>dMin
+%             abMax for F.b<dMax
 %
 %  and varies linearly inbetween.
 %
 %
 % These types of parameterisations have been used in various papers. Labels might not correspond exactly to the labels used in
 % previous publicatioins.
-% 
+%
+%
+% Note !!!
+% The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line
+% This can be done in DefineMassBalance.m as follows:
+%
+%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;
+%   ab(~OceanNodes)=0;
+%   dabdh(~OceanNodes)=0;
 %
 %%
+
 
 switch MRP
 
 
-    case "0"
+    case {"0","l0"}
 
         fprintf(' MeltRate0 \n ');
         dMin=-400 ;  abMin=0 ;
         dMax=-800 ;  abMax=-100  ;
 
-    case "1"
+    case {"1","l1"}
 
         fprintf(' MeltRate1 \n ');
         dMin=-400 ;  abMin=0 ;
         dMax=-800 ;  abMax=-200  ;
 
 
-    case "2"
+    case {"2","l2"}
 
         fprintf(' MeltRate2 \n ');
         dMin=-200 ;  abMin=0 ;
         dMax=-800 ;  abMax=-100  ;
 
 
-    case "3"
+    case {"3","l3"}
 
         fprintf(' MeltRate3 \n ');
         dMin=-200 ;  abMin=0 ;
         dMax=-800 ;  abMax=-200  ;
 
-    case "4"
+    case {"4","l4"}
 
-        fprintf(' MeltRate4 \n ');
+        % fprintf(' MeltRate4 \n ');
         dMin=-400 ;  abMin=0 ;
         dMax=-500 ;  abMax=-50  ;
 
-    case "5"
+    case {"5","l5"}
 
         fprintf(' MeltRate5 \n ');
         dMin=-400 ;  abMin=0 ;
         dMax=-600 ;  abMax=-100  ;
+
+
+
+
 
     otherwise
 
@@ -207,19 +266,56 @@ switch MRP
 end
 
 
-dabdh=F.ab;
-ab=F.dabdh;
 
-
-I=F.b>dMin ; ab(I)=abMin; dabdh(I)=abMin;        % above dMin
-
-I= F.b< dMin & F.b >= dMax ; ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); 
-dabdh(I)=(-F.rho(I)/F.rhow)/(abMax/(dMax-dMin));
-
-I=F.b<dMax ; ab(I)=abMax; dabdh(I)=abMax;        % below dMax
+F.as=zeros(size(F.h)) ;
+F.ab=zeros(size(F.h)) ;
+F.dasdh=zeros(size(F.h)) ;
+F.dabdh=zeros(size(F.h)) ;
 
 
 
+
+
+if contains(MRP,"l")
+
+    b0=(dMin+dMax)/2 ;
+    k=2/(dMin-dMax) ;
+    ab=abMin+    (1-HeavisideApprox(k,F.b,b0))*(abMax-abMin) ;
+
+    dabdh=-DiracDelta(k,F.b,b0).*(abMax-abMin).*(-F.rho/F.rhow) ;
+    %   dab/db  db/dh
+
+else
+
+    dabdh=zeros(size(F.x)) ;
+    ab=zeros(size(F.x)) ;
+
+
+    % Note, the dab/dh calculation is not exact, as it is missing a Dirac delta
+    % term
+
+    I=F.b>dMin ; ab(I)=abMin; dabdh(I)=0;        % above dMin
+
+    I= F.b<= dMin & F.b >= dMax ;
+
+    % b= -h rho/rhow
+    ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); % negative values, because it is a basal ablation
+    dabdh(I)=(-F.rho(I)/F.rhow)  .* (abMax/(dMax-dMin));
+
+    I=F.b<dMax ; ab(I)=abMax; dabdh(I)=0;        % below dMax
+
+
+end
+
+% Note !!!
+% The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line
+% This can be done in DefineMassBalance.m as follows:
+%
+%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;
+%   ab(~OceanNodes)=0;
+%   dabdh(~OceanNodes)=0;
+%
+%%
 
 end
 ##### SOURCE END #####

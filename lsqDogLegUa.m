@@ -7,7 +7,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 
 
 %%
-% Examples of solving a least-squares problem such as
+% Solves a least-squares problem such as
 %
 % 
 % $$\min_{x}  R^2 = \| \mathbf{R} \|^2 $$
@@ -35,7 +35,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 %
 % and the Newton system is 
 %
-% $$ K' K \Delta x =  -K' \mathbf{R}$  
+% $$ K' K \Delta x =  -K' \mathbf{R}$$  
 %
 % If $K$ is $n \times n$ and invertable, this is same as solving
 %
@@ -488,12 +488,14 @@ Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based 
 
 % fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
 
-
 if CostMeasure=="R2"
-    residual=R ;
+    residual=R2;
+elseif CostMeasure=="r2"
+    residual=r2;
 else
-    residual=g;
+    error("what cost measure?")
 end
+
 
 output.r2Array=r2Array;
 output.R2Array=R2Array;

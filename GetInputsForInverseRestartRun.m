@@ -28,7 +28,7 @@ InvStartValues=InvFinalValues;
 
 
 [InvStartValues.AGlen,InvStartValues.n]=TestAGlenInputValues(CtrlVar,MUA,InvStartValues.AGlen,InvStartValues.n);
-[InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk);
+[InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk,InvStartValues.V0]=TestSlipperinessInputValues(CtrlVar,MUA,InvStartValues.C,InvStartValues.m,InvStartValues.q,InvStartValues.muk,InvStartValues.V0);
 
 %[Priors.AGlen,Priors.n]=TestAGlenInputValues(CtrlVar,MUA,Priors.AGlen,Priors.n);
 %[Priors.C,Priors.m]=TestSlipperinessInputValues(CtrlVar,MUA,Priors.C,Priors.m);

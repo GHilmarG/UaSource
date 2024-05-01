@@ -31,7 +31,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     %
     % All matrices are Nnodes x Nnodes, apart from:
     % Luv is #uv constraints x 2 Nnodes, i.e. Luv [u;v]= cuv
-    % Lh  is # h contraints x Nnodes, i.e.    Lh h= ch
+    % Lh  is # h constraints x Nnodes, i.e.    Lh h= ch
     %  or
     %
     % [K L'] [ duvh ]      =  [ -R- L' l ]
@@ -73,7 +73,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
     
     
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);  % make sure that if any extrapolation of fields or interpolation was performed,
-    % that the geometrical fields are consistent with floation condition.
+    % that the geometrical fields are consistent with flotation condition.
     % However, since the uvh formulation is with respect to h
     % alone, this will not affect the solution since this does not
     % change h.
@@ -172,12 +172,12 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         
    
         
-        % I define two types of exit critera:
+        % I define two types of exit criteria:
         %  1) if residuals are below a given tolerance, exit and call it a success
         %  2) if step size is below a prescribed fraction of the Newton step in two
         %     consecutive iterations, the minimisation procedure is judged to have
         %     stagnated. There can be good or bad reasons for this: Possibly the
-        %     minimisation procedure has converged on the miniumum and the norm of the
+        %     minimisation procedure has converged on the minimum and the norm of the
         %     gradient is small-enough (good) or it is too-large (bad).
         %
         
@@ -275,7 +275,10 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
         % 
         
+        tSolve=tic;
         [duvh,dl]=solveKApe(K,L,frhs,grhs,[dub;dvb;dh],dl,CtrlVar);
+        RunInfo.CPU.Solution.uvh=RunInfo.CPU.Solution.uvh+toc(tSolve);
+
         dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
         
                                 
@@ -330,8 +333,8 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             Upper=2.2;
             Lower=-1 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
-            parfor I=1:nnn
-                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
+            for I=1:nnn
+                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower;
                 [~,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 %[rTest,~,~,rForceTest,rWorkTest,D2Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;
@@ -396,7 +399,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         % Variables have been updated, if I have MassBalanceGeometryFeedback>0 I must
         % update the surface mass balance within this non-linear loop. Actually I here
         % only need to consider option 1 because if options 2 or 3 are used the
-        % mass-blance is updated anyhow witin the assmebly loop.
+        % mass-balance is updated anyhow within the assembly loop.
         if CtrlVar.MassBalanceGeometryFeedback>0
             
             rdamp=CtrlVar.MassBalanceGeometryFeedbackDamping;
@@ -473,7 +476,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
 
     %% print/plot some info
     
-    if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 2 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=2 && iteration >= 1 && CtrlVar.doplots==1
         
         
         figNR=FindOrCreateFigure(FigNames+"NR-uvh r"); clf(figNR) ;

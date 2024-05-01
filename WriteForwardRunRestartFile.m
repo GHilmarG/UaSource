@@ -6,6 +6,8 @@ fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writ
 
 
 
+MUA.workers=[]; % saving composites is not supported, MATLAB 2024
+
 CtrlVarInRestartFile=CtrlVar;
 UserVarInRestartFile=UserVar;
 

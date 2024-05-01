@@ -42,6 +42,7 @@ switch N
         else
             [UserVar,F.C,F.m,F.q]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,F);
         end
+
     case 5
         
         if NargInputFile>4
@@ -53,7 +54,19 @@ switch N
             [UserVar,F.C,F.m,F.q,F.muk]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,F);
             
         end
-        
+
+    case 6
+
+        if NargInputFile>4
+
+            [UserVar,F.C,F.m,F.q,F.muk,F.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,CtrlVar.time,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
+
+        else
+
+            [UserVar,F.C,F.m,F.q,F.muk,F.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUA,F);
+
+        end
+
     otherwise
         
         error('Ua:GetSlipperyDistribution','DefineSlipperyDistribution must return between 3 and 5 arguments')
@@ -63,7 +76,7 @@ end
 F.Cmax=CtrlVar.Cmax;
 F.Cmin=CtrlVar.Cmin;
 
-[F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
+[F.C,F.m,F.q,F.muk,F.V0]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk,F.V0);
 
 
 

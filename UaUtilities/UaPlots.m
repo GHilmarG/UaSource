@@ -1,4 +1,4 @@
-function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
+function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
 %
@@ -9,6 +9,12 @@ function [cbar,xGL,yGL,xCF,yCF]=UaPlots(CtrlVar,MUA,F,Variable,options)
 % Note: Sometimes the default labels on the plots assume some typical
 %       physical dimensions such as m/yr for velocities, and kPa for stresses.
 % 
+%
+% Note:  To produce two velocity plots with the same scaling, use the CtrlVar from previous call again, but in the second
+% call set
+% 
+%   CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
+%
 %
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
@@ -38,7 +44,7 @@ arguments
     CtrlVar struct
     MUA     struct
     F       {mustBeA(F,{'struct','UaFields','numeric'})}
-    Variable {mustBeA(Variable,{'string','numeric'})}
+    Variable {mustBeA(Variable,{'string','numeric','logical'})}
     options.PlotGroundingLines  logical = true
     options.PlotCalvingFronts  logical = true
     options.CalvingFrontColor char = "b"
@@ -50,7 +56,7 @@ arguments
     options.PlotMuaBoundary=true;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
-    options.MeshColor char="w"
+    options.MeshColor char="k"
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -77,8 +83,6 @@ end
 
 
 if islogical(Variable)
-
-
     Variable=double(Variable) ;
 end
 
@@ -154,7 +158,7 @@ end
 
 if options.PlotOverMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
+    PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
     hold on
 
 end
@@ -189,7 +193,7 @@ else
         case {"ubvb","-ubvb-","uv","-uv-"}
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
 
@@ -210,7 +214,7 @@ else
             % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             CtrlVar.VelColorMap=jet(100) ;
-            cbar=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
+            [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,tbx,tby,CtrlVar) ;
             title(cbar,"(kPa)",Interpreter="latex")
             title(sprintf("basal drag vectors at t=%g",CtrlVar.time),Interpreter="latex")
 
@@ -251,6 +255,7 @@ else
            end
 
            scale=1000 ; 
+           scale=0.1 ; 
            LineWidth=1; 
            nStride=10;
            xint=xint(1:nStride:end,1);
@@ -317,17 +322,11 @@ hold on ;
 
 if options.PlotUnderMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
+    PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
     hold on
 
 end
 
-if isempty(F.GF)
-
-    
-    
-
-end
 
 
 
@@ -346,10 +345,10 @@ end
 
 % Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
 
-
-xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex") 
-ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
-
+if isfield(CtrlVar,"PlotsXaxisLabel")
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")
+    ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+end
 
 
 

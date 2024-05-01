@@ -26,7 +26,7 @@ t20 = t4+t5+t6;
 t30 = t11.*t13.*(-1.0./2.0);
 t15=delta ; % t15 = dirac(t14);
 t16=He ; % t16 = heaviside(t14);
-% t19=0 ; % t19 = (t14 == 0.0);  ?! for some reason the simplificatoin gives a kronecka delta function
+% t19=0 ; % t19 = (t14 == 0.0);  ?! for some reason the simplification gives a kronecka delta function
 t22 = mu.*t2.*t17;
 %t23 = t11.*t18;
 %t24 = t12.*t18;

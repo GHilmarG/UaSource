@@ -959,7 +959,7 @@ while iFile<=nFiles   % loop over files
 
                 if contains(options.PlotType,"-ds-")
                     %ModifyColormap(GrayLevelRange=100) ; 
-                    CM=cmocean('balanced',25,'pivor',0) ; colormap(CM); ModifyColormap(100,5,ChangeColormap=false) ;
+                    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); ModifyColormap(100,5,ChangeColormap=false) ;
                 else
                     colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
                 end
