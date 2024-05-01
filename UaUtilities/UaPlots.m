@@ -56,7 +56,7 @@ arguments
     options.PlotMuaBoundary=true;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
-    options.MeshColor char="w"
+    options.MeshColor char="k"
 
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
@@ -158,7 +158,7 @@ end
 
 if options.PlotOverMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
+    PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
     hold on
 
 end
@@ -322,7 +322,7 @@ hold on ;
 
 if options.PlotUnderMesh
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-    PlotMuaMesh(CtrlVar,MUA,[],options.MeshColor) ;
+    PlotMuaMesh(CtrlVar,MUA,nan,options.MeshColor) ;
     hold on
 
 end

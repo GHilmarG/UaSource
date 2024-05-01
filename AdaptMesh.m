@@ -26,6 +26,9 @@ isNewOutsideNodes=false  ; % true if during remeshing, in particular during manu
 xGLold=[] ; yGLold=[]; GLgeoold=[];
 %%
 
+CtrlVar.Parallel.BuildWorkers=false ; % don't build workers during adapt meshing, only do so ahead of a uv or uvh solve
+
+%%
 
 
 if CtrlVar.MeshRefinementMethod=="start with explicit:global in the very first run step, afterwards do explicit:local:newest vertex bisection"
@@ -357,7 +360,7 @@ if contains(AdaptMeshMethod,"-activation-")
     CtrlVar.UpdateMUAafterDeactivating=false ;  % Because I always do this here afterwards 
     [MUAnew,k,l]=DeactivateMUAelements(CtrlVar,MUAnew,ElementsToBeDeactivated);
 
-    CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
+   
 
     if CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly
         [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUAnew) ;
@@ -413,7 +416,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     PlotMuaMesh(CtrlVar,MUAold,nan,CtrlVar.MeshColor);
     hold on ;  PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
-    title(sprintf('Before remeshing \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+    title(sprintf('Before remeshing \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod),Interpreter="latex")
     axis tight
 
     subplot(2,1,2)
@@ -421,7 +424,7 @@ if  CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMesh
     xGL=[] ; yGL=[]; GLgeo=[];
     CtrlVar.PlotGLs=1;
     PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
-    title(sprintf('After remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+    title(sprintf('After remeshing  \\#Ele=%-i, \\#Nodes=%-i, \\#nod=%-i',MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod),Interpreter="latex")
     hold on ;  PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r');
     PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b');
     axis tight
@@ -487,7 +490,10 @@ else
 end
 
 if isRecalculateVelocities
+    CtrlVar.Parallel.BuildWorkers=true;  % ahead of a uv call I may need to update workes
+    MUAnew=UpdateMUA(CtrlVar,MUAnew);
     [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
+    CtrlVar.Parallel.BuildWorkers=false;
 end
 
 

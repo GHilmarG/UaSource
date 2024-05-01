@@ -11,9 +11,11 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+
+
 if isscalar(F.m)
     F.m=zeros(MUA.Nnodes,1)+F.m;
-    
+
 end
 
 if isscalar(F.n)
@@ -91,7 +93,8 @@ switch lower(CtrlVar.FlowApproximation)
         if ~RunInfo.Forward.uvConverged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
             F.ub=F.ub*0 ; F.vb=F.vb*0 ; l.ubvb=l.ubvb*0 ;
-            [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+            % [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+            [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         end
 
     case 'ssheet'

@@ -92,16 +92,13 @@ MUA.EleAreas=TriAreaFE(MUA.coordinates,MUA.connectivity); % areas for each eleme
 MUA.Area=sum(MUA.EleAreas);                               % total FE mesh area
 
 
-MUA.workers=[]; 
+MUA.workers=[];
 
 if CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn
 
     MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
 
 end
-
-
-
 
 
 

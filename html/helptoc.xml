@@ -80,6 +80,7 @@
                 <tocitem target="LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.html">Locate detached element islands and regions connected by one node only. </tocitem>
                 <tocitem target="PrintInfoAboutElementsSizes.html">Calculate effective element sizes. </tocitem>
                 <tocitem target="CalculateReactions.html">Calculate nodal reactions due to applied boundary conditions.</tocitem>
+                <tocitem target="PathIntegral.html">Calculate fluxes normal and tangential to a path.</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

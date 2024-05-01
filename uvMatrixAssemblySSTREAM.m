@@ -1,11 +1,11 @@
-function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F)
+function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-narginchk(3,3)
+narginchk(4,4)
 nargoutchk(1,4)
 
 
@@ -22,6 +22,7 @@ end
 if ZeroFields
     F.ub=F.ub*0;
     F.vb=F.vb*0;
+    F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
 end
 
 if ~CtrlVar.IncludeMelangeModelPhysics

@@ -2,16 +2,13 @@
 
 
 
-
-
-
-function  [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
           
+function [UserVar,ub,vb,ud,vd,l]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,F,l) 
 
 %%
 % Define start values for velocities
 %
-% [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,vb,ud,vd,time,s,b,h,S,B,rho,rhow,GF,AGlen,n,C,m)
+%  [UserVar,F.ub,F.vb,F.ud,F.vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,F) 
 %
 % This user m-file defines the starting values for the velocities.  This is just
 % the initial estimate of the solution and, provided the solver converges, it has
@@ -21,8 +18,17 @@ function  [UserVar,ub,vb,ud,vd]=DefineStartVelValues(UserVar,CtrlVar,MUA,BCs,ub,
 % default approach. So generally this m-file is not required to obtain a solution,
 % but it may speed things up.
 %
+%  l are Lagrange parameters related to boundary conditions
 %
+% If you have those from a previous solve, these can be specified here.
+%
+%%
 
+ub=F.ub;
+vb=F.vb;
+
+ud=F.ud;
+vd=F.vd;
 
         
 end

@@ -55,11 +55,11 @@ if isstring(MUA)
 
             DataFile="ITS-LIVE-ANT-G0120-0000-AntarticIceSheetBoundary-nStride5.mat";
 
-            if isfile(DataFile)
+            try
                 load(DataFile,"AISBoundaryITS") ;
                 xc=AISBoundaryITS(:,1);
                 yc=AISBoundaryITS(:,2);
-            else
+            catch
                 fprintf("Can not plot calving fronts based on ITS-LIVE data because the data file %f \n",DataFile)
                 fprintf("is not found.\n")
                 xc=[] ; yc=[]; 

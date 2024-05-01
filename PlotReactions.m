@@ -24,24 +24,26 @@ if numel(Reactions.h)>0
 
     if Two
         subplot(1,2,2)
-        PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ;
-        axis tight
     end
+    PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar) ;
+    axis tight
+
 
     [AreaTri]=TriAreaFE(MUA.coordinates,MUA.connectivity);
     Rh= 3*Reactions.h*min(AreaTri)/max(abs(Reactions.h))/CtrlVar.PlotXYscale^2;
 
     I=Rh>0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,Rh(I),'b','d','filled')
     I=Rh<0; scatter(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,-Rh(I),'r','c','filled')
-    title('h Reactions') ;
+    title("$h$-reactions",Interpreter="latex") ;
+    subtitle("negative reactions in red, positive in blue",interpreter="latex")
 
 
     if nargin> 3
         ah=Reactions.h./F.rho/F.dt;
         UaPlots(CtrlVar,MUA,F,ah,FigureTitle=" Reactions.h/(F.rho F.dt) Reactions ")
-        title("Thickness Reactions/($\rho \, \Delta t)$",Interpreter="latex") ;
+        title("$h$-reactions/($\rho \, \Delta t)$",Interpreter="latex") ;
         subtitle(sprintf("t=%g",F.time),Interpreter="latex") ;
-       
+
     end
 
 end

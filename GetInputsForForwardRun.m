@@ -113,10 +113,12 @@ F=StartVelocity(CtrlVar,MUA,BCs,F);  % modify based on BCs
 
 [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
 
-[UserVar,F]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F);
-
-
 l=UaLagrangeVariables; 
+
+[UserVar,F,l]=GetStartVelValues(UserVar,CtrlVar,MUA,BCs,F,l);
+
+
+
 
 
 F.dubdt=zeros(MUA.Nnodes,1) ;

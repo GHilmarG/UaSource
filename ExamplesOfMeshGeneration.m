@@ -895,5 +895,11 @@ FindOrCreateFigure("UA Logo") ; PlotMuaMesh(CtrlVar,MUA,'k') ; axis ij off ; tit
 
 FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 
+MUA.dM=[]; 
+MUA.coordinates(:,2)=-(MUA.coordinates(:,2)) ;
+MUA.coordinates=MUA.coordinates-mean(MUA.coordinates);
+FindOrCreateFigure("Ua Logo Mesh") ; PlotMuaMesh([],MUA) ; axis xy
+save("UaLogoMUA.mat","MUA")
+
 
 

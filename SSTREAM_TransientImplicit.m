@@ -334,7 +334,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
             Lower=-1 ;
             if gamma>0.7*Upper ; Upper=2*gamma; end
             for I=1:nnn
-                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
+                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower;
                 [~,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 %[rTest,~,~,rForceTest,rWorkTest,D2Test]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gammaTest,Fext0);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;

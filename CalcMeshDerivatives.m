@@ -21,7 +21,7 @@ end
 
 % ndim=2;  points=sample('triangle',nip,ndim);
 
-parfor Iint=1:nip
+for Iint=1:nip
     [Deriv,detJ]=derivVector(coordinates,connectivity,nip,points,Iint);
     MeshDeriv(:,:,:,Iint)=Deriv;
     MeshDetJ(:,Iint)=detJ;

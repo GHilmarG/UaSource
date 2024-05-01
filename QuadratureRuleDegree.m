@@ -13,6 +13,7 @@ else
         case 3
 
             Degree=4;
+            Degree=25;
 
 
         case 6
@@ -20,10 +21,12 @@ else
             Degree=8;
            % Degree=12;
            % Degree=20;
+           % Degree=25;
 
         case 10
 
             Degree=8 ;
+            % Degree=25;
 
         otherwise
 

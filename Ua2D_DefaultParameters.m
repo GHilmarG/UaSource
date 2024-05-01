@@ -1390,6 +1390,9 @@ CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the 
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
 % This option allows for deactivation/activation of elements based on ice thickness.
+%
+% Note: this is now an outdated approach, used the more general Adapt Mesh options below.
+%
 % A `background' FE mesh is required. In most cases this background FE mesh will simply be the initial FE mesh
 % used at the start of the calculation.
 % For advancing glaciers this option must be combined with the active-set method (set CtrlVar.ThicknessConstraints=1)
@@ -1548,6 +1551,10 @@ CtrlVar.RefineMeshOnStart=0;
 % Note: This absolute mesh criterion requires the matlab function rangesearch
 % which is a part of the Machine Learning Toolbox.
 %
+%
+%
+%
+
 CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
 
 CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
@@ -1573,6 +1580,21 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 %
 
+% Sometimes when deactivating elements, one ends with isolated elemnents that are either not connected to the rest of the mesh, or
+% only connected by one node. If those elements are afloat, it is generally better to get rid of the alltogether.  As so many Ua
+% users are working with ice shelves/sheets, by default such isolated element groups are eliminated. However, it is possible that
+% in some cases this is not the desired behavious, in which case this option needs to be disabled by setting the flag to false.
+%
+% See the documentation in LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.m for further information.
+
+CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
+CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
+
+% More control over how many detaced element islands are kept, and how many nodes they must contained can be achived by setting: 
+CtrlVar.MinNumberOfNodesPerIslands=1 ;  %    A seperated mesh region (i.e. an island) will only be contained if it contains at least this number of nodes
+CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of seperated mesh regions to be kept in the computational mesh
+% By default only one element island is kept. This might be fine in many simulations involving ice sheets, but would not be a good
+% approach when, for example, simulating a group of glaciers. 
 
 %% Calving :  including Level Set Method
 %
@@ -2170,6 +2192,9 @@ CtrlVar.Parallel.hAssembly.parfor.isOn=false ; % this is for the SSHEET/SIA impl
 CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;   
 
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
+
+CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+                                   
 
 %%  
 

@@ -27,7 +27,7 @@ persistent iCounter
 
 if nargin>3
     if isempty(ElementList)
-        fprintf("PlotFEmesh:Element list is empty. Not plotting any elements.\n")
+        % fprintf("PlotFEmesh:Element list is empty. Not plotting any elements.\n")
         hTri=[];
         return
     else
