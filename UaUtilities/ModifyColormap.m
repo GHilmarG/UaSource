@@ -24,7 +24,8 @@ function cmap=ModifyColormap(GrayLevel,Ncol,options)
 %
 % Use with cmocean, setting colormap to gray around -100 to 100
 %
-%   CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); ModifyColormap(100,nan,ChangeColormap=false) ;
+% CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+% ModifyColormap(100,nan,ChangeColormap=false) ;
 %
 %%
 

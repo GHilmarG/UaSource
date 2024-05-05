@@ -18,7 +18,7 @@ end
 % first make sure that the element is of the right type
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(MUA.coordinates,MUA.connectivity,CtrlVar.TriNodes);
 
-% checking if MUA as the QuadratureRuleDegree field
+% checking if MUA has the QuadratureRuleDegree field
 if CtrlVar.QuadRules2021  && ~isfield(MUA,"QuadratureRuleDegree")
     QuadratureFieldMissing=true;
 else
