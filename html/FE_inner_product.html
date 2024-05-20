@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>FE_inner_product</title><meta name="generator" content="MATLAB 9.9"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-03-03"><meta name="DC.source" content="FE_inner_product.m"><style type="text/css">
+      -->
+<title>FE_inner_product</title>
+<meta name="generator" content="MATLAB 24.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-05-16">
+<meta name="DC.source" content="FE_inner_product.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,40 +72,71 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [fg,theta]=FE_inner_product(f,g,M)
-</pre><pre class="language-matlab">[fg,theta]=FE_inner_product(f,g,M)
-</pre><pre>     f :     Nodal variables
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [fg,theta]=FE_inner_product(f,g,M)
+</pre>
+<pre class="language-matlab">[fg,theta]=FE_inner_product(f,g,M)
+</pre>
+<pre>     f :     Nodal variables
      g :     Nodal variables
-     M :     The FE mass matrix, this you can find as the field MUA.M</pre><pre>    fg :     FE inner product between the nodal variables f and g
- theta :     The angle between f and g</pre><p>Examples:</p><pre class="language-matlab">fg=FE_inner_product(f,g,MUA.M)   ;
-</pre><pre class="language-matlab">fNorm=sqrt(FE_inner_product(f,f,MUA.M))   ;
-</pre><p>Note:  If you just need to calculate the norm of a nodal variable f, you can do so simply as:</p><pre class="language-matlab">fNorm= f'*MUA.M* f
-</pre><p>So you don't really need to call this m-File.</p><pre class="codeinput">nf=numel(f) ; ng=numel(g) ;
+     M :     The FE mass matrix, this you can find as the field MUA.M</pre>
+<pre>    fg :     FE inner product between the nodal variables f and g
+ theta :     The angle between f and g</pre>
+<p>Examples:</p>
+<pre class="language-matlab">fg=FE_inner_product(f,g,MUA.M)   ;
+</pre>
+<pre class="language-matlab">fNorm=sqrt(FE_inner_product(f,f,MUA.M))   ;
+</pre>
+<p>Note: If you just need to calculate the norm of a nodal variable f, you can do so simply as:</p>
+<pre class="language-matlab">fNorm= f'*MUA.M* f
+</pre>
+<p>So you don't really need to call this m-File.</p>
+<pre class="codeinput">nf=numel(f) ; ng=numel(g) ;
 
 [nM,mM]=size(M);
+
+theta=nan;
 
 <span class="keyword">if</span> nM==nf
 
     fg=f'*M*g;   <span class="comment">% = (M*f)' * g</span>
-    fNorm=sqrt(f'*M*f) ;
-    gNorm=sqrt(g'*M*g) ;
-    theta=acos(fg/(fNorm*gNorm)) ;
+
+    <span class="keyword">if</span> nargout&gt;1
+        fNorm=sqrt(f'*M*f) ;
+        gNorm=sqrt(g'*M*g) ;
+        theta=acos(fg/(fNorm*gNorm)) ;
+    <span class="keyword">else</span>
+        theta=nan;
+    <span class="keyword">end</span>
 
 <span class="keyword">elseif</span> nf==2*nM
 
     fg=f(1:nM)'*M*g(1:nM)+f(1+nM:nf)'*M*g(1+nM:ng);
 
+    <span class="keyword">if</span> nargout&gt;1
     fNorm=sqrt(f(1:nM)'*M*f(1:nM)+f(1+nM:nf)'*M*f(1+nM:nf)) ;
     gNorm=sqrt(g(1:nM)'*M*g(1:nM)+g(1+nM:ng)'*M*g(1+nM:ng)) ;
     theta=acos(fg/(fNorm*gNorm)) ;
+    <span class="keyword">else</span>
+        theta=nan;
+    <span class="keyword">end</span>
 
 <span class="keyword">end</span>
-</pre><pre class="codeoutput error">Not enough input arguments.
-
-Error in FE_inner_product (line 31)
-nf=numel(f) ; ng=numel(g) ;
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2020b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function [fg,theta]=FE_inner_product(f,g,M)
 
@@ -136,21 +172,32 @@ nf=numel(f) ; ng=numel(g) ;
 
 [nM,mM]=size(M);
 
+theta=nan;
+
 if nM==nf
-    
+
     fg=f'*M*g;   % = (M*f)' * g
-    fNorm=sqrt(f'*M*f) ; 
-    gNorm=sqrt(g'*M*g) ; 
-    theta=acos(fg/(fNorm*gNorm)) ; 
-    
+
+    if nargout>1
+        fNorm=sqrt(f'*M*f) ;
+        gNorm=sqrt(g'*M*g) ;
+        theta=acos(fg/(fNorm*gNorm)) ;
+    else
+        theta=nan;
+    end
+
 elseif nf==2*nM
-    
+
     fg=f(1:nM)'*M*g(1:nM)+f(1+nM:nf)'*M*g(1+nM:ng);
-    
+
+    if nargout>1
     fNorm=sqrt(f(1:nM)'*M*f(1:nM)+f(1+nM:nf)'*M*f(1+nM:nf)) ;
     gNorm=sqrt(g(1:nM)'*M*g(1:nM)+g(1+nM:ng)'*M*g(1+nM:ng)) ;
-    theta=acos(fg/(fNorm*gNorm)) ; 
-    
+    theta=acos(fg/(fNorm*gNorm)) ;
+    else
+        theta=nan;
+    end
+
 end
 
 
@@ -162,4 +209,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
