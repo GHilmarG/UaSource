@@ -12,8 +12,8 @@ else
 
         case 3
 
-            Degree=4;
-            Degree=25;
+            Degree=4;     % 6 integration points
+            % Degree=25;  % this would give 126 integration points
 
 
         case 6

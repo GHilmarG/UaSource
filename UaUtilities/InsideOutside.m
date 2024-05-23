@@ -6,6 +6,21 @@ function [isInside,isOnBounday]=InsideOutside(xy,boundary)
 % Just a simple wrapper around inpoly2 to take care of the possibility of
 % several boundaries within the array 'boundary' seperated by NaNs
 %
+%   xy            : n x 2 array
+%   Boundary      : m x 2 Array
+%
+% Example
+% 
+%
+%   xy=[ 0.5 0.5 ; 0.5 1.5] ;
+%   boundary=[ 0 0 ; 1 0 ; 1 1 ; 0 1 ; 0 0 ; nan nan ; 0 2 ; 1 2 ; 1 3 ; 0 3 ; 0 2] ;
+%   [isInside,isOnBounday]=InsideOutside(xy,boundary) ; 
+%
+%   figure ; 
+%   plot(boundary(:,1),boundary(:,2),LineWidth=2) ; hold on ; 
+%   plot(xy(:,1),xy(:,2),"*r")
+%   plot(xy(isInside,1),xy(isInside,2),"ok") ; axis padded
+%
 %%
 
 Kisnan=find(isnan(boundary(:,1)));
