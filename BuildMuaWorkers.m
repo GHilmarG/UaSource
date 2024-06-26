@@ -24,6 +24,11 @@ end
 
 nW=CtrlVar.Parallel.uvhAssembly.spmd.nWorkers;
 
+%%
+
+
+
+
 
 %% create element lists for each partition
 % Use round to make sure that there are exactly nW partitions
@@ -69,47 +74,49 @@ else
 
     if ~isCompoositeInCorrectState
         BuildWorkers=true;
+    else  % Compoosite is tecknically in correct state, but may not contain the right elements
+
+        % check if all partitions already contain the correct elements, if so then there is no need to build the workers anew
+        spmd (0,nW)
+
+            T=all(MUAworkers.Partition==Partition{spmdIndex}) ;
+            Tand=spmdReduce(@and,T,1) ;
+
+        end
+
+       
+        if ~Tand{1}
+             % Does not contain the correct elements, so rebuild
+            BuildWorkers=true;
+        end
     end
-
-    % check if all partitions already contain the correct elements, if so then there is no need to build the workers anew
-    spmd (0,nW)
-
-        T=all(MUAworkers.Partition==Partition{spmdIndex}) ;
-        Tand=spmdReduce(@and,T,1) ;
-
-    end
-
-    if ~Tand{1}
-        BuildWorkers=true;
-    end
-
 
     % Turns out the spmd version above is much faster
     % if isCompoositeInCorrectState
-    % 
+    %
     %     areWorkersAlreadyBuild=true;
     %     for iWorker=1:nW
-    % 
+    %
     %         % % do a simple test first
     %         % if numel(MUAworkers{iWorker}.Partition)~=numel(Partition{iWorker})
     %         %     areWorkersAlreadyBuild=false ;
     %         %     break
     %         % end
-    % 
+    %
     %         % now check if exacly the same elements are part of each partition
     %         if ~all(MUAworkers{iWorker}.Partition==Partition{iWorker})
     %             % if sum(MUAworkers{iWorker}.Partition)~=sum(Partition{iWorker})
     %             areWorkersAlreadyBuild=false ;  % if new partition is not equal to previous one, rebuild
-    % 
+    %
     %             break
     %         end
-    % 
+    %
     %     end
-    % 
+    %
     %     if ~areWorkersAlreadyBuild
     %         BuildWorkers=true;
     %     end
-    % 
+    %
     % end
 
 end
@@ -117,9 +124,13 @@ end
 
 
 
- 
+
 
 if BuildWorkers
+    MUA.workers=[];   % Make sure to get rid of this composite, within the MUA structure ahead of the spmd call
+    % First of all this field is no longer needed as it has be judged to be in an incorrect state and needs to be recreated.
+    % Second, keeping it means that this composite, ie MUA.workers, is used within the body of the spmd statement and this is not
+    % allowed in matlab and will create a warning.
     spmd (0,nW)
 
         % Build M directly on the workers to avoid communication
