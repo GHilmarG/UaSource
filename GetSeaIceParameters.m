@@ -57,6 +57,7 @@ if CtrlVar.IncludeMelangeModelPhysics
     end
     
     CtrlVar.SlidingLaw="Weertman" ;  
+    
     % The "sliding law" used here is only applied over the floating section, and provides a link between the basal drag and ocean
     % velocities over the floating parts of the domain. This drag is calculated using a Weertman type law. Hence, here the test
     % needs to be done for a Weertman sliding law. The sliding law used for the grounded parts can, and in general will, be
