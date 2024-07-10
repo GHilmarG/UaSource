@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
@@ -224,7 +231,7 @@ else
 
             [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
-            % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
+            % e(e<0)=eps ; % the projection onto nodes does not preserve positive
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
             title(sprintf("effective strain rates at t=%g",CtrlVar.time),Interpreter="latex")

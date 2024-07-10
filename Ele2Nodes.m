@@ -26,7 +26,7 @@ I= connectivity(:);
 J=repmat((1:Nele)',nod,1);
 E2N=sparse(I,J,1,Nnodes,Nele);
 
-ElePerNode=sum(E2N,2);  % this is the number of elements that each node is attaced to
+ElePerNode=sum(E2N,2);  % this is the number of elements that each node is attached to
 
 
 % divide each line by the number of elements to which corresponding node belongs to

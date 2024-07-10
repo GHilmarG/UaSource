@@ -221,7 +221,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             dtaubxdui(isCoulomb)=dtaubxduiC(isCoulomb);
             dtaubydvi(isCoulomb)=dtaubydviC(isCoulomb);
             dtaubxdvi(isCoulomb)=dtaubxdviC(isCoulomb);
-            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulom
+            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulomb
             dtaubxdhi(isCoulomb)=dtaubxdhiC(isCoulomb);
             dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
 

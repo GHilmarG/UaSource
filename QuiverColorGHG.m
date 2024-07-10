@@ -68,7 +68,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   CtrlVar=CtrlVarInRestartFile;
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
 %   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));
-%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % finds nodes within computational grid closest to the regularly scape X and Y grid points.
+%   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % finds nodes within computational grid closest to the regularly shaped X and Y grid points.
 %   FigVelocities=figure; 
 %   Par.PlotXYscale=CtrlVar.PlotXYscale ; 
 %   Par.MinPlottedSpeed=0; 

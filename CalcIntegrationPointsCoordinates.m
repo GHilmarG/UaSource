@@ -1,3 +1,10 @@
+
+
+
+
+
+
+
 function [xint,yint] = CalcIntegrationPointsCoordinates(MUA)
     
     % Calculates coordinates of element integration points in a vectorized way

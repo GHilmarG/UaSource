@@ -1,4 +1,4 @@
-function [UserVar,RunInfo,R,K]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,RunInfo,R,K,taux,tauy,eta]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
 %
@@ -12,7 +12,7 @@ function [UserVar,RunInfo,R,K]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,
 
 
 narginchk(6,6)
-nargoutchk(4,4)
+nargoutchk(4,7)
 
 %
 % K= [Kxu Kxv Kxh]
@@ -42,15 +42,15 @@ if ZeroFields
     
     % I'm using this to come up with a reasonable normalizing factor to the
     % residuals.  The uv side of things is clear and there I set u=v=0 and this
-    % ensures that all 'interanal' nodal forces are zero. The h side is less clear.
-    % and I've stuggled with finding a sensible normalising factor for this term.
-    % If I set u=v=0 to get the sensible uv normalisation, then dqdx=0. I can have a
+    % ensures that all 'internal' nodal forces are zero. The h side is less clear.
+    % and I've struggled with finding a sensible normalizing factor for this term.
+    % If I set u=v=0 to get the sensible uv normalization, then dqdx=0. I can have a
     % situation where a=0 and if h1=h0 then the initial estimate for dh/dt=0. So all
     % terms are then zero. 
     %
     % One approach is to create a scale for dh/dt by using ThickMin/dt , or
-    % alternativily just make this term numerically equal to 1, i.e. no
-    % normalisatiion apart in the norm. This can be achived by setting the surface
+    % alternatively just make this term numerically equal to 1, i.e. no
+    % normalization apart in the norm. This can be achieved by setting the surface
     % mass balance to 1.
     
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
@@ -71,7 +71,7 @@ if ZeroFields
     % function. This means that the normalisation is independent of dt
     % 
     % Possibly it would be better to solve directly for dh/dt, then at
-    % least the units of the rhs are identical for all unknonws
+    % least the units of the rhs are identical for all unknowns
     %
     % On the other hand this can hardly be too much of an issue as the
     % dh/dt equation is linear in h and all the residuals will be caused by
@@ -287,13 +287,16 @@ Tx=zeros(MUA.Nele,MUA.nod);  Ty=zeros(MUA.Nele,MUA.nod); Fx=zeros(MUA.Nele,MUA.n
 Tx0=Tx ;Fx0=Fx; Ty0=Ty ; Fy0=Fy; Th0=Th ;Fh0=Fh;
 Kxu0=Kxu ; Kxv0=Kxv ; Kyu0=Kyu ; Kyv0=Kyv ; Kxh0=Kxh ; Kyh0=Kyh ; Khu0=Khu ; Khv0=Khv ; Khh0=Khh;
 
+taux=zeros(MUA.Nele,MUA.nip) ;
+tauy=zeros(MUA.Nele,MUA.nip) ;
+eta=zeros(MUA.Nele,MUA.nip) ;
 
 if CtrlVar.Parallel.uvhAssembly.parfor.isOn
     
     parfor Iint=1:MUA.nip
         
         
-        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
+        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             Henod,deltanod,Hposnod,dnod,Dddhnod,...
@@ -315,9 +318,11 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
     
 else
     
+    % adding contribution from each form function for every element. The number of form functions equals the number of nodes, so
+    % the outputs have the dimension ele x nodes
     for Iint=1:MUA.nip
         
-        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1]=...
+        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             Henod,deltanod,Hposnod,dnod,Dddhnod,...
@@ -335,11 +340,19 @@ else
         Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
         Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
         
+        taux(:,Iint)=tauxI;
+        tauy(:,Iint)=tauyI;
+        eta(:,Iint)=etaI;
     end
     
 end
 
+if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity
 
+    R=[] ; K=[] ; 
+    return
+
+end
 
 FewerSparseEvaluations=1 ;
 
