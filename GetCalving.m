@@ -60,7 +60,7 @@ end
 %     end
 
 
-if numel(F.c)==1
+if isscalar(F.c)
     F.c=F.c+zeros(MUA.Nnodes,1);
 end
 
@@ -69,7 +69,7 @@ if CtrlVar.LevelSetEvolution=="-prescribed-"
 end
 
 
-if numel(F.LSF)==1
+if isscalar(F.LSF)
     F.LSF=F.LSF+zeros(MUA.Nnodes,1);
 end
 

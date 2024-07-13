@@ -1,4 +1,4 @@
-function [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+function [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 
 
 
@@ -39,7 +39,7 @@ arguments
 
 end
 
-
+eta=[];
 
 if options.CalcNodalValues
 
