@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 
 narginchk(3,5)
@@ -17,7 +23,7 @@ nargoutchk(2,4)
 % When calling this to apply melt, the following syntax is recommended
 % to ensure that melt is applied correctly:
 %
-%   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
+%   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,F.GF)
 %   ab(~OceanNodes) = 0;
 %
 % This script is designed to be used in conjunction with DefineMassBalance

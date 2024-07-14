@@ -147,7 +147,7 @@ if nargin ==0
 end
 
 % set some plausible values if user has not defined those already
-if isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
+
 
     if isempty(dlat)
         dlat=5;
@@ -166,7 +166,12 @@ if isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
     end
 
 
-end
+
+
+
+
+
+
 
 lcol='k';
 
