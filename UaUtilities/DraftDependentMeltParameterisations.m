@@ -121,7 +121,7 @@ if contains(MRP,"l")  % this is a smoothed version of the melt paramerisations
 
     b0=(dMin+dMax)/2 ;
     k=2/(dMin-dMax) ;
-    ab=abMin+    (1-HeavisideApprox(k,F.b,b0))*(abMax-abMin) ;
+    ab=abMin+    (1-HeavisideApprox(k,F.b,b0)).*(abMax-abMin) ;
 
     dabdh=-DiracDelta(k,F.b,b0).*(abMax-abMin).*(-F.rho/F.rhow) ;
     %   dab/db  db/dh
