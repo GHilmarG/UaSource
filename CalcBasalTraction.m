@@ -11,15 +11,16 @@ function [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 %
 % Calculates basal traction from basal velocity using the sliding law.
 %
-% Returns nodal values
+% Returns either nodal or integration point values depending on the values of the logical optional input variables 
+%
+%   CalcNodalValues=[true|false]
+%   CalcIntegrationPointValues=[true|false]
 %
 % Note: This can only be used to calculate basal traction when using the SSTREAM
 % and the Hybrid flow approximation. This will not return correct results for
 % the SSHEET approximation!
 %
-% Note: There is a slight inconsistency with respect to how this is done
-% internally in Ua in the sense that the floating mask is here evaluated at
-% nodes, whereas internally this is done at integration points.
+% Note: The calculation at integration points is fully consistent with the way basal traction is calculated in Ua. 
 %
 %
 %%
@@ -40,6 +41,13 @@ arguments
 end
 
 eta=[];
+
+
+if isempty(F.ub)
+    tbx=[]; tby=[] ; tb=[];
+    return
+end
+
 
 if options.CalcNodalValues
 
@@ -117,10 +125,6 @@ narginchk(4,4)
 %
 % Returns nodal values
 %
-% Note: This can only be used to calculate basal traction when using the SSTREAM
-% and the Hybrid flow approximation. This will not return correct results for
-% the SSHEET approximation!
-%
 % Note: There is a slight inconsistency with respect to how this is done
 % internally in Ua in the sense that the floating mask is here evaluated at
 % nodes, whereas internally this is done at integration points.
@@ -153,17 +157,7 @@ narginchk(5,5)
 
 %%
 %
-% Calculates basal traction from basal velocity using the sliding law.
-%
-% Returns nodal values
-%
-% Note: This can only be used to calculate basal traction when using the SSTREAM
-% and the Hybrid flow approximation. This will not return correct results for
-% the SSHEET approximation!
-%
-% Note: There is a slight inconsistency with respect to how this is done
-% internally in Ua in the sense that the floating mask is here evaluated at
-% nodes, whereas internally this is done at integration points.
+% Calculates basal traction from basal velocity using the sliding law at integration points
 %
 %
 %%

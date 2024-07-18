@@ -9,7 +9,7 @@ function [fig,FigFound]=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 % If no Position is given, or left empty, new figure will be put on somewhere on a Nx
 % times Ny grid (default: Nx=4, Ny=3)
 %
-% Very usefull utility with a proven negative grumpiness impact.
+% Very useful utility with a proven negative grumpiness impact.
 %
 %
 %

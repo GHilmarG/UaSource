@@ -30,7 +30,7 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
 %   [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,Field,Value,varargin)
 %
 %
-% Note: If called with not arguments, or with the second argument equal to "ITS-LIVE" , the outlines of the Antarctic Ice
+% Note: If called with no arguments, or with the second argument equal to "ITS-LIVE" , the outlines of the Antarctic Ice
 % Sheet are plotted based on the ITS-LIVE120  ocean mask
 %
 %%
