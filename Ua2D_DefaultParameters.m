@@ -1718,7 +1718,11 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an addi
                                                                % is added. This is quite similar to the "barrier method", 
                                                                % but the thickness  barrier method does not have to be activated as
                                                                % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
-CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab.
+CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab. Has units of inverse time. By increasing (greater negative) the value, 
+                                                               % the time it takes to melt the ice downstream of the calving front is reduced.
+                                                               % Experience from modelling Greenland and Antartica (using units
+                                                               % year and meters) suggest using -10 as a value, ie the default
+                                                               % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
 % a3 in the above equaiton for ab.
 
@@ -2277,6 +2281,9 @@ CtrlVar.MapOldToNew.Test=false;   %
 
 %% Internal variables and  temporary testing parameters
 %%
+CtrlVar.uvhMatrixAssembly.ZeroFields=false;
+CtrlVar.uvhMatrixAssembly.Ronly=false; 
+CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ; 
 CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
                                 % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 

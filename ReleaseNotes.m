@@ -4,6 +4,19 @@
 %
 % *Release Notes* _March 2024_
 %
+% The utility
+%   
+%   [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+%
+% has been updated to allow for calculation at integration points (before only calculated nodal values).
+%
+% An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
+% corrected. Thanks to Sainan Sun for point this out. 
+%
+% A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
+%
+% *Release Notes* _March 2024_
+%
 % Positive thickness constraints --- added dynamically when using the active-set option --- are not added to nodes already
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes

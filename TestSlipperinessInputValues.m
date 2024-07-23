@@ -23,7 +23,7 @@ if nargin<7
 end
 
 
-if numel(C)==1
+if isscalar(C)
     %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
     if  CtrlVar.CisElementBased
         C=C+zeros(MUA.Nele,1);
@@ -33,7 +33,7 @@ if numel(C)==1
 end
 
 
-if numel(m)==1
+if isscalar(m)
 
     if  CtrlVar.CisElementBased
         m=m+zeros(MUA.Nele,1);
@@ -56,7 +56,7 @@ if isempty(q)
 
 else
 
-    if numel(q)==1
+    if isscalar(q)
 
         if  CtrlVar.CisElementBased
             q=q+zeros(MUA.Nele,1);
@@ -81,7 +81,7 @@ if isempty(muk)
 
 else
 
-    if numel(muk)==1
+    if isscalar(muk)
 
         if  CtrlVar.CisElementBased
             muk=muk+zeros(MUA.Nele,1);
@@ -109,7 +109,7 @@ if isempty(V0)
 
 else
 
-    if numel(V0)==1
+    if isscalar(V0)
 
         if  CtrlVar.CisElementBased
             V0=V0+zeros(MUA.Nele,1);

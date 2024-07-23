@@ -1,4 +1,13 @@
-function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh]=...
+
+
+
+
+
+
+
+
+
+function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etaint]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     Henod,deltanod,Hposnod,dnod,Dddhnod,...
@@ -165,7 +174,7 @@ if CtrlVar.ThicknessBarrier
 
 
     %%  New simpler implementation of a thickness barrier.
-    % Similar to the implementatoin of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+    % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
     % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new seperate terms to the mass
     % balance equation
 
@@ -257,7 +266,7 @@ drhodx=zeros(MUA.Nele,1); drhody=zeros(MUA.Nele,1);
 % derivatives at integration points
 
 % Deriv1=squeeze(Deriv(:,1,:)) ; % turned out that if only one element is handed to a worker, this squeeze command gets rid of the
-                                 % first-dimention as well, causing errors further down. 
+                                 % first-dimension as well, causing errors further down. 
 % Deriv2=squeeze(Deriv(:,2,:)) ;
 
 for Inod=1:MUA.nod
@@ -298,6 +307,13 @@ end
 [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv,dtauxdh,dtauydh] = ...
     BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
 
+if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity
+
+    Tx=NaN; Fx=NaN; Ty=NaN ; Fy=NaN ; Th=NaN ; Fh=NaN ; Kxu=NaN ; Kxv=NaN ; Kyu=NaN ; Kyv=NaN ; Kxh=NaN ; Kyh=NaN ; Khu=NaN ; Khv=NaN ; Khh = NaN ;
+    return
+
+end
+
 
 
 %% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
@@ -320,7 +336,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %     = tau (u dNdx + v dNdy)
 %
 % where tau is a parameter having the dimension time. In a transient run a
-% possible choice for tau is simply dt However we would like the aditional SUPG
+% possible choice for tau is simply dt However we would like the additional SUPG
 % term to go to zero as u->0 and as h->0, in fact we expect the `element Courant
 % number' ECN defined as
 %
@@ -352,7 +368,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 %
 % Heuristic arguments
-% suggest \alpha=ECN as this gives plausible limites, i.e. 1 for ECN->\infty and
+% suggest \alpha=ECN as this gives plausible limits, i.e. 1 for ECN->\infty and
 % 0 for ECN-> 0.
 %
 %

@@ -4,7 +4,7 @@ function [isInside,isOnBounday]=InsideOutside(xy,boundary)
 % Determines if xy is inside or outside of boundary
 %
 % Just a simple wrapper around inpoly2 to take care of the possibility of
-% several boundaries within the array 'boundary' seperated by NaNs
+% several boundaries within the array 'boundary' separated by NaNs
 %
 %   xy            : n x 2 array
 %   Boundary      : m x 2 Array

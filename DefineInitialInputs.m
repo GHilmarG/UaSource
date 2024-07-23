@@ -92,9 +92,9 @@ CtrlVar.AdaptMesh=1;         %
 
 CtrlVar.GmshMeshingAlgorithm=8;     % see gmsh manual
 
-CtrlVar.MeshSizeMax=20e3; % max element size (corse resolution)
+CtrlVar.MeshSizeMax=20e3; % max element size (coarse resolution)
 CtrlVar.MeshSize=20e3;       % over-all desired element size
-CtrlVar.MeshSizeMin=2e3;   % min ele size (corse resolution)
+CtrlVar.MeshSizeMin=2e3;   % min ele size (coarse resolution)
 
 % reasonably fine mesh resolution
 %

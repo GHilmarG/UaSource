@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 
 %%
@@ -22,8 +28,8 @@ function [ab,dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP)
 % The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line
 % This can be done in DefineMassBalance.m as follows:
 %
-%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;
-%   ab(~OceanNodes)=0;
+%   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
+%   ab(~OceanNodes) = 0;
 %   dabdh(~OceanNodes)=0;
 %
 %%
@@ -70,8 +76,27 @@ switch MRP
         dMin=-400 ;  abMin=0 ;
         dMax=-600 ;  abMax=-100  ;
 
+    case {"ASE1","lASE1"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
 
+        % Here the thermocline transition range is kept constant across the boundary
+        % But the melt in the thermocline is dependent on the y ups values
 
+        dMin=-400  ; abMin=-2 ;
+        dMax=-500  ; % Here abMax is y-dependent
+        abMaxLowerLimit=-100;
+        abMaxUpperLimit=-50;
+
+        % abMax varies linearly between these values
+        % abMax(y=-400e3)=-100;
+        % abMax(y=-700)=-50  ;
+        
+        % abMax=a0+a1* (y+700) ; % -> a0=-50
+        % abMax=-50 + a1* (-400+700) = -50+a1 *300 = -100 ; -> a1=-50/300e3 ;
+
+        abMax=-50-(50/300e3)*(700e3+F.y) ; 
+        abMax(abMax<abMaxLowerLimit)=abMaxLowerLimit ;  % make sure abMax is never smaller (ie larger negative) than the abMaxLimit 
+        abMax(abMax>abMaxUpperLimit)=abMaxUpperLimit ;  % make sure abMax is never smaller (ie larger negative) than the abMaxLimit 
+        
 
 
     otherwise
@@ -91,14 +116,17 @@ F.dasdh=zeros(size(F.h)) ;
 F.dabdh=zeros(size(F.h)) ;
 
 
+if isscalar(abMax)
+    abMax=abMax+F.x*0;
+end
 
 
 
-if contains(MRP,"l")
+if contains(MRP,"l")  % this is a smoothed version of the melt paramerisations
 
     b0=(dMin+dMax)/2 ;
     k=2/(dMin-dMax) ;
-    ab=abMin+    (1-HeavisideApprox(k,F.b,b0))*(abMax-abMin) ;
+    ab=abMin+    (1-HeavisideApprox(k,F.b,b0)).*(abMax-abMin) ;
 
     dabdh=-DiracDelta(k,F.b,b0).*(abMax-abMin).*(-F.rho/F.rhow) ;
     %   dab/db  db/dh
@@ -117,10 +145,10 @@ else
     I= F.b<= dMin & F.b >= dMax ;
 
     % b= -h rho/rhow
-    ab(I)=abMax*(F.b(I)-dMin)/(dMax-dMin); % negative values, because it is a basal ablation
-    dabdh(I)=(-F.rho(I)/F.rhow)  .* (abMax/(dMax-dMin));
+    ab(I)=abMax(I).*(F.b(I)-dMin)/(dMax-dMin); % negative values, because it is a basal ablation
+    dabdh(I)=(-F.rho(I)/F.rhow)  .* (abMax(I)/(dMax-dMin));
 
-    I=F.b<dMax ; ab(I)=abMax; dabdh(I)=0;        % below dMax
+    I=F.b<dMax ; ab(I)=abMax(I); dabdh(I)=0;        % below dMax
 
 
 end
@@ -130,7 +158,7 @@ end
 % The user will in addition need to make sure that melt is only applied over floating nodes, downstream of the grounding line
 % This can be done in DefineMassBalance.m as follows:
 %
-%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;
+%   [LakeNodes,OceanNodes]=LakeOrOcean3(CtrlVar,MUA,GF)
 %   ab(~OceanNodes)=0;
 %   dabdh(~OceanNodes)=0;
 %
