@@ -56,24 +56,32 @@ if CtrlVar.IncludeMelangeModelPhysics
         error('Ua:GetSeaIceParameters','Atmo/ice drag stress-exponent ma is empty.')
     end
     
+    CtrlVar.SlidingLaw="Weertman" ;  
     
+    % The "sliding law" used here is only applied over the floating section, and provides a link between the basal drag and ocean
+    % velocities over the floating parts of the domain. This drag is calculated using a Weertman type law. Hence, here the test
+    % needs to be done for a Weertman sliding law. The sliding law used for the grounded parts can, and in general will, be
+    % different. The sliding law for the grounded section is selected, as always, by defining the value of the variable
+    % CtrlVar.SlidingLaw appropriately in DefineInitialInputs.m
+                                     
+
     [F.Co,F.mo]=TestSlipperinessInputValues(CtrlVar,MUA,F.Co,F.mo);
     [F.Ca,F.ma]=TestSlipperinessInputValues(CtrlVar,MUA,F.Ca,F.ma);
     
     
-    if numel(F.uo)==1
+    if isscalar(F.uo)
         F.uo=F.uo+zeros(MUA.Nnodes,1);
     end
     
-    if numel(F.vo)==1
+    if isscalar(F.vo)
         F.vo=F.vo+zeros(MUA.Nnodes,1);
     end
     
-    if numel(F.ua)==1
+    if isscalar(F.ua)
         F.ua=F.ua+zeros(MUA.Nnodes,1);
     end
     
-    if numel(F.va)==1
+    if isscalar(F.va)
         F.va=F.va+zeros(MUA.Nnodes,1);
     end
     

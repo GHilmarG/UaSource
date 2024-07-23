@@ -129,7 +129,7 @@ else
         iperm(perm)=1:length(perm);   % inverse of the permutation vector
         Atilde=Atilde(perm,perm) ;
         btilde=btilde(perm);
-        x0=x0(perm) ; 
+        x0=x0(perm) ;
         % If I return xtilde and the re-use the same ordering (i.e. perm) then I can take the previous xtilde as a starting point,
         % and I don't need to re-order that initial guess.
 
@@ -145,10 +145,10 @@ else
         if setup.type == "ilutp"
             Atilde=P*Atilde ; btilde=P*btilde;
         end
-       
+
         %fprintf("norm(Atilde-L*U)/norm(Atilde)=%g \n",norm(Atilde-L*U,"fro")/norm(Atilde,"fro"))
 
-   %     [sol,flag,relres,iter,resvec]=bicgstabl(Atilde,btilde,tol,maxit,L,U,xtilde0);
+        %     [sol,flag,relres,iter,resvec]=bicgstabl(Atilde,btilde,tol,maxit,L,U,xtilde0);
 
 
         tgmres=tic;
@@ -157,34 +157,51 @@ else
 
         x=xtilde(iperm) ;
         tgmres=toc(tgmres);
+        fprintf("gmres CPU in %f sec \n",tgmres)
+
+        %% as of 2024b, gmres for GPU accepts L and U
+        % preliminary test shows that now gmres works nicely with GPU arrays (previously it did not converge at all) and is for the
+        % matrices tested about twice as fast!
+        
+        AtildeGPU=gpuArray(Atilde) ;
+        btildeGPU=gpuArray(btilde) ;
+        Lgpu=gpuArray(L) ;
+        Ugpu=gpuArray(U) ;
+
+        tgmresGPU=tic;
+        [xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0);
+        xGPU=xtilde(iperm) ;
+        tgmresGPU=toc(tgmresGPU);
+        fprintf("gmres GPU in %f sec \n",tgmresGPU)
+
 
         % Important to replace zeros on diagonal, but does not converge well, much worse that using ilu
         % k = 3;
         % M = tril(triu(Atilde,-k),k);
         % I=find(abs(diag(M))==0 );   % must make sure to replace 0 on the diagonal with 1
         % [n,m]=size(Atilde) ;
-        % M=M+sparse(I,I,1,n,m); 
+        % M=M+sparse(I,I,1,n,m);
         % [xtilde,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,M);
-        % 
+        %
 
 
 
-        % % Not particularly fast, and less good convergence, possibly because not possible to provide L and U separately 
+        % % Not particularly fast, and less good convergence, possibly because not possible to provide L and U separately
         % fprintf(" GPU \n ")
         % tic
         % AtildeGPU=gpuArray(Atilde) ; M=L*U ; MGPU=gpuArray(M) ; btildeGPU=gpuArray(btilde) ;
         % toc
-        % 
+
         % tic
         % [xGPU,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,MGPU,[],xtilde0);
         % toc
-        % % 
+        % %
 
 
 
         % For some reason, very slow
         % tic
-        % AtildeDist=distributed(Atilde) ; Ldist=distributed(L) ; Udist=distributed(U) ; x0dist=distributed(x0) ; 
+        % AtildeDist=distributed(Atilde) ; Ldist=distributed(L) ; Udist=distributed(U) ; x0dist=distributed(x0) ;
         % [x,flag,relres,iter,resvec]=gmres(AtildeDist,btilde,restart,tol,maxit,Ldist,Udist,x0dist);
         % toc
 
@@ -194,7 +211,7 @@ else
         % tic
         % % AtildeDist=distributed(Atilde) ; Ldist=distributed(L) ; Udist=distributed(U) ; x0dist=distributed(x0) ;
         % spmd
-        %     AtildeDist=codistributed(Atilde); 
+        %     AtildeDist=codistributed(Atilde);
         %     [x,flag,relres,iter,resvec]=gmres(AtildeDist,btilde,restart,tol,maxit,L,U,x0);
         % end
         % toc
@@ -206,17 +223,29 @@ else
 
             fprintf("                   dissect Atilde %f sec\n",tdissectAtilde)
             fprintf("                              ilu %f sec\n",tluinc)
-            fprintf("                            gmres %f sec\n",tgmres)
+            fprintf("                         CPU gmres %f sec\n",tgmres)
+            fprintf("                         GPU gmres %f sec\n",tgmresGPU)
             fprintf("total time for iterative solution %f sec\n",tCPUtotal)
 
             figure(iFigure) ; iFigure=iFigure+100;
-           
-            fprintf('\n flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
+
+            fprintf('\n CPU: flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
 
             nnn=numel(resvec);
             semilogy(0:nnn-1,resvec,'-o',LineWidth=2)
             xlabel('Iteration Number',Interpreter='latex')
             ylabel('Relative Residual',Interpreter='latex')
+            title("gmres (CPU)")
+
+           figure(iFigure) ; iFigure=iFigure+100;
+
+            fprintf('\n GPU: flag=%-i, iter=%-i %-i, relresGPU=%-g \n ',flag,iter(1),iter(2),relresGPU)
+
+            nnn=numel(resvecGPU);
+            semilogy(0:nnn-1,resvecGPU,'-o',LineWidth=2)
+            xlabel('Iteration Number',Interpreter='latex')
+            ylabel('Relative Residual',Interpreter='latex')
+            title("gmres (GPU)")
 
 
             % fig = gcf; exportgraphics(fig,'IterativeSolveExample.pdf')

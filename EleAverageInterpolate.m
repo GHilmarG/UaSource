@@ -1,3 +1,8 @@
+
+
+
+
+
 function AveragedNodalValues=EleAverageInterpolate(NodalValues,coordinates,connectivity,TriAreas,CtrlVar)
     
     %% Averages from nodes to elements and then maps back to nodes

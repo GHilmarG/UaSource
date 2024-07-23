@@ -114,7 +114,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
         CtrlVar.LSF.P=1 ;
         CtrlVar.LSF.T=1 ;
     else % Propagation only
-        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the pertubation term)
+        CtrlVar.LSF.L=1 ;   % The level-set equation only (i.e. without the perturbation term)
         CtrlVar.LSF.P=0 ;
         CtrlVar.LSF.T=1 ;
         

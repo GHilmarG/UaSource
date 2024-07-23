@@ -265,8 +265,8 @@ for Iint=1:MUA.nip  %Integration points
 
     % tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int-cx0int,v0int-cy0int,dt);
 
-    % CtrlVar.Tracer.SUPG.tau='tau2' ;   %  inversly weighted average of spatial and temporal tau. This is dt/2 if speed -> 0
-    CtrlVar.Tracer.SUPG.tau='tau1' ;   %   typical textbook recomendation for spatially constant (and non-zero) speed for linear advection equation. This is dt/6 if speed -> 0
+    % CtrlVar.Tracer.SUPG.tau='tau2' ;   %  inversely weighted average of spatial and temporal tau. This is dt/2 if speed -> 0
+    CtrlVar.Tracer.SUPG.tau='tau1' ;   %   typical textbook recommendation for spatially constant (and non-zero) speed for linear advection equation. This is dt/6 if speed -> 0
     tauSUPGint=CalcSUPGtau(CtrlVar,MUA.EleAreas,u0int.*n0x+v0int.*n0y-c0int,0,dt); 
    
 
@@ -288,7 +288,7 @@ for Iint=1:MUA.nip  %Integration points
 
         case "constant"
 
-            %  When solvingt the fix-point problem, I just want the diffusion term to be driven to zero This will happen once the min of
+            %  When solving the fix-point problem, I just want the diffusion term to be driven to zero This will happen once the min of
             %  the potential is reached, and the minimum is independent of mu. So, arguably, one should just set mu to some fixed
             %  constant value to ensure that ||\grad \varphi||= 0 at every point within the domain.
 
@@ -314,7 +314,7 @@ for Iint=1:MUA.nip  %Integration points
 
             % 3)
             % Scale =  sqrt( (u1int-cx1int).^2+(v1int-cy1int).^2) .*sqrt(2*MUA.EleAreas) ;  % this creates a dependency of the scale on
-            % the solution which is currenlty not included in the NR terms
+            % the solution which is currently not included in the NR terms
             % Scale=1e5;
             mu=Scale*CtrlVar.LevelSetFABmu.Value;
         otherwise
@@ -371,7 +371,7 @@ for Iint=1:MUA.nip  %Integration points
 
                 
                 % The dqx1dx and dqy1dy terms are calculated from the
-                % previous interative solution, and therefore do not
+                % previous iterative solution, and therefore do not
                 % depend on phi at this iteration step
                 
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+AddUp;
@@ -394,7 +394,7 @@ for Iint=1:MUA.nip  %Integration points
             );
  
         
-        % Pertubation term (diffusion)
+        % Perturbation term (diffusion)
         Prhs=...
             dt*theta*kappaint1.*(df1dx.*Deriv(:,1,Inod)+df1dy.*Deriv(:,2,Inod))...
             + dt*(1-theta)*kappaint0.*(df0dx.*Deriv(:,1,Inod)+df0dy.*Deriv(:,2,Inod));

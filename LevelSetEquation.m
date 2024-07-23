@@ -72,7 +72,7 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     LSFnodes=~isnan(ll) ; % a logical list with the size MUA.Nnodes, true for nodes in MUA (i.e. the MUA here given as an input)
     % over which the level-set is evolved
 
-    % Thist is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
+    % This is a bit of a lazy approach because I know which nodes were deleted and the new nodal numbers
     % so it would be possibly to figure out how to map the BCs from the old to new.
     % Also, some of the issues are just related to the uvh boundary conditions that are not relevant when solving for \varphi
 
@@ -92,7 +92,7 @@ if CtrlVar.LevelSetMethodSolveOnAStrip
     F1.ub=F1.ub(kk);
     F1.vb=F1.vb(kk);
 
-    % additonal variables for sliding law evaluation at int point
+    % additional variables for sliding law evaluation at int point
     F1.x=F1.x(kk) ;      F0.x=F0.x(kk) ;
     F1.y=F1.y(kk) ;      F0.y=F0.y(kk) ;
     F1.h=F1.h(kk) ;      F0.h=F0.h(kk) ;

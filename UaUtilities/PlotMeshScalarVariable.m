@@ -63,7 +63,7 @@ elseif N==MUA.Nele && M==1 % element variable
 elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
 
 
-    % This case is slighly more complicated, because the set of integration point can have duplicates if integration points fall on the
+    % This case is slightly more complicated, because the set of integration point can have duplicates if integration points fall on the
     % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
 
 
@@ -71,14 +71,21 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
     [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
 
-    % create vectors Xint and Yint of unique integration points and triangulise that set of points
-    Xint=xint(:) ; Yint=yint(:); [~, Iint, ~] = unique([Xint Yint],'first','rows'); Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
+    % create vectors Xint and Yint of unique integration points and triangulate that set of points
+    Xint=xint(:) ; Yint=yint(:); 
+    [~, Iint, ~] = unique([Xint Yint],'first','rows'); 
+    Iint = sort(Iint); Xint = Xint(Iint); Yint = Yint(Iint);
     DTint = delaunayTriangulation(Xint,Yint);
 
     % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
     ic=incenter(DTint);
-    [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
-    DTintTriInside=DTint.ConnectivityList(cnInt,:);
+   
+    %[isInside,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+
+    % 10/07/2024: This takes care of multiple boundaries, seperated by nans
+    [isInside,isOnBounday]=InsideOutside(ic,[MUA.Boundary.x MUA.Boundary.y]) ;
+    
+    DTintTriInside=DTint.ConnectivityList(isInside,:);
 
 
 

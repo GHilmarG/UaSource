@@ -82,7 +82,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         
         % dF/dC
         %  Just take the derivative of the tau term with respect to C. And don't forget
-        %  the minus in front of the tau term in the momemtum equation.
+        %  the minus in front of the tau term in the momentum equation.
         %
         %  -Taux = |Tau|  u/U, 
         %  -Tauy = |Tau|  v/U, 
@@ -221,7 +221,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             dtaubxdui(isCoulomb)=dtaubxduiC(isCoulomb);
             dtaubydvi(isCoulomb)=dtaubydviC(isCoulomb);
             dtaubxdvi(isCoulomb)=dtaubxdviC(isCoulomb);
-            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulom
+            dtaubydui=dtaubxdvi;  % just symmetry, always true, both Weertman and Coulomb
             dtaubxdhi(isCoulomb)=dtaubxdhiC(isCoulomb);
             dtaubydhi(isCoulomb)=dtaubydhiC(isCoulomb);
 
