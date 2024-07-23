@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcBasalTraction</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-11-28"><meta name="DC.source" content="CalcBasalTraction.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>CalcBasalTraction</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-07-23">
+<meta name="DC.source" content="CalcBasalTraction.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,88 +72,333 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F)
-</pre><pre class="codeinput">narginchk(4,4)
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#6">local functions</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">
+<span class="keyword">function</span> [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+</pre>
+<pre>  [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)</pre>
+<p>Calculates basal traction from basal velocity using the sliding law.</p>
+<p>Returns either nodal or integration point values depending on the values of the logical optional input variables</p>
+<pre class="language-matlab">CalcNodalValues=[true|false]
+CalcIntegrationPointValues=[true|false]
+</pre>
+<p>Also returns the effective viscosity at integration points, if CalcIntegrationPointValues=true;</p>
+<p>Note: This can only be used to calculate basal traction when using the SSTREAM and the Hybrid flow approximation. This will not return correct results for the SSHEET approximation!</p>
+<p>Note: The calculation at integration points is fully consistent with the way basal traction is calculated in Ua.</p>
+<pre class="codeinput">arguments
+    CtrlVar <span class="string">struct</span>
+    UserVar <span class="string">struct</span>
+    MUA     <span class="string">struct</span>
+    F       <span class="string">{mustBeA(F,{'struct','UaFields','numeric'})}</span>
 
+    options.CalcNodalValues  logical = false
+    options.CalcIntegrationPointValues  logical = true
+    options.CalvingFrontColor char = <span class="string">"b"</span>
+    options.GroundingLineColor char = <span class="string">"r"</span>
+    options.PlotResults=false;
 
- <span class="comment">% [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)  ; % old</span>
- <span class="comment">% version</span>
-</pre><pre>  [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)</pre><p>Calculates basal traction from basal velocity using the sliding law.</p><p>Returns nodal values</p><p>Note: This can only be used to calculate basal traction when using the SSTREAM and the Hybrid flow approximation. This will not return correct results for the SSHEET approximation!</p><p>Note: There is a slight inconsistency with respect to how this is done internally in Ua in the sense that the floating mask is here evalutated at nodes, whereas internally this is done at integration pointa.</p><pre class="codeinput"><span class="keyword">if</span> CtrlVar.CisElementBased
-    <span class="comment">% project onto nodes</span>
-    [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes);
-
-    F.C=M*F.C;
-    F.m=M*F.m;
 
 <span class="keyword">end</span>
 
+eta=[];
 
-<span class="comment">% beta2=(F.C+CtrlVar.Czero).^(-1./F.m).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1) ;</span>
-<span class="comment">%</span>
-<span class="comment">% tbx=F.GF.node.*beta2.*F.ub;</span>
-<span class="comment">% tby=F.GF.node.*beta2.*F.vb;</span>
-<span class="comment">% tb=sqrt(tbx.^2+tby.^2);</span>
 
-He=F.GF.node; delta=[] ;
+<span class="keyword">if</span> isempty(F.ub)
+    tbx=[]; tby=[] ; tb=[];
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+
+
+<span class="keyword">if</span> options.CalcNodalValues
+
+    [tbx,tby,tb] = CalcBasalTractionAtNodes(CtrlVar,UserVar,MUA,F) ;
+
+    <span class="keyword">if</span> options.PlotResults
+
+        FindOrCreateFigure(<span class="string">" nodal traction "</span>) ;
+        [cbar,~,Par]=QuiverColorGHG(F.x/CtrlVar.PlotXYscale,F.y/CtrlVar.PlotXYscale,tbx,tby) ;
+        PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+        PlotMuaBoundary(CtrlVar,MUA,<span class="string">"k--"</span>);
+        title(cbar,<span class="string">"(kPa)"</span>)
+        title(<span class="string">"Basal tractions at nodal points"</span>)
+
+
+        UaPlots(CtrlVar,MUA,F,tb,FigureTitle=<span class="string">" magnitude of basal traction at nodal points "</span>)
+        title(<span class="string">"magnitude of basal traction at nodal points"</span>)
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Note if both nodal and integration point values are calculated, only the integration point values are returned.</span>
+<span class="keyword">if</span> options.CalcIntegrationPointValues
+
+    CtrlVar.uvhMatrixAssembly.ZeroFields=false;
+    CtrlVar.uvhMatrixAssembly.Ronly=false;
+    CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true ;
+    [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F,F) ;
+
+
+    <span class="keyword">if</span> options.PlotResults
+
+        [F.xint,F.yint] = CalcIntegrationPointsCoordinates(MUA) ;
+        fbt=FindOrCreateFigure(<span class="string">" integration points traction "</span>) ;  clf(fbt);
+
+        <span class="keyword">if</span> options.CalcNodalValues  <span class="comment">% if nodal values were also calculated, make them comparable by using same scaling as before.</span>
+            Par.QuiverSameVelocityScalingsAsBefore=1;
+        <span class="keyword">else</span>
+            Par=[];
+        <span class="keyword">end</span>
+        cbar=QuiverColorGHG(F.xint/CtrlVar.PlotXYscale,F.yint/CtrlVar.PlotXYscale,tbx,tby,Par) ;
+        hold <span class="string">on</span>
+        PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+        PlotMuaBoundary(CtrlVar,MUA,<span class="string">"k--"</span>);
+        title(cbar,<span class="string">"(kPa)"</span>)
+        title(<span class="string">"Basal tractions at integration points"</span>)
+
+        UaPlots(CtrlVar,MUA,F,tb,FigureTitle=<span class="string">" magnitude of basal traction at integration points"</span>)
+        title(<span class="string">"magnitude of basal traction at integration points"</span>)
+
+        UaPlots(CtrlVar,MUA,F,eta,FigureTitle=<span class="string">" effective viscosity"</span>)
+        title(<span class="string">"Effective viscosity at integration points"</span>)
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<h2 id="6">local functions</h2>
+<pre class="codeinput">
+<span class="keyword">function</span> [tbx,tby,tb] = CalcBasalTractionAtNodes(CtrlVar,UserVar,MUA,F)
+</pre>
+<pre class="codeinput">narginchk(4,4)
+</pre>
+<p>Calculates basal traction from basal velocity using the sliding law.</p>
+<p>Returns nodal values</p>
+<p>Note: There is a slight inconsistency with respect to how this is done internally in Ua in the sense that the floating mask is here evaluated at nodes, whereas internally this is done at integration points.</p>
+<pre class="codeinput">hf=F.rhow*(F.S-F.B)./F.rho ;
+He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  <span class="comment">% 1</span>
+delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
+
 [tbx,tby] = <span class="keyword">...</span>
-        BasalDrag(CtrlVar,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g);
+    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk,F.V0);
+
 tb=sqrt(tbx.^2+tby.^2);
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+
+
+
+<span class="keyword">function</span> [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1)
+</pre>
+<pre class="codeinput">narginchk(5,5)
+</pre>
+<p>Calculates basal traction from basal velocity using the sliding law at integration points</p>
+<pre class="codeinput">RunInfo=[];
+
+[~,~,~,~,tbx,tby,eta]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+
+tb=sqrt(tbx.^2+tby.^2);
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F)
+function [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+
+
+
+%%
+%
+%    [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+%
+% Calculates basal traction from basal velocity using the sliding law.
+%
+% Returns either nodal or integration point values depending on the values of the logical optional input variables
+%
+%   CalcNodalValues=[true|false] 
+%   CalcIntegrationPointValues=[true|false]
+%
+% Also returns the effective viscosity at integration points, if CalcIntegrationPointValues=true; 
+%
+%
+% Note: This can only be used to calculate basal traction when using the SSTREAM and the Hybrid flow approximation. This will
+% not return correct results for the SSHEET approximation!
+%
+% Note: The calculation at integration points is fully consistent with the way basal traction is calculated in Ua.
+%
+% 
+%
+%
+%%
+
+arguments
+    CtrlVar struct
+    UserVar struct
+    MUA     struct
+    F       {mustBeA(F,{'struct','UaFields','numeric'})}
+
+    options.CalcNodalValues  logical = false
+    options.CalcIntegrationPointValues  logical = true
+    options.CalvingFrontColor char = "b"
+    options.GroundingLineColor char = "r"
+    options.PlotResults=false;
+
+
+end
+
+eta=[];
+
+
+if isempty(F.ub)
+    tbx=[]; tby=[] ; tb=[];
+    return
+end
+
+
+if options.CalcNodalValues
+
+    [tbx,tby,tb] = CalcBasalTractionAtNodes(CtrlVar,UserVar,MUA,F) ;
+
+    if options.PlotResults
+
+        FindOrCreateFigure(" nodal traction ") ;
+        [cbar,~,Par]=QuiverColorGHG(F.x/CtrlVar.PlotXYscale,F.y/CtrlVar.PlotXYscale,tbx,tby) ;
+        PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+        PlotMuaBoundary(CtrlVar,MUA,"kREPLACE_WITH_DASH_DASH");
+        title(cbar,"(kPa)")
+        title("Basal tractions at nodal points")
+
+
+        UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at nodal points ")
+        title("magnitude of basal traction at nodal points")
+
+    end
+end
+
+% Note if both nodal and integration point values are calculated, only the integration point values are returned. 
+if options.CalcIntegrationPointValues
+
+    CtrlVar.uvhMatrixAssembly.ZeroFields=false;
+    CtrlVar.uvhMatrixAssembly.Ronly=false;
+    CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true ;
+    [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F,F) ;
+
+
+    if options.PlotResults
+
+        [F.xint,F.yint] = CalcIntegrationPointsCoordinates(MUA) ;
+        fbt=FindOrCreateFigure(" integration points traction ") ;  clf(fbt);
+
+        if options.CalcNodalValues  % if nodal values were also calculated, make them comparable by using same scaling as before.
+            Par.QuiverSameVelocityScalingsAsBefore=1;
+        else
+            Par=[];
+        end
+        cbar=QuiverColorGHG(F.xint/CtrlVar.PlotXYscale,F.yint/CtrlVar.PlotXYscale,tbx,tby,Par) ;
+        hold on
+        PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
+        PlotMuaBoundary(CtrlVar,MUA,"kREPLACE_WITH_DASH_DASH");
+        title(cbar,"(kPa)")
+        title("Basal tractions at integration points")
+
+        UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at integration points")
+        title("magnitude of basal traction at integration points")
+
+        UaPlots(CtrlVar,MUA,F,eta,FigureTitle=" effective viscosity")
+        title("Effective viscosity at integration points")
+
+    end
+end
+
+
+
+%%
+
+end
+
+%% local functions
+
+
+function [tbx,tby,tb] = CalcBasalTractionAtNodes(CtrlVar,UserVar,MUA,F)
 
 narginchk(4,4)
 
-
- % [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)  ; % old
- % version
-
 %%
 %
-%    [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
-% 
 % Calculates basal traction from basal velocity using the sliding law.
-% 
-% Returns nodal values 
 %
-% Note: This can only be used to calculate basal traction when using the SSTREAM
-% and the Hybrid flow approximation. This will not return correct results for
-% the SSHEET approximation!
+% Returns nodal values
 %
 % Note: There is a slight inconsistency with respect to how this is done
-% internally in Ua in the sense that the floating mask is here evalutated at
-% nodes, whereas internally this is done at integration pointa. 
+% internally in Ua in the sense that the floating mask is here evaluated at
+% nodes, whereas internally this is done at integration points.
 %
 %
 %%
 
 
 
-if CtrlVar.CisElementBased
-    % project onto nodes
-    [M,ElePerNode] = Ele2Nodes(MUA.connectivity,MUA.Nnodes); 
-    
-    F.C=M*F.C;
-    F.m=M*F.m;
-    
+
+hf=F.rhow*(F.S-F.B)./F.rho ;
+He = HeavisideApprox(CtrlVar.kH,F.h-hf,CtrlVar.Hh0);  % 1
+delta = DiracDelta(CtrlVar.kH,F.h-hf,CtrlVar.Hh0) ;
+
+[tbx,tby] = ...
+    BasalDrag(CtrlVar,MUA,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g,F.muk,F.V0);
+
+tb=sqrt(tbx.^2+tby.^2);
+
+
+
+
 end
 
 
-% beta2=(F.C+CtrlVar.Czero).^(-1./F.m).*(sqrt(F.ub.*F.ub+F.vb.*F.vb+CtrlVar.SpeedZero^2)).^(1./F.m-1) ;
-% 
-% tbx=F.GF.node.*beta2.*F.ub; 
-% tby=F.GF.node.*beta2.*F.vb;
-% tb=sqrt(tbx.^2+tby.^2);
 
-He=F.GF.node; delta=[] ; 
-[tbx,tby] = ...
-        BasalDrag(CtrlVar,He,delta,F.h,F.B,F.S-F.B,F.rho,F.rhow,F.ub,F.vb,F.C,F.m,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma,F.q,F.g);
+function [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1)
+
+narginchk(5,5)
+
+%%
+%
+% Calculates basal traction from basal velocity using the sliding law at integration points
+%
+%
+%%
+
+RunInfo=[];
+
+[~,~,~,~,tbx,tby,eta]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+
 tb=sqrt(tbx.^2+tby.^2);
 
 
 end
-
-
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

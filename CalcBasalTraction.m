@@ -2,25 +2,24 @@ function [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 
 
 
-% [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)  ; % old
-% version
-
 %%
 %
-%    [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,ub,vb,C,m,GF)
+%    [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 %
 % Calculates basal traction from basal velocity using the sliding law.
 %
-% Returns either nodal or integration point values depending on the values of the logical optional input variables 
+% Returns either nodal or integration point values depending on the values of the logical optional input variables
 %
-%   CalcNodalValues=[true|false]
+%   CalcNodalValues=[true|false] 
 %   CalcIntegrationPointValues=[true|false]
 %
-% Note: This can only be used to calculate basal traction when using the SSTREAM
-% and the Hybrid flow approximation. This will not return correct results for
-% the SSHEET approximation!
+% The calculation at integration points is fully consistent with the way basal traction is calculated internally in Ua.
 %
-% Note: The calculation at integration points is fully consistent with the way basal traction is calculated in Ua. 
+% Also returns the effective viscosity at integration points, if CalcIntegrationPointValues=true; 
+%
+%
+% Note: This can only be used to calculate basal traction when using the SSTREAM and the Hybrid flow approximation. This will
+% not return correct results for the SSHEET approximation!
 %
 %
 %%
