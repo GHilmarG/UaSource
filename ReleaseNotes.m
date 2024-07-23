@@ -2,7 +2,7 @@
 
 %%
 %
-% *Release Notes* _March 2024_
+% *Release Notes* _July 2024_
 %
 % The utility
 %   
