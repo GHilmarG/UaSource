@@ -303,7 +303,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
@@ -585,7 +585,7 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % Further description of what information is provided depending on the values of the info parameters is provided below. 
 %% If you, for example set,
 %
-%    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
+%    CtrlVar.InfoLevelNonLinIt=5 ; 
 %
 % and provided that furthermore
 %
