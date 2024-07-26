@@ -15,7 +15,7 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %  VAF has the units distance^3, i.e. it is a volume, not weight.  It is the water equivalent volume.
 %
-% If all distance units are in meters, and we divide VAF as calculated by 10e9, then the units of VAF are km^3
+% If all distance units are in meters, and we divide VAF as calculated by 1e9, then the units of VAF are km^3
 %
 %
 % GF is only needed to calculate grounded area.
@@ -26,16 +26,16 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %
 %     0.001/362.5  (m/Gt)
 %
-% so about 1 mm sea level change for every 362.5 Gt water added.  This is the sea level potential per Gt water. 
+% so about 1 mm sea level change for every 362.5 Gt water added.  This is the sea level potential per Gt water.
 % 
-% This calculation does not account for other effecs such as
-% ocean salinity changes, but these are only expected to change the value by a few %.
+% This calculation does not account for other effects such as ocean salinity changes, but these are only expected to change the
+% value by a few %.
 %
 %
 %   VAF       :  Volume above flotation
 %   IceVolume :  Total ice volume withing the domain, i.e. including areas that are afloat.
-%   hAF       :  (postive) ice thickness above floation
-%   hfPOs     :  (positive) flotation thickness (also somtimes referred to as floation profile). Where h>fhPos, the ice is grounded.
+%   hAF       :  (positive) ice thickness above flotation
+%   hfPOs     :  (positive) flotation thickness (also sometimes referred to as flotation profile). Where h>fhPos, the ice is grounded.
 %
 % Example:
 %
@@ -82,7 +82,7 @@ end
 %
 % or simply:
 hfPos=(S>B).*rhoOcean.*(S-B)./rho ;            % (positive) flotation thickness
-hAF= (h>hfPos).*(h-hfPos) ;                    % (positive) ice thickness above floatation
+hAF= (h>hfPos).*(h-hfPos) ;                    % (positive) ice thickness above flotation
 
 if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate VAF inside of that boundary
     xy=[MUA.coordinates(:,1) MUA.coordinates(:,2)] ;
@@ -101,7 +101,7 @@ VAF.Total=sum(VAF.ele);                      % total volume above flotation over
 
 if nargout>1
     IceVolume.Ele=FEintegrate2D(CtrlVar,MUA,h);
-    IceVolume.Total=sum(IceVolume.Ele) ;  % ice voluem volume
+    IceVolume.Total=sum(IceVolume.Ele) ;  % ice volume volume
                                           % to get water volume multiply with rhoice/rhowater
                                                   
     

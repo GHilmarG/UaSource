@@ -41,7 +41,7 @@ else
     while MUA.Nele>1.2*CtrlVar.MaxNumberOfElements && iIt<=2
         iIt=iIt+1;
         % Note: these changes in MeshSize are not returned
-        if numel(CtrlVar.MeshSize)==1
+        if isscalar(CtrlVar.MeshSize)
             CtrlVar.MeshSize=1.2*CtrlVar.MeshSize*sqrt(MUA.Nele/CtrlVar.MaxNumberOfElements);
         else
             CtrlVar.MeshSize(:,3)=1.2*CtrlVar.MeshSize(:,3)*sqrt(MUA.Nele/CtrlVar.MaxNumberOfElements);
