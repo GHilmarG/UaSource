@@ -101,8 +101,9 @@ if options.CalcIntegrationPointValues
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at integration points")
         title("magnitude of basal traction at integration points")
 
-        UaPlots(CtrlVar,MUA,F,eta,FigureTitle=" effective viscosity"+options.FigureName)
+        cbar=UaPlots(CtrlVar,MUA,F,log10(eta),FigureTitle=" effective viscosity"+options.FigureName) ; 
         title("Effective viscosity at integration points"+options.FigureTitle)
+        title(cbar,"$\log_{10}(\eta)$",interpreter="latex")
 
     end
 end
