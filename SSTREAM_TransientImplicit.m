@@ -548,7 +548,7 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         hold on
         PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
         PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="k",LineWidth=1.5);
-        PlotCalvingFronts(CtrlVar,MUA,F1,color=options.CalvingFrontColor);
+        PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
         PlotMuaBoundary(CtrlVar,MUA,"k--");
         title(cbar,"(kPa)")
         title("Change in basal tractions at integration points during time increment",Interpreter="latex")
