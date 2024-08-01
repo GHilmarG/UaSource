@@ -48,7 +48,7 @@ ClearPersistentUaVariables();
 
 % The user can define the fields of CtrlVar by:
 % 
-% 1) Specifying the fields of CtlrVar in Ua2D_InitialUserInput.m
+% 1) Specifying the fields of CtrlVar in Ua2D_InitialUserInput.m
 % 2) By handing over CtrlVar as a second argument to Ua
 %
 % If the user uses both of these options (the most typical situation) 
@@ -68,7 +68,7 @@ ClearPersistentUaVariables();
 %
 
 
-% get the Ua default values for the CtlrVar
+% get the Ua default values for the CtrlVar
 CtrlVar=Ua2D_DefaultParameters();
 
 
@@ -103,7 +103,7 @@ end
 
 
 
-% do some basic test on the validity of the CtrlVar fields, validate CtlrVar
+% do some basic test on the validity of the CtrlVar fields, validate CtrlVar
 CtrlVar=CtrlVarValidityCheck(CtrlVar);
 
 
@@ -315,7 +315,7 @@ if CtrlVar.doInverseStep   % -inverse
         
     end
     
-    % PlotInverse    inverse plots
+    % inverse plots
     if CtrlVar.doplots
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
