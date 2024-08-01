@@ -88,7 +88,7 @@ switch lower(CtrlVar.FlowApproximation)
         if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,' Starting SSTREAM diagnostic step. \n') ;  end
 
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        %[UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
+       
 
         if ~RunInfo.Forward.uvConverged
             fprintf('uv forward calculation did not converge. Resetting ub and vb and solving again.\n')
@@ -111,7 +111,7 @@ switch lower(CtrlVar.FlowApproximation)
     case 'hybrid'
 
         if CtrlVar.InfoLevel >= 10 ; fprintf(CtrlVar.fidlog,'Start hybrid: 1:SSTREAM-Step \n') ;  end
-        %SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,s,S,B,h,ub,vb,uo,vo,l.ubvb,AGlen,C,n,m,alpha,rho,rhow,g);
+        
         [UserVar,F,l,Kuv,Ruv,RunInfo,Lubvb]=SSTREAM2dNR(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo);
 
 

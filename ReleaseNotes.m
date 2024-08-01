@@ -45,8 +45,8 @@
 %
 % To switch on the smpd parallel assembly do:
 %
-%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % assembly in parallel using spmd over sub-domain (domain decomposition)  
-%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % uvh assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % uv assembly in parallel using spmd over sub-domain (domain decomposition)  
 %
 %
 % The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:

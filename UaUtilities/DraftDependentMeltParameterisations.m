@@ -76,27 +76,60 @@ switch MRP
         dMin=-400 ;  abMin=0 ;
         dMax=-600 ;  abMax=-100  ;
 
-    case {"ASE1","lASE1"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
+    case {"ASE1","lASE1","ASE2","lASE2","ASE3","lASE3"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
 
         % Here the thermocline transition range is kept constant across the boundary
         % But the melt in the thermocline is dependent on the y ups values
 
-        dMin=-400  ; abMin=-2 ;
-        dMax=-500  ; % Here abMax is y-dependent
-        abMaxLowerLimit=-100;
-        abMaxUpperLimit=-50;
+        switch MRP
 
-        % abMax varies linearly between these values
-        % abMax(y=-400e3)=-100;
-        % abMax(y=-700)=-50  ;
-        
-        % abMax=a0+a1* (y+700) ; % -> a0=-50
-        % abMax=-50 + a1* (-400+700) = -50+a1 *300 = -100 ; -> a1=-50/300e3 ;
+            case {"ASE1","lASE1"}  
 
-        abMax=-50-(50/300e3)*(700e3+F.y) ; 
-        abMax(abMax<abMaxLowerLimit)=abMaxLowerLimit ;  % make sure abMax is never smaller (ie larger negative) than the abMaxLimit 
-        abMax(abMax>abMaxUpperLimit)=abMaxUpperLimit ;  % make sure abMax is never smaller (ie larger negative) than the abMaxLimit 
-        
+                dMin=-400  ; abMin=-2 ;
+                dMax=-500  ; % Here abMax is y-dependent
+
+                Y1=-700e3 ;    abMaxY1=-50;
+                Y2=-400e3 ;    abMaxY2=-100;
+
+
+            case {"ASE2","lASE2"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
+
+          
+
+                dMin=-400  ; abMin=-2 ;
+                dMax=-500  ; % Here abMax is y-dependent
+
+                Y1=-700e3 ;    abMaxY1=-50;
+                Y2=-400e3 ;    abMaxY2=-150;
+
+            case {"ASE3","lASE3"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
+
+          
+
+                dMin=-400  ; abMin=-2 ;
+                dMax=-500  ; % Here abMax is y-dependent
+
+                Y1=-700e3 ;    abMaxY1=-50;
+                Y2=-400e3 ;    abMaxY2=-175;
+
+        end
+
+        % write abMax as:
+        % abMax=a0+a1* (y-Y1) ;
+
+        % for y=Y1: abMaxY1=a0+a1* (Y1-Y1) -> a0=abMaxY1 ;
+        % for y=Y2: abMaxY2=abMaxY1 + a1* (Y2-Y1)  -> a1=(abMaxY2-abMaxY1)/(Y2-Y1) ;
+
+        a0=abMaxY1 ;
+        a1=(abMaxY2-abMaxY1)/(Y2-Y1) ;
+
+        abMax=a0+a1* (F.y-Y1) ;
+       
+        abMaxLower=min(abMaxY1,abMaxY2) ;
+        abMaxUpper=max(abMaxY1,abMaxY2) ;
+
+        abMax(abMax<abMaxLower)=abMaxLower ; 
+        abMax(abMax>abMaxUpper)=abMaxUpper ; 
 
 
     otherwise

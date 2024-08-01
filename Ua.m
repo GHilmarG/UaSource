@@ -142,7 +142,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 %   help Ua2D_Defaultparameters
 %   doc Ua2D_DefaultParameters
 %
-% CtlrVar is only defined at the start of the run in Ua2D_InitialUserInput.
+% CtrlVar is only defined at the start of the run in Ua2D_InitialUserInput.
 % It can not be modified in any of the other user m-input files.
 %
 % In a restart run, CtrlVar is again always defined at the beginning of the run

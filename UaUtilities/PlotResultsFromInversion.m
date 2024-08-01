@@ -16,7 +16,7 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,
 
 if isstring(UserVar) && isfile(UserVar)
 
-    fprintf("loading and printing results from %s \n",UserVar)
+    fprintf("loading and plotting results from %s \n",UserVar)
 
     load(UserVar,"UserVarInRestartFile","CtrlVarInRestartFile","MUA","BCs","F","l","InvStartValues","InvFinalValues","Priors","Meas","BCsAdjoint","RunInfo") ; 
 

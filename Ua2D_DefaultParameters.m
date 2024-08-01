@@ -303,7 +303,7 @@ CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used 
 % uvh NR iteration with a loss of convergence. The "-dhdt-" option is arguably better in
 % the sense that one calculates dh/dt directly from the velocity field, rather than using
 % an estimate of dh/dt from the two previous solutions.
-CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % {"-Adams-Bashforth-","-dhdt-"}
+CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-" ; % ["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.MustBe.ExplicitEstimationMethod=["-Adams-Bashforth-","-dhdt-","-no extrapolation-"] ;
 CtrlVar.LimitRangeInUpdateFtimeDerivatives=false ; 
 %% Numerical Regularization Parameters  (note: these are not related to inverse modeling regularization)
@@ -585,7 +585,7 @@ CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
 % Further description of what information is provided depending on the values of the info parameters is provided below. 
 %% If you, for example set,
 %
-%    CtrlVar.InfoLevelNonLinIt=5 ; CtrlVar.InfoLevelBackTrack=100;
+%    CtrlVar.InfoLevelNonLinIt=5 ; 
 %
 % and provided that furthermore
 %
@@ -1580,19 +1580,19 @@ CtrlVar.MustBe.MeshRefinementMethod=["explicit:global","explicit:local:newest ve
 %
 %
 
-% Sometimes when deactivating elements, one ends with isolated elemnents that are either not connected to the rest of the mesh, or
-% only connected by one node. If those elements are afloat, it is generally better to get rid of the alltogether.  As so many Ua
+% Sometimes when deactivating elements, one ends with isolated elements that are either not connected to the rest of the mesh, or
+% only connected by one node. If those elements are afloat, it is generally better to get rid of the altogether.  As so many Ua
 % users are working with ice shelves/sheets, by default such isolated element groups are eliminated. However, it is possible that
-% in some cases this is not the desired behavious, in which case this option needs to be disabled by setting the flag to false.
+% in some cases this is not the desired behaviors, in which case this option needs to be disabled by setting the flag to false.
 %
 % See the documentation in LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.m for further information.
 
 CtrlVar.LocateAndDeleteDetachedIslandsAndRegionsConnectedByOneNodeOnly=true;
 CtrlVar.LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly="-Islands-OneNodeOrLessConnections-" ;
 
-% More control over how many detaced element islands are kept, and how many nodes they must contained can be achived by setting: 
-CtrlVar.MinNumberOfNodesPerIslands=1 ;  %    A seperated mesh region (i.e. an island) will only be contained if it contains at least this number of nodes
-CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of seperated mesh regions to be kept in the computational mesh
+% More control over how many detached element islands are kept, and how many nodes they must contained can be achieved by setting: 
+CtrlVar.MinNumberOfNodesPerIslands=1 ;  %    A separated mesh region (i.e. an island) will only be contained if it contains at least this number of nodes
+CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of separated mesh regions to be kept in the computational mesh
 % By default only one element island is kept. This might be fine in many simulations involving ice sheets, but would not be a good
 % approach when, for example, simulating a group of glaciers. 
 
@@ -1603,7 +1603,39 @@ CtrlVar.MaxNumberOfIslands=1 ;          %    A maximum number of seperated mesh 
 % 
 %   DefineCalving.m
 %
-% The level set itself is a field of F,  ie F.LSF
+% The level-set method involves solving the level-set equation:
+% 
+% $$\partial_t \varphi + (\mathbf{v}-\mathbf{c}) \cdot \nabla \varphi =0  $$
+% 
+%
+% where $\varphi$ is the level-set function. Those familiar with continuum mechanics will recognize this as an evolutionary
+% equation for the scalar filed $\varphi$ traveling with the velocity $(\mathbf{v}-\mathbf{c})$
+% 
+% Here
+%
+% $$\mathbf{c} = \hat{\mathbf{n}} \, c = 0$$
+% 
+% is the calving velocity, the scalar $c$ is the calving rate, and $\hat{\mathbf{n}}$  a unit normal to the calving front. 
+%
+% The general idea behind the method is to set the the initial position of the calving front to be the zero contour lines of the
+% level set function $\varphi$, at the start of the run. The level-set function, $\varphi$, is then evolved over time, and the
+% location of the calving front at later times is then reconstructed by finding the zero contour line of $\varphi$. 
+%
+% Upstream of the calving front we have
+%
+% $$\varphi(x,y,t) > 0 $$
+%
+% and downstream
+%
+% $$\varphi(x,y,t) < 0 $$
+%
+% The normal $\hat{\mathbf{n}}$ can then be expressed as
+%
+% $$\hat{\mathbf{n}} = \frac{\nabla \varphi}{\| \nabla \varphi \|} $$
+%
+%
+%
+% The level set function is a field of F, ie  $\varphi$=F.LSF
 %
 % Remember that F.LSF is a field and is defined over all nodes of the mesh, ie it is not a line or a collection of lines.
 %
@@ -1720,7 +1752,7 @@ CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an addi
                                                                % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab. Has units of inverse time. By increasing (greater negative) the value, 
                                                                % the time it takes to melt the ice downstream of the calving front is reduced.
-                                                               % Experience from modelling Greenland and Antartica (using units
+                                                               % Experience from modelling Greenland and Antarctica (using units
                                                                % year and meters) suggest using -10 as a value, ie the default
                                                                % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 

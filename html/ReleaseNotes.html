@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>ReleaseNotes</title>
 <meta name="generator" content="MATLAB 24.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-03-18">
+<meta name="DC.date" content="2024-07-30">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -80,16 +80,25 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <!--introduction-->
 <!--/introduction-->
 <p>
+<b>Release Notes</b> <i>July 2024</i>
+</p>
+<p>The utility</p>
+<pre class="language-matlab">[tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+</pre>
+<p>has been updated to allow for calculation at integration points (before only calculated nodal values).</p>
+<p>An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations corrected. Thanks to Sainan Sun for point this out.</p>
+<p>A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.</p>
+<p>
 <b>Release Notes</b> <i>March 2024</i>
 </p>
-<p>Positive thickness constraints --- added dynamically when using the active-set option --- are not added to nodes already contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes with thickness less than CtrlVar.ThicMin.</p>
+<p>Positive thickness constraints --- added dynamically when using the active-set option --- are now not added to nodes already contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes with thickness less than CtrlVar.ThicMin.</p>
 <p>
 <b>Release Notes</b> <i>February 2024</i>
 </p>
 <p>Parallel spmd assembly option now improved and shows good scalability, although speedup always somewhat problem dependent. On local workstations with 12 workers, speedup ranging from 6 to 10 seems easily obtainable, and on machines with 24 workers a speedup of 20 has been observed.</p>
 <p>To switch on the smpd parallel assembly do:</p>
-<pre class="language-matlab">CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
-CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+<pre class="language-matlab">CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    <span class="comment">% uvh assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     <span class="comment">% uv assembly in parallel using spmd over sub-domain (domain decomposition)</span>
 </pre>
 <p>The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:</p>
 <pre class="language-matlab">CtrlVar.Parallel.Distribute=true/false;                       <span class="comment">% linear system is solved using distributed arrays.</span>
@@ -323,7 +332,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 </p>
 <div>
 <ul>
-<li>�a can now be called with CtrlVar as second argument, e.g</li>
+<li>&Uacute;a can now be called with CtrlVar as second argument, e.g</li>
 </ul>
 </div>
 <pre class="language-matlab">Ua([],CtrlVar)
@@ -356,7 +365,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 </div>
 <div>
 <ul>
-<li>u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the past.</li>
+<li>u, v and h residuals now calculated in the L2 norm instead of the l2 norm as in the past.</li>
 </ul>
 </div>
 <p>
@@ -389,9 +398,22 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 %%
 %
+% *Release Notes* _July 2024_
+%
+% The utility
+%   
+%   [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+%
+% has been updated to allow for calculation at integration points (before only calculated nodal values).
+%
+% An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
+% corrected. Thanks to Sainan Sun for point this out. 
+%
+% A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
+%
 % *Release Notes* _March 2024_
 %
-% Positive thickness constraints REPLACE_WITH_DASH_DASH- added dynamically when using the active-set option REPLACE_WITH_DASH_DASH- are not added to nodes already
+% Positive thickness constraints REPLACE_WITH_DASH_DASH- added dynamically when using the active-set option REPLACE_WITH_DASH_DASH- are now not added to nodes already
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
 % with thickness less than CtrlVar.ThicMin.
@@ -406,8 +428,8 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %
 % To switch on the smpd parallel assembly do:
 %
-%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % assembly in parallel using spmd over sub-domain (domain decomposition)  
-%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true;    % uvh assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % uv assembly in parallel using spmd over sub-domain (domain decomposition)  
 %
 %
 % The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
@@ -694,7 +716,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % _February 2020_
 %
 %
-% * �a can now be called with CtrlVar as second argument, e.g 
+% * Úa can now be called with CtrlVar as second argument, e.g 
 %
 %   Ua([],CtrlVar) 
 %
@@ -722,7 +744,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % * Inversion can be done using all implemented sliding laws except Coulomb. 
 % 
 %
-% * u, v and h residuals now calulated in the L2 norm instead of the l2 norm as in the
+% * u, v and h residuals now calculated in the L2 norm instead of the l2 norm as in the
 % past. 
 %
 % *New user input file options:*
