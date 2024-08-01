@@ -52,10 +52,10 @@ narginchk(4,4)
 [tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,CalcNodalValues=true,CalcIntegrationPointValues=false); % returns nodal values and uses the sliding law 
 [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
-ndim=2; neq=MUA.Nnodes;
-
-bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% ndim=2; neq=MUA.Nnodes;
+% 
+% bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 % 
