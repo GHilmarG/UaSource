@@ -3,11 +3,11 @@ function [tbx,tby,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses
 narginchk(4,4)
 
 %%
-% Calculates strains and devitoric stresses.
+% Calculates strains and deviatoric stresses.
 %
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F) 
 %
-% Strains and stresses are first calculated at integration points, then projeted onto nodes.
+% Strains and stresses are first calculated at integration points, then projected onto nodes.
 %
 % On output, all variables are nodal variables.
 %
@@ -17,7 +17,7 @@ narginchk(4,4)
 %   e             : effective strain rate
 %   eta           : effective viscosity
 %
-% the basal stress caculation is done using the basal boundary condition as:
+% the basal stress calculation is done using the basal boundary condition as:
 %
 %   txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
 %       < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
@@ -49,13 +49,13 @@ narginchk(4,4)
 %%
 
 
-[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F); % returns nodal values and uses the sliding law 
+[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,CalcNodalValues=true,CalcIntegrationPointValues=false); % returns nodal values and uses the sliding law 
 [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
-ndim=2; neq=MUA.Nnodes;
-
-bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% ndim=2; neq=MUA.Nnodes;
+% 
+% bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 % 

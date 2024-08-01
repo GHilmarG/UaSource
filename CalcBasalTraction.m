@@ -34,7 +34,9 @@ arguments
     options.CalcIntegrationPointValues  logical = true
     options.CalvingFrontColor char = "b"
     options.GroundingLineColor char = "r"
-    options.PlotResults=false;
+    options.PlotResults logical = false;
+    options.FigureTitle string = ""
+    options.FigureName string = ""
 
 
 end
@@ -54,7 +56,7 @@ if options.CalcNodalValues
 
     if options.PlotResults
 
-        FindOrCreateFigure(" nodal traction ") ;
+        FindOrCreateFigure(" nodal traction "+options.FigureName) ;
         [cbar,~,Par]=QuiverColorGHG(F.x/CtrlVar.PlotXYscale,F.y/CtrlVar.PlotXYscale,tbx,tby) ;
         PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
         PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
@@ -64,7 +66,7 @@ if options.CalcNodalValues
 
 
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at nodal points ")
-        title("magnitude of basal traction at nodal points")
+        title("magnitude of basal traction at nodal points"+options.FigureTitle)
 
     end
 end
@@ -81,7 +83,7 @@ if options.CalcIntegrationPointValues
     if options.PlotResults
 
         [F.xint,F.yint] = CalcIntegrationPointsCoordinates(MUA) ;
-        fbt=FindOrCreateFigure(" integration points traction ") ;  clf(fbt);
+        fbt=FindOrCreateFigure(" integration points traction "+options.FigureName) ;  clf(fbt);
 
         if options.CalcNodalValues  % if nodal values were also calculated, make them comparable by using same scaling as before.
             Par.QuiverSameVelocityScalingsAsBefore=1;
@@ -94,13 +96,14 @@ if options.CalcIntegrationPointValues
         PlotCalvingFronts(CtrlVar,MUA,F,color=options.CalvingFrontColor);
         PlotMuaBoundary(CtrlVar,MUA,"k--");
         title(cbar,"(kPa)")
-        title("Basal tractions at integration points")
+        title("Basal tractions at integration points"+options.FigureTitle)
 
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at integration points")
         title("magnitude of basal traction at integration points")
 
-        UaPlots(CtrlVar,MUA,F,eta,FigureTitle=" effective viscosity")
-        title("Effective viscosity at integration points")
+        cbar=UaPlots(CtrlVar,MUA,F,log10(eta),FigureTitle=" effective viscosity"+options.FigureName) ; 
+        title("Effective viscosity at integration points"+options.FigureTitle)
+        title(cbar,"$\log_{10}(\eta)$",interpreter="latex")
 
     end
 end

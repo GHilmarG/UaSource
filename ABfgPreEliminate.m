@@ -34,7 +34,7 @@ else
         % It also assumes that B B' is a unity matrix, but if not then simple scaling can be used
         % to ensure that this is the case.
         % To make this a bit more general, I here check if B B' is indeed unity, and
-        % if not I do the requried scaling.
+        % if not I do the required scaling.
         tolerance=eps*1000;
         isBBTunity=all(abs(diag(BBT) - 1) < tolerance) ;
 

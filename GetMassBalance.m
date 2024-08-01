@@ -101,7 +101,8 @@ end
 
 
 if  MUA.Nnodes ~= numel(F.ab)
-    fprintf('ab must have same number of values as there are nodes in the mesh \n')
+    fprintf("ab must have same number of values as there are nodes in the mesh \n")
+    fprintf("numel(F.ab)=%i and MUA.Nnodes=%i \n",numel(F.ab),MUA.Nnodes)
     error('DefineMassBalance returns incorrect dimensions ')
 end
 

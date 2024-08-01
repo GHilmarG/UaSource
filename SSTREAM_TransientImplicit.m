@@ -536,20 +536,23 @@ function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,
         title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
         subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
-        [tbx0,tby0] = CalcBasalTraction(CtrlVar,[],MUA,F0) ;
-        [tbx1,tby1] = CalcBasalTraction(CtrlVar,[],MUA,F1) ;
+        [tbx0,tby0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
+        [tbx1,tby1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
 
-        cbar=UaPlots(CtrlVar,MUA,F0,[tbx0,tby0],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="basal drag vectors at start of time step") ;
-        title("basal drag vectors at beginning of time step",Interpreter="latex")
+        dbx=tbx1-tbx0; 
+        dby=tby1-tby0; 
+           
+        [F.xint,F.yint] = CalcIntegrationPointsCoordinates(MUA) ;
+        fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
+        cbar=QuiverColorGHG(F.xint/CtrlVar.PlotXYscale,F.yint/CtrlVar.PlotXYscale,dbx,dby) ;
+        hold on
+        PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
+        PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="k",LineWidth=1.5);
+        PlotCalvingFronts(CtrlVar,MUA,F1,color="b");
+        PlotMuaBoundary(CtrlVar,MUA,"k--");
+        title(cbar,"(kPa)")
+        title("Change in basal tractions at integration points during time increment",Interpreter="latex")
         subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-        title(cbar,"($\mathrm{kPa}$)",Interpreter="latex")
-
-        cbar=UaPlots(CtrlVar,MUA,F1,[tbx1-tbx0,tby1-tby0],GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="change in basal drage vectors") ;
-        hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
-        
-        title("change in basal drag vectors",Interpreter="latex") 
-        subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-        title(cbar,"(kPa)",Interpreter="latex")
         
         drawnow
 
