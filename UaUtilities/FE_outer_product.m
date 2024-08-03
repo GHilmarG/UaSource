@@ -1,14 +1,20 @@
 
-function [UserVar,ab]=FE_outer_product(UserVar,CtrlVar,MUA,a,b)
+function [UserVar,AB]=FE_outer_product(UserVar,CtrlVar,MUA,a,b)
 
-
+%%
 %
-% $$  a(x,y) b(x,y) $$
+% Evaluates the matrix:
 %
-% $$ ( a_r \phi_r   \phi_p , \phi_q  \b_s \phi_s )   $$
+% $$ [AB]_[pq] = < a_r \phi_r   \phi_p |  \phi_q  b_s \phi_s >   $$
 %
 % Not sure if the name of this m-File really is a good description of what it does,
 % But it generates something that I find similar to an outer product.
+%
+% In a similar way as the mass-matrix can be considered to the the outer-product
+%
+% $$ M= |\phi> <\phi| $$
+%
+%% 
 
 narginchk(4,5)
 
@@ -73,6 +79,6 @@ for Inod=1:MUA.nod
     end
 end
 
-ab=sparseUA(Iind,Jind,Xval,neq,neq);
+AB=sparseUA(Iind,Jind,Xval,neq,neq);
 
 end

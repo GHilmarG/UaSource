@@ -2,13 +2,13 @@
 function [Fx,Fy,Ngl,Tgl,Theta,Ffree,f,qgl,nx,ny,xGLele,yGLele,GLele,hGL,uGL,vGL]=...
     calcDerivedGLquantities(CtrlVar,s,b,h,S,B,u,v,rho,rhow,g,coordinates,connectivity,nip,GF,GLgeo,xGL,yGL,txx,tyy,txy)
     
-    % Calculates various quantaties that are of interest for the grounding line
+    % Calculates various quantities that are of interest for the grounding line
     %
     % All returned variables are element based
     %
     % if CtlVar.calcDerivedGLquantitiesForGLeleOnly==1, then quantities
     % are only calculated for GL elements (as based on GLgeo(:,1)),
-    % othewise returned variables defined for the whole domain.
+    % otherwise returned variables defined for the whole domain.
     %
     % The normal to the grounding line is based on the spatial derivatives of the GL.node field (averaged over element))
     %
@@ -24,7 +24,7 @@ function [Fx,Fy,Ngl,Tgl,Theta,Ffree,f,qgl,nx,ny,xGLele,yGLele,GLele,hGL,uGL,vGL]
     % GLele                              : (indices of)) grounding line elements
     
     %
-    % the difference between (xGLele,yGLele) and (xGL,yGL) is that the former refers to the element through wich the 
+    % the difference between (xGLele,yGLele) and (xGL,yGL) is that the former refers to the element through which the 
     % grounding line goes, whereas the latter is calculated from the position of the grounding line itself as given by GLgeometry.m
     % (xGL,yGL) is more accurate, but (xGLele,yGLele) reflects better the element-averaged aspect of the quantities calculated.
     %
@@ -55,8 +55,8 @@ function [Fx,Fy,Ngl,Tgl,Theta,Ffree,f,qgl,nx,ny,xGLele,yGLele,GLele,hGL,uGL,vGL]
     
     
     
-    % calculationg nx and ny to the grounding line from the gradient of the GL.node field
-    [dfdx,dfdy,xint,yint]=calcFEderivatives(GF.node,coordinates,connectivity,nip,CtrlVar);
+    % calculating nx and ny to the grounding line from the gradient of the GL.node field
+    [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar) ;
     %dfdx=repmat(mean(dfdx,2),1,nip); dfdy=repmat(mean(dfdy,2),1,nip);
     temp=sqrt(dfdx.*dfdx+dfdy.*dfdy) ; nx=-dfdx./temp ; ny=-dfdy./temp;
     

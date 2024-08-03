@@ -7,7 +7,7 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 % calculates x and y derivatives of a nodal variable at integration points
 %
 %   f          :  a nodal quantity 
-%   dfdx, dfdy :  x and y derivatitves of f 
+%   dfdx, dfdy :  x and y derivatives of f 
 %   xint, yint :  x, y locations of the elements of dfdx and dfdy 
 %
 %  
