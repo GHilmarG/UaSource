@@ -85,9 +85,7 @@ for Iint=1:MUA.nip
     else
         Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
     end
-    % [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod
-    % The derivative depends on the det of each element
-    % is therefore a much bigger array than fun
+   
     
     
     

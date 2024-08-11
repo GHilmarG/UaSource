@@ -26,7 +26,7 @@ end
 [UserVar,ub,vb,ud,vd,uvAdjoint,Kuv,Ruv,RunInfo,ubvbL]=uv(UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,uvAdjoint,AGlen,C,n,m,alpha,rho,rhow,g,GF);
 
 %% Step 2:  Solve adjoint equation, i.e.   K l=-r
-% fprintf(' Solve ajoint problem \n ')
+% fprintf(' Solve adjoint problem \n ')
 % I need to impose boundary conditions on lx and ly
 % if the problem is (fully) adjoint I have exactly the same BC
 % I need to solve
@@ -130,6 +130,7 @@ switch upper(CtrlVar.AdjointGrad)
                 fprintf(' CtrlVar.AdjointGradientEvaluation=''uvdiscrete'' not possible in a combination with AGlen inverstion\n')
                 error('AdjointGradientNR2d:DiscreteAdjointAGlen','Discrete case not implemented. Used integral evaluation instead.')
             case 'integral'
+                
                 if CtrlVar.AGlenisElementBased
                     
                     dIdAGlendata=dIdAEleSteps(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
@@ -139,6 +140,7 @@ switch upper(CtrlVar.AdjointGrad)
                     dIdAGlendata=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF);
                     
                 end
+
             otherwise
                 error(' what case ? ' )
         end

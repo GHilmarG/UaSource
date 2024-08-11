@@ -4,7 +4,7 @@ function P=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,Fint)
 % Fint must have the dimensions Nele x nip
 % where Nele is the number of elements and nip the number of integration points
 %        
-% On output P has the dimentions MUA.Nnodes x 1
+% On output P has the dimensions MUA.Nnodes x 1
 %
 
 [n1,n2]=size(Fint);
@@ -29,13 +29,6 @@ for Iint=1:MUA.nip
     end
     detJw=detJ*MUA.weights(Iint);
     
-    %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    %       [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
-    
-    % Deriv : Nele x dof x nod
-    %  detJ : Nele
-    
-    % values at integration this point
 
     for Inod=1:MUA.nod
         R(:,Inod)=R(:,Inod)+Fint(:,Iint).*fun(Inod).*detJw;

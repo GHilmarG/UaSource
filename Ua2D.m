@@ -128,11 +128,13 @@ end
 
 
 %% Check and set some parallel variables
-ParPool = gcp;
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
+
 
 if ~isempty(ParPool)
 
+    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    
     parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
     parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 

@@ -174,6 +174,25 @@ end
 % %%
 
 
+[ubvbFixedNodes,ia,ib]=intersect(BCs.ubFixedNode,BCs.vbFixedNode) ;
+if ~isempty(ubvbFixedNodes)
+    ubvbFixedValues=[BCs.ubFixedValue(ia) BCs.vbFixedValue(ib)] ;
+
+    if any(ubvbFixedValues~=0)
+
+        x=MUA.coordinates(ubvbFixedNodes,1);
+        y=MUA.coordinates(ubvbFixedNodes,2);
+        fBCuv=FindOrCreateFigure("BCs: ubvb Boundary Conditions") ; clf(fBCuv) ; 
+        PlotMuaMesh(CtrlVar,MUA) ;
+        hold on
+        CtrlVar.RelativeVelArrowSize=2;
+        QuiverColorGHG(x,y,ubvbFixedValues(:,1),ubvbFixedValues(:,2),CtrlVar) ;
+        title("Boundary condtions for $(u_b,v_b)$",interpreter="latex")
+
+    end
+end
+
+
 if nargout==0
     clearvars lgd
 end

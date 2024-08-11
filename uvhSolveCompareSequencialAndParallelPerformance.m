@@ -1,6 +1,31 @@
    
 function [UserVar,RunInfo,F,l,BCs,dt]=uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs)
 
+
+
+ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
+
+
+if ~isempty(ParPool)
+
+    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+
+    if  CtrlVar.Parallel.uvhAssembly.spmd.isOn
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+    if CtrlVar.Parallel.uvAssembly.spmd.isOn  
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=ParPool.NumWorkers;
+    end
+
+end
+
+
+
+
 %% First do the uvh solve using whichever parallel performance options the user has already set.
 
 
@@ -13,7 +38,9 @@ CtrlVar.Parallel.isTest=false ; % set this to false to suppress further performa
 RunInfo.CPU.Assembly.uvh=0 ;  RunInfo.CPU.Solution.uvh=0 ; % Reset this cumulative sum of CPU sec used for assembly and linsolve.
 
 %CtrlVar.Parallel.uvhAssembly.spmd.isOn=true; CtrlVar.Parallel.uvAssembly.spmd.isOn=true; CtrlVar.Parallel.Distribute=true;
+tic
 MUA=UpdateMUA(CtrlVar,MUA) ;
+toc
 
 tParallel=tic ;
 [UserVar,RunInfo]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);  
@@ -38,7 +65,7 @@ tSolveSeq=RunInfo.CPU.Solution.uvh ;
 %% Summarize info
 [status,hostname]=system('hostname');
 hostname=strtrim(convertCharsToStrings(hostname)) ;
-fprintf("\n \n ------------- Comparision between sequential and parallel uvh solve using the user-defined parallel options set in DefineInitialInputs.m ------------ \n ")
+fprintf("\n \n ------------- Comparison between sequential and parallel uvh solve using the user-defined parallel options set in DefineInitialInputs.m ------------ \n ")
 fprintf("Machine: %s :  #Elements=%i \t #Nodes=%i \t #Workers=%i \t \n",hostname,MUA.Nele,MUA.Nnodes,CtrlVar.Parallel.uvhAssembly.spmd.nWorkers)
 fprintf(" Note: Parallel options not switched on by user are not used in the parallel solve.\n")
 fprintf(" uvh-Solve (total time):  \t tSeq=%10f sec \t tPar=%10f sec \t tSeq/tPar=%5f \n",tSeq,tParallel,tSeq/tParallel)

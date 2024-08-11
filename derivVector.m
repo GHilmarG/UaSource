@@ -8,27 +8,6 @@ narginchk(5,5)
 % Deriv : Nele x dof x nod
 %  detJ : Nele
 
-%     To calculate the x y derivatives of f where f is defined on nodes, at integration points do:
-%
-%   fnod=reshape(f(connectivity,1), exx=zeros(Nele,nip);
-%   coox=reshape(coordinates(connectivity,1),Nele,nod);
-%   cooy=reshape(coordinates(connectivity,2),Nele,nod);
-%   dfx=zeros(Nele,nod); dfy=zeros(Nele,nod);
-%   for Iint=1:nip                           % loop over integration points
-%         fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-%         xint(:,Iint)=coox*fun;
-%         yint(:,Iint)=cooy*fun;
-%         fint(:,Iint)=fnod*fun;
-%         [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod
-%         for I=1:nod
-%             dfx(:,Iint)=dfx(:,Iint)+Deriv(:,1,I).*fnod(:,I);
-%             dfy(:,Iint)=dfy(:,Iint)+Deriv(:,2,I).*fnod(:,I);
-%         end
-%   end
-%
-% A simple way of calculating the derivatives the nodal variable f is using:
-% [dfdx,dfdy,xint,yint]=calcFEderivatives(f,coordinates,connectivity,nip,CtrlVar)
-%
 
 
 
