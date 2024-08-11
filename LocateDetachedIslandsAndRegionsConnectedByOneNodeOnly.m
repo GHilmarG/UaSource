@@ -50,7 +50,7 @@ function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar
 %   CtrlVar.MaxNumberOfIslands          :   A maximum number of seperated mesh regions to be kept in the computational mesh
 %
 %
-% My defauls an mesh island must contain at least one node and only one region is kept.
+% By default a mesh island must contain at least one node and only one region is kept.
 %
 %
 % The m-file TestLocateEleIslands.m provides an example of the use of this routine.

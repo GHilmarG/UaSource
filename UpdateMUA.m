@@ -254,6 +254,15 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
     poolobj = gcp;
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
 
+    % not sure how to best to check if the composite is in good state
+    % if length(MUA.workers)  ~= CtrlVar.Parallel.uvhAssembly.spmd.nWorkers
+    %     MUA.workers=[] ; 
+    % end
+
+    if ~all(exist(MUA.workers))
+        MUA.workers=[];
+    end
+
     MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
 
 end

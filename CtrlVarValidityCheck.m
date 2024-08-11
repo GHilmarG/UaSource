@@ -260,7 +260,7 @@ if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && Ctrl
 
     fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
     fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
-    warning("UaInputs:ParameterCombinationNotRecommented","ParameterCombinationNotRecommented")
+    warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
 
 end
 

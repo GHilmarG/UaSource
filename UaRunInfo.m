@@ -144,20 +144,20 @@ classdef (ConstructOnLoad) UaRunInfo
 
 
 
-                obj.Forward.time=resize(obj.Forward.time,nPadding,FillValue=nan) ; 
-                obj.Forward.dt=resize(obj.Forward.dt,nPadding,FillValue=nan) ; 
+                obj.Forward.time=UaResize(obj.Forward.time,nPadding,FillValue=nan) ; 
+                obj.Forward.dt=UaResize(obj.Forward.dt,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvhIterations=resize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhResidual=resize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhBackTrackSteps=resize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhIterations=UaResize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhResidual=UaResize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhBackTrackSteps=UaResize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvhActiveSetIterations=resize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhActiveSetCyclical=resize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhActiveSetConstraints=resize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetIterations=UaResize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetCyclical=UaResize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetConstraints=UaResize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvIterations=resize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvResidual=resize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
-                obj.Forward.uvBackTrackSteps=resize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
+                obj.Forward.uvIterations=UaResize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvResidual=UaResize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvBackTrackSteps=UaResize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
 
 
             end

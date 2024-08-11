@@ -128,7 +128,7 @@ end
 
 
 %% Check and set some parallel variables
-ParPool = gcp;
+ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
 
 if ~isempty(ParPool)
