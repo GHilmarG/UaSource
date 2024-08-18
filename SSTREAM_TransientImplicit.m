@@ -469,14 +469,15 @@ while true
 
 end
 
-% 2024-08-18: I notice that above I had not updated GF. This will not affect the solution and GF is calculated in Ua2D.m after
-% this call anyhow. But is feels that this should be updated nevertheless here ahead of return. There is a question regarding the
-% updated to h done here. 
+% 2024-08-18: I noticed that above I had not updated GF. This will not affect the solution because GF is not used at all when
+% solving the system, also GF is already re-calculated in Ua2D.m after this call anyhow. But is feels that this should be
+% updated nevertheless here ahead of return, both for GF to be in correct state on return, and also for eventual plotting
+% purposes within this routine.
 %
-h1Ahead=F1.h; GF1Ahead=F1.GF ;
+% h1Ahead=F1.h; GF1Ahead=F1.GF ;
 [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow,F1.GF);
-fprintf("SSTREAM_TransientImplicit: Testing norm(h1Ahead-F1.h)=%g \n",norm(F1.h-h1Ahead))
-fprintf("SSTREAM_TransientImplicit: Testing norm(GF1Ahead-F1.GF)=%g \n",norm(F1.GF.node-GF1Ahead.node))
+% fprintf("SSTREAM_TransientImplicit: Testing norm(h1Ahead-F1.h)=%g \n",norm(F1.h-h1Ahead))
+% fprintf("SSTREAM_TransientImplicit: Testing norm(GF1Ahead-F1.GF)=%g \n",norm(F1.GF.node-GF1Ahead.node))
 
 %% return calculated values at the end of the time step
 %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;
@@ -546,15 +547,15 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
-    [tbx0,tby0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
-    [tbx1,tby1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
+    [tbx0,tby0,~,~,HeInt0] = CalcBasalTraction(CtrlVar,[],MUA,F0,PlotResults=true,FigureTitle=" F0 ",FigureName=" F0 ") ;
+    [tbx1,tby1,~,~,HeInt1] = CalcBasalTraction(CtrlVar,[],MUA,F1,PlotResults=true,FigureTitle=" F1 ",FigureName=" F1 ") ;
 
     dbx=tbx1-tbx0;
     dby=tby1-tby0;
 
-    [F.xint,F.yint] = CalcIntegrationPointsCoordinates(MUA) ;
+    [F1.xint,F1.yint] = CalcIntegrationPointsCoordinates(MUA) ;
     fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
-    cbar=QuiverColorGHG(F.xint/CtrlVar.PlotXYscale,F.yint/CtrlVar.PlotXYscale,dbx,dby) ;
+    cbar=QuiverColorGHG(F1.xint/CtrlVar.PlotXYscale,F1.yint/CtrlVar.PlotXYscale,dbx,dby) ;
     hold on
     PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
     PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
@@ -563,6 +564,21 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     title(cbar,"(kPa)")
     title("Change in basal tractions at integration points during time increment",Interpreter="latex")
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+    cbar=UaPlots(CtrlVar,MUA,F1,F1.GF.node-F0.GF.node,GetRidOfValuesDownStreamOfCalvingFronts=false,GroundingLineColor="k",FigureTitle="F1.GF.node-F0.GF.node") ;
+    hold on
+    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+    title("Change in GF.node during time increment (F1.GF.node-F0.GF.node)",Interpreter="latex")
+    title(cbar,"")
+    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+
+
+    cbar=UaPlots(CtrlVar,MUA,F1,HeInt1-HeInt0,FigureTitle="HeInt1- Heint0") ;
+    hold on
+    PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
+    title("$\Delta \mathcal{H}(h-h_f)$ at integration points",interpreter="latex")
+    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+    title(cbar,"",interpreter="latex")
 
     drawnow
 

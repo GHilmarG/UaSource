@@ -1,4 +1,9 @@
-function [UserVar,RunInfo,R,K,taux,tauy,eta]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+
+
+
+
+
+function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
 %
@@ -12,7 +17,9 @@ function [UserVar,RunInfo,R,K,taux,tauy,eta]=uvhMatrixAssembly(UserVar,RunInfo,C
 
 
 narginchk(6,6)
-nargoutchk(4,7)
+nargoutchk(4,8)
+
+
 
 %
 % K= [Kxu Kxv Kxh]
@@ -287,9 +294,17 @@ Tx=zeros(MUA.Nele,MUA.nod);  Ty=zeros(MUA.Nele,MUA.nod); Fx=zeros(MUA.Nele,MUA.n
 Tx0=Tx ;Fx0=Fx; Ty0=Ty ; Fy0=Fy; Th0=Th ;Fh0=Fh;
 Kxu0=Kxu ; Kxv0=Kxv ; Kyu0=Kyu ; Kyv0=Kyv ; Kxh0=Kxh ; Kyh0=Kyh ; Khu0=Khu ; Khv0=Khv ; Khh0=Khh;
 
-taux=zeros(MUA.Nele,MUA.nip) ;
-tauy=zeros(MUA.Nele,MUA.nip) ;
-eta=zeros(MUA.Nele,MUA.nip) ;
+if nargout> 4
+    tauxInt=zeros(MUA.Nele,MUA.nip) ;
+    tauyInt=zeros(MUA.Nele,MUA.nip) ;
+    etaInt=zeros(MUA.Nele,MUA.nip) ;
+    HeInt=zeros(MUA.Nele,MUA.nip) ;
+else
+    tauxInt=[];
+    tauyInt=[];
+    etaInt=[];
+    HeInt=[];
+end
 
 if CtrlVar.Parallel.uvhAssembly.parfor.isOn
     
@@ -322,7 +337,7 @@ else
     % the outputs have the dimension ele x nodes
     for Iint=1:MUA.nip
         
-        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI]=...
+        [Tx1,Fx1,Ty1,Fy1,Th1,Fh1,Kxu1,Kxv1,Kyu1,Kyv1,Kxh1,Kyh1,Khu1,Khv1,Khh1,tauxI,tauyI,etaI,HeI]=...
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             Henod,deltanod,Hposnod,dnod,Dddhnod,...
@@ -339,10 +354,14 @@ else
         Kyu=Kyu+Kyu1;        Kyv=Kyv+Kyv1;
         Kxh=Kxh+Kxh1;        Kyh=Kyh+Kyh1;
         Khu=Khu+Khu1;        Khv=Khv+Khv1;        Khh=Khh+Khh1;
-        
-        taux(:,Iint)=tauxI;
-        tauy(:,Iint)=tauyI;
-        eta(:,Iint)=etaI;
+
+        if nargout> 4
+            tauxInt(:,Iint)=tauxI;
+            tauyInt(:,Iint)=tauyI;
+            etaInt(:,Iint)=etaI;
+            HeInt(:,Iint)=HeI;
+        end
+
     end
     
 end

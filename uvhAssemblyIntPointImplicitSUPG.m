@@ -7,7 +7,7 @@
 
 
 
-function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etaint]=...
+function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etaint,Heint]=...
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     Henod,deltanod,Hposnod,dnod,Dddhnod,...
@@ -17,7 +17,7 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
 narginchk(61,61)
-
+nargoutchk(15,19)
 
 % I've added here the rho terms in the mass-conservation equation
 %
@@ -175,7 +175,7 @@ if CtrlVar.ThicknessBarrier
 
     %%  New simpler implementation of a thickness barrier.
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-    % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new seperate terms to the mass
+    % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass
     % balance equation
 
     hmin=CtrlVar.ThickMin ;
@@ -354,7 +354,7 @@ speed0=sqrt(u0int.*u0int+v0int.*v0int+CtrlVar.SpeedZero^2);
 %
 % and Pe=U L / (2 k)  , where k is the diffusivity constant.
 %
-% Huges et al suggest
+% Hughes et al suggest
 %
 %          tau= \frac{L}{2 |\bm{u}|}    (coth ( Pe) - 1/Pe )
 %

@@ -634,8 +634,14 @@ while 1
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
             end
 
+            % fprintf("Saving uvh data \n")
+            % save("uvhTest.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F","l","BCs");
+            
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
+
+
+
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 
