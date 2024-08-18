@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>PlotMuaMesh</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-12-11"><meta name="DC.source" content="PlotMuaMesh.m"><style type="text/css">
+      -->
+<title>PlotMuaMesh</title>
+<meta name="generator" content="MATLAB 24.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-02-07">
+<meta name="DC.source" content="PlotMuaMesh.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,18 +72,40 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
-</pre><pre class="language-matlab">PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
-</pre><p>The only essential input is MUA, the other input variables are optional.</p><p>varargin is passed onto PlotFEmsh and then onto triplot.</p><p>hTri is a handle to the matlab triplot function</p><p><b>Examples:</b></p><p>Plot Mesh in red:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
-figure ; PlotMuaMesh([],MUA,[],<span class="string">'r'</span>)
-</pre><p>or</p><pre class="language-matlab">figure ; PlotMuaMesh(CtrlVar,MUA,[],color=<span class="string">"r"</span>);
-</pre><p>Plot the first 10000 elements in black:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+</pre>
+<pre class="language-matlab">PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
+</pre>
+<p>The only essential input is MUA, the other input variables are optional.</p>
+<p>varargin is passed onto PlotFEmsh and then onto triplot.</p>
+<p>hTri is a handle to the matlab triplot function</p>
+<p>
+<b>Examples:</b>
+</p>
+<p>Plot Mesh in red:</p>
+<pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+figure ; PlotMuaMesh([],MUA,nan,<span class="string">'r'</span>)
+</pre>
+<p>or</p>
+<pre class="language-matlab">figure ; PlotMuaMesh(CtrlVar,MUA,nan,color=<span class="string">"r"</span>);
+</pre>
+<p>Plot the first 10000 elements in black:</p>
+<pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 figure ; PlotMuaMesh(CtrlVar,MUA,1:10000)
-</pre><p>Plot every 10th element in black and the nodes of those elements in red and do not plot the MeshBoundaryCoordinates</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+</pre>
+<p>Plot every 10th element in black and the nodes of those elements in red and do not plot the MeshBoundaryCoordinates</p>
+<pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 CtrlVar.PlotNodes=1; CtrlVar.NodeColor=<span class="string">'r'</span>;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 figure ; PlotMuaMesh(CtrlVar,MUA,1:10:size(MUA.connectivity,1))
-</pre><p>Plot elements 3 to 10 in green and their nodes in red. Label both nodes and elements. Do not plot the MeshBoundaryCoordinates</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
+</pre>
+<p>Plot elements 3 to 10 in green and their nodes in red. Label both nodes and elements. Do not plot the MeshBoundaryCoordinates</p>
+<pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'BCs'</span>,<span class="string">'CtrlVar'</span>)
 CtrlVar.PlotNodes=1; CtrlVar.NodeColor=<span class="string">'r'</span>;
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 CtrlVar.PlotEleLabels=1;
@@ -86,8 +113,12 @@ CtrlVar.PlotNodalLabels=1;
 CtrlVar.PlotNodesSymbol=<span class="string">'*'</span>;
 CtrlVar.PlotNodesSymbolSize=10;
 figure ; PlotMuaMesh(CtrlVar,MUA,3:10,<span class="string">'g'</span>)
-</pre><pre class="codeinput"><span class="keyword">if</span> isempty(CtrlVar)
-    CtrlVar.PlotLabels=0;
+</pre>
+<pre class="codeinput">
+<span class="keyword">if</span> isempty(CtrlVar)
+
+    CtrlVar.PlotEleLabels=0;
+    CtrlVar.PlotNodalLabels=0;
     CtrlVar.MeshColor=<span class="string">'k'</span>;
     CtrlVar.NodeColor=<span class="string">'k'</span>;
     CtrlVar.PlotXYscale=1;
@@ -113,7 +144,9 @@ figure ; PlotMuaMesh(CtrlVar,MUA,3:10,<span class="string">'g'</span>)
     ElementList=1:MUA.Nele;
 <span class="keyword">end</span>
 
-
+<span class="keyword">if</span> isnan(ElementList)   <span class="comment">% this is a special short cut which allows nan to imply that all elements should be plotted</span>
+    ElementList=1:MUA.Nele;
+<span class="keyword">end</span>
 
 <span class="keyword">if</span> ischar(ElementList) &amp;&amp; nargin==3
     <span class="comment">% silently ignore the fact that the user clearly did not read the comments and</span>
@@ -133,8 +166,27 @@ hTri=PlotFEmesh(MUA.coordinates,MUA.connectivity,CtrlVar,ElementList,varargin{:}
     hold <span class="string">on</span>
     PlotGmshGeometryDefinition(CtrlVar);
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+
+
+[Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
+
+
+title(sprintf(<span class="string">"#Ele=%i #Nodes=%i #nod=%i \n (max,mean,median,min)=(%g,%g,%g,%g) "</span>,MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+
+<span class="keyword">if</span> ~nargout   <span class="comment">% A trick to suppress any function output if no output requested. No need to suppress output using ;</span>
+    clearvars <span class="string">hTri</span>
+<span class="keyword">end</span>
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 
@@ -153,11 +205,11 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 % Plot Mesh in red:
 %
 %   load('MUA-PIG-TWG-Example.mat','MUA','BCs','CtrlVar')
-%   figure ; PlotMuaMesh([],MUA,[],'r')
+%   figure ; PlotMuaMesh([],MUA,nan,'r')
 %
 % or
 %
-%   figure ; PlotMuaMesh(CtrlVar,MUA,[],color="r");
+%   figure ; PlotMuaMesh(CtrlVar,MUA,nan,color="r");
 %
 %
 % Plot the first 10000 elements in black:
@@ -188,8 +240,11 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %%
 
 
+
 if isempty(CtrlVar)
-    CtrlVar.PlotLabels=0;
+    
+    CtrlVar.PlotEleLabels=0;
+    CtrlVar.PlotNodalLabels=0; 
     CtrlVar.MeshColor='k';
     CtrlVar.NodeColor='k';
     CtrlVar.PlotXYscale=1;
@@ -215,7 +270,9 @@ if nargin<3
     ElementList=1:MUA.Nele;
 end
 
-
+if isnan(ElementList)   % this is a special short cut which allows nan to imply that all elements should be plotted
+    ElementList=1:MUA.Nele;
+end
 
 if ischar(ElementList) && nargin==3
     % silently ignore the fact that the user clearly did not read the comments and 
@@ -236,6 +293,22 @@ if CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo
     PlotGmshGeometryDefinition(CtrlVar);
 end
 
+
+[Emin,Emax,Emean,Emedian]=PrintInfoAboutElementsSizes(CtrlVar,MUA,print=false) ;
+
+
+title(sprintf("#Ele=%i #Nodes=%i #nod=%i \n (max,mean,median,min)=(%g,%g,%g,%g) ",MUA.Nele,MUA.Nnodes,MUA.nod,Emax,Emean,Emedian,Emin))
+
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars hTri
 end
+
+
+
+end
+
+
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
