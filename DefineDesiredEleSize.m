@@ -1,10 +1,13 @@
-function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-            DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
+
+
+
+
+function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=DefineDesiredEleSize(UserVar,CtrlVar,MUA,F,x,y,EleSizeDesired,ElementsToBeRefined,NodalErrorIndicators)
+
         
 
 %%
-% Define desired sizes of elements or specify which elements to refine or
-% coarsen.
+% Define desired sizes of elements or specify which elements to refine or coarsen.
 %
 %   [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 %            DefineDesiredEleSize(UserVar,CtrlVar,MUA,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF,NodalErrorIndicators)
@@ -101,6 +104,6 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
 % 
 %%
  
- 
+ ElementsToBeCoarsened=[];  % Always need to define this as it is a required output. 
     
 end
