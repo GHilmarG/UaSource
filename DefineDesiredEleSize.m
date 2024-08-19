@@ -48,7 +48,7 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=Defi
 % used. These options must be set accordingly in Ua2D_InitialUserInput.
 %
 % 
-% *Example:* To set desired ele sized to 1000 within a given boundary (this boundary
+% *Example:* To set desired element size to 1000 within a given boundary (this boundary
 % must of course be within the overall boundary of the computational
 % domain):
 %

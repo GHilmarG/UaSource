@@ -1,6 +1,5 @@
 
-function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
-    calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
+function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
 
 % [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,u,v,AGlen,n)
 % calculates strain rates and effective viscosity at integration points and Eint needed for the directional
