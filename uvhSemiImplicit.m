@@ -45,37 +45,46 @@ else
 end
 
 
-if CtrlVar.InfoLevel>=10
-    fprintf("uvhSemiImplicit:Solving for h at t=t1, implicitly.\n")
-end
-
 
 %% Now uv at t=t0 is available, as is an initial estimate for uv at t=t1
-% 
+%
 % 1) Solve h1=h(h0,uv0,uv1Est)
 % 2) Solve uv1=uv(h1)
 % 3) Estimate difference between uv1 and uv1Est. If small, then exit. Otherwise set uv1Est=uv1 and go back to step 1
 %
 %
-uvItMax=5; Tolerance= 1e-5 ; 
-duv1NormVector=nan(uvItMax,1) ;
+uv2hItMax=15; Tolerance= 1e-5 ;
+duv1NormVector=nan(uv2hItMax,1) ;
 
-for uvIt=1:uvItMax
+uvItMax=0;
+hItMax=0; 
+for uv2hIt=1:uv2hItMax
 
-    %% calculate new ice thickness implicitly with respect to h: h1=h(h0,uv0,uv1Est)
+    %% 1) calculate new ice thickness implicitly with respect to h: h1=h(h0,uv0,uv1Est)
 
-    h1Ahead=F1.h; 
+    if CtrlVar.InfoLevel>=10
+        fprintf("uvhSemiImplicit:Solving for changes in h implicitly, going from t=t0=%g to t=t1=%g \n",CtrlVar.time,CtrlVar.time+CtrlVar.dt)
+    end
+
+
+    h1Ahead=F1.h;
     [UserVar,RunInfo,F1.h,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
+    hItMax=max(RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),hItMax); 
 
-    % Make sure to update s and b too.
+    %% 2)  Update s,h and GF
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
 
-    %% Calculate uv for the new thickness: uv1=uv(h1)
-    
+    %% 3) Calculate uv for the new thickness: uv1=uv(h1)
+
+    if CtrlVar.InfoLevel>=10
+        fprintf("uvhSemiImplicit:Solving for uv at t=t1=%g.\n",CtrlVar.time+CtrlVar.dt)
+    end
+
 
     ub1Ahead=F1.ub;  vb1Ahead=F1.vb;
     [UserVar,RunInfo,F1,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F1,l);
 
+    uvItMax=max(RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),uvItMax); 
 
     du1=F1.ub-ub1Ahead ;
     dv1=F1.vb-vb1Ahead ;
@@ -83,20 +92,27 @@ for uvIt=1:uvItMax
 
     duv1Norm=norm([du1;dv1])/sqrt(2*MUA.Nnodes) ;
     dh1Norm=norm(F1.h-h1Ahead)/sqrt(MUA.Nnodes) ;
-    duv1NormVector(uvIt)=duv1Norm; 
-
-    FT=sprintf("duv1-%i",uvIt) ;
-    UaPlots(CtrlVar,MUA,F1,[du1 dv1],FigureTitle=FT)
-    title(FT)
-    subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-
+    duv1NormVector(uv2hIt)=duv1Norm;
     fprintf("duvh1Norm=%g \t dh1Norm=%g \n",duv1Norm,dh1Norm)
+    
     if duv1Norm< Tolerance
         break
     end
 
+    if CtrlVar.InfoLevelNonLinIt >= 5 && CtrlVar.doplots
+        FT=sprintf("duv1-%i",uv2hIt) ;
+        UaPlots(CtrlVar,MUA,F1,[du1 dv1],FigureTitle=FT)
+        title(FT)
+        subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+    end
+
+  
 
 end
+
+RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=uvItMax; 
+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hItMax; 
+RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=uv2hIt; 
 
 if CtrlVar.InfoLevel>=10
     fprintf("uvhSemiImplicit: Now solved for uv and h at t=t1.\n")

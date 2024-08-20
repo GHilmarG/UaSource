@@ -83,7 +83,7 @@ dtOut=max(dtIn,CtrlVar.ATSdtMin) ;
 RunInfo.Forward.AdaptiveTimeSteppingResetCounter=RunInfo.Forward.AdaptiveTimeSteppingResetCounter+1;
 
 
-if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the number of uvh iterations, and hence only works for uvh
+if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is based on the number of uvh iterations, and hence only works for uvh
 
     if ~RunInfo.Forward.uvhConverged || dtModifiedOutside
 
@@ -192,7 +192,7 @@ end
 
 
 
-if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
+if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
     dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
 

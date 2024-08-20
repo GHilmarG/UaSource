@@ -1,16 +1,27 @@
 
-function   [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 
-% [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,h0,rho,ub0,vb0,as0,ab0,h1,ub1,vb1,as1,ab1,das1dh,dab1dh)
 
+
+%%
+%
+% [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+%
+% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h )  =  a(h)$$
+%
+%  $$a(h)$$ is a function of $h$ when using the level set with automated mass-balance feedback, and if using the thickness
+%  barrier term to (approximately) enforce positive ice thicknesses.
+%
 % Assembly
 %
 %   K dh =-f0
 %
-% dFdt is the matrix F in d deltah/dt = F deltah
-% This matrix can be used to assess (linear) stability, from eigenvalues of M\dFdt
+% dFdt is the matrix F in d deltah/dt = F deltah This matrix can be used to assess (linear) stability, from eigenvalues of
+% M\dFdt
 %
+%%
+
 
 narginchk(6,6)
 nargoutchk(2,4)
@@ -21,8 +32,6 @@ ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 theta=CtrlVar.hTheta;
 dt=CtrlVar.dt;
-
-
 
 
 a1=F1.as+F1.ab;
@@ -182,11 +191,43 @@ for Iint=1:MUA.nip  %Integration points
         abLSF =LM.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;
         dadhLSF=LM.*(a1+3*a3*(h1int-hmin).^2) ;
 
-        a1int=a1int+abLSF; 
+        a1int=a1int+abLSF;
         da1dhint=da1dhint+dadhLSF ;
-    end
-    
+    else
 
+        LM=false ; % Level set mask for melt not applied
+
+    end
+
+    if CtrlVar.ThicknessBarrier
+
+        %%  New simpler implementation of a thickness barrier.
+        % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
+        % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass
+        % balance equation
+
+        hmin=CtrlVar.ThickMin ;
+
+        isThickTooSmall=hint<hmin ;
+
+        % don't apply if already applied as a part of the level-set method
+        isThickTooSmall=isThickTooSmall & ~LM ;
+        a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+        a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
+
+
+        abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, for a1<0 and a3<0.
+
+        dadhThickMin=isThickTooSmall.*(a1+3*a3*(hint-hmin).^2) ;
+
+        a1int=a1int+abThickMin; dadhint=dadhint+dadhThickMin ;
+
+        %     nh=numel(find(isThickTooSmall)) ;
+        %     if nh> 0
+        %        fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(hint(isThickTooSmall)),max(abThickMin))
+        %     end
+        %
+    end
 
 
     % da1dhint=0;

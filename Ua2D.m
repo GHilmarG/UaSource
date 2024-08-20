@@ -499,7 +499,7 @@ while 1
 
     %% "-uv-"
     %if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
-    if CtrlVar.UaRunType=="-uv-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+    if CtrlVar.ForwardTimeIntegration=="-uv-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
 
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
@@ -513,7 +513,7 @@ while 1
         [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
-    elseif CtrlVar.UaRunType=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+    elseif CtrlVar.ForwardTimeIntegration=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
 
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
@@ -527,7 +527,7 @@ while 1
 
 
         % "-uvh-" ; "-uv-h-"
-    elseif CtrlVar.UaRunType=="-uvh-"  ||  CtrlVar.UaRunType=="-uv-h-"
+    elseif CtrlVar.ForwardTimeIntegration=="-uvh-"  ||  CtrlVar.ForwardTimeIntegration=="-uv-h-"
 
 
         %        0  : values at t      This is F0
@@ -545,8 +545,8 @@ while 1
         
         % "-uvh-"
         %
-        % if CtrlVar.UaRunType=="-uvh-"  ||  CtrlVar.UaRunType=="-uv-h-"
-        if CtrlVar.UaRunType=="-uvh-"
+        % if CtrlVar.ForwardTimeIntegration=="-uvh-"  ||  CtrlVar.ForwardTimeIntegration=="-uv-h-"
+        if CtrlVar.ForwardTimeIntegration=="-uvh-"
             
             
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving implicitly for velocities and thickness.";
@@ -670,7 +670,7 @@ while 1
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
 
             
-        elseif CtrlVar.UaRunType=="-uv-h-"  % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
+        elseif CtrlVar.ForwardTimeIntegration=="-uv-h-"  % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
 
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
@@ -683,7 +683,7 @@ while 1
 
             tSemiImplicit=tic;                  % -uv
 
-            % Now that the velocity has been calculated, we can ask for the calving parameters
+           
             [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
 
             F0=F;
@@ -698,6 +698,7 @@ while 1
             MUA=UpdateMUA(CtrlVar,MUA);
             % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
             [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
+            
             CtrlVar.InitialDiagnosticStep=0;
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);

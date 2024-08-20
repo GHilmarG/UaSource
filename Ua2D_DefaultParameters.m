@@ -27,7 +27,7 @@ CtrlVar.time=0;               % In a transient run this variable is the (model) 
 % 
 
 
-CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -1367,7 +1367,7 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                       
                                             
                                             
-CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
+CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if lambda values are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
@@ -1386,6 +1386,10 @@ CtrlVar.ThicknessBarrier=1;                                         % set to 1 f
                                                                     % is added, and applied at integration points where  h<hmin.
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
+                                                                    % The term is only applied at integration points where h < hmin. Therefore if a1<0 and a3<0, the resulting ab is greater than
+                                                                    % zero, and mass is added. This (of course) results in a local violation of mass conservation.
+
+                                                 
 
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements

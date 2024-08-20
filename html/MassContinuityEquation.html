@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>MassContinuityEquation</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-08-07"><meta name="DC.source" content="MassContinuityEquation.m"><style type="text/css">
+      -->
+<title>MassContinuityEquation</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-08-20">
+<meta name="DC.source" content="MassContinuityEquation.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,33 +72,38 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
-</pre><p><img src="MassContinuityEquation_eq01706492234430187178.png" alt="$$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = \rho \, a(h)$$" style="width:243px;height:31px;"></p><pre>For</pre><p><img src="MassContinuityEquation_eq04053383982147004258.png" alt="$$\rho=1$$" style="width:33px;height:13px;"></p><p>this is the advection-diffusion equation, ie</p><p><img src="MassContinuityEquation_eq03792549130243029987.png" alt="$$\frac{\partial h}{\partial t} + \nabla \cdot ( \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = a(h)$$" style="width:216px;height:31px;"></p><pre class="codeinput">narginchk(8,8)
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
+</pre>
+<pre>$$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h )  =  a(h)$$</pre>
+<pre class="codeinput">narginchk(8,8)
 nargoutchk(4,4)
 
 
 [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 %%
 %
-% 
-%
-% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = \rho \, a(h)$$
-%
-%  For 
-%
-% $$\rho=1$$ 
-%
-% this is the advection-diffusion equation, ie
-%
-% $$\frac{\partial h}{\partial t} + \nabla \cdot ( \mathbf{v} h ) - \nabla \cdot (\kappa \nabla h ) = a(h)$$
+%  $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h )  =  a(h)$$ 
 %
 %
-%
-%
+%%
 
 narginchk(8,8)
 nargoutchk(4,4)
@@ -109,4 +119,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

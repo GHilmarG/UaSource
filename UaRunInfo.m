@@ -41,7 +41,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvResidual=NaN(N,1);
             obj.Forward.uvBackTrackSteps=NaN(N,1);
 
-
+            obj.Forward.uv2hIterations=NaN(N,1);
 
             obj.Forward.dtRestart=NaN;
 
@@ -140,7 +140,7 @@ classdef (ConstructOnLoad) UaRunInfo
                 return
             end
 
-            if contains(CtrlVar.UaRunType,["-uvh-","-uv-"])
+            if contains(CtrlVar.ForwardTimeIntegration,["-uvh-","-uv-"])
 
 
 
@@ -159,10 +159,12 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvResidual=UaResize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
                 obj.Forward.uvBackTrackSteps=UaResize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
 
+                obj.Forward.uv2hIterations=UaResize(obj.Forward.uv2hIterations,nPadding,FillValue=nan) ; 
+
 
             end
 
-            if contains(CtrlVar.UaRunType,"-h-")
+            if contains(CtrlVar.ForwardTimeIntegration,"-h-")
 
                 obj.Forward.hIterations=[obj.Forward.hIterations;Padding];
                 obj.Forward.hResidual=[obj.Forward.hResidual;Padding];

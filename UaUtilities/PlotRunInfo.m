@@ -39,15 +39,20 @@ hold on
 
 I=~isnan(RunInfo.Forward.uvIterations) ;
 if numel(find(I))>0
-    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uvIterations(I),DisplayName="\#uv iterations") ;
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uvIterations(I),DisplayName="\#uv iterations",LineWidth=1.2) ;
 end
 
 I=~isnan(RunInfo.Forward.hIterations) ;
 if numel(find(I))>0
     stairs(RunInfo.Forward.time(I),RunInfo.Forward.hIterations(I),DisplayName="\#h iterations",LineWidth=2) ;
 end
-ylabel('\# iterations',Interpreter='latex')
 
+I=~isnan(RunInfo.Forward.uv2hIterations) ;
+if numel(find(I))>0
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uv2hIterations(I),DisplayName="\#uv-h outer iterations",LineWidth=1.5) ;
+end
+
+ylabel('\# iterations',Interpreter='latex')
 xlabel('time, $t$',Interpreter='latex') ;
 legend(Location="best",Interpreter="latex");
 
