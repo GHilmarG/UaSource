@@ -45,6 +45,11 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %   figetaInt=FindOrCreateFigure("eta Int") ; clf(figetaInt) ;
 %   UaPlots(CtrlVar,MUA,F,"eta int",GetRidOfValuesDownStreamOfCalvingFronts=false) ;
 %
+%
+% Plotting velocities:
+%
+%     UaPlots(CtrlVar,MUA,F1,[F1.ub F1.vb],FigureTitle="(uv)")
+%
 %%
 
 arguments

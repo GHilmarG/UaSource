@@ -1,3 +1,8 @@
+
+
+
+
+
 function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
  
  
@@ -33,16 +38,14 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
     while true
         
         
-        % exit criterion
-        % First check if iteration>1, and backstep small and rRatio
-        % small. There could be a good reason for this. For example we have
-        % already reached the NR minimum and no further reduction is
-        % possible due to rounding effect or becuase the cost function is
-        % scaled in some ways that make further reduction irrelevant for
-        % the solution.
+        % exit criterion:
+        %
+        % First check if iteration>1, and back-step small and rRatio small. There could be a good reason for this. For example we
+        % have already reached the NR minimum and no further reduction is possible due to rounding effect or because the cost
+        % function is scaled in some ways that make further reduction irrelevant for the solution.
         
         
-        if rRatio<0.01 && rWork>1e-20 % OK I'm hardwiring in here an option of addional iteration
+        if rRatio<0.01 && rWork>1e-20 % OK I'm hard wiring in here an option of additional iteration
                                       % The argument being that we might most likely still be in the second-order convergence
                                       % and not limited by numerical rounding errors. (Consider taking this out once
                                       % all is fine.)
@@ -53,11 +56,8 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
                 && (gamma < max(CtrlVar.hExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin) ...
                 || rRatio>0.99)
             
-            % This exist criterion applies if in last iteration either
-            % backstep or the reduction was very small. This indicates
-            % difficulties with convergence, but this might simply be
-            % due to rounding errors making a further reduction
-            % impossible.
+            % This exit criterion applies if in last iteration either back-step or the reduction was very small. This indicates
+            % difficulties with convergence, but this might simply be due to rounding errors making a further reduction impossible.
             
             ResidualsCriteria=(rWork<CtrlVar.hDesiredWorkAndForceTolerances(1)  && rForce<CtrlVar.hDesiredWorkAndForceTolerances(2))...
                 && (rWork<CtrlVar.hDesiredWorkOrForceTolerances(1)  || rForce<CtrlVar.hDesiredWorkOrForceTolerances(2))...
@@ -100,7 +100,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         iteration=iteration+1 ;
         
         
-        % [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,CtrlVar,MUA,F0.h,F0.rho,F0.ub,F0.vb,F0.as,F0.ab,F1.h,F1.ub,F1.vb,F1.as,F1.ab,F1.dasdh,F1.dabdh);
+   
         [UserVar,R,K]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
         
        
@@ -139,8 +139,14 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
         
        
         CtrlVar.BacktrackingGammaMin=CtrlVar.hExitBackTrackingStepLength; 
-        [gamma,r,BackTrackInfo]=BackTracking(slope0,1,r0,r1,Func,CtrlVar);
-        [r1Test,~,~,rForce,rWork,D2]=Func(gamma);
+        nOut=6;
+        varargout=cell(nOut-1,1);
+        [gamma,r,BackTrackInfo,varargout{:}]=BackTracking(slope0,1,r0,r1,Func,CtrlVar,nOut);
+        
+        rForce=varargout{3};
+        rWork=varargout{4};
+        D2=varargout{5};
+        %[r1Test,~,~,rForce,rWork,D2]=Func(gamma);
         
         
  
@@ -152,7 +158,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
             if gamma>0.7*Upper ; Upper=2*gamma; end
             parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
             for I=1:nnn
-                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower
+                gammaTest=(Upper-Lower)*(I-1)/(nnn-1)+Lower;
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
                 gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest;  rD2Testvector(I)=D2Test;
             end
@@ -196,7 +202,7 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
       
          CtrlVar.ResetThicknessToMinThickness=0;
          [F1.b,F1.s]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
-         [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
+        %[UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1); % actually this call only needed if mass-balance depends on h
     end
 
     h1=F1.h ; % Because I don't return F1

@@ -100,13 +100,16 @@ else
         CtrlVar.TimeDependentRun=1;
 
         if CtrlVar.UaRunType=="-uvh-"
-            CtrlVar.Implicituvh=1;
+            CtrlVar.Implicituvh=1;  % This field is actually no longer used by Ua, use CtrlVar.UaRunType instead
         else
-            CtrlVar.Implicituvh=0;
+            CtrlVar.Implicituvh=0;  % This field is actually no longer used by Ua, use CtrlVar.UaRunType instead
         end
     end
 
 end
+
+
+
 
 %%
 

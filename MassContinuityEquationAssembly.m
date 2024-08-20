@@ -76,7 +76,7 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
             F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
         end
 
-        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strickly' definition
+        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strictly' definition
         LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 

@@ -1,3 +1,7 @@
+
+
+
+
 function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 
 %%
@@ -67,8 +71,6 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
 
 
-
-    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
     [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
 
     % create vectors Xint and Yint of unique integration points and triangulate that set of points

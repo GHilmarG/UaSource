@@ -3,9 +3,9 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
 %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
 %  modifies time step size
 %
-% Decision about increasing the time step size is based on the number of non-linear interations over the last few time steps.
+% Decision about increasing the time step size is based on the number of non-linear iterations over the last few time steps.
 %
-% The main idea is to limit the number of non-linear iteration so that the NR is within the quadradic regime
+% The main idea is to limit the number of non-linear iteration so that the NR is within the quadratic regime
 % Experience has shown that a target number of iterations (CtrlVar.ATSTargetIterations) within 3 to 5 is good for this purpose
 %
 % Time step is increased if r<1 where
@@ -77,7 +77,7 @@ dtOut=max(dtIn,CtrlVar.ATSdtMin) ;
 
 % I first check if the previous forward calculation did not converge. If it did
 % not converge I reduced the time step and reset all info about previous
-% interations to reset the adaptive-time stepping approuch
+% iterations to reset the adaptive-time stepping approach
 
 
 RunInfo.Forward.AdaptiveTimeSteppingResetCounter=RunInfo.Forward.AdaptiveTimeSteppingResetCounter+1;

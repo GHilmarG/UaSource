@@ -636,7 +636,7 @@ while 1
 
             % fprintf("Saving uvh data \n")
             % save("uvhTest.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F","l","BCs");
-            
+
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
@@ -668,14 +668,13 @@ while 1
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
+
             
-        % "-uv-h-"
-        %elseif ~CtrlVar.Implicituvh % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
-        elseif CtrlVar.UaRunType=="-uv-h-"
-            
+        elseif CtrlVar.UaRunType=="-uv-h-"  % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
+
             RunInfo.Message="-RunStepLoop- Time dependent step. Solving explicitly for velocities and implicitly for thickness.";
             CtrlVar.RunInfoMessage=RunInfo.Message;
-            
+
 
             fprintf(...
                 '\n =========> Semi-Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
@@ -684,6 +683,8 @@ while 1
 
             tSemiImplicit=tic;                  % -uv
 
+            % Now that the velocity has been calculated, we can ask for the calving parameters
+            [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
 
             F0=F;
 
@@ -693,20 +694,22 @@ while 1
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 
-
-            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            CtrlVar.InitialDiagnosticStep=0; 
+            CtrlVar.Parallel.BuildWorkers=true;
+            MUA=UpdateMUA(CtrlVar,MUA);
+            % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
+            CtrlVar.InitialDiagnosticStep=0;
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
 
-            
+
             tSemiImplicit=toc(tSemiImplicit);
             if CtrlVar.InfoLevelCPU>=1
-                fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec \n ',tSemiImplicit) ; 
+                fprintf(CtrlVar.fidlog,'SSTREAM semi-implicit step in %-g sec \n ',tSemiImplicit) ;
             end
-            
+
         end
-        
+
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
             [UserVar,RunInfo,F.LSF,F.LSFMask,F.LSFnodes,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set

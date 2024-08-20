@@ -401,8 +401,8 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fulfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
