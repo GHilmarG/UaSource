@@ -208,7 +208,7 @@ for Iint=1:MUA.nip  %Integration points
 
         hmin=CtrlVar.ThickMin ;
 
-        isThickTooSmall=hint<hmin ;
+        isThickTooSmall=h1int<hmin ;
 
         % don't apply if already applied as a part of the level-set method
         isThickTooSmall=isThickTooSmall & ~LM ;
@@ -216,17 +216,17 @@ for Iint=1:MUA.nip  %Integration points
         a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
 
 
-        abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, for a1<0 and a3<0.
+        abThickMin =isThickTooSmall.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, for a1<0 and a3<0.
 
-        dadhThickMin=isThickTooSmall.*(a1+3*a3*(hint-hmin).^2) ;
+        dadhThickMin=isThickTooSmall.*(a1+3*a3*(h1int-hmin).^2) ;
 
-        a1int=a1int+abThickMin; dadhint=dadhint+dadhThickMin ;
+        a1int=a1int+abThickMin; da1dhint=da1dhint+dadhThickMin ;
 
-        %     nh=numel(find(isThickTooSmall)) ;
-        %     if nh> 0
-        %        fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(hint(isThickTooSmall)),max(abThickMin))
-        %     end
-        %
+        % nh=numel(find(isThickTooSmall)) ;
+        % if nh> 0
+        %     fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(h1int(isThickTooSmall)),max(abThickMin))
+        % end
+
     end
 
 
