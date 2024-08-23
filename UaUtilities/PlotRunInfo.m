@@ -49,7 +49,7 @@ end
 
 I=~isnan(RunInfo.Forward.uv2hIterations) ;
 if numel(find(I))>0
-    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uv2hIterations(I),DisplayName="\#uv-h outer iterations",LineWidth=1.5) ;
+    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uv2hIterations(I),DisplayName="\#uv-h outer iterations",LineWidth=1.5,Color="m") ;
 end
 
 ylabel('\# iterations',Interpreter='latex')

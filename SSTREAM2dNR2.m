@@ -41,7 +41,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     end
     
     
-    if any(isnan(F.C))
+    if anynan(F.C)
         save TestSave ;
         warning('SSTREAM2NR:CisNaN',' nan in C. Returning with NaN in solution.\n ') ;
         F.ub=F.ub+NaN;
@@ -49,7 +49,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         return
     end
     
-    if any(isnan(F.AGlen))
+    if anynan(F.AGlen)
         save TestSave
         warning('SSTREAM2NR:CisNaN',' nan in A. Returning with NaN in solution.\n ') ;
         F.ub=F.ub+NaN;
@@ -59,12 +59,12 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     
     
-    if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
-    if any(isnan(F.h)) ; save TestSave  ; error( ' h nan ') ; end
-    if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
-    if any(isnan(F.vb)) ; save TestSave ; error( ' vb nan ') ; end
-    if any(isnan(l.ubvb)) ; save TestSave ; error( ' ubvbLambda nan ') ; end
-    if any(isnan(F.rho)) ; save TestSave  ; error( ' rho nan ') ; end
+    if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
+    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+    if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
+    if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
+    if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end
+    if anynan(F.rho) ; save TestSave  ; error( ' rho nan ') ; end
     if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; end
     
     
@@ -225,8 +225,8 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
         end
         
-        if any(isnan(Kuv)) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-        if any(isnan(L)) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
+        if anynan(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
+        if anynan(L) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
 
@@ -434,7 +434,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
 
 
     
-    if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
+    if anynan(F.ub) || anynan(F.vb)  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     
     
     

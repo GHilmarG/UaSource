@@ -14,7 +14,7 @@ if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitl
     %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if requested by the user.
     CtrlVar.InitialDiagnosticStep=0;
 
-    fprintf(" initial diagnostic step at t=%-.15g \n ",CtrlVar.time);
+    fprintf(" initial diagnostic step at t=%-.15g \n ",F0.time);
 
     [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,l);
     
@@ -55,6 +55,7 @@ end
 %
 uv2hItMax=15; Tolerance= 1e-5 ;
 duv1NormVector=nan(uv2hItMax,1) ;
+dh1NormVector=nan(uv2hItMax,1) ;
 
 uvItMax=0;
 hItMax=0; 
@@ -93,7 +94,9 @@ for uv2hIt=1:uv2hItMax
     duv1Norm=norm([du1;dv1])/sqrt(2*MUA.Nnodes) ;
     dh1Norm=norm(F1.h-h1Ahead)/sqrt(MUA.Nnodes) ;
     duv1NormVector(uv2hIt)=duv1Norm;
-    fprintf("duvh1Norm=%g \t dh1Norm=%g \n",duv1Norm,dh1Norm)
+    dh1NormVector(uv2hIt)=dh1Norm;
+    fprintf("\n =============     uv-h: Outer iterations %i \t |duv| =%g \t |dh|=%g    \t uv-iterations=%i \t h-iterations=%i  =============  \n",...
+        uv2hIt,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
     
     if duv1Norm< Tolerance
         break
@@ -106,18 +109,32 @@ for uv2hIt=1:uv2hItMax
         subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
     end
 
-  
+
 
 end
 
-RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=uvItMax; 
-RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hItMax; 
-RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=uv2hIt; 
+% Here I return the max number of uv and h iterations during the outer uv-h iteration
+RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=uvItMax;
+RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hItMax;
+RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=uv2hIt;
 
 if CtrlVar.InfoLevel>=10
+
     fprintf("uvhSemiImplicit: Now solved for uv and h at t=t1.\n")
+
 end
 
 
+FindOrCreateFigure("uv-h outer iteration")
+yyaxis left
+plot(1:uv2hItMax,duv1NormVector,DisplayName="$\|\Delta (uv)_1\|$",Marker="o")
+ylabel("$\|\Delta (uv)_1\|$",Interpreter="latex")
+yyaxis right
+plot(1:uv2hItMax,dh1NormVector,DisplayName="$\|\Delta h_1\|$",Marker="o")
+ylabel("$\|\Delta h_1\|$",Interpreter="latex")
+xlabel("$uv-h$ iteration",Interpreter="latex")
+title("$uv-h$ outer iteration residuals",Interpreter="latex")
+subtitle(sprintf("t=%g dt=%g",F0.time,F0.dt),Interpreter="latex")
+legend(Location="best",Interpreter="latex");
 
 end
