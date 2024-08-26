@@ -207,7 +207,7 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
+            title(sprintf("velocities at t=%5.1f",CtrlVar.time),Interpreter="latex")
 
 
         case "dhdt"

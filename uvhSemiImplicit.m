@@ -127,10 +127,10 @@ end
 
 FindOrCreateFigure("uv-h outer iteration")
 yyaxis left
-plot(1:uv2hItMax,duv1NormVector,DisplayName="$\|\Delta (uv)_1\|$",Marker="o")
+semilogy(1:uv2hItMax,duv1NormVector,DisplayName="$\|\Delta (uv)_1\|$",Marker="o")
 ylabel("$\|\Delta (uv)_1\|$",Interpreter="latex")
 yyaxis right
-plot(1:uv2hItMax,dh1NormVector,DisplayName="$\|\Delta h_1\|$",Marker="o")
+semilogy(1:uv2hItMax,dh1NormVector,DisplayName="$\|\Delta h_1\|$",Marker="o")
 ylabel("$\|\Delta h_1\|$",Interpreter="latex")
 xlabel("$uv-h$ iteration",Interpreter="latex")
 title("$uv-h$ outer iteration residuals",Interpreter="latex")
