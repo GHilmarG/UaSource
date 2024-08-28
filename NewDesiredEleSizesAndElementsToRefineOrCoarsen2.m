@@ -218,7 +218,7 @@ end
 W=0.5;
 EleSizeDesired=W*EleSizeDesired+(1-W)*EleSizeCurrent;
 
-% and also put strickt limits on change in EleSize:
+% and also put strict limits on change in EleSize:
 EleSizeRatio=EleSizeDesired./EleSizeCurrent;
 
 I=EleSizeRatio>CtrlVar.MaxRatioOfChangeInEleSizeDuringAdaptMeshing;
