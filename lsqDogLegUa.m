@@ -28,7 +28,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 % $$ \nabla^2 R  \approx K' K$$
 %
 %
-% The quadradic approximation is therefore
+% The quadratic approximation is therefore
 %
 % $$ R \approx Q := R_0 + K' \mathbf{R} \, \Delta x + \frac{1}{2} \Delta x \, K' K \Delta x $$
 %
@@ -37,7 +37,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDog
 %
 % $$ K' K \Delta x =  -K' \mathbf{R}$$  
 %
-% If $K$ is $n \times n$ and invertable, this is same as solving
+% If $K$ is $n \times n$ and invertible, this is same as solving
 %
 % $$ K \Delta x = - \mathbf{R} $$
 %
@@ -124,12 +124,12 @@ dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 
 
 
-%% If contraints provided, make iterate feasable
+%% If constraints provided, make iterate feasible
 
 if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estimate of lambda, but specifies constraints, set lambda=0
 
     BCres=norm(L*x-c);
-    if BCres>1e-6   % make feasable
+    if BCres>1e-6   % make feasible
         x=L\c ;
     end
     if isempty(lambda)  || anynan(lambda)
@@ -319,7 +319,7 @@ while iteration <= ItMax
 
         % Try Cauchy-to-Newton?
         Jratio=J/J0;
-        % Only to C2N if not sufficient reduction alread, both Newton and Cauchy have been performed and the min in the Cauchy step
+        % Only to C2N if not sufficient reduction already, both Newton and Cauchy have been performed and the min in the Cauchy step
         % was found close to the min of the Quad approximation
         if Jratio>0.9 &&  ~isnan(JminN) && ~isnan(JminC) && gammaminC/gammaEstC > 0.9
             TryCauchy2Newton=true;
