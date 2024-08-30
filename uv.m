@@ -26,6 +26,8 @@ if isempty(l)
     l=UaLagrangeVariables; 
 end
 
+hOnInput=F.h; 
+
 
 F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -134,6 +136,9 @@ switch lower(CtrlVar.FlowApproximation)
 
 
 end
+
+
+F.h=hOnInput; 
 
 tdiagnostic=toc(tdiagnostic);
 if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Ended diagnostic in %-f sec \n ',tdiagnostic) ;

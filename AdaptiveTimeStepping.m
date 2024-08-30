@@ -279,10 +279,11 @@ if CtrlVar.DefineOutputsDt>0
     end
 end
 
+% reached 
 
 if CtrlVar.ATSdtMax <= dtOut
     dtOut=CtrlVar.ATSdtMax ;
-    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reaced max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
 else
     if dtOut>dtIn
         fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
