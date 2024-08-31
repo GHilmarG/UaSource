@@ -139,7 +139,7 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 
         elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)>25
 
-            % This is also a special case to cover the possibilty that there is a sudden
+            % This is also a special case to cover the possibility that there is a sudden
             % increase in the number of non-linear iterations, or if the initial time step
             % a the start of a run was set too large.
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
@@ -188,34 +188,49 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 
 end
 
- dtOut=round(dtOut,2,"significant") ;
+dtOut=round(dtOut,2,"significant") ;
 
 
 
 if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
-    dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
 
-    dtcritical=round(dtcritical,2,"significant") ;
-    if ~isnan(dtcritical)
-    
-        nFactorSafety=2;
+    if CtrlVar.CurrentRunStepNumber>4
 
-        if dtOut>dtcritical/nFactorSafety
+        uv2hIt=mean(RunInfo.Forward.uv2hIterations((CtrlVar.CurrentRunStepNumber-3):(CtrlVar.CurrentRunStepNumber-1)));
+        uv2hItLast=RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber-1);
 
-            dtOut=dtcritical/nFactorSafety ;
-            dtOut=round(dtOut,2,"significant") ;
-           % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+        if uv2hIt > 6  && uv2hItLast >  3
+
+            dtOut=round(dtOut/2,2,"significant") ;
+
+        elseif uv2hIt < 3.5
+
+            dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
+
+            dtcritical=round(dtcritical,2,"significant") ;
+            if ~isnan(dtcritical)
+
+                nFactorSafety=2;
+
+                if dtOut>dtcritical/nFactorSafety
+
+                    dtOut=dtcritical/nFactorSafety ;
+                    dtOut=round(dtOut,2,"significant") ;
+                    % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+
+                end
+
+
+                dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
+                % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
+
+            end
 
         end
 
-
-        dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
-        % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
-
     end
 end
-
 
 RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modifications related to plot times and end times.
 % This is the dt to be used in further restart runs

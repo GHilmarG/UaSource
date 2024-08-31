@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>ReleaseNotes</title>
-<meta name="generator" content="MATLAB 24.1">
+<meta name="generator" content="MATLAB 24.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-07-30">
+<meta name="DC.date" content="2024-08-30">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -79,6 +79,17 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <h1></h1>
 <!--introduction-->
 <!--/introduction-->
+<p>
+<b>Release Notes</b> <i>September 2024</i>
+</p>
+<p>For comparison purposes the semi-implicit solver has been updated.</p>
+<p>This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is both slower and less accurate that the implicit one. This option has now been updated and made available for use as apparently most (all?) other ice-flow models appear to be using this semi-implicit approach.</p>
+<p>This option is activated by setting:</p>
+<pre>  CtrlVar.ForwardTimeIntegration="-uv-h-" ;</pre>
+<p>The default value of</p>
+<pre class="language-matlab">CtrlVar.LevelSetMethodThicknessConstraints;
+</pre>
+<p>is now set to true (previously set to false). Therefore if one uses the active-set method and the level-set method, min thickness constraints will be automatically applied to all nodes downstream of calving fronts, unless of course this parameter is set to false by the user.</p>
 <p>
 <b>Release Notes</b> <i>July 2024</i>
 </p>
@@ -388,7 +399,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 <p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
 <br>
 </p>
 </div>
@@ -398,6 +409,27 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 %%
 %
+% *Release Notes* _September 2024_
+%
+% For comparison purposes the semi-implicit solver has been updated. 
+%
+% This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is
+% both slower and less accurate that the implicit one.  This option has now been updated and made available for use as
+% apparently most (all?) other ice-flow models appear to be using this semi-implicit approach.
+%
+% This option is activated by setting:
+%
+%    CtrlVar.ForwardTimeIntegration="-uv-h-" ;
+%
+%
+% The default value of 
+%
+%   CtrlVar.LevelSetMethodThicknessConstraints;
+%
+% is now set to true (previously set to false). Therefore if one uses the active-set method and the level-set method, min
+% thickness constraints will be automatically applied to all nodes downstream of calving fronts, unless of course this
+% parameter is set to false by the user. 
+% 
 % *Release Notes* _July 2024_
 %
 % The utility

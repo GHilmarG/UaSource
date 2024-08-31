@@ -61,7 +61,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 
     else   %  Thickness constraints used
 
-        [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
+        [UserVar,RunInfo,F1,l1,BCs1,~,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
         LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?
         LastActivated=Activated;
         iCounter=1;

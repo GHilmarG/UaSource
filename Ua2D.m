@@ -697,7 +697,8 @@ while 1
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
             % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
+            % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
+            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
             
             CtrlVar.InitialDiagnosticStep=0;
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;

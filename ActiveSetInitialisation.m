@@ -2,8 +2,10 @@
 
 
 
-function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
+function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
+
+narginchk(8,8)
 
  
 BCs1Input=BCs1 ; 
@@ -34,8 +36,8 @@ end
 
 %% Special case:  Check if there are no previous thickness constraints, in which case new should be introduced based on ice thickness
 % possibly all thickness constraints were eliminated in AdapMesh when deactivating/activating elements
-% so I check if there are no thickness constrains but h0 is at the min thick.
-% if so then I introduce an initial active set based on h0
+% so I check if there are no thickness constrains but h1 is at the min thick.
+% if so then I introduce an initial active set based on h1
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
@@ -49,7 +51,7 @@ if isempty(BCs1.hPosNode)
     
     if numel(BCs1.hPosNode)>0
         if CtrlVar.ThicknessConstraintsInfoLevel>=1
-            fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h0  \n', numel(BCs1.hPosNode));
+            fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h1  \n', numel(BCs1.hPosNode));
         end
     end
 end
@@ -81,7 +83,7 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
     LSFhAdditionalPosNodes=setdiff(LSFhPosNode,BCs1.hPosNode) ; 
 
    if CtrlVar.ThicknessConstraintsInfoLevel>=1
-        fprintf(' %i new LSF active constraints \n',numel(LSFhAdditionalPosNodes))
+        fprintf(' %i new level set active thickness constraints introduced \n',numel(LSFhAdditionalPosNodes))
     end
 
     BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode); 

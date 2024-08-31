@@ -211,16 +211,27 @@ for Iint=1:MUA.nip  %Integration points
         isThickTooSmall=h1int<hmin ;
 
         % don't apply if already applied as a part of the level-set method
-        isThickTooSmall=isThickTooSmall & ~LM ;
+        % isThickTooSmall=isThickTooSmall & ~LM ;
         a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
         a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
 
 
+        % This is only applied where ice thickness is smaller than hmin
+        %
+        % This is really a penalty term and not a barrier term, ie it only penalizes the cost function whenever h < hmin, but it does
+        % not enforce h >= hmin
+        %
+        % The idea is to keep ice thickness within 0 < h < hmin
+        %
+        %
         abThickMin =isThickTooSmall.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, for a1<0 and a3<0.
 
         dadhThickMin=isThickTooSmall.*(a1+3*a3*(h1int-hmin).^2) ;
 
         a1int=a1int+abThickMin; da1dhint=da1dhint+dadhThickMin ;
+
+        % hTest=linspace(-10,10,1000) ;   P=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin*(hTest-CtrlVar.ThickMin)+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic*(hTest-CtrlVar.ThickMin).^3 ;
+        % FindOrCreateFigure("h min thickness penalty") ; plot(hTest,P) ; xlabel("h") ; ylabel("P") ; title("h min thickness penalty")
 
         % nh=numel(find(isThickTooSmall)) ;
         % if nh> 0

@@ -2,6 +2,27 @@
 
 %%
 %
+% *Release Notes* _September 2024_
+%
+% For comparison purposes the semi-implicit solver has been updated. 
+%
+% This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is
+% both slower and less accurate that the implicit one.  This option has now been updated and made available for use as
+% apparently most (all?) other ice-flow models appear to be using this semi-implicit approach.
+%
+% This option is activated by setting:
+%
+%    CtrlVar.ForwardTimeIntegration="-uv-h-" ;
+%
+%
+% The default value of 
+%
+%   CtrlVar.LevelSetMethodThicknessConstraints;
+%
+% is now set to true (previously set to false). Therefore if one uses the active-set method and the level-set method, min
+% thickness constraints will be automatically applied to all nodes downstream of calving fronts, unless of course this
+% parameter is set to false by the user. 
+% 
 % *Release Notes* _July 2024_
 %
 % The utility

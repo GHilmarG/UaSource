@@ -1745,7 +1745,7 @@ CtrlVar.LevelSetPhase="" ;
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 

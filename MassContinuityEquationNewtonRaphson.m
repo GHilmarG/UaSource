@@ -3,8 +3,9 @@
 
 
 
-function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 
+
+function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 %%
 %
@@ -13,23 +14,24 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquationNewtonRaphson(UserVar,RunI
 %
 %%
 narginchk(8,8)
-nargoutchk(4,4)
+nargoutchk(5,5)
 
 
 
 
-MLC=BCs2MLC(CtrlVar,MUA,BCs);
+MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 L=MLC.hL ; Lrhs=MLC.hRhs ;
-if nargin==7 || isempty(l.h) || (numel(l.h)~=numel(Lrhs))
-    l.h=Lrhs*0 ;
+if nargin==7 || isempty(l1.h) || (numel(l1.h)~=numel(Lrhs))
+    l1.h=Lrhs*0 ;
 end
-dl=l.h*0 ;
+dl=l1.h*0 ;
 dh=F1.h*0;
 BCsError=0;
 
 % make sure initial point is feasible
-F1.h(BCs.hFixedNode)=BCs.hFixedValue;
-F0.h(BCs.hFixedNode)=BCs.hFixedValue;
+F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+F0.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+
 
 
 iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1; r=Inf;
@@ -46,7 +48,7 @@ while true
 
 
     if rRatio<0.01 && rWork>1e-20 % OK I'm hard wiring in here an option of additional iteration
-        % The argument being that we might most likely still be in the second-order convergence
+        % The argument being that we might most likely still be in the second-order convergence]
         % and not limited by numerical rounding errors. (Consider taking this out once
         % all is fine.)
 
@@ -107,7 +109,7 @@ while true
 
     if ~isempty(L)
 
-        frhs=-R-L'*l.h        ;  % This needs to be identical to what is defined in the CalcCostFunctionhEquation
+        frhs=-R-L'*l1.h        ;  % This needs to be identical to what is defined in the CalcCostFunctionhEquation
         grhs=Lrhs-L*F1.h; % Here the argument is that frhs has the units: [\varphi] area/time
         % while grhs has the units [\varphi], where [\varphi] are the units of
         % the level-set function itself, ie [\varphi]
@@ -125,7 +127,7 @@ while true
         error('hEquationNewtonRaphson:NaNinSolution','NaN in the solution for dh')
     end
 
-    Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l.h,dh,dl);
+    Func=@(gamma) CalcCostFunctionhEquation(UserVar,RunInfo,CtrlVar,MUA,gamma,F1,F0,L,Lrhs,l1.h,dh,dl);
 
 
     gamma=0 ; [r0,~,~,rForce0,rWork0,D20]=Func(gamma);
@@ -186,7 +188,7 @@ while true
 
 
     F1.h=F1.h+gamma*dh;
-    l.h=l.h+gamma*dl;
+    l1.h=l1.h+gamma*dl;
 
     rRatio=r/r0;
     if CtrlVar.hInfoLevel>=1

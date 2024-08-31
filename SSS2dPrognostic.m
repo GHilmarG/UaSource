@@ -9,7 +9,7 @@ nargoutchk(3,4)
 % implicit with respect to thickness (h)
 % explicit with respect to velocity
 
-
+error("no longer maintaned")
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Lh=MLC.hL ; Lhrhs=MLC.hRhs ;

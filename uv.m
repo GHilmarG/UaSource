@@ -29,7 +29,7 @@ end
 hOnInput=F.h; 
 
 
-F.h=F.s-F.b;
+% F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 % [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
@@ -55,10 +55,10 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
+hTiny=1e-10;
+if any(F.h<hTiny)
 
-if any(F.h<0)
-
-    indh0=find(F.h<0);
+    indh0=find(F.h<hTiny);
     fprintf('uv: Found negative ice thicknesses in a diagnostic forward run.\n')
     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F.h));
 
@@ -67,11 +67,10 @@ if any(F.h<0)
     end
 
 
-    if CtrlVar.ThickMin<0
-        CtrlVar.ThickMin=0;
-    end
+    CtrlVar.ThickMin=hTiny;
 
-    fprintf('These thickness values will be set to %f \n',CtrlVar.ThickMin)
+
+    fprintf('For the purpose of the uv solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 end

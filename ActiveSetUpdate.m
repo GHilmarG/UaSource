@@ -129,14 +129,14 @@ end
 % Do I need to in-activate some thickness constraints?
 % if any of the lambdahpos are positive, then these constraints must be in-activated
 
-if numel(BCs1.hPosNode)>0   % are there any thickness constraints? If so see if some should be in-activated
+if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see if some should be in-activated
 
     % I divide here with rho and dt for this to have the same units as the mass balance
     % (distance/time)
     % 
     % isNegavtiveMassFluxSmall=lambdahpos>CtrlVar.ThicknessConstraintsLambdaPosThreshold./(F1.rho(BCs1.hPosNode).*F1.dt);  % if any of the Lagrange multipliers `lambdahpos' are positive, then these should be in-activated
 
-    % Clearly only inactivate if the mass flux needed to keep them active (ah) is negative.
+    % Clearly only inactivate ndoes if the mass flux needed to keep them active (ah) is negative.
     % But to also consider only inactivate if the negative flux is 
     % 
     %   ah < 0.01 hMin /dt 
@@ -206,7 +206,7 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
     LSFhAdditionalPosNodes=setdiff(LSFhPosNode,BCs1.hPosNode) ;
 
     if CtrlVar.ThicknessConstraintsInfoLevel>=1
-        fprintf(' %i additional LSF active constraints \n',numel(LSFhAdditionalPosNodes))
+        fprintf(' %i level-set thickness constraints \n',numel(LSFhAdditionalPosNodes))
     end
 
     BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode);
