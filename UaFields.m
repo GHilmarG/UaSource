@@ -123,7 +123,7 @@ classdef UaFields
 
             % Make sure the loaded F
             % add in here any new modifications
-            if ~isfield(s,'LSF')
+            if ~isprop(s,'LSF')
                 obj.LSF=[];
             end
         end
