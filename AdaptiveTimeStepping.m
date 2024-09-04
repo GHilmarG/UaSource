@@ -134,7 +134,7 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
-            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            % fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
 
 
         elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)>25
@@ -145,9 +145,9 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
             RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
-            if dtOut<dtIn
-                fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
-            end
+            % if dtOut<dtIn
+            %     fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            % end
         else
 
             % This is the more general case.
@@ -161,9 +161,9 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
                     dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
                     RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
 
-                    if dtOut<dtIn
-                        fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut)
-                    end
+                    % if dtOut<dtIn
+                    %     fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut)
+                    % end
 
                 end
             end
@@ -188,7 +188,7 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 
 end
 
-dtOut=round(dtOut,2,"significant") ;
+
 
 
 
@@ -228,9 +228,19 @@ if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in s
             end
 
         end
+    end
+
+    if CtrlVar.DefineOutputsDt < 4*dtOut
+
+        dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,1,"significant");
 
     end
+
 end
+
+
+dtOut=round(dtOut,4,"significant") ;
+
 
 RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modifications related to plot times and end times.
 % This is the dt to be used in further restart runs
@@ -296,14 +306,7 @@ end
 
 % reached 
 
-if CtrlVar.ATSdtMax <= dtOut
-    dtOut=CtrlVar.ATSdtMax ;
-    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
-else
-    if dtOut>dtIn
-        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
-    end
-end
+
 %% make sure that run time does not exceed total run time as defined by user
 % also check if current time is very close to total time, in which case there
 % is no need to change the time step
@@ -319,7 +322,22 @@ end
 
 
 %%
+if CtrlVar.ATSdtMax <= dtOut
 
+    dtOut=CtrlVar.ATSdtMax ;
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
+
+elseif dtOut>dtIn
+
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
+
+elseif dtOut<dtIn
+
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+
+end
+
+%%
 if dtOutCopy~=dtOut
     dtNotUserAdjusted=dtOutCopy;
 else

@@ -139,6 +139,12 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
             if isActiveSetCyclical
 
                 fprintf(" Leaving active-set pos. thickness loop because it has become cyclical\n");
+
+                % ToDo (1 Sept 2024):  Do I want to do one final uvh solve since the active set has changed?  
+
+                % [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
+
+
                 break
 
             end

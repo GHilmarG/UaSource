@@ -6,6 +6,8 @@ function [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,M
 %
 %%
 
+error("no longer used. Replaced with MassContinuityEquationNewtonRaphson")
+
 narginchk(8,8)
 nargoutchk(4,4)
 

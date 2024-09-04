@@ -92,33 +92,33 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 end
 
 
-% I think the way LastActiveSet is initialized, both Released  will always be empty by construction 
+% I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction 
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 
-nReleased=numel(DeActivated);
+nDeactivated=numel(DeActivated);
 nActivated=numel(Activated);
 
 %%
 
 
-if nReleased> 0 || nActivated>0
-    if nReleased<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
+if nDeactivated> 0 || nActivated>0
+    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
         fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #released=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nReleased,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
+        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
 
         BCs1=BCs1Input;
    
         Activated=[];
         DeActivated=[];
-        nReleased=0;
+        nDeactivated=0;
         nActivated=0;
     end
 end
 
 %%
 
-if nReleased==0   && nActivated==0
+if nDeactivated==0   && nActivated==0
     isActiveSetModified=false;
     fprintf("ActiveSetInitialisation: Active set not modified.\n")
 else
@@ -127,6 +127,9 @@ else
 end
 
 
+%%
+BCs1.hPosNodeDeActivated=DeActivated;  % I'm not really using this at the moment, but in the future it might be best to use this to determine if set has become cyclical 
+BCs1.hPosNodeActivated=Activated;
 
 %% Set the hPosValues, only need to do this once at the end
 BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;

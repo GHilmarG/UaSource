@@ -53,9 +53,14 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvhIterations=NaN(N,1);
             obj.Forward.uvhResidual=NaN(N,1);
             obj.Forward.uvhBackTrackSteps=NaN(N,1);
+
             obj.Forward.uvhActiveSetIterations=NaN(N,1);
             obj.Forward.uvhActiveSetCyclical=NaN(N,1);
             obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+
+            obj.Forward.hActiveSetIterations=NaN(N,1);
+            obj.Forward.hActiveSetCyclical=NaN(N,1);
+            obj.Forward.hActiveSetConstraints=NaN(N,1);
 
             obj.Forward.hConverged=0;
             obj.Forward.hIterations=NaN(N,1);
@@ -155,6 +160,11 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvhActiveSetCyclical=UaResize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
                 obj.Forward.uvhActiveSetConstraints=UaResize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
 
+
+                obj.Forward.hActiveSetIterations=UaResize(obj.Forward.hActiveSetIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.hActiveSetCyclical=UaResize(obj.Forward.hActiveSetCyclical,nPadding,FillValue=nan) ; 
+                obj.Forward.hActiveSetConstraints=UaResize(obj.Forward.hActiveSetConstraints,nPadding,FillValue=nan) ; 
+
                 obj.Forward.uvIterations=UaResize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
                 obj.Forward.uvResidual=UaResize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
                 obj.Forward.uvBackTrackSteps=UaResize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
@@ -206,9 +216,18 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvhIterations=NaN(N,1);
                 obj.Forward.uvhResidual=NaN(N,1);
                 obj.Forward.uvhBackTrackSteps=NaN(N,1);
+
                 obj.Forward.uvhActiveSetIterations=NaN(N,1);
                 obj.Forward.uvhActiveSetCyclical=NaN(N,1);
                 obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+
+            end
+
+            if ~isfield(s.Forward,'hActiveSetIterations')
+                N=2; 
+                obj.Forward.hActiveSetIterations=NaN(N,1);
+                obj.Forward.hActiveSetCyclical=NaN(N,1);
+                obj.Forward.hActiveSetConstraints=NaN(N,1);
 
             end
 

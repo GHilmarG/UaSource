@@ -7,7 +7,7 @@
 function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 
 narginchk(3,5)
-nargoutchk(2,4)
+nargoutchk(1,4)
 
 %%
 %

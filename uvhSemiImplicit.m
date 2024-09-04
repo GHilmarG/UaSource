@@ -177,7 +177,7 @@ if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
     ylabel("$\|\Delta h_1\|$",Interpreter="latex")
     xlabel("$uv-h$ iteration",Interpreter="latex")
     title("$uv-h$ outer iteration residuals",Interpreter="latex")
-    subtitle(sprintf("t=%g dt=%g",F0.time,F0.dt),Interpreter="latex")
+    subtitle(sprintf("t=%g dt=%g",F1.time,F1.dt),Interpreter="latex")
     legend(Location="best",Interpreter="latex");
 end
 
