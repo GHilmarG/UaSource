@@ -78,6 +78,21 @@ arguments
     options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
 end
 
+%% Make F from old output files compatible
+
+if  ~isfield(F,"LSF") 
+     F.LSF=[];
+end
+
+if  ~isfield(F,"x") || isempty(F.x)
+    F.x=MUA.coordinates(:,1);
+    F.y=MUA.coordinates(:,2);
+end
+
+
+%%
+
+
 % if fig title has not been set, use by default the variable name
 if options.FigureTitle=="UaPlots"
     if isstring(Variable)
@@ -123,7 +138,7 @@ if isscalar(Variable)
 
 end
 
-
+ 
 
 if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
