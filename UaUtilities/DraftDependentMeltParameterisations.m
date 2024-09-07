@@ -135,6 +135,7 @@ switch MRP
     otherwise
 
         fprintf("DraftDependentMeltParameterisations : case not found")
+        error("case not found")
         dMin=nan ;  abMin=nan ;
         dMax=nan ;  abMax=nan  ;
 
