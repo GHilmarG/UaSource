@@ -212,7 +212,7 @@ if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in s
             if ~isnan(dtcritical)
 
                 nFactorSafety=2;
-                % nFactorSafety=0.01;  % "un-safety" factor, if set to less than unity
+                nFactorSafety=0.01;  % "un-safety" factor, if set to less than unity
 
                 if dtOut>dtcritical/nFactorSafety
 

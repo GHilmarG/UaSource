@@ -46,9 +46,14 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %   UaPlots(CtrlVar,MUA,F,"eta int",GetRidOfValuesDownStreamOfCalvingFronts=false) ;
 %
 %
-% Plotting velocities:
+% Plotting velocities other than those in F:
 %
-%     UaPlots(CtrlVar,MUA,F1,[F1.ub F1.vb],FigureTitle="(uv)")
+%     dub=F1.ub-F0.ub ; dvb=F1.vb-F0.vb ; 
+%     UaPlots(CtrlVar,MUA,F1,[dub dvb],FigureTitle="(duv)")
+%
+% Log color scale:
+%
+%  cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
 %
 %%
 
@@ -75,6 +80,7 @@ arguments
     % options.ColorMap double=othercolor("Mlightterrain",1028)
     % options.ColorMap double=othercolor("Mdarkterrain",1028)
     % options.ColorMap double=othercolor("Mtemperaturemap",1028)
+    % colormap(othercolor("Greys7",1028))
     options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
 end
 
