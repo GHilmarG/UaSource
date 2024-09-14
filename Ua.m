@@ -21,7 +21,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % 
 %   addpath(genpath('MyUaSourceFileFolder'))
 %
-% So for example if you have cloned the source directory from github into a local folder on your own computer with the name:
+% So for example if you have cloned the source directory from GitHub into a local folder on your own computer with the name:
 % 
 %   C:\Users\Hilmar\Ua\UaSource
 %
@@ -160,8 +160,6 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % UserVar can be modified at the start of the run in Ua2D_InitialUserInput.
 % as well as in all user m-input files.
 %
-% In a restart run, UserVar is again always defined at the beginning of the run
-% in Ua2D_InitialUserInput. It is not read from the restart file.
 %
 %% Getting information about the FE mesh from within user m-files:
 %

@@ -60,7 +60,7 @@ nargoutchk(1,4)
 
 GF = IceSheetIceShelves(CtrlVar,MUA,GF);
 
-% TestIng
+
 if nargin<5 || isempty(NodesDownstreamOfGroundingLines)
     
     NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
