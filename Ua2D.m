@@ -193,6 +193,7 @@ else
         % however:
         CtrlVar.time=CtrlVarInRestartFile.time;   
         CtrlVar.RestartTime=CtrlVarInRestartFile.time;
+      
        
         
         % Generally, I want dt used in the run to be the dt value in the restart file. However, it is possible that the restart file was
@@ -373,8 +374,8 @@ while 1
         break
     end
     
-    if (CtrlVar.TotalTime - CtrlVar.time) <= CtrlVar.dtmin
-        fprintf('Exiting time loop because total time reached. \n')
+    if (CtrlVar.EndTime - CtrlVar.time) <= CtrlVar.dtmin
+        fprintf('Exiting time loop because end time reached. \n')
         break
     end
     
@@ -413,7 +414,7 @@ while 1
     
     if CtrlVar.PlotWaitBar 
         multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
-        multiWaitbar('Time','Value',CtrlVar.time/CtrlVar.TotalTime);
+        multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime))
     end
     
     MUA=UpdateMUA(CtrlVar,MUA);

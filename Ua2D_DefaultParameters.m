@@ -21,7 +21,7 @@ function CtrlVar=Ua2D_DefaultParameters
 CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
 %%
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
+CtrlVar.time=nan;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
@@ -161,7 +161,9 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
 
-CtrlVar.TotalTime=1e10;          % maximum model time
+CtrlVar.TotalTime=nan;          % maximum model time
+CtrlVar.StartTime=nan;
+CtrlVar.EndTime=nan;
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 

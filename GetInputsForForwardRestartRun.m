@@ -50,6 +50,15 @@ end
 
 F.time=CtrlVar.time ; F.dt=CtrlVar.dt ; 
 
+if ~isfield(CtrlVar.StarTime)
+    CtrlVar.StartTime=CtrlVar.time;
+end
+
+
+if ~isfield(CtrlVar.EndTime)
+    CtrlVar.EndTime=CtrlVar.StartTime+CtrlVar.TotalTime;
+end
+
 
 % RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
