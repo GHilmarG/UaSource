@@ -160,6 +160,22 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
+%
+% Either prescribe  (old approach):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% or (new and recomended):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+%
+% If CtrlVar.StartTime and CtrlVar.EndTime are specified, then
+% CtrlVar.time=CtrlVar.StartTime at the beginning of the run, and
+% CtrlVar.TotalTime=CtrlVar.EndTime
+%
 
 CtrlVar.TotalTime=nan;          % maximum model time
 CtrlVar.StartTime=nan;

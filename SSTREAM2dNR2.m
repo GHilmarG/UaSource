@@ -421,16 +421,13 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         
     end
 
+    RunInfo=ExtendAllocations(RunInfo,CtrlVar,CtrlVar.CurrentRunStepNumber);
 
-    if numel(RunInfo.Forward.uvIterations) < CtrlVar.CurrentRunStepNumber
-        RunInfo.Forward.uvIterations=[RunInfo.Forward.uvIterations;RunInfo.Forward.uvIterations+NaN];
-        RunInfo.Forward.uvResidual=[RunInfo.Forward.uvResidual;RunInfo.Forward.uvResidual+NaN];
-        RunInfo.Forward.uvBackTrackSteps=[RunInfo.Forward.uvBackTrackSteps;RunInfo.Forward.uvBackTrackSteps+NaN];
-    end
     
     RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=iteration;  
     RunInfo.Forward.uvResidual(CtrlVar.CurrentRunStepNumber)=r;
     RunInfo.Forward.uvBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackInfo.iarm ; 
+    RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
 
 
     

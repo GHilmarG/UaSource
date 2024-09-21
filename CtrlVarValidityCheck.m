@@ -364,11 +364,11 @@ CtrlVar.time=CtrlVar.StartTime ;
 
 
 if ~isfield(CtrlVar,"EndTime")  || isnan(CtrlVar.EndTime)
-    CtrlVar.EndTime=CtrlVar.StartTime+CtrlVar.TotalTime;
+    CtrlVar.EndTime=CtrlVar.TotalTime;
 end
 
 if isnan(CtrlVar.TotalTime)
-    CtrlVar.TotalTime=CtrlVar.EndTime-CtrlVar.StartTime;
+    CtrlVar.TotalTime=CtrlVar.EndTime;
 end
 
 if isnan(CtrlVar.StartTime) 
@@ -387,22 +387,6 @@ end
 
 
 
-if ~isequal(CtrlVar.TotalTime,CtrlVar.EndTime-CtrlVar.StartTime)
-
-
-    fprintf(" CtrlVar.TotalTime not equal to (CtrlVar.EndTime-CtrlVar.StartTime) \n")
-    fprintf(" \t CtrlVar.TotalTime=%g \n ",CtrlVar.TotalTime)
-    fprintf(" \t CtrlVar.EndTime-CtrlVar.StartTime=%g \n ",CtrlVar.EndTime-CtrlVar.StartTime)
-
-    fprintf("\n In DefineInitialIputs.m define either: \n ")
-    fprintf(" \t CtrlVar.time and Ctrlvar.TotalTime ")
-    fprintf(" or: \n ")
-    fprintf("\t CtrlVar.StartTime and CtrlVar.EndTime \n \n")
-
-    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-
-
-end
 
 
 

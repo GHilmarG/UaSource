@@ -352,7 +352,7 @@ end
 
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
-CtrlVar.time0=CtrlVar.time;
+
 
 
 
@@ -414,7 +414,7 @@ while 1
     
     if CtrlVar.PlotWaitBar 
         multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps);
-        multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime))
+        multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime));
     end
     
     MUA=UpdateMUA(CtrlVar,MUA);
@@ -556,7 +556,7 @@ while 1
             
             fprintf(...
                 '\n ==========================>  Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
-                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime),...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
             
             if CtrlVar.WriteRunInfoFile
@@ -679,7 +679,7 @@ while 1
 
             fprintf(...
                 '\n =========> Semi-Implicit uv-h going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
-                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*CtrlVar.time/CtrlVar.TotalTime,...
+                CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime),...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
 
             tSemiImplicit=tic;                  % -uv
@@ -772,7 +772,7 @@ CtrlVar.RunInfoMessage=RunInfo.Message;
 
 if CtrlVar.PlotWaitBar
     multiWaitbar('Run steps','Value',(CtrlVar.CurrentRunStepNumber-CtrlVar.CurrentRunStepNumber0)/(CtrlVar.TotalNumberOfForwardRunSteps-CtrlVar.CurrentRunStepNumber0));
-    multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.time0) /(CtrlVar.TotalTime-CtrlVar.time0));
+    multiWaitbar('Time','Value',(CtrlVar.time-CtrlVar.StartTime) /(CtrlVar.EndTime-CtrlVar.StartTime));
 end
 
 

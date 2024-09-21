@@ -55,9 +55,7 @@ if ~isfield(CtrlVar.StarTime)
 end
 
 
-if ~isfield(CtrlVar.EndTime)
-    CtrlVar.EndTime=CtrlVar.StartTime+CtrlVar.TotalTime;
-end
+
 
 
 % RunInfo=UaRunInfo;
@@ -152,8 +150,8 @@ F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 fprintf(CtrlVar.fidlog,' Starting restart run at t=%-g with dt=%-g \n',...
     CtrlVarInRestartFile.time,CtrlVarInRestartFile.dt);
 
-if  CtrlVarInRestartFile.time> CtrlVar.TotalTime
-    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.TotalTime) ;
+if  CtrlVarInRestartFile.time> CtrlVar.EndTime
+    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.EndTime) ;
     return
 end
 

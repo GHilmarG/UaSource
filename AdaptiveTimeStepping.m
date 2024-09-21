@@ -31,7 +31,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
 % There are some further modifications possible:
 %  -time step is adjusted so that time interval for making transient plots (CtrlVar.TransientPlotDt) is not skipped over
 %  -time step is not increased further than the target time step CtrlVar.ATSdtMax
-%  -time step is adjusted so that total simulation time does not exceed CtrlVar.TotalTime
+%  -time step is adjusted so that total simulation time does not exceed CtrlVar.EndTime
 %
 %
 %
@@ -311,13 +311,13 @@ end
 %% make sure that run time does not exceed total run time as defined by user
 % also check if current time is very close to total time, in which case there
 % is no need to change the time step
-if time+dtOut>CtrlVar.TotalTime && abs(time-CtrlVar.TotalTime)>100*eps
+if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps
 
     dtOutOld=dtOut;
-    dtOut=CtrlVar.TotalTime-time;
+    dtOut=CtrlVar.EndTime-time;
 
     if dtOutOld ~= dtOut
-        fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct total run time of %-g \n ',dtOut,CtrlVar.TotalTime);
+        fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct end run time of %-g \n ',dtOut,CtrlVar.EndTime);
     end
 end
 
