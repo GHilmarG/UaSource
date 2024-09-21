@@ -371,22 +371,25 @@ if isnan(CtrlVar.TotalTime)
     CtrlVar.TotalTime=CtrlVar.EndTime;
 end
 
-if isnan(CtrlVar.StartTime) 
 
-    fprintf(" The variable  CtrlVar.StartTime needs to be defined. Do this in DefineInitialInputs.m \n")
-    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+if CtrlVar.TimeDependentRun
+    if isnan(CtrlVar.StartTime)
+
+        fprintf(" The variable  CtrlVar.StartTime needs to be defined. Do this in DefineInitialInputs.m \n")
+        error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+
+    end
+
+
+    if isnan(CtrlVar.EndTime)
+
+        fprintf(" The variable  CtrlVar.EndTime needs to be defined. Do this in DefineInitialInputs.m \n")
+        error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+
+    end
+
 
 end
-
-if isnan(CtrlVar.EndTime) 
-
-    fprintf(" The variable  CtrlVar.EndTime needs to be defined. Do this in DefineInitialInputs.m \n")
-    error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
-
-end
-
-
-
 
 
 
