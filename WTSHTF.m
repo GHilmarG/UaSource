@@ -2,14 +2,14 @@ function [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,
 
 %%
 %
-% If the implicit uvh solution did not converge, take a semi-implict step and
+% If the implicit uvh solution did not converge, take a semi-implicit step and
 % continue.
 %
 %  n adapt time step the dt will be reduced by the fraction
 %
 %     CtrlVar.ATStimeStepFactorDownNOuvhConvergence
 %
-% So this should hopfully cause a gracefull redution in time stepp without
+% So this should hopefully cause a graceful reduction in time step without
 % significant reduction in accuracy.
 %
 
@@ -23,9 +23,9 @@ save(filename)
 % Since 
 
 
-[UserVar,~,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+% [UserVar,~,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
-
+[UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l,BCs)  ; 
 
 end
 
