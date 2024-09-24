@@ -108,8 +108,12 @@ else
 
 end
 
-
-
+% Again, if inverse run, the modify accordingly
+if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict
+    CtrlVar.doDiagnostic=0  ;
+    CtrlVar.doPrognostic=0 ;
+    CtrlVar.TimeDependentRun=0;
+end
 
 %%
 
