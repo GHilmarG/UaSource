@@ -50,9 +50,11 @@ end
 
 F.time=CtrlVar.time ; F.dt=CtrlVar.dt ; 
 
+
 % This is here to preserve past behavior from before the CtrlVar.StartTime field was introduced for the start time of the
 % run. This will actually give the wrong start time in case of a restart run, but it is the best that can be done. This has
 % no impact on the run results, but the waitbar might give false impression of remaining run time. 
+
 if ~isfield(CtrlVar,"StartTime")
     CtrlVar.StartTime=CtrlVar.time;
 end
