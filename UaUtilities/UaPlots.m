@@ -54,7 +54,7 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 % Log color scale:
 %
 %  cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
-%
+%C
 %%
 
 arguments
@@ -81,6 +81,9 @@ arguments
     % options.ColorMap double=othercolor("Mdarkterrain",1028)
     % options.ColorMap double=othercolor("Mtemperaturemap",1028)
     % colormap(othercolor("Greys7",1028))
+    % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % CM=cmocean('ice',150) ; colormap(CM);
+    
     options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
 end
 

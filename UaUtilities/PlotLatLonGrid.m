@@ -58,8 +58,10 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %   ModifyColormap;
 %
 %
+% see also:
 %
-
+%   LatLonGrid
+%
 %%
 
 fig = gcf;
@@ -218,7 +220,7 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 
 
 clim(climCopy) % set color axis limit to the value at the beginning of the call
-% this is done here because the contour functions above might change the existing limites
+% this is done here because the contour functions above might change the existing limits
 
     function labels=mylabelfunLon(vals)
 
