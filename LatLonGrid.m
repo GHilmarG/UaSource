@@ -13,6 +13,16 @@ function LatLonGrid(X,Y,lat,lon,options)
 %
 % lat , lon     : grid of lat and lon values for the X,Y locations
 %
+% Note:
+%
+% To calculate lat lon from X,Y use:
+%
+%   [lat,lon]=psn2ll(X,Y);
+%
+%
+% Example:
+%
+%    hold on ; LatLonGrid(X,Y,lat,lon,LineColor=[0.5 0.5 0.5],LabelSpacing=500);
 %
 %%
 
@@ -32,8 +42,6 @@ arguments
 end
 
 
-
-fig = gcf;
 
 
 hold on 
