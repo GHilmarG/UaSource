@@ -1778,7 +1778,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above
                                                                % year and meters) suggest using -10 as a value, ie the default
                                                                % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
-% a3 in the above equaiton for ab.
+% a3 in the above equation for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
