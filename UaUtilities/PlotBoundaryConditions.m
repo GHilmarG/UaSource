@@ -178,7 +178,7 @@ end
 if ~isempty(ubvbFixedNodes)
     ubvbFixedValues=[BCs.ubFixedValue(ia) BCs.vbFixedValue(ib)] ;
 
-    if any(ubvbFixedValues~=0)
+    if any(any(ubvbFixedValues~=0))
 
         x=MUA.coordinates(ubvbFixedNodes,1);
         y=MUA.coordinates(ubvbFixedNodes,2);
