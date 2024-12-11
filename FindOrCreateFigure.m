@@ -57,7 +57,8 @@ end
 
 screensize = get( groot, 'Screensize' ) ;
 
-fig=findobj(0,'name',FigureName);
+%fig=findobj(0,'name',FigureName);
+fig=findobj('type','figure','name',FigureName);
 
 if isempty(fig)
     FigFound=false; 

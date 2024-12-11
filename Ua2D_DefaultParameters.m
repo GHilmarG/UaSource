@@ -2252,6 +2252,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
 CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+                                       % Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly. 
                                    
 
 %%  

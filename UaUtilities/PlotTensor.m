@@ -10,6 +10,9 @@ function PlotTensor(x,y,txx,txy,tyy,scale,LineWidth)
 %
 % Compression is plotted in red, extension in blue.
 %
+%
+% Note that negative eigenvalues are used to indicate compression, and positive imply extension
+%
 % *Example:*
 %
 %   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
@@ -50,7 +53,7 @@ for k=1:length(x)
         p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;
         
         
-        if l1 < 0
+        if l1 < 0   % note sign convention. Negative eigenvalues considered to imply  compression
             head=-1;
             col=[1 0 0 ];
         else
