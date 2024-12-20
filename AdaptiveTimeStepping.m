@@ -311,6 +311,11 @@ end
 %% make sure that run time does not exceed total run time as defined by user
 % also check if current time is very close to total time, in which case there
 % is no need to change the time step
+
+if ~isfield(CtrlVar,"EndTime")
+    CtrlVar.EndTime=0;
+end
+
 if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps
 
     dtOutOld=dtOut;
