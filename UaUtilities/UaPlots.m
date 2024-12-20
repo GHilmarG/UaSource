@@ -114,7 +114,9 @@ end
 
 
 if options.CreateNewFigure
-    fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ;
+    fFig=FindOrCreateFigure(options.FigureTitle)  ; 
+    
+    clf(fFig)  ;
 end
 
 

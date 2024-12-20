@@ -29,9 +29,9 @@ function [UserVar,phi,lambda,HEmatrix,HErhs]=PFFequation(UserVar,CtrlVar,MUA,BCs
 narginchk(7,7)
 
 N=MUA.Nnodes; 
-a=Gc/l+Psi+zeros(N,1);
-b=Gc*l+zeros(N,1);
-c=Psi+zeros(N,1) ;
+a=Gc +l*Psi+zeros(N,1);
+b=Gc*l^2+zeros(N,1);
+c=l* Psi+zeros(N,1) ;
 d=zeros(N,1);
 
 [UserVar,HEmatrix,HErhs]=HelmholtzEquationAssembly(UserVar,CtrlVar,MUA,a,b,c,d);
