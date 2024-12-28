@@ -45,6 +45,7 @@ classdef UaFields
         AGlen=[];
         AGlenmin=[];
         AGlenmax=[];
+        AGlen0=[] ; % undamaged A, used in phase field fracture
 
         C=[];
         Cmin=[];
@@ -52,6 +53,7 @@ classdef UaFields
         m=[];
         n=[];
         rho=[];
+        rho0=[]; % undamaged rho, used in phase field fracture
         rhow=[];
 
         q=[];
@@ -96,12 +98,16 @@ classdef UaFields
         LSFqx=[] ;
         LSFqy=[] ;
 
+        % subglacier water
         N=[] ;
         aw=[];
         hw=[];
-        phi=[] ;
+        phi=[] ;  % also used for phase field fracture
         uw=[];
         vw=[];
+
+
+        Psi=[] ; % strain-rate energy density function 
 
         D=[] ; % Damage (SSD)
         aD=[] ; % Damage accumulation

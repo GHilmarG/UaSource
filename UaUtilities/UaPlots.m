@@ -140,7 +140,7 @@ if isempty(F)
     F=UaFields;
 end
 
-if isscalar(Variable)
+if isstring(Variable)
 % {"-eta-","eta int","etaint","-eta int-"}
     if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
             || contains(Variable,"tau")  || contains(Variable,"basal drag") 
@@ -231,7 +231,7 @@ else
         case {"ubvb","-ubvb-","uv","-uv-"}
 
             CtrlVar.VelColorMap=jet(100) ;
-            [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("velocities at t=%5.1f",CtrlVar.time),Interpreter="latex")
 
@@ -247,7 +247,7 @@ else
         case {"basal drag","taub"}
 
 
-            [tbx,tby,tb] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
+            [tbx,tby] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
 
             % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
@@ -260,7 +260,7 @@ else
         case "e node"  % effective strain rate
 
 
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            [~,~,~,~,~,~,~,~,e,~]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             % e(e<0)=eps ; % the projection onto nodes does not preserve positive
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
@@ -272,7 +272,7 @@ else
 
 
 
-            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
@@ -280,7 +280,7 @@ else
 
         case "-strain rates-"
 
-           [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+           [~,xint,yint,exx,eyy,exy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
            if options.GetRidOfValuesDownStreamOfGroundingLines
 
@@ -292,7 +292,7 @@ else
 
            end
 
-           scale=1000 ; 
+           
            scale=0.1 ; 
            LineWidth=1; 
            nStride=10;
@@ -307,7 +307,7 @@ else
         case "eta node"  % effective strain rate
 
 
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            [~,~,~,~,~,~,~,~,~,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
@@ -319,7 +319,7 @@ else
 
 
 
-            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+            etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
 
             fFigHist=FindOrCreateFigure(options.FigureTitle+"Hist")  ; clf(fFigHist)  ; 
@@ -339,7 +339,7 @@ else
 
         case "surface slope"  % effective strain rate at integration points
 
-            [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
+            [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
             slope=sqrt(dfdx.*dfdx+dfdy.*dfdy) ;
             slope=ProjectFintOntoNodes(MUA,slope) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.rho.*F.h.*slope);
@@ -368,7 +368,7 @@ end
 
 
 
-if options.PlotGroundingLines
+if options.PlotGroundingLines  && isfield(F,"GF")
     [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
 end
 

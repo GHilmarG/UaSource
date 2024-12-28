@@ -6,6 +6,14 @@
 function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
          
 
+%%
+%
+% solves for velocities
+%
+%
+%
+%%
+
 nargoutchk(4,8);
 narginchk(7,7)
 
@@ -29,11 +37,8 @@ end
 hOnInput=F.h; 
 
 
-% F.h=F.s-F.b;
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
-% [F.AGlen,F.n]=TestAGlenInputValues(CtrlVar,MUA,F.AGlen,F.n);
-% [F.C,F.m,F.q,F.muk]=TestSlipperinessInputValues(CtrlVar,MUA,F.C,F.m,F.q,F.muk);
 
 
 if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen)  &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)

@@ -81,10 +81,10 @@ for Inod=1:nod
                 +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
                 +dtauxdh.*funI.*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
-                +ca*g*rhoint.*Heint.*dBdx.*funI.*fun(Jnod)...                           % t1
-                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*funI.*fun(Jnod)... ; % t1
-                -sa*g*rhoint.*funI.*fun(Jnod)...                                        % t1
-                -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,1,Inod).*fun(Jnod)...  ;    % t2
+                +ca*g*rhoint.*Heint.*dBdx.*funI.*fun(Jnod)...                               % t1: dt1/dhint
+                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdx.*funI.*fun(Jnod)... ;     % t1
+                -sa*g*rhoint.*funI.*fun(Jnod)...                                            % t1
+                -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,1,Inod).*fun(Jnod)...  ;   % t2
                 ).*detJw;
             
             
@@ -93,8 +93,8 @@ for Inod=1:nod
                 +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
                 +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
                 +dtauydh.*funI.*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
-                +ca*g*rhoint.*Heint.*dBdy.*funI.*fun(Jnod)...                           % t1
-                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*funI.*fun(Jnod)... ; % t1
+                +ca*g*rhoint.*Heint.*dBdy.*funI.*fun(Jnod)...                                % t1
+                +ca*g*deltaint.*(rhoint.*hint-rhow*Hposint).*dBdy.*funI.*fun(Jnod)... ;      % t1
                 -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
                 ).*detJw;
             
@@ -125,9 +125,11 @@ for Inod=1:nod
     %  dT/dh-dF/dh=-T+F  or dF/dh-dT/dh=T-F
     
     t1=-ca*g*(rhoint.*hint-rhow*dint).*dbdx.*funI+ rhoint.*g.*hint.*sa.*funI;
+    % t1=-F.g* Heint.*(rhoint.*hint-F.rhow*dint).*dBdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod); % testing
     t2=0.5*ca*g.*(rhoint.*hint.^2-rhow.*dint.^2).*Deriv(:,1,Inod);
     t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
     t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
+    
     t5=taux.*funI; % beta2int.*uint.*fun(Inod);
     
     Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;

@@ -46,9 +46,10 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 %
 % gives the new node number i for the old node number j.
 %
+% If node j in the old mesh was deleted, then: 
+%
 %   l(j)=nan
 % 
-% if no node in the new mesh corresponds to the old node j, ie for all deleted nodes.
 %
 % To get a list of deleted old node numbers use:
 %
@@ -58,10 +59,15 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 %
 %   ~isnan(l)             ;   % logical list of nodes in the old mesh used/kept in the new mesh.
 %
+%
+% To find the new node numbers in the (partially) deactivated mesh,  of all nodes that were kept:
+%
+%     l(find(~isnan(l))) ;
+%
 % If elements are deactivated repeatedly and one needs to know the mapping between the original and the final mesh do:
 %
 %
-%   k=k1(k2(k3))     % where k1 results from the first, k2 from the second, etc, deactivations
+%   k=k1(k2(k3))     % where k1 results from the first, k2 from the second, etc, de-activations
 %
 % and then:
 %
@@ -71,6 +77,9 @@ function  [MUA,k,l]=DeactivateMUAelements(CtrlVar,MUA,ElementsToBeDeactivated,kI
 % where nNodesIn is the number of nodes in the initial mesh, i.e. before the first round of deactivations.  Alternatively, provide
 % k and l from the previous deactivation as an input. These are the optional input variables kIn and lIn. The k and l will then be
 % updated as k=kIn(k), providing the mapping with respect to the original mesh.
+%
+%
+% SEE ALSO: DeactitivateF.m
 %
 %%
 
