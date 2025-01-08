@@ -46,10 +46,12 @@ classdef UaFields
         AGlenmin=[];
         AGlenmax=[];
         AGlen0=[] ; % undamaged A, used in phase field fracture
+        
 
         C=[];
         Cmin=[];
         Cmax=[];
+        
         m=[];
         n=[];
         rho=[];

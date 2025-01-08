@@ -19,7 +19,12 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
+    poolobj = gcp('nocreate');
+    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+
+end
 
 if isscalar(F.m)
     F.m=zeros(MUA.Nnodes,1)+F.m;

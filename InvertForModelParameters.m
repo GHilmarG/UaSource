@@ -13,6 +13,24 @@ end
 
 %% Consider adding some test of input variables here, maybe see if all gs,ga fields are defined
 
+if CtrlVar.Inverse.Regularize.Field=="-logAGlen-logC-"
+
+    if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.ga is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
+        error("Input variable not defined.")
+    end
+
+    if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.gs is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
+        error("Input variable not defined.")
+    end
+
+end
+
+
+
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
 

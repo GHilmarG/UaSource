@@ -577,21 +577,25 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 % values.
 
 %% Number of integration points and/or quadrature rule degree
-% if left empty, the number of integration points is set automatically
-
+%
+%
+% For Ua 2020 and older: 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
-                   % The default values are: 
-                   % nip=6 and niph=6 for linear elements (three node elements)
-                   % nip=12 and niph=12 for quadratic elements (six node elements)
-                   % nip=16 and niph=16 for cubic elements (ten node elements)
-                   % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
 
-CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
-                             % This option allows for greater flexibility in selecting quad points.
+% For Ua 2021 and older: 
+CtrlVar.QuadRules2021=true ;        % Use the new quad rules implemented in 2021
+                                    % This option allows for greater flexibility in selecting quad points.
+CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
+                                    % Default values are:
+                                    %
+                                    % degree=4 for 3-nod linear elements
+                                    % degree=8 for 6-nod quadratic elements
+                                    % degree=10 for 10-nod cubic elements
+
+
                              
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
@@ -2339,8 +2343,8 @@ CtrlVar.MapOldToNew.Test=false;   %
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=false; 
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ; 
-CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
-                                % (unless you want to use some untried, untested and unfinished features....)
+CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0 
+                                  % (unless you want to use some untried, untested and unfinished features....)
 CtrlVar.DebugMode=false; 
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change

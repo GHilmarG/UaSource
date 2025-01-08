@@ -1,3 +1,8 @@
+
+
+
+
+
 function [tbx,tby,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
 
 narginchk(4,4)

@@ -112,11 +112,46 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %   cbar.Ticks=Par.QuiverTicks*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
 %   cbar.TickLabels=Par.QuiverTickLabels;
 %   title(cbar,'(m/d)')   ;
+%
+%
+% Note:  The variable Par is modified in the call and will, in general, be modified on return. If the same Par variable is
+% then used again as an input to a subsequent call to QuiverColorGHG, those (modified) parameter values might affect the
+% plot. The problem can be avoided by re-setting Par=[] in the second call, or by setting
+% 
+%    Par.QuiverSameVelocityScalingsAsBefore=false ; 
+%    Par.MaxPlottedSpeed=[] ; 
+%    Par.MinPlottedSpeed=[] ;
+%    Par.QuiverColorSpeedLimits=[];
+%
+% ahead of a second call when using Par from a previous call.
+%
 %%
 
 persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
 
+if nargin < 4 || ~isfield(Par,"QuiverSameVelocityScalingsAsBefore") || ~Par.QuiverSameVelocityScalingsAsBefore
 
+    SpeedPlotIntervals=[];
+    uvPlotScale=[];
+    QuiverTickLabels=[];
+    QuiverTicks=[];
+    QuiverCmap=[];
+
+    % if nargin>4
+    % 
+    %     Par.MaxPlottedSpeed=[] ;
+    %     Par.MinPlottedSpeed=[] ;
+    %     % Par.QuiverColorSpeedLimits=[] ; 
+    %     % Par.VelPlotIntervalSpacing=[] ; 
+    %     % Par.VelArrowColorSteps=[] ; 
+    %     % Par.VelColorMap =[] ; 
+    %     % Par.SpeedTickLabels=[] ; 
+    % 
+    % end
+
+
+
+end
 
 cbar=[];
 QuiverHandel=[];
@@ -136,7 +171,7 @@ if numel(u) ~= numel(v)
 end
 
 %
-% The expected typical useage is to plot one-dimensional arrays of velocites
+% The expected typical usage is to plot one-dimensional arrays of velocities
 % But u, v, x ,and y can also be given on a grid.
 % If u and v is given on a grid, create vectors
 

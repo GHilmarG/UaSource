@@ -680,10 +680,16 @@ else
         if ~isempty(Priors.TrueC)
             tFig1=figure('Name','True and estimated C','NumberTitle','off');
 
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ; title('True C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; title('Retrieved C')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ;
+            set(gca,'ColorScale','log')
+            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w'); 
+            title('True C')
+
+            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; 
+            set(gca,'ColorScale','log')
+            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w'); 
+            title('Retrieved C')
+
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -692,12 +698,12 @@ else
                 %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
                 
                 subplot(1,3,1)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C); 
+                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C); set(gca,'ColorScale','log')
                 xlabel('x') ; ylabel('y') ; title('Inverted slipperiness')
                 colorbar('southoutside')
                 
                 subplot(1,3,2)
-                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC); 
+                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC);  set(gca,'ColorScale','log')
                 xlabel('x') ; ylabel('y') ; title('True slipperiness')
                 colorbar('southoutside')
                 
@@ -717,10 +723,13 @@ else
         
         if ~isempty(Priors.TrueAGlen)
             tFig1=figure('Name','True and estimated AGlen','NumberTitle','off');
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; title('True AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; title('Retrieved AGlen')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; 
+            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+            title('True AGlen') ; set(gca,'ColorScale','log')
+
+            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; 
+            % hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+            title('Retrieved AGlen') ; set(gca,'ColorScale','log')
             tFig1.Units='normalized';
             tFig1.Position=[0.5 0.5 0.5 0.4];
             
@@ -729,14 +738,14 @@ else
                 %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
                 
                 subplot(1,3,1)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);
+                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);  set(gca,'ColorScale','log')
                 
                 SetLabels("km","km","m");
                 title('Inverted AGlen')
                 colorbar('southoutside')
                 
                 subplot(1,3,2)
-                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen);
+                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen);  set(gca,'ColorScale','log')
                 SetLabels("km","km","m");
                 title('True AGlen')
                 colorbar('southoutside')

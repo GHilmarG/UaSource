@@ -141,7 +141,7 @@ if isB
     F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed,
     % therefore calculate F.b over the floating areas from F.s using the floating relationship.
     
-    [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); %
+    [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); %
     
  
     

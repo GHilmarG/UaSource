@@ -368,8 +368,12 @@ end
 
 
 
-if options.PlotGroundingLines  && isfield(F,"GF")
-    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+if options.PlotGroundingLines
+    if isfield(F,"GF")
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    elseif isfield(F.GF,"node")
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+    end
 end
 
 if options.PlotCalvingFronts
