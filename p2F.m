@@ -84,7 +84,7 @@ if isB
     %   1) As b is modified over the floating areas we get b<B in places. 2) As B is
     %   modified over the grounding areas, some areas go afloat.
     % 
-    % This is a difficult one, but I assume Meas.s is know quite accuratly so
+    % This is a difficult one, but I assume Meas.s is know quite accurately so
     % whatever is done, keep s=Meas.s. Also do not change B as it is given by p.
     %
     % So I must calculate b from s over the floating areas, and set b=B over the
@@ -110,7 +110,7 @@ if isB
     %   3) set h=s-b
     %
     %   4) to ensure consistency with floating condition, recalculate GF from S and
-    %   B for the new h.  Then recalculate b from Meas.s where afloat acording to
+    %   B for the new h.  Then recalculate b from Meas.s where afloat according to
     %   the new GF, and then finally set again h=s-b.
     % 
     %   If B  is lowered over (previously) grounded areas, and therefore b as well, causing
