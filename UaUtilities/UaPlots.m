@@ -53,8 +53,16 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Log color scale:
 %
+%  
 %  cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
-%C
+%
+% Basal melt distribution, using log scale:
+%
+%  UaPlots(CtrlVar,MUA,F,-F.ab,FigureTitle="-ab") ; 
+%  set(gca,'ColorScale','log') ; 
+%   
+%  title("Basal melt",Interpreter="latex")
+%
 %%
 
 arguments

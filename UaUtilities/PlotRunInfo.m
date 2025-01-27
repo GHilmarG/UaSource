@@ -47,9 +47,12 @@ if numel(find(I))>0
     stairs(RunInfo.Forward.time(I),RunInfo.Forward.hIterations(I),DisplayName="\#h iterations",LineWidth=2) ;
 end
 
-I=~isnan(RunInfo.Forward.uv2hIterations) ;
-if numel(find(I))>0
-    stairs(RunInfo.Forward.time(I),RunInfo.Forward.uv2hIterations(I),DisplayName="\#uv-h outer iterations",LineWidth=1.5,Color="m") ;
+
+if isfield(RunInfo.Forward,"uv2hIterations")
+    I=~isnan(RunInfo.Forward.uv2hIterations) ;
+    if numel(find(I))>0
+        stairs(RunInfo.Forward.time(I),RunInfo.Forward.uv2hIterations(I),DisplayName="\#uv-h outer iterations",LineWidth=1.5,Color="m") ;
+    end
 end
 
 ylabel('\# iterations',Interpreter='latex')

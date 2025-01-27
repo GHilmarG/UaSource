@@ -151,21 +151,21 @@ end
 % set some plausible values if user has not defined those already
 
 
-    if isempty(dlat)
-        dlat=5;
-    end
+if isempty(dlat)
+    dlat=5;
+end
 
-    if isempty(dlon)
-        dlon=10;
-    end
+if isempty(dlon)
+    dlon=10;
+end
 
-    if isempty(LabelSpacing)
-        LabelSpacing=400;
-    end
+if isempty(LabelSpacing)
+    LabelSpacing=400;
+end
 
-    if isempty(Colour)
-        Colour='black';
-    end
+if isempty(Colour)
+    Colour='black';
+end
 
 
 

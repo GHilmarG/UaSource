@@ -243,16 +243,15 @@ end
 
 
 %%
-F.C=InvFinalValues.C; % this should already have been updated internally in Ua
-[~,~,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
-fig=FindOrCreateFigure('Basal traction') ; clf(fig)
-PlotMeshScalarVariable(CtrlVar,MUA,tb) ;
-title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
-cbar=colorbar; title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
-hold on
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-clim([0 500]) % Here I'm guessing that this is a reasonable range for plotting, most likely will be the case when using kPa as units for stress
 
+[~,~,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
+tb(tb<eps)=nan ;
+cbar=UaPlots(CtrlVar,MUA,F,tb) ;
+title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
+title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
+set(gca,'ColorScale','log')
+clim([1 1000])
+CM=cmocean('balanced') ; colormap(CM);
 %%
 % uAdjoint vAdjoint
 if isprop(InvFinalValues,'uAdjoint')
@@ -291,38 +290,40 @@ end
 
 %%
 
-fig=FindOrCreateFigure('Speed misfit') ; clf(fig) 
+fig=FindOrCreateFigure('Speed misfit') ; clf(fig)
 speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
-ErrSpeed=sqrt(usError.^2+vsError.^2); 
+ErrSpeed=sqrt(usError.^2+vsError.^2);
 
-subplot(2,2,1)
-PlotMeshScalarVariable(CtrlVar,MUA,log10(speedMeas)) ; title('log10(measured speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-cAxisMeas=clim; 
 
-subplot(2,2,2)
-PlotMeshScalarVariable(CtrlVar,MUA,log10(speedCalc)) ; title('log10(calculated speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-clim(cAxisMeas);
+T=tiledlayout(2,2);
 
-subplot(2,2,3)
-PlotMeshScalarVariable(CtrlVar,MUA,log10(ErrSpeed)) ; title('log10(Meas error in speed)') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+nexttile
+cbar=UaPlots(CtrlVar,MUA,F,speedMeas,CreateNewFigure=false) ; title('Measured speed') ; set(gca,'ColorScale','log')
+title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|$",interpreter="latex")
 
-subplot(2,2,4)
-PlotMeshScalarVariable(CtrlVar,MUA,(speedMeas-speedCalc)./ErrSpeed) ; title('speed residuals: (meas-calc)/error') 
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+nexttile
+cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled speed') ; set(gca,'ColorScale','log')
+title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
+
+nexttile
+cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed mesurement error') ; set(gca,'ColorScale','log')
+title(cbar,"error",interpreter="latex")
+
+nexttile
+D=speedMeas-speedCalc ; 
+cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','log')
+title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
+T.Padding="tight";   T.TileSpacing="tight";
+
+
 %%
 fig=FindOrCreateFigure('velocity misfit') ; clf(fig)
 Kplot=0;
+T=tiledlayout;
 
-Kplot=Kplot+1;    
-subplot(Iplot,Jplot,Kplot);
+nexttile
+% Kplot=Kplot+1;     subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,(us-Meas.us)./usError,(vs-Meas.vs)./vsError,CtrlVar);
 title('((us-Meas.us)/usError,(vs-Meas.vs)/vsError)') ;
 hold on
@@ -331,8 +332,8 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-Kplot=Kplot+1;    
-subplot(Iplot,Jplot,Kplot);
+nexttile
+%Kplot=Kplot+1;     subplot(Iplot,Jplot,Kplot);
 QuiverColorGHG(x,y,us-Meas.us,vs-Meas.vs,CtrlVar); axis equal ; title('(us-Meas.us,v-Meas.vs)') ;
 hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
 PlotMuaBoundary(CtrlVar,MUA,'b')  ; xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
@@ -354,9 +355,8 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     
 end
 
-
-Kplot=Kplot+1;    
-subplot(Iplot,Jplot,Kplot);
+nexttile
+%Kplot=Kplot+1;     subplot(Iplot,Jplot,Kplot);
 [~,~,QuiverPar]=QuiverColorGHG(x,y,Meas.us,Meas.vs,CtrlVar); axis equal ;
 title('(Meas.us,Meas.vs)') ;
 hold on ;
@@ -365,8 +365,8 @@ PlotMuaBoundary(CtrlVar,MUA,'b')  ;
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
-Kplot=Kplot+1;    
-subplot(Iplot,Jplot,Kplot);
+nexttile
+%Kplot=Kplot+1;     subplot(Iplot,Jplot,Kplot);
 QuiverPar.QuiverSameVelocityScalingsAsBefore=1;
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title('(us,vs)') ;
 hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
@@ -376,10 +376,11 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 
 
+
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
      
-    Kplot=Kplot+1;
-    subplot(Iplot,Jplot,Kplot);
+    nexttile
+    %Kplot=Kplot+1; subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
     title('(dh/dt modelled)') ;
     hold on ;
@@ -389,7 +390,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 end
 
-
+T.Padding="tight";   T.TileSpacing="tight";
 
 %%
 fig=FindOrCreateFigure('calculated velocities') ; clf(fig)
@@ -678,88 +679,70 @@ else
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'c')
         if ~isempty(Priors.TrueC)
-            tFig1=figure('Name','True and estimated C','NumberTitle','off');
 
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC) ;
-            set(gca,'ColorScale','log')
-            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w'); 
-            title('True C')
 
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C) ; 
-            set(gca,'ColorScale','log')
-            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w'); 
-            title('Retrieved C')
-
-            tFig1.Units='normalized';
-            tFig1.Position=[0.5 0.5 0.5 0.4];
+            tFig1=FindOrCreateFigure("True and estimated C"); clf(tFig1 ); 
             
-            if  ~CtrlVar.CisElementBased
-                tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
-                %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
-                
-                subplot(1,3,1)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C); set(gca,'ColorScale','log')
-                xlabel('x') ; ylabel('y') ; title('Inverted slipperiness')
-                colorbar('southoutside')
-                
-                subplot(1,3,2)
-                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC);  set(gca,'ColorScale','log')
-                xlabel('x') ; ylabel('y') ; title('True slipperiness')
-                colorbar('southoutside')
-                
-                subplot(1,3,3)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C-Priors.TrueC);
-                xlabel('x') ; ylabel('y') ; title('True slipperiness')
-                title('Slipperiness: True-Estimated')
-                colorbar('southoutside')
-                
-                tFig2.Units='normalized';
-                tFig2.Position=[0.1 0.2 0.8 0.5];
-            end
+            T=tiledlayout(2,2);
+            
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ; 
+            title('True C') ; set(gca,'ColorScale','log')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ; 
+            title('Retrieved C') ; set(gca,'ColorScale','log')
+
+            nexttile
+            
+            D=abs(Priors.TrueC-InvFinalValues.C) ; 
+            cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; 
+            title('abs(True C - Retrieved C)') ; set(gca,'ColorScale','log')
+            title(cbar,"$|C-\tilde{C}|$",interpreter="latex")
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false) ; 
+            title('Prior C') ; set(gca,'ColorScale','log')
+
+            T.Padding="tight";   T.TileSpacing="tight";
+
+
         end
     end
     
     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
         
         if ~isempty(Priors.TrueAGlen)
-            tFig1=figure('Name','True and estimated AGlen','NumberTitle','off');
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen) ; 
-            %hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+
+
+
+            tFig1=FindOrCreateFigure("True and estimated AGlen"); clf(tFig1 ); 
+            
+            T=tiledlayout(2,2);
+            
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ; 
             title('True AGlen') ; set(gca,'ColorScale','log')
 
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen) ; 
-            % hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w');
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ; 
             title('Retrieved AGlen') ; set(gca,'ColorScale','log')
-            tFig1.Units='normalized';
-            tFig1.Position=[0.5 0.5 0.5 0.4];
+
+            nexttile
             
-            if  ~CtrlVar.AGlenisElementBased
-                tFig2=figure('Name','Difference between true and estimated','NumberTitle','off');
-                %PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueC-InvFinalValues.C);
-                
-                subplot(1,3,1)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);  set(gca,'ColorScale','log')
-                
-                SetLabels("km","km","m");
-                title('Inverted AGlen')
-                colorbar('southoutside')
-                
-                subplot(1,3,2)
-                PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueAGlen);  set(gca,'ColorScale','log')
-                SetLabels("km","km","m");
-                title('True AGlen')
-                colorbar('southoutside')
-                
-                subplot(1,3,3)
-                PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen-Priors.TrueAGlen);
-                SetLabels("km","km","m");
-                title('True AGlen')
-                title('AGlen: True-Estimated')
-                colorbar('southoutside')
-                
-                tFig2.Units='normalized';
-                tFig2.Position=[0.2 0.2 0.8 0.5];
-            end
+            D=abs(Priors.TrueAGlen-InvFinalValues.AGlen) ; 
+            cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; 
+            title('abs(True A -Retrieved A)') ; set(gca,'ColorScale','log')
+            title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
+
+             nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ; 
+            title('Prior AGlen') ; set(gca,'ColorScale','log')
+
+            T.Padding="tight";   T.TileSpacing="tight";
+
+            
+         
         end
     end
     

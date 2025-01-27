@@ -2218,19 +2218,32 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Consult the MATLAB documentation for further information.
 %
 % Note: Generally it appears that the parfor option does not speed up the assembly.
-%       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
-
+%       However, spmd assembly can speed things up significantly. 
 %
 %       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
 %       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
 %       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
 %       the gain is greater and shows good scaling properties.
 %
-% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
+% The currently RECOMENDED APPROACH is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
 % test the performance in a short run by setting isTest=true, that is set:
 % 
 %   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=false;                   % linsolve NOT done using distributed arrays
+%
+% As an example, using 8 workers on a domain with 610,000 Elements and 929,000 nodes, using uvh assembly resulted in a
+% speedup of about 4.3, and using distributed arrays resulted in a speedup of 1.7. So here the best option would be to set 
+% 
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=true;                    % linsolve is done using distributed arrays
+%
+%
+% 
+%
+% One can test how much of a speed-up results from using these options by setting:
+%
 %   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %
 % Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.

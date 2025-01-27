@@ -788,7 +788,7 @@ while iFile<=nFiles   % loop over files
 
                 %%
 
-            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-','-ds-VAF-','-dt-'}
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-','-ds-VAF-','-dt-','-ds-VAF-dSLRdt-'}
                 % plotting horizontal velocities
                 %%
 
@@ -984,12 +984,27 @@ while iFile<=nFiles   % loop over files
                     nexttile
                     yyaxis left
                     plot(timeVector,dSLRmmVector/10,'-ob',LineWidth=2)
-                    xlabel("time (yr)",Interpreter="latex") ; 
-                    ylabel("Sea level rise (cm)",Interpreter="none",FontSize=14)
+                    xlabel("time (yr)",Interpreter="latex") ;
+                    ylabel("Sea level rise (cm)",Interpreter="latex",FontSize=14)
                     axSLR=gca;
-                    title(axSLR,"Sea Level Rise / Grounding Line",Interpreter="latex",FontSize=16)
+                    yMax=max(dSLRmmVector/10,[],"omitnan") ;
 
-                    % Profile
+                    yLimVector=[0.25 ; 1 ; 5 ; 10 ; 15 ; 20 ; 25] ;
+
+                    if isnan(yMax)
+                        yMax=1;
+                    else
+                        for kk=1:numel(yLimVector)
+                            if yMax < yLimVector(kk)
+                                yMax = yLimVector(kk) ;
+                                break
+                            end
+                        end
+                    end
+
+                    ylim([0 yMax])
+
+                    % Find and create a longitudinal profile
                     x1=-1600e3 ; x2=-1100e3 ;
                     y1=-450e3; y2=-220e3 ;
                     xProfile=linspace(x1,x2,1000);  yProfile=linspace(y1,y2,1000);
@@ -1005,14 +1020,51 @@ while iFile<=nFiles   % loop over files
                     % min distance value for which b and B are equal
                     GLminVector(iCount+1)=min(Profile(abs(bProfile-BProfile)<1)) ;
                     GLmaxVector(iCount+1)=max(Profile(abs(bProfile-BProfile)>1)) ;
-                
-                    yyaxis right
-                    plot(timeVector,GLminVector/1000,'--r')
-                    hold on
-                    plot(timeVector,GLmaxVector/1000,'--r')
-                    axR=gca; axR.YLim=[0 500];
-                    ylabel("Grounding line (km)",Interpreter="latex",FontSize=14)
+
+
+                    if contains(options.PlotType,"-dSLRdt-")
+
+                        % rate of sea level rise
+                        RateOfSeaLevelRise=(dSLRmmVector(2:end)-dSLRmmVector(1:end-1))./(timeVector(2:end)-timeVector(1:end-1));
+
+                        K=~isfinite(RateOfSeaLevelRise);
+                        RateOfSeaLevelRise(K)=nan;
+
+
+                        title(axSLR,"Sea Level Rise ",Interpreter="latex",FontSize=16)
+                        yyaxis right ;
+                        plot(timeVector(2:end),RateOfSeaLevelRise,"r-",LineWidth=2)
+                        ylabel("Rate of sea level rise (mm/yr)",Interpreter="latex",FontSize=14)
+                        yMax=max(RateOfSeaLevelRise,[],"omitnan") ;
+
+                        yLimVector=[0.5 ; 1 ; 2 ; 3 ; 5 ; 7 ; 10] ;
+
+                        if isnan(yMax)
+                            yMax=1;
+                        else
+                            for kk=1:numel(yLimVector)
+                                if yMax < yLimVector(kk)
+                                    yMax = yLimVector(kk) ;
+                                    break
+                                end
+                            end
+                        end
+
+                        ylim([0 yMax])
+
+                    else
+
+                        title(axSLR,"Sea Level Rise / Grounding Line",Interpreter="latex",FontSize=16)
                     
+                        yyaxis right
+                        plot(timeVector,GLminVector/1000,'--r')
+                        hold on
+                        plot(timeVector,GLmaxVector/1000,'--r')
+                        axR=gca; axR.YLim=[0 500];
+                        ylabel("Grounding line (km)",Interpreter="latex",FontSize=14)
+
+                    end
+
 
                     nexttile
                     axProfile=gca;
@@ -1034,7 +1086,7 @@ while iFile<=nFiles   % loop over files
                     ICExPoly=[Profile/1000 fliplr(Profile)/1000 ] ;
                     ICEyPoly=[bProfile   fliplr(sProfile) ] ;
                     fill(ICExPoly,ICEyPoly,[0.58 0.815 0.988]) ;
-                    title(axProfile,"Profile",Interpreter="none",FontSize=16)
+                    title(axProfile,"Profile",Interpreter="latex",FontSize=16)
 
 
                     axis tight
