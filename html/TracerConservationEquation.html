@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>TracerConservationEquation</title>
 <meta name="generator" content="MATLAB 24.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2025-01-24">
+<meta name="DC.date" content="2025-01-31">
 <meta name="DC.source" content="TracerConservationEquation.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -85,10 +85,13 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <p>The natural boundary condition is</p>
 <p>
 <img src="TracerConservationEquation_eq00604090360271690522.png" alt="$$\nabla c \cdot \hat{n} = 0 $$" style="width:64px;height:11px;"></p>
+<p>This equation is an advection-diffusion equation</p>
 <p>It gives c1 at the end of the time step, i.e. time=time+dt</p>
-<p>c is solved implicitly using the theta method ie: \Delta c / Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt</p>
+<p>c is solved implicitly using the theta method ie:</p>
+<p>
+<img src="TracerConservationEquation_eq04379697200774655092.png" alt="$$ \Delta c / \Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt $$" style="width:220px;height:15px;"></p>
 <p>with theta=CtrlVar.theta; and SUPG with tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);</p>
-<p>Boundary conditions: The BCs are identical to define thickness boundary conditions. So define the relevant BCs as you were defining BCs for h and these will be used for c.</p>
+<p>Boundary conditions: The BCs are entered as h conditions. So define the relevant BCs as you were defining BCs for h and these will be used for c.</p>
 <pre class="codeinput">[UserVar,kv,rh]=TracerConservationEquationAssembly(UserVar,CtrlVar,MUA,dt,c0,u0,v0,a0,u1,v1,a1,kappa);
 
 <span class="comment">% Now apply BCs.</span>
@@ -126,20 +129,20 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 %
 % $$\nabla c \cdot \hat{n} = 0 $$
 %
-% 
+% This equation is an advection-diffusion equation
 %
 % It gives c1 at the end of the time step, i.e. time=time+dt
 %
 % c is solved implicitly using the theta method ie:
-%  \Delta c / Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt 
+%
+% $$ \Delta c / \Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt $$
 %
 % with 
 %   theta=CtrlVar.theta;
 % and SUPG with 
 % tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
 %
-% Boundary conditions: The BCs are identical to define thickness boundary
-% conditions. So define the relevant BCs as you were defining BCs for h and
+% Boundary conditions: The BCs are entered as h conditions. So define the relevant BCs as you were defining BCs for h and
 % these will be used for c.
 %
 

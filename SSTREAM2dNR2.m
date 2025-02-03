@@ -72,7 +72,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     % Solves the SSTREAM equations in 2D (sparse and vectorized version) using Newton-Raphson iteration
     
-    % lambda are the Lagrange parameters used to enfore the boundary conditions
+    % lambda are the Lagrange parameters used to enforce the boundary conditions
     
     % Newton-Raphson is:
     % K \Delta x_i = -R ; x_{i+1}= x_{i}+ \Delta x_i
@@ -120,7 +120,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     % fext0=KRTFgeneralBCs(CtrlVar,MUA,F);            % RHS with velocities set to zero, i.e. only external forces
     [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);   % RHS with velocities set to zero, i.e. only external forces
     %% New normalization idea, 10 April 2023
-    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
+    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasible 
     % then calculate the const function for this value and use as normalisation
     % gamma=0; fext0=1; 
     % ubStart=F.ub; vbStart=F.vb; 

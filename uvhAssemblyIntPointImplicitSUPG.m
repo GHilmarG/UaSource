@@ -227,8 +227,6 @@ if CtrlVar.uvhGroupAssembly
 else
 
     % calculate He and DiracDelta from integration point values of thickness
-
-   
  
 
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner

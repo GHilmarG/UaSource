@@ -15,15 +15,15 @@ function [UserVar,c1,lambda]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,c
 % It gives c1 at the end of the time step, i.e. time=time+dt
 %
 % c is solved implicitly using the theta method ie:
-%  \Delta c / Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt 
+%
+% $$ \Delta c / \Delta t = \Theta d c_1/dt + (1-\Theta) d c_0/dt $$
 %
 % with 
 %   theta=CtrlVar.theta;
 % and SUPG with 
 % tauSUPG=CalcSUPGtau(CtrlVar,MUA,u0,v0,dt);
 %
-% Boundary conditions: The BCs are identical to define thickness boundary
-% conditions. So define the relevant BCs as you were defining BCs for h and
+% Boundary conditions: The BCs are entered as h conditions. So define the relevant BCs as you were defining BCs for h and
 % these will be used for c.
 %
 

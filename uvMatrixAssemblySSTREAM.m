@@ -289,7 +289,7 @@ for Iint=1:MUA.nip
             HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
             deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
-            Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+            %Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
 
             Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
             dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d
