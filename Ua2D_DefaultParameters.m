@@ -2252,12 +2252,12 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel using parfeval over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;     % assembly in parallel using parfeval over sub-domain (domain decomposition)  
 
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.isTest=false;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
                                                % Good for testing if switching on the parallel options speeds things up, and by how much.
@@ -2354,16 +2354,19 @@ CtrlVar.MapOldToNew.Test=false;   %
 %% Internal variables and  temporary testing parameters
 %%
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
-CtrlVar.uvhMatrixAssembly.Ronly=false; 
-CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ; 
-CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0 
-                                  % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DebugMode=false; 
+CtrlVar.uvhMatrixAssembly.Ronly=false;
+CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
+CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0
+% (unless you want to use some untried, untested and unfinished features....)
+
+CtrlVar.Development.Pre2025uvAssembly=false ; % the uv assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+
+CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
-CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 end
 
 

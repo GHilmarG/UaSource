@@ -262,11 +262,11 @@ for Iint=1:MUA.nip
 
   
     %
-    
 
-    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
+
+    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     % Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-    
+
 
 
     if CtrlVar.uvGroupAssembly
@@ -281,8 +281,27 @@ for Iint=1:MUA.nip
 
         %% evaluating dint, hfint, Heint and deltaint at integration points#
 
-        % 2024/12/28: Spotted a slight inconsistency with respect to the uvh assembly at this location.
-        if CtrlVar.DevelopmentVersion
+
+
+        % $$ d=\mathcal{H}(h_f-h) \, \rho h /\rho_w + \mathcal{H}(h-h_f) \,  H^{+} $$
+
+
+        if CtrlVar.Development.Pre2025uvAssembly
+
+            % 2024/12/28: Spotted a slight inconsistency with respect to the uvh assembly at this location.
+            hfint=F.rhow*Hint./rhoint;
+            Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
+            % HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+
+            % Here dint is calculated based on nodal interpolated values for bint,
+            % where bnode was calculated using flotation
+            dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
+
+
+        else
+
+            % 2024/12/28: This is the new post 2025 default. This is consistent with same terms in the uvh assembly
 
             hfint=F.rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
             Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
@@ -292,35 +311,13 @@ for Iint=1:MUA.nip
             %Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
 
             Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+
+            % Here we apply the definition of d directly at integration points
             dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d
 
-            % when afloat, then HEint=1 and Heint=0, and we have
-            %
-            %  dint=rhoint.*hint/F.rhow
-            %
-            % which is the correct expression, evaluated at integration points, based on flotation.
-            %
-            % when NOT afloat, then HEint=0 and Heint=1, and we have
-            %
-            % dint=Hposint , where Hposint=S-B   if S>=B, and 0 if  S<B
 
-
-
-        else
-
-            hfint=F.rhow*Hint./rhoint;
-            dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-            % Writing d = \H(H) (S-b), is correct, but possibly better to write this directly in terms of hint using the flotation
-            % condition. Otherwise I'm using the flotation condition for b evaluated at nodes, which values are then interpolated.
-            % Better to write everything in terms of hint.
-            %
-
-            Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
-            HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
         end
-
 
 
 
@@ -415,16 +412,16 @@ for Iint=1:MUA.nip
                 
                 E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
                     +2*hint.*exy.*Dev.*Deriv(:,2,Inod);
-                
-                
-                
+
+
+
                 E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)...
                     +2*hint.*exy.*Dev.*Deriv(:,1,Inod);
-                
-                
+
+
                 E21= hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)...
                     +2*hint.*exy.*Deu.*Deriv(:,1,Inod);
-                
+
 
 
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+Dvisk*E11.*detJw;
@@ -436,35 +433,9 @@ for Iint=1:MUA.nip
         end
 
 
-        % 2024/12/28: Spotted a slight inconsistency with respect to the uvh assembly at this location.
-        %             Now replacing dbdx with dBdx. This should not be of any importance as this term should be zero whenever afloat.
-        %
-        %
 
-        if CtrlVar.DevelopmentVersion
-            % dint above calculated at integration points,
-            % and additionally this term multiplied by the flotation mask, Heint
-            t1=-F.g*    Heint.*(rhoint.*hint-F.rhow*dint).*dBdx.*fun(Inod)*ca + rhoint.*F.g.*hint.*sa.*fun(Inod);
-            D= HEint.*  Heint.*(rhoint.*hint-F.rhow*dint) ;
-        else
-            t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-            D= HEint.*  (rhoint.*hint-F.rhow*dint) ;
-        end
-
-        
-        
-        % Err=sum(abs(D));
-        % if Err> 1000*eps
-        %     ErrMax=max(Err,ErrMax);
-        %     fprintf("Flotation error %g \t %g \n",Err,ErrMax)
-        % 
-        % end
-
-
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
         t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
-
-        % 0.5*F.g.*ca* rhoint.*hint.^2 .*Deriv(:,1,Inod);  +   0.5*F.g.*ca* rhoint.*hint.^2 .*fun(Inod).*drhodx
-
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod);
@@ -473,26 +444,16 @@ for Iint=1:MUA.nip
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
 
 
-        % Changed on 2024/12/28
-        if CtrlVar.DevelopmentVersion
-            % dint above calculated at integration points,
-            % and additionally this term multiplied by the flotation mask, Heint
-            t1=-F.g*Heint.*(rhoint.*hint-F.rhow*dint).*dBdy.*fun(Inod)*ca;
-        else
-            t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
-        end
 
-
-        
+        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
-        
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=tauy.*fun(Inod); 
-        
+        t5=tauy.*fun(Inod);
+
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
-        
+
         
         
         

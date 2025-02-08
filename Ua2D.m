@@ -266,10 +266,16 @@ F.h=F.s-F.b;
 % [DTxy,TRIxy,DTint,TRIint,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA);
 
 
+F0=F; 
+
+% testing , development 
+lAhead=l ; BCsAhead=BCs;
+FAfter=F; F0After=F; lAfter=l ; BCsAfter=BCs; % Testing uvh
+
 %%
 if CtrlVar.doInverseStep   % -inverse
-    
-    
+
+
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
      CtrlVar.CurrentRunStepNumber=1; 
@@ -352,8 +358,6 @@ end
 
 
 CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
-
-
 
 
 RunInfo.Forward.IterationsTotal=0; 
@@ -603,8 +607,10 @@ while 1
             % Now that the velocity has been calculated, we can ask for the calving parameters
            [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
             
-            F0=F;  %
-            
+           % if isempty(F0)  % development, testing
+           %     F0=F;  %
+           % end
+
             
             %% get an explicit estimate for u, v and h at the end of the time step
             
@@ -619,17 +625,81 @@ while 1
             
             %% advance the solution by dt using a fully implicit method with respect to u,v and h
 
+            % I here need the mass balance at the end of the time step, hence must increase t This reflects the explicit change in mass
+            % balance, a, as a function of time, t. It is possible, even likely, that mass balance is also a function of ice geometry, h.
+            %
+            % That is: a=a(u,v,h,t)
+            %
+            % In a transient run, F will be the solution at next time step, 
+            %
+            % t1=t0 +\Delta t. 
+            % 
+            % But ahead of the next uvh-solve, I only have the geometry at the beginning of this time step, ie at t=t0, the mass
+            % balance here is calculated as 
+            % 
+            % a1=a(u0,v0,h0,t1).
+            % 
+            % or as
+            %
+            % a1=a(u1ESt,v1Est,h1Est,t1).
+            %
+            %
+            % Currently:
+            %
+            % a1=a(u0,v0,h0,t1) 
+            % a0=a1 
+            % (u1,v1,h1)=uvh(u1Est,v1Est,h1Est,a1,u0,v0,h0,a0) 
+            %
+            % So a0 has been updated by calling GetMassBalance using the u1,v1,h1 solution
+            %
+            % As a consequence, a0 is not equal to previous a1 used as an input to the uvh-solver, because that a1 was based on
+            % a1=a(u1Est,v1Est,h1Est,t1);
+            %
+            % There are two ways of addressing this:
+            % 
+            %  1) update a1 within uvh-solve as the u1,v1,h1, is updated within the NR iteration. This would imply that a1 is now an
+            %  output of the uvh-solver which correctly reflects the mass balance, a, for that new geometry. However, this is likely to
+            %  degraded the convergence of the NR solver, unless we also have the Jacobians, ie da/dh, da/du, da/dv.
+            %
+            %  2) Let the mass balance as a function of u,v,h lag behind by one time step with respect to u,v,h, that is set
+            %  a1=a(u1Est,v1Est,h1Est,t1) ahead of the uvh-solve, and then set a0=a1 after the uvh-solve.
+            % 
+            % This implies that if, for example, no explicit estimate is used (in which case u1Est-u0,v1Est=v0, h1Est=h0) we have
+            % 
+            % a1=a(u0,v0,h0,t1).
+            % 
+            % We then solve for u1,v1,h1 and set a0=a1 after the uvh solve. T
+            % 
+            % This can be written as
+            %   
+            %   a0=a1 ; u0=u1 ; v0=v1;
+            %
+            %   a1=a(u0,v0,h0,t1)
+            %
+            %   (u1Est,v1Est,h1Est)=ExplicitEstimate(u0,v0,h0, and possibly previous solutions  as well)
+            %  
+            % 
+            %   (u1,v1,h1)=uvh(u1Est,v1Est,h1Est,a1,u0,v0,h0,a0)
+            %
+            %
+            % In effect this implies that 
+            %
+            %    a0=a(um1,vm1,hm1,t0)
+            %
+            % Hence, the mass balance lags behind by one time step.
+            %
+            %
+            % 2025-02: mass balance now lagging one time step behind.
+            %          If mass balance is provided implicitly, then this could be changed to reflect that
+            % CtrlVar.time=CtrlVar.time+CtrlVar.dt;      
+            % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;     
+            % [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);  % 
+            % CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 
-
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
-            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
-
-            % uvh implicit step  (The F on input is based on an explicit estimate, on
-            % return I have the implicit estimate. The explicit estimate is only there to
-            % speed up the non-linear solver.
+            
+            % uvh implicit step  (The F on input is based on an explicit estimate, on return I have the implicit estimate. The explicit
+            % estimate is only there to speed up the non-linear solver.
 
             if CtrlVar.Parallel.isTest
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
@@ -642,13 +712,65 @@ while 1
             MUA=UpdateMUA(CtrlVar,MUA);
 
 
+            nu1=norm(F.ub-FAfter.ub) ;  nv1=norm(F.vb-FAfter.vb) ; nh1=norm(F.h-FAfter.h) ; dG=norm(F.GF.node-FAfter.GF.node) ;
+            fprintf("|du|=%g \t |dv|=%g |dh|=%g |dG|=%G \n ",nu1,nv1,nh1,dG) ;
+
+            nu10=norm(F.ub-F0.ub) ;  nv10=norm(F.vb-F0.vb) ; nh10=norm(F.h-F0.h) ;  dG10=norm(F.GF.node-F0.GF.node) ;
+            fprintf("|du10|=%g \t |dv10|=%g |dh10|=%g |dG|=%G \n ",nu10,nv10,nh10,dG10) ;
+
+            if nu1> eps || nv1 > eps || nh1 > eps || dG > eps
+                fprintf(" F changed between after uvh call! \n")
+            end
+
+
+
+            % [-------------testing, development
+
+            if ~isequal(l,lAhead)
+                fprintf("l not equal to lAhead\n")
+            end
+
+            if ~isequal(BCs,BCsAhead)
+                fprintf("l not equal to lAhead\n")
+            end
+
+            % F.as=F0.as ; F.ab=F0.ab ; % testing development
+            if ~isequal(BCsAfter,BCs)
+                fprintf("BCs have changed \n")
+            end
+
+            if ~isequal(l,lAfter)
+                fprintf("l has changed \n")
+            end
+
+            fprintf("                                 F-F0: \t  dA=%g \t dC=%g \t drho=%g \n",norm(F.AGlen-F0.AGlen),norm(F.C-F0.C),norm(F.rho-F0.rho))
+            fprintf("         Fest-Fafter (ahead of solve): du=%g  \t  dv=%g \t dh=%g \t ds=%g \t db=%g \t dGF=%g \n",norm(F.ub-FAfter.ub),norm(F.vb-FAfter.vb),norm(F.h-FAfter.h),norm(F.s-FAfter.s),norm(F.b-FAfter.b),norm(F.GF.node-FAfter.GF.node))
+            fprintf("             Fest-F0 (ahead of solve): du=%g  \t  dv=%g \t dh=%g \t ds=%g \t db=%g \t dGF=%g \n",norm(F.ub-F0.ub),norm(F.vb-F0.vb),norm(F.h-F0.h),norm(F.s-F0.s),norm(F.b-F0.b),norm(F.GF.node-F0.GF.node))
+            fprintf("                                   l : lu=%g \t lh=%g \n ",norm(l.ubvb),norm(l.h))
+            fprintf("                              lAhead : lu=%g \t lh=%g \n ",norm(lAhead.ubvb),norm(lAhead.h))
+            fprintf("                            l-lAfter : dlu=%g \t dlh=%g \n ",norm(lAfter.ubvb-l.ubvb),norm(lAfter.h-l.h))
+
+            lAhead=l ; BCsAhead=BCs;
+
+            % -------]
 
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
-
+            % [--------- testing development
+           
+            nu1=norm(F.ub-F0.ub) ;  nv1=norm(F.vb-F0.vb) ; nh1=norm(F.h-F0.h) ;
+            fprintf("F-F0 (after solve): |du|=%g \t |dv|=%g |dh|=%g \n",nu1,nv1,nh1)
+            UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle=" uv ")
+            du=F.ub-F0.ub ; dv=F.vb-F0.vb ; UaPlots(CtrlVar,MUA,F,[du dv],FigureTitle=" (du,dv) ")
+            UaPlots(CtrlVar,MUA,F,F.ab,FigureTitle=" ab ")
+            UaPlots(CtrlVar,MUA,F,F.ab-F0.ab,FigureTitle="F1-F0: dab ") ; title("Change in $a_b$",Interpreter="latex")
+            UaPlots(CtrlVar,MUA,F,FAfter.ab-F0.ab,FigureTitle="FAfter-F0: dab ") ; title("Change in $a_b$",Interpreter="latex")
+            drawnow
+             FAfter=F ; lAfter=l ; BCsAfter=BCs;
+            % ----------]
 
             CtrlVar.dt=dt;  % I might have changed dt within uvh
-            F.dt=dt; 
+            F.dt=dt;
             if ~RunInfo.Forward.uvhConverged
                 
                 warning("Ua2D:WTSHTF","uvh did not converge")
@@ -657,7 +779,7 @@ while 1
                 save(filename) 
                 
                 fprintf("Ua2D:calling WTSHTF\n")
-                [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+                [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
                 
             end
             
@@ -669,7 +791,9 @@ while 1
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
+            F0=F; 
 
+            
             
         elseif CtrlVar.ForwardTimeIntegration=="-uv-h-"  % Semi-implicit time-dependent step. Implicit with respect to h, explicit with respect to u and v.
 
@@ -687,9 +811,11 @@ while 1
            
             [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
 
-            F0=F;
+            F0=F;  % there is an argument for putting this after uvh semi-implicit solver, as done in the uvh implicit solver.
+                   %  having this here causes F0.ab, F0.as to be based on the updated mass balance, and F0.ab and F0.as are no longer
+                   % identical to F.as and F.ab provided as input to the previous call to the uvh semi-implicit solver. 
 
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t (but see argument above for having mass balance lagging by one time step).
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
@@ -697,9 +823,7 @@ while 1
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
-            % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-            % [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
-            [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb,~]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
             
             CtrlVar.InitialDiagnosticStep=0;
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;

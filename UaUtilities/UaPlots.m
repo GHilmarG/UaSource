@@ -214,6 +214,7 @@ if isnumeric(Variable)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
     title(cbar,inputname(4)) ;
+    subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 else
 
@@ -241,7 +242,8 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("velocities at t=%5.1f",CtrlVar.time),Interpreter="latex")
+            title("velocities",Interpreter="latex")
+            subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 
         case "dhdt"
@@ -403,7 +405,7 @@ end
 
 
 axis tight
-
+subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
     clearvars cbar
