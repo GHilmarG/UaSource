@@ -268,9 +268,7 @@ F.h=F.s-F.b;
 
 F0=F; 
 
-% testing , development 
-lAhead=l ; BCsAhead=BCs;
-FAfter=F; F0After=F; lAfter=l ; BCsAfter=BCs; % Testing uvh
+
 
 %%
 if CtrlVar.doInverseStep   % -inverse
@@ -315,7 +313,7 @@ if CtrlVar.doInverseStep   % -inverse
   
     
     
-    [UserVar,RunInfo,F,l,drdu,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+    [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     
     
     if CtrlVar.Inverse.WriteRestartFile
@@ -435,7 +433,14 @@ while 1
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
-        
+
+
+        if CtrlVar.TimeDependentRun
+            F0=F;  % In a time-dependent run we need F0 at current time step t=t0
+                   % and here F is the initial esimate for F at t=t0+dt
+        end
+
+
         if MUA.Nele==0
             fprintf('FE mesh is empty \n ')
             break ;
@@ -444,13 +449,13 @@ while 1
         if CtrlVar.doplots  && CtrlVar.PlotMesh
             figMesh=FindOrCreateFigure("Mesh");
             clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
-            [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
+            [xGL,~]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
             if ~isempty(xGL)
                 Temp=figMesh.CurrentAxes.Title.String;
                 figMesh.CurrentAxes.Title.String=[Temp(:)',{'Grounding line in red'}];
             end
             if ~isempty(F.LSF) && CtrlVar.LevelSetMethod    % Level Set  
-                hold on ; [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
+                hold on ; PlotCalvingFronts(CtrlVar,MUA,F,'b','LineWidth',2) ;
                  Temp=figMesh.CurrentAxes.Title.String;
                 figMesh.CurrentAxes.Title.String=[Temp(:)',{'Level set zero line in blue'}];
             end
@@ -515,7 +520,7 @@ while 1
         CtrlVar.Parallel.BuildWorkers=true;
         MUA=UpdateMUA(CtrlVar,MUA);
 
-        [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
     elseif CtrlVar.ForwardTimeIntegration=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
@@ -527,7 +532,8 @@ while 1
         CtrlVar.RunInfoMessage=RunInfo.Message;
 
         
-        [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs);
+        % [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs);
+        error(" not finalized ")
 
 
 
@@ -584,10 +590,12 @@ while 1
 
                 CtrlVar.Parallel.BuildWorkers=true;
                 MUA=UpdateMUA(CtrlVar,MUA);
-                [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-
+                [UserVar,RunInfo,F0,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                % F0 : F calculated at current time step t=t0
+                %  F : Here F is the initial guess for F at time step t1=t0+ dt
                 
-                %ub0=ub ; ud0=ud ; vb0=vb ; vd0=vd;
+                F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt 
+                
                 
                 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
@@ -705,69 +713,16 @@ while 1
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
             end
 
-            % fprintf("Saving uvh data \n")
-            % save("uvhTest.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F","l","BCs");
+      
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
 
-            nu1=norm(F.ub-FAfter.ub) ;  nv1=norm(F.vb-FAfter.vb) ; nh1=norm(F.h-FAfter.h) ; dG=norm(F.GF.node-FAfter.GF.node) ;
-            fprintf("|du|=%g \t |dv|=%g |dh|=%g |dG|=%G \n ",nu1,nv1,nh1,dG) ;
-
-            nu10=norm(F.ub-F0.ub) ;  nv10=norm(F.vb-F0.vb) ; nh10=norm(F.h-F0.h) ;  dG10=norm(F.GF.node-F0.GF.node) ;
-            fprintf("|du10|=%g \t |dv10|=%g |dh10|=%g |dG|=%G \n ",nu10,nv10,nh10,dG10) ;
-
-            if nu1> eps || nv1 > eps || nh1 > eps || dG > eps
-                fprintf(" F changed between after uvh call! \n")
-            end
-
-
-
-            % [-------------testing, development
-
-            if ~isequal(l,lAhead)
-                fprintf("l not equal to lAhead\n")
-            end
-
-            if ~isequal(BCs,BCsAhead)
-                fprintf("l not equal to lAhead\n")
-            end
-
-            % F.as=F0.as ; F.ab=F0.ab ; % testing development
-            if ~isequal(BCsAfter,BCs)
-                fprintf("BCs have changed \n")
-            end
-
-            if ~isequal(l,lAfter)
-                fprintf("l has changed \n")
-            end
-
-            fprintf("                                 F-F0: \t  dA=%g \t dC=%g \t drho=%g \n",norm(F.AGlen-F0.AGlen),norm(F.C-F0.C),norm(F.rho-F0.rho))
-            fprintf("         Fest-Fafter (ahead of solve): du=%g  \t  dv=%g \t dh=%g \t ds=%g \t db=%g \t dGF=%g \n",norm(F.ub-FAfter.ub),norm(F.vb-FAfter.vb),norm(F.h-FAfter.h),norm(F.s-FAfter.s),norm(F.b-FAfter.b),norm(F.GF.node-FAfter.GF.node))
-            fprintf("             Fest-F0 (ahead of solve): du=%g  \t  dv=%g \t dh=%g \t ds=%g \t db=%g \t dGF=%g \n",norm(F.ub-F0.ub),norm(F.vb-F0.vb),norm(F.h-F0.h),norm(F.s-F0.s),norm(F.b-F0.b),norm(F.GF.node-F0.GF.node))
-            fprintf("                                   l : lu=%g \t lh=%g \n ",norm(l.ubvb),norm(l.h))
-            fprintf("                              lAhead : lu=%g \t lh=%g \n ",norm(lAhead.ubvb),norm(lAhead.h))
-            fprintf("                            l-lAfter : dlu=%g \t dlh=%g \n ",norm(lAfter.ubvb-l.ubvb),norm(lAfter.h-l.h))
-
-            lAhead=l ; BCsAhead=BCs;
-
-            % -------]
-
+      
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
-            % [--------- testing development
-           
-            nu1=norm(F.ub-F0.ub) ;  nv1=norm(F.vb-F0.vb) ; nh1=norm(F.h-F0.h) ;
-            fprintf("F-F0 (after solve): |du|=%g \t |dv|=%g |dh|=%g \n",nu1,nv1,nh1)
-            UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle=" uv ")
-            du=F.ub-F0.ub ; dv=F.vb-F0.vb ; UaPlots(CtrlVar,MUA,F,[du dv],FigureTitle=" (du,dv) ")
-            UaPlots(CtrlVar,MUA,F,F.ab,FigureTitle=" ab ")
-            UaPlots(CtrlVar,MUA,F,F.ab-F0.ab,FigureTitle="F1-F0: dab ") ; title("Change in $a_b$",Interpreter="latex")
-            UaPlots(CtrlVar,MUA,F,FAfter.ab-F0.ab,FigureTitle="FAfter-F0: dab ") ; title("Change in $a_b$",Interpreter="latex")
-            drawnow
-             FAfter=F ; lAfter=l ; BCsAfter=BCs;
-            % ----------]
+   
 
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             F.dt=dt;
@@ -839,7 +794,7 @@ while 1
 
         % update Level Set to current time using the new velocities
         if CtrlVar.LevelSetMethod
-            [UserVar,RunInfo,F.LSF,F.LSFMask,F.LSFnodes,LSFlambda,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
+            [UserVar,RunInfo,F.LSF,F.LSFMask,F.LSFnodes,~,F.LSFqx,F.LSFqy]=LevelSetEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F);  % Level Set
         end
     end   % CtrlVar.TimeDependentRun
     
