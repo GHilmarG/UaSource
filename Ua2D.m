@@ -449,6 +449,7 @@ while 1
         if CtrlVar.doplots  && CtrlVar.PlotMesh
             figMesh=FindOrCreateFigure("Mesh");
             clf(figMesh) ; PlotMuaMesh(CtrlVar,MUA); hold on
+
             [xGL,~]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],'r','LineWidth',2);
             if ~isempty(xGL)
                 Temp=figMesh.CurrentAxes.Title.String;
@@ -508,7 +509,7 @@ while 1
     %%  -------------------------------------------------------------------------------------]
 
     %% "-uv-"
-    %if ~CtrlVar.TimeDependentRun % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+   
     if CtrlVar.ForwardTimeIntegration=="-uv-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
 
         %% Diagnostic calculation (uv)
@@ -523,7 +524,7 @@ while 1
         [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
-    elseif CtrlVar.ForwardTimeIntegration=="-h-" % Time independent run.  Solving for velocities for a given geometry (diagnostic step).
+    elseif CtrlVar.ForwardTimeIntegration=="-h-" 
 
         %% Diagnostic calculation (uv)
         if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' ==> Time independent step. Current run step: %i \n',CtrlVar.CurrentRunStepNumber) ;  end
@@ -532,8 +533,9 @@ while 1
         CtrlVar.RunInfoMessage=RunInfo.Message;
 
         
-        % [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs);
-        error(" not finalized ")
+
+       % [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs);
+       error("option not finalized.")
 
 
 
@@ -590,11 +592,13 @@ while 1
 
                 CtrlVar.Parallel.BuildWorkers=true;
                 MUA=UpdateMUA(CtrlVar,MUA);
+
                 [UserVar,RunInfo,F0,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt
                 
                 F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt 
+
                 
                 
                 
@@ -615,10 +619,7 @@ while 1
             % Now that the velocity has been calculated, we can ask for the calving parameters
            [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set  
             
-           % if isempty(F0)  % development, testing
-           %     F0=F;  %
-           % end
-
+       
             
             %% get an explicit estimate for u, v and h at the end of the time step
             
@@ -705,7 +706,7 @@ while 1
             % CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
             % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 
-            
+
             % uvh implicit step  (The F on input is based on an explicit estimate, on return I have the implicit estimate. The explicit
             % estimate is only there to speed up the non-linear solver.
 
@@ -718,29 +719,28 @@ while 1
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
-
       
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
-   
 
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             F.dt=dt;
+            
             if ~RunInfo.Forward.uvhConverged
-                
+
                 warning("Ua2D:WTSHTF","uvh did not converge")
                 filename="DumpWTSHTD.mat";
                 fprintf("Ua2D:Saving all variables in %s \n",filename)
-                save(filename) 
-                
+                save(filename)
+
                 fprintf("Ua2D:calling WTSHTF\n")
                 [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-                
+
             end
-            
+
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;
-            
+
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.

@@ -87,7 +87,7 @@ for Inod=1:nod
                 +E12...
                 +dtauxdv.*fun(Jnod).*funI...
                 ).*detJw;
-            
+
 
             Kyu(:,Inod,Jnod)=Kyu(:,Inod,Jnod)...
                 +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
@@ -98,28 +98,8 @@ for Inod=1:nod
             % Derivative of Fx momentum with respect to h
             % dFx/dh
 
-            if CtrlVar.DevelopmentVersion
+            if CtrlVar.Development.Pre2025uvAssembly
 
-
-                Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
-                    +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
-                    +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
-                    +dtauxdh.*funI.*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
-                    +ca*g*( rhoint - rhow * Dddhint).* dbdx .*funI.*fun(Jnod)...                % t1:
-                    -sa*g*rhoint.*funI.*fun(Jnod)...                                            % t1
-                    -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,1,Inod).*fun(Jnod)...  ;   % t2
-                    ).*detJw;
-
-
-                Kyh(:,Inod,Jnod)=Kyh(:,Inod,Jnod)...
-                    +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
-                    +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
-                    +dtauydh.*funI.*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
-                    +ca*g*( rhoint - rhow * Dddhint).* dbdy .*funI.*fun(Jnod)...                 % t1:
-                    -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
-                    ).*detJw;
-
-            else
 
                 Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
                     +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
@@ -140,7 +120,31 @@ for Inod=1:nod
                     -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
                     ).*detJw;
 
+
+            else
+
+
+                Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...
+                    +(etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod).*fun(Jnod)...
+                    +etaint.*2.*exy.*Deriv(:,2,Inod).*fun(Jnod)...
+                    +dtauxdh.*funI.*fun(Jnod)... % +deltaint.*beta2int.*uint.*fun(Inod).*fun(Jnod)..
+                    +ca*g*( rhoint - rhow * Dddhint).* dbdx .*funI.*fun(Jnod)...                % t1:
+                    -sa*g*rhoint.*funI.*fun(Jnod)...                                            % t1
+                    -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,1,Inod).*fun(Jnod)...  ;   % t2
+                    ).*detJw;
+
+
+                Kyh(:,Inod,Jnod)=Kyh(:,Inod,Jnod)...
+                    +(etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod).*fun(Jnod)...
+                    +etaint.*2.*exy.*Deriv(:,1,Inod).*fun(Jnod)...
+                    +dtauydh.*funI.*fun(Jnod)...   % +deltaint.*beta2int.*vint.*fun(Inod).*fun(Jnod)...
+                    +ca*g*( rhoint - rhow * Dddhint).* dbdy .*funI.*fun(Jnod)...                 % t1:
+                    -ca*g*(rhoint.*hint-rhow*dint.*Dddhint).*Deriv(:,2,Inod).*fun(Jnod)...  ;    % t2
+                    ).*detJw;
+
             end
+
+
           
             
             Khu(:,Inod,Jnod)=Khu(:,Inod,Jnod)...

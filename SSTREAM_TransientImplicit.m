@@ -76,7 +76,7 @@ tStart=tic;
 % that the geometrical fields are consistent with flotation condition.
 % However, since the uvh formulation is with respect to h
 % alone, this will not affect the solution since this does not
-% change h.
+
 dub=F1.ub-F0.ub; dvb=F1.vb-F0.vb ; dh=F1.h-F0.h;
 
 u1Start=F1.ub ; v1Start=F1.vb ;  h1Start=F1.h ;

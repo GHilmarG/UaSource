@@ -2359,7 +2359,7 @@ CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
 CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0
 % (unless you want to use some untried, untested and unfinished features....)
 
-CtrlVar.Development.Pre2025uvAssembly=false ; % the uv assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+CtrlVar.Development.Pre2025uvAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
 
 CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test
