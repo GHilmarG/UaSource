@@ -78,14 +78,18 @@ while true
 
 
     if iteration>=CtrlVar.hSolverMaxIterations && (rRatio>0.9)
-        fprintf('hEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.hSolverMaxIterations)
+        if CtrlVar.InfoLevelNonLinIt>=1
+            fprintf('hEquationNewtonRaphson: Maximum number of NR iterations (%i) reached. \n ',CtrlVar.hSolverMaxIterations)
+        end
         RunInfo.Forward.hConverged=false;
         break
     end
 
 
     if ResidualsCriteria
-        fprintf('hEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
+        if CtrlVar.InfoLevelNonLinIt>=1
+            fprintf('hEquationNewtonRaphson: NR iteration converged in %i iterations with rForce=%g and rWork=%g \n',iteration,rForce,rWork)
+        end
         RunInfo.Forward.hConverged=true;
         break
     end
@@ -196,8 +200,10 @@ while true
             BCsError=norm(Lrhs-L*F1.h);
         end
 
-        fprintf(CtrlVar.fidlog,'NR-h:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
-            iteration,BackTrackInfo.iarm,gamma,rRatio,r0,r,rForce,rWork,BCsError);
+        if CtrlVar.InfoLevelNonLinIt>= 1
+            fprintf(CtrlVar.fidlog,'NR-h:%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-14.7g \n ',...
+                iteration,BackTrackInfo.iarm,gamma,rRatio,r0,r,rForce,rWork,BCsError);
+        end
     end
 
     % Make sure to update s and b as well, but do not reset thickness within the non-linear loop

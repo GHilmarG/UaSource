@@ -10,6 +10,8 @@ function [UserVar,RunInfo,F1,F0,l1,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplici
 nargoutchk(9,9)
 narginchk(8,8)
 
+CtrlVar.InfoLevelNonLinIt=0; 
+
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
     %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if requested by the user.
@@ -26,24 +28,24 @@ end
 % [UserVar,F0]=GetCalving(UserVar,CtrlVar,MUA,F0,BCs);  
                                                
 %% Get an initial estimate of uv at end of time step, ie at t=t1
-% CtrlVar.StartSemiImplicitWithExtrapolation=false; % update this later
-% 
-% if CtrlVar.StartSemiImplicitWithExtrapolation
-% 
-%     CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-";
-% 
-%     F1=F0;
-%     [UserVar,RunInfo,F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
-%     % The explicit estimate for velocities is the one used for the velocities at the
-%     % end of the time step when h is calculated implicitly.
-% 
-%     % For the velocities at the end of the time step. The explicit estimate for the
-%     % thickness (h) is the initial guess for h, which is then updated as h is solved
-%     % implicitly.
-% 
-% else
-%     F1=F0;
-% end
+CtrlVar.StartSemiImplicitWithExtrapolation=false; % update this later
+
+if CtrlVar.StartSemiImplicitWithExtrapolation
+
+    CtrlVar.ExplicitEstimationMethod="-Adams-Bashforth-";
+
+    F1=F0;
+    [UserVar,RunInfo,F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs,l,BCs,l);
+    % The explicit estimate for velocities is the one used for the velocities at the
+    % end of the time step when h is calculated implicitly.
+
+    % For the velocities at the end of the time step. The explicit estimate for the
+    % thickness (h) is the initial guess for h, which is then updated as h is solved
+    % implicitly.
+
+else
+    F1=F0;
+end
 
 
 
@@ -109,8 +111,12 @@ for uv2hIt=1:uv2hItMax
 
     else
 
-        duv1Norm=norm([du1;dv1])/sqrt(2*MUA.Nnodes) ;
-        dh1Norm=norm(dh1)/sqrt(MUA.Nnodes) ;
+        % duv1Norm=norm([du1;dv1])/sqrt(2*MUA.Nnodes) ;
+        % dh1Norm=norm(dh1)/sqrt(MUA.Nnodes) ;
+
+        %duv1Norm=(du1'*MUA.M*du1+dv1'*MUA.M*dv1)/MUA.Area;
+        duv1Norm=((du1+dv1)'*MUA.M*(du1+dv1))/MUA.Area ;
+        dh1Norm=dh1'*MUA.M*dh1/MUA.Area;
 
     end
 
@@ -118,7 +124,7 @@ for uv2hIt=1:uv2hItMax
 
     duv1NormVector(uv2hIt)=duv1Norm;
     dh1NormVector(uv2hIt)=dh1Norm;
-    fprintf("\n =============     uv-h: Outer iterations %i \t |duv| =%g \t |dh|=%g    \t uv-iterations=%i \t h-iterations=%i  =============  \n",...
+    fprintf("=============     uv-h: Outer iteration %i \t |duv| =%14g \t |dh|=%14g    \t uv-iterations=%2i \t h-iterations=%2i   \n",...
         uv2hIt,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
 
 
@@ -175,9 +181,9 @@ if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
     yyaxis right
     semilogy(1:uv2hItMax,dh1NormVector,DisplayName="$\|\Delta h_1\|$",Marker="o")
     ylabel("$\|\Delta h_1\|$",Interpreter="latex")
-    xlabel("$uv-h$ iteration",Interpreter="latex")
+    xlabel("$uv-h$ outer iteration",Interpreter="latex")
     title("$uv-h$ outer iteration residuals",Interpreter="latex")
-    subtitle(sprintf("t=%g dt=%g",F1.time,F1.dt),Interpreter="latex")
+    subtitle(sprintf("$t$=%g \\quad $\\Delta t$=%g",F1.time,F1.dt),Interpreter="latex")
     legend(Location="best",Interpreter="latex");
 end
 

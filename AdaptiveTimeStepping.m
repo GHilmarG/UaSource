@@ -1,3 +1,8 @@
+
+
+
+
+
 function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F)
 
 %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
@@ -231,11 +236,7 @@ if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in s
         end
     end
 
-    if CtrlVar.DefineOutputsDt < 4*dtOut
-
-        dtOut=CtrlVar.DefineOutputsDt/round(CtrlVar.DefineOutputsDt/dtOut,1,"significant");
-
-    end
+  
 
 end
 
@@ -258,7 +259,12 @@ dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time s
 %
 if CtrlVar.DefineOutputsDt>0
 
-    % Unlikely to be the case, but make sure dtOut is equal or smaller than Dt
+
+    N=round(CtrlVar.DefineOutputsDt/dtOut) ;
+    if N < 20
+        dtOut=CtrlVar.DefineOutputsDt/N ;
+    end
+    % Unlikely to be the case, but make sure dtOut is equal or smaller than 
     if dtOut>CtrlVar.DefineOutputsDt
         dtOut=CtrlVar.DefineOutputsDt;
     end

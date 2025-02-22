@@ -9,7 +9,6 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
-
 %%
 %  
 %  Most likely when running Ua, only a fairly limited number of the parameters listed below need to be set/changed. 
@@ -1138,7 +1137,7 @@ CtrlVar.CuthillMcKee=0;       % renumber nodes using sparse reverse Cuthill-McKe
 
 
 
-CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m
+CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m, output interval
 % if set to zero DefineOutputs is called at every time/run step
 % if set to a negative number, or NaN, DefineOutputs is never called
 CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs

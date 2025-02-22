@@ -212,6 +212,7 @@ else
     else % New forward run (ie not a restart)
         
         CtrlVar.CurrentRunStepNumber=1; 
+        CtrlVar.CurrentRunStepNumber=0; 
         RunInfo.Message="Getting inputs for a new forward run";
         CtrlVar.RunInfoMessage=RunInfo.Message;
         [UserVar,RunInfo,MUA,BCs,F,l]=GetInputsForForwardRun(UserVar,CtrlVar,RunInfo);
@@ -276,14 +277,14 @@ if CtrlVar.doInverseStep   % -inverse
 
     RunInfo.Message="Start of inverse run.";
     CtrlVar.RunInfoMessage=RunInfo.Message;
-     CtrlVar.CurrentRunStepNumber=1; 
+    CtrlVar.CurrentRunStepNumber=1;
     CtrlVar.DefineOutputsInfostring="Start of inverse run";
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
     UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
-    
-    
+
+
     %         [db,dc] = Deblurr2D(NaN,...
     %             s,u,v,b,B,...
     %             sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,xMeas,yMeas,...
@@ -363,6 +364,7 @@ RunInfo.Forward.uvhConverged=true;
 %%  RunStep Loop
 while 1
     
+    CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
     RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
@@ -371,8 +373,7 @@ while 1
     if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
         
         fprintf('Exiting run-step loop because total number of steps reached. \n')
-        %       fprintf('CtrlVar.CurrentRunStepNumber=%i \n',CtrlVar.CurrentRunStepNumber)
-        %       fprintf('CtrlVar.CurrentRunStepNumber0=%i\n',CtrlVar.CurrentRunStepNumber0)
+   
         break
     end
     
@@ -407,7 +408,7 @@ while 1
     %%
     
 
-    CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
+    
     
 
     if CtrlVar.InfoLevel >= 1 
@@ -766,9 +767,9 @@ while 1
            
             [UserVar,F]=GetCalving(UserVar,CtrlVar,MUA,F,BCs);  % Level Set
 
-            F0=F;  % there is an argument for putting this after uvh semi-implicit solver, as done in the uvh implicit solver.
-                   %  having this here causes F0.ab, F0.as to be based on the updated mass balance, and F0.ab and F0.as are no longer
-                   % identical to F.as and F.ab provided as input to the previous call to the uvh semi-implicit solver. 
+            % F0=F;  % there is an argument for putting this after uvh semi-implicit solver, as done in the uvh implicit solver.
+            %        %  having this here causes F0.ab, F0.as to be based on the updated mass balance, and F0.ab and F0.as are no longer
+            %        % identical to F.as and F.ab provided as input to the previous call to the uvh semi-implicit solver. 
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t (but see argument above for having mass balance lagging by one time step).
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
@@ -783,6 +784,7 @@ while 1
             CtrlVar.InitialDiagnosticStep=0;
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
+            F0=F; 
 
 
             tSemiImplicit=toc(tSemiImplicit);

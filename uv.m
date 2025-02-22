@@ -149,9 +149,9 @@ end
 
 F.h=hOnInput; 
 
-tdiagnostic=toc(tdiagnostic);
-if CtrlVar.InfoLevel >= 1 ; fprintf(CtrlVar.fidlog,' Ended diagnostic in %-f sec \n ',tdiagnostic) ;
-
+if CtrlVar.InfoLevelCPU> 10
+    tdiagnostic=toc(tdiagnostic);
+    fprintf(CtrlVar.fidlog,' Ended diagnostic in %-f sec \n ',tdiagnostic) ;
 end
 
 
