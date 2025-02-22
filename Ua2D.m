@@ -432,7 +432,7 @@ while 1
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
-        CtrlVar.AdaptMeshInitial=0;
+        
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
 

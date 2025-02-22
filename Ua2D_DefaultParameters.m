@@ -27,6 +27,7 @@ CtrlVar.time=nan;               % In a transient run this variable is the (model
 
 
 CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-"] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -1867,6 +1868,14 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
 %   CtrlVar.AdaptMeshIterations 
 %   CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 % 
+%
+% To enforc adapt meshing ahead of the first runs step only, set:
+%
+%   CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
+%
+% This could, for example, be used to ensure that mesh is only adapted in
+% the initial uv (diagnostic) calculation and not during the uvh
+% (transient) solve. 
 %
 
 CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
