@@ -438,7 +438,7 @@ while 1
 
         if CtrlVar.TimeDependentRun
             F0=F;  % In a time-dependent run we need F0 at current time step t=t0
-                   % and here F is the initial esimate for F at t=t0+dt
+                   % and here F is the initial estimate for F at t=t0+dt
         end
 
 
