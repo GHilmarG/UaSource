@@ -250,8 +250,7 @@ RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modific
 %% dtOut has now been set, but I need to see if the user wants outputs/plots at given time intervals and
 % if I am possibly overstepping one of those intervals.
 %
-dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time step
-% after this adjustment
+dtOutAheadOfNoOverStepping=dtOut;  % keep a copy of dtOut to be able to revert to previous time step after this adjustment
 
 
 
@@ -269,8 +268,9 @@ if CtrlVar.DefineOutputsDt>0
         dtOut=CtrlVar.DefineOutputsDt;
     end
 
-    %temp=dtOut;
-    %dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
+    dtOutAheadOfNoOverStepping=dtOut;  % keep a copy of dtOut to be able to revert to previous time step after this adjustment
+
+  
     dtNoOverStepping=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.DefineOutputsDt);
     % using dtNoOverStepping ensures that next output interval is not stepped over
     % dtNoOverStepping might be smaller that dtOut to avoid overstepping, but never smaller
@@ -302,7 +302,7 @@ if CtrlVar.DefineOutputsDt>0
         elseif ~T2
             fprinft("I think this should not happen")
         else
-            fprintf(" [dtNoOverStepping dtOut]=[%f %f]\n",dtNoOverStepping,dtOut);
+         %   fprintf(" [dtNoOverStepping dtOut]=[%f %f]\n",dtNoOverStepping,dtOut);
         end
     elseif dtNoOverStepping>dtOut
         % it is possible that dtNoOverStepping is larger than dtOut. This happens if the remaining time to next output interval is
@@ -327,7 +327,9 @@ if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps
     dtOutOld=dtOut;
     dtOut=CtrlVar.EndTime-time;
 
-    if dtOutOld ~= dtOut
+    %if dtOutOld ~= dtOut
+    if isapprox(dtOutOld,dtOut)  % turned out these numbers often were not equal due to rounding errors, and differed by less than 1e-15
+                                 % isapprox, which was introduced in R2024b, compares by default to a relative and absolute tolerance of 1e-15
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct end run time of %-g \n ',dtOut,CtrlVar.EndTime);
     end
 end
@@ -350,8 +352,8 @@ elseif dtOut<dtIn
 end
 
 %%
-if dtOutCopy~=dtOut
-    dtNotUserAdjusted=dtOutCopy;
+if dtOutAheadOfNoOverStepping~=dtOut
+    dtNotUserAdjusted=dtOutAheadOfNoOverStepping;
 else
     dtNotUserAdjusted=[];
 end
