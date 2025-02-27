@@ -558,7 +558,7 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
 
     [F1.xint,F1.yint] = CalcIntegrationPointsCoordinates(MUA) ;
     fdbt=FindOrCreateFigure("change in integration points traction ") ;  clf(fdbt);
-    cbar=QuiverColorGHG(F1.xint/CtrlVar.PlotXYscale,F1.yint/CtrlVar.PlotXYscale,dbx,dby) ;
+    cbar=QuiverColorGHG(F1.xint/CtrlVar.PlotXYscale,F1.yint/CtrlVar.PlotXYscale,dbx,dby,[]) ;
     hold on
     PlotGroundingLines(CtrlVar,MUA,F1.GF,[],[],[],color="k");
     PlotGroundingLines(CtrlVar,MUA,F0.GF,[],[],[],color="m",LineWidth=1.5,LineStyle='--') ;
