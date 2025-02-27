@@ -700,7 +700,10 @@ while 1
             %
             %
             % 2025-02: mass balance now lagging one time step behind.
-            %          If mass balance is provided implicitly, then this could be changed to reflect that
+            %          Note: If mass balance is provided implicitly, then DefineMassBalance is called as part of the assembly, and the
+            %          mass balance correct for any given time step, and will not lag behind.
+            %          
+            %
             % CtrlVar.time=CtrlVar.time+CtrlVar.dt;      
             % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;     
             % [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);  % 
@@ -770,19 +773,24 @@ while 1
             % F0=F;  % there is an argument for putting this after uvh semi-implicit solver, as done in the uvh implicit solver.
             %        %  having this here causes F0.ab, F0.as to be based on the updated mass balance, and F0.ab and F0.as are no longer
             %        % identical to F.as and F.ab provided as input to the previous call to the uvh semi-implicit solver. 
-
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t (but see argument above for having mass balance lagging by one time step).
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
-            [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            %
+            % 2025-02: mass balance now lagging one time step behind.
+                        %          Note: If mass balance is provided implicitly, then DefineMassBalance is called as part of the assembly, and the
+            %          mass balance correct for any given time step, and will not lag behind.
+            % CtrlVar.time=CtrlVar.time+CtrlVar.dt;        % I here need the mass balance at the end of the time step, hence must increase t (but see argument above for having mass balance lagging by one time step).
+            % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            % [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+            % CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
             [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb,~]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
             
             CtrlVar.InitialDiagnosticStep=0;
-            CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+            
+            CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
             F0=F; 
 
@@ -815,12 +823,13 @@ while 1
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
         
         if CtrlVar.MassBalanceGeometryFeedback>0
+
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
             CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-            %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
+           
         end
         
         fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
@@ -865,10 +874,12 @@ if CtrlVar.CreateOutputsEndOfRun
     CtrlVar.DefineOutputsInfostring="Last call";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     if CtrlVar.MassBalanceGeometryFeedback>0
+
         CtrlVar.time=CtrlVar.time+CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
         [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
         CtrlVar.time=CtrlVar.time-CtrlVar.dt; F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-        %[UserVar,as,ab,dasdh,dabdh]=GetMassBalance(UserVar,CtrlVar,MUA,CtrlVar.time+CtrlVar.dt,s,b,h,S,B,rho,rhow,GF);
+
+        
     end
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)

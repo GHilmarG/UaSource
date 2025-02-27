@@ -407,9 +407,12 @@ while true
         if rdamp~=0
             as1Old=F1.as ; ab1Old=F1.ab;
         end
-        CtrlVar.time=CtrlVar.time+CtrlVar.dt;
+        
+        CtrlVar.time=CtrlVar.time+CtrlVar.dt; F1.time=CtrlVar.time;
+        
         [UserVar,F1]=GetMassBalance(UserVar,CtrlVar,MUA,F1);
-        CtrlVar.time=CtrlVar.time-CtrlVar.dt;
+
+        CtrlVar.time=CtrlVar.time-CtrlVar.dt; F1.time=CtrlVar.time;
 
         if rdamp~=0
             % If Hessian inaccurate, or too non-linear, then dampen these changes might be a

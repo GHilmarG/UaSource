@@ -249,21 +249,31 @@ if ~isfield(MUA,"workers")
     MUA.workers=[];
 end
 
+
+
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
-    poolobj = gcp;
-    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+    % poolobj = gcp;
+    poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
-    % not sure how to best to check if the composite is in good state
-    % if length(MUA.workers)  ~= CtrlVar.Parallel.uvhAssembly.spmd.nWorkers
-    %     MUA.workers=[] ; 
-    % end
+    if isempty(poolobj)
 
-    if ~all(exist(MUA.workers))
-        MUA.workers=[];
+        fprintf("SPMD assembly is set to true, but paralle pool is empty. \n")
+        fprintf(" Create a parallel pool ahead of the call to Ua.\n")
+    else
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+
+        % not sure how to best to check if the composite is in good state
+        % if length(MUA.workers)  ~= CtrlVar.Parallel.uvhAssembly.spmd.nWorkers
+        %     MUA.workers=[] ;
+        % end
+
+        if ~all(exist(MUA.workers))
+            MUA.workers=[];
+        end
+
+        MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
     end
-
-    MUA.workers=BuildMuaWorkers(CtrlVar,MUA,MUA.workers) ;
 
 end
 

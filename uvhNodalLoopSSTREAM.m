@@ -98,7 +98,7 @@ for Inod=1:nod
             % Derivative of Fx momentum with respect to h
             % dFx/dh
 
-            if CtrlVar.Development.Pre2025uvAssembly
+            if CtrlVar.Development.Pre2025uvhAssembly
 
 
                 Kxh(:,Inod,Jnod)=Kxh(:,Inod,Jnod)...

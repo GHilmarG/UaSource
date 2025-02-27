@@ -195,7 +195,7 @@ while iFile<=nFiles   % loop over files
         end
 
         
-        % if creaing 4 subplots, try to arrange them based on the aspect ratio
+        % if creating 4 subplots, try to arrange them based on the aspect ratio
         
         xmin=min(MUA.coordinates(:,1)) ;
         xmax=max(MUA.coordinates(:,1)) ;
@@ -405,7 +405,7 @@ while iFile<=nFiles   % loop over files
                     % fMeshLSF.Position=[100 650 1100 570] ;
                     
                     %[~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.h) ; title(cbar,'Thickness (m)') ; caxis([0 50])
-                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,'LSF (km)') ; caxis([-10 10])
+                    [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.LSF/1000) ; title(cbar,'LSF (km)') ; clim([-10 10])
                     colormap(flipud(othercolor('RdYlBu_11b',2000)))
                     
                     hold on
@@ -989,7 +989,7 @@ while iFile<=nFiles   % loop over files
                     axSLR=gca;
                     yMax=max(dSLRmmVector/10,[],"omitnan") ;
 
-                    yLimVector=[0.25 ; 1 ; 5 ; 10 ; 15 ; 20 ; 25] ;
+                    yLimVector=[ 15 ; 20 ; 25] ;
 
                     if isnan(yMax)
                         yMax=1;
@@ -1037,7 +1037,7 @@ while iFile<=nFiles   % loop over files
                         ylabel("Rate of sea level rise (mm/yr)",Interpreter="latex",FontSize=14)
                         yMax=max(RateOfSeaLevelRise,[],"omitnan") ;
 
-                        yLimVector=[0.5 ; 1 ; 2 ; 3 ; 5 ; 7 ; 10] ;
+                        yLimVector=[2 ; 3 ; 5 ; 7 ; 10] ;
 
                         if isnan(yMax)
                             yMax=1;

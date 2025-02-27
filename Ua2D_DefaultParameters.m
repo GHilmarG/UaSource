@@ -27,7 +27,7 @@ CtrlVar.time=nan;               % In a transient run this variable is the (model
 
 
 CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
-CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-"] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -2368,6 +2368,7 @@ CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0
 % (unless you want to use some untried, untested and unfinished features....)
 
 CtrlVar.Development.Pre2025uvAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+CtrlVar.Development.Pre2025uvhAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
 
 CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test

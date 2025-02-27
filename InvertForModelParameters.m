@@ -4,7 +4,7 @@ function [UserVar,F,l,InvFinalValues,RunInfo]=...
 
 narginchk(11,11)
 
-% InvFinalValues=InvStartValues; % does not appear to be used, deleted on 09/01/2025 as suggested by Camilla 
+% InvFinalValues=InvStartValues; % does not appear to be used, deleted on 09/01/2025 as suggested by Camilla Schelpe
 
 if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
@@ -100,7 +100,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
-    % calc brute force gradient
+    % calculate brute force gradient
 
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
