@@ -12,7 +12,8 @@
 %
 % Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
 % ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
-% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered.
+% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
+% all parallel options are turned off, and the run proceeds in non-parallel mode.  
 %
 % Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
 % done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
@@ -39,6 +40,8 @@
 %
 % The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set
 % method to enforce positive thickness.
+%
+% The model was tested with MATLAB R2024b 
 %
 % *Release Notes* _September 2024_
 %

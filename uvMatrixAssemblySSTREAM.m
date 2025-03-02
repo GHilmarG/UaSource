@@ -1,3 +1,8 @@
+
+
+
+
+
 function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
 %
@@ -72,7 +77,7 @@ if CtrlVar.Picard
     Dvisk=0;
     %Dbeta=0;
 else
-    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, otherwise 1
+    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to viscosity not to be included set to 0, otherwise 1
     % Dbeta=CtrlVar.NRbeta2;
 end
 
@@ -245,20 +250,20 @@ for Iint=1:MUA.nip
     %     AGlenint=F.AGlen;
     %     nint=F.n;
     % else
-        AGlenint=AGlennod*fun;
-        AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
-        nint=nnod*fun;
-   %  end
+    AGlenint=AGlennod*fun;
+    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    nint=nnod*fun;
+    %  end
 
 
 
-    
+
     Bint=Bnod*fun;
     Sint=Snod*fun;
     bint=sint-hint;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
-    
+
 
   
     %
@@ -270,7 +275,7 @@ for Iint=1:MUA.nip
 
 
     if CtrlVar.uvGroupAssembly
-        %% interpolating dint, hfint, Heint and deltaint onto the    integration points
+        %% interpolating dint, hfint, Heint and deltaint onto the integration points
         dint=dnod*fun;
         deltaint=deltanod*fun;
         Heint=Henod*fun;
@@ -296,24 +301,24 @@ for Iint=1:MUA.nip
 
             % Here dint is calculated based on nodal interpolated values for bint,
             % where bnode was calculated using flotation
-            dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
+            dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % here the draft is calculated based on nodal interpolation of b
 
 
         else
 
             % 2024/12/28: This is the new post 2025 default. This is consistent with same terms in the uvh assembly
 
-            hfint=F.rhow*Hint./rhoint;  % this is linear, so fine to evaluate at int in this manner
+            hfint=F.rhow*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
             Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
             HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
-            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % i.e. deltaint must be the exact derivative of Heint
+            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);       % i.e. deltaint must be the exact derivative of Heint
             %Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
 
             Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
 
             % Here we apply the definition of d directly at integration points
-            dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d
+            dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d, applied directly at integration points
 
 
 
@@ -540,7 +545,7 @@ if ~Ronly
     end
 
 
-    % I know that the matrix must be symmetric, but numerically this may not be strickly so
+    % I know that the matrix must be symmetric, but numerically this may not be strictly so
     % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
     % whos('K')
