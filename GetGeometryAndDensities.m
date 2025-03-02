@@ -87,7 +87,7 @@ if contains(FieldsToBeDefined,'s')
     end
     
     F.s=double(sTemp);
-    if numel(F.s)==1 ; F.s=F.s+zeros(MUA.Nnodes,1) ; end
+    if isscalar(F.s) ; F.s=F.s+zeros(MUA.Nnodes,1) ; end
 end
 
 if contains(FieldsToBeDefined,'b')
@@ -108,7 +108,7 @@ if contains(FieldsToBeDefined,'b')
     
     
     F.b=double(bTemp);
-    if numel(F.b)==1 ; F.b=F.b+zeros(MUA.Nnodes,1) ; end
+    if isscalar(F.b) ; F.b=F.b+zeros(MUA.Nnodes,1) ; end
 end
 
 if contains(FieldsToBeDefined,'S')
@@ -130,7 +130,7 @@ if contains(FieldsToBeDefined,'S')
     
     
     F.S=double(STemp);
-    if numel(F.S)==1 ; F.S=F.S+zeros(MUA.Nnodes,1) ; end
+    if isscalar(F.S) ; F.S=F.S+zeros(MUA.Nnodes,1) ; end
 end
 
 if contains(FieldsToBeDefined,'B')
@@ -152,7 +152,7 @@ if contains(FieldsToBeDefined,'B')
     end
     
     F.B=double(BTemp);
-    if numel(F.B)==1 ; F.B=F.B+zeros(MUA.Nnodes,1) ; end
+    if isscalar(F.B) ; F.B=F.B+zeros(MUA.Nnodes,1) ; end
 end
 
 

@@ -1,5 +1,3 @@
-% function  [UserVar,F,l,Kuv,Ruv,RunInfo,L]=SSTREAM2dNR2(UserVar,CtrlVar,MUA,BCs,F,l,RunInfo)
-
 
 
 function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
@@ -41,7 +39,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     end
     
     
-    if any(isnan(F.C))
+    if anynan(F.C)
         save TestSave ;
         warning('SSTREAM2NR:CisNaN',' nan in C. Returning with NaN in solution.\n ') ;
         F.ub=F.ub+NaN;
@@ -49,7 +47,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         return
     end
     
-    if any(isnan(F.AGlen))
+    if anynan(F.AGlen)
         save TestSave
         warning('SSTREAM2NR:CisNaN',' nan in A. Returning with NaN in solution.\n ') ;
         F.ub=F.ub+NaN;
@@ -59,12 +57,12 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     
     
-    if any(isnan(F.S)) ; save TestSave ; error( ' S nan ') ; end
-    if any(isnan(F.h)) ; save TestSave  ; error( ' h nan ') ; end
-    if any(isnan(F.ub)) ; save TestSave ; error( ' ub nan ') ; end
-    if any(isnan(F.vb)) ; save TestSave ; error( ' vb nan ') ; end
-    if any(isnan(l.ubvb)) ; save TestSave ; error( ' ubvbLambda nan ') ; end
-    if any(isnan(F.rho)) ; save TestSave  ; error( ' rho nan ') ; end
+    if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
+    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+    if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
+    if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
+    if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end
+    if anynan(F.rho) ; save TestSave  ; error( ' rho nan ') ; end
     if any(F.h<0) ; warning('MATLAB:SSTREAM2dNR:hnegative',' thickness negative ') ; end
     
     
@@ -74,7 +72,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     % Solves the SSTREAM equations in 2D (sparse and vectorized version) using Newton-Raphson iteration
     
-    % lambda are the Lagrange parameters used to enfore the boundary conditions
+    % lambda are the Lagrange parameters used to enforce the boundary conditions
     
     % Newton-Raphson is:
     % K \Delta x_i = -R ; x_{i+1}= x_{i}+ \Delta x_i
@@ -122,7 +120,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     % fext0=KRTFgeneralBCs(CtrlVar,MUA,F);            % RHS with velocities set to zero, i.e. only external forces
     [RunInfo,fext0]=uvMatrixAssembly(RunInfo,CtrlVar,MUA,F,BCs);   % RHS with velocities set to zero, i.e. only external forces
     %% New normalization idea, 10 April 2023
-    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasable 
+    % set (ub,vb) to zero, except where BCs imply otherwise, ie make the iterate feasible 
     % then calculate the const function for this value and use as normalisation
     % gamma=0; fext0=1; 
     % ubStart=F.ub; vbStart=F.vb; 
@@ -225,8 +223,8 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
         end
         
-        if any(isnan(Kuv)) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-        if any(isnan(L)) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
+        if anynan(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
+        if anynan(L) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
 
@@ -421,20 +419,17 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         
     end
 
+    RunInfo=ExtendAllocations(RunInfo,CtrlVar,CtrlVar.CurrentRunStepNumber);
 
-    if numel(RunInfo.Forward.uvIterations) < CtrlVar.CurrentRunStepNumber
-        RunInfo.Forward.uvIterations=[RunInfo.Forward.uvIterations;RunInfo.Forward.uvIterations+NaN];
-        RunInfo.Forward.uvResidual=[RunInfo.Forward.uvResidual;RunInfo.Forward.uvResidual+NaN];
-        RunInfo.Forward.uvBackTrackSteps=[RunInfo.Forward.uvBackTrackSteps;RunInfo.Forward.uvBackTrackSteps+NaN];
-    end
     
     RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=iteration;  
     RunInfo.Forward.uvResidual(CtrlVar.CurrentRunStepNumber)=r;
     RunInfo.Forward.uvBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackInfo.iarm ; 
+    RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
 
 
     
-    if any(isnan(F.ub)) || any(isnan(F.vb))  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
+    if anynan(F.ub) || anynan(F.vb)  ; save TestSaveNR  ;  error(' nan in ub vb ') ; end
     
     
     

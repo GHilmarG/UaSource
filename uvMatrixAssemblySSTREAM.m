@@ -1,9 +1,20 @@
+
+
+
+
+
 function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
+
+persistent ErrMax
+
+if isempty(ErrMax)
+    ErrMax=0;
+end
 
 narginchk(4,4)
 nargoutchk(1,4)
@@ -64,10 +75,10 @@ if any(isnan(F.vb)) ; save TestSave ; error('uvMatrixAssembly:NaN','NaN in F.vb.
 
 if CtrlVar.Picard
     Dvisk=0;
-    Dbeta=0;
+    %Dbeta=0;
 else
-    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to visk not to be included set to 0, otherwise 1
-    Dbeta=CtrlVar.NRbeta2;
+    Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to viscosity not to be included set to 0, otherwise 1
+    % Dbeta=CtrlVar.NRbeta2;
 end
 
 g=F.g;
@@ -89,7 +100,7 @@ ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-H=F.S-F.B;
+% H=F.S-F.B;
 
 
 if CtrlVar.IncludeMelangeModelPhysics
@@ -239,71 +250,113 @@ for Iint=1:MUA.nip
     %     AGlenint=F.AGlen;
     %     nint=F.n;
     % else
-        AGlenint=AGlennod*fun;
-        AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
-        nint=nnod*fun;
-   %  end
+    AGlenint=AGlennod*fun;
+    AGlenint(AGlenint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+    nint=nnod*fun;
+    %  end
 
 
 
-    
+
     Bint=Bnod*fun;
     Sint=Snod*fun;
     bint=sint-hint;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
-    
+
 
   
     %
-    
 
-    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      
+
+    % deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     % Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-    
-    
+
+
 
     if CtrlVar.uvGroupAssembly
-        %% interpolating dint, hfint, Heint and deltaint onto the    integration points
+        %% interpolating dint, hfint, Heint and deltaint onto the integration points
         dint=dnod*fun;
         deltaint=deltanod*fun;
         Heint=Henod*fun;
 
-    
+
     else
+
+
         %% evaluating dint, hfint, Heint and deltaint at integration points#
-        hfint=F.rhow*Hint./rhoint;
-        dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % draft
-        
-        
-        Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
-        deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
-        
+
+
+
+        % $$ d=\mathcal{H}(h_f-h) \, \rho h /\rho_w + \mathcal{H}(h-h_f) \,  H^{+} $$
+
+
+        if CtrlVar.Development.Pre2025uvAssembly
+
+            % 2024/12/28: Spotted a slight inconsistency with respect to the uvh assembly at this location.
+            hfint=F.rhow*Hint./rhoint;
+            Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
+            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); % dHeint/dh
+            % HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+
+            % Here dint is calculated based on nodal interpolated values for bint,
+            % where bnode was calculated using flotation
+            dint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*(Sint-bint);  % here the draft is calculated based on nodal interpolation of b
+
+
+        else
+
+            % 2024/12/28: This is the new post 2025 default. This is consistent with same terms in the uvh assembly
+
+            hfint=F.rhow*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
+            Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
+            HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+
+            deltaint=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);       % i.e. deltaint must be the exact derivative of Heint
+            %Deltaint=DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);      %  although delta is an even function...
+
+            Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
+
+            % Here we apply the definition of d directly at integration points
+            dint=HEint.*rhoint.*hint/F.rhow + Heint.*Hposint ;  % definition of d, applied directly at integration points
+
+
+
+        end
+
+
+
+
     end
-    
+
     % derivatives at this integration point for all elements
     dsdx=zeros(MUA.Nele,1); dhdx=zeros(MUA.Nele,1);
     dsdy=zeros(MUA.Nele,1); dhdy=zeros(MUA.Nele,1);
-    
+    dBdx=zeros(MUA.Nele,1); dBdy=zeros(MUA.Nele,1);
+
+
     exx=zeros(MUA.Nele,1);
     eyy=zeros(MUA.Nele,1);
     exy=zeros(MUA.Nele,1);
-    
-    
+
+
     for Inod=1:MUA.nod
-        
+
         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-        
+       
+        dBdx=dBdx+Deriv(:,1,Inod).*Bnod(:,Inod);
+        dBdy=dBdy+Deriv(:,2,Inod).*Bnod(:,Inod);
+
         exx=exx+Deriv(:,1,Inod).*ubnod(:,Inod);
         eyy=eyy+Deriv(:,2,Inod).*vbnod(:,Inod);
         exy=exy+0.5*(Deriv(:,1,Inod).*vbnod(:,Inod) + Deriv(:,2,Inod).*ubnod(:,Inod));
-        
-        
+
+
     end
-    
+
     
 
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
@@ -312,7 +365,7 @@ for Iint=1:MUA.nip
 
   
 
-    dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
+     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
     
     detJw=detJ*MUA.weights(Iint);
     
@@ -364,48 +417,48 @@ for Iint=1:MUA.nip
                 
                 E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
                     +2*hint.*exy.*Dev.*Deriv(:,2,Inod);
-                
-                
-                
+
+
+
                 E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)...
                     +2*hint.*exy.*Dev.*Deriv(:,1,Inod);
-                
-                
+
+
                 E21= hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)...
                     +2*hint.*exy.*Deu.*Deriv(:,1,Inod);
-                
-                
-                
+
+
+
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)+Dvisk*E11.*detJw;
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)+Dvisk*E22.*detJw;
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)+Dvisk*E12.*detJw;
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)+Dvisk*E21.*detJw;
-                
+
             end
         end
-        
-        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
 
-        % 0.5*F.g.*ca* rhoint.*hint.^2 .*Deriv(:,1,Inod);  +   0.5*F.g.*ca* rhoint.*hint.^2 .*fun(Inod).*drhodx
-        
+
+
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
-        t5=taux.*fun(Inod); 
-        
+        t5=taux.*fun(Inod);
+
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;
-        
-        t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
+
+
+
+        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
         t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
-        
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
-        t5=tauy.*fun(Inod); 
-        
+        t5=tauy.*fun(Inod);
+
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
-        
+
         
         
         
@@ -414,51 +467,33 @@ for Iint=1:MUA.nip
 end
 
 % add boundary integral related to Dirichlet boundary conditions
-
-
 % assemble right-hand side
 
-Tint=sparseUA(neq,1); Fext=sparseUA(neq,1);
 
-FewerSparseEvaluations=true ;
-if ~FewerSparseEvaluations
-    for Inod=1:MUA.nod
+iR=zeros(MUA.nod*MUA.Nele*2,1,"uint32");
+One=ones(1,1,"uint32");
+Tval=zeros(MUA.nod*MUA.Nele*2,1);
+Fval=zeros(MUA.nod*MUA.Nele*2,1);
+istak=0;
 
-
-        Tint=Tint+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-        Tint=Tint+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-
-        Fext=Fext+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Fx(:,Inod),neq,1);
-        Fext=Fext+sparseUA(MUA.connectivity(:,Inod)+neqx,ones(MUA.Nele,1),Fy(:,Inod),neq,1);
+for Inod=1:MUA.nod
 
 
-    end
-else
+    iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
+    Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
+    Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
 
-    iR=zeros(MUA.nod*MUA.Nele*2,1,"uint32");
-    One=ones(1,1,"uint32");
-    Tval=zeros(MUA.nod*MUA.Nele*2,1);
-    Fval=zeros(MUA.nod*MUA.Nele*2,1);
-    istak=0;
+    istak=istak+MUA.Nele;
+    iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
+    Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
+    Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
 
-    for Inod=1:MUA.nod
+    istak=istak+MUA.Nele;
 
-
-        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-        Tval(istak+1:istak+MUA.Nele)=Tx(:,Inod);
-        Fval(istak+1:istak+MUA.Nele)=Fx(:,Inod);
-
-        istak=istak+MUA.Nele;
-        iR(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+neqx;
-        Tval(istak+1:istak+MUA.Nele)=Ty(:,Inod);
-        Fval(istak+1:istak+MUA.Nele)=Fy(:,Inod);
-
-        istak=istak+MUA.Nele;
-
-    end
-    Tint=sparseUA(iR,One,Tval,neq,1);
-    Fext=sparseUA(iR,One,Fval,neq,1);
 end
+Tint=sparseUA(iR,One,Tval,neq,1);
+Fext=sparseUA(iR,One,Fval,neq,1);
+
 
 
 Ruv=Tint-Fext;
@@ -510,7 +545,7 @@ if ~Ronly
     end
 
 
-    % I know that the matrix must be symmetric, but numerically this may not be strickly so
+    % I know that the matrix must be symmetric, but numerically this may not be strictly so
     % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
     % whos('K')

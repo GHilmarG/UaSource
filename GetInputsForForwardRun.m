@@ -8,6 +8,10 @@ EleSizeScalarField=[];
 
 F.time=CtrlVar.time ; 
 
+
+
+
+
 if CtrlVar.ReadInitialMesh==1
     
     fprintf(CtrlVar.fidlog,' loading an initial mesh from %s \n ',CtrlVar.ReadInitialMeshFileName);

@@ -41,6 +41,7 @@ lnew=UaLagrangeVariables;
 
 Fnew=UaFields;
 Fnew.time=Fold.time;
+Fnew.dt=Fold.dt; 
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
 % density and the new geometry has been interpolated onto the new mesh.
 

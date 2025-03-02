@@ -6,31 +6,10 @@ Nb=numel(F.b);
 NC=numel(F.C);
 
 
-if contains(CtrlVar.Inverse.InvertForField,'A')
-    
-    InvValues.AGlen=F.AGlen;
-    
-end
-
-if contains(CtrlVar.Inverse.InvertForField,'B')
-    
-
-    InvValues.B=F.B;
-    
-    % This should be consistent with:
-    %[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-end
-
-
-
-
-if contains(CtrlVar.Inverse.InvertForField,'C')
-    
-    InvValues.C=F.C;
-    
-end
-
-
+% always return as inverse final values the corresponding F fields (as suggested by Camilla)
+InvValues.AGlen=F.AGlen;
+InvValues.B=F.B;
+InvValues.C=F.C;
 
 InvValues.J=J;
 InvValues.I=JGHouts.MisfitOuts.I;

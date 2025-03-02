@@ -1,6 +1,6 @@
 function [coordinates6,connectivity6]=tri3to6(coordinates,connectivity)
 
-	% creates 6 node triangles from 3 node tringles
+	% creates 6 node triangles from 3 node triangles
     % reasonably fast (ie it is vectorized)
     tolerance=1000*eps;
     [coordinates,connectivity]=RemoveDuplicateNodes(coordinates,connectivity,tolerance);
@@ -10,7 +10,7 @@ function [coordinates6,connectivity6]=tri3to6(coordinates,connectivity)
     
     %TR = TriRep(connectivity, coordinates(:,1),coordinates(:,2));
     
-    % keep it simple, just add an addional midnodes to all edges of all elementa, and then get rid of
+    % keep it simple, just add an additional mid-nodes to all edges of all elements, and then get rid of
     % duplicates afterwards
     
     

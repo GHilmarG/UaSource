@@ -112,6 +112,25 @@ switch MRP
                 Y1=-700e3 ;    abMaxY1=-50;
                 Y2=-400e3 ;    abMaxY2=-175;
 
+
+            case {"ASE5","lASE5"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
+
+                dMin=-400  ; abMin=-2 ;
+                dMax=-500  ; % Here abMax is y-dependent
+
+                Y1=-700e3 ;    abMaxY1=-50;
+                Y2=-400e3 ;    abMaxY2=-175;
+
+            case {"ASE6","lASE6"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
+
+                dMin=-400  ; abMin=-2 ;
+                dMax=-500  ; % Here abMax is y-dependent
+
+                Y1=-700e3 ;    abMaxY1=-50;
+                Y2=-400e3 ;    abMaxY2=-250 ; 
+
+
+
         end
 
         % write abMax as:
@@ -135,6 +154,7 @@ switch MRP
     otherwise
 
         fprintf("DraftDependentMeltParameterisations : case not found")
+        error("case not found")
         dMin=nan ;  abMin=nan ;
         dMax=nan ;  abMax=nan  ;
 
@@ -150,7 +170,7 @@ F.dabdh=zeros(size(F.h)) ;
 
 
 if isscalar(abMax)
-    abMax=abMax+F.x*0;
+    abMax=abMax+F.h*0;
 end
 
 
@@ -166,8 +186,8 @@ if contains(MRP,"l")  % this is a smoothed version of the melt paramerisations
 
 else
 
-    dabdh=zeros(size(F.x)) ;
-    ab=zeros(size(F.x)) ;
+    dabdh=zeros(size(F.h)) ;
+    ab=zeros(size(F.h)) ;
 
 
     % Note, the dab/dh calculation is not exact, as it is missing a Dirac delta

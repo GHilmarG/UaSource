@@ -1,6 +1,11 @@
 
-function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=...
-    calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
+
+
+
+
+
+
+function [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,ub,vb,AGlen,n)
 
 % [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,u,v,AGlen,n)
 % calculates strain rates and effective viscosity at integration points and Eint needed for the directional
@@ -85,9 +90,7 @@ for Iint=1:MUA.nip
     else
         Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
     end
-    % [Deriv]=derivVector(coordinates,connectivity,nip,Iint); % Nele x dof x nod
-    % The derivative depends on the det of each element
-    % is therefore a much bigger array than fun
+   
     
     
     

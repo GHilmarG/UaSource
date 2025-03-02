@@ -3,18 +3,23 @@ function [tau,ECN,K]=SUPGtau(CtrlVar,v,l,dt,tauOption,multiplier)
 
 %
 % v    : speed
+% l    : element size  
 %
+% ECN : element Peclet number, ratio of distance travelled, dt v, to the
+% element size, l. 
 
 
 if nargin < 6
     multiplier=1;
 end
 
+% the dimention of tau is time
+
 taut=dt/2+eps;   % temporal definition
 taus=l./(2*v+CtrlVar.SpeedZero);  % spatial definition
 % ECN=v.*dt./l;
 
-ECN=taut./taus ;
+ECN=taut./taus ; % ECN=taut/taus=(dt/2)/(l/(2 v)) = dt v / l  
 
 
 %%
@@ -75,7 +80,14 @@ if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
     tau2=(dt/2).*1./(1+ECN) ;
     taut=taut+zeros(size(v),'like',v);
 
-    FindOrCreateFigure("taus SUPG") ; histogram(taus) ; hold on ; histogram(taut) ; histogram(tau1) ; histogram(tau2) ; legend
+    fHist=FindOrCreateFigure("taus SUPG") ; clf(fHist)
+    histogram(taus) ; 
+    hold on ; 
+    histogram(taut)
+    histogram(tau1) ; 
+    histogram(tau2) ; 
+    set(gca, "XScale", "log")
+    legend
 
     % incomplete because MUA not handed over in the integration point loop
 %     FindOrCreateFigure("taus SUPG") ;

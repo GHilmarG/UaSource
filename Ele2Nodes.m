@@ -1,8 +1,11 @@
 function [E2N,ElePerNode] = Ele2Nodes(connectivity,Nnodes)
 
 %%
-% [E2N,ElePerNode] = Ele2Nodes(connectivity,Nnodes)
-% Creates a sparse matrix, E2N, that can be used to map element values defined for each element to nodes
+% [E2N,ElePerNode] = Ele2Nodes(connectivity,Nnodes) Creates a sparse matrix, E2N, that can be used to map element values
+% defined for each element to nodes
+%
+% After having created the matrix E2N, one can map an element variables (one value per element) to a nodal variable as
+% follows:
 %
 %   f = E2N * g
 %

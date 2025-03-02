@@ -75,7 +75,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 % $$ \nabla^2 R  \approx K' K$$
 %
 %
-% The quadradic approximation is therefore
+% The quadratic approximation is therefore
 %
 % $$ R \approx Q := R_0 + K' \mathbf{R} \, \Delta x + \frac{1}{2} \Delta x \, K' K \Delta x $$
 %
@@ -84,7 +84,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 %
 % $$ K' K \Delta x =  -K' \mathbf{R}$$  
 %
-% If $K$ is $n \times n$ and invertable, this is same as solving
+% If $K$ is $n \times n$ and invertible, this is same as solving
 %
 % $$ K \Delta x = - \mathbf{R} $$
 %
@@ -98,7 +98,7 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 %
 % and not simply along $\mathbf{R}$ 
 %
-% Various exit criterias are possible.
+% Various exit criteria are possible.
 %
 % Parameters: 
 %

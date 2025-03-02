@@ -1,3 +1,7 @@
+
+
+
+
 function [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,Variable,varargin)
 
 %%
@@ -67,8 +71,6 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     % element edges, and one must also get rid of any resulting triangles outside of (a possible non-convex) domain.
 
 
-
-    x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
     [xint,yint] = CalcIntegrationPointsCoordinates(MUA);
 
     % create vectors Xint and Yint of unique integration points and triangulate that set of points
@@ -82,7 +84,7 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
    
     %[isInside,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
 
-    % 10/07/2024: This takes care of multiple boundaries, seperated by nans
+    % 10/07/2024: This takes care of multiple boundaries, separated by nans
     [isInside,isOnBounday]=InsideOutside(ic,[MUA.Boundary.x MUA.Boundary.y]) ;
     
     DTintTriInside=DTint.ConnectivityList(isInside,:);

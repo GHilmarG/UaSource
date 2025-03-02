@@ -2,6 +2,68 @@
 
 %%
 %
+% *Release Notes* _March 2025_
+%
+% The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can
+% lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the
+% flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in
+% the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration
+% points.
+%
+% Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
+% ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
+% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
+% all parallel options are turned off, and the run proceeds in non-parallel mode.  
+%
+% Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
+% done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
+% F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
+% called within the assembly loop and then the mass balance will not lag behind. 
+%
+% The start and end times can now be specified using (new option):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+% Previously this was done using (old option):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% The previous option still works, but the new option is recommended. 
+%
+% When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
+% between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
+%
+% The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function
+% used in the level-set solver.
+%
+% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set
+% method to enforce positive thickness.
+%
+% The model was tested with MATLAB R2024b 
+%
+% *Release Notes* _September 2024_
+%
+% For comparison purposes the semi-implicit solver has been updated. 
+%
+% This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is
+% both slower and less accurate that the implicit one.  This option has now been updated and made available for use as
+% apparently most (all?) other ice-flow models appear to be using this semi-implicit approach.
+%
+% This option is activated by setting:
+%
+%    CtrlVar.ForwardTimeIntegration="-uv-h-" ;
+%
+%
+% The default value of 
+%
+%   CtrlVar.LevelSetMethodThicknessConstraints;
+%
+% is now set to true (previously set to false). Therefore if one uses the active-set method and the level-set method, min
+% thickness constraints will be automatically applied to all nodes downstream of calving fronts, unless of course this
+% parameter is set to false by the user. 
+% 
 % *Release Notes* _July 2024_
 %
 % The utility

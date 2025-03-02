@@ -46,7 +46,9 @@
                 <tocitem target="FindOrCreateFigure.html">Finds an existing figure with a specified name, otherwise creates one with that name</tocitem>
                 <tocitem target="PlotInversion.html">Plots the results in a inverse restart file</tocitem>
                 <tocitem target="UaPLots.html">Plots variables, calving fronts and grounding lines </tocitem>
-                <tocitem target="PlotRunInfo.html">Plots time-step sizes and number of iterations as functions of time. </tocitem>
+                <tocitem target="PlotLatLonGrid.html">Plot lat lon grid  </tocitem>
+                <tocitem target="ScaleBar.html">Plot a scale bar  </tocitem>
+                <tocitem target="PlotRunInfo.html">Plots time-step sizes and number of iterations as functions of time </tocitem>
             </tocitem>
             <tocitem target="ComputationalUtilities.html">Computational Utilities 
                 <tocitem target="FEintegrate2D.html">Integrate nodal quantities over the computational domain</tocitem>
@@ -78,9 +80,13 @@
                 <tocitem target="CalcMeshMask.html">Calculates the nodal and element mask of a given scalar quantity. </tocitem>
                 <tocitem target="DraftDependentMeltParameterisations.html">Returns several pre-defined draft-dependent melt-parameterisations. </tocitem>
                 <tocitem target="LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly.html">Locate detached element islands and regions connected by one node only. </tocitem>
-                <tocitem target="PrintInfoAboutElementsSizes.html">Calculate effective element sizes. </tocitem>
                 <tocitem target="CalculateReactions.html">Calculate nodal reactions due to applied boundary conditions.</tocitem>
                 <tocitem target="PathIntegral.html">Calculate fluxes normal and tangential to a path.</tocitem>
+                <tocitem target="Node2Int.html">Calculates integration point values, and the (x,y) coordinates of the integration points.</tocitem>
+            </tocitem>
+            <tocitem target="MeshingUtilities.html">Meshing Utilities 
+                <tocitem target="PrintInfoAboutElementsSizes.html">Calculate effective element sizes. </tocitem>
+                <tocitem target="FE2dRefineMesh.html">Refine Mesh.</tocitem>
             </tocitem>
         </tocitem>
     </tocitem>

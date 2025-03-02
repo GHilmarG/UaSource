@@ -76,36 +76,43 @@ end
 
 %%
 
-if CtrlVar.UaRunType==""  %  "-uvh-" , "-uv-h-" ,  "-uv-" , "-h-" ;
+if CtrlVar.ForwardTimeIntegration==""  %  "-uvh-" , "-uv-h-" ,  "-uv-" , "-h-" ;
 
     if  CtrlVar.TimeDependentRun
 
         if CtrlVar.Implicituvh
-            CtrlVar.UaRunType="-uvh-";
+            CtrlVar.ForwardTimeIntegration="-uvh-";
         else
-            CtrlVar.UaRunType="-uv-h-";
+            CtrlVar.ForwardTimeIntegration="-uv-h-";
         end
 
     else
 
-        CtrlVar.UaRunType="-uv-";
+        CtrlVar.ForwardTimeIntegration="-uv-";
 
     end
 
 else
 
-    if CtrlVar.UaRunType=="-uv-"
+    if CtrlVar.ForwardTimeIntegration=="-uv-"
         CtrlVar.TimeDependentRun=0;
     else
         CtrlVar.TimeDependentRun=1;
 
-        if CtrlVar.UaRunType=="-uvh-"
-            CtrlVar.Implicituvh=1;
+        if CtrlVar.ForwardTimeIntegration=="-uvh-"
+            CtrlVar.Implicituvh=1;  % This field is actually no longer used by Ua, use CtrlVar.ForwardTimeIntegration instead
         else
-            CtrlVar.Implicituvh=0;
+            CtrlVar.Implicituvh=0;  % This field is actually no longer used by Ua, use CtrlVar.ForwardTimeIntegration instead
         end
     end
 
+end
+
+% Again, if inverse run, the modify accordingly
+if CtrlVar.InverseRun    % inverse step takes precedence over prognostic and diagnostic, if conflict
+    CtrlVar.doDiagnostic=0  ;
+    CtrlVar.doPrognostic=0 ;
+    CtrlVar.TimeDependentRun=0;
 end
 
 %%
@@ -260,7 +267,7 @@ if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && Ctrl
 
     fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
     fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
-    warning("UaInputs:ParameterCombinationNotRecommented","ParameterCombinationNotRecommented")
+    warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
 
 end
 
@@ -350,6 +357,91 @@ if isfield(CtrlVar.Inverse,"MatlabOptimisationParameters")
     fprintf("        instead. \n")
     error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
 end
+
+
+
+if ~isfield(CtrlVar,"StartTime")  || isnan(CtrlVar.StartTime)
+    CtrlVar.StartTime=CtrlVar.time;
+end
+
+CtrlVar.time=CtrlVar.StartTime ;
+
+
+if ~isfield(CtrlVar,"EndTime")  || isnan(CtrlVar.EndTime)
+    CtrlVar.EndTime=CtrlVar.TotalTime;
+end
+
+if isnan(CtrlVar.TotalTime)
+    CtrlVar.TotalTime=CtrlVar.EndTime;
+end
+
+
+if CtrlVar.TimeDependentRun
+    if isnan(CtrlVar.StartTime)
+
+        fprintf(" The variable  CtrlVar.StartTime needs to be defined. Do this in DefineInitialInputs.m \n")
+        error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+
+    end
+
+
+    if isnan(CtrlVar.EndTime)
+
+        fprintf(" The variable  CtrlVar.EndTime needs to be defined. Do this in DefineInitialInputs.m \n")
+        error('Ua:CtrlVarValidityCheck','CtrlVar not valid')
+
+    end
+
+
+end
+
+
+
+%% Parallel options: Make sure to run off parallel options if there is no pool open
+
+if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
+        || CtrlVar.Parallel.uvhAssembly.spmd.isOn ...
+        ||  CtrlVar.Parallel.Distribute ...
+        || CtrlVar.Parallel.uvhAssembly.parfor.isOn ...
+        || CtrlVar.Parallel.uvAssembly.parfeval.isOn ...
+        || CtrlVar.Parallel.hAssembly.parfor.isOn ...
+        || CtrlVar.Parallel.LSFAssembly.parfor.isOn)
+
+    poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
+
+
+
+    if isempty(poolobj)
+
+        
+        fprintf("\n ======= No parallel pool is open. To run Ua using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218)
+        fprintf(" ======= Parallel options are turned off.\n")
+
+        CtrlVar.Parallel.uvhAssembly.parfor.isOn=false;
+        CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   
+
+        CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
+        CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+
+        CtrlVar.Parallel.isTest=false;
+
+        CtrlVar.Parallel.hAssembly.parfor.isOn=false ;
+        CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
+
+        CtrlVar.Parallel.Distribute=false;  
+
+
+    end
+
+
+end
+
+
+
+
 
 
 

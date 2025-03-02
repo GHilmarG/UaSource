@@ -7,7 +7,7 @@
 %
 %
 
-TestCase=4;  % There are currenlty 3 test cases available. 
+TestCase=3;  % 
 
 %%  
 %

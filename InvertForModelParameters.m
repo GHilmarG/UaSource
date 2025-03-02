@@ -4,7 +4,7 @@ function [UserVar,F,l,InvFinalValues,RunInfo]=...
 
 narginchk(11,11)
 
-InvFinalValues=InvStartValues;
+% InvFinalValues=InvStartValues; % does not appear to be used, deleted on 09/01/2025 as suggested by Camilla Schelpe
 
 if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
@@ -12,6 +12,24 @@ end
 
 
 %% Consider adding some test of input variables here, maybe see if all gs,ga fields are defined
+
+if CtrlVar.Inverse.Regularize.Field=="-logAGlen-logC-"
+
+    if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.ga is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
+        error("Input variable not defined.")
+    end
+
+    if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.gs is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
+        error("Input variable not defined.")
+    end
+
+end
+
+
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
 %
@@ -25,7 +43,7 @@ F=InvStartValues2F(CtrlVar,MUA,F,InvStartValues,Priors,Meas) ;
 
 [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 
-% p is the vector of the control variables, currenty p=[A,b,C]
+% p is the vector of the control variables, currently p=[A,b,C]
 % with A, b or C here only being nonempty when inverted for, 
 % This mapping between A, b and C into the control variable is done by F2p
 
@@ -82,7 +100,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     I=(iRange>=1) & (iRange <= numel(p0));
     iRange=iRange(I);
     
-    % calc brute force gradient
+    % calculate brute force gradient
 
     
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
@@ -116,7 +134,7 @@ else
         error('what case? ')
     end
     
-    
+    % Here the final values from inversion, which are in the vector p, are copied across to the corresponding fields of F
     F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
    
     [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -126,7 +144,8 @@ else
 end
 
 % Put RAa, RAs, RCa, RCs in InvFinalValues
-InvFinalValues=Vars2InvValues(CtrlVar,F,InvFinalValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
+% InvFinalValues=Vars2InvValues(CtrlVar,F,InvFinalValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
+InvFinalValues=Vars2InvValues(CtrlVar,F,InvStartValues,J,dJdp,JGHouts,RunInfo,dJdpTest); 
 
 
 end

@@ -38,7 +38,7 @@ BestMethod="" ;
 CtrlVar.rLineMinUa="-Auto-" ;  % First do the Newton step, ie H n = -g and evaluated r^2(x+n)/r(x)
                                % If reduction not sufficient, do Newton-direction backtracking, ie min r^2(x+ gamma n)
                                % If best backtracking step too small, ie gammaminNewton < gammaMinNewtonAccepted, do the M-Cauchy step, is solve M c = -g and evaluate r^2(x+c)/r(x) 
-                               % If full Cauchy step not OK, then do Cauchy backtrackiing 
+                               % If full Cauchy step not OK, then do Cauchy backtracking 
                                % If full Cauchy step OK, do minimisation along c to n direction (dog-leg)
 
 
@@ -88,7 +88,7 @@ if contains(CtrlVar.rLineMinUa,"-Newton Step-")  || contains(CtrlVar.rLineMinUa,
     CtrlVar.BacktracFigName="Line Search in Newton Direction" ;
     [gammaminNewton,rminNewton,BackTrackInfo]=BackTracking(NewtonSlope0,1,r0,r1,rNewtonFunc,CtrlVar);
     NewtonPointUpdated=gammaminNewton*NewtonPoint;
-    % Basically whenever the full Newton step is not accepted in the linesearch based on teh Armijo's criterion,
+    % Basically whenever the full Newton step is not accepted in the linesearch based on the Armijo's criterion,
     % calculate the Cauchy-M point
 
     gammaminNewtonAccepted=0.75 ; rminNewtonRatioAccepted=rRatioReductionAccepted ;  
@@ -155,7 +155,7 @@ if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-") || contains(CtrlVar.rLineMinUa
 
 end
 
-%% M-Cauchy or the M-Steepest Descent, effectivily as if using the Mass matrix as the Hessian
+%% M-Cauchy or the M-Steepest Descent, effectively as if using the Mass matrix as the Hessian
 if contains(CtrlVar.rLineMinUa,"-Cauchy M-step-")
     
     % Du=dx(1:nM) ; Dv=dx(nM+1:2*nM) ; Dl=dx(2*nM+1:end);
@@ -336,7 +336,7 @@ end
 % 
 % end
 
-%% I-Cauchy, or the Steepest Descent, effectivily as if using the Unit matrix as the Hessian
+%% I-Cauchy, or the Steepest Descent, effectively as if using the Unit matrix as the Hessian
 if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
     [nM,~]=size(M);
     % Must still solve a system because I need to preserve the BCs
@@ -384,7 +384,7 @@ if contains(CtrlVar.rLineMinUa,"-Steepest Descent-")
     CtrlVar.BacktracFigName="Line Search in Cauchy D direction" ;
     CtrlVar.BacktrackingGammaMin=gammaCauchyD/1000; 
     CtrlVar.LineSearchAllowedToUseExtrapolation=true;
-    CtrlVar.NewtonAcceptRatio=0.999; % primarirly use the Armijo's condition based on slope0
+    CtrlVar.NewtonAcceptRatio=0.999; % primarily use the Armijo's condition based on slope0
 
     [gammaminCauchyD,rminCauchyD,BackTrackInfoCauchyD]=BackTracking(CauchyDSlope0,gammaCauchyD,r0,rCauchyD,funcCauchyD,CtrlVar);
 

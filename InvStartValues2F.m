@@ -51,7 +51,7 @@ if    contains(CtrlVar.Inverse.InvertForField,'B')
     F.s=Meas.s ;
     
     % First calculate b from s, B and S given rho and rhow.
-    [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,F.GF); 
+    [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); 
     % Now again calculate b, s from h, S and B to ensure full consistency with 
     % the rest of the code.  This might results in s changing and being different
     % from Meas.s

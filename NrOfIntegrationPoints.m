@@ -1,4 +1,5 @@
 function CtrlVar=NrOfIntegrationPoints(CtrlVar)
+
     %%
     %  [nip,niph,BoundaryEdge]=NrOfIntegrationPoints(CtrlVar)
     %  defines nr of integration points for diagnostic (nip) and prognostic (nihp) equations
@@ -6,7 +7,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     % Possible Nr of integration points: 1,3,4,6,7,9,12,13,16,19,28,37
     %
     % very important for the h and the implicit uvh cases to have one higher order of integration!!!!
-    % nip must be above lin/quadradic for correct results! Why?
+    % nip must be above lin/quadratic for correct results! Why?
     % 
     % 3 node:
     %        nip=1 and niph=1 in semi-implicit is unstable
@@ -18,8 +19,8 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
     %        nip=4 and niph=6  in semi-implicit is fine
     %
     % 10 node;
-    %        nip=7, niph=7 unstable in semi-implicit and implicit scemes 
-    %        nip=7, niph=12 stable in semi-impicit scemes
+    %        nip=7, niph=7 unstable in semi-implicit and implicit schemes 
+    %        nip=7, niph=12 stable in semi-implicit schemes
     %        nip=12, niph=12 stable in both semi and implicit
     %
     %  The rule is that niph must be >=  3, 6, and 12 for 3, 6 and 10 node elements, respectively
@@ -55,14 +56,14 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             
             %nip=4 ; % results in a singular system for implicit uvh
             %nip=6;
-            %nip=6;   %  for GL problems overintegrating leads to impoved rates of convergence
+            %nip=6;   %  for GL problems over-integrating leads to improved rates of convergence
             %nip=12;
             
             %nip=6 ; niph=6;
             % nip=7 ; niph=7;  
             
             %nip=9 ; niph=9;   % changed from 7 to 9 as default 19, August, 2018
-            nip=12 ; niph=12;  % and then changed from 9 to 12 on 18 March, 2019. The reason for this increar, ie form 9 to 12 was that a few situations where found were 
+            nip=12 ; niph=12;  % and then changed from 9 to 12 on 18 March, 2019. The reason for this unclear, ie form 9 to 12 was that a few situations where found were 
                                % nip=9 was not sufficient for full
                                % convergence in a uv inversion. 
             
@@ -80,7 +81,7 @@ function CtrlVar=NrOfIntegrationPoints(CtrlVar)
             error(' case not recognised, TriNodes value incorrect')
     end
     
-    %if CtrlVar.Implicituvh ; nip=niph ; end
+  
     
    if ~isfield(CtrlVar,'nip') ; CtrlVar.nip=nip ; end
    if ~isfield(CtrlVar,'niph') ; CtrlVar.niph=niph ; end

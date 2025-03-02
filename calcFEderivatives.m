@@ -4,7 +4,9 @@ function [dfdx,dfdy,xint,yint]=calcFEderivatives(f,coordinates,connectivity,nip,
     % calculates x and y derivatives of a nodal variable at integration points
     % There is a better routine for doing this [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
     
-    
+    fprintf("The use of  calcFEderivatives.m is no longer recomended.\n")
+    fprintf("Use calcFEderivativesMUA.m instead. \n ")
+    error(" calcFEderivatives.m no longer supported ")
     
     [Nele,nod]=size(connectivity); ndim=2;
     [points,weights]=sample('triangle',nip,ndim);

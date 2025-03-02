@@ -2,8 +2,10 @@
 
 
 
-function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
+function [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,DeActivated]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
+
+narginchk(8,8)
 
  
 BCs1Input=BCs1 ; 
@@ -34,8 +36,8 @@ end
 
 %% Special case:  Check if there are no previous thickness constraints, in which case new should be introduced based on ice thickness
 % possibly all thickness constraints were eliminated in AdapMesh when deactivating/activating elements
-% so I check if there are no thickness constrains but h0 is at the min thick.
-% if so then I introduce an initial active set based on h0
+% so I check if there are no thickness constrains but h1 is at the min thick.
+% if so then I introduce an initial active set based on h1
 %!if isempty(Lhpos)
 
 if isempty(BCs1.hPosNode)
@@ -49,7 +51,7 @@ if isempty(BCs1.hPosNode)
     
     if numel(BCs1.hPosNode)>0
         if CtrlVar.ThicknessConstraintsInfoLevel>=1
-            fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h0  \n', numel(BCs1.hPosNode));
+            fprintf(CtrlVar.fidlog,' Introducing %-i new initial active constraints based on h1  \n', numel(BCs1.hPosNode));
         end
     end
 end
@@ -81,7 +83,7 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
     LSFhAdditionalPosNodes=setdiff(LSFhPosNode,BCs1.hPosNode) ; 
 
    if CtrlVar.ThicknessConstraintsInfoLevel>=1
-        fprintf(' %i new LSF active constraints \n',numel(LSFhAdditionalPosNodes))
+        fprintf(' %i new level set active thickness constraints introduced \n',numel(LSFhAdditionalPosNodes))
     end
 
     BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode); 
@@ -90,33 +92,33 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 end
 
 
-% I think the way LastActiveSet is initialized, both Released  will always be empty by construction 
+% I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction 
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 
-nReleased=numel(DeActivated);
+nDeactivated=numel(DeActivated);
 nActivated=numel(Activated);
 
 %%
 
 
-if nReleased> 0 || nActivated>0
-    if nReleased<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
+if nDeactivated> 0 || nActivated>0
+    if nDeactivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints && nActivated<CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
         fprintf("ActiveSetInitialisation: Not introducing any new thickness constraints as:\n")
-        fprintf("\t #released=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nReleased,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
+        fprintf("\t #Deactivated=%i and #activated=%i nodes, both less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=%i. \n",nDeactivated,nActivated,CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints)
 
         BCs1=BCs1Input;
    
         Activated=[];
         DeActivated=[];
-        nReleased=0;
+        nDeactivated=0;
         nActivated=0;
     end
 end
 
 %%
 
-if nReleased==0   && nActivated==0
+if nDeactivated==0   && nActivated==0
     isActiveSetModified=false;
     fprintf("ActiveSetInitialisation: Active set not modified.\n")
 else
@@ -125,6 +127,9 @@ else
 end
 
 
+%%
+BCs1.hPosNodeDeActivated=DeActivated;  % I'm not really using this at the moment, but in the future it might be best to use this to determine if set has become cyclical 
+BCs1.hPosNodeActivated=Activated;
 
 %% Set the hPosValues, only need to do this once at the end
 BCs1.hPosValue=BCs1.hPosNode*0+CtrlVar.ThickMin;

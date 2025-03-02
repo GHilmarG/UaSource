@@ -51,6 +51,18 @@ end
 F.time=CtrlVar.time ; F.dt=CtrlVar.dt ; 
 
 
+% This is here to preserve past behavior from before the CtrlVar.StartTime field was introduced for the start time of the
+% run. This will actually give the wrong start time in case of a restart run, but it is the best that can be done. This has
+% no impact on the run results, but the waitbar might give false impression of remaining run time. 
+
+if ~isfield(CtrlVar,"StartTime")
+    CtrlVar.StartTime=CtrlVar.time;
+end
+
+
+
+
+
 % RunInfo=UaRunInfo;
 RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 if CtrlVar.WriteRunInfoFile
@@ -143,8 +155,8 @@ F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 fprintf(CtrlVar.fidlog,' Starting restart run at t=%-g with dt=%-g \n',...
     CtrlVarInRestartFile.time,CtrlVarInRestartFile.dt);
 
-if  CtrlVarInRestartFile.time> CtrlVar.TotalTime
-    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.TotalTime) ;
+if  CtrlVarInRestartFile.time> CtrlVar.EndTime
+    fprintf(CtrlVar.fidlog,' Time at restart (%-g) larger than total run time (%-g) and run  is terminated. \n',CtrlVarInRestartFile.time,CtrlVar.EndTime) ;
     return
 end
 

@@ -23,6 +23,7 @@ if CtrlVar.doInverseStep
     fprintf('\tCtrlVar.Inverse.DataMisfit.GradientCalculation=''%s''\n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
     
     
+    
 end
 
 

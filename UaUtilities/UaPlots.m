@@ -25,7 +25,6 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
-% Calving fronts
 %
 %
 % Examples:
@@ -44,6 +43,20 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 %   figetaInt=FindOrCreateFigure("eta Int") ; clf(figetaInt) ;
 %   UaPlots(CtrlVar,MUA,F,"eta int",GetRidOfValuesDownStreamOfCalvingFronts=false) ;
+%
+%
+% Plotting velocities other than those in F:
+%
+%     dub=F1.ub-F0.ub ; dvb=F1.vb-F0.vb ; 
+%     UaPlots(CtrlVar,MUA,F1,[dub dvb],FigureTitle="(duv)")
+%
+% Log color scale:
+% 
+%    cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
+%
+% Basal melt distribution, using log scale:
+%
+%    UaPlots(CtrlVar,MUA,F,"-log(ab)-")
 %
 %%
 
@@ -70,8 +83,27 @@ arguments
     % options.ColorMap double=othercolor("Mlightterrain",1028)
     % options.ColorMap double=othercolor("Mdarkterrain",1028)
     % options.ColorMap double=othercolor("Mtemperaturemap",1028)
+    % colormap(othercolor("Greys7",1028))
+    % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % CM=cmocean('ice',150) ; colormap(CM);
+    
     options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
 end
+
+%% Make F from old output files compatible
+
+if  ~isfield(F,"LSF") 
+     F.LSF=[];
+end
+
+if  ~isfield(F,"x") || isempty(F.x)
+    F.x=MUA.coordinates(:,1);
+    F.y=MUA.coordinates(:,2);
+end
+
+
+%%
+
 
 % if fig title has not been set, use by default the variable name
 if options.FigureTitle=="UaPlots"
@@ -85,7 +117,9 @@ end
 
 
 if options.CreateNewFigure
-    fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ;
+    fFig=FindOrCreateFigure(options.FigureTitle)  ; 
+    
+    clf(fFig)  ;
 end
 
 
@@ -109,7 +143,7 @@ if isempty(F)
     F=UaFields;
 end
 
-if isscalar(Variable)
+if isstring(Variable)
 % {"-eta-","eta int","etaint","-eta int-"}
     if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
             || contains(Variable,"tau")  || contains(Variable,"basal drag") 
@@ -118,7 +152,7 @@ if isscalar(Variable)
 
 end
 
-
+ 
 
 if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
@@ -175,6 +209,7 @@ if isnumeric(Variable)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
     title(cbar,inputname(4)) ;
+    subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 else
 
@@ -200,12 +235,13 @@ else
         case {"ubvb","-ubvb-","uv","-uv-"}
 
             CtrlVar.VelColorMap=jet(100) ;
-            [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
+            [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title(sprintf("velocities at t=%g",CtrlVar.time),Interpreter="latex")
+            title("velocities",Interpreter="latex")
+            subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 
-        case "dhdt"
+        case {"dhdt","-dhdt-","dh/dt","-dh/dt-"}
 
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
@@ -216,7 +252,7 @@ else
         case {"basal drag","taub"}
 
 
-            [tbx,tby,tb] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
+            [tbx,tby] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
 
             % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
@@ -229,7 +265,7 @@ else
         case "e node"  % effective strain rate
 
 
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            [~,~,~,~,~,~,~,~,e,~]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             % e(e<0)=eps ; % the projection onto nodes does not preserve positive
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
@@ -241,7 +277,7 @@ else
 
 
 
-            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+            [~,~,~,~,~,~,~,e]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,e);
             title(cbar,"(1/a)",Interpreter="latex")
@@ -249,7 +285,7 @@ else
 
         case "-strain rates-"
 
-           [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+           [~,xint,yint,exx,eyy,exy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
            if options.GetRidOfValuesDownStreamOfGroundingLines
 
@@ -261,7 +297,7 @@ else
 
            end
 
-           scale=1000 ; 
+           
            scale=0.1 ; 
            LineWidth=1; 
            nStride=10;
@@ -276,7 +312,7 @@ else
         case "eta node"  % effective strain rate
 
 
-            [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
+            [~,~,~,~,~,~,~,~,~,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
             % e(e<0)=eps ; % the projection onto nodes does not preserve positivy
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,eta);
@@ -288,7 +324,7 @@ else
 
 
 
-            [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+            etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
 
             fFigHist=FindOrCreateFigure(options.FigureTitle+"Hist")  ; clf(fFigHist)  ; 
@@ -306,15 +342,22 @@ else
 
     
 
-        case "surface slope"  % effective strain rate at integration points
+        case {"surface slope","-surface slope-"} 
 
-            [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
+            [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
             slope=sqrt(dfdx.*dfdx+dfdy.*dfdy) ;
             slope=ProjectFintOntoNodes(MUA,slope) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.rho.*F.h.*slope);
             title(cbar,"()",Interpreter="latex")
             title(sprintf("surface slope at t=%g",CtrlVar.time),Interpreter="latex")
 
+        case {"log(ab)","-log(ab)-"}
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,-F.ab);
+            set(gca,'ColorScale','log') 
+            title(cbar,"$-a_b$ (m/yr)",Interpreter="latex")
+            title("\textbf{Basal melt rates}",Interpreter="latex",FontSize=16)
+            CM=cmocean('-thermal',20) ; CM(1,:)=[0.9 0.9 0.9]  ; colormap(CM);
 
         otherwise
 
@@ -335,10 +378,12 @@ if options.PlotUnderMesh
 end
 
 
-
-
 if options.PlotGroundingLines
-    [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    if isfield(F,"GF")
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+    elseif isfield(F.GF,"node")
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+    end
 end
 
 if options.PlotCalvingFronts
@@ -350,7 +395,7 @@ if options.PlotMuaBoundary
     PlotMuaBoundary(CtrlVar,MUA,"b--");
 end
 
-% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
+
 
 if isfield(CtrlVar,"PlotsXaxisLabel")
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")
@@ -360,7 +405,7 @@ end
 
 
 axis tight
-
+subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
     clearvars cbar

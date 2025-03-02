@@ -112,11 +112,11 @@ dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
 Slope0=nan ; % need to calculate final slope
 nx=numel(x);
 
-%% If contraints provided, make iterate feasable
+%% If constraints provided, make iterate feasible
 if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estimate of lambda, but specifies constraints, set lambda=0
 
     BCres=norm(L*x-c);
-    if BCres>1e-6   % make feasable
+    if BCres>1e-6   % make feasible
         x=L\c ;
     end
     if isempty(lambda)  || any(isnan(lambda))

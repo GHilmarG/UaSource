@@ -1,4 +1,10 @@
-function [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
+
+
+
+
+
+
+function [tbx,tby,tb,eta,HeInt] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 
 
 
@@ -42,6 +48,7 @@ arguments
 end
 
 eta=[];
+HeInt=[]; 
 
 
 if isempty(F.ub)
@@ -77,7 +84,7 @@ if options.CalcIntegrationPointValues
     CtrlVar.uvhMatrixAssembly.ZeroFields=false;
     CtrlVar.uvhMatrixAssembly.Ronly=false;
     CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=true ;
-    [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F,F) ;
+    [tbx,tby,tb,eta,HeInt] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F,F) ;
 
 
     if options.PlotResults
@@ -101,9 +108,10 @@ if options.CalcIntegrationPointValues
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at integration points")
         title("magnitude of basal traction at integration points")
 
-        cbar=UaPlots(CtrlVar,MUA,F,log10(eta),FigureTitle=" effective viscosity"+options.FigureName) ; 
+        cbar=UaPlots(CtrlVar,MUA,F,log10(eta),FigureTitle=" effective viscosity"+options.FigureName) ;
         title("Effective viscosity at integration points"+options.FigureTitle)
         title(cbar,"$\log_{10}(\eta)$",interpreter="latex")
+
 
     end
 end
@@ -153,7 +161,7 @@ end
 
 
 
-function [tbx,tby,tb,eta] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1)
+function [tbxInt,tbyInt,tb,etaInt,Heint] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1)
 
 narginchk(5,5)
 
@@ -166,9 +174,9 @@ narginchk(5,5)
 
 RunInfo=[];
 
-[~,~,~,~,tbx,tby,eta]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+[~,~,~,~,tbxInt,tbyInt,etaInt,Heint]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
 
-tb=sqrt(tbx.^2+tby.^2);
+tb=sqrt(tbxInt.^2+tbyInt.^2);
 
 
 end

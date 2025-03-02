@@ -1,3 +1,6 @@
+
+
+
 function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 
 %%
@@ -69,15 +72,15 @@ function [GLgeo,GLnodes,GLele]=GLgeometry(connectivity,coordinates,GF,CtrlVar)
 %
 %            plot(GLgeo(:,[3 4])',GLgeo(:,[5 6])','k')
 %
-% then matlab creates a new `Line Object' for each and every line segement. For
+% then matlab creates a new `Line Object' for each and every line segment. For
 % grounding lines crossing a large number of elements this can be a very slow
 % way of plotting. To speed things up plot the grounding line by first aligning
-% up the line segements:
+% up the line segments:
 %
 %       [xGL,yGL] = ArrangeGroundingLinePos(CtrlVar,GLgeo) ;
 %       plot(xGL,yGL,'k')
 %
-% alternativily, one can also use 
+% alternatively, one can also use 
 %
 %   PlotGroundingLines(CtrlVar,MUA,GF)
 %

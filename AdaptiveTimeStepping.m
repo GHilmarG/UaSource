@@ -1,11 +1,16 @@
+
+
+
+
+
 function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F)
 
 %% dtOut=AdaptiveTimeStepping(time,dtIn,nlInfo,CtrlVar)
 %  modifies time step size
 %
-% Decision about increasing the time step size is based on the number of non-linear interations over the last few time steps.
+% Decision about increasing the time step size is based on the number of non-linear iterations over the last few time steps.
 %
-% The main idea is to limit the number of non-linear iteration so that the NR is within the quadradic regime
+% The main idea is to limit the number of non-linear iteration so that the NR is within the quadratic regime
 % Experience has shown that a target number of iterations (CtrlVar.ATSTargetIterations) within 3 to 5 is good for this purpose
 %
 % Time step is increased if r<1 where
@@ -31,7 +36,7 @@ function [RunInfo,dtOut,dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MU
 % There are some further modifications possible:
 %  -time step is adjusted so that time interval for making transient plots (CtrlVar.TransientPlotDt) is not skipped over
 %  -time step is not increased further than the target time step CtrlVar.ATSdtMax
-%  -time step is adjusted so that total simulation time does not exceed CtrlVar.TotalTime
+%  -time step is adjusted so that total simulation time does not exceed CtrlVar.EndTime
 %
 %
 %
@@ -77,13 +82,13 @@ dtOut=max(dtIn,CtrlVar.ATSdtMin) ;
 
 % I first check if the previous forward calculation did not converge. If it did
 % not converge I reduced the time step and reset all info about previous
-% interations to reset the adaptive-time stepping approuch
+% iterations to reset the adaptive-time stepping approach
 
 
 RunInfo.Forward.AdaptiveTimeSteppingResetCounter=RunInfo.Forward.AdaptiveTimeSteppingResetCounter+1;
 
 
-if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the number of uvh iterations, and hence only works for uvh
+if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is based on the number of uvh iterations, and hence only works for uvh
 
     if ~RunInfo.Forward.uvhConverged || dtModifiedOutside
 
@@ -134,20 +139,20 @@ if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the numb
 
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
-            fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            % fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
 
 
         elseif RunInfo.Forward.AdaptiveTimeSteppingResetCounter > 2 && RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber-1)>25
 
-            % This is also a special case to cover the possibilty that there is a sudden
+            % This is also a special case to cover the possibility that there is a sudden
             % increase in the number of non-linear iterations, or if the initial time step
             % a the start of a run was set too large.
             dtOut=dtIn/CtrlVar.ATStimeStepFactorDown;
             dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
             RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
-            if dtOut<dtIn
-                fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
-            end
+            % if dtOut<dtIn
+            %     fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+            % end
         else
 
             % This is the more general case.
@@ -161,9 +166,9 @@ if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the numb
                     dtOut=max(dtOut,CtrlVar.ATSdtMin) ;
                     RunInfo.Forward.AdaptiveTimeSteppingResetCounter=0;
 
-                    if dtOut<dtIn
-                        fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut)
-                    end
+                    % if dtOut<dtIn
+                    %     fprintf(' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut)
+                    % end
 
                 end
             end
@@ -188,33 +193,55 @@ if CtrlVar.UaRunType=="-uvh-" % The time stepping algorithm is based on the numb
 
 end
 
- dtOut=round(dtOut,2,"significant") ;
 
 
 
-if  CtrlVar.UaRunType=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
-    dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
+if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
 
-    dtcritical=round(dtcritical,2,"significant") ;
-    if ~isnan(dtcritical)
-    
-        nFactorSafety=2;
 
-        if dtOut>dtcritical/nFactorSafety
+    if CtrlVar.CurrentRunStepNumber>4
 
-            dtOut=dtcritical/nFactorSafety ;
-            dtOut=round(dtOut,2,"significant") ;
-           % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+        uv2hIt=mean(RunInfo.Forward.uv2hIterations((CtrlVar.CurrentRunStepNumber-3):(CtrlVar.CurrentRunStepNumber-1)));
+        uv2hItLast=RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber-1);
+
+        if uv2hIt > 6  && uv2hItLast >  3
+
+            dtOut=round(dtOut/2,2,"significant") ;
+
+        elseif uv2hIt < 3.5
+
+            dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
+
+            dtcritical=round(dtcritical,2,"significant") ;
+            if ~isnan(dtcritical)
+
+                nFactorSafety=2;
+                nFactorSafety=0.01;  % "un-safety" factor, if set to less than unity
+
+                if dtOut>dtcritical/nFactorSafety
+
+                    dtOut=dtcritical/nFactorSafety ;
+                    dtOut=round(dtOut,2,"significant") ;
+                    % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+
+                end
+
+
+                dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
+                % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
+
+            end
 
         end
-
-
-        dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
-        % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
-
     end
+
+  
+
 end
+
+
+dtOut=round(dtOut,4,"significant") ;
 
 
 RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modifications related to plot times and end times.
@@ -223,8 +250,7 @@ RunInfo.Forward.dtRestart=dtOut ;  % Create a copy of dtOut before final modific
 %% dtOut has now been set, but I need to see if the user wants outputs/plots at given time intervals and
 % if I am possibly overstepping one of those intervals.
 %
-dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time step
-% after this adjustment
+dtOutAheadOfNoOverStepping=dtOut;  % keep a copy of dtOut to be able to revert to previous time step after this adjustment
 
 
 
@@ -232,13 +258,19 @@ dtOutCopy=dtOut;  % keep a copy of dtOut to be able to revert to previous time s
 %
 if CtrlVar.DefineOutputsDt>0
 
-    % Unlikely to be the case, but make sure dtOut is equal or smaller than Dt
+
+    N=round(CtrlVar.DefineOutputsDt/dtOut) ;
+    if N < 20
+        dtOut=CtrlVar.DefineOutputsDt/N ;
+    end
+    % Unlikely to be the case, but make sure dtOut is equal or smaller than 
     if dtOut>CtrlVar.DefineOutputsDt
         dtOut=CtrlVar.DefineOutputsDt;
     end
 
-    %temp=dtOut;
-    %dtOut=NoOverStepping(CtrlVar,time,dtOutCopy,CtrlVar.DefineOutputsDt);
+    dtOutAheadOfNoOverStepping=dtOut;  % keep a copy of dtOut to be able to revert to previous time step after this adjustment
+
+  
     dtNoOverStepping=NoOverStepping(CtrlVar,time,dtOut,CtrlVar.DefineOutputsDt);
     % using dtNoOverStepping ensures that next output interval is not stepped over
     % dtNoOverStepping might be smaller that dtOut to avoid overstepping, but never smaller
@@ -270,7 +302,7 @@ if CtrlVar.DefineOutputsDt>0
         elseif ~T2
             fprinft("I think this should not happen")
         else
-            fprintf(" [dtNoOverStepping dtOut]=[%f %f]\n",dtNoOverStepping,dtOut);
+         %   fprintf(" [dtNoOverStepping dtOut]=[%f %f]\n",dtNoOverStepping,dtOut);
         end
     elseif dtNoOverStepping>dtOut
         % it is possible that dtNoOverStepping is larger than dtOut. This happens if the remaining time to next output interval is
@@ -279,33 +311,49 @@ if CtrlVar.DefineOutputsDt>0
     end
 end
 
+% reached 
 
-if CtrlVar.ATSdtMax <= dtOut
-    dtOut=CtrlVar.ATSdtMax ;
-    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reaced max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
-else
-    if dtOut>dtIn
-        fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
-    end
-end
+
 %% make sure that run time does not exceed total run time as defined by user
 % also check if current time is very close to total time, in which case there
 % is no need to change the time step
-if time+dtOut>CtrlVar.TotalTime && abs(time-CtrlVar.TotalTime)>100*eps
+
+if ~isfield(CtrlVar,"EndTime")
+    CtrlVar.EndTime=0;
+end
+
+if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps
 
     dtOutOld=dtOut;
-    dtOut=CtrlVar.TotalTime-time;
+    dtOut=CtrlVar.EndTime-time;
 
-    if dtOutOld ~= dtOut
-        fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct total run time of %-g \n ',dtOut,CtrlVar.TotalTime);
+    %if dtOutOld ~= dtOut
+    if isapprox(dtOutOld,dtOut)  % turned out these numbers often were not equal due to rounding errors, and differed by less than 1e-15
+                                 % isapprox, which was introduced in R2024b, compares by default to a relative and absolute tolerance of 1e-15
+        fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct end run time of %-g \n ',dtOut,CtrlVar.EndTime);
     end
 end
 
 
 %%
+if CtrlVar.ATSdtMax <= dtOut
 
-if dtOutCopy~=dtOut
-    dtNotUserAdjusted=dtOutCopy;
+    dtOut=CtrlVar.ATSdtMax ;
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step has reached max allowed automated time step of %-g and is therefore not increased further \n ',CtrlVar.ATSdtMax);
+
+elseif dtOut>dtIn
+
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step increased from %-g to %-g \n ',dtIn,dtOut);
+
+elseif dtOut<dtIn
+
+    fprintf(CtrlVar.fidlog,' ---------------- Adaptive Time Stepping: time step decreased from %-g to %-g \n ',dtIn,dtOut);
+
+end
+
+%%
+if dtOutAheadOfNoOverStepping~=dtOut
+    dtNotUserAdjusted=dtOutAheadOfNoOverStepping;
 else
     dtNotUserAdjusted=[];
 end

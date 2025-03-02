@@ -1,7 +1,12 @@
-function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow)
+
+
+
+
+
+function [b,s,h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,h,S,B,rho,rhow,GF)
 
 nargoutchk(2,4)
-narginchk(7,7)
+narginchk(7,8)
 
 if ~ isstruct(CtrlVar)
     error('Calc_bs_From_hBSL:InputError','Incorrect inputs.')
@@ -39,7 +44,7 @@ if CtrlVar.ResetThicknessToMinThickness
             fprintf(' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
 
             if CtrlVar.InfoLevelThickMin>=10 && CtrlVar.doplots
-                fig=FindOrCreateFigure('ThickMin');
+                fig=FindOrCreateFigure('ThickMin'); clf(fig) ; 
                 PlotMuaMesh(CtrlVar,MUA)
                 hold on
                 plot(MUA.coordinates(indh0,1)/CtrlVar.PlotXYscale,MUA.coordinates(indh0,2)/CtrlVar.PlotXYscale,'or')
@@ -74,7 +79,7 @@ if CtrlVar.Enforce_bAboveB
             fprintf(CtrlVar.fidlog,' Calc_bs_From_hBS: Found %-i cases where b<B. Setting b>=B.  \n ',numel(find(I))) ;
 
             if CtrlVar.doplots==1
-                fig=FindOrCreateFigure('b<B');
+                fig=FindOrCreateFigure('b<B'); clf(fig)
                 PlotMuaMesh(CtrlVar,MUA) ;
                 hold on ;
                 plot(MUA.coordinates(I,1)/CtrlVar.PlotXYscale,MUA.coordinates(I,2)/CtrlVar.PlotXYscale,'.r') ; title('locations where b<B')

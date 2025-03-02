@@ -1,6 +1,6 @@
 function [UserVar,RunInfo,h1,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l)
 
-%  function [UserVar,RunInfo,h1,l]=SSS2dPrognostic(UserVar,RunInfo,CtrlVar,MUA,BCs,l,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt)
+
 
 nargoutchk(3,4)
 
@@ -9,13 +9,13 @@ nargoutchk(3,4)
 % implicit with respect to thickness (h)
 % explicit with respect to velocity
 
-
+error("no longer maintaned")
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 Lh=MLC.hL ; Lhrhs=MLC.hRhs ;
 
 if numel(l.h)==numel(Lhrhs)
-    lambdah=l.h;   % TO DO/to do: consider checking that l.h has indeed the right dimensions. Here lambdah is only an initial guess for lambdah when solved using an iterative solver.
+    lambdah=l.h;   
 else
     lambdah=Lhrhs*0;
 end
@@ -31,7 +31,7 @@ switch lower(CtrlVar.FlowApproximation)
             
             % for CtrlVar.TG3=0 both do the same, but Next2DSparseVector does not calculate
             % the TG3 terms, where as NextTG3in2D always does, even if they are not needed.
-            case "TG3"
+            case "TG3"  % old version, no longer used
                 % This always includes the TG3 terms
                 [h1,lambdah]=NexthTG3in2D(dt,h0,ub0,vb0,dub0dt,dvb0dt,a0,da0dt,ub1,vb1,a1,da1dt,dub1dt,dvb1dt,MUA.coordinates,MUA.connectivity,MUA.Boundary,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
                 l.h=lambdah;
@@ -42,9 +42,7 @@ switch lower(CtrlVar.FlowApproximation)
                 [h1,lambdah]=Nexh2DSparseVector(dt,h0,ub0,vb0,a0,ub1,vb1,a1,MUA.coordinates,MUA.connectivity,MUA.nip,Lh,Lhrhs,lambdah,CtrlVar);
                 l.h=lambdah;
             case "SUPG"
-                
-                % kappa=zeros(MUA.Nnodes,1);
-                % [UserVar,h1,lambdah]=TracerConservationEquation(UserVar,CtrlVar,MUA,dt,h0,ub0,vb0,a0,ub1,vb1,a1,kappa,BCs);
+                            
                 
                 [UserVar,RunInfo,h1,l]=MassContinuityEquation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 

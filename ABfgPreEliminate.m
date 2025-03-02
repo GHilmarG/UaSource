@@ -84,7 +84,7 @@ else
         
             [nAtilde,mAtilde]=size(Atilde);
             fprintf('\n ----------------------------- Info on distributed solve performance : \n')
-            fprintf('%i x %i :  tSeq=%f \t tDistributed=%f \t tSeq/rDistributed=%f \n',nAtilde,mAtilde,tSeq,tDistributed,tSeq/tDistributed) ;
+            fprintf('%i x %i :  tSeq=%f \t tDistributed=%f \t speedup=%f \n',nAtilde,mAtilde,tSeq,tDistributed,tSeq/tDistributed) ;
             fprintf(' norm(xSeq-xDist)/norm(xSeq)=%g    \n',full(norm(xSeq-xDist)/norm(xSeq)))
             fprintf(' ----------------------------- \n')
 

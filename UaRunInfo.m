@@ -41,7 +41,7 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvResidual=NaN(N,1);
             obj.Forward.uvBackTrackSteps=NaN(N,1);
 
-
+            obj.Forward.uv2hIterations=NaN(N,1);
 
             obj.Forward.dtRestart=NaN;
 
@@ -53,9 +53,14 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.Forward.uvhIterations=NaN(N,1);
             obj.Forward.uvhResidual=NaN(N,1);
             obj.Forward.uvhBackTrackSteps=NaN(N,1);
+
             obj.Forward.uvhActiveSetIterations=NaN(N,1);
             obj.Forward.uvhActiveSetCyclical=NaN(N,1);
             obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+
+            obj.Forward.hActiveSetIterations=NaN(N,1);
+            obj.Forward.hActiveSetCyclical=NaN(N,1);
+            obj.Forward.hActiveSetConstraints=NaN(N,1);
 
             obj.Forward.hConverged=0;
             obj.Forward.hIterations=NaN(N,1);
@@ -140,29 +145,36 @@ classdef (ConstructOnLoad) UaRunInfo
                 return
             end
 
-            if contains(CtrlVar.UaRunType,["-uvh-","-uv-"])
+            if contains(CtrlVar.ForwardTimeIntegration,["-uvh-","-uv-"])
 
 
 
-                obj.Forward.time=resize(obj.Forward.time,nPadding,FillValue=nan) ; 
-                obj.Forward.dt=resize(obj.Forward.dt,nPadding,FillValue=nan) ; 
+                obj.Forward.time=UaResize(obj.Forward.time,nPadding,FillValue=nan) ; 
+                obj.Forward.dt=UaResize(obj.Forward.dt,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvhIterations=resize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhResidual=resize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhBackTrackSteps=resize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhIterations=UaResize(obj.Forward.uvhIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhResidual=UaResize(obj.Forward.uvhResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhBackTrackSteps=UaResize(obj.Forward.uvhBackTrackSteps,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvhActiveSetIterations=resize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhActiveSetCyclical=resize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
-                obj.Forward.uvhActiveSetConstraints=resize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetIterations=UaResize(obj.Forward.uvhActiveSetIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetCyclical=UaResize(obj.Forward.uvhActiveSetCyclical,nPadding,FillValue=nan) ; 
+                obj.Forward.uvhActiveSetConstraints=UaResize(obj.Forward.uvhActiveSetConstraints,nPadding,FillValue=nan) ; 
 
-                obj.Forward.uvIterations=resize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
-                obj.Forward.uvResidual=resize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
-                obj.Forward.uvBackTrackSteps=resize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
+
+                obj.Forward.hActiveSetIterations=UaResize(obj.Forward.hActiveSetIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.hActiveSetCyclical=UaResize(obj.Forward.hActiveSetCyclical,nPadding,FillValue=nan) ; 
+                obj.Forward.hActiveSetConstraints=UaResize(obj.Forward.hActiveSetConstraints,nPadding,FillValue=nan) ; 
+
+                obj.Forward.uvIterations=UaResize(obj.Forward.uvIterations,nPadding,FillValue=nan) ; 
+                obj.Forward.uvResidual=UaResize(obj.Forward.uvResidual,nPadding,FillValue=nan) ; 
+                obj.Forward.uvBackTrackSteps=UaResize(obj.Forward.uvBackTrackSteps,nPadding,FillValue=nan) ; 
+
+                obj.Forward.uv2hIterations=UaResize(obj.Forward.uv2hIterations,nPadding,FillValue=nan) ; 
 
 
             end
 
-            if contains(CtrlVar.UaRunType,"-h-")
+            if contains(CtrlVar.ForwardTimeIntegration,"-h-")
 
                 obj.Forward.hIterations=[obj.Forward.hIterations;Padding];
                 obj.Forward.hResidual=[obj.Forward.hResidual;Padding];
@@ -204,9 +216,18 @@ classdef (ConstructOnLoad) UaRunInfo
                 obj.Forward.uvhIterations=NaN(N,1);
                 obj.Forward.uvhResidual=NaN(N,1);
                 obj.Forward.uvhBackTrackSteps=NaN(N,1);
+
                 obj.Forward.uvhActiveSetIterations=NaN(N,1);
                 obj.Forward.uvhActiveSetCyclical=NaN(N,1);
                 obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+
+            end
+
+            if ~isfield(s.Forward,'hActiveSetIterations')
+                N=2; 
+                obj.Forward.hActiveSetIterations=NaN(N,1);
+                obj.Forward.hActiveSetCyclical=NaN(N,1);
+                obj.Forward.hActiveSetConstraints=NaN(N,1);
 
             end
 

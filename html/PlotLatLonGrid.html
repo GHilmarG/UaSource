@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>PlotLatLonGrid</title>
-<meta name="generator" content="MATLAB 23.2">
+<meta name="generator" content="MATLAB 24.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2023-10-29">
+<meta name="DC.date" content="2025-03-01">
 <meta name="DC.source" content="PlotLatLonGrid.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -82,37 +82,59 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <li>
 <a href="#4">create new axes for the lat/lon lines (never got this to work)</a>
 </li>
+<li>
+<a href="#6">Setting values in the case of no or limited input</a>
+</li>
 </ul>
 </div>
 <pre class="codeinput">
 <span class="keyword">function</span> [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 </pre>
 <p>Plots a lat lon grid</p>
-<p>This is written for the Antarctica setting using polar stereographic coordinate system.</p>
+<p>This is written for the Antarctica setting using polar stereo-graphic coordinate system.</p>
 <p>[Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)</p>
-<p>Inputes:</p>
+<p>Inputs:</p>
 <pre>scale   ;    scales the x and the y axis. For example if the x,y units are meters, but you want to plot using km as a
              distance units, set scale=1000</pre>
 <pre>dlat, dlon : distance between lat and lon lines, in degrees</pre>
 <pre>LableSpacing :   affects the spacing between labels, default is LableSpacing=400. Increase to increase spacing between lat
                  lon labels.</pre>
 <p>Colour: color of the lat, lon lines</p>
-<p>isCircumpolar: set to true if the plot area is circumpolar, ie includes the pole itself.</p>
-<p>Outputs:</p>
-<pre>   Clat,hlat,Clon,hlon  : These are the contour matrices and the contour objects. The contour objects allow the properties
-   of the countour plots to be easily edited after the call.</pre>
-<p>NOTE #1: Do not use figure zoom after this or the lat/lon lin will get misaligned! Despite best atempts I have not been able to link the axis and get the right behaviour.</p>
-<p>NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news!</p>
-<p>Example:</p>
-<pre class="language-matlab">load(<span class="string">'PIG-TWG-RestartFile.mat'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'MUA'</span>,<span class="string">'F'</span>)
-CtrlVar=CtrlVarInRestartFile ;
-cbar=UaPlots(CtrlVar,MUA,F,<span class="string">"-speed-"</span>) ;
-hold <span class="string">on</span> ;
-[~,~,~,~,~,hlat,~,hlon]=PlotLatLonGrid(1000)   ; <span class="comment">% often the colormap will have to be redefined after this call</span>
-axis([-2000 -1000 -900 100])
-hlat.LineStyle=<span class="string">"--"</span>; hlon.LineStyle=<span class="string">"--"</span>;
-clim([0 4000])
-ModifyColormap;
+<pre class="codeinput">
+<span class="comment">%</span>
+<span class="comment">% isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Outputs:</span>
+<span class="comment">%</span>
+<span class="comment">%     Clat,hlat,Clon,hlon  : These are the contour matrices and the contour objects. The contour objects allow the properties</span>
+<span class="comment">%     of the contour plots to be easily edited after the call.</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% NOTE #1: Do not use figure zoom after this or the lat/lon lin will get misaligned!</span>
+<span class="comment">%       Despite best attempts I have not been able to link the axis and get the right behavior.</span>
+<span class="comment">%</span>
+<span class="comment">% NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news!</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Example:</span>
+<span class="comment">%</span>
+<span class="comment">%   load('PIG-TWG-RestartFile.mat','CtrlVarInRestartFile','MUA','F')</span>
+<span class="comment">%   CtrlVar=CtrlVarInRestartFile ;</span>
+<span class="comment">%   cbar=UaPlots(CtrlVar,MUA,F,"-speed-") ;</span>
+<span class="comment">%   hold on ;</span>
+<span class="comment">%   [~,~,~,~,~,hlat,~,hlon]=PlotLatLonGrid(1000)   ; % often the colormap will have to be redefined after this call</span>
+<span class="comment">%   axis([-2000 -1000 -900 100])</span>
+<span class="comment">%   hlat.LineStyle="--"; hlon.LineStyle="--";</span>
+<span class="comment">%   clim([0 4000])</span>
+<span class="comment">%   ModifyColormap;</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% see also:</span>
+<span class="comment">%</span>
+<span class="comment">%   LatLonGrid</span>
+<span class="comment">%</span>
 </pre>
 <pre class="codeinput">fig = gcf;
 ax1 = fig.CurrentAxes ;
@@ -131,9 +153,34 @@ xmin=tt(1) ; xmax=tt(2) ; ymin=tt(3) ; ymax=tt(4) ;
    ax2.YLim=ax1.YLim;</pre>
 <pre class="codeinput">ax2=[] ;
 </pre>
+<h2 id="6">Setting values in the case of no or limited input</h2>
 <pre class="codeinput">
-<span class="keyword">if</span> nargin &lt; 6
-    isCircumpolar=false;
+<span class="comment">% First try to figure out if this is circumpolar</span>
+<span class="keyword">if</span> nargin&lt; 6 || isempty(isCircumpolar)
+    AxLimits=axis;
+    isCircumpolar=AxLimits(1) &lt; 0 &amp;&amp; AxLimits(2) &gt; 0  &amp;&amp; AxLimits(3) &lt;0 &amp;&amp; AxLimits(4) &gt; 0 ;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isCircumpolar
+
+    <span class="keyword">if</span> nargin &lt; 5
+        Colour=<span class="string">'black'</span>;
+        <span class="keyword">if</span> nargin&lt; 4
+            LabelSpacing=1000;
+            <span class="keyword">if</span> nargin&lt; 3
+                dlon=45;
+                <span class="keyword">if</span> nargin&lt; 2
+                    dlat=10;
+                    <span class="keyword">if</span> nargin==0
+                        scale=1000 ;
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+<span class="keyword">else</span>
+
     <span class="keyword">if</span> nargin &lt; 5
         Colour=<span class="string">'black'</span>;
         <span class="keyword">if</span> nargin&lt; 4
@@ -149,44 +196,58 @@ xmin=tt(1) ; xmax=tt(2) ; ymin=tt(3) ; ymax=tt(4) ;
             <span class="keyword">end</span>
         <span class="keyword">end</span>
     <span class="keyword">end</span>
-<span class="keyword">end</span>
 
+<span class="keyword">end</span>
+</pre>
+<pre class="codeinput">
+<span class="keyword">if</span> nargin ==0
+
+    <span class="comment">% guessing here a bit</span>
+
+    <span class="keyword">if</span> (xmax-xmin)&lt; 300 <span class="comment">% assuming km as units</span>
+        dlon=5;
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> (ymax-ymin)&lt; 400 <span class="comment">% assuming km as units</span>
+        dlat=1;
+    <span class="keyword">end</span>
+
+
+<span class="keyword">end</span>
 
 <span class="comment">% set some plausible values if user has not defined those already</span>
-<span class="keyword">if</span> isCircumpolar &amp;&amp; isempty(dlat) &amp;&amp;  isempty(dlon)  &amp;&amp;  isempty(LabelSpacing)
-
-    dlat=10;
-    dlon=45;
-    LabelSpacing=200;
-
-<span class="keyword">else</span>
 
 
-    <span class="keyword">if</span> isempty(dlat)
-        dlat=5;
-    <span class="keyword">end</span>
-
-    <span class="keyword">if</span> isempty(dlon)
-        dlon=10;
-    <span class="keyword">end</span>
-
-    <span class="keyword">if</span> isempty(LabelSpacing)
-        LabelSpacing=400;
-    <span class="keyword">end</span>
-
-    <span class="keyword">if</span> isempty(Colour)
-        Colour=<span class="string">'black'</span>;
-    <span class="keyword">end</span>
-
-
+<span class="keyword">if</span> isempty(dlat)
+    dlat=5;
 <span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(dlon)
+    dlon=10;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(LabelSpacing)
+    LabelSpacing=400;
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(Colour)
+    Colour=<span class="string">'black'</span>;
+<span class="keyword">end</span>
+
+
+
+
+
+
+
+
 
 lcol=<span class="string">'k'</span>;
 
 climCopy=clim;
 
 
-[X0,Y0]=meshgrid(linspace(xmin,xmax,400),linspace(ymin,ymax,400));
+[X0,Y0]=meshgrid(linspace(xmin,xmax,800),linspace(ymin,ymax,800));
 
 [Lat,Lon]=pol_to_geog_wgs84_71S(X0*scale,Y0*scale);
 
@@ -194,7 +255,7 @@ climCopy=clim;
     I=Lat&gt;-62; Lon(I)=NaN ; Lat(I)=NaN;
     I=Lat&gt;-64.9;  Lon(I)=NaN;
     I=Lat&lt;-85.1 ; Lon(I)=NaN;
-    I=Lat&lt;-86 ; Lat(I)=NaN ;
+    I=Lat&lt;-85.1 ; Lat(I)=NaN ;
     I=Lon&lt;-171 ; Lon(I)=Lon(I)+360;
     I=Lon&lt;-170 ; Lon(I)=NaN;
 <span class="keyword">end</span>
@@ -202,16 +263,14 @@ climCopy=clim;
 
 hold <span class="string">on</span>
 
-<span class="keyword">if</span> isCircumpolar
-    [Clat,hlat]=contour(ax1,X0,Y0,Lat,[5:dlat:90],LineColor=lcol,LabelFormat=@mylabelfunLat);
-<span class="keyword">else</span>
-    [Clat,hlat]=contour(ax1,X0,Y0,Lat,[-90:dlat:90],LineColor=lcol,LabelFormat=@mylabelfunLat);
-<span class="keyword">end</span>
+
+[Clat,hlat]=contour(ax1,X0,Y0,Lat,-85:dlat:85,LineColor=lcol,LabelFormat=@mylabelfunLat);
+
 
 set(hlat,<span class="string">'ShowText'</span>,<span class="string">'on'</span>,<span class="string">'TextStep'</span>,get(hlat,<span class="string">'LevelStep'</span>)*2,<span class="string">'LabelSpacing'</span>,LabelSpacing)
 
 
-[Clon,hlon]=contour(ax1,X0,Y0,Lon,[-180+dlon:dlon:185],LineColor=lcol,LabelFormat=@mylabelfunLon);
+[Clon,hlon]=contour(ax1,X0,Y0,Lon,-180+dlon:dlon:185,LineColor=lcol,LabelFormat=@mylabelfunLon);
 set(hlon,<span class="string">'ShowText'</span>,<span class="string">'on'</span>,<span class="string">'TextStep'</span>,get(hlon,<span class="string">'LevelStep'</span>)*2,<span class="string">'LabelSpacing'</span>,LabelSpacing)
 
 
@@ -228,7 +287,7 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 
 
 clim(climCopy) <span class="comment">% set color axis limit to the value at the beginning of the call</span>
-               <span class="comment">% this is done here because the contour functions above might change the existing limites</span>
+<span class="comment">% this is done here because the contour functions above might change the existing limits</span>
 
     <span class="keyword">function</span> labels=mylabelfunLon(vals)
 
@@ -252,13 +311,18 @@ clim(climCopy) <span class="comment">% set color axis limit to the value at the 
 
 
     <span class="keyword">end</span>
+
+
+<span class="keyword">if</span> ~nargout   <span class="comment">% A trick to suppress any function output if no output requested. No need to suppress output using ;</span>
+    clearvars <span class="string">Lat</span>
+<span class="keyword">end</span>
 </pre>
 <pre class="codeinput">
 <span class="keyword">end</span>
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
 <br>
 </p>
 </div>
@@ -274,14 +338,14 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %%
 % Plots a lat lon grid
 %
-% This is written for the Antarctica setting using polar stereographic coordinate system.
+% This is written for the Antarctica setting using polar stereo-graphic coordinate system.
 %
 %
 %
 % [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon]=PlotLatLonGrid(scale,dlat,dlon,LabelSpacing,Colour,isCircumpolar)
 %
 %
-% Inputes:
+% Inputs:
 %
 %  scale   ;    scales the x and the y axis. For example if the x,y units are meters, but you want to plot using km as a
 %               distance units, set scale=1000
@@ -292,21 +356,23 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %                   lon labels.
 %
 % Colour:   color of the lat, lon lines
-% 
-% isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.  
+
+
+%
+% isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.
 %
 %
 % Outputs:
 %
 %     Clat,hlat,Clon,hlon  : These are the contour matrices and the contour objects. The contour objects allow the properties
-%     of the countour plots to be easily edited after the call.
+%     of the contour plots to be easily edited after the call.
 %
 %
 %
 % NOTE #1: Do not use figure zoom after this or the lat/lon lin will get misaligned!
-%       Despite best atempts I have not been able to link the axis and get the right behaviour.
+%       Despite best attempts I have not been able to link the axis and get the right behavior.
 %
-% NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news! 
+% NOTE #2: As of Matlab2023b, Note#1 is no longer of relevance, which is good news!
 %
 %
 % Example:
@@ -322,8 +388,10 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %   ModifyColormap;
 %
 %
+% see also:
 %
-
+%   LatLonGrid
+%
 %%
 
 fig = gcf;
@@ -347,8 +415,34 @@ ax2=[] ;
 %%
 
 
-if nargin < 6
-    isCircumpolar=false;
+%% Setting values in the case of no or limited input
+
+% First try to figure out if this is circumpolar
+if nargin< 6 || isempty(isCircumpolar)
+    AxLimits=axis;
+    isCircumpolar=AxLimits(1) < 0 && AxLimits(2) > 0  && AxLimits(3) <0 && AxLimits(4) > 0 ;
+end
+
+if isCircumpolar
+
+    if nargin < 5
+        Colour='black';
+        if nargin< 4
+            LabelSpacing=1000;
+            if nargin< 3
+                dlon=45;
+                if nargin< 2
+                    dlat=10;
+                    if nargin==0
+                        scale=1000 ;
+                    end
+                end
+            end
+        end
+    end
+
+else
+
     if nargin < 5
         Colour='black';
         if nargin< 4
@@ -364,44 +458,59 @@ if nargin < 6
             end
         end
     end
+
 end
 
+%%
+
+if nargin ==0
+
+    % guessing here a bit
+
+    if (xmax-xmin)< 300 % assuming km as units
+        dlon=5;
+    end
+
+    if (ymax-ymin)< 400 % assuming km as units
+        dlat=1;
+    end
+
+
+end
 
 % set some plausible values if user has not defined those already
-if isCircumpolar && isempty(dlat) &&  isempty(dlon)  &&  isempty(LabelSpacing)
-
-    dlat=10;
-    dlon=45;
-    LabelSpacing=200;
-
-else
 
 
-    if isempty(dlat)
-        dlat=5;
-    end
-
-    if isempty(dlon)
-        dlon=10;
-    end
-
-    if isempty(LabelSpacing)
-        LabelSpacing=400;
-    end
-
-    if isempty(Colour)
-        Colour='black';
-    end
-
-
+if isempty(dlat)
+    dlat=5;
 end
+
+if isempty(dlon)
+    dlon=10;
+end
+
+if isempty(LabelSpacing)
+    LabelSpacing=400;
+end
+
+if isempty(Colour)
+    Colour='black';
+end
+
+
+
+
+
+
+
+
 
 lcol='k';
 
 climCopy=clim;
 
 
-[X0,Y0]=meshgrid(linspace(xmin,xmax,400),linspace(ymin,ymax,400));
+[X0,Y0]=meshgrid(linspace(xmin,xmax,800),linspace(ymin,ymax,800));
 
 [Lat,Lon]=pol_to_geog_wgs84_71S(X0*scale,Y0*scale);
 
@@ -409,7 +518,7 @@ if isCircumpolar
     I=Lat>-62; Lon(I)=NaN ; Lat(I)=NaN;
     I=Lat>-64.9;  Lon(I)=NaN;
     I=Lat<-85.1 ; Lon(I)=NaN;
-    I=Lat<-86 ; Lat(I)=NaN ;
+    I=Lat<-85.1 ; Lat(I)=NaN ;
     I=Lon<-171 ; Lon(I)=Lon(I)+360;
     I=Lon<-170 ; Lon(I)=NaN;
 end
@@ -417,16 +526,14 @@ end
 
 hold on
 
-if isCircumpolar
-    [Clat,hlat]=contour(ax1,X0,Y0,Lat,[5:dlat:90],LineColor=lcol,LabelFormat=@mylabelfunLat);
-else
-    [Clat,hlat]=contour(ax1,X0,Y0,Lat,[-90:dlat:90],LineColor=lcol,LabelFormat=@mylabelfunLat);
-end
+
+[Clat,hlat]=contour(ax1,X0,Y0,Lat,-85:dlat:85,LineColor=lcol,LabelFormat=@mylabelfunLat);
+
 
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
-[Clon,hlon]=contour(ax1,X0,Y0,Lon,[-180+dlon:dlon:185],LineColor=lcol,LabelFormat=@mylabelfunLon);
+[Clon,hlon]=contour(ax1,X0,Y0,Lon,-180+dlon:dlon:185,LineColor=lcol,LabelFormat=@mylabelfunLon);
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',LabelSpacing)
 
 
@@ -443,7 +550,7 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 
 
 clim(climCopy) % set color axis limit to the value at the beginning of the call
-               % this is done here because the contour functions above might change the existing limites
+% this is done here because the contour functions above might change the existing limits
 
     function labels=mylabelfunLon(vals)
 
@@ -469,6 +576,9 @@ clim(climCopy) % set color axis limit to the value at the beginning of the call
     end
 
 
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars Lat
+end
 
 
 end

@@ -6,7 +6,7 @@
 function MUAworkers=BuildMuaWorkers(CtrlVar,MUA,MUAworkers)
 
 
-if ~CtrlVar.Parallel.BuildWorkers  % Somtimes building workers is suppressed.
+if ~CtrlVar.Parallel.BuildWorkers  % Sometimes building workers is suppressed.
                                    % For example when adapting the mesh repeatedly, there is no need to build workers for each
                                    % mesh. Generally, only build workers ahead of a uv of uvh solve
 
@@ -74,7 +74,7 @@ else
 
     if ~isCompoositeInCorrectState
         BuildWorkers=true;
-    else  % Compoosite is tecknically in correct state, but may not contain the right elements
+    else  % Composite is technically in correct state, but may not contain the right elements
 
         % check if all partitions already contain the correct elements, if so then there is no need to build the workers anew
         spmd (0,nW)

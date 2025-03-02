@@ -1,3 +1,7 @@
+
+
+
+
 function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,CtrlVar,nOut,listInF,listOutF,varargin)
 
 %%
@@ -64,6 +68,7 @@ if nargin<7
     listOutF=[];
 else
     Fargcollect=1;
+    varargout=cell(nOut-1,1);
 end
 
 if nargin<8
