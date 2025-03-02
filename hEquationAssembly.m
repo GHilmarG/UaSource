@@ -47,16 +47,16 @@ vnod=reshape(v(MUA.connectivity,1),MUA.Nele,MUA.nod);   % MUA.Nele x nod
 anod=reshape(a(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-if numel(kIso)==1
+if isscalar(kIso)
     kIso=kIso+zeros(MUA.Nnodes,1);
 end
 
-if numel(kAlong)==1
+if isscalar(kAlong)
     kAlong=kAlong+zeros(MUA.Nnodes,1);
 end
 
 
-if numel(kCross)==1
+if isscalar(kCross)
     kCross=kCross+zeros(MUA.Nnodes,1);
 end
 

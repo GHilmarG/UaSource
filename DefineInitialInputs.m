@@ -33,7 +33,8 @@ CtrlVar.InfoLevelAdaptiveMeshing=1; % for 5=> some plots are generated as well (
 % The run stops once either forward run steps or (model) time has reached prescribed
 % values. 
 CtrlVar.TotalNumberOfForwardRunSteps=3;
-CtrlVar.TotalTime=100;
+CtrlVar.StartTime=90;
+CtrlVar.EndTime=100; 
 CtrlVar.UseUserDefinedRunStopCriterion=false; % one can also introduce UserDefined run stop criterion
                                               % through DefineRunStopCriterion.m
 
@@ -45,9 +46,9 @@ CtrlVar.SlidingLaw="W" ;
     % "rCW-N0" ;  is the Cornford sliding law. This uses a 'reciprocal sum' of Coulomb and Weertman sliding laws. 
     % For description of further options and definitions, see Ua2D_DefaultParameters and
     % the UaCompendium.pdf 
-%% time and time step
+%% time step, and time-stepping 
 CtrlVar.dt=0.001; 
-CtrlVar.time=0; 
+
 
 CtrlVar.DefineOutputsDt=0; % interval between calling DefineOutputs. 0 implies call it at each and every run step.
                        % setting CtrlVar.DefineOutputsDt=1; causes DefineOutputs to be called every 1 years.

@@ -57,22 +57,22 @@ end
 % some input checks
 
 errorStruct.identifier = 'GetMassBalance:NaNinInput';
-if any(isnan(F.as))
+if anynan(F.as)
     errorStruct.message = 'nan in as';
     error(errorStruct)
 end
 
-if any(isnan(F.ab))
+if anynan(F.ab)
     errorStruct.message = 'nan in ab';
     error(errorStruct)
 end
 
-if any(isnan(F.dasdh))
+if anynan(F.dasdh)
     errorStruct.message = 'nan in dasdh';
     error(errorStruct)
 end
 
-if any(isnan(F.dabdh))
+if anynan(F.dabdh)
     errorStruct.message = 'nan in dabdh';
     error(errorStruct)
 end

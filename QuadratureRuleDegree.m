@@ -25,7 +25,7 @@ else
 
         case 10
 
-            Degree=8 ;
+            Degree=10 ;
             % Degree=25;
 
         otherwise

@@ -12,10 +12,17 @@ if isempty(iCount)
     iCount=0;
 end
 
+poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
 
-if isempty(CtrlVar.Parallel.uvAssembly.spmd.nWorkers)
-    poolobj = gcp;
-    CtrlVar.Parallel.uvAssembly.spmd.nWorkers=poolobj.NumWorkers;
+if isempty(poolobj)
+
+    fprintf("SPMD assembly is set to true, but parallel pool is empty. \n")
+    fprintf(" Create a parallel pool ahead of the call to Ua.\n")
+
+else
+
+    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+
 end
 
 nW=CtrlVar.Parallel.uvAssembly.spmd.nWorkers;

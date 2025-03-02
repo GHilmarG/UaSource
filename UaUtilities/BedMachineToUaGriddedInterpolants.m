@@ -50,7 +50,7 @@ arguments
     filename (1,1) string = "BedMachineAntarctica_2020-07-15_v02.nc" ;
     N (1,1) double = 1
     LakeVostok (1,1) logical = false
-    BoundaryResolution (1,1) double = 2*N*500;      % this mush be larger than 500m, and preferrably some interger multiple of that
+    BoundaryResolution (1,1) double = 2*N*500;      % this mush be larger than 500m, and preferably some integer multiple of that
     SaveOutputs (1,1) logical = false ; 
 end
 
@@ -83,7 +83,7 @@ fprintf("...done.\n")
 %  4 = Lake Vostok
 %
 %
-% Apparantly  surface=bed+thickness over the grounded areas
+% Apparently  surface=bed+thickness over the grounded areas
 %
 % However this surface is not the REMA surface
 %
@@ -112,7 +112,7 @@ drawnow ; fprintf('done.\n')
 %% Ua variables
 %
 % I'm assuming here that the user wants the variable s to be surface+firn, in which case the vertically averaged ice density must be
-% modfied accordingly.
+% modified accordingly.
 %
 % 
 s=surface+firn ;
@@ -146,7 +146,7 @@ rhoMin=100;
 %%
 
 
-rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the deph h=s-b=firn+thicknes
+rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the deph h=s-b=firn+thickness
 
 % Note: one would expect that the minimum value of rho would be equal to the firn density,
 %       but there are a number of values where rho=0, that is when firn=h. Not sure how this can happen
@@ -233,7 +233,7 @@ xlabel('xps (km)' ) ; xlabel('yps (km)' ) ; title('b-B') ; title(cbar,'m')
 
 fprintf('done.\n')
 %% Meshboundary coordinates
-% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the
+% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contour-line. Depending on the
 % situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the
 % time. 
 fprintf('Creating MeshBoundary coordinates...')
@@ -246,7 +246,7 @@ fc=FindOrCreateFigure('contour') ;
 [M]=contour(x(1:NN:end),y(1:NN:end),IceMask(1:NN:end,1:NN:end),1) ; axis equal
 hold on; plot(M(1,:), M(2, :), 'r.');
 
-% now find longest contourline
+% now find longest contour line
 level=0.5 ;  % this contour level must be in M
 I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ; 
 fprintf(' %i points in the longest contour line segment.\n',M(2,I(J)) );
@@ -265,7 +265,7 @@ end
 
 
 %% Grounding line coordinates
-% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contourline. Depending on the
+% Find the boundary by extracting the 0.5 contour line of the IceMask Then extract the largest single contour line. Depending on the
 % situation, this may or may not be what the user wants. But this appears a reasonable guess as to what most users might want most of the
 % time. 
 fprintf('Creating grounding line coordinates...')
@@ -280,7 +280,7 @@ fc=FindOrCreateFigure('GL contour') ;
 M=contour(x(1:NN:end),y(1:NN:end),GroundedIceMask(1:NN:end,1:NN:end),1) ; axis equal
 hold on; plot(M(1,:), M(2, :), 'r.');
 
-% now find Ngl longest contourline
+% now find Ngl longest contour line
 level=0.5 ;  % this contour level must be in M
 I=find(M(1,:)==level) ; [~,J]=max(M(2,I)) ; 
 
@@ -314,6 +314,7 @@ end
 
 
 %%  Testing mesh boundary coordinates and creating  a new one with different spacing between points and some level of smoothing
+
 
 CtrlVar.GLtension=1e-12; % tension of spline, 1: no smoothing; 0: straight line
 CtrlVar.GLds=5e3 ; 

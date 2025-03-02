@@ -534,6 +534,29 @@ FindOrCreateFigure("mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
 FindOrCreateFigure("ele sizes histogram") ; histogram( sqrt(2*MUA.EleAreas)) ; xlabel("Element size")
 %str=input('Next example? y/n [y] ? ','s');  if strcmpi(str,'n') ; return ; end
+
+%% Example: Inner boundary
+% This example uses mesh2d with boundary being retraced back to create an internal boundary
+
+
+CtrlVar.MeshSize=1; CtrlVar.MeshSizeMax=1 ; CtrlVar.PlotXYscale=1; 
+MeshBoundaryCoordinates=[-10 -10 ; -10 10 ; 10 10 ; 10 -10 ; -10 -10 ;...
+                         -5 -5 ; 5 -5 ; 5 5 ; -5 5 ; ...      % inner boundary
+                         -5 -5 ; -5 5 ; 5 5 ; 5 -5 ; -5 -5];  % retracing backwards 
+                         
+
+CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+% Now generate mesh (When using Úa this is done internally, no such call
+% then needed).
+
+
+[UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
+CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=true;
+FindOrCreateFigure("Mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
+
+
+
+
 %% Example: Two subdomains sharing a common boundary.
 %
 % This example uses GmshInputFormat 2.
@@ -899,7 +922,7 @@ MUA.dM=[];
 MUA.coordinates(:,2)=-(MUA.coordinates(:,2)) ;
 MUA.coordinates=MUA.coordinates-mean(MUA.coordinates);
 FindOrCreateFigure("Ua Logo Mesh") ; PlotMuaMesh([],MUA) ; axis xy
-save("UaLogoMUA.mat","MUA")
+% save("UaLogoMUA.mat","MUA")
 
 
 

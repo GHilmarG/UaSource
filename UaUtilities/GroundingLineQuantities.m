@@ -60,15 +60,17 @@ function GLQ=GroundingLineQuantities(F,xGL,yGL,nxGL,nyGL)
     
     % Theta_n is normal component of the horizontal traction, normalized by the 1D value
     % 
-    % Theta_n=1 implies no butressing, 
+    % Theta_n=1 implies no buttressing, 
     %
-    % Theta>1 implies `positive buttressing' ie the normal (tensional) stress
-    % at the grounding line is less than the (tensional) stress in the case of an unconfined ice shelf,
-    % in other words the ice flow is restricted by the ice shelf
+    % Theta>1 implies extensional stresses greater than those provided by the ocean, 
+    %
+   
 
-    % Theta<1 implies normal (tensional) stress at the grounding line that is larger than for the unconfined ice shelf case, ie the
-    % ice is pulled out
-    
+    % Theta<1 implies normal extensional stress at the grounding line that is less than for the unconfined ice shelf case
+
+    % 'High'/'strong' butterssing is \theta < 0.5 or so.
+
+    % If theta>1, the ice is 'pulled' out
     
     GLQ.kappaN=(GLQ.Ffree-GLQ.N)./GLQ.Ffree;                     % (normal) Buttressing number
     GLQ.kappaT=GLQ.T./GLQ.Ffree;                                 % (tangential) Buttressing number

@@ -2,14 +2,16 @@ function [Emin,Emax,Emean,Emedian,Tlength]=PrintInfoAboutElementsSizes(CtrlVar,M
 
 %%
 %
-% Calculates equivalent element lengths
+% Calculates equivalent element sizes
 %
-% Equivalent length can be defined in two ways:
+% Equivalent sizes can be defined in two ways:
 %
 % # as the leg of an isosceles right triangle with the same area as the triangular element, or
-% # as the length of a perfect square that has the same area as the triangular element.
+% # as the length of the side of a perfect square with the same area as the triangular element.
 %
 % Option 1) is the default, however after some thought it now feels to me that option 2) should be the default.
+%
+% These two different estimates is sqrt(2), with option (1) giving the numerically larger number.  
 %
 %
 % Example:
@@ -52,13 +54,14 @@ if options.plot
 
     cbar=UaPlots(CtrlVar,MUA,[],Tlength/CtrlVar.PlotXYscale) ;
     title(cbar,"$l$",Interpreter="latex")
-    title("Equivalent element lengths",Interpreter="latex")
+    % Equivalent
+    title("Equivalent element sizes",Interpreter="latex")
 
     if CtrlVar.PlotXYscale~=1
 
         StAdd="(/"+num2str(CtrlVar.PlotXYscale)+")" ;
         title(cbar,["$l$",StAdd],Interpreter="latex")
-        title("Equivalent element lengths "+StAdd,Interpreter="latex")
+        title("Equivalent element sizes "+StAdd,Interpreter="latex")
 
 
     end

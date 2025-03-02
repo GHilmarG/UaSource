@@ -1,7 +1,7 @@
 function cmap=ModifyColormap(GrayLevel,Ncol,options)
 
 %
-% resets colormap to gray for values at GrayLevel, and uses different colorscales for values below and above GrayLevel. 
+% resets colormap to gray for values at GrayLevel, and uses different color scales for values below and above GrayLevel. 
 %
 %
 %%

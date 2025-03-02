@@ -5,7 +5,7 @@ function [M] = connectivity2adjacency(connectivity)
     % (i,j)=N implies that node i is connected to node j in a total of N elements
     %
     %
-    %   Note: As of R2015b matlab supports graphs, so an adjaceny matrix can be
+    %   Note: As of R2015b matlab supports graphs, so an adjacency matrix can be
     %   now
     %   calculated as:
     %

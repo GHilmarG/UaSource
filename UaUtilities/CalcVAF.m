@@ -11,6 +11,7 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 %   rhoOcean is here the density of the "water" in which the ice is floating.
 %   This would most likely be the density of the ocean
 %
+
 % Calculates volume above flotation, and optionally ice volume and grounded area
 %
 %  VAF has the units distance^3, i.e. it is a volume, not weight.  It is the water equivalent volume.

@@ -9,7 +9,6 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
-
 %%
 %  
 %  Most likely when running Ua, only a fairly limited number of the parameters listed below need to be set/changed. 
@@ -21,13 +20,14 @@ function CtrlVar=Ua2D_DefaultParameters
 CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
 %%
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
+CtrlVar.time=nan;               % In a transient run this variable is the (model) time. Set to some 
                               % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
 
 
-CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
@@ -160,8 +160,26 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
+%
+% Either prescribe  (old approach):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% or (new and recommended):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+%
+% If CtrlVar.StartTime and CtrlVar.EndTime are specified, then
+% CtrlVar.time=CtrlVar.StartTime at the beginning of the run, and
+% CtrlVar.TotalTime=CtrlVar.EndTime
+%
 
-CtrlVar.TotalTime=1e10;          % maximum model time
+CtrlVar.TotalTime=nan;          % maximum model time
+CtrlVar.StartTime=nan;
+CtrlVar.EndTime=nan;
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
@@ -401,8 +419,8 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fulfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
@@ -559,21 +577,25 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 % values.
 
 %% Number of integration points and/or quadrature rule degree
-% if left empty, the number of integration points is set automatically
-
+%
+%
+% For Ua 2020 and older: 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
-                   % The default values are: 
-                   % nip=6 and niph=6 for linear elements (three node elements)
-                   % nip=12 and niph=12 for quadratic elements (six node elements)
-                   % nip=16 and niph=16 for cubic elements (ten node elements)
-                   % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
 
-CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
-                             % This option allows for greater flexibility in selecting quad points.
+% For Ua 2021 and older: 
+CtrlVar.QuadRules2021=true ;        % Use the new quad rules implemented in 2021
+                                    % This option allows for greater flexibility in selecting quad points.
+CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
+                                    % Default values are:
+                                    %
+                                    % degree=4 for 3-nod linear elements
+                                    % degree=8 for 6-nod quadratic elements
+                                    % degree=10 for 10-nod cubic elements
+
+
                              
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
@@ -1116,7 +1138,7 @@ CtrlVar.CuthillMcKee=0;       % renumber nodes using sparse reverse Cuthill-McKe
 
 
 
-CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m
+CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m, output interval
 % if set to zero DefineOutputs is called at every time/run step
 % if set to a negative number, or NaN, DefineOutputs is never called
 CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
@@ -1367,7 +1389,7 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                       
                                             
                                             
-CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
+CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if lambda values are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
@@ -1386,6 +1408,10 @@ CtrlVar.ThicknessBarrier=1;                                         % set to 1 f
                                                                     % is added, and applied at integration points where  h<hmin.
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
+                                                                    % The term is only applied at integration points where h < hmin. Therefore if a1<0 and a3<0, the resulting ab is greater than
+                                                                    % zero, and mass is added. This (of course) results in a local violation of mass conservation.
+
+                                                 
 
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
@@ -1741,7 +1767,7 @@ CtrlVar.LevelSetPhase="" ;
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
@@ -1756,7 +1782,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above
                                                                % year and meters) suggest using -10 as a value, ie the default
                                                                % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
-% a3 in the above equaiton for ab.
+% a3 in the above equation for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
@@ -1842,6 +1868,14 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
 %   CtrlVar.AdaptMeshIterations 
 %   CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 % 
+%
+% To enforc adapt meshing ahead of the first runs step only, set:
+%
+%   CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
+%
+% This could, for example, be used to ensure that mesh is only adapted in
+% the initial uv (diagnostic) calculation and not during the uvh
+% (transient) solve. 
 %
 
 CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
@@ -2192,19 +2226,32 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Consult the MATLAB documentation for further information.
 %
 % Note: Generally it appears that the parfor option does not speed up the assembly.
-%       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
-
+%       However, spmd assembly can speed things up significantly. 
 %
 %       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
 %       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
 %       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
 %       the gain is greater and shows good scaling properties.
 %
-% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
+% The currently RECOMENDED APPROACH is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
 % test the performance in a short run by setting isTest=true, that is set:
 % 
 %   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=false;                   % linsolve NOT done using distributed arrays
+%
+% As an example, using 8 workers on a domain with 610,000 Elements and 929,000 nodes, using uvh assembly resulted in a
+% speedup of about 4.3, and using distributed arrays resulted in a speedup of 1.7. So here the best option would be to set 
+% 
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=true;                    % linsolve is done using distributed arrays
+%
+%
+% 
+%
+% One can test how much of a speed-up results from using these options by setting:
+%
 %   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %
 % Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.
@@ -2213,12 +2260,12 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel using parfeval over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;     % assembly in parallel using parfeval over sub-domain (domain decomposition)  
 
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.isTest=false;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
                                                % Good for testing if switching on the parallel options speeds things up, and by how much.
@@ -2230,6 +2277,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
 CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+                                       % Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly. 
                                    
 
 %%  
@@ -2314,16 +2362,20 @@ CtrlVar.MapOldToNew.Test=false;   %
 %% Internal variables and  temporary testing parameters
 %%
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
-CtrlVar.uvhMatrixAssembly.Ronly=false; 
-CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ; 
-CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
-                                % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DebugMode=false; 
+CtrlVar.uvhMatrixAssembly.Ronly=false;
+CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
+CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0
+% (unless you want to use some untried, untested and unfinished features....)
+
+CtrlVar.Development.Pre2025uvAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+CtrlVar.Development.Pre2025uvhAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+
+CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
-CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 end
 
 

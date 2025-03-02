@@ -7,7 +7,7 @@
 function [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 
 narginchk(3,5)
-nargoutchk(2,4)
+nargoutchk(1,4)
 
 %%
 %
@@ -29,12 +29,10 @@ nargoutchk(2,4)
 % This script is designed to be used in conjunction with DefineMassBalance
 % to only assign melt to nodes that should be melted (OceanNodes). 
 %
-% Note that this script does not robustly identify all possible lakes in a 
-% domain, since it only considers nodes strictly downstream of the grounding
-% line as floating. Thus, floating nodes with an edge that crosses the
-% grounding line, which are not considered floating, will also not be
-% considered as lakes. In this way, very small isolated patches of floating
-% nodes will neither be considered lakes nor ocean.
+% Note that this script does not robustly identify all possible lakes in a domain, since it only considers nodes strictly
+% downstream of the grounding line as floating. Thus, floating nodes with an edge that crosses the grounding line, which are
+% not considered floating, will also not be considered as lakes. In this way, very small isolated patches of floating nodes
+% will neither be considered lakes nor ocean.
 %
 % Also consider using: LakeOrOcean.m , which uses an alternative approach for the problem.
 % ... but is painfully slow and will fail to correctly identify lakes
@@ -54,17 +52,21 @@ nargoutchk(2,4)
 %   hold on ; plot(MUA.coordinates(OceanNodes,1)/CtrlVar.PlotXYscale,MUA.coordinates(OceanNodes,2)/CtrlVar.PlotXYscale,'ob') ;
 %   PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color='r') ;
 %
+%
+% 
+%
+%
 %%
 
 GF = IceSheetIceShelves(CtrlVar,MUA,GF);
 
-% TestIng
+
 if nargin<5 || isempty(NodesDownstreamOfGroundingLines)
     
     NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
 else
     if isstring(NodesDownstreamOfGroundingLines)
-        if contains(NodesDownstreamOfGroundingLines,"Strickt")
+        if contains(NodesDownstreamOfGroundingLines,"Strict") || contains(NodesDownstreamOfGroundingLines,"Strickt")
             NodesDownstreamOfGroundingLines=GF.NodesDownstreamOfGroundingLines;
         elseif contains(NodesDownstreamOfGroundingLines,"Relaxed")
             NodesDownstreamOfGroundingLines=GF.node < 0.5 ; 

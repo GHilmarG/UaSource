@@ -5,7 +5,7 @@ function  [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVa
 %
 % Defines model geometry and ice densities
 %
-%  [UserVar,s,b,S,B,alpha]=DefineGeometry(UserVar,CtrlVar,MUA,time,FieldsToBeDefined)
+%   [UserVar,s,b,S,B,rho,rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F,FieldsToBeDefined)
 %
 % FieldsToBeDefined is a string indicating which return values are required. For
 % example if

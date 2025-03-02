@@ -58,8 +58,10 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %   ModifyColormap;
 %
 %
+% see also:
 %
-
+%   LatLonGrid
+%
 %%
 
 fig = gcf;
@@ -149,21 +151,21 @@ end
 % set some plausible values if user has not defined those already
 
 
-    if isempty(dlat)
-        dlat=5;
-    end
+if isempty(dlat)
+    dlat=5;
+end
 
-    if isempty(dlon)
-        dlon=10;
-    end
+if isempty(dlon)
+    dlon=10;
+end
 
-    if isempty(LabelSpacing)
-        LabelSpacing=400;
-    end
+if isempty(LabelSpacing)
+    LabelSpacing=400;
+end
 
-    if isempty(Colour)
-        Colour='black';
-    end
+if isempty(Colour)
+    Colour='black';
+end
 
 
 
@@ -218,7 +220,7 @@ clabel(Clon,hlon,Color=Colour,fontsize=9)
 
 
 clim(climCopy) % set color axis limit to the value at the beginning of the call
-% this is done here because the contour functions above might change the existing limites
+% this is done here because the contour functions above might change the existing limits
 
     function labels=mylabelfunLon(vals)
 
@@ -244,6 +246,9 @@ clim(climCopy) % set color axis limit to the value at the beginning of the call
     end
 
 
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars Lat
+end
 
 
 end

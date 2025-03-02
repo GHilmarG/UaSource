@@ -34,7 +34,7 @@ function [UserVar,h,lambda]=hEquation(UserVar,CtrlVar,MUA,F,BCs,Priors,Meas)
 %
 % * Method="(h-hmeas) P (h-hmeas) / 2 +  <l , Fh>"
 %
-% Deviation from measurments minimized with forward model as a constraint, i.e. measurments are a soft constraint and the
+% Deviation from measurements minimized with forward model as a constraint, i.e. measurements are a soft constraint and the
 % model a hard constraint.
 %
 % system to solve
@@ -75,11 +75,11 @@ switch CtrlVar.hEq.Method
         % Model a soft constraint
 
         % for the time being the errors are prescribed here directly
-        Error=F.s*0+1e10;        % Errors where no measurements are avalable set to a high value of 1e10
-        hmeas=F.s*0;             % Simply set thickness 'measurments' to the value of 0 where none are available
+        Error=F.s*0+1e10;        % Errors where no measurements are available set to a high value of 1e10
+        hmeas=F.s*0;             % Simply set thickness 'measurements' to the value of 0 where none are available
 
-        Error(BCs.hFixedNode)=1;                 % Errors where measurements are avalable set to a value of 1
-        hmeas(BCs.hFixedNode)=BCs.hFixedValue;   % Here the BCs are introduced as a soft contraint
+        Error(BCs.hFixedNode)=1;                 % Errors where measurements are available set to a value of 1
+        hmeas(BCs.hFixedNode)=BCs.hFixedValue;   % Here the BCs are introduced as a soft constraint
 
 
         P=sparse(1:MUA.Nnodes,1:MUA.Nnodes,1./(Error.^2),MUA.Nnodes,MUA.Nnodes);

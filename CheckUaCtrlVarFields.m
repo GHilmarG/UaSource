@@ -1,4 +1,8 @@
 
+
+
+
+
 function CheckUaCtrlVarFields(CtrlVar,Field)
 
 if ~ismember(string(CtrlVar.(Field)),string(CtrlVar.MustBe.(Field)))

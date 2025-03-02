@@ -5,7 +5,7 @@ function   [UserVar,Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoin
 %                [Cest,AGlenEst,Info,ub,vb,ud,vd,xAdjoint,yAdjoint,gammaAdjoint]=AdjointProjectedGradient(...
 %                 UserVar,CtrlVar,MUA,BCs,s,b,h,S,B,ub,vb,ud,vd,l,alpha,rho,rhow,g,GF,InvStartValues,Priors,Meas,BCsAdjoint,Info);
 
-% Minimisation using the projected (conjugated) gradient method.
+% Minimization using the projected (conjugated) gradient method.
 
 if CtrlVar.InfoLevelAdjoint>=10
     fprintf(' minimisation method AdjointProjectedGradient \n ')
@@ -50,7 +50,7 @@ for iteration=1:nIt
     % At the beginning of the iteration the best estimates for AGlen and C are AGlenEst and Cest
     % These values are the starting values of the iteration, ie C0 and AGlen0
     % In the line search I modify C0 and AGlen0 and these modified values are Ctest and AGlentest
-    % Once the line search is finised, AGlenEst and Cest are updated
+    % Once the line search is finished, AGlenEst and Cest are updated
     
     %if CtrlVar.doplots==1 && mod(iteration,6)==0 ; close all ; end
     
@@ -133,7 +133,7 @@ for iteration=1:nIt
     fprintf('     fraction of active C constrains %-g \n ',sum(indC)/length(C0))
     
     %%
-    % Project the gradient: if at the boundary and corresponding elements of (negative) gradient pointing ouside,
+    % Project the gradient: if at the boundary and corresponding elements of (negative) gradient pointing outside,
     % set to zero
     % (only important in connection with conjugated gradient option)
     
@@ -174,7 +174,7 @@ for iteration=1:nIt
     % kappa=dIdgamma/(dIdCest'*dIdCest)
     % When I calculate dIdgamma numerically I need a small perturbation, if the size of that step is gamma_eps then
     % the step size after scaling is gamma_eps/kappa.
-    % After having found the min I can test if that step size is much smaller than the gamma that gives the minumum value
+    % After having found the min I can test if that step size is much smaller than the gamma that gives the minimum value
     % If not then I used too large step size in calculating the slope.
     %
     
@@ -246,6 +246,7 @@ for iteration=1:nIt
             % [ub,vb,ubvbLambda]=SSTREAM2dNR(CtrlVar,MUA,s,S,B,h,ub,vb,AGlentest,C0,Luv,Luvrhs,ubvbLambda,n,m,alpha,rho,rhow,g);
             %[Jeps,Idataeps]=MisfitFunction(CtrlVar,MUA,us,vs,ws,sMeas,uMeas,vMeas,wMeas,bMeas,BMeas,C0,C_prior,AGlentest,AGlen_prior,Cd,CAGlen,CC,GF);
             
+
             
             dJdgamma=(Jeps-J0)/gamma_eps;
             if dJdgamma >=0
@@ -275,7 +276,7 @@ for iteration=1:nIt
         
     end
     
-    % Now dJdCsearch and dJdAGlensearch have bee determined
+    % Now dJdCsearch and dJdAGlensearch have been determined
     
     
     
@@ -328,7 +329,7 @@ for iteration=1:nIt
     RunInfo.converged=0; iNR=0;
     while RunInfo.converged==0  && iNR<=5
         % possibly the change in C/AGlen is too large for the non-linear solver to converge
-        % so I allow for a drastic reduciton in step size if needed
+        % so I allow for a drastic reduction in step size if needed
         iNR=iNR+1;
         gamma=gamma_c/10^(2*(iNR-1));
         gamma_b=gamma_c/2;
@@ -502,7 +503,7 @@ for iteration=1:nIt
     end
     
 %% plotting
-    if CtrlVar.InfoLevelAdjoint>=100 && CtrlVar.doplots==1;
+    if CtrlVar.InfoLevelAdjoint>=100 && CtrlVar.doplots==1
         
         nLS=5;
         
@@ -610,7 +611,7 @@ for iteration=1:nIt
         
     end
     
-    if gammaAdjoint==0 ;
+    if gammaAdjoint==0 
         fprintf(' gamma returned equal to zero. line search has stagnated. breaking out \n')
         break
     end

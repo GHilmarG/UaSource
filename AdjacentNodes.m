@@ -7,7 +7,7 @@ function M = AdjacentNodes(connectivity,EleList)
 % (i,j)=N implies that node j is a neighbouring node to node i in a total of N
 % elements.
 %
-% EleList is an optional argument that can be used to resrict the list to
+% EleList is an optional argument that can be used to restrict the list to
 % selected elements.
 % If EleList is not given, then all elements are used.
 %

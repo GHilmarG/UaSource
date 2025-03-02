@@ -148,7 +148,7 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
             
             % OK, the step converged but end time of the current time step has not yet been reached (this will happen if previously the
             % time step needed to be reduced due to loss of convergence).
-            % Now selecting a new time step based on numer of NR iterations
+            % Now selecting a new time step based on number of NR iterations
             dtBefore=CtrlVar.dt;
             dtNew=CtrlVar.dt*(NitDesired/RunInfo.LevelSet.Iterations(RunInfo.LevelSet.iCount));
             CtrlVar.dt=max(min(dtBefore*dtFactor,dtNew),dtBefore/dtFactor);

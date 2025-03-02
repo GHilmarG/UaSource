@@ -44,36 +44,37 @@ for Iint=1:MUA.nip
         eyy=eyy+Deriv(:,2,Inod).*vnod(:,Inod);
         exy=exy+0.5*(Deriv(:,1,Inod).*vnod(:,Inod) + Deriv(:,2,Inod).*unod(:,Inod)); 
         
-        
+
         dlxdx=dlxdx+Deriv(:,1,Inod).*uAdjointnod(:,Inod);
         dlydx=dlydx+Deriv(:,1,Inod).*vAdjointnod(:,Inod);
         dlxdy=dlxdy+Deriv(:,2,Inod).*uAdjointnod(:,Inod);
         dlydy=dlydy+Deriv(:,2,Inod).*vAdjointnod(:,Inod);
-        
+
     end
-    
+
 
     detJw=detJ*MUA.weights(Iint);
 
-    
+
     [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     %dEtadA=dEtadA.*hint;
-    
-    if ~CtrlVar.DevelopmentVersion
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-            
-            dEtadA=log(10)*AGlenInt.*dEtadA;
-            
-        end
+
+   
+
+    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
+
+        dEtadA=log(10)*AGlenInt.*dEtadA;
+
     end
-    
+
+
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
             -dEtadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
         %-dEtadA.*((4*exx+2*eyy).*dlxdx+(dudy+dvdx).*dlxdy+(4*eyy+2*exx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw;
-        
- 
-        
+
+
+
     end
 end
 
@@ -83,13 +84,6 @@ for Inod=1:MUA.nod
     dIdA=dIdA+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-if CtrlVar.DevelopmentVersion
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-        
-        dIdA=log(10)*AGlen.*dIdA;
-        
-    end
-end
 
 
 Happrox=MUA.M/MUA.Area;

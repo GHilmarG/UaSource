@@ -2,7 +2,7 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 
 %%
 %
-%   [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA)
+%   [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 % 
 % calculates x and y derivatives of a nodal variable at integration points
 %
@@ -18,8 +18,8 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 %
 % Example:
 % 
-%   load("PIG-TWG-RestartFile.mat","CtrlVarInRestartFile","MUA","F","RunInfo")
-%   [dsdxInt,dsdyInt,xint,yint]=calcFEderivativesMUA(F.s,MUA) ; 
+%   load("PIG-TWG-RestartFile.mat","CtrlVarInRestartFile","MUA","F","RunInfo") 
+%   [dsdxInt,dsdyInt,xint,yint]=calcFEderivativesMUA(F.s,MUA,CtrlVarInRestartFile) ; 
 %   [dsdx,dsdy]=ProjectFintOntoNodes(MUA,dsdxInt,dsdyInt) ;
 %   SurfaceGradient=sqrt(dsdx.*dsdx+dsdy.*dsdy); 
 %   FindOrCreateFigure("surface gradient")
@@ -29,7 +29,7 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 % See also: ProjectFintOntoNodes
 %%
 
-narginchk(2,3)
+narginchk(3,3)
 
 ndim=2;
 % [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -47,6 +47,8 @@ dfdx=zeros(MUA.Nele,MUA.nip); dfdy=zeros(MUA.Nele,MUA.nip);
 
 if isempty(MUA.Deriv)
  
+    
+
         [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
 end
 

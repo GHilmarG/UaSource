@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>Calc_bh_From_sBS</title><meta name="generator" content="MATLAB 9.7"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-12-11"><meta name="DC.source" content="Calc_bh_From_sBS.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>Calc_bh_From_sBS</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-02-02">
+<meta name="DC.source" content="Calc_bh_From_sBS.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,31 +72,59 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
-</pre><pre class="codeinput">narginchk(7,9)
-nargoutchk(3,3)
-</pre><p><b>Calculates b and h from s, B, S and rho and rhow.</b></p><p>GF and b0 are optional.</p><p>GF and b0 are initial guesses for GF and b.</p><p>Sets</p><p><img src="Calc_bh_From_sBS_eq12513756169677238428.png" alt="$b=B$" style="width:37px;height:11px;"></p><p>over grounded areas, and</p><p><img src="Calc_bh_From_sBS_eq10934430561392965281.png" alt="$b=(\rho s-\rho_w S)/(\rho-\rho_w)$" style="width:154px;height:15px;"></p><p>over floating areas.</p><p>On return <img src="Calc_bh_From_sBS_eq07949914064237081578.png" alt="$s=b+h$" style="width:59px;height:12px;">.</p><p>Note: This will not conserve thickness.</p><p>Because the floating mask depents on b through h, this is a non-linear problem.</p><p>Solved using the NR method. Usually only one single NR iteration is required.</p><p>GF and b0   : (optional) initial guess for GF and b0</p><p>MUA         : also optional and not currently used.</p><p>Example:</p><pre>     b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)</pre><pre class="codeinput"><span class="comment">% get a rough and a reasonable initial estimate for b if none is provided</span>
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+</pre>
+<pre class="codeinput">narginchk(7,7)
+nargoutchk(1,3)
+</pre>
+<p>
+<b>Calculates b and h from s, B, S and rho and rhow.</b>
+</p>
+<p>Sets</p>
+<p>
+<img src="Calc_bh_From_sBS_eq03555466634269285732.png" alt="$b=B$" style="width:37px;height:11px;"></p>
+<p>over grounded areas, and</p>
+<p>
+<img src="Calc_bh_From_sBS_eq03526872743409998660.png" alt="$b=(\rho s-\rho_w S)/(\rho-\rho_w)$" style="width:153px;height:15px;"></p>
+<p>over floating areas.</p>
+<p>On return <img src="Calc_bh_From_sBS_eq08761110559472478606.png" alt="$s=b+h$" style="width:59px;height:12px;">.</p>
+<p>Note: This will not conserve thickness.</p>
+<p>Because the floating mask depends on b through h, this is a non-linear problem.</p>
+<p>Solved using the NR method. Usually only one single NR iteration is required.</p>
+<p>MUA : also optional and not currently used.</p>
+<p>Example:</p>
+<pre>     b=Calc_bh_From_sBS(CtrlVar,[],s,B,S,rho,rhow)</pre>
+<pre class="codeinput">
+<span class="comment">% get a rough and a reasonable initial estimate for b</span>
+<span class="comment">% The lower surface b is</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%   b=max( B , (rhow S - rho s)/(rhow-rho) )</span>
+<span class="comment">%   where</span>
+<span class="comment">%</span>
+<span class="comment">%  h_f = rhow (S-B) / rho</span>
+<span class="comment">%</span>
+<span class="comment">%  b=s-h_f</span>
+
 
 hf=rhow*(S-B)./rho ;
-<span class="keyword">if</span> nargin&lt; 9  || isempty(b0)
 
-    <span class="keyword">if</span> nargin &lt; 8 || isempty(GF)
-        h=s-B ;  <span class="comment">% for the purpose of calculating the floating mask, set b = B</span>
-        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-    <span class="keyword">else</span>
-        G=GF.node;
-    <span class="keyword">end</span>
 
-    b0 =  G.*B + (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-<span class="keyword">end</span>
-</pre><pre class="codeinput">b=b0;
+b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; <span class="comment">% a rough initial estimate for b</span>
+
+b=b0;
 h=s-b;
 
 <span class="comment">% iteration</span>
-ItMax=30 ; tol=100*eps ;  Err=100*tol ; I=0 ;
-ErrVector=zeros(ItMax,1)+NaN ;
+ItMax=30 ; tol=1000*eps ;  J=Inf ; I=0 ;
+JVector=zeros(ItMax,1)+NaN ;
 
-<span class="keyword">while</span> I&lt; ItMax &amp;&amp; Err &gt; tol
+<span class="keyword">while</span> I &lt; ItMax &amp;&amp; J &gt; tol
     I=I+1;
 
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  <span class="comment">% 1</span>
@@ -105,18 +139,36 @@ ErrVector=zeros(ItMax,1)+NaN ;
     h=s-b ;
 
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-    ErrLast=Err;
-    Err=sum(F1.^2)/2 ;
 
-    <span class="comment">%fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),Err,Err/ErrLast)</span>
+    JLast=J ;
+    J=sum(F1.^2)/2 ;
+    <span class="keyword">if</span> CtrlVar.MapOldToNew.Test
+        fprintf(<span class="string">'\t %i : \t %g \t %g \t %g \n '</span>,I,max(abs(db)),J,J/JLast)
+    <span class="keyword">end</span>
 
-    ErrVector(I)=Err ;
+    JVector(I)=J ;
+
+    <span class="keyword">if</span> J&lt; tol
+        <span class="keyword">break</span>
+    <span class="keyword">end</span>
 
 <span class="keyword">end</span>
 
+
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
-<span class="comment">% figure ; semilogy([1:30],ErrVector,'-or')</span>
+<span class="keyword">if</span> CtrlVar.MapOldToNew.Test
+    FindOrCreateFigure(<span class="string">"Testing Calc_bh_From_sBs"</span>)  ;
+    semilogy(1:30,JVector,<span class="string">'-or'</span>)
+    xlabel(<span class="string">"iterations"</span>,Interpreter=<span class="string">"latex"</span>)
+    ylabel(<span class="string">"Cost function, $J$"</span>,Interpreter=<span class="string">"latex"</span>)
+    title(<span class="string">"Calculating $b$ and $h$ from $s$, $S$, and $B$"</span>,Interpreter=<span class="string">"latex"</span>)
+    title(sprintf(<span class="string">"Calculating $b$ and $h$ from $s$, $S$, and $B$ by minimizing \n $J=\\int (b-\\mathcal{G}B - (1-\\mathcal{G}) (\\rho s -\\rho_o S/(\\rho-\\rho_o))\\, \\mathrm{d}x \\, \\mathrm{d}y$\n with respect to $b$ "</span>),Interpreter=<span class="string">"latex"</span>)
+
+    <span class="comment">% f=gcf ; exportgraphics(f,'Calc_bh_from_sBS_Example.pdf')</span>
+
+<span class="keyword">end</span>
+
 
 
 <span class="keyword">if</span> I==ItMax   <span class="comment">% if the NR iteration above, taking a blind NR step does not work, just</span>
@@ -124,6 +176,8 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
     <span class="comment">% Why not do so right away? Because the above options is based on</span>
     <span class="comment">% my experience always faster if it converges (fminunc is very reluctant to take</span>
     <span class="comment">% large steps, and apparantly does not take a full NR step...?!)</span>
+
+    warning(<span class="string">"Calc_bh_From_SBS:NoConvergence"</span>,<span class="string">"Calc_bh_from_sBS did not converge! \n"</span>)
 
     options = optimoptions(<span class="string">'fminunc'</span>,<span class="string">'Algorithm'</span>,<span class="string">'trust-region'</span>,<span class="keyword">...</span>
         <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="string">'HessianFcn'</span>,<span class="string">'objective'</span>,<span class="keyword">...</span>
@@ -136,23 +190,35 @@ GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
     h=s-b;
     GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,GF,b0)
 
 
-narginchk(7,9)
-nargoutchk(3,3)
+
+
+
+
+function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+
+
+narginchk(7,7)
+nargoutchk(1,3)
 
 
 %% 
 %
 % *Calculates b and h from s, B, S and rho and rhow.*
 %
-% GF and b0 are optional.
-%
-% GF and b0 are initial guesses for GF and b.
 %
 % Sets 
 %
@@ -168,14 +234,13 @@ nargoutchk(3,3)
 %
 % Note: This will not conserve thickness.
 %
-% Because the floating mask depents on b through h, this is a non-linear
+% Because the floating mask depends on b through h, this is a non-linear
 % problem.
 %
 % Solved using the NR method. Usually only one single NR iteration is
 % required.
 %
 %
-% GF and b0   : (optional) initial guess for GF and b0
 %
 % MUA         : also optional and not currently used.
 %
@@ -186,30 +251,31 @@ nargoutchk(3,3)
 %
 %%
 
-% get a rough and a reasonable initial estimate for b if none is provided
+% get a rough and a reasonable initial estimate for b
+% The lower surface b is 
+%
+%
+%   b=max( B , (rhow S - rho s)/(rhow-rho) ) 
+%   where
+%
+%  h_f = rhow (S-B) / rho
+%
+%  b=s-h_f 
+
 
 hf=rhow*(S-B)./rho ;
-if nargin< 9  || isempty(b0)
-    
-    if nargin < 8 || isempty(GF)
-        h=s-B ;  % for the purpose of calculating the floating mask, set b = B
-        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-    else
-        G=GF.node;
-    end
-    
-    b0 =  G.*B + (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-end
-%%
+
+
+b0 =  max(B,(rho.*s-rhow.*S)./(rho-rhow)) ; % a rough initial estimate for b
 
 b=b0;
 h=s-b;
 
 % iteration
-ItMax=30 ; tol=100*eps ;  Err=100*tol ; I=0 ;
-ErrVector=zeros(ItMax,1)+NaN ;
+ItMax=30 ; tol=1000*eps ;  J=Inf ; I=0 ;
+JVector=zeros(ItMax,1)+NaN ;
 
-while I< ItMax && Err > tol
+while I < ItMax && J > tol
     I=I+1;
     
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
@@ -224,18 +290,36 @@ while I< ItMax && Err > tol
     h=s-b ;
     
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
-    ErrLast=Err;
-    Err=sum(F1.^2)/2 ;
     
-    %fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),Err,Err/ErrLast)
+    JLast=J ;
+    J=sum(F1.^2)/2 ;
+    if CtrlVar.MapOldToNew.Test
+        fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),J,J/JLast)
+    end
     
-    ErrVector(I)=Err ;
+    JVector(I)=J ;
+
+    if J< tol
+        break
+    end
     
 end
 
+
 GF.node = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
-% figure ; semilogy([1:30],ErrVector,'-or')
+if CtrlVar.MapOldToNew.Test
+    FindOrCreateFigure("Testing Calc_bh_From_sBs")  ; 
+    semilogy(1:30,JVector,'-or')
+    xlabel("iterations",Interpreter="latex")
+    ylabel("Cost function, $J$",Interpreter="latex")
+    title("Calculating $b$ and $h$ from $s$, $S$, and $B$",Interpreter="latex")
+    title(sprintf("Calculating $b$ and $h$ from $s$, $S$, and $B$ by minimizing \n $J=\\int (b-\\mathcal{G}B - (1-\\mathcal{G}) (\\rho s -\\rho_o S/(\\rho-\\rho_o))\\, \\mathrm{d}x \\, \\mathrm{d}y$\n with respect to $b$ "),Interpreter="latex")
+
+    % f=gcf ; exportgraphics(f,'Calc_bh_from_sBS_Example.pdf')
+
+end
+
 
 
 if I==ItMax   % if the NR iteration above, taking a blind NR step does not work, just
@@ -244,6 +328,8 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % my experience always faster if it converges (fminunc is very reluctant to take
     % large steps, and apparantly does not take a full NR step...?!)
     
+    warning("Calc_bh_From_SBS:NoConvergence","Calc_bh_from_sBS did not converge! \n")
+
     options = optimoptions('fminunc','Algorithm','trust-region',...
         'SpecifyObjectiveGradient',true,'HessianFcn','objective',...
         'SubproblemAlgorithm','factorization','StepTolerance',1e-10,...
@@ -264,4 +350,6 @@ end
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>
