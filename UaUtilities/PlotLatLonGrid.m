@@ -246,6 +246,9 @@ clim(climCopy) % set color axis limit to the value at the beginning of the call
     end
 
 
+if ~nargout   % A trick to suppress any function output if no output requested. No need to suppress output using ;
+    clearvars Lat
+end
 
 
 end

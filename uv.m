@@ -22,7 +22,14 @@ tdiagnostic=tic;
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
     poolobj = gcp('nocreate');
-    CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+
+    if isempty(poolobj)
+
+        fprintf("SPMD assembly is set to true, but parallel pool is empty. \n")
+        fprintf(" Create a parallel pool ahead of the call to Ua.\n")
+    else
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+    end
 
 end
 

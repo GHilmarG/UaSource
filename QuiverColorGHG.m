@@ -129,7 +129,11 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 
 persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
 
-if nargin < 4 || ~isfield(Par,"QuiverSameVelocityScalingsAsBefore") || ~Par.QuiverSameVelocityScalingsAsBefore
+if nargin<5
+    Par=[];
+end
+
+if ~isfield(Par,"QuiverSameVelocityScalingsAsBefore") || ~Par.QuiverSameVelocityScalingsAsBefore
 
     SpeedPlotIntervals=[];
     uvPlotScale=[];

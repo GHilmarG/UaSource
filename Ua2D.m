@@ -361,16 +361,20 @@ CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
 RunInfo.Forward.IterationsTotal=0; 
 RunInfo.Forward.uvhConverged=true; 
+
+
+
 %%  RunStep Loop
 while 1
     
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
+
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
     RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
     
     %% check run-step stop criteria
-    if CtrlVar.CurrentRunStepNumber >=(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
+    if CtrlVar.CurrentRunStepNumber >(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
         
         fprintf('Exiting run-step loop because total number of steps reached. \n')
    
@@ -431,6 +435,7 @@ while 1
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
+       
         [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
         CtrlVar.AdaptMeshInitial=0;  % make sure to set this to zero, as this only applies to the first run step, which can be either the beginning of a new run, or a restart run
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
@@ -718,18 +723,19 @@ while 1
                 uvhSolveCompareSequencialAndParallelPerformance(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs);
             end
 
-      
+
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
-      
+
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             F.dt=dt;
-            
+          
+
             if ~RunInfo.Forward.uvhConverged
 
                 warning("Ua2D:WTSHTF","uvh did not converge")

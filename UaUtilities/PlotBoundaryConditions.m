@@ -148,21 +148,21 @@ end
 
 
 if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
-title(...
-    sprintf('Boundary conditions: \n Arrows represent fixed $u_b$,$v_b$, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are $(u_b,v_b,h)$ nodal ties (%i,%i,%i)',...
-    numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
-    'FontSize',9,Interpreter='latex')
+    title(...
+        sprintf('Boundary conditions: \n Arrows represent fixed $u_b$,$v_b$, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are $(u_b,v_b,h)$ nodal ties (%i,%i,%i)',...
+        numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
+        'FontSize',9,Interpreter='latex')
 elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
     title(...
-    sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
-    numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
-    'FontSize',9)
+        sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
+        numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
+        'FontSize',9)
 end
 
 if ~isempty(L)
     lgd=legend([L{:}],'interpreter','latex');
 else
-    lgd=[]; 
+    lgd=[];
 end
 
 %%
@@ -173,7 +173,9 @@ end
 % [cbar,QuiverHandel,CtrlVar]=QuiverColorGHG(x,y,ub,vb,CtrlVar) ;
 % %%
 
-
+% Check if there are prescribed non-zero ub and vb velocities at nodes, if so plot those prescribed velocities. This gives an
+% indication of the velocities themselves
+%
 [ubvbFixedNodes,ia,ib]=intersect(BCs.ubFixedNode,BCs.vbFixedNode) ;
 if ~isempty(ubvbFixedNodes)
     ubvbFixedValues=[BCs.ubFixedValue(ia) BCs.vbFixedValue(ib)] ;
@@ -182,7 +184,7 @@ if ~isempty(ubvbFixedNodes)
 
         x=MUA.coordinates(ubvbFixedNodes,1);
         y=MUA.coordinates(ubvbFixedNodes,2);
-        fBCuv=FindOrCreateFigure("BCs: ubvb Boundary Conditions") ; clf(fBCuv) ; 
+        fBCuv=FindOrCreateFigure("BCs: ubvb Boundary Velocities") ; clf(fBCuv) ; 
         PlotMuaMesh(CtrlVar,MUA) ;
         hold on
         CtrlVar.RelativeVelArrowSize=2;

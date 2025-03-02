@@ -166,7 +166,7 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 %   CtrlVar.time     
 %   CtlrVar.TotalTime
 %
-% or (new and recomended):
+% or (new and recommended):
 %
 %   CtrlVar.StartTime
 %   CtrlVar.EndTime

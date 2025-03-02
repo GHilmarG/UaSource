@@ -79,6 +79,7 @@ if ~CtrlVar.LinFEbasis
     if numel(BCs1.hPosNode) >0
 
         Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
+      
         ah=-Reactions.h./(F1.rho.*F1.dt) ;
         ah=ah(BCs1.hPosNode);
         lambdahpos=Reactions.h(BCs1.hPosNode);

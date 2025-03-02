@@ -397,6 +397,48 @@ end
 
 
 
+%% Parallel options: Make sure to run off parallel options if there is no pool open
+
+if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
+        || CtrlVar.Parallel.uvhAssembly.spmd.isOn ...
+        ||  CtrlVar.Parallel.Distribute ...
+        || CtrlVar.Parallel.uvhAssembly.parfor.isOn ...
+        || CtrlVar.Parallel.uvAssembly.parfeval.isOn ...
+        || CtrlVar.Parallel.hAssembly.parfor.isOn ...
+        || CtrlVar.Parallel.LSFAssembly.parfor.isOn)
+
+    poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
+
+
+
+    if isempty(poolobj)
+
+        
+        fprintf("\n ======= No parallel pool is open. To run Ua using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218)
+        fprintf(" ======= Parallel options are turned off.\n")
+
+        CtrlVar.Parallel.uvhAssembly.parfor.isOn=false;
+        CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
+        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   
+
+        CtrlVar.Parallel.uvAssembly.spmd.isOn=false;
+        CtrlVar.Parallel.uvAssembly.parfeval.isOn=false;
+
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+
+        CtrlVar.Parallel.isTest=false;
+
+        CtrlVar.Parallel.hAssembly.parfor.isOn=false ;
+        CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
+
+        CtrlVar.Parallel.Distribute=false;  
+
+
+    end
+
+
+end
+
 
 
 

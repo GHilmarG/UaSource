@@ -479,8 +479,7 @@ end
 %
 % h1Ahead=F1.h; GF1Ahead=F1.GF ;
 [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow,F1.GF);
-% fprintf("SSTREAM_TransientImplicit: Testing norm(h1Ahead-F1.h)=%g \n",norm(F1.h-h1Ahead))
-% fprintf("SSTREAM_TransientImplicit: Testing norm(GF1Ahead-F1.GF)=%g \n",norm(F1.GF.node-GF1Ahead.node))
+
 
 %% return calculated values at the end of the time step
 %F1.ub=ub ; F1.vb=vb ; F1.h=h; l1.ubvb=luv1  ; l1.h=lh;

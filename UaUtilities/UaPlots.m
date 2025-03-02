@@ -25,7 +25,6 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 % Returns grounding lines (xGL,yGL) and calving fronts (xCF,yCF).
 %
-% Calving fronts
 %
 %
 % Examples:
@@ -52,16 +51,12 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %     UaPlots(CtrlVar,MUA,F1,[dub dvb],FigureTitle="(duv)")
 %
 % Log color scale:
-%
-%  
-%  cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
+% 
+%    cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
 %
 % Basal melt distribution, using log scale:
 %
-%  UaPlots(CtrlVar,MUA,F,-F.ab,FigureTitle="-ab") ; 
-%  set(gca,'ColorScale','log') ; 
-%   
-%  title("Basal melt",Interpreter="latex")
+%    UaPlots(CtrlVar,MUA,F,"-log(ab)-")
 %
 %%
 
@@ -246,7 +241,7 @@ else
             subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 
-        case "dhdt"
+        case {"dhdt","-dhdt-","dh/dt","-dh/dt-"}
 
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
@@ -347,7 +342,7 @@ else
 
     
 
-        case "surface slope"  % effective strain rate at integration points
+        case {"surface slope","-surface slope-"} 
 
             [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
             slope=sqrt(dfdx.*dfdx+dfdy.*dfdy) ;
@@ -356,6 +351,13 @@ else
             title(cbar,"()",Interpreter="latex")
             title(sprintf("surface slope at t=%g",CtrlVar.time),Interpreter="latex")
 
+        case {"log(ab)","-log(ab)-"}
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,-F.ab);
+            set(gca,'ColorScale','log') 
+            title(cbar,"$-a_b$ (m/yr)",Interpreter="latex")
+            title("\textbf{Basal melt rates}",Interpreter="latex",FontSize=16)
+            CM=cmocean('-thermal',20) ; CM(1,:)=[0.9 0.9 0.9]  ; colormap(CM);
 
         otherwise
 
@@ -376,8 +378,6 @@ if options.PlotUnderMesh
 end
 
 
-
-
 if options.PlotGroundingLines
     if isfield(F,"GF")
         [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
@@ -395,7 +395,7 @@ if options.PlotMuaBoundary
     PlotMuaBoundary(CtrlVar,MUA,"b--");
 end
 
-% Just guessing that this might be the most common case, the user can easily change afterwards anyhow.
+
 
 if isfield(CtrlVar,"PlotsXaxisLabel")
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")

@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>ReleaseNotes</title>
 <meta name="generator" content="MATLAB 24.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-08-30">
+<meta name="DC.date" content="2025-03-01">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -79,6 +79,24 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <h1></h1>
 <!--introduction-->
 <!--/introduction-->
+<p>
+<b>Release Notes</b> <i>March 2025</i>
+</p>
+<p>The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration points.</p>
+<p>Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the user setting imply automated start of a parallel pool whenever parfor or smpd is encountered.</p>
+<p>Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the F from previous time step. Note that when the mass balance/thickness feedback is activated, the mass balance function is called within the assembly loop and then the mass balance will not lag behind.</p>
+<p>The start and end times can now be specified using (new option):</p>
+<pre class="language-matlab">CtrlVar.StartTime
+CtrlVar.EndTime
+</pre>
+<p>Previously this was done using (old option):</p>
+<pre class="language-matlab">CtrlVar.time
+CtlrVar.TotalTime
+</pre>
+<p>The previous option still works, but the new option is recommended.</p>
+<p>When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.</p>
+<p>The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function used in the level-set solver.</p>
+<p>The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set method to enforce positive thickness.</p>
 <p>
 <b>Release Notes</b> <i>September 2024</i>
 </p>
@@ -408,6 +426,44 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 
 %%
+%
+% *Release Notes* _March 2025_
+%
+% The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can
+% lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the
+% flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in
+% the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration
+% points.
+%
+% Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
+% ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
+% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered.
+%
+% Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
+% done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
+% F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
+% called within the assembly loop and then the mass balance will not lag behind. 
+%
+% The start and end times can now be specified using (new option):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+% Previously this was done using (old option):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% The previous option still works, but the new option is recommended. 
+%
+% When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
+% between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
+%
+% The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function
+% used in the level-set solver.
+%
+% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set
+% method to enforce positive thickness.
 %
 % *Release Notes* _September 2024_
 %
