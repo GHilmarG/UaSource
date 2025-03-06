@@ -59,7 +59,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             u=F.ub+F.ud ; v=F.vb+F.vd;
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
-                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
                 RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
@@ -75,7 +75,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             if (RunInfo.MeshAdapt.isChanged  && ~isCalculated) || (all(u==0) && all(v==0))
                
-                [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 isCalculated=true;
                 RunInfo.Forward.ubvbRecalculatedOnNewMesh=isCalculated;
             end
@@ -337,6 +337,7 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
 % Now get user modifications
+[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); % TestIng, rubarb 
 [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
 
 
