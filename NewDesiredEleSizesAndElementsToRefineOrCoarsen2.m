@@ -1,5 +1,13 @@
+
+
+
+
+
 function  [UserVar,RunInfo,F,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-    NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,GF,Ruv,Lubvb)
+    NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
+
+
+narginchk(7,7)
 
 %
 % Estimates optimal element sizes based on number of explicit error estimators
@@ -203,8 +211,8 @@ end
 
 
 if all(EleSizeDesired==CtrlVar.MeshSizeMax)
-    if CtrlVar.InfoLevelAdaptiveMeshing>=10
-        fprintf(' After using relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
+    if CtrlVar.InfoLevelAdaptiveMeshing>=100
+        fprintf(' After using inbuilt relative error criteria, all desired ele sizes are equal to CtrlVar.MeshSizeMax=%g.\n',CtrlVar.MeshSizeMax)
         fprintf(' This most likely happened because either no relative error criteria were specified, or none were applicable. \n')
         fprintf(' Will now set all ele sizes equal to CtrlVar.MeshSize=%g \n ',CtrlVar.MeshSize);
     end
@@ -243,7 +251,7 @@ if isRangeBased
         % GL refinement
         %fprintf('Remeshing based on distance of nodes from grounding line.\n')
         
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,GF);  % no need to align GL.
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF);  % no need to align GL.
         for I=1:size(CtrlVar.MeshAdapt.GLrange,1)
             
             ds=CtrlVar.MeshAdapt.GLrange(I,1);
@@ -302,16 +310,6 @@ end
 
 %% now create a (logical) list of elements to be locally refined
 
-% switch CtrlVar.RefinementCriteria
-%
-%     case 'residuals'
-%
-%         EleResiduals=Nodes2EleMean(MUA.connectivity,NodalErrorIndicators.Residuals);
-%         EleResidualsSorted=sort(EleResiduals);
-%         ElementsToBeRefined=EleResiduals>EleResidualsSorted(end-CtrlVar.LocalAdaptMeshMaxNrOfElementsToBeRefined);
-%         ElementsToBeCoarsened=false(MUA.Nele,1);
-%
-%     otherwise
 
 eRatio=EleSizeDesired./EleSizeCurrent;
 eRatio=Nodes2EleMean(MUA.connectivity,eRatio);
@@ -337,8 +335,8 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
 % Now get user modifications
-[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); % TestIng, rubarb 
-[UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,CtrlVar,MUA,F,GF,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
+[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); % TestIng, rhubarb 
+[UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
 
 
 assert(numel(xNod)==numel(yNod) && numel(xNod)==numel(EleSizeDesired),' Number of elements in x, y, and EleSize must be equal')
@@ -350,6 +348,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
     
     xyRatio=xyRange(2)/xyRange(1);
     if xyRatio<1
+        
         xFigWidth=1000;
         yFigWidth=25+xFigWidth*xyRatio;
     else

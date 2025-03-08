@@ -40,6 +40,7 @@ MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
 Fnew=UaFields;
+Fnew.solution="-none-" ; 
 Fnew.time=Fold.time;
 Fnew.dt=Fold.dt; 
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
@@ -83,7 +84,7 @@ if CtrlVar.TimeDependentRun
             %
             % This approach does not conserve h!
             %
-            % This is done quite deliberately because the surface s is genearly very smooth, whereas b and h are not. If, for example,
+            % This is done quite deliberately because the surface s is generally very smooth, whereas b and h are not. If, for example,
             % the new mesh has grounded nodes located over a local topographic feature in the bed, and h was interpolated from old to new
             % mesh, the new bedrock topographic feature would impact the surface s=B+h and produce unrealistic surface topography.
 

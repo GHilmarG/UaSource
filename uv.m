@@ -178,4 +178,8 @@ if  CtrlVar.TestForRealValues
     if ~isreal(Ruv) ; save TestSave ; error('uv:rhNotReal','rh not real!') ; end
 end
 
+
+
+F.solution="-uv-" ; 
+
 end

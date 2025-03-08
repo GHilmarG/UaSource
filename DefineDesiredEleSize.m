@@ -2,9 +2,11 @@
 
 
 
-function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=DefineDesiredEleSize(UserVar,CtrlVar,MUA,F,x,y,EleSizeDesired,ElementsToBeRefined,NodalErrorIndicators)
 
-        
+
+function [UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
+    DefineDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)
+
 
 %%
 % Define desired sizes of elements or specify which elements to refine or coarsen.
@@ -14,7 +16,7 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=Defi
 %
 % Only used in combination with adaptive meshing.
 %
-% You need to set 
+% You need to set
 %
 %   CtrlVar.AdaptMesh=1;  
 %
@@ -104,6 +106,6 @@ function [UserVar,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=Defi
 % 
 %%
  
- ElementsToBeCoarsened=[];  % Always need to define this as it is a required output. 
+ 
     
 end
