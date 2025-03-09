@@ -88,7 +88,7 @@ if isempty(wasRefine)
 end
 
 
-% refine and smoothmesh only works for 3-nod elements
+% refine and smooth-mesh only works for 3-nod elements
 % so first change to 3-nod if needed
 [MUAold.coordinates,MUAold.connectivity]=ChangeElementType(MUAold.coordinates,MUAold.connectivity,3);
 
@@ -114,7 +114,7 @@ switch CtrlVar.MeshRefinementMethod
         
     case 'explicit:local:newest vertex bisection'
         
-        %MUAold.connectivity=FlipElements(MUAold.connectivity);
+       
         if  ~isfield(MUAold,'RefineMesh')  ||  isempty(MUAold.RefineMesh)
             mesh = genMesh(MUAold.connectivity, MUAold.coordinates);
             mesh.bd=[];
@@ -133,7 +133,7 @@ switch CtrlVar.MeshRefinementMethod
         
         Na=size(mesh.coordinates,1);  Ea=size(mesh.elements,1);
         
-        % do refinement/coarsening alternativily, unless if there are
+        % do refinement/coarsening alternatively, unless if there are
         % significant in number of elements to be refined/coarsened
         
         
@@ -160,7 +160,7 @@ switch CtrlVar.MeshRefinementMethod
         else
             RunInfo.MeshAdapt.Method='Bisection Coarsening';
             fprintf(' Coarsening %i elements \n',nCoarsen)
-            %mesh.elements=FlipElements(mesh.elements);
+           
             if MUAold.nod~=3
                 meshElementsToBeCoarsened=pointLocation(mesh.TR,[MUAold.xEle(ElementsToBeCoarsened) MUAold.yEle(ElementsToBeCoarsened)]);
             else
@@ -169,7 +169,7 @@ switch CtrlVar.MeshRefinementMethod
             mesh = bisectionCoarsen(mesh,meshElementsToBeCoarsened);
         end
         
-        %elements=TestAndCorrectForInsideOutElements(CtrlVar,mesh.coordinates,mesh.elements);
+       
         
         Nb=size(mesh.coordinates,1);  Eb=size(mesh.elements,1);
         isMeshChangedSufficiently=abs(Eb-Ea) > CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan ;

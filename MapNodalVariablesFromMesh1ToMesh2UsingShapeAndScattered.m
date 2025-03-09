@@ -3,15 +3,7 @@
 
 function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScattered(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,varargin)
     
-    %%
-    % varargout=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScattered(CtrlVar,MUA1,x2,y2,OutsideValues,varargin)
-    %
-    % example:
-    % [h2,s2,rho2]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,MUA1,x2,y2,OutsideValues,h1,s1,rho1)
-    % interpolates h,s and rho, from FE Mesh MUA1 onto (x2,y2).
-    
-    %%
-       
+  
     nVarargsIn = length(varargin);
     nVar=nVarargsIn;
     varargout=cell(nVar,1);
@@ -85,7 +77,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
             varargout{iVar}=[];
         else
             varargout{iVar}(IdenticalNodes)=varargin{iVar}(ID(IdenticalNodes));
-            isMapped(IdenticalNodes)=true;  % this could be outside the loop I think, and only needs to be done once as it is only dependedn on the values of IdenticalNodes
+            isMapped(IdenticalNodes)=true;  % this could be outside the loop I think, and only needs to be done once as it is only dependent on the values of IdenticalNodes
         end
     end
     
@@ -94,7 +86,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
     %% II) Now check if there are any non-identical nodes
     % And if so, find nodes inside and outside of the old mesh.
     % For the inside nodes, use form-function interpolation.
-    % For the outside ndoes, use 'OutsideValues' if defined, otherwise extraplate using scatteredinterpolant
+    % For the outside nodes, use 'OutsideValues' if defined, otherwise extrapolate using scatteredinterpolant
     
     if (nNewNodes-nIdenticalNodes)>0
         
@@ -121,9 +113,9 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         %
         % I guess one way of dealing with this is to add a small vector to the xy
         % locations in two orthonormal directions. This should work because I
-        % already have delt with all idential nodes, so I now only have a potential
-        % problem with xy locations along the edges of the triangulatino. If I
-        % shift  in two orhtonormal directions I'm garanteed not to be moving along
+        % already have dealt with all identical nodes, so I now only have a potential
+        % problem with xy locations along the edges of the triangulation. If I
+        % shift  in two orthonormal directions I'm guaranteed not to be moving along
         % the edge itself.
         %
         if ~isempty(NodesOutside)
@@ -148,7 +140,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
             % And finally, are any of the outside nodes actually on the mesh boundary?
             NodesOnBoundary = DistanceToLineSegment([xNew(NodesOutside) yNew(NodesOutside)],[MUAold.Boundary.x MUAold.Boundary.y],[],tol);
             
-            %  Add any ouside nodes on bounday to the set of inside nodes
+            %  Add any outside nodes on boundary to the set of inside nodes
             if ~isempty(NodesOnBoundary)
                 NodesInsideAndNotSame=[NodesInsideAndNotSame;NodesOutside(NodesOnBoundary)];
                 NodesOutside(NodesOnBoundary)=[];

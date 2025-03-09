@@ -280,10 +280,7 @@ switch lower(CtrlVar.FlowApproximation)
 
     case "sstream"
 
-        % if ub vb has been calculated as a part of the remeshing, I'm loosing that information
-        % here. The problem is that ub vb will not, in general, have been calculated on either
-        % MUAnew or MUAold unless only one adapt iteration was performed.
-        %
+       
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...

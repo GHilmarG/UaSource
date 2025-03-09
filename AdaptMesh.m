@@ -64,7 +64,7 @@ if CtrlVar.AdaptMeshTimeInterval==0
     isAdaptMeshTime=true;
 elseif CtrlVar.time >= AdaptMeshTime
     isAdaptMeshTime=true;
-    AdaptMeshTime=ceil((CtrlVar.time+eps)/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+    AdaptMeshTime=ceil((CtrlVar.time+eps(CtrlVar.time))/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
 else
     isAdaptMeshTime=false;
 end
@@ -250,7 +250,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
         NeleBefore=MUAnew.Nele;
         NnodesBefore=MUAnew.Nnodes;
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
-            Remeshing(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,Fnew.GF,...
+            Remeshing(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,...
             xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
         Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
         % if MUA changed check here if elements need to be deactivated
@@ -386,7 +386,7 @@ if contains(AdaptMeshMethod,"-activation-")
     OutsideValue.ub=0;
     OutsideValue.vb=0;
 
-    % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
 
 

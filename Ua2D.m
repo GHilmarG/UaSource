@@ -436,7 +436,8 @@ while 1
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
        
-        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        %[UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh2025(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         CtrlVar.AdaptMeshInitial=0;  % make sure to set this to zero, as this only applies to the first run step, which can be either the beginning of a new run, or a restart run
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
