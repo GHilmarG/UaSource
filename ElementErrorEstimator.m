@@ -5,14 +5,26 @@
 
 function R=ElementErrorEstimator(CtrlVar,MUA,F)
 
+%%
+%
+% The error estimator is what:
+%
+%   Grätsch, T., & Bathe, K.-J. (2005). A posteriori error estimation techniques in practical finite element analysis.
+%   Computers & Structures, 83(4–5), 235–265. https://doi.org/10.1016/j.compstruc.2004.08.011
+%
+% refers to as "Recovery-based error estimator"
 %
 %
-% Calculate field gradients at integration points (IP), and integrate over
-% elements.
+% The idea is that the size of the step in gradients across element boundaries can be used as a measure of how inaccurate the
+% solution is.
+% 
+% Calculate field gradients at integration points (IP), and integrate over elements.
 %
 % Then L2 project the IP gradients onto nodal points (NP), and the integrate those over elements.
 %
-
+% Note: this is a provisional implementation...
+%
+%%
 
 eInt=StrainRatesInt(CtrlVar,MUA,F);
 eNode=ProjectFintOntoNodes(MUA,eInt);

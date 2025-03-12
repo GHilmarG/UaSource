@@ -31,8 +31,12 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 
 ndim=2; 
 
-fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+
+%%
+%
+% 
+% 
 % [points,weights]=sample('triangle',MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
@@ -45,6 +49,7 @@ end
 
 if numel(f)==MUA.Nnodes  % nodal variable
 
+    fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
     for Iint=1:MUA.nip
 
         fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
@@ -55,7 +60,7 @@ if numel(f)==MUA.Nnodes  % nodal variable
 
     end
 
-elseif size(fnod,1)==MUA.Nele && size(f,2) == MUA.nip  % integration point variable
+elseif size(f,1)==MUA.Nele && size(f,2) == MUA.nip  % integration point variable
 
     for Iint=1:MUA.nip
 

@@ -96,7 +96,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         
         % For the remaining (x2,y2) locations:
         % 1) if outside values have been defined, use those values
-        % 2) elsewere use scattered interpolant
+        % 2) elsewhere use scattered interpolant
         %
         
         % Are any of the remaining locations within the old mesh?
@@ -106,7 +106,7 @@ function [RunInfo,varargout]=MapNodalVariablesFromMesh1ToMesh2UsingShapeAndScatt
         NodesOutside=NotIdendicalNodes(isnan(ID)) ;
         NodesInsideAndNotSame=NotIdendicalNodes(~isnan(ID)) ;
         
-        % Jan 2019:  poinLocation actually fails in some cases!
+        % Jan 2019:  pointLocation actually fails in some cases!
         % If a point is on an edge within a triangulation ID and barycentric
         % coordinates can be NaNs even if matlab documentation states that one of
         % the adjacent triangles will be selected.

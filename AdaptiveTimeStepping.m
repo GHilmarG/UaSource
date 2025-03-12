@@ -322,13 +322,13 @@ if ~isfield(CtrlVar,"EndTime")
     CtrlVar.EndTime=0;
 end
 
-if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps
+if (time+dtOut)>CtrlVar.EndTime && abs(time-CtrlVar.EndTime)>100*eps(time) 
 
     dtOutOld=dtOut;
     dtOut=CtrlVar.EndTime-time;
 
     %if dtOutOld ~= dtOut
-    if isapprox(dtOutOld,dtOut)  % turned out these numbers often were not equal due to rounding errors, and differed by less than 1e-15
+    if ~isapprox(dtOutOld,dtOut)  % turned out these numbers often were not equal due to rounding errors, and differed by less than 1e-15
                                  % isapprox, which was introduced in R2024b, compares by default to a relative and absolute tolerance of 1e-15
         fprintf(CtrlVar.fidlog,' Adaptive Time Stepping: dt modified to %-g to give a correct end run time of %-g \n ',dtOut,CtrlVar.EndTime);
     end
