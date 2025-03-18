@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [UserVar,phi,lambda,HEmatrix,HErhs]=PFFequation(UserVar,CtrlVar,MUA,BCs,Gc,l,Psi)
 
 %% 
