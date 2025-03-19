@@ -146,7 +146,7 @@ rhoMin=100;
 %%
 
 
-rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the deph h=s-b=firn+thickness
+rho=(1-firn./(h+eps)) .*rhoi ;  % vertically averaged ice density over the depth h=s-b=firn+thickness
 
 % Note: one would expect that the minimum value of rho would be equal to the firn density,
 %       but there are a number of values where rho=0, that is when firn=h. Not sure how this can happen
@@ -158,14 +158,14 @@ fprintf('Over glaciated areas %f%% of densities are smaller than %f kg/m^3 \n', 
 fprintf('These densities are set to %f kg/m^3\n',rhoMin)
 I=h>0 & rho<rhoMin ; rho(I)=rhoMin ; 
 
-rho(OceanMask)=rhoi;  % be carefull here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
+rho(OceanMask)=rhoi;  % be careful here! To lessen the risk of potential extrapolation errors, I fill this with the ice dencities over the ocean.
 
 fprintf(' Plotting s, b, h, B and rho over the data grid')
-figure(200) ; imagesc(x,y,s); axis xy equal; caxis([0 4000]); title(' s ' ) ; colorbar ; axis tight
-figure(210) ; imagesc(x,y,b); axis xy equal; caxis([-2000 4000]); title(' b ' ) ; colorbar ; axis tight
-figure(220) ; imagesc(x,y,h); axis xy equal; caxis([0 4000]); title(' h ' ) ; colorbar ; axis tight
-figure(230) ; imagesc(x,y,B); axis xy equal; caxis([-4000 4000]); title(' B ' ) ; colorbar ; axis tight
-figure(240) ; imagesc(x,y,rho); axis xy equal; caxis([0 920]); title(' rho ' ) ; colorbar ; axis tight
+figure(200) ; imagesc(x,y,s); axis xy equal; clim([0 4000]); title(' s ' ) ; colorbar ; axis tight
+figure(210) ; imagesc(x,y,b); axis xy equal; clim([-2000 4000]); title(' b ' ) ; colorbar ; axis tight
+figure(220) ; imagesc(x,y,h); axis xy equal; clim([0 4000]); title(' h ' ) ; colorbar ; axis tight
+figure(230) ; imagesc(x,y,B); axis xy equal; clim([-4000 4000]); title(' B ' ) ; colorbar ; axis tight
+figure(240) ; imagesc(x,y,rho); axis xy equal; clim([0 920]); title(' rho ' ) ; colorbar ; axis tight
 drawnow ; fprintf('done.\n')
 %% Possible subsampling
 
