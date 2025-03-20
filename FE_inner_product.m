@@ -16,14 +16,17 @@ function [fg,theta]=FE_inner_product(f,g,M)
 %
 %   fg=FE_inner_product(f,g,MUA.M)   ; 
 %
-%   fNorm=sqrt(FE_inner_product(f,f,MUA.M))   ; 
+%   fSquareNorm=sqrt(FE_inner_product(f,f,MUA.M))   ; 
 % 
 %
 % Note:  If you just need to calculate the norm of a nodal variable f, you can do so simply as:
 %
 %   fNorm= f'*MUA.M* f 
 %
-% So you don't really need to call this m-File. 
+% So in this case, no need to call this m-File. 
+%
+%
+% See also: FEintegrateProduct2D
 %
 %%
 
