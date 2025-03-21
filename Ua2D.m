@@ -36,8 +36,7 @@ InvStartValues=InversionValues;
 InvFinalValues=InversionValues; 
 
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
-Lubvb=[];
-Ruv=[];
+
 
 WallTime0=tic;
 %% Clear any persistent variables
@@ -135,8 +134,8 @@ if ~isempty(ParPool)
 
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
     
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+    parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 
     if  CtrlVar.Parallel.uvhAssembly.spmd.isOn
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
@@ -529,7 +528,7 @@ while 1
         CtrlVar.Parallel.BuildWorkers=true;
         MUA=UpdateMUA(CtrlVar,MUA);
 
-        [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
     elseif CtrlVar.ForwardTimeIntegration=="-h-" 
@@ -601,7 +600,7 @@ while 1
                 CtrlVar.Parallel.BuildWorkers=true;
                 MUA=UpdateMUA(CtrlVar,MUA);
 
-                [UserVar,RunInfo,F0,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt
                 
@@ -746,7 +745,7 @@ while 1
                 save(filename)
 
                 fprintf("Ua2D:calling WTSHTF\n")
-                [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+                [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             end
 
@@ -793,7 +792,7 @@ while 1
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
-            [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb,~]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
             
             CtrlVar.InitialDiagnosticStep=0;
             

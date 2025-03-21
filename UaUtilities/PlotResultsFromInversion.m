@@ -7,7 +7,7 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,I
 %
 % Does what it says on the tin.
 %
-%  Example:
+%  Example:l
 %
 %  load InversionRestartFile
 %  PlotResultsFromInversion(UserVarInRestartFile,CtrlVarInRestartFile,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
@@ -115,26 +115,31 @@ end
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     
     fig=FindOrCreateFigure('A at the end of inversion') ; clf(fig)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen));
+    PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);
+    set(gca,'ColorScale','log') 
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title("$\log_{10}(A)$ at end of inversion",Interpreter="latex")
+    title("$A$ at end of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
-    
+    ColorbarLimits=10.^[mean(log10(InvFinalValues.AGlen))-4*std(log10(InvFinalValues.AGlen))  mean(log10(InvFinalValues.AGlen))+4*std(log10(InvFinalValues.AGlen))];
+    clim(ColorbarLimits)    
+
     fig=FindOrCreateFigure('A at the start of inversion') ; clf(fig)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.AGlen));
-    title("$\log_{10}(A)$ at start of inversion",Interpreter="latex")
+    PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.AGlen);
+    set(gca,'ColorScale','log') 
+    title("$A$ at start of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
-    
+    clim(ColorbarLimits)    
+
     fig=FindOrCreateFigure('Change in A during inversion run') ; clf(fig)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
@@ -143,34 +148,41 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
+  
 
 end
 
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     
-   
+    ColorbarLimits=10.^[mean(log10(InvFinalValues.C))-4*std(log10(InvFinalValues.C))  mean(log10(InvFinalValues.C))+4*std(log10(InvFinalValues.C))];
+
     fig=FindOrCreateFigure('C at the end of inversion') ; clf(fig)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C));
+    PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C);
+    set(gca,'ColorScale','log') 
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+     clim(ColorbarLimits)    
     
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
-    title("$\log_{10}(C)$ at end of inversion",Interpreter="latex")
+    title("$C$ at end of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
+     clim(ColorbarLimits)    
     
     fig=FindOrCreateFigure('C at the beginning of inversion') ; clf(fig)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvStartValues.C));
-    title("$\log_{10}(C)$ at start of inversion",Interpreter="latex")
+    PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.C);
+    set(gca,'ColorScale','log') 
+    title("$C$ at start of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
+     clim(ColorbarLimits)    
     
     fig=FindOrCreateFigure('Change in C during inversion run') ; clf(fig)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
@@ -341,10 +353,11 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     
+    nexttile
     [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
      
-    Kplot=Kplot+1;
-    subplot(Iplot,Jplot,Kplot);
+    %Kplot=Kplot+1;
+    %subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,(dhdt-Meas.dhdt)./dhdtError);
     hold on ;
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
@@ -416,15 +429,17 @@ if isscalar(Priors.AGlen)
 Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1);
 end
 
-cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.AGlen),FigureTitle="log10(APrior)") ; 
+cbar=UaPlots(CtrlVar,MUA,F,Priors.AGlen,FigureTitle="log10(APrior)") ; 
+set(gca,'ColorScale','log') 
 title(cbar, '($\mathrm{yr}^{-1}\,\mathrm{kPa}^{-n}$)','interpreter','latex');
-title("$\log_{10}(A_{\mathrm{Prior}})$",Interpreter="latex")
+title("$A_{\mathrm{Prior}}$",Interpreter="latex")
 
 
 
-cbar=UaPlots(CtrlVar,MUA,F,log10(Priors.C),FigureTitle="log10(CPrior)") ; 
+cbar=UaPlots(CtrlVar,MUA,F,Priors.C,FigureTitle="log10(CPrior)") ; 
+set(gca,'ColorScale','log') 
 title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-title("$\log_{10}(C_{\mathrm{Prior}})$",Interpreter="latex")
+title("$C_{\mathrm{Prior}}$",Interpreter="latex")
 
 
 

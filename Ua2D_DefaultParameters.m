@@ -2364,7 +2364,7 @@ CtrlVar.MapOldToNew.Test=false;   %
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=false;
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
-CtrlVar.DevelopmentVersion=true ; % Internal variable, always set to 0
+CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
 % (unless you want to use some untried, untested and unfinished features....)
 
 CtrlVar.Development.Pre2025uvAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.

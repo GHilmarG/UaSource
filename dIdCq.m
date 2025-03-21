@@ -104,36 +104,31 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
     
-    if ~CtrlVar.DevelopmentVersion
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-            Ctemp=log(10)*Cint.*Ctemp;
-        end
-        
-    end
+ 
     
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
-        
+
         T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
-        
+
     end
 end
 
-dIdCtemp=zeros(MUA.Nnodes,1);
+dIdC=zeros(MUA.Nnodes,1);
 
 for Inod=1:MUA.nod
-    dIdCtemp=dIdCtemp+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-if CtrlVar.DevelopmentVersion
-    % change of variables should be done on nodal values!
-    % I learned this the hard way by doing extensive tests on dJ/dgamma
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        dIdCtemp=log(10)*F.C.*dIdCtemp;
-    end
+
+% change of variables should be done on nodal values!
+% I learned this the hard way by doing extensive tests on dJ/dgamma
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+    dIdC=log(10)*F.C.*dIdC;
 end
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdCtemp);
+
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdC);
 
 
 
