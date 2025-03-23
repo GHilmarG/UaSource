@@ -126,6 +126,11 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     colormap(othercolor("Mtemperaturemap",1028))
     PlotMuaBoundary(CtrlVar,MUA,'k');
     ColorbarLimits=10.^[mean(log10(InvFinalValues.AGlen))-4*std(log10(InvFinalValues.AGlen))  mean(log10(InvFinalValues.AGlen))+4*std(log10(InvFinalValues.AGlen))];
+    if ColorbarLimits(1)==ColorbarLimits(2)
+       Eps=10*eps(ColorbarLimits(1));
+       ColorbarLimits(1)=ColorbarLimits(1)-Eps;
+       ColorbarLimits(2)=ColorbarLimits(2)+Eps;
+    end
     clim(ColorbarLimits)    
 
     fig=FindOrCreateFigure('A at the start of inversion') ; clf(fig)
@@ -154,15 +159,19 @@ end
 
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'C')
-    
-    ColorbarLimits=10.^[mean(log10(InvFinalValues.C))-4*std(log10(InvFinalValues.C))  mean(log10(InvFinalValues.C))+4*std(log10(InvFinalValues.C))];
 
+    ColorbarLimits=10.^[mean(log10(InvFinalValues.C))-4*std(log10(InvFinalValues.C))  mean(log10(InvFinalValues.C))+4*std(log10(InvFinalValues.C))];
+    if ColorbarLimits(1)==ColorbarLimits(2)
+        Eps=10*eps(ColorbarLimits(1));
+        ColorbarLimits(1)=ColorbarLimits(1)-Eps;
+        ColorbarLimits(2)=ColorbarLimits(2)+Eps;
+    end
     fig=FindOrCreateFigure('C at the end of inversion') ; clf(fig)
     PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C);
-    set(gca,'ColorScale','log') 
+    set(gca,'ColorScale','log')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-     clim(ColorbarLimits)    
+    clim(ColorbarLimits)
     
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex") 
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ; 
@@ -513,7 +522,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if ~(isempty(InvFinalValues.dJdC) && isempty(InvFinalValues.dJdCTest))
         
-        IFigC=figure('Name','Inversion C','NumberTitle','off');
+        IFigC=FindOrCreateFigure("Inversion C") ; clf(IFigC);
         
         
         
@@ -549,8 +558,8 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     
     if ~(isempty(InvFinalValues.dJdAGlen) && isempty(InvFinalValues.dJdAGlenTest))
         
-        IFigAGlen=figure('Name','Inversion AGlen','NumberTitle','off');
         
+        IFigAGlen=FindOrCreateFigure("Inversion A") ; clf(IFigAGlen);
         
         
         subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
@@ -585,7 +594,8 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
        
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
         
-        IFigAGlen=figure('Name','Inversion b','NumberTitle','off');
+        
+        IFigb=FindOrCreateFigure("Inversion B") ; clf(IFigb)
         
         
         
@@ -614,7 +624,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
         
-        IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
+        IFigb.Position=[1.5714 41.571 1096 1115.4];
         %%
     end
     

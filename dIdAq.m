@@ -1,4 +1,12 @@
-function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+
+
+
+
+
+% function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
+
+
+function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
 
 %
 % nodal-based gradients
@@ -6,13 +14,13 @@ function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,
 
 ndim=2;
 
-hnod=reshape(h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
-unod=reshape(ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
+unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-AGlennod=reshape(AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
-nnod=reshape(n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 % [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
@@ -80,7 +88,7 @@ end
 
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
-    dIdA=log(10)*AGlen.*dIdA;
+    dIdA=log(10)*F.AGlen.*dIdA;
 end
 
 

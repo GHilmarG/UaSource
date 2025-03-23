@@ -1,7 +1,30 @@
+
+
+
 function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
 
 narginchk(7,7)
 
+%%
+%
+% When performing an inversion with respect to a parameter p we minimize a
+% cost function J, on the form
+%
+%    J = I(d-\tilde{d},p-\tilde{p}) + R(p)
+%
+% subject to the side condition 
+%
+%    F(d(p),p)=0
+%
+%
+% Here F is the forward model, wich allows us to solve for d given p.
+%
+% p are the model parameters we want to invert for, and \tilde{p} are
+% direct estimates/measurments of those parameters, i.e. the priors.
+%
+% d are the outputs of the forward model which can be compared agains the
+% measurements \tilde{d}.
+%
 %
 % Calculates the product: dFuv/dC  \lambda
 %

@@ -247,7 +247,7 @@ if CtrlVar.Inverse.CalcGradI
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
             
-            duvJ=duvJduv;     % Because this is the only J terms that depents on UV
+            duvJ=duvJduv;     % Because this is the only J term that depents on UV
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
@@ -305,7 +305,8 @@ if CtrlVar.Inverse.CalcGradI
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
-                dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                %dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
                 
                 dAI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
                 DAI=dAFuvLambda+dAI;

@@ -1003,8 +1003,10 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
     
-    % 2022-05-21: tried to fix the error with M2022a when using the gradient-based option
-    % by redefining and simplifying the options, but this did not work either.
+    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option
+    % by redefining and simplifying the options, but this did not work
+    % either. Turned out this was an issue with R2022a. As of R2024b this
+    % is all working, and possibly this was fixed much sooned.
      options=optimoptions("fmincon");
      options.Algorithm="trust-region-reflective";
      options.HessianApproximation="lbfgs";
@@ -1080,9 +1082,11 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step, only relevant when using UaOptimisation
 
 % >=100 for further info and plots
+%
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
-% CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
+%
+%   CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 
 %% Comparing adjoint gradients with finite-difference gradients
 %
@@ -1104,10 +1108,9 @@ CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
 
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
 %
-% if left empty, values are calculated for every node/element within the mesh.
-% If set to for example [1,10,45] values are calculated for these three
-% nodes/elements.
-% end, testing adjoint parameters.
+% if left empty, values are calculated for every node/element within the
+% mesh. If set to for example [1,10,45] values are calculated for these
+% three nodes/elements. 
 %% Inverse testing parameters (do not change)
 
 
