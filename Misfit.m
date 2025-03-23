@@ -327,7 +327,7 @@ if CtrlVar.Inverse.CalcGradI
                 % then dJdB=dh/db*dhJhdot
                 
                 dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
-                dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+             %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
                 %dBFuvLambda=dBFuvLambda2;
                 
                 

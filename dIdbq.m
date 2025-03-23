@@ -182,7 +182,10 @@ for Iint=1:MUA.nip
     %     %    dhdb=-1;
     
     
-    [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint);
+    q=[]; g=[] ; muk=[] ; V0=[] ; % only done for Weertman so far
+    [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,[],Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,...
+        uoint,voint,Coint,moint,uaint,vaint,Caint,maint,...
+        q,g,muk,V0);
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     
     
@@ -302,7 +305,8 @@ for Inod=1:MUA.nod
     dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,dFdhlambda);
+P=MUA.M/MUA.Area;
+dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,P,dFdhlambda);
 
 end
 

@@ -324,36 +324,43 @@ else  % Tikhonov regularization
         Rb=0;
         dRdb=[];
     end
-    
-    
-    
+
+
+
     if isB   %  B
-        
+
         NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*NB*dpB/2;
         dRdB=(NB*dpB).*dBfactor;
-        
+        N=MUA.Nnodes;
+        % This has not been finalized, just put this here to provide some
+        % pre-multiplyier
+        %ddRdBB=speye(N,N);
+        ddRdBB=MUA.M/MUA.Area;
+
     else
         RB=0;
         dRdB=[];
-        ddRddB=[];
+        ddRdBB=[];
     end
-    
+
     
     % Here using the Hessian as a premultiplier
     dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdBB,dRdB);
     
-    R=RAGlen+Rb+RB+RC;
-    dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
+    R=RAGlen+RB+RC;
+    dRdp=[dRdAGlen;dRdB;dRdC];
     
     
     [Am,An] = size(ddRdAA);
+    [Bm,Bn] = size(ddRdBB);
     [Cm,Cn] = size(ddRdCC);
-    ddRdpp = spalloc(Am+Cm,An+Cn,nnz(ddRdAA)+nnz(ddRdCC));
+    ddRdpp = spalloc(Am+Bm+Cm,An+Bn+Cn,nnz(ddRdAA)+nnz(ddRdCC)+nnz(ddRdBB));
     ddRdpp(1:Am,1:An) = ddRdAA;
-    ddRdpp(Am+1:Am+Cm,An+1:An+Cn) = ddRdCC;
+    ddRdpp(Am+1:Am+Bm,An+1:An+Bn) = ddRdBB;
+    ddRdpp(Am+Bm+1:Am+Bm+Cm,An+Bn+1:An+Bn+Cn) = ddRdCC;
     
     
 end
