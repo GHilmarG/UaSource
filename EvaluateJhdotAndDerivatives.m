@@ -11,8 +11,6 @@ vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dhdtMeasnod=reshape(Meas.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-% [points,weights]=sample('triangle',MUA.nip,ndim);
-
 JhdotIntSum=zeros(MUA.Nele,1);
 duJhdotIntSum=zeros(MUA.Nele,MUA.nod);
 dvJhdotIntSum=zeros(MUA.Nele,MUA.nod);
@@ -55,7 +53,7 @@ for Iint=1:MUA.nip
     
     detJw=detJ*MUA.weights(Iint);
     
-    JhdotIntSum=JhdotIntSum+((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; % element variable
+    JhdotIntSum=JhdotIntSum+((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; 
     
     for Inod=1:MUA.nod
         
@@ -97,15 +95,6 @@ for Inod=1:MUA.nod
     dhJhdot=dhJhdot+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),dhJhdotIntSum(:,Inod),neq,1);
     
 end
-
-
-%[hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
-%CtrlVar.SymmSolver='AugmentedLagrangian';
-%x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
-
-%[dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,Jhdot,hRhs,x0,y0,CtrlVar);
-
-%[duJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,duJhdot,dhJhdot);
 
 
 duJhdot=full(duJhdot);

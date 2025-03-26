@@ -3,8 +3,8 @@ function [p,plb,pub]=F2p(CtrlVar,MUA,F)
 
 narginchk(3,3)
 
-% p is the vector of the control variables, currenty p=[A,b,C]
-% with A, b or C here only being nonempty when inverted for,
+% p is the vector of the control variables, currently p=[A,B,C]
+% with A, B or C here only being nonempty when inverted for,
 % 
 
 pA=[];
@@ -15,9 +15,9 @@ pC=[];
 lbC=[];
 ubC=[];
 
-pb=[];
-lbb=[];
-ubb=[];
+pB=[];
+lbB=[];
+ubB=[];
 
 if contains(lower(CtrlVar.Inverse.InvertFor),'-logaglen-')
     
@@ -60,16 +60,16 @@ end
 
 if contains(CtrlVar.Inverse.InvertFor,'-B-')
     
-    pb=F.B;
-    lbb=F.Bmin+zeros(size(pb));
-    ubb=F.Bmax+zeros(size(pb));
+    pB=F.B;
+    lbB=F.Bmin+zeros(size(pB));
+    ubB=F.Bmax+zeros(size(pB));
     
 end
 
 
-p=[pA;pb;pC];
-plb=[lbA;lbb;lbC];
-pub=[ubA;ubb;ubC];
+p=[pA;pB;pC];
+plb=[lbA;lbB;lbC];
+pub=[ubA;ubB;ubC];
 
 
 end

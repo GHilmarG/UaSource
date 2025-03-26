@@ -1,10 +1,40 @@
+
+
+
 function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+
+%%
+% Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
+%
+% This is a fairly simple thing to do as the regularization term is an explicit function of p, and the Hessian calculation can
+% be done exactly.
+%
+% However, there are quite a few cases to consider...
+%
+% For each variable (A,B,C) the regularization term typically has the form
+%
+%   R= ( ga.^2* Ra + gs.^2 * Rs ) /(2*Area)
+%
+% where ga and gs are regularization parameters
+%
+% and 
+%
+%  Ra = dp'*M*dp
+%
+%  Rs= dp'*(Dxx_Dyy)*dp
+%
+% where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
+%
+%
+%
+%%
 
 
 if nargout > 3
     RegOuts=[];
     RegOuts.RAs=nan  ; RegOuts.RAa=nan;
     RegOuts.RCs=nan  ; RegOuts.RCa=nan;
+   
 end
 %%
 
@@ -132,7 +162,7 @@ else
 end
 
 
-% b
+% B
 if contains(CtrlVar.Inverse.InvertFor,'-B-')
     
     isB=1;
@@ -330,13 +360,10 @@ else  % Tikhonov regularization
     if isB   %  B
 
         NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*NB*dpB/2;
-        dRdB=(NB*dpB).*dBfactor;
-        N=MUA.Nnodes;
-        % This has not been finalized, just put this here to provide some
-        % pre-multiplyier
-        %ddRdBB=speye(N,N);
-        ddRdBB=MUA.M/MUA.Area;
+        RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
+        dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+        ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+                                        % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
 
     else
         RB=0;
@@ -345,7 +372,7 @@ else  % Tikhonov regularization
     end
 
     
-    % Here using the Hessian as a premultiplier
+    % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
     dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdBB,dRdB);

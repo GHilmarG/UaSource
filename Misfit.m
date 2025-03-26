@@ -2,48 +2,24 @@ function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 
 %%
 %
-%           J(u,p) = I(u(p)) + R(p)
+%           J(q(p),p) = I(q(p)) + R(p)
 %
-% Forward model:   f(u(p),p)=0
+% Forward model:   f(q(p),p)=0
 %
 %
 % Calculate data misfit functions and gradients with respect to control
-% variables p and the state variables u and v.
+% variable p containing and the state variable q.
 %
-%   dfuv    : The derivative of the forward model f(u(p),p)=0 (scalar) with respect to
-%             the state variables (uv).
+% The control variable p can involve A, B, C.
 %
-%
-%   As explained in Ua compendium the misfit term, I, can be written as
-%
-%       2 I=d M d + d (Dx +Dy) d%
-%  where d=d_measured-d_calculated
+% The adjoint method is used to calculate the derivatives
 %
 %
-%  Notation:
-%  I = Iuv   + Idot    + IA    +   IB   + IC
 %
-%  I need:
-%
-%       duvJ  =   duvJuv   + duvJdot    (i.e. any J terms that are function of uv)
-%       dCJC
-%       dBJB
-%       dAJA
-%
-%
-%   Adjoint Eqs:  duvFuv lambda = duvJ
-%
-%       DAI     = dAFuv lambda + dAI
-%       DBI     = dBFuv lambda + dBI
-%       DCI     = dCFuv lambda + dCI
-%
-%   here D is the total derivative and I use d for the partial derivative
-
+%%
 
 
 Area=MUA.Area;
-
-
 
 DAI=[];
 DBI=[];
@@ -60,13 +36,11 @@ MisfitOuts.dIduv=[];
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
-
-
 us=F.ub+F.ud ;
 vs=F.vb+F.vd ;
 
 %% Do some test on inputs, check if error covariance matrices are correctly defined
-% calculate residual terms, i.e. difference between meas and calc values.
+% calculate residual terms, i.e. difference between measured and modeled values.
 if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
     
     if isempty(Meas.us)
@@ -99,7 +73,7 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
     end
 end
 
-%% Data misfit terms and derivatives
+
 if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
     
     if isempty(Meas.dhdt)
@@ -125,17 +99,19 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
     
 end
 
-%% Calculate misfit term I and its gradient with respect to the state variables u and v
-% This is straigtforward as the misfit term is an explicit function of u
-% and v.
+%% Calculate misfit term I and its gradient with respect to the state variable q, i.e. u and v
+%
+% This is straightforward as the misfit term is an explicit function of u and v.
+%
 
-Juv=0 ; Jhdot=0 ;
-duJdu=zeros(MUA.Nnodes,1) ;
-dvJdv=zeros(MUA.Nnodes,1) ;
 
-duJhdot=zeros(MUA.Nnodes,1);
-dvJhdot=zeros(MUA.Nnodes,1);
-dhJhdot=zeros(MUA.Nnodes,1) ;
+Iuv=0 ; Ihdot=0 ;
+duIdu=zeros(MUA.Nnodes,1) ;
+dvIdv=zeros(MUA.Nnodes,1) ;
+
+duIhdot=zeros(MUA.Nnodes,1);
+dvIhdot=zeros(MUA.Nnodes,1);
+dhIhdot=zeros(MUA.Nnodes,1) ;
 
 
 if ~isfield(MUA,"M")
@@ -144,33 +120,44 @@ end
 
 if contains(CtrlVar.Inverse.Measurements,"-uv-")
     
-    duJdu=(MUA.M*usres)./uErr/Area;
-    dvJdv=(MUA.M*vsres)./vErr/Area;
-    Juv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
+    duIdu=(MUA.M*usres)./uErr/Area;
+    dvIdv=(MUA.M*vsres)./vErr/Area;
+    Iuv=full(usres'*MUA.M*usres+vsres'*MUA.M*vsres)/2/Area;
     
 end
 
-
+% Derivatives of the Ihdot misfit term. This is a bit more complicated as I need to take the derivative of the
+% mass-conservation equation with respect to v.
+%
+% BTW, as the regularization term (R), does not depend on v these I derivatives with respect to v are the derivatives of J
+% with respect to v.
+%
+% There is an interesting added aspect to this, because the mass-conservation involves both v and B, i.e. both the output of
+% the forward model (v), and the variable which we are inverting for (B), the 'output' of the inverse model. For this reason,
+% we have here a contribution from the misfit term (I) to the quantity <\partial_B J, \phi > which otherwise would only arise from
+% the regularization term (R).  Therefore, we must here calculate the derivative of the cost function term with respect to
+% both u and B. This addition is only needed when inverting for B while also including the hdot cost function term.
+%
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
     
-    [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
+    [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
     
 end
 
 
-I=Juv+Jhdot ;  %  but still missing the regularisation terms: JA, JB and JC
-duvJduv=[duJdu(:)+duJhdot(:);dvJdv(:)+dvJhdot(:)];
+I=Iuv+Ihdot ;  %  
+duvIduv=[duIdu(:)+duIhdot(:);dvIdv(:)+dvIhdot(:)];
 
 if CtrlVar.TestAdjointFiniteDifferenceType=="complex step differentiation"
     CtrlVar.TestForRealValues=false;
 end
 
-if ~isreal(duvJduv)  && CtrlVar.TestForRealValues
+if ~isreal(duvIduv)  && CtrlVar.TestForRealValues
     save TestSave ; error("MisfitFunction:dIduvNoReal","dIduv is not real! Possibly a problem with covariance of data.")
 end
 
 
-MisfitOuts.dIduv=duvJduv;
+MisfitOuts.dIduv=duvIduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
@@ -219,7 +206,7 @@ if CtrlVar.Inverse.CalcGradI
             % Forward model:
             %   f(u(p),p)=0
             %
-            %% Step 1: solve the non-linear forward problem
+            %% Step 1: solve the non-linear forward problem (this has already be done ahead of the call to this m-file)
             %
             %       dfuv du = f(u)  ; u-> u+du until norm(f)<tolerance
             %
@@ -247,7 +234,10 @@ if CtrlVar.Inverse.CalcGradI
             LAdjointrhs=MLC_Adjoint.ubvbRhs;
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
             
-            duvJ=duvJduv;     % Because this is the only J term that depents on UV
+            duvJ=duvIduv;     % Because this is the only J term that depends on (u,v). 
+                              % If the regularization term depended on the state variable q, ie R=R(u,v) then this would not be correct.
+
+            % Now solve the linear adjoint problem for lambda
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);
             
             
@@ -273,11 +263,11 @@ if CtrlVar.Inverse.CalcGradI
                 figure
                 hold off
                 subplot(2,2,1)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1:length(F.ub)),CtrlVar);  title("dIdu")
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvIduv(1:length(F.ub)),CtrlVar);  title("dIdu")
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,2)
-                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvJduv(1+length(F.ub):end),CtrlVar);  title('dIdv')
+                [FigHandle,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,MUA.coordinates,duvIduv(1+length(F.ub):end),CtrlVar);  title('dIdv')
                 hold on ; plot(GLgeo(:,[3 4])'/CtrlVar.PlotXYscale,GLgeo(:,[5 6])'/CtrlVar.PlotXYscale,'r','LineWidth',2)
                 
                 subplot(2,2,3)
@@ -290,25 +280,34 @@ if CtrlVar.Inverse.CalcGradI
             end
             
             %% Step 3:  <d_p F^* \lambda>,
-            % Note that I'm adding the d_p R term in the regularisation step
-            % But I need to include a possible <d_p I , \phi> term here
+            %
+            % Note that I'm adding the d_p R term in the regularization step.
+            %
+            % But I need to include a possible <d_p I , \phi> term here.
+            %
             % For p=A and p=C, d_p I =0 because I is not an explicit function of A and C
+            %
             % But for b, d_b I = p_x (u db)
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
                 dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
                 
-                dCI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
-                DCI=dCFuvLambda+dCI;
+                dCI=0 ;               % This is the explicit derivative of I with respect to C. 
+                                      % The misfit term I is not an explicit function of C, so this equals to zero.
+
+                DCI=dCFuvLambda+dCI;  % this is the part of the dI/dC derivative which is due to the implicit dependency 
+                                      % of I on C because the velocities depend on C,
+
             end
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
-                %dAFuvLambda=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,F.s,F.b,F.h,F.S,F.B,F.ub,F.vb,F.ud,F.vd,F.AGlen,F.n,F.C,F.m,F.rho,F.rhow,F.alpha,F.g,F.GF);
+               
                 dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
                 
-                dAI=0 ; %  Here I should add the regularisation term, rather then doing this outside of this function
+                dAI=0 ; % No explicit dependency of the misfit term I on A.
+
                 DAI=dAFuvLambda+dAI;
             end
             
@@ -323,7 +322,7 @@ if CtrlVar.Inverse.CalcGradI
                 dhdp= -F.GF.node ;
                 
                 % dIdB= dhF^* \lambda + dhJ
-                % if only -dhdt- meas and no regularisation
+                % if only -dhdt- meas and no regularization
                 % then dJdB=dh/db*dhJhdot
                 
                 dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
@@ -331,11 +330,11 @@ if CtrlVar.Inverse.CalcGradI
                 %dBFuvLambda=dBFuvLambda2;
                 
                 
-                dBI=dhdp.*dhJhdot;
+                dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
                 DBI=dBFuvLambda+dBI;
                 
                 if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
-                    [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+                    F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
                     DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
                 end
                 

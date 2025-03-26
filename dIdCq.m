@@ -20,9 +20,9 @@ narginchk(7,7)
 % Here F is the forward model, wich allows us to solve for d given p.
 %
 % p are the model parameters we want to invert for, and \tilde{p} are
-% direct estimates/measurments of those parameters, i.e. the priors.
+% direct estimates/measurements of those parameters, i.e. the priors.
 %
-% d are the outputs of the forward model which can be compared agains the
+% d are the outputs of the forward model which can be compared against the
 % measurements \tilde{d}.
 %
 %

@@ -1,8 +1,38 @@
 function dFdhlambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp)
 
+%%
 %
-% This function should be called something like dhFuhLamba
+% This function should be called something like dFdBtimesLamba
 %
+% Evaluates:
+%
+%
+% $$\langle (dF/dB)^*  | \lambda \rangle $$
+%
+% 
+% $$ B(x) = B_i \phi_i(x) $$
+%
+% $$ \lambda(x) = \lambda_j \phi_j(x) $$
+%
+% The derivative is taken with respect to one of the nodal variables, $B_i$, at a time.
+%
+% Consider, as an example, $F=B(x)$. Then
+%
+% $$\langle (dF/dB)^*  | \lambda \rangle_i  = \langle dB/dB_i | \lambda \rangle = \langle \phi_i(x) | \lambda_j \phi_j(x)  \rangle  =
+% M_{ij} \lambda_j $$
+% 
+% And for
+%
+% $$F=\partial_x (\eta \, (s-B) \partial u) $$
+%
+% we have
+%
+% $$\langle (dF/dB)^* | \lambda \rangle_i = \langle d ( \partial_x (\eta \, (s-B) \partial_x u)/dB_i | \lambda \rangle =
+% -\langle \eta \, (0 -\phi_i(x)) \; \partial_x u | \partial_x \lambda \rangle =  \langle \eta \,  \phi_i(x) \; \partial_x u | \partial_x \lambda \rangle $$
+%
+% and some possible additional boundary terms.
+%
+%%
 
 ndim=2;
 
@@ -61,15 +91,11 @@ for Iint=1:MUA.nip
     Deriv=MUA.Deriv(:,:,:,Iint);
     
     
-    
-    
     hint=hnod*fun;
     bint=bnod*fun;
-   
     
     uint=unod*fun;
     vint=vnod*fun;
-    
     
     rhoint=rhonod*fun;
     nint=nnod*fun;
@@ -78,8 +104,7 @@ for Iint=1:MUA.nip
     Bint=Bnod*fun;
     Sint=Snod*fun;
     Hint=Sint-Bint;
-    
-    
+
     
     AGlenInt=AGlennod*fun;
     AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
@@ -104,6 +129,7 @@ for Iint=1:MUA.nip
     
     % only correct for B !!  +gera+
     dhdpint= -Heint ;
+    
     dbdpint= Heint ;
     dBdpint=1 ;
     
@@ -166,10 +192,10 @@ for Iint=1:MUA.nip
     % Using: s= (1-rhow/rho) b + rhow S/rho   for h<h_f
     %
     % I assume that s is independent of b where grounded, i.e. ds/db = 0,
-    % on the other hand I can not assume that s is independnt of b where afloat because
-    % that will violiate the floating condition.
+    % on the other hand I can not assume that s is independent of b where afloat because
+    % that will violate the floating condition.
     %
-    % Therfore:  ds/db =  (1-Heint) (1-rhow/rho)
+    % Therefore:  ds/db =  (1-Heint) (1-rhow/rho)
     %     %
     %     % dh/db = (1-Heint) (1-rhow/rho) -1
     %     if contains(CtrlVar.Inverse.InvertFor,'-B-')
@@ -182,7 +208,7 @@ for Iint=1:MUA.nip
     %     %    dhdb=-1;
     
     
-    q=[]; g=[] ; muk=[] ; V0=[] ; % only done for Weertman so far
+    q=[]; g=[] ; muk=[] ; V0=[] ; % only done for Weertmann so far
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,[],Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,...
         uoint,voint,Coint,moint,uaint,vaint,Caint,maint,...
         q,g,muk,V0);
@@ -225,7 +251,7 @@ for Iint=1:MUA.nip
         
         
         % Note: db/dx  needs to be perturbed with respect to B (i.e. p)
-        %  b = G B  + (1-G) ... (not funcion of B)
+        %  b = G B  + (1-G) ... (not function of B)
         % d (delta b)/dx = d (delta (G B) ) / dx
         %                = d (deltaG  B) ) / dx + d (G delta B) / dx
         %                =     ?                + dG/dx delta B + G d(delta B) /dx
@@ -262,9 +288,6 @@ for Iint=1:MUA.nip
         t5=0;
         
         Fx=(t1+t2).*detJw;
-        Tx=(t3+t4+t5).*detJw;
-        
-        
         %         t1=-F.g*ca*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod);
         %t1=   (-ca*F.g* (rhoint.*hint-F.rhow*dint)   .*(ddbdpdy.*fun(Inod)+dbdpint.*Deriv(:,2,Inod))...
         %    -ca*F.g*(rhoint.*dhdpint+F.rhow*HeHint.*dBdpint).*dbdy  .*fun(Inod) ...
@@ -275,6 +298,9 @@ for Iint=1:MUA.nip
             (  (rhoint.*hint-F.rhow*dint).*(test1*deltaint.*(dhdy-dhfdy).*fun(Inod)+dbdpint.*Deriv(:,2,Inod))...
             +(rhoint.*dhdpint.*fun(Inod)+F.rhow*(HeHint.*dbdpint+test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dbdy)...
             .*vAdjointint;
+        
+        Tx=(t3+t4+t5).*detJw;
+        
         
         % t2=0.5*ca*g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
         t2=F.g*ca*(rhoint.*hint.*dhdpint.*fun(Inod)-F.rhow.*dint.*(-HeHint.*dbdpint-test2*deltaHint.*dBdpint.*(Sint-bint)).*fun(Inod)).*dlydy ; 

@@ -12,7 +12,6 @@ NB=numel(F.B);
 NC=numel(F.C);
 
 IA1=0 ; IA2=0;
-Ib1=0 ; Ib2=0;
 IB1=0 ; IB2=0;
 IC1=0 ; IC2=0;
 Itotal=0;

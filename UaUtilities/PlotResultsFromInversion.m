@@ -600,104 +600,55 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
 
-
+%%
         IFigb=FindOrCreateFigure("Inversion B") ; clf(IFigb)
-
-
-
-        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        TileB=tiledlayout(2,2) ;
+        nexttile
+        cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
         title('dJdB Adjoint gradient')
 
-        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        nexttile
+        cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('dJdB Brute force gradient')
 
-
-        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB-InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        nexttile
+        cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('Difference between adjoint and brute force derivatives')
 
-        subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB./InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        nexttile
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB./InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false) ;
         title('Ratio between adjoint and brute force derivatives')
 
         IFigb.Position=[1.5714 41.571 1096 1115.4];
+        TileB.TileSpacing='tight';
+        TileB.Padding='tight';
         %%
     end
 
-
-
-
-    if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
-
-        IFigAGlen=figure('Name','Inversion B','NumberTitle','off');
-
-
-
-        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('dJdB Adjoint gradient')
-
-        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('dJdB Brute force gradient')
-
-
-        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB-InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Difference between adjoint and brute force derivatives')
-
-        subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB./InvFinalValues.dJdBTest) ;
-        hold on
-        PlotMuaMesh(CtrlVar,MUA);
-        hold on ;  PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Ratio between adjoint and brute force derivatives')
-
-        IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
-        %%
-    end
-
-
-    %%
 else
 
     if ~isempty(InvFinalValues.dJdAGlen)
 
         fig=FindOrCreateFigure('dJdA'); clf(fig) ;
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
         title('$dJ/dA$','interpreter','latex')
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        
     end
 
     if ~isempty(InvFinalValues.dJdC)
 
         fig=FindOrCreateFigure('dJdC'); clf(fig)
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
         title('$dJ/dC$','interpreter','latex');
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        
     end
 
     if ~isempty(InvFinalValues.dJdB)
 
         fig=FindOrCreateFigure('dJdB'); clf(fig)
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdB) ;
-        title('$dJ/dC$','interpreter','latex');
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
+        title('$dJ/dB$','interpreter','latex');
+       
     end
 
 
@@ -782,79 +733,68 @@ else
 
         if ~isempty(Priors.TrueB)
 
-            tFig1=figure('Name','True and estimated B','NumberTitle','off');
-            subplot(1,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB) ; title('True B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
-            subplot(1,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B) ; title('Retrieved B')
-            hold on ; PlotMuaMesh(CtrlVar,MUA,[],'w') ;
-            tFig1.Units='normalized';
-            tFig1.Position=[0.5 0.51 0.5 0.4];
+            %% B 
+           
+            figB=FindOrCreateFigure("True and estimated B"); clf(figB)
+            TB=tiledlayout(2,2) ;
+           
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false); 
+            title('True B')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
+            title('Retrieved B')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
+            title('B estimated-true')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+            title("B at start of inversion")
+
+            figB.Position=[200 200 900 800];
+            TB.TileSpacing="tight";
+            TB.Padding="tight";
+
+            
+             %% h
+           
+            figh=FindOrCreateFigure("True and estimated h"); clf(figh)
+            TB=tiledlayout(2,2) ;
+           
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.Trueh,CreateNewFigure=false);
+            title('True h')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,F.h,CreateNewFigure=false);
+            title('Retrieved h')
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,F.h-Priors.Trueh,CreateNewFigure=false);
+            title('h estimated-true')
+
+            nexttile
+            [bStart,hStart]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,InvStartValues.B,F.S,F.rho,F.rhow); %
+            UaPlots(CtrlVar,MUA,F,hStart,CreateNewFigure=false);
+            title("h at start of inversion")
+    
+
+            figB.Position=[500 200 900 800];
+            TB.TileSpacing="tight";
+            TB.Padding="tight";
+            figh.Position=[500 200 900 800];
 
 
-            tFig2=figure('Name','Difference between true and estimated b','NumberTitle','off');
 
 
 
-            subplot(2,2,1)
-            PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("Inv. start field: "+CtrlVar.Inverse.InvertFor)
-            colorbar('southoutside')
+            
+            
+            %%
 
-            subplot(2,2,2)
-            PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("Inverted: "+CtrlVar.Inverse.InvertFor)
-            colorbar('southoutside')
-
-            subplot(2,2,3)
-            PlotMeshScalarVariable(CtrlVar,MUA,Priors.TrueB);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("True: "+CtrlVar.Inverse.InvertFor)
-            colorbar('southoutside')
-
-            subplot(2,2,4)
-            PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-Priors.TrueB);
-            %hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("Estimated-True: "+CtrlVar.Inverse.InvertFor)
-            colorbar('southoutside')
-
-            tFig2.Units='normalized';
-            tFig2.Position=[0.3 0.2 0.8 0.5];
-
-            tFigTh=figure('Name','Difference between true and estimated h','NumberTitle','off');
-
-            subplot(1,3,1)
-            PlotMeshScalarVariable(CtrlVar,MUA,F.s-InvFinalValues.B);
-            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("Inverted: h")
-            colorbar('off')
-            colorbar('southoutside')
-
-            subplot(1,3,2)
-            PlotMeshScalarVariable(CtrlVar,MUA,F.s-Priors.TrueB)  ; % this may need to be adjusted
-            hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("True: h")
-            colorbar('off')
-            colorbar('southoutside')
-
-            subplot(1,3,3)
-            PlotMeshScalarVariable(CtrlVar,MUA,(F.s-InvFinalValues.B)-(F.s-Priors.TrueB));
-            hold on ; PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-            SetLabels(CtrlVar,"km","km","m");
-            title("Inverted-True: h ")
-            colorbar('off')
-            colorbar('southoutside')
-
-            tFigTh.Units='normalized';
-
-            tFigTh.Position=[0.1 0.4 0.8 0.5];
 
         end
     end
