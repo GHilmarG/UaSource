@@ -233,28 +233,33 @@ end
 
 
 
-if contains(CtrlVar.Inverse.InvertFor,'B')
+if contains(CtrlVar.Inverse.InvertFor,'-B-')
 
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B);
-    title('InvFinalValues.B') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.B);
-    title('Bstart') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,FigureTitle="B final");
+    title('InvFinalValues.B') ;
+    title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(othercolor("Mdarkterrain",32))
 
-    figure ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.B-InvStartValues.B);
-    title('InvFinalValues.B-Bstart') ; cbar=colorbar; title(cbar, '(m)');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,FigureTitle="B start");
+    title('Bstart')
+    title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(othercolor("Mdarkterrain",32))
+
+    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,FigureTitle="B final - B start");
+    title('InvFinalValues.B-Bstart') ;
+    title(cbar, '(m)');
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    colormap(othercolor("Mdarkterrain",32))
 
     AspectRatio=1;
-    figure ; Plot_sbB(CtrlVar,MUA,F.s,F.b,F.B,[],[],AspectRatio) ; title('F.s, F.b and F.B')
+    fig=FindOrCreateFigure("sbB");  clf(fig)
+    Plot_sbB(CtrlVar,MUA,[],[],F.B,[],[],AspectRatio) ; 
+    title('B')
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    
 
 end
 
@@ -600,16 +605,16 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
 
-%%
+        %%
         IFigb=FindOrCreateFigure("Inversion B") ; clf(IFigb)
         TileB=tiledlayout(2,2) ;
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
-        title('dJdB Adjoint gradient')
+        title('$dJ/dB$ Adjoint gradient')
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
-        title('dJdB Brute force gradient')
+        title('$dJ/dB$ Brute force gradient',Interpreter='latex')
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
@@ -632,7 +637,7 @@ else
         fig=FindOrCreateFigure('dJdA'); clf(fig) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
         title('$dJ/dA$','interpreter','latex')
-        
+
     end
 
     if ~isempty(InvFinalValues.dJdC)
@@ -640,7 +645,7 @@ else
         fig=FindOrCreateFigure('dJdC'); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
         title('$dJ/dC$','interpreter','latex');
-        
+
     end
 
     if ~isempty(InvFinalValues.dJdB)
@@ -648,7 +653,7 @@ else
         fig=FindOrCreateFigure('dJdB'); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         title('$dJ/dB$','interpreter','latex');
-       
+
     end
 
 
@@ -733,13 +738,13 @@ else
 
         if ~isempty(Priors.TrueB)
 
-            %% B 
-           
+            %% B
+
             figB=FindOrCreateFigure("True and estimated B"); clf(figB)
-            TB=tiledlayout(2,2) ;
-           
+            TB=tiledlayout(2,3) ;
+
             nexttile
-            UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false); 
+            UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
             title('True B')
 
             nexttile
@@ -748,22 +753,33 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
-            title('B estimated-true')
+            title('B estimated - B true')
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
             title("B at start of inversion")
 
-            figB.Position=[200 200 900 800];
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
+            title("B prior")
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
+            title("Retrieved B -  Prior B ")
+
+
+            figB.Position=[200 200 1300 800];
             TB.TileSpacing="tight";
             TB.Padding="tight";
+            colormap(othercolor("Mdarkterrain",32))
+        end
 
-            
-             %% h
-           
+        if ~isempty(Priors.Trueh)
+            %% h
+
             figh=FindOrCreateFigure("True and estimated h"); clf(figh)
             TB=tiledlayout(2,2) ;
-           
+
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.Trueh,CreateNewFigure=false);
             title('True h')
@@ -780,23 +796,23 @@ else
             [bStart,hStart]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,InvStartValues.B,F.S,F.rho,F.rhow); %
             UaPlots(CtrlVar,MUA,F,hStart,CreateNewFigure=false);
             title("h at start of inversion")
-    
+
 
             figB.Position=[500 200 900 800];
             TB.TileSpacing="tight";
             TB.Padding="tight";
             figh.Position=[500 200 900 800];
 
-
-
-
-
-            
-            
-            %%
-
-
         end
+
+
+
+
+
+        %%
+
+
+
     end
 
 
@@ -858,7 +874,6 @@ else
 
 
 end
-%%
-fprintf('done.\n')
+
 
 end

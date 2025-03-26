@@ -332,12 +332,12 @@ if CtrlVar.Inverse.CalcGradI
                 
                 dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
                 DBI=dBFuvLambda+dBI;
-                
-                if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
-                    F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
-                    DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
-                end
-                
+                % 
+                % if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
+                %     F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+                %     DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
+                % end
+                % 
                 
                 
             end

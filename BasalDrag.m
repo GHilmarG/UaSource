@@ -495,7 +495,7 @@ function [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g)
     narginchk(6,6)
     
     hf=rhow.*H./rho;
-    hf(hf<eps)=0;  % positive floation thickness 
+    hf(hf<eps)=0;  % positive flotation thickness 
     Dh=h-hf;
     I=Dh<eps;
     Dh(I)=0;

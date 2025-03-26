@@ -78,6 +78,21 @@ nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+
+if ~isempty(F.q)
+    qnod=reshape(F.q(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+if ~isempty(F.V0)
+    V0nod=reshape(F.V0(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+
+if ~isempty(F.muk)
+    muknod=reshape(F.muk(MUA.connectivity,1),MUA.Nele,MUA.nod);
+end
+
+
 % [points,weights]=sample('triangle',MUA.nip,ndim);
 T=zeros(MUA.Nele,MUA.nod);
 
@@ -96,7 +111,7 @@ for Iint=1:MUA.nip
     
     uint=unod*fun;
     vint=vnod*fun;
-    
+
     rhoint=rhonod*fun;
     nint=nnod*fun;
     Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
@@ -105,9 +120,29 @@ for Iint=1:MUA.nip
     Sint=Snod*fun;
     Hint=Sint-Bint;
 
-    
+
     AGlenInt=AGlennod*fun;
     AGlenInt(AGlenInt<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
+
+    if ~isempty(F.q)
+        qint=qnod*fun;
+    else
+        qint=[];
+    end
+
+    if ~isempty(F.muk)
+        mukint=muknod*fun;
+    else
+        mukint=[];
+    end
+
+    if ~isempty(F.V0)
+        V0int=V0nod*fun;
+    else
+        V0int=[];
+    end
+
+
     uAdjointint=uAdjointnod*fun;
     vAdjointint=vAdjointnod*fun;
     
@@ -208,10 +243,10 @@ for Iint=1:MUA.nip
     %     %    dhdb=-1;
     
     
-    q=[]; g=[] ; muk=[] ; V0=[] ; % only done for Weertmann so far
+  
     [~,~,~,~,~,~,dtaubxdh,dtaubydh] = BasalDrag(CtrlVar,[],Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,...
         uoint,voint,Coint,moint,uaint,vaint,Caint,maint,...
-        q,g,muk,V0);
+        qint,F.g,mukint,V0int);
     etaint=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     
     
