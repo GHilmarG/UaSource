@@ -104,6 +104,11 @@ end
 
 J=R+I;
 
+if J < 0
+    fprintf("J less that zero!! \n")
+end
+
+
 if nargout>3
     JGHouts.dRdp=dRdp;
     JGHouts.dIdp=dIdp;

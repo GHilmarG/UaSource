@@ -420,15 +420,19 @@ end
 T.Padding="tight";   T.TileSpacing="tight";
 
 %%
-fig=FindOrCreateFigure('calculated velocities') ; clf(fig)
+fig=FindOrCreateFigure("calculated velocities") ; clf(fig)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
-QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; title("Calculated horizontal velocities") ;
+QuiverPar.QuiverColorSpeedLimits=[];
+QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
+QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; 
+title("Calculated horizontal velocities") ;
 hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,"r");
 PlotCalvingFronts(CtrlVar,MUA,F,"b");
-[~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+%%
 
+[~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 fig=FindOrCreateFigure('dh/dt calculated') ; clf(fig)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
@@ -503,9 +507,24 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
             (InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I))/InvFinalValues.dJdC(I))
     end
 
-    IB=find(~isnan(InvFinalValues.dJdBTest)) ;
+    %%
+    figCgrad=FindOrCreateFigure("C gradient test") ;  clf(figCgrad)
+    plot(InvFinalValues.dJdC,InvFinalValues.dJdCTest,"or") ;
+    hold on
+    plot(InvFinalValues.dJdC,InvFinalValues.dJdC,"--k") ;
+    axis equal ; xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
+    ylabel("Finite difference $dJ/dC$",Interpreter="latex")
+    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+    axis on ; axis equal ; box off
+    title("Comparision betweenadjoint and finite-differences gradient calculations")
+    set(gcf,'Color','white')
+    %%
 
     fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
+
+    IB=find(~isnan(InvFinalValues.dJdBTest)) ;
+
+    
 
     fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
 
@@ -522,6 +541,18 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
 
+    %%
+    figBgrad=FindOrCreateFigure("B gradient test") ;  clf(figBgrad)
+    plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ; 
+    hold on 
+    plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ; 
+    axis equal ; xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ; 
+    ylabel("Finite difference $dJ/dB$",Interpreter="latex")
+    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; 
+    axis on ; axis equal ; box off
+    title("Comparision between adjoint and finite-differences gradient calculations")
+    set(gcf,'Color','white')
+    %%
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
     % iRange=find(~isnan(dJdpTest));
     % dJdpTest(iRange)-dJdp(iRange))/norm(dJdp(iRange)))
@@ -668,17 +699,17 @@ else
         if ~isempty(Priors.TrueC)
 
 
-            tFig1=FindOrCreateFigure("True and estimated C"); clf(tFig1 );
+            figC=FindOrCreateFigure("True and estimated C"); clf(figC);
 
-            T=tiledlayout(2,2);
+            T=tiledlayout(2,3);
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
-            title('True C') ; set(gca,'ColorScale','log')
+            title("True C") ; set(gca,'ColorScale','log')
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
-            title('Retrieved C') ; set(gca,'ColorScale','log')
+            title("Retrieved C") ; set(gca,'ColorScale','log')
 
             nexttile
 
@@ -688,10 +719,21 @@ else
             title(cbar,"$|C-\tilde{C}|$",interpreter="latex")
 
             nexttile
+            UaPlots(CtrlVar,MUA,F,InvStartValues.C,CreateNewFigure=false);
+            title("C at start of inversion") ; set(gca,'ColorScale','log')
+
+            nexttile
             UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false) ;
             title('Prior C') ; set(gca,'ColorScale','log')
 
-            T.Padding="tight";   T.TileSpacing="tight";
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.C-Priors.C,CreateNewFigure=false);
+            title("Retrieved C -  Prior C ") ; set(gca,'ColorScale','log')
+
+            %figC.Position=[400 200 1300 800];
+            T.Padding="tight";   
+            T.TileSpacing="tight";
 
 
         end
@@ -745,15 +787,15 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
-            title('True B')
+            title("True B")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
-            title('Retrieved B')
+            title("Retrieved B")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
-            title('B estimated - B true')
+            title("B estimated - B true")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
@@ -768,7 +810,7 @@ else
             title("Retrieved B -  Prior B ")
 
 
-            figB.Position=[200 200 1300 800];
+           % figB.Position=[200 200 1300 800];
             TB.TileSpacing="tight";
             TB.Padding="tight";
             colormap(othercolor("Mdarkterrain",32))

@@ -309,11 +309,20 @@ else  % Tikhonov regularization
     
     if isC
         
+    
+        
+        % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
+        % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
+        % two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
+        % would be to add eps to the diagonal of Dxx and Dyy.
+     
+        Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
+        Dxx=Dxx+Ieps ; Dyy=Dyy+Ieps ; 
+
         NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
         %RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
-        
-  
+
         RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
         RCa= dpC'    *M    *dpC   /(2*Area);
         RC=gsC.^2*RCs+gaC.^2*RCa; 
@@ -363,7 +372,27 @@ else  % Tikhonov regularization
         RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
         dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
         ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
-                                        % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
+        % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
+
+
+        if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
+
+            % Adding a cost term giving the deviation from in inverted B from direct measurements of B. This has the same form as a data
+            % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+            
+
+            Berr=sqrt(spdiags(Meas.BCov));
+            Bres=(F.B-Meas.B)./Berr;
+            RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
+            dRdBmeas=(MUA.M*Bres)./Berr/Area;
+            ddRdBmeasBmeas=(MUA.M)./Berr/Area;
+
+            RB=RB+RBmeas;
+            dRdB=dRdB+dRdBmeas;
+            ddRdBB=ddRdBmeasBmeas;
+
+        end
+        %
 
     else
         RB=0;
@@ -416,4 +445,9 @@ if nargout > 3
     RegOuts.dRdB=dRdB;
 end
 
+if R< 0
+    fprintf("Regularisation.m : R is negative \n")
+end
 
+
+end

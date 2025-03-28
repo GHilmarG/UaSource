@@ -62,7 +62,7 @@ if contains(CtrlVar.Inverse.Measurements,"-uv-","IgnoreCase",true)
         uErr=sqrt(spdiags(Meas.usCov));
         usres=(us-Meas.us)./uErr;
     else
-        error('Misfit:Cov','Data covariance matrices but be diagonal')
+        error('Misfit:Cov','Data covariance matrices must vbe diagonal')
     end
     
     if isdiag(Meas.vsCov)
@@ -417,23 +417,44 @@ if CtrlVar.Inverse.CalcGradI
             ddIdpp=ddIdCC ;
         case "AC"
             dIdp=[DAI;DCI];
-            
+
             if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
                 N=MUA.Nnodes;
                 ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
                 ddIdpp(1:N,1:N) = ddIdAA;
                 ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
             end
-            
+
+        case "BC"
+
+            % DCI=DCI*0;
+            dIdp=[DBI;DCI];
+
+            if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+                N=MUA.Nnodes;
+                ddIdBB=speye(N,N);  % I have not thought about a good Hessian estimate here, so just enter the identity matrix.
+                ddIdBB=MUA.M;           % I have not thought about a good Hessian estimate here, so just enter the mass matrix
+
+
+
+                ddIdBB=speye(N,N);
+                ddIdCC=speye(N,N);
+
+                ddIdpp = spalloc(N+N,N+N,nnz(ddIdBB)+nnz(ddIdCC));
+                ddIdpp(1:N,1:N) = ddIdBB;
+                ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
+
+            end
+
         otherwise
-            
+
             error("sdfsa")
-            
+
     end
-    
-    
+
+
 else
-    
+
     dIdp=0;
     
 end
