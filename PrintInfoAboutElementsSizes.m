@@ -1,3 +1,7 @@
+
+
+
+
 function [Emin,Emax,Emean,Emedian,Tlength]=PrintInfoAboutElementsSizes(CtrlVar,MUA,options)
 
 %%

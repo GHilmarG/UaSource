@@ -225,8 +225,8 @@ if CtrlVar.InverseRun
     % Don't regularize A if not inverting for A, so
     if ~contains(CtrlVar.Inverse.InvertFor,"AGlen")
         
-        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logAGlen-","");
-        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-AGlen-","");
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logAGlen-","-");
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-AGlen-","-");
         
         
     end
@@ -234,8 +234,8 @@ if CtrlVar.InverseRun
     % Don't regularize C if not inverting for C
     if ~contains(CtrlVar.Inverse.InvertFor,"C")
         
-        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logC-","");
-        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-C-","");
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-logC-","-");
+        CtrlVar.Inverse.Regularize.Field=replace(CtrlVar.Inverse.Regularize.Field,"-C-","-");
 
 
     end

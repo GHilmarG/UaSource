@@ -1,6 +1,6 @@
 function [along,trans,angle]=rotate_xy_data2(x,y)
 
-% fits best straigt line to xy coordinate data and rotates so that mean of 'trans'
+% fits best straight line to xy coordinate data and rotates so that mean of 'trans'
 % is zero and 'along' is the in-line displacement
 
 x=x-x(1) ; y=y-y(1);

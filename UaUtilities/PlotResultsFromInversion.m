@@ -799,7 +799,7 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
-            title("B at start of inversion")
+            title("B at start of current inversion")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);

@@ -18,7 +18,7 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 
 Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
 
-CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  % rhubarb 
+
 
 
 if isa(Test,'optim.options.Fminunc')
