@@ -25,10 +25,10 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
 
     if isempty(poolobj)
 
-        fprintf("SPMD assembly is set to true, but parallel pool is empty. \n")
+        fprintf("uv SPMD assembly is set to true, but parallel pool is empty. \n")
         fprintf(" Create a parallel pool ahead of the call to Ua.\n")
     else
-        CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=poolobj.NumWorkers;
+        CtrlVar.Parallel.uvAssembly.spmd.nWorkers=poolobj.NumWorkers;
     end
 
 end
@@ -177,5 +177,9 @@ if  CtrlVar.TestForRealValues
     if ~isreal(Kuv) ; save TestSave ; error('uv:kvNotReal','kv not real!') ; end
     if ~isreal(Ruv) ; save TestSave ; error('uv:rhNotReal','rh not real!') ; end
 end
+
+
+
+F.solution="-uv-" ; 
 
 end

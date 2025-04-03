@@ -34,6 +34,7 @@ classdef PriorProbabilityDistribution
         TrueAGlen=[];
         Trueb=[];
         TrueB=[];
+        Trueh=[];
         
         Regularize
         

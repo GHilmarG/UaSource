@@ -1,10 +1,10 @@
 
-function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold,RuvOld,Lubvb)
+function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold)
 
 
 persistent AdaptMeshTime
 
-narginchk(9,9)
+narginchk(7,7)
 nargoutchk(6,6)
 
 %% Do all mesh modifications on MUAnew
@@ -16,7 +16,7 @@ MUAnew=MUAold;
 Fnew=Fold;
 BCsNew=BCsOld;
 lnew=lold;
-RuvNew=RuvOld;
+% RuvNew=RuvOld;
 
 %%
 isNewOutsideNodes=false  ; % true if during remeshing, in particular during manual deactivation of elements,
@@ -64,7 +64,7 @@ if CtrlVar.AdaptMeshTimeInterval==0
     isAdaptMeshTime=true;
 elseif CtrlVar.time >= AdaptMeshTime
     isAdaptMeshTime=true;
-    AdaptMeshTime=ceil((CtrlVar.time+eps)/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+    AdaptMeshTime=ceil((CtrlVar.time+eps(CtrlVar.time))/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
 else
     isAdaptMeshTime=false;
 end
@@ -192,7 +192,7 @@ if contains(AdaptMeshMethod,"-activation-")
 end
 
 
-%%  Element refinement, local or global, including local unrefinement/coarsening
+%%  Element refinement, local or global, including local un-refinement/coarsening
 
 if  contains(AdaptMeshMethod,"-refinement-")
 
@@ -234,11 +234,11 @@ if  contains(AdaptMeshMethod,"-refinement-")
         %  Note: F will be different on return if a new uv calculation
         %  needs to be done
         [UserVar,RunInfo,Fnew,xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=...
-            NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,Fnew.GF,RuvNew,Lubvb);
+            NewDesiredEleSizesAndElementsToRefineOrCoarsen2(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
 
-        %  Remesh: either global-remeshing or local-mesh refinement.
+        %  Remesh: either global re-meshing or local mesh refinement.
         %
-        % If a local refinement/unrefinement is done using the newest-vertex bisection method,
+        % If a local refinement/un-refinement is done using the newest-vertex bisection method,
         % the original MUA.RefineMesh structure is used. If the number of elements
         % changes, MUA is recreated using the elements and the coordinates in
         % MUA.RefineMesh.  Therefore, if some elements within MUA where previously
@@ -250,7 +250,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
         NeleBefore=MUAnew.Nele;
         NnodesBefore=MUAnew.Nnodes;
         [UserVar,RunInfo,CtrlVar,MUAnew]=...
-            Remeshing(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,Fnew.GF,...
+            Remeshing(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew,...
             xNod,yNod,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened);
         Fnew.x=MUAnew.coordinates(:,1); Fnew.y=MUAnew.coordinates(:,2);
         % if MUA changed check here if elements need to be deactivated
@@ -263,11 +263,15 @@ if  contains(AdaptMeshMethod,"-refinement-")
         nNewElements=MUAnew.Nele-NeleBefore;
         nNewNodes=MUAnew.Nnodes-NnodesBefore;
 
+        isMeshChanged=HasMeshChanged(MUAold,MUAnew);
+        if isMeshChanged
+            Fnew.solution="-none-";
+        end
 
         [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
 
         if RunInfo.Mapping.nNotIdenticalNodesOutside>0
-            isNewOutsideNodes=true  ; % true if during remeshing, in particular during manual deactivation of elements,
+            isNewOutsideNodes=true  ; % true if during re-meshing, in particular during manual deactivation of elements,
         end
 
 
@@ -382,14 +386,14 @@ if contains(AdaptMeshMethod,"-activation-")
     OutsideValue.ub=0;
     OutsideValue.vb=0;
 
-    % [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
+    
     [UserVar,RunInfo,Fnew,BCsNew,lnew]=MapFbetweenMeshes(UserVar,RunInfo,CtrlVar,MUAold,MUAnew,Fold,BCsOld,lold,OutsideValue);
 
 
     if RunInfo.Mapping.nNotIdenticalNodesOutside>0
         isNewOutsideNodes=true  ; 
     else
-        isNewOutsideNodes=false ; % this might have been set to true during refinement/unrefinement
+        isNewOutsideNodes=false ; % this might have been set to true during refinement/un-refinement
                                   %  
                                   % here this is based on the final mapping from the original input MUAold
                                   % and the final MUAnew, and after deactivation/reactivation 
@@ -475,6 +479,9 @@ isMeshChanged=HasMeshChanged(MUAold,MUAnew);
 
 
 % Do I need to recalculate uv velocities?
+
+
+
 if ~isMeshChanged  || CtrlVar.AdaptMeshAndThenStop
 
     isRecalculateVelocities=false ;
@@ -490,7 +497,7 @@ else
 end
 
 if isRecalculateVelocities
-    CtrlVar.Parallel.BuildWorkers=true;  % ahead of a uv call I may need to update workes
+    CtrlVar.Parallel.BuildWorkers=true;  % ahead of a uv call I may need to update workers
     MUAnew=UpdateMUA(CtrlVar,MUAnew);
     [UserVar,RunInfo,Fnew,lnew]= uv(UserVar,RunInfo,CtrlVar,MUAnew,BCsNew,Fnew,lnew);
     CtrlVar.Parallel.BuildWorkers=false;

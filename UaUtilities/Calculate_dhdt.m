@@ -12,7 +12,7 @@ function [UserVar,dhdt]=Calculate_dhdt(UserVar,CtrlVar,MUA,F,BCs)
 %
 % Projects the values directly onto nodes.
 %
-% Optionally uses SUPG, but very doubtfull that this SUPG treatment is required.
+% Optionally uses SUPG, but very doubtful that this SUPG treatment is required.
 %
 %
 

@@ -8,6 +8,7 @@ IsUsed="FindBestGamma2D.m";
 IsUsed="FindBestGamma2Dbacktracking.m";
 IsUsed="LevelSetEquationAssemblyNR2.m" ; 
 
+
 if ~any(contains(fList,"\"+IsUsed))
     fprintf("%s is not used by Ua \n",IsUsed)
 else
@@ -26,3 +27,4 @@ for I=1:length(mFiles)
         fprintf("%s is not used by Ua \n",mFiles(I).name)
     end
 end
+%%

@@ -91,6 +91,7 @@ else
     hold off
 end
 
+set(gcf,'Color','white')
 
 if nargout==0
     clear fig

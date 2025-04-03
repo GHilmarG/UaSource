@@ -22,7 +22,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 % corresponding fields defined at nodes.
 %
 % Note: This projection will not always preserve positivity! 
-%       Even if element quantity is positive everywere, it is nevertheless 
+%       Even if element quantity is positive everywhere, it is nevertheless 
 %       possible that the projection on the nodes can be (slightly) negative.
 %       
 
@@ -31,7 +31,7 @@ nVarargs = length(varargin);
 varargout = cell(nVarargs);
 
 
-% check input dimentions
+% check input dimensions
 for I=1:nVarargs
     [N,M]=size(varargin{I});
     if N~=MUA.Nele || M~=MUA.nip

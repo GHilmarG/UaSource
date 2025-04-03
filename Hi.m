@@ -4,6 +4,11 @@ function z=Hi(x,y,x0,y0,sx,sy,sz)
 	% sx , sy, sz  : coordinate scaling
 	% x=(x-x0)/sx; y=(y-y0)/sy;
 	
+    if nargin==4
+        sx=(max(x)-min(x))/10;
+        sy=(max(y)-min(y))/10;
+        sz=1;
+    end
 	
 	
 	x=(x-x0)/sx; y=(y-y0)/sy;

@@ -6,9 +6,18 @@
 function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
 
-
-
-% Calculates objective function, gradient (accurate), Hessian (guessed)
+%%
+%
+% JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
+%
+% The Hessian of the regularization term (R) can usually be calculated exactly, while the Hessian of the misfit/likelihood
+% term (I), can not. However, one can come up with a educated guess for the Hessian of I with respect to C.
+%
+%
+% Calculates objective function (J), gradient (dJdp, accurate), Hessian (guessed).
+%
+%
+%% 
 
 persistent ubP vbP
 
@@ -35,16 +44,10 @@ if ~isempty(ubP)
     F.vb=vbP;
 end
 
+% The vector p contains the variables for which the inversion is being performed. So if the inversion is done over log(c)
+% only, then p=log(C). And if the inversion is done over A, B and C then p=[A;B;C].
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"UaOptimization")
-    % p=kk_proj(p,pub,plb);  % I guess the matlab optimisation toolbox uses a bit more sophisticated approach (I hope).
-    %[~,iU,iL] = kk_proj(p,pub,plb);
-    %numel(find(iU))
-    %numel(find(iL))
-end
-
-% Note: I should consider writing this as F=p2InvValues(CtrlVar,p)
-
+% Populate F with the current values in the vector p ahead of a call the the forward model.
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
 if any(isnan(F.C)) 
@@ -52,9 +55,14 @@ if any(isnan(F.C))
     error( ' C nan ') ; 
 end
 
+% This is a call to the forward model.
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
+% The cost function, J), is split into a misfit (I) and a regularization term (R). These usually consist of further
+% terms.
+%
+% Get the I and R terms, and the gradients if required.
 if nargout==1
     R=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo) ;
     I=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dFduv) ;
@@ -78,9 +86,11 @@ if nargout>2  % Hessian needed
 end
 
 
-
 if RunInfo.Forward.uvConverged
-    ubP=F.ub;
+     % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
+     % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
+     % next, so the (u,v) solution is likely to be similar to the previously calculated one.
+    ubP=F.ub; 
     vbP=F.vb;
 else
     warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
@@ -93,6 +103,11 @@ else
 end
 
 J=R+I;
+
+if J < 0
+    fprintf("J less that zero!! \n")
+end
+
 
 if nargout>3
     JGHouts.dRdp=dRdp;

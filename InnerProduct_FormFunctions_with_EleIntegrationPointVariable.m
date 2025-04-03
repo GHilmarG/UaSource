@@ -21,14 +21,16 @@ R=zeros(MUA.Nele,MUA.nod);
 
 for Iint=1:MUA.nip
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-%        Deriv=MUA.Deriv(:,:,:,Iint);
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
-    end
+    % if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
+    %    Deriv=MUA.Deriv(:,:,:,Iint);
+    %     detJ=MUA.DetJ(:,Iint);
+    % else
+    %     [~,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
+    %  end
+
+    detJ=MUA.DetJ(:,Iint);
     detJw=detJ*MUA.weights(Iint);
-    
+
 
     for Inod=1:MUA.nod
         R(:,Inod)=R(:,Inod)+Fint(:,Iint).*fun(Inod).*detJw;

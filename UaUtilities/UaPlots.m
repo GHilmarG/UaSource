@@ -101,7 +101,17 @@ if  ~isfield(F,"x") || isempty(F.x)
     F.y=MUA.coordinates(:,2);
 end
 
+if ~isfield(F,"time")
+    F.time=[]; 
+end
 
+if ~isfield(F,"dt")
+    F.dt=[]; 
+end
+
+if ~isfield(F,"GF")
+    F.GF=[]; 
+end
 %%
 
 

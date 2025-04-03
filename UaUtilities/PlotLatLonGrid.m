@@ -137,11 +137,15 @@ if nargin ==0
 
     % guessing here a bit
 
-    if (xmax-xmin)< 300 % assuming km as units
+    if (xmax-xmin)<100
+        dlon=2;
+    elseif (xmax-xmin) < 300 % assuming km as units
         dlon=5;
     end
 
-    if (ymax-ymin)< 400 % assuming km as units
+    if (ymax-ymin)< 150 % assuming km as units
+        dlat=0.5; 
+    elseif (ymax-ymin)< 400 % assuming km as units
         dlat=1;
     end
 

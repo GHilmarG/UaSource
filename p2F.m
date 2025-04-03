@@ -1,8 +1,5 @@
 function F=p2F(CtrlVar,MUA,p,F,Meas,Priors)
 
-persistent GLgeo GLnodes GLele
-
-
 
 narginchk(6,6)
 
@@ -12,7 +9,6 @@ NB=numel(F.B);
 NC=numel(F.C);
 
 IA1=0 ; IA2=0;
-Ib1=0 ; Ib2=0;
 IB1=0 ; IB2=0;
 IC1=0 ; IC2=0;
 Itotal=0;
@@ -133,10 +129,10 @@ if isB
     F.B=p(IB1:IB2) ;
     
     %F.B=F.GF.node.*p(IB1:IB2)+(1-F.GF.node).*Priors.B ;
-    if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
-        [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
-        F.B(~F.GF.NodesUpstreamOfGroundingLines)=Priors.B(~F.GF.NodesUpstreamOfGroundingLines) ;
-    end
+    % if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
+    %    [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
+    %    F.B(~F.GF.NodesUpstreamOfGroundingLines)=Priors.B(~F.GF.NodesUpstreamOfGroundingLines) ;
+    % end
     
     F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed,
     % therefore calculate F.b over the floating areas from F.s using the floating relationship.

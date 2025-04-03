@@ -153,9 +153,9 @@ end
 %  Even if a node is twice in list A, it can be unique if it is tied
 %  to two different freedome of degrees
 % if ~isempty(BCs.ubTiedNodeA)
-%     % eliminate dublications in nodal ties
+%     % eliminate duplication in nodal ties
 %     % this needs to be done for both A and B ties, and then
-%     % dublicates in A deleted from B, and duplicates in B deleted from A.
+%     % duplicates in A deleted from B, and duplicates in B deleted from A.
 %     [BCs.ubTiedNodeA,ia]=unique(BCs.ubTiedNodeA);
 %     BCs.ubTiedNodeB=BCs.ubTiedNodeB(ia) ;
 %
@@ -165,7 +165,7 @@ end
 % end
 %
 % if ~isempty(BCs.vbTiedNodeA)
-%     % eliminate dublications in nodal ties
+%     % eliminate duplication in nodal ties
 %     [BCs.vbTiedNodeA,ia]=unique(BCs.vbTiedNodeA);
 %     BCs.vbTiedNodeB=BCs.vbTiedNodeB(ia) ;
 %

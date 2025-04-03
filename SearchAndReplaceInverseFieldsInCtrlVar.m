@@ -17,8 +17,8 @@ InvertString=replace(lower(InvertString),"aglen","a") ;
 
 % first replace Aglen with A, although later I will return AGlen
 % doing this replacement reduces the number of cases to look at
-% and it is always posisble to replace AGlen with A, whereas replacing A with
-% AGlen is potentially ambigous
+% and it is always possible to replace AGlen with A, whereas replacing A with
+% AGlen is potentially ambiguous
 
 
 
@@ -60,6 +60,10 @@ switch lower(InvertString)
         
         InvertString="-AGlen-logC-";
         
+    case {"-b-logc-"}
+
+        InvertString="-B-logC-";
+
     otherwise
         
         status=false;

@@ -14,7 +14,7 @@ Nnodes0=max(connectivity0(:));
 %% Error estimate of solution on a given grid
 
 %% Implicit error estimate
-%Subdivide all elements and perform a diagnostic soluion on that grid
+%Subdivide all elements and perform a diagnostic solution on that grid
 
 [coordinates1,connectivity1]=FE2dRefineMesh(coordinates0,connectivity0);
 
@@ -29,8 +29,8 @@ fprintf(' Error estimate meshrefinement %-2.2i \t # Elements: %-i \t \t # Nodes=
     CtrlVar);
 
 
-I=1; % this is a cell array, and possible a number of different refinementcriterie are defnie, however here
-     % currently only the first one is considerd
+I=1; % this is a cell array, and possible a number of different refinementcriterie are defined, however here
+     % currently only the first one is considered
 fprintf(' error estimate based on : %s \n ',CtrlVar.RefineCriteria{I})
 
 switch lower(CtrlVar.RefineCriteria{I})

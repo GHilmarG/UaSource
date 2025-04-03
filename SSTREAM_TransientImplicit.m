@@ -165,7 +165,7 @@ RunInfo.BackTrack.Converged=1 ;
 r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
 
-
+rRatioVector=zeros(3,1);
 
 
 while true
@@ -182,6 +182,13 @@ while true
     %
 
 
+    % for some of the minimisation approaches, i.e. calculating the Cauchy point and the minimum descent path, the rWork quantity
+    % has no meaning and is returned as nan. In this case, rWork, should not be used to evaluate convergence. A simple way around
+    % this is to set rWork=0 here, if rWork has been returned as nan.
+
+    if isnan(rWork) 
+        rWork=0;
+    end
 
 
     if gamma > max(CtrlVar.uvhExitBackTrackingStepLength,CtrlVar.BacktrackingGammaMin)
@@ -239,8 +246,11 @@ while true
         break
     end
 
-    rRatioMin=0.99999 ;
-    if r/r0 > rRatioMin
+    rRatioMin=0.99 ;
+    rRatio=r/r0;
+    rRatioVector(mod(iteration,3)+1)=rRatio; 
+
+    if all(rRatioVector>rRatioMin)
 
         if CtrlVar.InfoLevelNonLinIt>=1
             fprintf(' SSTREAM(uvh) (time|dt)=(%g|%g): uvh iteration stagnated! r/r0=%-g ratio greater than %g \n Exiting non-lin iteration with r=%-g  after %-i iterations. \n',...

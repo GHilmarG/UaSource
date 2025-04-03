@@ -18,6 +18,9 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 
 Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
 
+
+
+
 if isa(Test,'optim.options.Fminunc')
     
     [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
@@ -36,8 +39,7 @@ elseif isa(Test,'optim.options.Fmincon')
     
     
     if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-        
-     
+  
         
         
         [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
@@ -67,8 +69,6 @@ else
 end
 
 [stop,Outs] = fminuncOutfun();
-
-
 
 
 

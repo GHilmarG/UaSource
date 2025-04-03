@@ -15,13 +15,13 @@ function [x,iU,iL] = kk_proj(x,upper,lower,Eps)
     
     if numel(lower) > 1
         iL=x<(lower+Eps) ; x(iL)=lower(iL)+Eps;
-    else
+    elseif isscalar(lower)
         iL=x<(lower+Eps) ; x(iL)=lower+Eps;
     end
     
     if numel(upper)>1
         iU=x>(upper-Eps) ; x(iU)=upper(iU)-Eps;
-    else
+    elseif isscalar(upper)
         iU=x>(upper-Eps) ; x(iU)=upper-Eps;
     end
     

@@ -6,7 +6,7 @@
 
 function Int=FEintegrate2D(CtrlVar,MUA,f)
 %%
-%  Int=FEintegrate2D(CtrlVar,MUA,f) calculates the integral of a nodal variable
+%  Int=FEintegrate2D(CtrlVar,MUA,f) calculates the integral of a nodal or integration-point variable
 %  f over each of the elements of the FE mesh.
 %
 %  CtrlVar can be entered as an empty variable.
@@ -31,8 +31,12 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 
 ndim=2; 
 
-fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+
+%%
+%
+% 
+% 
 % [points,weights]=sample('triangle',MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
@@ -41,16 +45,31 @@ Int=zeros(MUA.Nele,1);
 if isempty(MUA.DetJ)
     MUA=UpdateMUA(CtrlVar,MUA) ;
 end
-    
-for Iint=1:MUA.nip
-    
-    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; 
-    detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*MUA.weights(Iint);
-    fint=fnod*fun;
-    Int=Int+fint.*detJw;
 
-end
 
+if numel(f)==MUA.Nnodes  % nodal variable
+
+    fnod=reshape(f(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    for Iint=1:MUA.nip
+
+        fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
+        detJ=MUA.DetJ(:,Iint);
+        detJw=detJ*MUA.weights(Iint);
+        fint=fnod*fun;
+        Int=Int+fint.*detJw;
+
+    end
+
+elseif size(f,1)==MUA.Nele && size(f,2) == MUA.nip  % integration point variable
+
+    for Iint=1:MUA.nip
+
+        
+        detJ=MUA.DetJ(:,Iint);
+        detJw=detJ*MUA.weights(Iint);
+        fint=f(:,Iint);
+        Int=Int+fint.*detJw;
+
+    end
 
 end

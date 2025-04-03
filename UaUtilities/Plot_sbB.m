@@ -97,7 +97,7 @@ end
 
 if ~isempty(B)
     if isempty(BCol)
-        BCol=copper(numel(s));
+        BCol=copper(numel(B));
         ColorIndex=Variable2ColorIndex(B); BCol(:,:)=BCol(ColorIndex,:);
         BCol(I,:)=zeros(numel(find(I)),3)+1;
     end

@@ -3,6 +3,8 @@ classdef UaFields
 
     properties
 
+        solution="-none-" ; 
+
         x=[];
         y=[];
         time=[];

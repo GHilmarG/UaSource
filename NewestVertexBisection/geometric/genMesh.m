@@ -2,7 +2,7 @@ function mesh = genMesh(elements, coordinates, varargin)
 %GENMESH    Constructor for a mesh structure
 %   MESH = GENMESH(ELEMENTS, COORDINATES, BOUNDARY1, ...) constructs a
 %   simplicial mesh, which is a structure containing the arrays ELEMENTS
-%   and COORDINATES (and optionally a partioning of its boundary BD). These
+%   and COORDINATES (and optionally a partitioning of its boundary BD). These
 %   represent the mesh by standard simplex-vertex format. The array
 %   elements is given as numElements-by-dimMesh(mesh)+1 matrix, whereas
 %   coordinates is given as numCoordinates-by-dimSpace matrix. Multiple

@@ -10,16 +10,9 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 
-persistent ErrMax
-
-if isempty(ErrMax)
-    ErrMax=0;
-end
 
 narginchk(4,4)
 nargoutchk(1,4)
-
-
 
 ZeroFields=CtrlVar.uvAssembly.ZeroFields;
 Ronly=CtrlVar.uvMatrixAssembly.Ronly;
@@ -27,8 +20,6 @@ Ronly=CtrlVar.uvMatrixAssembly.Ronly;
 if Ronly
     Kuv=[];
 end
-
-
 
 if ZeroFields
     F.ub=F.ub*0;
@@ -75,10 +66,8 @@ if any(isnan(F.vb)) ; save TestSave ; error('uvMatrixAssembly:NaN','NaN in F.vb.
 
 if CtrlVar.Picard
     Dvisk=0;
-    %Dbeta=0;
 else
     Dvisk=CtrlVar.NRviscosity ; % if gradients with respect to viscosity not to be included set to 0, otherwise 1
-    % Dbeta=CtrlVar.NRbeta2;
 end
 
 g=F.g;
@@ -113,7 +102,7 @@ if CtrlVar.IncludeMelangeModelPhysics
 
 end
 
-%if ~CtrlVar.CisElementBased
+
 
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -143,10 +132,10 @@ end
 %end
 
 
-%if ~CtrlVar.AGlenisElementBased
+
 AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
 nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
-%end
+
 
 
 
@@ -167,7 +156,7 @@ if CtrlVar.uvGroupAssembly
 end
 
 
-%[points,weights]=sample('triangle',MUA.nip,ndim);
+
 
 if ~Ronly
     d1d1=zeros(MUA.Nele,MUA.nod,MUA.nod); d2d2=zeros(MUA.Nele,MUA.nod,MUA.nod);  d1d2=zeros(MUA.Nele,MUA.nod,MUA.nod); d2d1=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -378,27 +367,27 @@ for Iint=1:MUA.nip
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                     +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
-                    +dtauxdu.*fun(Jnod).*fun(Inod)... %+beta2int.*fun(Jnod).*fun(Inod)+Dbeta.*Dbeta2Duuint.*fun(Jnod).*fun(Inod))...   
+                    +dtauxdu.*fun(Jnod).*fun(Inod)... 
                     ).*detJw;  
                 
                 
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                     +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
-                    +dtauydv.*fun(Jnod).*fun(Inod)...   %+beta2int.*fun(Jnod).*fun(Inod)+Dbeta.*Dbeta2Dvvint.*fun(Jnod).*fun(Inod))... 
+                    +dtauydv.*fun(Jnod).*fun(Inod)...  
                     ).*detJw ;
                
                 
                 
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
-                    + +dtauxdv.*fun(Jnod).*fun(Inod)...   % Dbeta.*Dbeta2Duvint.*fun(Jnod).*fun(Inod))...    % beta derivative, uv
+                    + +dtauxdv.*fun(Jnod).*fun(Inod)...   
                     ).*detJw;
                 
                 
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
-                    +dtauydu.*fun(Jnod).*fun(Inod)...    %+Dbeta.*Dbeta2Duvint*fun(Jnod).*fun(Inod)).*detJw;    % beta derivative, uv
+                    +dtauydu.*fun(Jnod).*fun(Inod)...    
                     ).*detJw;
                 
                 %                dxu=E (2 exx+eyy)

@@ -26,7 +26,7 @@ if  contains(CtrlVar.Inverse.InvertForField,'A')
 end
 
 if  contains(CtrlVar.Inverse.InvertForField,'b') 
-    error('sfdaf')
+    error('b inversion is no longer supported, do B inversion instead.')
     
 end
 

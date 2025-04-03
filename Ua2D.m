@@ -36,8 +36,7 @@ InvStartValues=InversionValues;
 InvFinalValues=InversionValues; 
 
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
-Lubvb=[];
-Ruv=[];
+
 
 WallTime0=tic;
 %% Clear any persistent variables
@@ -135,8 +134,8 @@ if ~isempty(ParPool)
 
     CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
     
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
-    parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
+    parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:genericError');
+    parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 
     if  CtrlVar.Parallel.uvhAssembly.spmd.isOn
         CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=ParPool.NumWorkers;
@@ -436,7 +435,8 @@ while 1
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         
        
-        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Ruv,Lubvb);
+        %[UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        [UserVar,RunInfo,MUA,BCs,F,l]=AdaptMesh2025(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         CtrlVar.AdaptMeshInitial=0;  % make sure to set this to zero, as this only applies to the first run step, which can be either the beginning of a new run, or a restart run
         F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 
@@ -444,6 +444,7 @@ while 1
         if CtrlVar.TimeDependentRun
             F0=F;  % In a time-dependent run we need F0 at current time step t=t0
                    % and here F is the initial estimate for F at t=t0+dt
+                   % F0 is here the solution at t=t0. 
         end
 
 
@@ -490,7 +491,7 @@ while 1
     % Geometry modifications might depend on the level-set, so call GetCalving before
     % GetGeometryAndDensities.
     
- 
+    F.solution="-none-" ; % Since some F fields are changing, we don't have a solution
     [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
     [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
     
@@ -527,7 +528,7 @@ while 1
         CtrlVar.Parallel.BuildWorkers=true;
         MUA=UpdateMUA(CtrlVar,MUA);
 
-        [UserVar,RunInfo,F,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+        [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
     elseif CtrlVar.ForwardTimeIntegration=="-h-" 
@@ -599,7 +600,7 @@ while 1
                 CtrlVar.Parallel.BuildWorkers=true;
                 MUA=UpdateMUA(CtrlVar,MUA);
 
-                [UserVar,RunInfo,F0,l,~,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
+                [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt
                 
@@ -744,7 +745,7 @@ while 1
                 save(filename)
 
                 fprintf("Ua2D:calling WTSHTF\n")
-                [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
+                [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
 
             end
 
@@ -791,7 +792,7 @@ while 1
 
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
-            [UserVar,RunInfo,F,F0,l,~,Ruv,Lubvb,~]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+            [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
             
             CtrlVar.InitialDiagnosticStep=0;
             

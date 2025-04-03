@@ -35,10 +35,10 @@
 % When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
 % between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
 %
-% The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function
+% The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function
 % used in the level-set solver.
 %
-% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set
+% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set
 % method to enforce positive thickness.
 %
 % The model was tested with MATLAB R2024b 

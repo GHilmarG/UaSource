@@ -1,10 +1,40 @@
+
+
+
 function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo)
+
+%%
+% Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
+%
+% This is a fairly simple thing to do as the regularization term is an explicit function of p, and the Hessian calculation can
+% be done exactly.
+%
+% However, there are quite a few cases to consider...
+%
+% For each variable (A,B,C) the regularization term typically has the form
+%
+%   R= ( ga.^2* Ra + gs.^2 * Rs ) /(2*Area)
+%
+% where ga and gs are regularization parameters
+%
+% and 
+%
+%  Ra = dp'*M*dp
+%
+%  Rs= dp'*(Dxx_Dyy)*dp
+%
+% where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
+%
+%
+%
+%%
 
 
 if nargout > 3
     RegOuts=[];
     RegOuts.RAs=nan  ; RegOuts.RAa=nan;
     RegOuts.RCs=nan  ; RegOuts.RCa=nan;
+   
 end
 %%
 
@@ -132,7 +162,7 @@ else
 end
 
 
-% b
+% B
 if contains(CtrlVar.Inverse.InvertFor,'-B-')
     
     isB=1;
@@ -279,11 +309,20 @@ else  % Tikhonov regularization
     
     if isC
         
+    
+        
+        % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
+        % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
+        % two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
+        % would be to add eps to the diagonal of Dxx and Dyy.
+     
+        Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
+        Dxx=Dxx+Ieps ; Dyy=Dyy+Ieps ; 
+
         NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
         %RC=dpC'*NC*dpC/2;
         dRdC=(NC*dpC).*dCfactor;
-        
-  
+
         RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
         RCa= dpC'    *M    *dpC   /(2*Area);
         RC=gsC.^2*RCs+gaC.^2*RCa; 
@@ -324,36 +363,60 @@ else  % Tikhonov regularization
         Rb=0;
         dRdb=[];
     end
-    
-    
-    
+
+
+
     if isB   %  B
-        
+
         NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*NB*dpB/2;
-        dRdB=(NB*dpB).*dBfactor;
-        
+        RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
+        dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+        ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+        % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
+
+
+        if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
+
+            % Adding a cost term giving the deviation from in inverted B from direct measurements of B. This has the same form as a data
+            % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+            
+
+            Berr=sqrt(spdiags(Meas.BCov));
+            Bres=(F.B-Meas.B)./Berr;
+            RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
+            dRdBmeas=(MUA.M*Bres)./Berr/Area;
+            ddRdBmeasBmeas=(MUA.M)./Berr/Area;
+
+            RB=RB+RBmeas;
+            dRdB=dRdB+dRdBmeas;
+            ddRdBB=ddRdBmeasBmeas;
+
+        end
+        %
+
     else
         RB=0;
         dRdB=[];
-        ddRddB=[];
+        ddRdBB=[];
     end
+
     
-    
-    % Here using the Hessian as a premultiplier
+    % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
     dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRddB,dRdB);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdBB,dRdB);
     
-    R=RAGlen+Rb+RB+RC;
-    dRdp=[dRdAGlen;dRdb;dRdB;dRdC];
+    R=RAGlen+RB+RC;
+    dRdp=[dRdAGlen;dRdB;dRdC];
     
     
     [Am,An] = size(ddRdAA);
+    [Bm,Bn] = size(ddRdBB);
     [Cm,Cn] = size(ddRdCC);
-    ddRdpp = spalloc(Am+Cm,An+Cn,nnz(ddRdAA)+nnz(ddRdCC));
+    ddRdpp = spalloc(Am+Bm+Cm,An+Bn+Cn,nnz(ddRdAA)+nnz(ddRdCC)+nnz(ddRdBB));
     ddRdpp(1:Am,1:An) = ddRdAA;
-    ddRdpp(Am+1:Am+Cm,An+1:An+Cn) = ddRdCC;
+    ddRdpp(Am+1:Am+Bm,An+1:An+Bn) = ddRdBB;
+    ddRdpp(Am+Bm+1:Am+Bm+Cm,An+Bn+1:An+Bn+Cn) = ddRdCC;
     
     
 end
@@ -382,4 +445,9 @@ if nargout > 3
     RegOuts.dRdB=dRdB;
 end
 
+if R< 0
+    fprintf("Regularisation.m : R is negative \n")
+end
 
+
+end

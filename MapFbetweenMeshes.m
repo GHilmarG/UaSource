@@ -40,6 +40,7 @@ MUAnew=UpdateMUA(CtrlVar,MUAnew);
 lnew=UaLagrangeVariables;
 
 Fnew=UaFields;
+Fnew.solution="-none-" ; 
 Fnew.time=Fold.time;
 Fnew.dt=Fold.dt; 
 Fnew.GF=[] ; % make sure to reset GF if the mesh has changed.  GF can only be calculated once both the new
@@ -83,7 +84,7 @@ if CtrlVar.TimeDependentRun
             %
             % This approach does not conserve h!
             %
-            % This is done quite deliberately because the surface s is genearly very smooth, whereas b and h are not. If, for example,
+            % This is done quite deliberately because the surface s is generally very smooth, whereas b and h are not. If, for example,
             % the new mesh has grounded nodes located over a local topographic feature in the bed, and h was interpolated from old to new
             % mesh, the new bedrock topographic feature would impact the surface s=B+h and produce unrealistic surface topography.
 
@@ -210,7 +211,7 @@ else
 
 end
 
-Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ;
+%Fnew.x=MUAnew.coordinates(:,1) ;  Fnew.y=MUAnew.coordinates(:,2) ;
 
 [UserVar,Fnew]=GetSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 
@@ -279,10 +280,7 @@ switch lower(CtrlVar.FlowApproximation)
 
     case "sstream"
 
-        % if ub vb has been calculated as a part of the remeshing, I'm loosing that information
-        % here. The problem is that ub vb will not, in general, have been calculated on either
-        % MUAnew or MUAold unless only one adapt iteration was performed.
-        %
+       
         [RunInfo,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.dhdt,Fnew.dubdt,Fnew.dvbdt]=...
             MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,...
             [OutsideValue.ub,OutsideValue.vb,OutsideValue.ud,OutsideValue.ud,OutsideValue.dhdt,OutsideValue.dubdt,OutsideValue.dvbdt],...

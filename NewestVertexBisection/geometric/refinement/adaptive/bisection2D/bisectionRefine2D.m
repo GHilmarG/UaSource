@@ -37,6 +37,12 @@ end
 MPs = @(EL, C) 0.5*(C(EL(:,1),:)+C(EL(:,2),:));
 mesh.coordinates = [mesh.coordinates; MPs(edge2nodes(markedEdges,:), mesh.coordinates)];
 newCoNums = nC+(1:nnz(markedEdges))';
+
+%% GHG: to get the (new) nodal numbers of new nodes and the nodes on both sides along the split edge: 
+%  MapRefine=[newCoNums edge2nodes(markedEdges,:)] ;
+%  f(MapRefine(:,1))=0.5*(f(MapRefine(:,2))+f(MapRefine(:,3)));  % interpolation
+%%
+
 %% Bisection rules
 none     = ~el2isMarkedEdge(:,1) & ~el2isMarkedEdge(:,2) & ~el2isMarkedEdge(:,3);
 bisec_2_ = ~el2isMarkedEdge(:,1) &  el2isMarkedEdge(:,2) & ~el2isMarkedEdge(:,3);

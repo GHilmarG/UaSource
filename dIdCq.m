@@ -1,7 +1,30 @@
+
+
+
 function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
 
 narginchk(7,7)
 
+%%
+%
+% When performing an inversion with respect to a parameter p we minimize a
+% cost function J, on the form
+%
+%    J = I(d-\tilde{d},p-\tilde{p}) + R(p)
+%
+% subject to the side condition 
+%
+%    F(d(p),p)=0
+%
+%
+% Here F is the forward model, wich allows us to solve for d given p.
+%
+% p are the model parameters we want to invert for, and \tilde{p} are
+% direct estimates/measurements of those parameters, i.e. the priors.
+%
+% d are the outputs of the forward model which can be compared against the
+% measurements \tilde{d}.
+%
 %
 % Calculates the product: dFuv/dC  \lambda
 %
@@ -104,36 +127,31 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
     
-    if ~CtrlVar.DevelopmentVersion
-        if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-            Ctemp=log(10)*Cint.*Ctemp;
-        end
-        
-    end
+ 
     
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
-        
+
         T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
-        
+
     end
 end
 
-dIdCtemp=zeros(MUA.Nnodes,1);
+dIdC=zeros(MUA.Nnodes,1);
 
 for Inod=1:MUA.nod
-    dIdCtemp=dIdCtemp+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
+    dIdC=dIdC+sparse(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-if CtrlVar.DevelopmentVersion
-    % change of variables should be done on nodal values!
-    % I learned this the hard way by doing extensive tests on dJ/dgamma
-    if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-        dIdCtemp=log(10)*F.C.*dIdCtemp;
-    end
+
+% change of variables should be done on nodal values!
+% I learned this the hard way by doing extensive tests on dJ/dgamma
+if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
+    dIdC=log(10)*F.C.*dIdC;
 end
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdCtemp);
+
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdC);
 
 
 
