@@ -31,11 +31,13 @@ classdef UaFields
         sInit=[];
 
         b=[];
+        b0=[];
         bmin=[];
         bmax=[];
         bInit=[]
 
         h=[];
+        h0=[];
         hInit=[];
         S=[];
 

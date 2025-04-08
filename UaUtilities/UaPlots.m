@@ -58,6 +58,12 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %
 %    UaPlots(CtrlVar,MUA,F,"-log(ab)-")
 %
+%
+% To plot velocities and set the range
+%
+%   CtrlVar.QuiverColorSpeedLimits=[0 2000];
+%   UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle="velocities")
+%
 %%
 
 arguments
@@ -109,7 +115,7 @@ if ~isfield(F,"dt")
     F.dt=[]; 
 end
 
-if ~isfield(F,"GF")
+if ~(isfield(F,"GF") || isfield(F.GF,"node"))
     F.GF=[]; 
 end
 %%
@@ -236,11 +242,12 @@ else
 
         case {"log10speed","-log10speed-"}
 
-            speed=log10(sqrt(F.ub.*F.ub+F.vb.*F.vb)) ;
+            speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
             title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
-
+            set(gca,'ColorScale','log')
+            CM=cmocean('-ice',15) ; colormap(CM);
 
         case {"ubvb","-ubvb-","uv","-uv-"}
 

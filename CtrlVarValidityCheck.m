@@ -94,7 +94,7 @@ if CtrlVar.ForwardTimeIntegration==""  %  "-uvh-" , "-uv-h-" ,  "-uv-" , "-h-" ;
 
 else
 
-    if CtrlVar.ForwardTimeIntegration=="-uv-"
+    if CtrlVar.ForwardTimeIntegration=="-uv-"  || CtrlVar.ForwardTimeIntegration=="-phi-"
         CtrlVar.TimeDependentRun=0;
     else
         CtrlVar.TimeDependentRun=1;
@@ -262,14 +262,14 @@ if CtrlVar.InverseRun
 
     end
 
-if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && CtrlVar.TriNodes>3
-    
+    if CtrlVar.Inverse.MinimisationMethod=="MatlabOptimization-HessianBased" && CtrlVar.TriNodes>3
 
-    fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
-    fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
-    warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
 
-end
+        fprintf("Using CtrlVar.Inverse.MinimisationMethod=%s for other then linear elements (ie for CtrlVar.TriNodes>3) is not recommended. \n",CtrlVar.Inverse.MinimisationMethod)
+        fprintf('Consider setting CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased" or using linear elements. \n')
+        warning("UaInputs:ParameterCombinationNotRecommended","ParameterCombinationNotRecommented")
+
+    end
 
 
 
@@ -278,6 +278,41 @@ end
         CtrlVar.Inverse.AdjointGradientPreMultiplier='I';
 
     end
+
+    if contains(CtrlVar.Inverse.InvertFor,"logA")
+
+        if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is empty, but needs to be defined in a logA inversion.\n")
+            error("CtrlVarValidityCheck: missing input ")
+
+        end
+
+        if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is empty, but needs to be defined in a logA inversion.\n")
+            error("CtrlVarValidityCheck: missing input ")
+
+        end
+    end
+
+    if contains(CtrlVar.Inverse.InvertFor,"logC")
+
+        if isempty(CtrlVar.Inverse.Regularize.logC.ga)
+
+            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is empty, but needs to be defined in a logC inversion.\n")
+            error("CtrlVarValidityCheck: missing input ")
+
+        end
+
+        if isempty(CtrlVar.Inverse.Regularize.logC.gs)
+
+            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is empty, but needs to be defined in a logC inversion.\n")
+            error("CtrlVarValidityCheck: missing input ")
+
+        end
+    end
+
 
 end
 

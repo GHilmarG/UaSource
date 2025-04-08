@@ -21,29 +21,83 @@ CtrlVar.WhoAmI="Ua2D CtrlVar" ;
 %%
 CtrlVar.Experiment='UaDefaultRun';
 CtrlVar.time=nan;               % In a transient run this variable is the (model) time. Set to some 
-                              % reasonable initial value, for example CtrlVar.time=0;
+                                % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
-
+% When doing a forward run, i.e. whenever 
+% 
+%   CtrlVar.InverseRun=false
+% 
+% the type of a forward run is set by the user in
+% 
+%   DefineInitialImputs.m
+% 
+% by the value of the field: 
+% 
+%   CtrlVar.ForwardTimeIntegration
+%
+% as follows:
+%
+%   CtrlVar.ForwardTimeIntegration="-uvh-" ;  implies a time-dependent run whereby velocities (uv) and thickness (h) are
+%                                             solved for simultaneously. This is the most common approach and the recommended
+%                                             option for a transient simulations. Here the momentum and the mass conservation
+%                                             equations are solved in a single solution step. This is sometimes referred to
+%                                             as a fully-implicit approach, or as a monolithic scheme.
+%
+%   CtrlVar.ForwardTimeIntegration="-uv-" ;   implies that only the velocities are solved for. i.e. here only the
+%                                             momentum="-uv-" equations are solved. This is in principle not a transient
+%                                             solution as the thickness is not evolved. However, the user might be interested
+%                                             in changing some other fields at each runstep, and the user might think of this
+%                                             as a transient run.
+%
+%
+%  These two above options, i.e. "-uvh-"  and "-uv-" are the only options that are recommended for general use. There are
+%  some other options that have been implemented, but they are not recommended.
+%
+%  CtrlVar.ForwardTimeIntegration="-uv-h-" ;  implies that only the velocities (uv) and the ice thickness (h) are solved for
+%                                             in a staggered manner, whereby the velocities are solved for a given thickness,
+%                                             and then the thickness is evolved forward in time. Here the momentum and the
+%                                             mass conservation equations are solved in separate solution steep. This is
+%                                             often referred to as a semi-implicit approach, or as a staggered scheme and
+%                                             also as a partitioned scheme. This is not a recommended approach as
+%                                             (unsurprisingly) this is a slower and less robust solution algorithm.
+%
+%
+% Note: In the past the fields
+% 
+%   CtrlVar.TimeDependentRun
+%   CtrlVar.Implicituvh
+%
+% where used to specify if the run was time-independent or not, and if a partitioned or a monolithic solver was used. This can
+% still be done as before, but using
+% 
+%   CtrlVar.ForwardTimeIntegration
+%
+% to provide this information is now recommended.
+%
 
 CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
-CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-","-phi-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
-                              % If true (i.e. set to 1) then the run is a forward transient one, if not
-                              % then velocities based on the current geometry are calculated. 
+                              % If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are
+                              % calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;
+    
+
 CtrlVar.InverseRun=0;         % if true then a surface-to-bed inversion is to be performed.
                               % (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)
                               
 CtrlVar.Restart=0;            % If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.
-                              % For example setting: 
-                              %       CtrlVar.InverseRun=1; 
-                              %       CtrlVar.Restart=1;
+                              % For example setting:
+                              %       CtrlVar.InverseRun=1; CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
-                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
+        % 0: prognostic run is semi-implicit (implicit with respect to h only)
+                              % 1: prognostic run is fully-implicit (implicit with respect to uvh)
+                              % This field is not longer required. Easier and more logical is to set
+                              % CtrlVar.ForwardTimeIntegration="-uvh-" (implicit/monolithic) or
+                              % CtrlVar.ForwardTimeIntegration="-uv-h-" (-semi-implicit/partitioned)
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
@@ -59,9 +113,10 @@ CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']
                                        % Note, both SSTREAM and SSHEET are implemented.
                                        % But Hybrid is still in development and should not be used for the time being.
 CtrlVar.MustBe.FlowApproximation=["SSTREAM","SSHEET","Hybrid","SSTREAM-rho","uvhPrescribed"] ;  
-%% Slope of coordinate system with respect to gravity
+%% Slope of vertical axis of the coordinate system with respect to gravity
 
 CtrlVar.alpha=0 ; 
+
 %% Sliding law
 %
 % Several sliding laws can be defined. These include *Weertman* (power-law relationship
@@ -605,7 +660,8 @@ CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
 % if corresponding plotting logicals such as CtrlVar.doplots, CtrlVar.doAdaptMeshPlot, etc, are also true.
 %
 % Further description of what information is provided depending on the values of the info parameters is provided below. 
-%% If you, for example set,
+% 
+% If you, for example set,
 %
 %    CtrlVar.InfoLevelNonLinIt=5 ; 
 %
@@ -2293,6 +2349,15 @@ CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}
 % To plot these different definitions set CtrlVar.PlotSUPGparameter and CtrlVar.doplots both to true (see above).                                                  
 %
 
+%%  Phase field fracture
+
+CtrlVar.PhaseFieldFracture.Gc=1e5;  
+CtrlVar.PhaseFieldFracture.l=10e3;
+CtrlVar.PhaseFieldFracture.k=1e-3; % regularization parameter
+CtrlVar.PhaseFieldFracture.UpdateRatio=0.5;
+CtrlVar.PhaseFieldFracture.MaxMeshRefinements=5;   % max number of mesh refinements per phi solve where phi is not updated 
+CtrlVar.PhaseFieldFracture.MaxUpdates=100;           % number of updates in phi and Psi
+CtrlVar.PhaseFieldFracture.RiftsAre="-thin ice above inviscid water-"; 
 
 
 
