@@ -98,25 +98,35 @@ end
 
 %% Make F from old output files compatible
 
-if  ~isfield(F,"LSF") 
-     F.LSF=[];
-end
+if ~isa(F,"UaFields")
 
-if  ~isfield(F,"x") || isempty(F.x)
-    F.x=MUA.coordinates(:,1);
-    F.y=MUA.coordinates(:,2);
-end
+    if  ~isfield(F,"LSF")
+        F.LSF=[];
+    end
 
-if ~isfield(F,"time")
-    F.time=[]; 
-end
+    if  ~isfield(F,"x") || isempty(F.x)
+        F.x=MUA.coordinates(:,1);
+        F.y=MUA.coordinates(:,2);
+    end
 
-if ~isfield(F,"dt")
-    F.dt=[]; 
-end
+    if ~isfield(F,"time")
+        F.time=[];
+    end
 
-if ~(isfield(F,"GF") || isfield(F.GF,"node"))
-    F.GF=[]; 
+    if ~isfield(F,"dt")
+        F.dt=[];
+    end
+
+    if ~(isfield(F,"GF") || isfield(F.GF,"node"))
+        F.GF=[];
+    end
+else
+    
+   if isempty(F.x)
+        F.x=MUA.coordinates(:,1);
+        F.y=MUA.coordinates(:,2);
+    end
+
 end
 %%
 
