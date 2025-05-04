@@ -1,6 +1,6 @@
 
 
-function [InfluxNodes,OutfluxNodes,InOutBoundary]=InfluxOutfluxNodes(CtrlVar,MUA,F)
+function [InfluxNodes,OutfluxNodes,InOutBoundary]=InfluxOutfluxNodes(CtrlVar,MUA,F,options)
 
 %%
 %
@@ -9,7 +9,7 @@ function [InfluxNodes,OutfluxNodes,InOutBoundary]=InfluxOutfluxNodes(CtrlVar,MUA
 %
 % InfluxNodes       : list of nodes where the velocity vector points inwards
 % OutfluxNodes      : list of nodes where the velocity vector points outwards
-% 
+%
 % InOutBoundary     : a logical list of in/out nodes within MUA.Boundary.Nodes
 %
 %   InfluxNodes=MUA.Boundary.Nodes(InOutBoundary);
@@ -17,38 +17,68 @@ function [InfluxNodes,OutfluxNodes,InOutBoundary]=InfluxOutfluxNodes(CtrlVar,MUA
 %
 %%
 
-
+arguments
+    CtrlVar struct
+    MUA     struct
+    F       {mustBeA(F,{'struct','UaFields','numeric'})}
+    options.plot  logical = false
+    options.afloat logical = false
+    options.MinSpeed = 0 ;
+end
 
 [nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 P=F.ub(MUA.Boundary.Nodes).*Nx(MUA.Boundary.Nodes)+F.vb(MUA.Boundary.Nodes).*Ny(MUA.Boundary.Nodes);
+
 InOutBoundary=P<0 ;
+
+if options.afloat
+
+   InOutBoundary = InOutBoundary &  F.GF.node(MUA.Boundary.Nodes)< 0.5 ; 
+
+    
+end
+
+
+if options.MinSpeed > 0
+
+  speed=sqrt(F.ub(MUA.Boundary.Nodes).^2+F.vb(MUA.Boundary.Nodes).^2) ; 
+
+  InOutBoundary=InOutBoundary & speed > options.MinSpeed; 
+
+end
+
+
+
+
 
 InfluxNodes=MUA.Boundary.Nodes(InOutBoundary);
 OutfluxNodes=MUA.Boundary.Nodes(~InOutBoundary);
 
-return
+if options.plot
 
-%%  Example of how to plot some of the outputs
+    %%  Example of how to plot some of the outputs
 
-FindOrCreateFigure("Influx Nodes")
-hold off
-PlotMuaBoundary(CtrlVar,MUA);
-hold on ; 
-plot(F.x(MUA.Boundary.Nodes(:,1)) /CtrlVar.PlotXYscale,F.y(MUA.Boundary.Nodes(:,1))/CtrlVar.PlotXYscale,"*b")
-hold on
+    fIN=FindOrCreateFigure("Influx Nodes") ; clf(fIN);
+    hold off
+    PlotMuaBoundary(CtrlVar,MUA);
+    hold on ;
+    plot(F.x(MUA.Boundary.Nodes(:,1)) /CtrlVar.PlotXYscale,F.y(MUA.Boundary.Nodes(:,1))/CtrlVar.PlotXYscale,"*b")
+    hold on
 
 
-% QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
-%     Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),CtrlVar);
+    % QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
+    %     Nx(MUA.Boundary.Nodes),Ny(MUA.Boundary.Nodes),CtrlVar);
 
-QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
-    F.ub(MUA.Boundary.Nodes),F.vb(MUA.Boundary.Nodes),CtrlVar);
+    QuiverColorGHG(MUA.coordinates(MUA.Boundary.Nodes,1),MUA.coordinates(MUA.Boundary.Nodes,2),...
+        F.ub(MUA.Boundary.Nodes),F.vb(MUA.Boundary.Nodes),CtrlVar);
 
-hold on
+    hold on
 
-plot(F.x(MUA.Boundary.Nodes(InOutBoundary))/CtrlVar.PlotXYscale,F.y(MUA.Boundary.Nodes(InOutBoundary))/CtrlVar.PlotXYscale,"or",MarkerFaceColor="r")
+    plot(F.x(MUA.Boundary.Nodes(InOutBoundary))/CtrlVar.PlotXYscale,F.y(MUA.Boundary.Nodes(InOutBoundary))/CtrlVar.PlotXYscale,"or",MarkerFaceColor="r")
 
-title("Influx nodes shown as red circles")
+    title("Selected influx nodes shown as red circles")
+
+end
 
 end
 
