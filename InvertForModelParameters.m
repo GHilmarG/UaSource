@@ -133,7 +133,7 @@ CtrlVar.Inverse.ResetPersistentVariables=1;
 
 % JGH: Returns the cost function (J), the gradient of the cost function with respect to p (dJdp), and the Hessian (ddJddp).
 % The Hessian of the regularization term (R) can usually be calculated exactly, while the Hessian of the misfit/likelihood term
-% (I), can not. However, one can come up with a educated guess for the Hessian of I with respect to C.
+% (I), can not. However, one can come up with an educated guess for the Hessian of I with respect to C.
 [J0,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p0,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.

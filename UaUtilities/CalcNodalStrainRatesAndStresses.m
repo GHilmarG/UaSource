@@ -133,7 +133,7 @@ narginchk(4,4)
 % txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 
 if nargout>2
-    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
+    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(CtrlVar,MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
 end
 
 % if ~isreal(txzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txzbNotReal','txzb not real!') ; end

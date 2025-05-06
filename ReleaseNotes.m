@@ -2,6 +2,30 @@
 
 %%
 %
+% *Release Notes* _May 2025_
+%
+% The call to  
+% 
+%   DefineDesiredEleSize.m
+% 
+% now only accepts one combination of the number of input and output variables. 
+% 
+% UaUtilities contains a new function: 
+%
+%   ElementErrorEstimator(CtrlVar,MUA,F)
+%
+% which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh
+% refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository. 
+%
+% Also within UaUtilities is the function 
+%
+%   InfluxOutfluxNodes.m
+%
+% which can be used to find nodes along the boundary where the velocity vectors are oriented into the domain (influx/inflow nodes) and
+% out of the domain (outflux/outflow nodes). This can be used, for example, in when defining boundary condition to ensure
+% that flux into the domain is some given value, e.g. zero.
+%
+%
 % *Release Notes* _March 2025_
 %
 % The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can

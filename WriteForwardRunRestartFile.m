@@ -1,9 +1,13 @@
 
+
+
+
+
 function WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,GF,l,RunInfo)
 
 RestartFile=CtrlVar.NameOfRestartFiletoWrite;
-fprintf(CtrlVar.fidlog,' \n ################## %s %s ################### \n Writing restart file %s  at t=%-g \n %s \n ',CtrlVar.Experiment,datestr(now),RestartFile,CtrlVar.time);
 
+fprintf("\n ################## Experiment: %s ################### \n Writing restart file: %s  \n for simulation time t=%-g at wall-clock time %s\n \n ",CtrlVar.Experiment,CtrlVar.NameOfRestartFiletoWrite,CtrlVar.time,datetime);
 
 
 MUA.workers=[]; % saving composites is not supported, MATLAB 2024

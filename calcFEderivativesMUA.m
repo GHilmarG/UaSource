@@ -1,3 +1,7 @@
+
+
+
+
 function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 
 %%
@@ -49,7 +53,7 @@ if isempty(MUA.Deriv)
  
     
 
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+        [MUA.Deriv,MUA.DetJ]=CalcNuaMeshDerivatives(CtrlVar,MUA);
 end
 
 

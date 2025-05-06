@@ -61,7 +61,7 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 % see also:
 %
 %   LatLonGrid
-%
+%   ScaleBar
 %%
 
 fig = gcf;
@@ -138,9 +138,9 @@ if nargin ==0
     % guessing here a bit
 
     if (xmax-xmin)<100
-        dlon=2;
-    elseif (xmax-xmin) < 300 % assuming km as units
-        dlon=5;
+        dlon=1;
+    elseif (xmax-xmin) < 400 % assuming km as units
+        dlon=3;
     end
 
     if (ymax-ymin)< 150 % assuming km as units

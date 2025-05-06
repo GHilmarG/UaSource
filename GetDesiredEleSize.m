@@ -2,8 +2,6 @@
 
 
 
-
-
 function [UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)
 
 
@@ -26,7 +24,7 @@ nIn=nargin('DefineDesiredEleSize') ;
 
 if nOut~=7 && nIn~=13
 
-    fprintf("DefineDesiredEleSize.m does not have the right number of input or output arguments.\")
+    fprintf("DefineDesiredEleSize.m does not have the right number of input or output arguments.\n")
 
     fprintf(" The call to DefineDesiredEleSize must be on the form: \n ")
     fprintf("%s \n","[UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]DefineDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,x,y,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators)")

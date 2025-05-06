@@ -8,7 +8,7 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 %
 %    Boundary.FreeElements : a list of elements with free edges, each edge listed once, ie if an
 %                            element has more than one free edge, it is listed more than once.
-%           Boundary.Edges : all edge nodes ever every edge. size is: number of free edges \times number of edge nodes
+%           Boundary.Edges : all edge nodes of each edge. size is: number of free edges \times number of edge nodes
 %                            For example: 
 %                            For a 3-node element, the size would be: number of free edges in mesh \times 2
 %                            For a 6-node element, the size would be: number of free edges in mesh \times 3                            
@@ -30,7 +30,7 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 %
 % Also:
 %
-%   plot(x(MUA.Boundary.Nodes(:,1)) /CtrlVar.PlotXYscale,y(MUA.Boundary.Nodes(:,1))/CtrlVar.PlotXYscale,"*b")
+%   plot(F.x(MUA.Boundary.Nodes(:,1)) /CtrlVar.PlotXYscale,F.y(MUA.Boundary.Nodes(:,1))/CtrlVar.PlotXYscale,"*b")
 %
 % this is not an ordered list tracing the boundary.
 %

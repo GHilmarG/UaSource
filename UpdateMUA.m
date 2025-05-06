@@ -141,7 +141,7 @@ if MeshHasChanged
     end
     
     if CtrlVar.CalcMUA_Derivatives
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+        [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
     else
         MUA.Deriv=[];
         MUA.DetJ=[];
@@ -196,7 +196,7 @@ end
 if CtrlVar.CalcMUA_Derivatives
     if ~isfield(MUA,'DetJ') || ~isfield(MUA,'Deriv')
         
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+        [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
     end
 end
 
@@ -205,7 +205,7 @@ MUADerivHasChanged=isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.no
 
 
 if CtrlVar.CalcMUA_Derivatives && MUADerivHasChanged
-        [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+        [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 end
 
 

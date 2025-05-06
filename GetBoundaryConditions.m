@@ -151,7 +151,7 @@ end
 
 %% This is a questionable approach.
 %  Even if a node is twice in list A, it can be unique if it is tied
-%  to two different freedome of degrees
+%  to two different freedom of degrees
 % if ~isempty(BCs.ubTiedNodeA)
 %     % eliminate duplication in nodal ties
 %     % this needs to be done for both A and B ties, and then

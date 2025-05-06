@@ -1,7 +1,7 @@
-function varargout=ProjectFintOntoNodes(MUA,varargin)
+function varargout=ProjectFintOntoNodes(CtrlVar,MUA,varargin)
 
 %%
-%   varargout=ProjectFintOntoNodes(MUA,varargin)
+%   varargout=ProjectFintOntoNodes(CtrlVar,MUA,varargin)
 %
 % Projects element variables defined at integration points onto nodes.
 % Does this by solving:
@@ -16,7 +16,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %
 % Example:
 %
-%  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
+%  [exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(CtrlVar,MUA,exx,eyy,exy,e)
 %
 % where exx, eyy, exy, e, are defined at integration points gives
 % corresponding fields defined at nodes.
@@ -25,7 +25,7 @@ function varargout=ProjectFintOntoNodes(MUA,varargin)
 %       Even if element quantity is positive everywhere, it is nevertheless 
 %       possible that the projection on the nodes can be (slightly) negative.
 %       
-
+%%
 
 nVarargs = length(varargin);
 varargout = cell(nVarargs);
@@ -47,7 +47,7 @@ b=zeros(MUA.Nnodes,nVarargs);
 % factorize
 % [L,~,P]=chol(A,'lower');
 for I=1:nVarargs
-    b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(MUA,varargin{I});
+    b(:,I)=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(CtrlVar,MUA,varargin{I});
     %      varargout{I}= P*(L' \(L \(P'*b(:,I))));
 end
 

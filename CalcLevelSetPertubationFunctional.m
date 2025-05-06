@@ -23,7 +23,7 @@ Int=FEintegrate2Dint(CtrlVar,MUA,fint);
 P=sum(sum(Int))/(p*q);
 
 if nargout>1
-    N=ProjectFintOntoNodes(MUA,N) ;
+    N=ProjectFintOntoNodes(CtrlVar,MUA,N) ;
 end
 
 end

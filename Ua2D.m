@@ -361,6 +361,13 @@ CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 RunInfo.Forward.IterationsTotal=0; 
 RunInfo.Forward.uvhConverged=true; 
 
+%% PPF  
+
+if CtrlVar.ForwardTimeIntegration=="-phi-"
+
+    [MUA,BCs,BCsphi,F]=PhaseFieldFractureSolver(UserVar,RunInfo,CtrlVar,MUA,F,BCs) ; 
+
+end
 
 
 %%  RunStep Loop
@@ -903,7 +910,7 @@ end
 
 %% saving outputs
 
-if CtrlVar.WriteRestartFile==1 &&  mod(CtrlVar.CurrentRunStepNumber,CtrlVar.WriteRestartFileInterval)~=0
+if CtrlVar.WriteRestartFile==1 
     WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
 end
 

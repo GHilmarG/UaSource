@@ -33,7 +33,9 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 % value by a few %.
 %
 %
-%   VAF       :  Volume above flotation
+%   VAF.total       : Volume above flotation
+%   VAF.node        : nodal thickness above flotation 
+%   
 %   IceVolume :  Total ice volume withing the domain, i.e. including areas that are afloat.
 %   hAF       :  (positive) ice thickness above flotation
 %   hfPOs     :  (positive) flotation thickness (also sometimes referred to as flotation profile). Where h>fhPos, the ice is grounded.

@@ -140,7 +140,7 @@ function  [fLSF1,fLSF0,fdLSF,fMeshLSF]=LevelSetInfoLevelPlots(CtrlVar,MUA,BCs,F0
     [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,N1) ;
     
     
-    [N0,N1]=ProjectFintOntoNodes(MUA,N0,N1);
+    [N0,N1]=ProjectFintOntoNodes(CtrlVar,MUA,N0,N1);
     
     fMeshLSF2=FindOrCreateFigure("F0 node: norm of slope ");
     [FigHandle,ColorbarHandle]=PlotMeshScalarVariable(CtrlVar,MUA,N0 ) ;

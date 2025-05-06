@@ -129,7 +129,11 @@ nlubvb=numel(l1.ubvb) ;
 
 [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 dl=luvh*0;
-
+%% Make sure iterate is feasible, at least with respect to direct BCs
+F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue; 
+F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
+F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+%%
 if ~isempty(L)
     cuvhNorm=norm(cuvh);
     if cuvhNorm<eps

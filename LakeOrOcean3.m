@@ -11,14 +11,12 @@ nargoutchk(1,4)
 
 %%
 %
-%   [LakeNodes,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes)
+%   [LakeNodes,OceanNodes,LakeElements,OceanElements] = LakeOrOcean3(CtrlVar,MUA,GF,OceanBoundaryNodes,NodesDownstreamOfGroundingLines)
 %
-% OceanBoundaryNodes is an optional input that allows the user to specify
-% the node numbers of nodes in their domain that are connected to the
-% ocean, if this input is not provided the code assumes that all floating
-% nodes on the model boundary are connected to the ocean. This is usually a
-% good guess but may break down in certain situations, particularly if
-% there are holes in the model mesh.
+% OceanBoundaryNodes is an optional input that allows the user to specify the node numbers of nodes in their domain that are
+% connected to the ocean, if this input is not provided the code assumes that all floating nodes on the model boundary are
+% connected to the ocean. This is usually a good guess but may break down in certain situations, particularly if there are
+% holes in the model mesh.
 %
 % When calling this to apply melt, the following syntax is recommended
 % to ensure that melt is applied correctly:
@@ -29,10 +27,9 @@ nargoutchk(1,4)
 % This script is designed to be used in conjunction with DefineMassBalance
 % to only assign melt to nodes that should be melted (OceanNodes). 
 %
-% Note that this script does not robustly identify all possible lakes in a domain, since it only considers nodes strictly
-% downstream of the grounding line as floating. Thus, floating nodes with an edge that crosses the grounding line, which are
-% not considered floating, will also not be considered as lakes. In this way, very small isolated patches of floating nodes
-% will neither be considered lakes nor ocean.
+% Using the (default) "strict" definition, only nodes strictly downstream of the grounding line as considered floating. Thus,
+% floating nodes with an edge that crosses the grounding line, which are not considered floating, will also not be considered
+% as lakes. In this way, very small isolated patches of floating nodes will neither be considered lakes nor ocean.
 %
 % Also consider using: LakeOrOcean.m , which uses an alternative approach for the problem.
 % ... but is painfully slow and will fail to correctly identify lakes
@@ -41,8 +38,18 @@ nargoutchk(1,4)
 % Currently, Úa users are split into LakeOrOcean.m and the LakeOrOcean3.m camps.
 % The author of the LakeOrOcean.m prefers using LakeOrOcean3.m
 %
+% NodesDownstreamOfGroundingLines : can be left empty or set to either "strict" or "relaxed"
 %
-%  
+% "strict" implies that nodes are only considered afloat if none of the elements containing that node cross the grounding
+% line. That is, the node is not a part of any element having any nodes with floating mast GF.node > 0.5. This implies that
+% any nodes of elements crossing the grounding line are not considered to be (strictly) afloat, even if some of those nodes
+% have a floating mask values, GF.node<0.5. 
+%
+% using the "strict" option is the default.  
+%   
+% If the input parameterNodesDownstreamOfGroundingLinesis set to the value "Relaxed", any node having GF.node<0.5 is
+% considered to be afloat.
+% 
 %   load PIG-TWG-RestartFile.mat ; CtrlVar=CtrlVarInRestartFile;
 %   [LakeNodes,OceanNodes,LakeElements,OceanElements]=LakeOrOcean3(CtrlVar,MUA,F.GF) ;
 %
@@ -54,7 +61,13 @@ nargoutchk(1,4)
 %
 %
 % 
+% Example:
 %
+%  
+%   [~,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Relaxed") ;
+%
+%
+%   [~,OceanNodes] = LakeOrOcean3(CtrlVar,MUA,F.GF,[],"Strict") ;
 %
 %%
 

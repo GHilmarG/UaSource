@@ -1,0 +1,32 @@
+
+
+
+
+
+
+function Fnew=PFFmapF(CtrlVar,MUA,MUAnew,F)
+
+Fnew=F ;
+
+
+Fnew.x=MUAnew.coordinates(:,1);
+Fnew.y=MUAnew.coordinates(:,2);
+
+Fnew.S=F.S(1)+zeros(MUA.Nnodes,1);
+Fnew.AGlen=F.AGlen(1)+zeros(MUA.Nnodes,1);
+Fnew.AGlen0=F.AGlen0(1)+zeros(MUA.Nnodes,1);
+
+[UserVar,F.s,F.b,F.S,F.B,F.rho,F.rhow,g]=DefineGeometryAndDensities(UserVar,CtrlVar,MUA,F) ; 
+
+[RunInfo,Fnew.ub,Fnew.vb,Fnew.phi]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,F.ub,F.vb,F.phi);
+
+[F.AGlen,F.rho,F.s,F.b,F.h,F.GF]=PPFphi2F(CtrlVar,MUA,F)
+
+
+
+
+
+
+
+
+end
