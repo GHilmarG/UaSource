@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding="utf-8"?>
 <toc version="2.0">
-    
     <tocitem target="Ua.html">Ua
         <tocitem target="ReleaseNotes.html">Release Notes</tocitem>
         <tocitem target="Ua2D_DefaultParameters.html">Default parameters</tocitem>
@@ -86,6 +85,7 @@
             </tocitem>
             <tocitem target="MeshingUtilities.html">Meshing Utilities 
                 <tocitem target="PrintInfoAboutElementsSizes.html">Calculate effective element sizes. </tocitem>
+                <tocitem target="ElementErrorEstimator.html">Recovery-based error estimator.</tocitem>
                 <tocitem target="FE2dRefineMesh.html">Refine Mesh.</tocitem>
             </tocitem>
         </tocitem>

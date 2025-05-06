@@ -125,7 +125,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     % gamma=0; fext0=1; 
     % ubStart=F.ub; vbStart=F.vb; 
     % F.ub=zeros(MUA.Nnodes,1); F.vb=zeros(MUA.Nnodes,1); 
-    % F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue; % Make sure iterate is feasable
+    % F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue; % Make sure iterate is feasible
     % fNOrm=CalcCostFunctionNR(UserVar,RunInfo,CtrlVar,MUA,gamma,F,fext0,L,l,cuv,dub,dvb,dl) ;
     % fext0=sqrt(fNOrm); 
     % F.ub=ubStart ; F.vb=vbStart ; 

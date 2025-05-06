@@ -1,16 +1,26 @@
-function [MeshDeriv,MeshDetJ]=CalcMeshDerivatives(CtrlVar,connectivity,coordinates,nip,points)
 
 
-narginchk(5,5)
+
+
+function [MeshDeriv,MeshDetJ]=CalcMeshDerivatives(connectivity,coordinates,nip,points)
+
+% Note: Do not use. 
+% 
+% Use 
+% 
+%  CalcMuaMeshDerivatives.m
+%
+% instead.
+
+error("not longer used. Use CalcMuaMeshDerivatives.m instead.")
+
+narginchk(4,4)
 
 dof=2; [Nele,nod]=size(connectivity);
 MeshDeriv=zeros(Nele,dof,nod,nip);
 MeshDetJ=zeros(Nele,nip);
 
-if CtrlVar.InfoLevelCPU>=10 ;   tDeriv=tic; end
-if CtrlVar.InfoLevel>=10
-    fprintf('CalcMeshDerivatives: calculating mesh derivatives \n ')
-end
+
 
 if Nele==0
         MeshDeriv=[];
@@ -28,7 +38,6 @@ for Iint=1:nip
 end
 
 
-if CtrlVar.InfoLevelCPU>=10 ;  fprintf(CtrlVar.fidlog,'CalcMeshDerivatives in %-g sec. \n',toc(tDeriv)) ; end
 
 
 end

@@ -27,7 +27,7 @@ function R=ElementErrorEstimator(CtrlVar,MUA,F)
 %%
 
 eInt=StrainRatesInt(CtrlVar,MUA,F);
-eNode=ProjectFintOntoNodes(MUA,eInt);
+eNode=ProjectFintOntoNodes(CtrlVar,MUA,eInt);
 
 eIntEle=FEintegrate2D(CtrlVar,MUA,eInt);
 eNodeEle=FEintegrate2D(CtrlVar,MUA,eNode);

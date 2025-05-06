@@ -13,7 +13,7 @@ end
 
 [etaInt,xint,yint,exx,eyy,exy,Eint,e]=calcStrainRatesEtaInt(CtrlVar,MUA,uMeas,vMeas);
 
-%[exxNod,eyyNod,exyNod,eNod]=ProjectFintOntoNodes(MUA,exx,eyy,exy,e)
+
 
 
 end

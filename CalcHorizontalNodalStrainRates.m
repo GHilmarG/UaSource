@@ -1,4 +1,8 @@
 
+
+
+
+
 function [exx,eyy,exy,e]=CalcHorizontalNodalStrainRates(CtrlVar,MUA,u,v)
 
 
@@ -26,26 +30,23 @@ exx=zeros(MUA.Nele,MUA.nip);
 eyy=zeros(MUA.Nele,MUA.nip);
 exy=zeros(MUA.Nele,MUA.nip);
 
-for Iint=1:MUA.nip
-    
+if isempty(MUA.Deriv) || isempty(MUA.DetJ)
+    [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
+end
 
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        Deriv=MUA.Deriv(:,:,:,Iint);
-       % detJ=MUA.DetJ(:,Iint);
-    else
-        Deriv=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,MUA.points,Iint);
-    end
+for Iint=1:MUA.nip
+  
 
     
     for I=1:MUA.nod
-        exx(:,Iint)=exx(:,Iint)+Deriv(:,1,I).*unod(:,I);
-        eyy(:,Iint)=eyy(:,Iint)+Deriv(:,2,I).*vnod(:,I);
-        exy(:,Iint)=exy(:,Iint)+0.5*(Deriv(:,1,I).*vnod(:,I) + Deriv(:,2,I).*unod(:,I));
+        exx(:,Iint)=exx(:,Iint)+MUA.Deriv(:,1,I).*unod(:,I);
+        eyy(:,Iint)=eyy(:,Iint)+MUA.Deriv(:,2,I).*vnod(:,I);
+        exy(:,Iint)=exy(:,Iint)+0.5*(MUA.Deriv(:,1,I).*vnod(:,I) + MUA.Deriv(:,2,I).*unod(:,I));
     end
 end
 
 
-[exx,eyy,exy]=ProjectFintOntoNodes(MUA,exx,eyy,exy);
+[exx,eyy,exy]=ProjectFintOntoNodes(CtrlVar,MUA,exx,eyy,exy);
  
 e=real(sqrt(exx.^2+eyy.^2+exx.*eyy+exy.^2));
 

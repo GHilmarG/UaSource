@@ -308,7 +308,7 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 hold on ;
                 [xGLold,yGLold]=PlotGroundingLines(CtrlVar,MUAold,Fold.GF,GLgeoold,xGLold,yGLold,'r','LineWidth',2);
                 PlotCalvingFronts(CtrlVar,MUAold,Fold,'b','LineWidth',2);
-                title(sprintf('Before remeshing  \t #Ele=%-i, #Nodes=%-i, #nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
+                title(sprintf('Before remeshing  Ele=%-i, Nodes=%-i, nod=%-i',MUAold.Nele,MUAold.Nnodes,MUAold.nod))
                 axis tight
 
                 subplot(2,1,2)
@@ -316,8 +316,8 @@ if  contains(AdaptMeshMethod,"-refinement-")
                 xGL=[] ; yGL=[]; GLgeo=[];
                 CtrlVar.PlotGLs=1;
                 PlotMuaMesh(CtrlVar,MUAnew,nan,CtrlVar.MeshColor);
-                title(sprintf('After remeshing iteration #%i \t #Ele=%-i, #Nodes=%-i, #nod=%-i \n Change in the numbers of ele and nodes in current iteration is %i and %i ',...
-                    JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod,nNewElements,nNewNodes))
+                title(sprintf("After remeshing iteration %i:  Ele=%-i, Nodes=%-i, nod=%-i",JJ,MUAnew.Nele,MUAnew.Nnodes,MUAnew.nod))
+                subtitle(sprintf("Change in the numbers of ele and nodes in current iteration is %i and %i",nNewElements,nNewNodes))
                 hold on ;
                 PlotGroundingLines(CtrlVar,MUAnew,Fnew.GF,GLgeo,xGL,yGL,'r','LineWidth',2);
                 PlotCalvingFronts(CtrlVar,MUAnew,Fnew,'b','LineWidth',2);

@@ -52,7 +52,7 @@ end
 [MUA.connectivity]=TestAndCorrectForInsideOutElements(CtrlVar,MUA.coordinates,MUA.connectivity);
 
 if CtrlVar.CalcMUA_Derivatives
-    [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+    [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 else
     MUA.Deriv=[];
     MUA.DetJ=[];

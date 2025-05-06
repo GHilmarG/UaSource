@@ -91,7 +91,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             u=F.ub+F.ud ; v=F.vb+F.vd;
             [~,~,~,ErrorProxy]=CalcHorizontalNodalStrainRates(CtrlVar,MUA,u,v);
             [dfdx,dfdy]=calcFEderivativesMUA(ErrorProxy,MUA,CtrlVar);
-            [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+            [dfdx,dfdy]=ProjectFintOntoNodes(CtrlVar,MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
             
@@ -107,7 +107,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             
             fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             [dfdx,dfdy]=calcFEderivativesMUA(F.h,MUA,CtrlVar);
-            [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+            [dfdx,dfdy]=ProjectFintOntoNodes(CtrlVar,MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'upper surface gradient'
@@ -115,7 +115,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
                 fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             end
             [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
-            [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+            [dfdx,dfdy]=ProjectFintOntoNodes(CtrlVar,MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'lower surface gradient'
@@ -123,7 +123,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
                 fprintf(CtrlVar.fidlog,' remeshing criterion is : %s \n ',CtrlVar.ExplicitMeshRefinementCriteria(I).Name);
             end
             [dfdx,dfdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
-            [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+            [dfdx,dfdy]=ProjectFintOntoNodes(CtrlVar,MUA,dfdx,dfdy);
             ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             
         case 'dhdt gradient'
@@ -138,7 +138,7 @@ for I=1:numel(CtrlVar.ExplicitMeshRefinementCriteria)
             else
                 
                 [dfdx,dfdy]=calcFEderivativesMUA(F.dhdt,MUA,CtrlVar);
-                [dfdx,dfdy]=ProjectFintOntoNodes(MUA,dfdx,dfdy);
+                [dfdx,dfdy]=ProjectFintOntoNodes(CtrlVar,MUA,dfdx,dfdy);
                 ErrorProxy=sqrt(dfdx.*dfdx+dfdy.*dfdy);
             end
             
@@ -335,7 +335,7 @@ ElementsToBeCoarsened=eRatio>=test(floor(numel(eRatio)*CtrlVar.LocalAdaptMeshRat
 %% Now finally a user modification to EleSizeDesired and ElementsToBeRefined
 
 % Now get user modifications
-% [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); % TestIng, rhubarb 
+
 [UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
 
 

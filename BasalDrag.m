@@ -33,7 +33,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     %  M = [ dtaubxdu   dtaubxdv   dtaubxdh ]
     %      [ dtaubydu   dtaubydv   dtaubydh ]
     %
-    %  Regularisation parameters:
+    %  Regularization parameters:
     %
     %  CtrlVar.Czero
     %  CtrlVar.SpeedZero
@@ -231,7 +231,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
             [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rpCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;
 
-        case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
+        case {"rCW-N0","Umbi"} % reciprocal Coulomb-Weertman with zeroth-order hydrology
 
             [N,dNdh]=N0(CtrlVar,h,H,rho,rhow,g) ;
             [taubxi,taubyi,dtaubxdui,dtaubydvi,dtaubxdvi,dtaubydui,dtaubxdhi,dtaubydhi] =  rCWN0(C,CtrlVar.Czero,N,dNdh,He,delta,m,muk,ub,vb,CtrlVar.SpeedZero) ;

@@ -71,7 +71,7 @@ function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunIn
     % D2v=-Rv'*dvb;
     % D2h=-Rh'*dh;
     % D2l=-Rl'*dl; 
-    % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasable point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
+    % D2=full(D2u+D2v+D2h+D2l) ;  % For a feasible point, D2 must be positive for gamma=0, for the Newton direction to be a direction of decent for rWork
     
     D2=[frhs;grhs]'*[dub;dvb;dh;dl];
     rWork=full(D2^2);

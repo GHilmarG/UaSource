@@ -26,7 +26,7 @@ arguments
     options.MinSpeed = 0 ;
 end
 
-[nx,ny,xn,yn,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
+[~,~,~,~,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 P=F.ub(MUA.Boundary.Nodes).*Nx(MUA.Boundary.Nodes)+F.vb(MUA.Boundary.Nodes).*Ny(MUA.Boundary.Nodes);
 
 InOutBoundary=P<0 ;

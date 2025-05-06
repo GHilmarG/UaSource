@@ -36,7 +36,7 @@ l=l+gamma*dl;
 if ~isempty(L)
 
     frhs=-R-L'*l;        % Units: Area  [\varphi] / time
-    grhs=Lrhs-L*F1.LSF;  % Units: [\varphi]=distance, but this should always be zero anyhow if initial point is feasable
+    grhs=Lrhs-L*F1.LSF;  % Units: [\varphi]=distance, but this should always be zero anyhow if initial point is feasible
 
 
 else

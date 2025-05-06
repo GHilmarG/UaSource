@@ -2,6 +2,22 @@
 
 %%
 %
+% *Release Notes* _May 2025_
+%
+% The call to  
+% 
+%   DefineDesiredEleSize.m
+% 
+% now only accepts one combination of the number of input and output variables. 
+% 
+% UaUtilities contains a new function 
+%
+%   ElementErrorEstimator(CtrlVar,MUA,F)
+%
+% which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh
+% refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository. 
+%
+%
 % *Release Notes* _March 2025_
 %
 % The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can
