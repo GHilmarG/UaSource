@@ -15,6 +15,16 @@ function [InfluxNodes,OutfluxNodes,InOutBoundary]=InfluxOutfluxNodes(CtrlVar,MUA
 %   InfluxNodes=MUA.Boundary.Nodes(InOutBoundary);
 %   OutfluxNodes=MUA.Boundary.Nodes(~InOutBoundary);
 %
+% Example: Within DefineBoundaryConditions.m, the following will apply thickness constraints at inflow nodes that are afloat,
+% provided those nodes do not already have boundary conditions applied to them: 
+%
+%   InfluxNodes=InfluxOutfluxNodes(CtrlVar,MUA,F,plot=false,afloat=true) ;            % Find boundary nodes with velocity pointing into the domain that are afloat
+%   InNodes=setdiff(InfluxNodes,[BCs.ubFixedNode;BCs.vbFixedNode;BCs.hFixedNodes]);   % exclude nodes for which vel BCs have been applied to
+%   BCs.hFixedNode=InNodes ; 
+%   BCs.hFixedValue=BCs.hFixedNode*0+CtrlVar.ThickMin ;
+% 
+% 
+%
 %%
 
 arguments
