@@ -12,8 +12,6 @@ theta=0.*pi/180.;
 
 
 
-
-
 alpha=3*pi/180. ; ampl_b=1.0 ; ampl_c=1. ; sigma_bx=10 ; sigma_by=10 ; C=1 ;
 nx=2^10 ; ny=nx ; dx= 400/nx ; dy=dx ;
 

@@ -55,9 +55,12 @@ y=[-dy*ny/2:dy:dy*(ny/2-1)]';  % model domain
 colorbar
 xlabel('x (h)') ; ylabel('y (h)') ; title('GS Surface topography')
 clim([cmin cmax])
+<<<<<<< HEAD
 axis equal tight
 axis([-30 30 -30 30])
 
+=======
+>>>>>>> 28ecfde (WO)
 
 
 figure
