@@ -12,25 +12,25 @@ function varargout=ExplicitEstimation(dt,dtRatio,Itime,varargin)
 % $$\frac{du}{dt}=f(u(t),t)$$
 % 
 %
-% $$ u_{n+1}=u_n + \frac{h_n}{2 h_{n-1}} \left ( ( 2 h_{n-1} + h_n ) f(t_n,u_n) - h_n f(t_{n-1},u_{n-1}) \right ) $$
+% $$ u_{n+1}=u_n + \frac{\Delta t_n}{2 \Delta t_{n-1}} \left ( ( 2 \Delta t_{n-1} + \Delta t_n ) f(t_n,u_n) - \Delta t_n f(t_{n-1},u_{n-1}) \right ) $$
 % 
-% $$h_{n-1} = t_n-t_{n-1} $$
+% $$\Delta t_{n-1} = t_n-t_{n-1} $$
 %
-% $$h_{n} = t_{n+1}-t_{n} $$
+% $$\Delta t_{n} = t_{n+1}-t_{n} $$
 %
 % Can also be written as:
 %
 %
-% $$ u_{n+1}=u_n + h_n \left ( f_n + \frac{1}{2} \frac{h_n}{h_{n-1}} \left ( f_n - f_{n-1} \right ) \right )  $$
+% $$ u_{n+1}=u_n + \Delta t_n \left ( f_n + \frac{1}{2} \frac{\Delta t_n}{\Delta t_{n-1}} \left ( f_n - f_{n-1} \right ) \right )  $$
 % 
 %
 % and as:
 %
-% $$ u_{n+1}=u_n + h_n \left ( (1+ r/2)  f_n - r f_{n-1}/2 \right )   $$
+% $$ u_{n+1}=u_n + \Delta t_n \left ( (1+ r/2)  f_n - r f_{n-1}/2 \right )   $$
 %
 % where
 %
-% $$ r:= h_n/h_{n-1} $$
+% $$ r:= \Delta t_n/\Delta t_{n-1} $$
 %
 % See Eq (17) in :
 %
@@ -38,9 +38,9 @@ function varargout=ExplicitEstimation(dt,dtRatio,Itime,varargin)
 % Andrzej Marciniak1,2 ·Malgorzata A. Jankowska3
 % https://doi.org/10.1007/s11075-019-00774-y
 %
-% the constant time step expression when $h_{n}= h_{n-1}$, is 
+% The constant time step expression when $\Delta t_{n}= \Delta t_{n-1}$, is 
 %
-% $$ u_{n+1}=u_n + h_n \left ( \frac{3}{2}   f(t_n,u_n) - \frac{1}{2} f(t_{n-1},u_{n-1}) \right ) $$
+% $$ u_{n+1}=u_n + \Delta t_n \left ( \frac{3}{2}   f(t_n,u_n) - \frac{1}{2} f(t_{n-1},u_{n-1}) \right ) $$
 %
 %
 % varargin is in triples, where
@@ -48,6 +48,9 @@ function varargout=ExplicitEstimation(dt,dtRatio,Itime,varargin)
 % F0.h,F0.dhdt,Fm1.dhdt
 %
 % [h0, dh0/dt, dhm1/dt]
+%
+%
+% See also: TestExplicitEstimation.m 
 %
 %%
 

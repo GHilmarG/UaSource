@@ -74,6 +74,7 @@ if options.CalcNodalValues
 
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at nodal points ")
         title("magnitude of basal traction at nodal points"+options.FigureTitle)
+        set(gca,'ColorScale','log') 
 
     end
 end
@@ -106,6 +107,7 @@ if options.CalcIntegrationPointValues
         title("Basal tractions at integration points"+options.FigureTitle)
 
         UaPlots(CtrlVar,MUA,F,tb,FigureTitle=" magnitude of basal traction at integration points")
+        set(gca,'ColorScale','log') 
         title("magnitude of basal traction at integration points")
 
         cbar=UaPlots(CtrlVar,MUA,F,log10(eta),FigureTitle=" effective viscosity"+options.FigureName) ;

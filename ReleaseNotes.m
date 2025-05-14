@@ -2,6 +2,20 @@
 
 %%
 %
+% By setting:
+% 
+%   CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
+%                                                        
+% nodes of boundary elements can now be excluded from the active set. By default this is false, which is the previous
+% behavior.
+%
+%  The parameter:
+%
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
+%
+% is no longer used.  Instead the interval is now identical to the general adapt-meshing interval. See further
+% explanation in Ua2D_DefaultParameters.m
+%
 % *Release Notes* _May 2025_
 %
 % The call to  
@@ -28,21 +42,21 @@
 %
 % *Release Notes* _March 2025_
 %
-% The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can
-% lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the
-% flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in
-% the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration
-% points.
+% The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, is more consistent with the uvh
+% assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference
+% is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly.
+% Previously in the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolating the
+% product to the integration points.
 %
 % Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
 % ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
 % user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
-% all parallel options are turned off, and the run proceeds in non-parallel mode.  
+% all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
 % Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
+% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
-% called within the assembly loop and then the mass balance will not lag behind. 
+% called within the assembly loop and then the mass balance will not lag behind.
 %
 % The start and end times can now be specified using (new option):
 %

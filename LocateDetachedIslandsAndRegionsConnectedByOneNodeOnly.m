@@ -44,10 +44,10 @@ function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar
 %
 %  CtrlVar: 
 %
-%   CtrlVar.MinNumberOfNodesPerIslands :    A seperated mesh region (i.e. an island) will only be contained if it contains at least this
-%                                   number of nodes
+%   CtrlVar.MinNumberOfNodesPerIslands :    A separated mesh region (i.e. an island) will only be contained if it contains at least this
+%                                           number of nodes
 % 
-%   CtrlVar.MaxNumberOfIslands          :   A maximum number of seperated mesh regions to be kept in the computational mesh
+%   CtrlVar.MaxNumberOfIslands          :   A maximum number of separated mesh regions to be kept in the computational mesh
 %
 %
 % By default a mesh island must contain at least one node and only one region is kept.
@@ -55,6 +55,18 @@ function [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar
 %
 % The m-file TestLocateEleIslands.m provides an example of the use of this routine.
 %
+%
+%
+% An example of the use of 
+% 
+%  [Islands]=LocateDetachedIslandsAndRegionsConnectedByOneNodeOnly(CtrlVar,MUA)
+%
+% is provided by the figure:
+%
+%
+% openfig("IslandRemovalBefore.fig")
+%
+% openfig("IslandRemovalAfter.fig")
 %
 %%
 

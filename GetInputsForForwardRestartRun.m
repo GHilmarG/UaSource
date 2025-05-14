@@ -236,8 +236,6 @@ fprintf('       through calls to corresponding user-input files: rho, rhow, g, C
 fprintf('       These will overwrite those in restart file.\n')
 
 
-%[UserVar,F]=GetDensities(UserVar,CtrlVar,MUA,F);
-%[F.b,F.s,F.h,GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 [UserVar,F]=GetSlipperyDistribution(UserVar,CtrlVar,MUA,F);
 [UserVar,F]=GetAGlenDistribution(UserVar,CtrlVar,MUA,F);
 [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
@@ -245,11 +243,12 @@ fprintf('       These will overwrite those in restart file.\n')
 BCs=BoundaryConditions;
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F);
 
-if CtrlVar.IncludeMelangeModelPhysics
-    fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')
-    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
-end
-
+% This is now a part of DefineSlipperiness
+% if CtrlVar.IncludeMelangeModelPhysics
+%     fprintf(' Also here defining Melange/Sea-ice model parameters through a call to a user-input file. \n')
+%     [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,F);
+% end
+% 
 
 if CtrlVar.doplots==1 && CtrlVar.PlotBCs==1
     

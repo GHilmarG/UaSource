@@ -1433,6 +1433,10 @@ CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any act
                                                                     % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
                                                                     % been defined as being "a few". 
                                                                  
+CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;              % This implies that the nodes of all boundary elements are not included in the active set.
+                                                                    % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
+                                                                    % thickness is usually prescribed directly.
+
 
 % thickness barrier, option 3
 CtrlVar.ThicknessBarrier=1;                                         % set to 1 for using the barrier method  (Option 3)
@@ -1440,6 +1444,7 @@ CtrlVar.ThicknessBarrier=1;                                         % set to 1 f
                                                                     %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
                                                                     % is added, and applied at integration points where  h<hmin.
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad=-0;          % a1 in the equation for the additional mass balance term (should always be negative)
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
                                                                     % The term is only applied at integration points where h < hmin. Therefore if a1<0 and a3<0, the resulting ab is greater than
                                                                     % zero, and mass is added. This (of course) results in a local violation of mass conservation.
@@ -1612,12 +1617,64 @@ CtrlVar.RefineMeshOnStart=0;
 %
 %
 %
+% There are various re-meshing options and cases to consider:
+%
+% *Element Activation:* Elements can be de-activated, and previously de-activated elements and can be re-activated. Both
+% cases are considered to be a case of _element activation_ .
+% 
+% An example of an element activation is the option of prescribing an automated de-activation of elements where the level-set
+% function is negative when using the level-set method to describe the evolution/position of glacier fronts. This can be
+% activated by setting
+%
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true ;
+%
+% when using the level-set method.  (CtrlVar.LevelSetMethod=true)
+%
+% 
+% Another example of element deactivation is when the user manually deactivates elements. This can be achieved by setting
+%
+%   CtrlVar.ManuallyDeactivateElements=true;
+%
+%
+% and then specifying which elements are to be de-activated, i.e. removed from the mesh, in
+%
+%   DefineElementsToDeactivate.m
+%
+% Note that in this case, element re-activation happens if the user no-longer deletes elements from a region previously
+% deleted.
+%
+% *Mesh Refinement:* An existing mesh can be (locally or globally) refined or coarsened. The type of mesh refinement
+% performed is controlled by: 
+% 
+%   CtrlVar.MeshRefinementMethod
+% 
+% see further description below.
+%
+% The desired mesh sizes can be specified directly by the user in:
+% 
+%   DefineDesiredEleSize.m
 %
 
-CtrlVar.AdaptMesh=0;                       % true if adapt meshing is used, no remeshing is done unless this variable is true
+% 
+
+CtrlVar.AdaptMesh=0;                       % true if mesh adaptation is to be performed, including global mesh refinement, and local mesh refinement and coarsening. 
 
 CtrlVar.ManuallyDeactivateElements=0;      % If true, then the user can directly select elements to be deactivated. This is done in DefineElementsToDeactivate.m
-                                          
+    
+% Currently, adaptive meshing is potentially done provided one or more of:
+%
+%   CtrlVar.AdaptMesh 
+%   CtrlVar.ManuallyDeactivateElements 
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+%
+% are set to true by the user in DefineInitialInputs.m
+%
+% time or interval between mesh adaptation is further controlled by: 
+%
+%   CtrlVar.AdaptMeshRunStepInterval=1 ; % Run-step interval between mesh adaptation (zero value means this condition is always true)
+%   CtrlVar.AdaptMeshTimeInterval=0    ; % Time interval between between mesh adaptation (zero value means this condition is always true)
+%
+% see further description below. 
 
 CtrlVar.MeshRefinementMethod='explicit:global';    % can have any of these values:
                                                    % 'explicit:global' 
@@ -1832,7 +1889,14 @@ CtrlVar.LevelSetDownstream_nGlen=nan;                      % Since the value is 
 % in faster solution. 
 %
 CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=0;                    %
-CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;    % 
+%CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval=10;   % Note this is no longer used!  now this
+                                                                            % interval is controlled by the mesh adapt variables:
+                                                                            %
+                                                                            % CtrlVar.AdaptMeshInitial 
+                                                                            % CtrlVar.AdaptMeshRunStepInterval
+                                                                            % CtrlVar.AdaptMeshTimeInterval
+                                                                            %
+                                                                            % 
 
 CtrlVar.LevelSetMethodSolveOnAStrip=0;
 CtrlVar.LevelSetMethodStripWidth=NaN;   % This value is used to define:

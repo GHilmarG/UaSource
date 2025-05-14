@@ -115,7 +115,7 @@ F=StartVelocity(CtrlVar,MUA,BCs,F);  % initialize
 
 F=StartVelocity(CtrlVar,MUA,BCs,F);  % modify based on BCs
 
-[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F);
+%[UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F); % this is not a part of GetSlipperyDistribution 
 
 l=UaLagrangeVariables; 
 

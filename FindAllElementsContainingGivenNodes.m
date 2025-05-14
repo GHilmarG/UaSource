@@ -1,4 +1,8 @@
 
+
+
+
+
 function E=FindAllElementsContainingGivenNodes(connectivity,NodeList)
 
 
@@ -11,7 +15,9 @@ function E=FindAllElementsContainingGivenNodes(connectivity,NodeList)
 %    returns E{13} listing the elements containing node 13
 %    and E{23} listing elements containing node 23
 %
-%
+% Note: This is an old m-file. Now better to do this using MATLAB graph functions
+
+
 for k=1:numel(NodeList)
     
     [I,~]=find(connectivity==NodeList(k));

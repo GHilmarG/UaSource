@@ -20,6 +20,25 @@ isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
 
 
+%%
+% if any(F1.h<CtrlVar.ThickMin)
+% 
+%     indh0=find(F1.h<CtrlVar.ThickMin);
+%     fprintf('uv: Found too small ice thicknesses in a prognostic forward run.\n')
+%     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F1.h));
+% 
+%     if CtrlVar.ResetThicknessToMinThickness==0
+%         CtrlVar.ResetThicknessToMinThickness=1;
+%     end
+% 
+%     fprintf('For the purpose of the uvh solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
+%     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
+% 
+% end
+%%
+
+
+
 if CtrlVar.LevelSetMethod &&  ~isnan(CtrlVar.LevelSetDownstreamAGlen) &&  ~isnan(CtrlVar.LevelSetDownstream_nGlen)
 
     if isempty(F0.LSFMask)  % If I have already solved the LSF equation, this will not be empty and does not need to be recalculated (ToDo)
@@ -83,6 +102,13 @@ else   %  Thickness constraints used
             end
         end
 
+        % After some thought decided not to make iterate feasible, as the BCs should take care of this.
+        % The issue is that by modifying h,ub,vb,  a repeat of a fully converged uvh solve does not start at
+        % previous converged solution. Furthermore, with respect to the h thickness, the initial active set will not include those
+        % nodes where the h has been modified, prior to solve, in this way. Most likely h will then again become negative at those
+        % nodes and this will then likely result in an additional active set update.
+        %
+        %
         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % Make sure iterate is feasible, but this should be dealt with by the BCs anyhow
         F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
         F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
@@ -170,17 +196,22 @@ else   %  Thickness constraints used
     ToBeActivated=setdiff(find(F1.h < CtrlVar.ThickMin),BCs1.hFixedNode) ;  % This should not really be needed as this must be equal to the "Activated" set, except that Active set is not updated if
     % number of to-be-activated nodes less than CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints
 
+
     if numel(ToBeActivated)>0
 
         warning('some h1 <ThickMin on return from active-set loop. min(h1)=%-g',min(F1.h)) ;
 
-        fprintf('\tNodes with thickness<ThickMin: ') ; fprintf('\t %10i \t %10i \t %10i \t %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \n  ',ToBeActivated)  ; fprintf('\n')
-        fprintf('\t                    thickness: ') ; fprintf('\t %10g \t %10g \t %10g \t %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \n  ',F1.h(ToBeActivated))  ;  fprintf('\n')
+        if CtrlVar.ThicknessConstraintsInfoLevel >= 10
+            fprintf('\tNodes with thickness<ThickMin: ') ; fprintf('\t %10i \t %10i \t %10i \t %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \t  %10i \n  ',ToBeActivated)  ; fprintf('\n')
+            fprintf('\t                    thickness: ') ; fprintf('\t %10g \t %10g \t %10g \t %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \t  %10g \n  ',F1.h(ToBeActivated))  ;  fprintf('\n')
+        end
+
         if CtrlVar.ResetThicknessToMinThickness
             F1.h(F1.h<CtrlVar.ThickMin)=CtrlVar.ThickMin;
             %fprintf(CtrlVar.fidlog,' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(indh0),CtrlVar.ThickMin,min(h));
             fprintf(CtrlVar.fidlog,' Setting h1(h1<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
         end
+
     end
 
 

@@ -166,10 +166,17 @@ NodesDeactivated=LastActiveSet(NewInActiveConstraints);
 I=F1.h<CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
 NewActive=find(I);
-NewActive=setdiff(NewActive,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions,
-% even if this means that thicknesses at those nodes are less then MinThick
-NewActive=setdiff(NewActive,BCs1.hPosNode);    % exclude those already in the active set
-NewActive=setdiff(NewActive,NodesDeactivated);    % do not include those nodes at min thick that I now must release
+NewActive=setdiff(NewActive,BCs1.hFixedNode) ;  % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions,
+                                                % even if this means that thicknesses at those nodes are less then MinThick
+NewActive=setdiff(NewActive,BCs1.hPosNode);     % exclude those already in the active set
+NewActive=setdiff(NewActive,NodesDeactivated);  % do not include those nodes at min thick that I now must release
+
+if isfield(CtrlVar,"ActiveSet")
+    if CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+        BoundaryElementNodes=unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:));
+        NewActive=setdiff(NewActive,BoundaryElementNodes) ;
+    end
+end
 
 
 iNewActiveConstraints=numel(NewActive);
@@ -215,6 +222,16 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
 
 
 end
+
+if isfield(CtrlVar,"ActiveSet")
+    if CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+        BoundaryElementNodes=unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:));
+        BCs1.hPosNode=setdiff(BCs1.hPosNode,BoundaryElementNodes) ;
+    end
+end
+
+
+
 
 % LastActiveSet is simply a copy of hPosNode at the beginning of the call
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one

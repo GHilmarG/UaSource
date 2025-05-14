@@ -149,34 +149,16 @@ end
 
 h1barr=0 ; h0barr=0; lambda_h=1;
 
-if CtrlVar.ThicknessBarrier
-
-    % using ThicknessBarrier I add fictitious accumulation term:
-    %
-    % gamma exp(-(h-h0)/l)
-    % where:
-    %       gamma=CtrlVar.ThicknessBarrierAccumulation
-    %       l=CtrlVar.ThicknessBarrierThicknessScale
-    %       h0=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier
-    %
-    %     lambda_h=CtrlVar.ThicknessBarrierThicknessScale;
-    %     gamma_h=CtrlVar.ThicknessBarrierAccumulation;
-    %
-    %     ThickBarrierMin=CtrlVar.ThickMin*CtrlVar.ThicknessBarrierMinThickMultiplier;
-    %
-    %     argmax=log(realmax)/2;
-    %     h0barr=0;
-    %
-    %
-    %     arg1=-(hint-ThickBarrierMin)/lambda_h;
-    %     arg1(arg1>argmax)=argmax;
-    %     h1barr=gamma_h*exp(arg1)/lambda_h;
-
-
+ 
+if CtrlVar.ThicknessPenalty
+ 
     %%  New simpler implementation of a thickness barrier.
-    % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-    % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass
-    % balance equation
+    % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
+    % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
+    %
+    % The barrier term is only applied where thickness is already too small. For this reason, this term should really be call a
+    % penalty term, as this is only used to deal with constraint violations.
+    % 
 
     hmin=CtrlVar.ThickMin ;
 
@@ -185,21 +167,43 @@ if CtrlVar.ThicknessBarrier
     % don't apply if already applied as a part of the level-set method
     isThickTooSmall=isThickTooSmall & ~LM ;
     a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+    a2= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad;
     a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
-
-
-    abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
-
-    dadhThickMin=isThickTooSmall.*(a1+3*a3*(hint-hmin).^2) ;
-
-    a1int=a1int+abThickMin; dadhint=dadhint+dadhThickMin ;
-
-    %     nh=numel(find(isThickTooSmall)) ;
-    %     if nh> 0
-    %        fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(hint(isThickTooSmall)),max(abThickMin))
-    %     end
-    %
+    abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
+    dadhThickMin=isThickTooSmall.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
+    
+    a1int=a1int+abThickMin; 
+    dadhint=dadhint+dadhThickMin ;
+    
 end
+
+
+if CtrlVar.ThicknessBarrier
+
+    hmin=CtrlVar.ThickMin ;
+    isBarrier=hint>(hmin+eps(hmin));
+
+    p=CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog;
+
+    if p < 0
+        fprintf(" CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog must be positive. \n ")
+        fprintf(" The sign of CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog is changed. \n ")
+        p=-p;
+    end
+
+    aBarrier=zeros(MUA.Nele,1) ;
+    daBarrierdh=zeros(MUA.Nele,1) ;
+    aBarrier(isBarrier)=-p*log(hint(isBarrier)-hmin) ;
+    daBarrierdh(isBarrier)=-p./(hint(isBarrier)-hmin);
+
+    %any(isnan(aBarrier))
+
+    a1int=a1int+aBarrier; 
+    dadhint=dadhint+daBarrierdh;
+    
+end
+
+
 
 Bint=Bnod*fun;
 Sint=Snod*fun;

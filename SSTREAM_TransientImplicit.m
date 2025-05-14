@@ -250,9 +250,9 @@ while true
         break
     end
 
-    rRatioMin=0.99 ;
+    rRatioMin=0.98 ;
     rRatio=r/r0;
-    rRatioVector(mod(iteration,3)+1)=rRatio; 
+    rRatioVector(mod(iteration,3)+1)=rRatio;
 
     if all(rRatioVector>rRatioMin)
 
@@ -261,9 +261,17 @@ while true
                 CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
         end
 
+        if rWork < 1e-14
+            % OK, Im hard-wiring this condition here. The argument is that if the residual is below 1e-14 and the solver repeatedly
+            % returns very short steps, minimum has effectivly been found.
+            
+            RunInfo.Forward.uvhConverged=true;
+        else
+            RunInfo.Forward.uvhConverged=false;
+        end
 
-        RunInfo.Forward.uvhConverged=0;
         break
+
     end
 
 

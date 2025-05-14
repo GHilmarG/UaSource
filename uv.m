@@ -72,10 +72,10 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
-hTiny=1e-10;
-if any(F.h<hTiny)
+%hTiny=1e-10;
+if any(F.h<CtrlVar.ThickMin)
 
-    indh0=find(F.h<hTiny);
+    indh0=find(F.h<CtrlVar.ThickMin);
     fprintf('uv: Found negative ice thicknesses in a diagnostic forward run.\n')
     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F.h));
 
@@ -84,7 +84,7 @@ if any(F.h<hTiny)
     end
 
 
-    CtrlVar.ThickMin=hTiny;
+  %  CtrlVar.ThickMin=hTiny;
 
 
     fprintf('For the purpose of the uv solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
@@ -154,7 +154,7 @@ switch lower(CtrlVar.FlowApproximation)
 end
 
 
-F.h=hOnInput; 
+% F.h=hOnInput; % this is questionable because then the solve will be for a different h thick
 
 if CtrlVar.InfoLevelCPU> 10
     tdiagnostic=toc(tdiagnostic);

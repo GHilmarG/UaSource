@@ -46,7 +46,16 @@ if isempty(BCs1.hPosNode)
                                              % want the initial active sets to be similar to previous active set. 
                                              %
     Active=setdiff(Active,BCs1.hFixedNode) ; % do not add active thickness constraints for nodes that already are included in the user-defined thickness boundary conditions, 
-                                             % even if this means that thicknesses at those nodes are less then MinThick
+    % even if this means that thicknesses at those nodes are less then MinThick
+
+    if isfield(CtrlVar,"ActiveSet")
+        if CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+            BoundaryElementNodes=unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:));
+            Active=setdiff(Active,BoundaryElementNodes) ;
+        end
+    end
+
+
     BCs1.hPosNode=Active ;
     
     if numel(BCs1.hPosNode)>0
@@ -87,12 +96,19 @@ if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodThicknessConstraints
     end
 
     BCs1.hPosNode=union(BCs1.hPosNode,LSFhPosNode); 
-    
-    
+
+
 end
 
 
-% I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction 
+if isfield(CtrlVar,"ActiveSet")
+    if CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements
+        BoundaryElementNodes=unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:));
+        BCs1.hPosNode=setdiff(BCs1.hPosNode,BoundaryElementNodes) ;
+    end
+end
+
+% I think the way LastActiveSet is initialized, both Deactivated  will always be empty by construction
 DeActivated=setdiff(LastActiveSet,BCs1.hPosNode)   ; % nodes in last active set that are no longer in the new one
 Activated=setdiff(BCs1.hPosNode,LastActiveSet)  ; % nodes in new active set that were not in the previous one
 

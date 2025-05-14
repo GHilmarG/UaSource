@@ -47,19 +47,29 @@ end
 
 if ZeroFields
     
-    % I'm using this to come up with a reasonable normalizing factor to the
-    % residuals.  The uv side of things is clear and there I set u=v=0 and this
-    % ensures that all 'internal' nodal forces are zero. The h side is less clear.
-    % and I've struggled with finding a sensible normalizing factor for this term.
-    % If I set u=v=0 to get the sensible uv normalization, then dqdx=0. I can have a
-    % situation where a=0 and if h1=h0 then the initial estimate for dh/dt=0. So all
-    % terms are then zero. 
+    % I'm using this to come up with a reasonable normalizing factor to the residuals.  The uv side of things is clear and there
+    % I set u=v=0 and this ensures that all 'internal' nodal forces are zero. The h side is less clear. and I've struggled with
+    % finding a sensible normalizing factor for this term. If I set u=v=0 to get the sensible uv normalization, then dqdx=0. I
+    % can have a situation where a=0 and if h1=h0 then the initial estimate for dh/dt=0. So all terms are then zero.
     %
-    % One approach is to create a scale for dh/dt by using ThickMin/dt , or
-    % alternatively just make this term numerically equal to 1, i.e. no
-    % normalization apart in the norm. This can be achieved by setting the surface
-    % mass balance to 1.
-    
+    % One approach is to create a scale for dh/dt by using ThickMin/dt , or alternatively just make this term numerically equal
+    % to 1, i.e. no normalization apart in the norm. This can be achieved by setting the surface mass balance to 1.
+    %
+    % Possibly best to normalize with the prescribed mass balance. The justification for doing that would be that the mass
+    % balance is externally prescribed to the mass conservation equation, similar to how the body force is external load in the
+    % momentum equation. The h-equation is then sufficiently accurately solved once the ratio: 
+    % 
+    %    (dh/dt-dq/dx-a)/a 
+    % 
+    % is small. However the issue is that this will not work if a=0 everywhere. 
+    %
+    % I therefore somewhat arbitrarily add 1 to this
+    %
+    %     (dh/dt-dq/dx-a)/(abs(a)+1) 
+    %
+    % Note that I can use the abs here because this is only used for the normalization factor, which is later squired. 
+    %
+
     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
     F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
     
@@ -71,18 +81,16 @@ if ZeroFields
     % accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
     % so the normalisation factor goes to zero with dt
     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
-    F1.as=F1.ab*0+1;  F1.ab=F1.ab*0;  
-    F0.as=F0.ab*0+1;  F0.ab=F0.ab*0;
+    F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squired.
+    F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
     
-    % I can solve this by dividing with dt again as I calculate the normalisation factor in the const
-    % function. This means that the normalisation is independent of dt
+    % I can solve this by dividing with dt again as I calculate the normalization factor in the const function. This means that
+    % the normalization is independent of dt
     % 
-    % Possibly it would be better to solve directly for dh/dt, then at
-    % least the units of the rhs are identical for all unknowns
+    % Possibly it would be better to solve directly for dh/dt, then at least the units of the rhs are identical for all unknowns
     %
-    % On the other hand this can hardly be too much of an issue as the
-    % dh/dt equation is linear in h and all the residuals will be caused by
-    % the u v residuals.
+    % On the other hand this can hardly be too much of an issue as the dh/dt equation is linear in h and all the residuals will
+    % be caused by the u v residuals.
     %
     
     

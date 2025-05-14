@@ -64,6 +64,10 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %   CtrlVar.QuiverColorSpeedLimits=[0 2000];
 %   UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle="velocities")
 %
+% Plot locations of min ice thickness:
+%
+%   UaPlots(CtrlVar,MUA,F,F.h,GetRidOfValuesDownStreamOfCalvingFronts=false,logColorbar=true,ShowMinIcethicknessLocations=true)
+%
 %%
 
 arguments
@@ -80,10 +84,12 @@ arguments
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
+    options.ShowMinIcethicknessLocations=false;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
     options.MeshColor char="k"
-
+    options.logColorbar=false;
+    options.Plot string = ""
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
     % options.ColorMap double=othercolor("Mlightterrain",1028)
@@ -117,7 +123,9 @@ if ~isa(F,"UaFields")
         F.dt=[];
     end
 
-    if ~(isfield(F,"GF") || isfield(F.GF,"node"))
+    if ~isfield(F,"GF")
+        F.GF=[];
+    elseif ~isfield(F.GF,"node")
         F.GF=[];
     end
 else
@@ -148,6 +156,11 @@ if options.CreateNewFigure
     clf(fFig)  ;
 end
 
+if isstring(Variable)
+
+        options.Plot=Variable;
+
+end
 
 if islogical(Variable)
     Variable=double(Variable) ;
@@ -155,11 +168,16 @@ end
 
 if isnumeric(Variable)
 
+    % If the Variable is entered as a Nnodes x 2 array, then assume this is a velocity field and replace the (ub,vb) velocity in
+    % F with this variable. This is an easy option to plot any velocity field over the mesh.
     [nV,mV]=size(Variable);
     if nV==MUA.Nnodes && mV==2
         F.ub=full(Variable(:,1));
         F.vb=full(Variable(:,2));
-        Variable="-uv-";
+        if options.Plot==""
+            options.Plot="-uv-" ;
+        end
+
     else
         Variable=full(Variable);
     end
@@ -169,10 +187,10 @@ if isempty(F)
     F=UaFields;
 end
 
-if isstring(Variable)
+if isstring(options.Plot)
 % {"-eta-","eta int","etaint","-eta int-"}
-    if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
-            || contains(Variable,"tau")  || contains(Variable,"basal drag") 
+    if contains(options.Plot,"int") || contains(options.Plot,"eta") || contains(options.Plot,"-e-") ...
+            || contains(options.Plot,"tau")  || contains(options.Plot,"basal drag") 
         options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     end
 
@@ -198,7 +216,7 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
 end
 
-if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && Variable~="-strain rates-"
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && options.Plot~="-strain rates-"
 
  
 
@@ -231,7 +249,7 @@ if options.PlotOverMesh
 end
 
 
-if isnumeric(Variable)
+if isnumeric(Variable) && options.Plot ==""
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
     title(cbar,inputname(4)) ;
@@ -240,7 +258,7 @@ if isnumeric(Variable)
 else
 
 
-    switch lower(Variable)
+    switch lower(options.Plot)
 
         case {"speed","-speed-"}
 
@@ -255,7 +273,8 @@ else
             speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
-            title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
+            title(cbar,["$\log_{10}(\| \mathbf{v} \|)$","(m/yr)"],Interpreter="latex")
+            
             set(gca,'ColorScale','log')
             CM=cmocean('-ice',15) ; colormap(CM);
 
@@ -395,6 +414,10 @@ else
     end
 end
 
+if options.logColorbar
+    set(gca,'ColorScale','log')
+end
+
 hold on ;
 
 if options.PlotUnderMesh
@@ -429,6 +452,16 @@ if isfield(CtrlVar,"PlotsXaxisLabel")
     ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
 end
 
+if options.logColorbar
+    set(gca,'ColorScale','log')
+end
+
+if options.ShowMinIcethicknessLocations
+
+    iloc=F.h<CtrlVar.ThickMin ;
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=6)
+
+end
 
 
 axis tight

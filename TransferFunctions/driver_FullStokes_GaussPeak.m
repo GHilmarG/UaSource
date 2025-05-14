@@ -50,11 +50,14 @@ y=[-dy*ny/2:dy:dy*(ny/2-1)]';  % model domain
 
 
 
-axis equal ; axis tight
+
 [C1,h1]=contourf(x,y,s',levels);
 colorbar
 xlabel('x (h)') ; ylabel('y (h)') ; title('GS Surface topography')
-caxis([cmin cmax])
+clim([cmin cmax])
+axis equal tight
+axis([-30 30 -30 30])
+
 
 
 figure
@@ -62,15 +65,16 @@ figure
 speed=sqrt(u.*u+v.*v);
 levels2=[0:0.01:0.1];
 [C4,h4]=contour(x,y,speed',levels2);
-caxis([0 0.1])
+clim([0 0.1])
 set(h4,'ShowText','on','TextStep',0.0)
 hold on
 istep=8;
 h5=quiver(x(1:istep:end),y(1:istep:end),u(1:istep:end,1:istep:end)',v(1:istep:end,1:istep:end)');
-axis equal tight
-axis([-30 30 -30 30])
 set(h5,'Color','k')
 xlabel('x (h)') ; ylabel('y (h)') ; title('Flow over a Gaussian peak');
+axis equal tight
+axis([-30 30 -30 30])
+
 %colorbar
 %axis equal
 
