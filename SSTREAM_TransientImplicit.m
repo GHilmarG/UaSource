@@ -18,9 +18,6 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 
 
 %%
-
-
-
 % I need to solve
 %
 % [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' luv
@@ -49,6 +46,21 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
 % where L [u;v;h]=cuvh
 %
+%
+
+%%
+%  Newton system:
+%
+% $$ K \Delta x = -g $$
+%
+% $$ g= \nabla f  $$
+%
+% This is equivalent to a minimization of the (unconstrained) local quadratic problem:
+%
+% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
+%
+%
+%%
 
 if nargin < 9 || isempty(FigNames)
     FigNames="";
@@ -263,7 +275,7 @@ while true
 
         if rWork < 1e-14
             % OK, Im hard-wiring this condition here. The argument is that if the residual is below 1e-14 and the solver repeatedly
-            % returns very short steps, minimum has effectivly been found.
+            % returns very short steps, minimum has effectively been found.
             
             RunInfo.Forward.uvhConverged=true;
         else
@@ -288,7 +300,7 @@ while true
     [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
 
     if ~isempty(L)
-        frhs=-Ruvh-L'*luvh;
+        frhs=-Ruvh-L'*luvh;                    % Lagrangian of the total augmented cost function 
         grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
     else
         frhs=-Ruvh;
