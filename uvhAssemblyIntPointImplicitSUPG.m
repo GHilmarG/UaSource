@@ -150,7 +150,7 @@ end
 h1barr=0 ; h0barr=0; lambda_h=1;
 
  
-if CtrlVar.ThicknessPenalty
+if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
  
     %%  New simpler implementation of a thickness barrier.
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
@@ -178,7 +178,7 @@ if CtrlVar.ThicknessPenalty
 end
 
 
-if CtrlVar.ThicknessBarrier
+if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLog") && CtrlVar.ThicknessBarrier 
 
     hmin=CtrlVar.ThickMin ;
     isBarrier=hint>(hmin+eps(hmin));

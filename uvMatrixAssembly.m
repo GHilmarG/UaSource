@@ -30,8 +30,8 @@ if isempty(poolobj)
     if CtrlVar.Parallel.uvAssembly.spmd.isOn
 
         
-        fprintf("\n ======= No parallel pool is open. To run %ca using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218,218)
-        fprintf(" ======= Parallel options are turned off.\n")
+       % fprintf("\n ======= No parallel pool is open. To run %ca using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218,218)
+       % fprintf(" ======= Parallel options are turned off.\n")
 
         CtrlVar.Parallel.uvhAssembly.parfor.isOn=false;
         CtrlVar.Parallel.uvhAssembly.spmd.isOn=false;
