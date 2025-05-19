@@ -160,7 +160,8 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     % penalty term, as this is only used to deal with constraint violations.
     % 
 
-    hmin=CtrlVar.ThickMin ;
+    hmin=2*CtrlVar.ThickMin ;
+    
 
     isThickTooSmall=hint<hmin ;
 
