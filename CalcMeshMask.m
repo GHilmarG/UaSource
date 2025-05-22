@@ -8,7 +8,7 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % if a the value of the NodalField at a given node is lower or higher than
 % the specified Threshold.
 % 
-% Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.
+% Here both an element and a nodal mask is calculated for the NodalField based on the value of Threshold.
 %
 % Mask is returned as a logical array where:
 % 
@@ -21,9 +21,9 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % A corresponding element mask is also returned. 
 % 
 % This definition of In/Out is sometimes also referred to as being 'strictly' above or
-% 'strickly' below a given threshold value. 
+% 'strictly' below a given threshold value. 
 %
-% Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
+% Typical uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
 %
 %   Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0.5) ;
 %

@@ -1,8 +1,8 @@
 
 
-function [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssemblySSTREAM_SPMD(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
-narginchk(6,6)
+narginchk(8,8)
 
 
 ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if it does not exist already
@@ -10,9 +10,9 @@ ParPool = gcp('nocreate');  % check if parpool exists, but do not create one if 
 
 if isempty(ParPool)
    
-    fprintf("uvhMatrixAssemblySSTREAM_SPMD: No parpool is open! \n")
+    %fprintf("uvhMatrixAssemblySSTREAM_SPMD: No parpool is open! \n")
 
-        [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+        [UserVar,RunInfo,Ruvh,Kuvh]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
 
 else
 
@@ -30,7 +30,7 @@ else
 
     spmd (nW)
 
-        [~,~,rr,kk]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUAworkers,F0,F1);
+        [~,~,rr,kk]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUAworkers,F0,F1,l1,BCs1);
 
     end
 

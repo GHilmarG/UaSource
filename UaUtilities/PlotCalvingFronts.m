@@ -112,6 +112,7 @@ CtrlVar.LineUpGLs=true ;
 GF.node=LSF ;
 
 CtrlVar.GLthreshold=0;
+n=numel(varargin); varargin{n+1}="DisplayName" ; varargin{n+2}="Calving fronts" ;
 [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
 
 

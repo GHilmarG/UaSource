@@ -9,10 +9,10 @@
 
 
 
-function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
+function [r,UserVar,RunInfo,rForce,rWork,D2]=CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,fext0)
 
 
-narginchk(15,15)
+narginchk(17,17)
 nargoutchk(1,6)
 
 if isnan(gamma)
@@ -29,7 +29,7 @@ CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=true;
 
 
-[UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+[UserVar,RunInfo,R,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
 % R=Tint-Fext;
 % Tint=[Tx ; Ty ; Th] ;

@@ -1,3 +1,8 @@
+
+
+
+
+
 function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1,FigNames)
 
 narginchk(8,9)
@@ -167,7 +172,7 @@ end
 
 CtrlVar.uvhMatrixAssembly.ZeroFields=true;
 CtrlVar.uvhMatrixAssembly.Ronly=true;
-[UserVar,RunInfo,R0,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+[UserVar,RunInfo,R0,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 Fext0=R0;
 
 
@@ -297,7 +302,7 @@ while true
 
 
     CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
-    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
     if ~isempty(L)
         frhs=-Ruvh-L'*luvh;                    % Lagrangian of the total augmented cost function 
@@ -316,7 +321,7 @@ while true
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
-    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
     gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
 
     if iteration==1  % save the first r value for plotting, etc
@@ -338,7 +343,7 @@ while true
 
     Normalisation=Fext0'*Fext0+1000*eps;
 
-    func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
+    func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
 
 
     r0=func(0,dub,dvb,dh,dl) ;

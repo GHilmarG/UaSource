@@ -5,7 +5,7 @@
 
 
 
-function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
+function [cbar,xGL,yGL,xCF,yCF,CtrlVar,lg]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
 %
@@ -138,6 +138,8 @@ else
 end
 %%
 
+lg=[]; % this will be a handle to the legend (if created). 
+%%
 
 % if fig title has not been set, use by default the variable name
 if options.FigureTitle=="UaPlots"
@@ -430,9 +432,9 @@ end
 
 if options.PlotGroundingLines
     if isfield(F,"GF")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
     elseif isfield(F.GF,"node")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
     end
 end
 
@@ -442,7 +444,7 @@ end
 
 
 if options.PlotMuaBoundary
-    PlotMuaBoundary(CtrlVar,MUA,"b--");
+    PlotMuaBoundary(CtrlVar,MUA,"b--",DisplayName="Mesh Boundary");
 end
 
 
@@ -458,8 +460,22 @@ end
 
 if options.ShowMinIcethicknessLocations
 
+    iloc=F.h==CtrlVar.ThickMin ;
+    nAtMinThick=numel(find(iloc));
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=3,DisplayName="at min thick")
+
     iloc=F.h<CtrlVar.ThickMin ;
-    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=6)
+    nLessThanMinThick=numel(find(iloc));
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="r",MarkerEdgeColor="c",MarkerSize=6,DisplayName="below min thick")
+
+    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.ThickMin+eps(CtrlVar.ThickMin));
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=2,DisplayName="Min thick")
+     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,2*CtrlVar.ThickMin);
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=1,DisplayName="Twice min thick")
+   
+    
+    title(sprintf("Nodes at/less than min thick (%i/%i)",nAtMinThick,nLessThanMinThick))
+    lg=legend();
 
 end
 

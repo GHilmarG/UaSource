@@ -11,12 +11,12 @@ function   [Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh,taux,tauy,etai
     uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
     bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
     Henod,deltanod,Hposnod,dnod,Dddhnod,...
-    LSFMasknod,...
+    LSFMasknod,hBCsMasknod,...
     uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
     CtrlVar,rhow,g,Ronly,ca,sa,dt,...
     Tx,Fx,Ty,Fy,Th,Fh,Kxu,Kxv,Kyu,Kyv,Kxh,Kyh,Khu,Khv,Khh)
 
-narginchk(61,61)
+narginchk(62,62)
 nargoutchk(15,19)
 
 % I've added here the rho terms in the mass-conservation equation
@@ -144,15 +144,15 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
     a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
 
 else
-    LM=false; % Level set mask for melt not applied
+    LM=0; % Level set mask for melt not applied
 end
 
 h1barr=0 ; h0barr=0; lambda_h=1;
 
- 
+hBC=[];
 if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
  
-    %%  New simpler implementation of a thickness barrier.
+    %%  New simpler implementation of a thickness penalty term.
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
     % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
     %
@@ -160,6 +160,7 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     % penalty term, as this is only used to deal with constraint violations.
     % 
 
+    hBC=hBCsMasknod*fun; % hBC is zero where there are not thickness constraints applied
     hmin=2*CtrlVar.ThickMin ;
     
 
@@ -167,41 +168,54 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
 
     % don't apply if already applied as a part of the level-set method
     isThickTooSmall=isThickTooSmall & ~LM ;
+    PenaltyMask=(1-hBC).*(1-LM).*isThickTooSmall; 
+    PenaltyMask=PenaltyMask>0.5;
     a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
     a2= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad;
     a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
-    abThickMin =isThickTooSmall.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
-    dadhThickMin=isThickTooSmall.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
+    aPenalty =PenaltyMask.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
+    daPenaltydh=PenaltyMask.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
     
-    a1int=a1int+abThickMin; 
-    dadhint=dadhint+dadhThickMin ;
+    a1int=a1int+aPenalty; 
+    dadhint=dadhint+daPenaltydh ;
     
+% Hm, do I not need to add the same barrier term to h0 as the one I used in last solve?
+% UaPlots(CtrlVar,MUA,[],aPenalty,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a penalty")
+% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin)
 end
 
 
-if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLog") && CtrlVar.ThicknessBarrier 
+if isfield(CtrlVar,"ThicknessBarrier")  &&  isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLog") && CtrlVar.ThicknessBarrier
+   
+    if isempty(hBC)
+        hBC=hBCsMasknod*fun;  % about 1 if h BC applied
+    end
+    hBarrier=CtrlVar.ThickMin+eps(CtrlVar.ThickMin) ;  % Barrier is applied above this thickness. I need to make it a bit bigger because otherwise I'll run the risk of log(0)
 
-    hmin=CtrlVar.ThickMin ;
-    isBarrier=hint>(hmin+eps(hmin));
-
-    p=CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog;
+    % Barrier is only applied where thickness is above the thickness barrier (hBarrier)
+    % and where no thickness boundary conditions are applied (hBC \approx 0) and where the level-set mass-balance feedback is not
+    % applied.
+    BarrierMask= hint > hBarrier & hBC < 0.1 & LM <0.1 ;
+    p=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog;
+      
 
     if p < 0
-        fprintf(" CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog must be positive. \n ")
-        fprintf(" The sign of CtrlVar.CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog is changed. \n ")
+        fprintf(" CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog must be positive. \n ")
+        fprintf(" The sign of CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLog is changed. \n ")
         p=-p;
     end
 
     aBarrier=zeros(MUA.Nele,1) ;
     daBarrierdh=zeros(MUA.Nele,1) ;
-    aBarrier(isBarrier)=-p*log(hint(isBarrier)-hmin) ;
-    daBarrierdh(isBarrier)=-p./(hint(isBarrier)-hmin);
+    aBarrier(BarrierMask)=-p*log(hint(BarrierMask)-hBarrier) ;
+    daBarrierdh(BarrierMask)=-p./(hint(BarrierMask)-hBarrier);
 
     %any(isnan(aBarrier))
 
-    a1int=a1int+aBarrier; 
+    a1int=a1int+aBarrier;
     dadhint=dadhint+daBarrierdh;
-    
+% UaPlots(CtrlVar,MUA,[],aBarrier,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a barrier")
+
 end
 
 

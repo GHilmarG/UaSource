@@ -3,7 +3,7 @@
 
 
 
-function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
+function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
 %
@@ -16,7 +16,7 @@ function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(Us
 % Fext   : vector of external nodal forces
 
 
-narginchk(6,6)
+narginchk(8,8)
 nargoutchk(4,8)
 
 
@@ -186,7 +186,12 @@ vnod=reshape(F1.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+hBCsMasknod=zeros(MUA.Nnodes,1) ; 
+hBCsMasknod(BCs1.hFixedNode)=1; 
+hBCsMasknod(BCs1.hPosNode)=1; 
+hBCsMasknod=reshape(hBCsMasknod(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+% hBCs=BCs.hFixedNode;BCs.hPosNode]
 
 if CtrlVar.IncludeMelangeModelPhysics
     
@@ -323,7 +328,7 @@ if CtrlVar.Parallel.uvhAssembly.parfor.isOn
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             Henod,deltanod,Hposnod,dnod,Dddhnod,...
-            LSFMasknod,...
+            LSFMasknod,hBCsMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
@@ -349,7 +354,7 @@ else
             uvhAssemblyIntPointImplicitSUPG(Iint,ndim,MUA,...
             bnod,hnod,unod,vnod,AGlennod,nnod,Cnod,mnod,qnod,muknod,V0nod,h0nod,u0nod,v0nod,as0nod,ab0nod,as1nod,ab1nod,dadhnod,Bnod,Snod,rhonod,...
             Henod,deltanod,Hposnod,dnod,Dddhnod,...
-            LSFMasknod,...
+            LSFMasknod,hBCsMasknod,...
             uonod,vonod,Conod,monod,uanod,vanod,Canod,manod,...
             CtrlVar,rhow,g,Ronly,ca,sa,dt,...
             Tx0,Fx0,Ty0,Fy0,Th0,Fh0,Kxu0,Kxv0,Kyu0,Kyv0,Kxh0,Kyh0,Khu0,Khv0,Khh0);
