@@ -176,14 +176,32 @@ CtrlVar.uvhMatrixAssembly.Ronly=true;
 Fext0=R0;
 
 
+if CtrlVar.NRitmin==0
+
+    %% Check if this is already within tolerance
+
+    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+    gamma=0 ; [r,UserVar,RunInfo,rForce,rWork]=Func(gamma);
+    r0=r; 
 
 
+    if ~isempty(L)
+        BCsError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
+    else
+        BCsError=0;
+    end
+else
+    rWork=nan;
+    rForce=inf; 
+    r=inf;
+    r0=inf;
+end
 
 iteration=0 ;
 
 RunInfo.Forward.uvhConverged=0;
 RunInfo.BackTrack.Converged=1 ;
-r=inf;  rWork=inf ; rForce=inf; r0=inf;
+%r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
 
 rRatioVector=zeros(3,1);

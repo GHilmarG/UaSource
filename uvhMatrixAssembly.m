@@ -70,9 +70,9 @@ if ZeroFields
     % Note that I can use the abs here because this is only used for the normalization factor, which is later squired. 
     %
 
-    F1.ub=F1.ub*0; F1.vb=F1.vb*0;
-    F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
-    
+     F1.ub=F1.ub*0; F1.vb=F1.vb*0;
+     F0.ub=F0.ub*0; F0.vb=F0.vb*0;  
+    % 
     % How to normalize the mass conservation term?
     %
     % Idea1) set a=1 as a normalizing factor
@@ -80,10 +80,14 @@ if ZeroFields
     % because
     % accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
     % so the normalisation factor goes to zero with dt
-    F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
-    F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squired.
-    F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
-    
+
+   
+     F1.h=F0.h;  % this leads to a dh/dt=0 at the beginning
+     F1.as=abs(F1.ab)+1;  F1.ab=abs(F1.ab);  % I can use abs here because this is just for the normalization factor which is squared.
+     F0.as=abs(F0.ab)+1;  F0.ab=abs(F0.ab);
+   
+
+
     % I can solve this by dividing with dt again as I calculate the normalization factor in the const function. This means that
     % the normalization is independent of dt
     % 

@@ -80,9 +80,9 @@ if ~CtrlVar.LinFEbasis
 
         Reactions=CalculateReactions(CtrlVar,MUA,BCs1,l1);
       
-        ah=-Reactions.h./(F1.rho.*F1.dt) ;
-        ah=ah(BCs1.hPosNode);
-        lambdahpos=Reactions.h(BCs1.hPosNode);
+        ah=-Reactions.h./(F1.rho.*F1.dt) ; % nodal array
+        ah=ah(BCs1.hPosNode)             ; % array equal in size to number of hPos constraints
+        lambdahpos=Reactions.h(BCs1.hPosNode);  % 
 
     else
         lambdahpos=[];
@@ -127,7 +127,7 @@ end
 % The active set is created/modified and the problem solved again if the active set has changed
 
 
-% Do I need to deactivate some thickness constraints?
+%%  Do I need to DEACTIVATE some thickness constraints?
 % if any of the lambdahpos are positive, then these constraints must be deactivated
 
 if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see if some should be deactivated
@@ -139,18 +139,41 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
 
     % Clearly only inactivate nodes if the mass flux needed to keep them active (ah) is negative.
     % But to also consider only inactivate if the negative flux is 
-    % 
-    %   ah < 0.01 hMin /dt 
+    %
+    %   ah < 0.01 hMin /dt
     %
     % that is, if one were to stop subtracting this mass balance, then the thickness would increase to 0.01 above the minimum
     % thickness value over a time interval corresponding to one time unit.
-    
-    isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ; 
 
-    NewInActiveConstraints=find(isNegavtiveMassFluxSmall);
+    isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
+
+    NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);
+
+
+
+    % FindOrCreateFigure("lagrange multiplier values");  plot(sort(ah),".") ; hold on ; yline(0) ; title("Mass flux based on value of Lagrange multipliers") ; ylabel("mass flux")
     if iNewInActiveConstraints>0   % have any become inactive?
-        BCs1.hPosNode(isNegavtiveMassFluxSmall)=[]; % Here I deactivate 
+
+        if ~isfield(CtrlVar,"MaxNumberOfNewlyInactivatedThicknessConstraints")
+            CtrlVar.MaxNumberOfNewlyInactivatedThicknessConstraints=inf;
+        end
+        if iNewInActiveConstraints> CtrlVar.MaxNumberOfNewlyInactivatedThicknessConstraints
+             [~,II]=sort(ah);
+             NewInActiveConstraints=II(1:CtrlVar.MaxNumberOfNewlyInactivatedThicknessConstraints); % this is not a nodal number
+                                                                                                   % these are the locations within ah where
+                                                                                                   % ah=ah(BCs1.hPosNode);
+                                                                                                   %
+                                                                                                   % The nodes are BCs1.hPodNode(NewInActiveConstraints)
+             iNewInActiveConstraints=numel(NewInActiveConstraints);
+            
+             BCs1.hPosNode(NewInActiveConstraints)=[]; % Here I deactivate by taking those nodes out of hPodNode
+        else
+             BCs1.hPosNode(isNegavtiveMassFluxSmall)=[]; % Here I deactivate
+        end
+
+
+     
 
     end
 
@@ -161,7 +184,7 @@ end
 
 NodesDeactivated=LastActiveSet(NewInActiveConstraints);
 
-% Do I need to activate some new thickness constraints?
+%% Do I need to ACTIVATE some new thickness constraints?
 %I=h1<=CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 I=F1.h<CtrlVar.ThickMin; % if thickness is less than ThickMin then further new thickness constraints must be introduced
 
@@ -181,9 +204,11 @@ end
 
 iNewActiveConstraints=numel(NewActive);
 
+
+
 if iNewActiveConstraints> CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints
     if CtrlVar.ThicknessConstraintsInfoLevel>=1
-        fprintf(CtrlVar.fidlog,' Number of new active-set thickness constraints %-i larger then max number or newly added constraints %-i \n ',...
+        fprintf(CtrlVar.fidlog,' Number of new active-set thickness constraints %-i larger then max number of newly added constraints %-i \n ',...
             iNewActiveConstraints,CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
         fprintf(CtrlVar.fidlog,' Only the smallest %-i thickness values are constrained \n',CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
     end

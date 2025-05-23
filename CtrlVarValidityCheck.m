@@ -482,6 +482,28 @@ if isfield(CtrlVar,"LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
 
 end
 
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLin")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+
+end
+
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffQuad")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad;
+
+end
+
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffCubic")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
+
+end
+
+
 
 
 end

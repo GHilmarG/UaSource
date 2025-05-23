@@ -1380,7 +1380,7 @@ CtrlVar.FindMUA_Boundary=1;
 % A minimum ice thickness can be enforced in different ways using the following methods:
 %  1) `reset method' : simply resetting the thickness to min thickness at node where thickness is less than a prescribed value.
 %  2) `active-set' method.
-%  3) `thickness-barrier' method
+%  3) `thickness-penalty' method
 %
 % The active-set method is the preferred option and is arguably the only correct way of enforcing min ice thickness.
 % The active-set method should therefore be used whenever possible.
@@ -1388,8 +1388,8 @@ CtrlVar.FindMUA_Boundary=1;
 % options 1) or 3), or combinations thereof, must be used.  If the differences between approach 1) and 2) are small, then using 1)
 % allows for shortest computation times
 %
-% The thickness-barrier method introduces a fictitious surface mass balance term.
-% The thickness-barrier method can be used on its own, but should primarily be used in combination with the active-set method
+% The thickness-penalty method introduces a fictitious surface mass balance term.
+% The thickness-penalty method can be used on its own, but should primarily be used in combination with the active-set method
 % to improve convergence.
 %
 
@@ -1438,16 +1438,16 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;              % This impl
                                                                     % thickness is usually prescribed directly.
 
 
-% thickness barrier, option 3
-CtrlVar.ThicknessBarrier=1;                                         % set to 1 for using the barrier method  (Option 3)
+% thickness penalty, option 3
+CtrlVar.ThicknessPenalty=1;                                         % set to 1 for using penalty term (Option 3). This creates an
                                                                     % additional mass-balance term, ab,  on the form:
                                                                     %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
-                                                                    % is added, and applied at integration points where  h<hmin.
-CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
-CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad=-0;          % a1 in the equation for the additional mass balance term (should always be negative)
-CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
+                                                                    % that is added, and applied at integration points where  h<hmin.
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=-0;            % a1 in the equation for the additional mass balance term (should always be negative)
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
                                                                     % The term is only applied at integration points where h < hmin. Therefore if a1<0 and a3<0, the resulting ab is greater than
-                                                                    % zero, and mass is added. This (of course) results in a local violation of mass conservation.
+                                                                    % zero, and mass is added. 
 
                                                  
 
@@ -1863,12 +1863,12 @@ CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the activ
 
 CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additional mass-balance term, ab,  on the form:
                                                                %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
-                                                               % is added. This is quite similar to the "barrier method", 
-                                                               % but the thickness  barrier method does not have to be activated as
-                                                               % well (ie no need to set  CtrlVar.ThicknessBarrier=1;  as well).
+                                                               % is added. This is quite similar to the "penalty method", 
+                                                               % but the thickness  penalty method does not have to be activated as
+                                                               % well (ie no need to set  CtrlVar.ThicknessPenalty=1;  as well).
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above equation for ab. Has units of inverse time. By increasing (greater negative) the value, 
                                                                % the time it takes to melt the ice downstream of the calving front is reduced.
-                                                               % Experience from modelling Greenland and Antarctica (using units
+                                                               % Experience from modeling Greenland and Antarctica (using units
                                                                % year and meters) suggest using -10 as a value, ie the default
                                                                % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 

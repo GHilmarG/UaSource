@@ -106,10 +106,10 @@ else   %  Thickness constraints used
         % nodes where the h has been modified, prior to solve, in this way. Most likely h will then again become negative at those
         % nodes and this will then likely result in an additional active set update.
         %
-        %
-        F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % Make sure iterate is feasible, but this should be dealt with by the BCs anyhow
-        F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
-        F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
+        % %
+         F1.h(BCs1.hPosNode)=CtrlVar.ThickMin;       % Make sure iterate is feasible, but this should be dealt with by the BCs anyhow
+        % F1.ub(BCs1.hPosNode)=F0.ub(BCs1.hPosNode);  % might help with convergence
+        % F1.vb(BCs1.hPosNode)=F0.vb(BCs1.hPosNode);
 
         [UserVar,RunInfo,F1,l1,BCs1]=uvh2D(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 

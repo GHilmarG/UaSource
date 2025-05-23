@@ -156,30 +156,30 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
     % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
     %
-    % The barrier term is only applied where thickness is already too small. For this reason, this term should really be call a
+    % The Penalty term is only applied where thickness is already too small. For this reason, this term should really be call a
     % penalty term, as this is only used to deal with constraint violations.
     % 
 
     hBC=hBCsMasknod*fun; % hBC is zero where there are not thickness constraints applied
     hmin=2*CtrlVar.ThickMin ;
-    
 
-    isThickTooSmall=hint<hmin ;
 
     % don't apply if already applied as a part of the level-set method
-    isThickTooSmall=isThickTooSmall & ~LM ;
-    PenaltyMask=(1-hBC).*(1-LM).*isThickTooSmall; 
-    PenaltyMask=PenaltyMask>0.5;
-    a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
-    a2= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad;
-    a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
-    aPenalty =PenaltyMask.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0
+   
+    PenaltyMask=(1-hBC).*(1-LM).*(hint<hmin) ;
+    PenaltyMask=PenaltyMask>0.25;
+    %PenaltyMask=1;
+    a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
+    a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
+    a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
+    aPenalty =PenaltyMask.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
+                                                                                       %
     daPenaltydh=PenaltyMask.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
     
     a1int=a1int+aPenalty; 
     dadhint=dadhint+daPenaltydh ;
     
-% Hm, do I not need to add the same barrier term to h0 as the one I used in last solve?
+% Hm, do I not need to add the same Penalty term to h0 as the one I used in last solve?
 % UaPlots(CtrlVar,MUA,[],aPenalty,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a penalty")
 % FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin)
 end

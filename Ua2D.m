@@ -2,7 +2,7 @@ function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
 %% Driver for the 2HD a model
 % 
-% Version 2025alpha: Feb
+
 
 if nargin==0
     UserVar=[]; 
@@ -737,7 +737,7 @@ while 1
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
-        pwd
+       
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 

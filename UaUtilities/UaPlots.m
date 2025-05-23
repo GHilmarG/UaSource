@@ -462,11 +462,11 @@ if options.ShowMinIcethicknessLocations
 
     iloc=F.h==CtrlVar.ThickMin ;
     nAtMinThick=numel(find(iloc));
-    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=3,DisplayName="at min thick")
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=3,DisplayName="Node at min thick")
 
     iloc=F.h<CtrlVar.ThickMin ;
     nLessThanMinThick=numel(find(iloc));
-    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="r",MarkerEdgeColor="c",MarkerSize=6,DisplayName="below min thick")
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="r",MarkerEdgeColor="c",MarkerSize=6,DisplayName="Node below min thick")
 
     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.ThickMin+eps(CtrlVar.ThickMin));
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=2,DisplayName="Min thick")
