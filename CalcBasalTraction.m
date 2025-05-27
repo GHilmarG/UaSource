@@ -163,9 +163,17 @@ end
 
 
 
-function [tbxInt,tbyInt,tb,etaInt,Heint] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1)
+function [tbxInt,tbyInt,tb,etaInt,Heint] = CalcBasalTractionAtIntegrationPoints(CtrlVar,UserVar,MUA,F0,F1,l1,BCs1)
 
-narginchk(5,5)
+narginchk(5,7)
+
+if nargin<7 || isempty(BCs1) || isnan(BCs1)
+    BCs1=BoundaryConditions();
+end
+
+if nargin<6 || isempty(l1) || isnan(l)
+    l1=UaLagrangeVariables;
+end
 
 %%
 %
@@ -175,8 +183,8 @@ narginchk(5,5)
 %%
 
 RunInfo=[];
-CtrlVar.MassBalanceGeometryFeedback=1;  % Here the mass-balance feedback needs to be disabled, as otherwise there is a risk of recursive call to DefineMassBalance (thanks to Emily Hill for spotting this).
-[~,~,~,~,tbxInt,tbyInt,etaInt,Heint]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
+CtrlVar.MassBalanceGeometryFeedback=1;  % Here the implicit mass-balance feedback needs to be disabled, as otherwise there is a risk of recursive call to DefineMassBalance (thanks to Emily Hill for spotting this).
+[~,~,~,~,tbxInt,tbyInt,etaInt,Heint]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
 
 tb=sqrt(tbxInt.^2+tbyInt.^2);
 

@@ -145,7 +145,8 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     % that is, if one were to stop subtracting this mass balance, then the thickness would increase to 0.01 above the minimum
     % thickness value over a time interval corresponding to one time unit.
 
-    isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
+    %isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
+    isNegavtiveMassFluxSmall=ah < -1*CtrlVar.ThickMin/F1.dt ;
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);

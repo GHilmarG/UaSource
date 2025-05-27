@@ -36,6 +36,16 @@ arguments
     options.MinSpeed = 0 ;
 end
 
+if isempty(F.ub)   % it is possible that this is called ahead of first solve, or ahead of a solve in adapt mesh, in which case there are no velocities
+
+    InfluxNodes=[] ;
+    OutfluxNodes=[] ;
+    InOutBoundary=[] ;
+
+
+    return
+end
+
 [~,~,~,~,Nx,Ny] = CalcEdgeAndNodalNormals(MUA.connectivity,MUA.coordinates,MUA.Boundary.Edges);
 P=F.ub(MUA.Boundary.Nodes).*Nx(MUA.Boundary.Nodes)+F.vb(MUA.Boundary.Nodes).*Ny(MUA.Boundary.Nodes);
 

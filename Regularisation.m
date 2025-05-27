@@ -377,7 +377,7 @@ else  % Tikhonov regularization
 
         if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
 
-            % Adding a cost term giving the deviation from in inverted B from direct measurements of B. This has the same form as a data
+            % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
             
 

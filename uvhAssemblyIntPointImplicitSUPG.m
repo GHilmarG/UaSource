@@ -158,30 +158,47 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     %
     % The Penalty term is only applied where thickness is already too small. For this reason, this term should really be call a
     % penalty term, as this is only used to deal with constraint violations.
-    % 
+    %
 
-    hBC=hBCsMasknod*fun; % hBC is zero where there are not thickness constraints applied
+    hBC=hBCsMasknod*fun; % hBC is zero where there are no thickness constraints applied
     hmin=2*CtrlVar.ThickMin ;
 
-
-    % don't apply if already applied as a part of the level-set method
-   
-    PenaltyMask=(1-hBC).*(1-LM).*(hint<hmin) ;
-    PenaltyMask=PenaltyMask>0.25;
-    %PenaltyMask=1;
     a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
     a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
     a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
-    aPenalty =PenaltyMask.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
-                                                                                       %
-    daPenaltydh=PenaltyMask.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
+
+    %PenaltyMask1=(1-hBC).*(1-LM).*(hint<hmin) ;
+    %PenaltyMask1=PenaltyMask1>0.25;
+
+    PenaltyMask1=hint<hmin ;
+
+    aPenalty1 =PenaltyMask1.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
+    daPenaltydh1=PenaltyMask1.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
+
+    a1int=a1int+aPenalty1;
+    dadhint=dadhint+daPenaltydh1 ;
+
+    % don't apply if already applied as a part of the level-set method
+
+    % Hm, do I not need to add the same Penalty term to h0 as the one I used in last solve?
+
+   % PenaltyMask0=(1-hBC).*(1-LM).*(h0int<hmin) ;
+   % PenaltyMask0=PenaltyMask0>0.25;
+    PenaltyMask0=h0int<hmin ;
     
-    a1int=a1int+aPenalty; 
-    dadhint=dadhint+daPenaltydh ;
-    
-% Hm, do I not need to add the same Penalty term to h0 as the one I used in last solve?
-% UaPlots(CtrlVar,MUA,[],aPenalty,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a penalty")
-% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin)
+
+    aPenalty0 =PenaltyMask0.* ( a1*(h0int-hmin)+a2*(h0int-hmin).^2 + a3*(h0int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
+   % daPenaltydh0=PenaltyMask0.*(a1+2*a2*(h0int-hmin) +3*a3*(h0int-hmin).^2) ;
+
+    a1int=a1int+aPenalty1;
+    dadhint=dadhint+daPenaltydh1 ;
+    a0int=a0int+aPenalty0;
+
+
+
+    % UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty")
+
+% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin)
 end
 
 

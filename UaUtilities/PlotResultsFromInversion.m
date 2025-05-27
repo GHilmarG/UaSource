@@ -796,6 +796,7 @@ else
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
             title("B estimated - B true")
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); % how to apply individual colormap to each tile?
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
@@ -813,7 +814,9 @@ else
            % figB.Position=[200 200 1300 800];
             TB.TileSpacing="tight";
             TB.Padding="tight";
-            colormap(othercolor("Mdarkterrain",32))
+           %colormap(othercolor("Mdarkterrain",32))
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); % how to apply individual colormap to each tile?
+            %%
         end
 
         if ~isempty(Priors.Trueh)
