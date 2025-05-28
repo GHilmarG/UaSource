@@ -6,6 +6,8 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %%
 % Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
 %
+%
+%
 % This is a fairly simple thing to do as the regularization term is an explicit function of p, and the Hessian calculation can
 % be done exactly.
 %
@@ -26,6 +28,21 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %
 %
+% Note: Although this focus is on what is generally considered to be regularization terms, these terms can also be thought of as
+% those where the inverted fields (e.g. B C A) explicitly enter the cost function.
+%
+% Here we, for example, also include the deviation of B from direct measurements. This could equally be referred to as a misfit term
+% as well. This B 'misfit' term has the form:
+%
+% $$ \int (B-B_{\mathrm{meas}}) \, C^{-1} \, (B-B_{\mathrm{meas}}) \, dA $$
+%
+% By defining:
+%
+% $$ \tilde{B} = (B-B_{\mathrm{meas}})/B_{\epsilon} $$
+% 
+% This simply has the form
+%
+% $$ \tilde{B} \, M \tilde{B} $$
 %
 %%
 

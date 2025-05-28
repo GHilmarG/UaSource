@@ -46,7 +46,9 @@ function [FigHandle,ColorbarHandle,tri]=PlotElementBasedQuantities(connectivity,
         'CDataMapping','scaled','FaceColor','flat','EdgeColor','none','FaceLighting','none',varargin{:}) ;
         
     ColorbarHandle=colorbar;
+    if isfield(CtrlVar,"XaxisLabel")
     xlabel(CtrlVar.PlotsXaxisLabel)  ; ylabel(CtrlVar.PlotsYaxisLabel) ;
+    end
     axis equal tight
     
     return

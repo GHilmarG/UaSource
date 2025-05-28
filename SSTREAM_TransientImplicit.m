@@ -83,7 +83,7 @@ rVector.Direction=strings(CtrlVar.NRitmax+1,1);
 BackTrackSteps=0;
 
 
-if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
+% if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' F0 thickness negative ') ; end
 
 
 tStart=tic;

@@ -195,10 +195,15 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     a0int=a0int+aPenalty0;
 
 
+if any(hint<0)
+    fprintf("hint negative, min value %g",min(hint))
+end
 
-    % UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty")
+    
+% UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
+% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin,"r") ; xline(2*CtrlVar.ThickMin,"r--")
 
-% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin)
+
 end
 
 
