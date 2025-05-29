@@ -882,8 +882,9 @@ CtrlVar.Inverse.NameOfRestartInputFile=CtrlVar.Inverse.NameOfRestartOutputFile;
 
 CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile=true ;
 CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile=true ;
-CtrlVar.NameOfFileForSavingSlipperinessEstimate='C-Estimate.mat';
-CtrlVar.NameOfFileForSavingAGlenEstimate='AGlen-Estimate.mat';
+CtrlVar.NameOfFileForSavingSlipperinessEstimate="C-Estimate.mat";
+CtrlVar.NameOfFileForSavingAGlenEstimate="AGlen-Estimate.mat";
+CtrlVar.NameOfFileForSavingBedrockEstimate="B-Estimate.mat";
 
 %%
 %

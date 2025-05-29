@@ -196,7 +196,7 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
 
 
 if any(hint<0)
-    fprintf("hint negative, min value %g",min(hint))
+    fprintf("hint negative, min value %g\n",min(hint))
 end
 
     

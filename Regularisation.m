@@ -28,7 +28,7 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %
 %
-% Note: Although this focus is on what is generally considered to be regularization terms, these terms can also be thought of as
+% Note: Although here the focus is on what is generally considered to be regularization terms, these terms can also be thought of as
 % those where the inverted fields (e.g. B C A) explicitly enter the cost function.
 %
 % Here we, for example, also include the deviation of B from direct measurements. This could equally be referred to as a misfit term

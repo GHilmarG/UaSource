@@ -21,8 +21,7 @@ save(CtrlVar.Inverse.NameOfRestartOutputFile,...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues','time','dt','-v7.3');
 
 
-F.x=MUA.coordinates(:,1) ; 
-F.y=MUA.coordinates(:,2) ; 
+
 
 if CtrlVar.AGlenisElementBased
     xA=Nodes2EleMean(MUA.connectivity,MUA.coordinates(:,1));
@@ -40,21 +39,42 @@ else
     yC=MUA.coordinates(:,2);
 end
 
-   
-if CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile
-    fprintf(CtrlVar.fidlog,' saving sliding-law parameters  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
-    C=F.C;
-    m=F.m;
-    muk=F.muk ; 
-    q=F.q ; 
-    save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','q','muk','xC','yC','MUA','CtrlVarInRestartFile')
+
+if contains(CtrlVar.Inverse.InvertForField,"C")
+    if CtrlVar.Inverse.SaveSlipperinessEstimateInSeperateFile
+        fprintf(CtrlVar.fidlog,' saving retrieved sliding-law parameters  in file %s \n ',CtrlVar.NameOfFileForSavingSlipperinessEstimate) ;
+        C=F.C;
+        m=F.m;
+        muk=F.muk ;
+        q=F.q ;
+        save(CtrlVar.NameOfFileForSavingSlipperinessEstimate,'C','m','q','muk','xC','yC','MUA','CtrlVarInRestartFile')
+    end
 end
 
-if CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile
-    fprintf(CtrlVar.fidlog,' saving AGlen and n in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
-    AGlen=F.AGlen;
-    n=F.n;
-    save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA','CtrlVarInRestartFile')
+if contains(CtrlVar.Inverse.InvertForField,"A")
+    if CtrlVar.Inverse.SaveAGlenEstimateInSeperateFile
+        fprintf(CtrlVar.fidlog,' saving retrieved AGlen and n in file %s \n ',CtrlVar.NameOfFileForSavingAGlenEstimate) ;
+        AGlen=F.AGlen;
+        n=F.n;
+        save(CtrlVar.NameOfFileForSavingAGlenEstimate,'AGlen','n','xA','yA','MUA','CtrlVarInRestartFile')
+    end
 end
+
+if isfield(CtrlVar,"NameOfFileForSavingBedrockEstimate")
+
+    if contains(CtrlVar.Inverse.InvertForField,"B")
+        fprintf(CtrlVar.fidlog,' saving retrieved geometry in file %s \n ',CtrlVar.NameOfFileForSavingBedrockEstimate) ;
+        B=F.B;
+        b=F.b;
+        s=F.s;
+        xB=F.x;
+        yB=F.y;
+        rho=F.rho;
+        rhow=F.rhow;
+        save(CtrlVar.NameOfFileForSavingBedrockEstimate,"s","b","B","xB","yB","rho","rhow","CtrlVarInRestartFile")
+    end
+    
+end
+
 
 end

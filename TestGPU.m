@@ -33,7 +33,7 @@ timings=zeros(10,7)+NaN;
 
 nRepeat=2;
 
-for N=[100 1000 5000 10000] % 500 1000 2000 3000 20000]
+for N=[100 1000] % 500 1000 2000 3000 20000]
     
     
     iExperiment=iExperiment+1;
@@ -104,7 +104,8 @@ for N=[100 1000 5000 10000] % 500 1000 2000 3000 20000]
     %     ygpu=Agpu\xgpu;
     %     GPUsingle=toc(GPUsingle);
 
-    timings(iExperiment,1)= N ;  timings(iExperiment,2)= CPUfull ;
+    timings(iExperiment,1)= N ;  
+    timings(iExperiment,2)= CPUfull ;
     timings(iExperiment,3)= GPUfull ;
     timings(iExperiment,4)= CPUdistfull ;
     timings(iExperiment,5)= CPUsparse ;
@@ -121,7 +122,7 @@ plot(timings(:,1),timings(:,4),'+-g')
 plot(timings(:,1),timings(:,5),'*-c')
 plot(timings(:,1),timings(:,6),'^-m')
 plot(timings(:,1),timings(:,7),'o-k')
-legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse','GPU sparse')
+legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse','GPU sparse',Location='northwest')
 xlabel("Problem size N")
 ylabel("time (sec)")
 
