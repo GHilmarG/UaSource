@@ -23,16 +23,30 @@ NumWorkers=8 ;
 
 ParPool = gcp('nocreate') ;
 
+% if isempty(ParPool)
+% 
+%     parpool('Processes',NumWorkers)
+% 
+% elseif (ParPool.NumWorkers~=NumWorkers)
+% 
+%     delete(gcp('nocreate'))
+%     parpool('Processes',NumWorkers)
+% 
+% end
+
+
 if isempty(ParPool)
 
-    parpool('Processes',NumWorkers)
+    parpool('Threads',NumWorkers)
 
 elseif (ParPool.NumWorkers~=NumWorkers)
 
     delete(gcp('nocreate'))
-    parpool('Processes',NumWorkers)
+    parpool('Threads',NumWorkers)
 
 end
+
+
 
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:genericError');
 parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
@@ -114,68 +128,84 @@ switch TestCase
     case "-best-"
 
 %         From the method comparison it is concluded that ilutp+dissect+gmrs is the best approach.
-%         Using equlibriate does not improve the convergence significantly, and takes lot of time (30 sec, for the typical example
+%         Using equilibrate does not improve the convergence significantly, and takes lot of time (30 sec, for the typical example
 %         used here).
 % 
 %         So fastest approach appears to be:
 % 
-%         1) Preconditoner based in ilutp with droptolerance around 1e-6 or so
+%         1) Preconditioner based in ilutp with drop tolerance around 1e-6 or so
 %         2) dissect  (a must to limit memory)
 %         3) gmres with tol=1e-15 and maxit around 30 (Usually only five or so needed)
+%
+% 2025-05: It appears that iterative gmres is considerably faster on GPU than CPU.
+% 
+% It also seems that on GPU one can use a higher drop tolerance, which speeds up the ilu, at the cost of more iterations, and
+% still be faster than the direct solver. 
+%
+%
 
 
         L=[]; U=[] ; P=[] ; x0=[] ; y0=[] ; perm=[] ; 
-        
-
 
 
         % load solveKApePIGTWGuvh250896.mat ;
-        load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g","x0","y0")
+        %load("solveKApePIGTWGuvh250896time0k19NRit2.mat","A","B","CtrlVar","f","g","x0","y0")
+        load("solveKApe843153_4083It1.mat","A","B","f","g","x0","y0")
         
+        CtrlVar.ABfgPreEliminateIterative.Processor="-GPU-";
         CtrlVar.Parallel.Distribute=false;
         % A=distributed(A) ; B=distributed(B) ;  f=distributed(f) ; g=distributed(g) ; x0=distributed(x0) ; y0=distributed(y0) ;  % this does not work because dissect does not support distributed arrays
         % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;  % this does not work because dissect does not support distributed arrays
 
-        CtrlVar.InfoLevelLinSolve=100;
+        CtrlVar.InfoLevelLinSolve=100;  % 10 prints info, 100 creates figures as well
 
-        x0=[] ; y0=[] ; xtilde0=[]; 
+        x0=[] ; y0=[] ; xtilde0=[];
         fprintf("\n-----------------------------------------------------------------------------------------\n\n")
+
+        fprintf(" Direct solve. \n")
+        tDirect=tic;
+
+        [xTest,yTest,dAtilde,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
+        tDirect=toc(tDirect);
+        fprintf(" Direct solve in %g \n",tDirect)
+        fprintf("\t Tolerances for the direct solve are: %g \t %g \n",tolA,tolB)
+
+        fprintf("\n-----------------------------------------------------------------------------------------\n\n")
+        fprintf(" First iterative solve, involving creating pre-conditioner. \n")
+
+
+
+
+        % solve iterative
         tstart1=tic ;
         [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0) ;
         tend1=toc(tstart1) ;
 
-        tDirect=tic;
-        [xTest,yTest,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
-        tDirect=toc(tDirect);
 
-        fprintf(" Iterative solve in %g sec \t Direct solve in %g sec \t norm(xTest-x)=%g \t norm(yTest-y)=%g \n ",tend1,tDirect,norm(xTest-x),norm(yTest-y))
-        
 
-        
-        CtrlVar.InfoLevelLinSolve=100;
+        fprintf(" Iterative solve in %g sec \t Direct solve in %g sec \n ",tend1,tDirect)
+        fprintf("\t Tolerances for the iterative solve are: %g \t %g \n",tolA,tolB)
+
 
         fprintf("\n-----------------------------------------------------------------------------------------\n\n")
+      
+        % Maybe try loading a slightly difference matrix system, and use the previous pre-conditioner 
+        %   load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
+        fprintf(" loading another but similar system for the second interative solve. \n") 
+        load("solveKApe843153_4083It2.mat","A","B","f","g","x0","y0")
         % x0=x+1e-8*abs(x).*rand(length(x0),1) ; % for this slight modification of x0, a repeated solve is fast and does not require
-        % new LU factorization.
         
-        load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
-        CtrlVar.Parallel.Distribute=false;
-        % A=gpuArray(A) ; B=gpuArray(B) ;  f=gpuArray(f) ; g=gpuArray(g) ; x0=gpuArray(x0) ; y0=gpuArray(y0) ;
-        CtrlVar.InfoLevelLinSolve=100;
-        x0=x ; y0=y;  xtilde0=xtilde ; % L=[] ; U=[] ; perm=[] ; 
+        % second iterative solve using preconditioner 
+        fprintf(" Second iterative solve, now using previous pre-conditioner. \n")
         tstart2=tic ;
         [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0) ;
         tend2=toc(tstart2) ; 
 
+       
+        fprintf("\t Iterative solve in %g sec \t Direct solve in %g sec  \n ",tend2,tDirect)
+        fprintf("\t Tolerances for the iterative solve are: %g \t %g \n",tolA,tolB)
 
-        tDirect=tic;
-        [xTest,yTest,tolA,tolB]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
-        tDirect=toc(tDirect);
-
-        fprintf(" Iterative solve in %g sec \t Direct solve in %g sec \t norm(xTest-x)=%g \t norm(yTest-y)=%g \n ",tend2,tDirect,norm(xTest-x),norm(yTest-y))
-        
-
-        fprintf("tend1=%f sec \t tend2=%f sec \n",tend1,tend2)
+     
 
 
     otherwise

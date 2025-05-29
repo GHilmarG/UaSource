@@ -19,6 +19,8 @@ persistent iFigure
 
 if isempty(iFigure)
     iFigure=100;
+else
+    iFigure=iFigure+100;
 end
 
 if nargin < 8
@@ -31,6 +33,18 @@ if nargin<6
     x0=[];
     y0=[];
 end
+
+
+%%
+
+
+if ~isfield(CtrlVar,"ABfgPreEliminateIterative")
+    CtrlVar.ABfgPreEliminateIterative.Processor="-GPU-";
+end
+
+
+%%
+
 
 
 [nA,mA]=size(A);
@@ -51,15 +65,15 @@ end
 
 % ilutp results in much smaller residuals at fewer iterations, but ilu takes long time
 
-setup.type = "nofill"; setup.milu = "off"; 
+setup.type = "nofill"; setup.milu = "off";
 tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
 
 % takes forever
 % setup.type = "crout"; setup.milu = "off"; setup.droptol = 1e-6 ; 
 % tol=1e-13 ; maxit=5; restart=5;   % quick for testing purposes
 
-setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;  
-tol=1e-13 ; maxit=2; restart=50;   % quick for testing purposes
+setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-4;    setup.udiag=0 ;  
+tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
 
 
 if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
@@ -86,8 +100,9 @@ else
         % It also assumes that B B' is a unity matrix, but if not then simple scaling can be used
         % to ensure that this is the case.
         % To make this a bit more general, I here check if B B' is indeed unity, and
-        % if not I do the requried scaling.
+        % if not I do the required scaling.
         tolerance=eps*1000;
+       
         isBBTunity=all(abs(diag(BBT) - 1) < tolerance) ;
 
         if ~isBBTunity
@@ -110,13 +125,19 @@ else
         Atilde=Q*A+ BtB ;
         btilde=(Q*f+B'*g) ;
 
+        %% slow
+        % tic ; [P,R,C] = equilibrate(Atilde); 
+        % Atilde = R*P*Atilde*C;
+        % btilde = R*P*btilde;
+        % (solution is now C*xtilde)
+        % toc
 
         %% ilu for both equilibrated and not
 
 
         tdissectAtilde=tic;
         if isempty(perm)  % If the matrix has the same sparsity structure, then I don't need to do the permutation again
-            perm=dissect(Atilde);  % does not work for distributed or gpuarrays
+            perm=dissect(Atilde);  % does not work for distributed or gpuArray
 
             % The nested dissection algorithm produces high quality reordering and performs particularly well with finite element
             % matrices compared to other reordering techniques. For more information about the nested dissection ordering
@@ -150,29 +171,41 @@ else
 
         %     [sol,flag,relres,iter,resvec]=bicgstabl(Atilde,btilde,tol,maxit,L,U,xtilde0);
 
+         if CtrlVar.ABfgPreEliminateIterative.Processor=="-CPU-"
 
-        tgmres=tic;
+             tgmresCPU=tic;
 
-        [xtilde,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,xtilde0);
+             [xtilde,flag,relres,iter,resvec]=gmres(Atilde,btilde,restart,tol,maxit,L,U,xtilde0);  % CPU gmres
 
-        x=xtilde(iperm) ;
-        tgmres=toc(tgmres);
-        fprintf("gmres CPU in %f sec \n",tgmres)
+             x=xtilde(iperm) ;
+             tgmresCPU=toc(tgmresCPU);
+             tgmresGPU=nan;
+             % fprintf("gmres CPU in %f sec \n",tgmres)
 
-        %% as of 2024b, gmres for GPU accepts L and U
-        % preliminary test shows that now gmres works nicely with GPU arrays (previously it did not converge at all) and is for the
-        % matrices tested about twice as fast!
-        
-        AtildeGPU=gpuArray(Atilde) ;
-        btildeGPU=gpuArray(btilde) ;
-        Lgpu=gpuArray(L) ;
-        Ugpu=gpuArray(U) ;
+         else
+             %% as of 2024b, gmres for GPU accepts L and U
+             % preliminary test shows that now gmres works nicely with GPU arrays (previously it did not converge at all) and is for the
+             % matrices tested about 2 or 3 times as fast!
 
-        tgmresGPU=tic;
-        [xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0);
-        xGPU=xtilde(iperm) ;
-        tgmresGPU=toc(tgmresGPU);
-        fprintf("gmres GPU in %f sec \n",tgmresGPU)
+             AtildeGPU=gpuArray(Atilde) ;
+             btildeGPU=gpuArray(btilde) ;
+             Lgpu=gpuArray(L) ;
+             Ugpu=gpuArray(U) ;
+
+             % AtildeGPU=gpuArray(single(Atilde)) ;
+             % btildeGPU=gpuArray(single(btilde)) ;
+             % Lgpu=gpuArray(single(L)) ;
+             % Ugpu=gpuArray(single(U)) ;
+             %
+
+             tgmresGPU=tic;
+             [xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0);  % GPU gmres
+             x=xtilde(iperm) ;
+             tgmresGPU=toc(tgmresGPU);
+             tgmresCPU=nan; 
+         end
+
+        %fprintf("gmres GPU in %f sec \n",tgmresGPU)
 
 
         % Important to replace zeros on diagonal, but does not converge well, much worse that using ilu
@@ -223,31 +256,35 @@ else
 
             fprintf("                   dissect Atilde %f sec\n",tdissectAtilde)
             fprintf("                              ilu %f sec\n",tluinc)
-            fprintf("                         CPU gmres %f sec\n",tgmres)
+            fprintf("                         CPU gmres %f sec\n",tgmresCPU)
             fprintf("                         GPU gmres %f sec\n",tgmresGPU)
             fprintf("total time for iterative solution %f sec\n",tCPUtotal)
 
-            figure(iFigure) ; iFigure=iFigure+100;
+            if CtrlVar.InfoLevelLinSolve>=100
+                if CtrlVar.ABfgPreEliminateIterative.Processor=="-CPU-"
+                    figure(iFigure) ; iFigure=iFigure+100;
 
-            fprintf('\n CPU: flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
+                    fprintf('\n CPU: flag=%-i, iter=%-i %-i, relres=%-g \n ',flag,iter(1),iter(2),relres)
 
-            nnn=numel(resvec);
-            semilogy(0:nnn-1,resvec,'-o',LineWidth=2)
-            xlabel('Iteration Number',Interpreter='latex')
-            ylabel('Relative Residual',Interpreter='latex')
-            title("gmres (CPU)")
+                    nnn=numel(resvec);
+                    semilogy(0:nnn-1,resvec,'-o',LineWidth=2)
+                    xlabel('Iteration Number',Interpreter='latex')
+                    ylabel('Relative Residual',Interpreter='latex')
+                    title("gmres (CPU)")
 
-           figure(iFigure) ; iFigure=iFigure+100;
+                else
 
-            fprintf('\n GPU: flag=%-i, iter=%-i %-i, relresGPU=%-g \n ',flag,iter(1),iter(2),relresGPU)
+                    figure(iFigure) ; iFigure=iFigure+100;
 
-            nnn=numel(resvecGPU);
-            semilogy(0:nnn-1,resvecGPU,'-o',LineWidth=2)
-            xlabel('Iteration Number',Interpreter='latex')
-            ylabel('Relative Residual',Interpreter='latex')
-            title("gmres (GPU)")
+                   % fprintf('\n GPU: flag=%-i, iter=%-i %-i, relresGPU=%-g \n ',flag,iter(1),iter(2),relresGPU)
 
-
+                    nnn=numel(resvecGPU);
+                    semilogy(0:nnn-1,resvecGPU,'-o',LineWidth=2)
+                    xlabel('Iteration Number',Interpreter='latex')
+                    ylabel('Relative Residual',Interpreter='latex')
+                    title("gmres (GPU)")
+                end
+            end
             % fig = gcf; exportgraphics(fig,'IterativeSolveExample.pdf')
         end
 
@@ -274,7 +311,7 @@ else
 
             %                if tolA>1e-6 || tolB>1e-6
 
-            fprintf('\t residuals \t %g \t %g \n ',tolA,tolB)
+           % fprintf('\t residuals \t %g \t %g \n ',tolA,tolB)
             %
         end
 
