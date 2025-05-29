@@ -6,7 +6,7 @@ function TestGPU
 % GPU linsolve using sparse matrices about 3 to 4 times slower than CPU
 % GPU linsolve using full matrices a bit faster than CPU
 %
-% 
+%
 %%
 
 
@@ -28,21 +28,21 @@ end
 
 %%
 iExperiment=0;
-density=0.05 ;
+density=0.01 ;
 timings=zeros(10,7)+NaN;
 
 nRepeat=2;
 
-for N=[100 1000] % 500 1000 2000 3000 20000]
-    
-    
+for N=[100 1000 5000] % 500 1000 2000 3000 20000]
+
     iExperiment=iExperiment+1;
-    
+
     fprintf('\n \n N=%i \n ', N)
     fprintf(' Creating arrays.\n')
-    
-    Asparse=sprand(N,N,density) ;
-    Asparse=Asparse+sparse(1:N,1:N,1) ; 
+
+    %Asparse=sprand(N,N,density) ;
+    Asparse=sprandsym(N,density) ;
+    Asparse=Asparse+sparse(1:N,1:N,1) ;
     Afull=full(Asparse);
     x=ones(N,1) ;
     Adistfull=distributed(Afull) ;
@@ -51,14 +51,17 @@ for N=[100 1000] % 500 1000 2000 3000 20000]
     xgpu=gpuArray(x) ;
     Agpusparse=gpuArray(Asparse) ;
     xdist=distributed(x);
-    
+
+    AgpusparseSingle=single(Agpusparse); 
+    xgpuSingle=single(xgpu); 
+
     fprintf('A CPU distributed full. \n')
     for k=1:nRepeat
         CPUdistfull=tic ;
         y=Adistfull\xdist;
         CPUdistfull=toc(CPUdistfull);
     end
-    
+
     CPUdistsparse=NaN;
     %% matlab 2019a does not work with sprandsym, only sprand
     fprintf('A CPU distributed sparse. \n')
@@ -68,24 +71,24 @@ for N=[100 1000] % 500 1000 2000 3000 20000]
         CPUdistsparse=toc(CPUdistsparse);
     end
     %%
-    
+
     fprintf('A CPU full  \n')
     for k=1:nRepeat
         CPUfull=tic ;
         y=Afull\x;
         CPUfull=toc(CPUfull);
     end
-    
+
     fprintf('A CPU sparse \n')
     for k=1:nRepeat
         CPUsparse=tic ;
         y=Asparse\x;
         CPUsparse=toc(CPUsparse);
     end
-    
+
     fprintf('A GPU \n')
     for k=1:nRepeat
-        
+
         GPUfull=tic;
         ygpu=Agpufull\xgpu;
         GPUfull=toc(GPUfull);
@@ -98,31 +101,36 @@ for N=[100 1000] % 500 1000 2000 3000 20000]
         GPUsparse=toc(GPUsparse);
     end
 
-    %     Agpu=single(gpuArray(A));
-    %     xgpu=single(gpuArray(x)) ;
-    %     GPUsingle=tic;
-    %     ygpu=Agpu\xgpu;
-    %     GPUsingle=toc(GPUsingle);
+    fprintf('A GPU sparse single \n')
+    for k=1:nRepeat
+        GPUsparseSingle=tic ;
+        yGPUsingle=AgpusparseSingle\xgpuSingle;
+        GPUsparseSingle=toc(GPUsparseSingle);
+    end
 
-    timings(iExperiment,1)= N ;  
+
+    timings(iExperiment,1)= N ;
     timings(iExperiment,2)= CPUfull ;
     timings(iExperiment,3)= GPUfull ;
     timings(iExperiment,4)= CPUdistfull ;
     timings(iExperiment,5)= CPUsparse ;
     timings(iExperiment,6)= CPUdistsparse ;
     timings(iExperiment,7)= GPUsparse ;
-    
+    timings(iExperiment,8)= GPUsparseSingle ;
+
 end
 
 figure
-plot(timings(:,1),timings(:,2),'o-r')
+plot(timings(:,1),timings(:,2),"o-r",DisplayName="CPU full")
 hold on
-plot(timings(:,1),timings(:,3),'x-b')
-plot(timings(:,1),timings(:,4),'+-g')
-plot(timings(:,1),timings(:,5),'*-c')
-plot(timings(:,1),timings(:,6),'^-m')
-plot(timings(:,1),timings(:,7),'o-k')
-legend('CPU full','GPU double full','CPU distributed full','CPU sparse','CPU dist sparse','GPU sparse',Location='northwest')
+plot(timings(:,1),timings(:,3),"x-b",DisplayName="GPU full")
+plot(timings(:,1),timings(:,4),"+-g",DisplayName="CPU distributed")
+plot(timings(:,1),timings(:,5),"*-c",DisplayName="CPU sparse")
+plot(timings(:,1),timings(:,6),"^-m",DisplayName="CPU sparse distributed")
+plot(timings(:,1),timings(:,7),"o-k",DisplayName="GPU sparse")
+plot(timings(:,1),timings(:,7),Marker="diamond",MarkerFaceColor="r",LineStyle="--",DisplayName="GPU sparse single")
+
+legend(Location='northwest')
 xlabel("Problem size N")
 ylabel("time (sec)")
 
