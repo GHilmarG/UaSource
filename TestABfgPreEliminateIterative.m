@@ -16,6 +16,20 @@
 % If series of similar solves, then by only doing the ilu and dissect for the first solve, the following solves are faster than
 % direct solve.
 %
+% Conclusions:
+%
+% ilu preconditioner using setup.type = "ilutp"; takes long time to produce, but convergence is good
+%                    using 'nofill' is much faster, but convergence poor or no convergence
+%
+% gmres and bicgstab seem best, possibly bicgstab the better one
+% 
+% reordering using 'dissect' essential for memory and performance
+%
+% It appears that if ilu/ilutp pre-conditioner needs to be created, iterative solve is slower the direct. But if that
+% preconditioner can be reused, e.g. in NR iteration, then iterative can be about 3 to 4 times faster using GPU. With CPU
+% iterative approach is much slower than direct approach.
+%
+% Using single precision on GPU causes convergence issues and does not speed things up (most likely problem dependent).
 %
 %%
 
@@ -23,28 +37,28 @@ NumWorkers=8 ;
 
 ParPool = gcp('nocreate') ;
 
-% if isempty(ParPool)
-% 
-%     parpool('Processes',NumWorkers)
-% 
-% elseif (ParPool.NumWorkers~=NumWorkers)
-% 
-%     delete(gcp('nocreate'))
-%     parpool('Processes',NumWorkers)
-% 
-% end
-
-
 if isempty(ParPool)
 
-    parpool('Threads',NumWorkers)
+    parpool('Processes',NumWorkers)
 
 elseif (ParPool.NumWorkers~=NumWorkers)
 
     delete(gcp('nocreate'))
-    parpool('Threads',NumWorkers)
+    parpool('Processes',NumWorkers)
 
 end
+
+
+% if isempty(ParPool)
+% 
+%     parpool('Threads',NumWorkers)
+% 
+% elseif (ParPool.NumWorkers~=NumWorkers)
+% 
+%     delete(gcp('nocreate'))
+%     parpool('Threads',NumWorkers)
+% 
+% end
 
 
 
@@ -191,10 +205,11 @@ switch TestCase
       
         % Maybe try loading a slightly difference matrix system, and use the previous pre-conditioner 
         %   load("solveKApePIGTWGuvh250896time0k19NRit3.mat","A","B","CtrlVar","f","g","x0","y0")
-        fprintf(" loading another but similar system for the second interative solve. \n") 
-        load("solveKApe843153_4083It2.mat","A","B","f","g","x0","y0")
+         fprintf(" loading another but similar system for the second iterative solve. \n") 
+         load("solveKApe843153_4083It2.mat","A","B","f","g","x0","y0")
         % x0=x+1e-8*abs(x).*rand(length(x0),1) ; % for this slight modification of x0, a repeated solve is fast and does not require
         
+        xtilde0=xtilde; % using previous solution as start
         % second iterative solve using preconditioner 
         fprintf(" Second iterative solve, now using previous pre-conditioner. \n")
         tstart2=tic ;

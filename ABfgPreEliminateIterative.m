@@ -15,13 +15,15 @@ function [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B
 nargoutchk(9,9)
 narginchk(12,12)
 
-persistent iFigure
+persistent nCalls
 
-if isempty(iFigure)
-    iFigure=100;
+if isempty(nCalls)
+    nCalls=1;
 else
-    iFigure=iFigure+100;
+    nCalls=nCalls+1;
 end
+
+iFigure=100*nCalls;
 
 if nargin < 8
     L=[];
@@ -73,8 +75,11 @@ tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
 % tol=1e-13 ; maxit=5; restart=5;   % quick for testing purposes
 
 setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-4;    setup.udiag=0 ;  
-tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
+%setup.type = "nofill"; setup.milu = "off"; setup.droptol = 0;    setup.udiag=0 ;  % ilu nofill option much faster, but convergence is also much worse
+tol=1e-6 ; maxit=25; restart=10;   % quick for testing purposes
 
+IterationsMax=1000;
+maxit=ceil(IterationsMax/restart);
 
 if isempty(B) && isempty(g) && ~isempty(A) && ~isempty(f) && mA==nf
 
@@ -187,19 +192,26 @@ else
              % preliminary test shows that now gmres works nicely with GPU arrays (previously it did not converge at all) and is for the
              % matrices tested about 2 or 3 times as fast!
 
+             % % double
              AtildeGPU=gpuArray(Atilde) ;
              btildeGPU=gpuArray(btilde) ;
              Lgpu=gpuArray(L) ;
              Ugpu=gpuArray(U) ;
+             xtilde0gpu=gpuArray(xtilde0);
 
              % AtildeGPU=gpuArray(single(Atilde)) ;
              % btildeGPU=gpuArray(single(btilde)) ;
              % Lgpu=gpuArray(single(L)) ;
              % Ugpu=gpuArray(single(U)) ;
-             %
+             % xtilde0gpu=gpuArray(single(xtilde0));
+
 
              tgmresGPU=tic;
-             [xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0);  % GPU gmres
+
+             %[xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0gpu);      FigTitle="gmres (GPU) ";
+             % [xtilde,flag,relresGPU,iter,resvecGPU]=qmr(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);       FigTitle="qmr (GPU) ";
+             [xtilde,flag,relresGPU,iter,resvecGPU]=bicgstab(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);    FigTitle="bicgstab (GPU) ";
+             
              x=xtilde(iperm) ;
              tgmresGPU=toc(tgmresGPU);
              tgmresCPU=nan; 
@@ -274,7 +286,7 @@ else
 
                 else
 
-                    figure(iFigure) ; iFigure=iFigure+100;
+                    figure(iFigure) ; iFigure=iFigure+50;
 
                    % fprintf('\n GPU: flag=%-i, iter=%-i %-i, relresGPU=%-g \n ',flag,iter(1),iter(2),relresGPU)
 
@@ -282,7 +294,7 @@ else
                     semilogy(0:nnn-1,resvecGPU,'-o',LineWidth=2)
                     xlabel('Iteration Number',Interpreter='latex')
                     ylabel('Relative Residual',Interpreter='latex')
-                    title("gmres (GPU)")
+                    title(FigTitle)
                 end
             end
             % fig = gcf; exportgraphics(fig,'IterativeSolveExample.pdf')
