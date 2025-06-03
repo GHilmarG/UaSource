@@ -367,7 +367,7 @@ axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
-    nexttile
+    axdhdt=nexttile;
     [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
     %Kplot=Kplot+1;
@@ -379,6 +379,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title('(dh/dt-Meas.dhdt)/dhdtError') ;
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(axdhdt,CM);
 
 end
 
@@ -406,7 +407,7 @@ QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
-    nexttile
+    axdhdt=nexttile;
     %Kplot=Kplot+1; subplot(Iplot,Jplot,Kplot);
     PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
     title('(dh/dt modelled)') ;
@@ -415,6 +416,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     PlotMuaBoundary(CtrlVar,MUA,'b')  ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(axdhdt,CM);
 end
 
 T.Padding="tight";   T.TileSpacing="tight";
@@ -433,13 +435,10 @@ PlotCalvingFronts(CtrlVar,MUA,F,"b");
 %%
 
 [~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
-fig=FindOrCreateFigure('dh/dt calculated') ; clf(fig)
-PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
-hold on
-PlotMeshScalarVariable(CtrlVar,MUA,dhdt);
+
+UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
 title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
-hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-PlotCalvingFronts(CtrlVar,MUA,F,"b");
+CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); 
 
 %%  Prior
 
@@ -668,23 +667,38 @@ else
         fig=FindOrCreateFigure('dJdA'); clf(fig) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
         title('$dJ/dA$','interpreter','latex')
-
+        cl=clim;
+        if min(cl) <0 && max(cl)> 0
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+        else
+            CM=cmocean('balanced',25) ; colormap(fig,CM);
+        end
     end
 
     if ~isempty(InvFinalValues.dJdC)
 
-        fig=FindOrCreateFigure('dJdC'); clf(fig)
+        fig=FindOrCreateFigure("dJdC"); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
         title('$dJ/dC$','interpreter','latex');
-
+        cl=clim;
+        if min(cl) <0 && max(cl)> 0
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+        else
+            CM=cmocean('balanced',25) ; colormap(fig,CM);
+        end
     end
 
     if ~isempty(InvFinalValues.dJdB)
 
-        fig=FindOrCreateFigure('dJdB'); clf(fig)
+        fig=FindOrCreateFigure("dJdB"); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         title('$dJ/dB$','interpreter','latex');
-
+        cl=clim;
+        if min(cl) <0 && max(cl)> 0
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+        else
+            CM=cmocean('balanced',25) ; colormap(fig,CM);
+        end
     end
 
 
@@ -782,41 +796,10 @@ else
 
             %% B
 
-            figB=FindOrCreateFigure("True and estimated B"); clf(figB)
-            TB=tiledlayout(2,3) ;
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
-            title("True B")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
-            title("Retrieved B")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
-            title("B estimated - B true")
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); % how to apply individual colormap to each tile?
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
-            title("B at start of current inversion")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
-            title("B prior")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
-            title("Retrieved B -  Prior B ")
-
-
-           % figB.Position=[200 200 1300 800];
-            TB.TileSpacing="tight";
-            TB.Padding="tight";
-           %colormap(othercolor("Mdarkterrain",32))
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); % how to apply individual colormap to each tile?
-            %%
+            PlotBedrockInversionFields(CtrlVar,MUA,F,Priors,InvFinalValues,InvStartValues)
+            
+            
+          
         end
 
         if ~isempty(Priors.Trueh)

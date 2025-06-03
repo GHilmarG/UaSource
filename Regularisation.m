@@ -398,7 +398,8 @@ else  % Tikhonov regularization
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
             
 
-            Berr=sqrt(spdiags(Meas.BCov));
+            Berr=sqrt(spdiags(Meas.BCov));  
+                                          
             Bres=(F.B-Meas.B)./Berr;
             RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
             dRdBmeas=(MUA.M*Bres)./Berr/Area;

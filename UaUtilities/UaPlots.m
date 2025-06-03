@@ -348,7 +348,9 @@ else
            
            scale=0.1 ; 
            LineWidth=1; 
-           nStride=10;
+           nLocationsPlotted=10;
+           nLocations=ceil(size(xint,1));
+           nStride=nLocations/nLocationsPlotted; 
            xint=xint(1:nStride:end,1);
            yint=yint(1:nStride:end,1);
            exx=exx(1:nStride:end,1);

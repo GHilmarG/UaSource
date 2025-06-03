@@ -8,12 +8,12 @@ nargoutchk(10,10)
 fprintf(CtrlVar.fidlog,' Inverse run: loading restart file: %s \t ',CtrlVar.Inverse.NameOfRestartInputFile);
 
 load(CtrlVar.Inverse.NameOfRestartInputFile,...
-    'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo',...
+    'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','l','RunInfo',...
     'InvStartValues','Priors','Meas','BCsAdjoint','InvFinalValues');
 
 fprintf(CtrlVar.fidlog,' done \n ');
 
-F.GF=GF;
+
 F.time=CtrlVar.time ; 
 
 LastRunInfo=RunInfo;
@@ -84,17 +84,10 @@ end
 
 
 % [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint]=DefineModificationsToInverseRestartRunData(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint) ; 
-% [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineModificationsToInverseRestartRunData(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo) ;
+[UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineModificationsToInverseRestartRunInputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo) ;
 
 % ;
 % 
-
-
-% %% TestIng
-% BCsAdjoint.ubFixedNode=MUA.Boundary.Nodes ;   BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedNode*0;
-% BCsAdjoint.vbFixedNode=MUA.Boundary.Nodes ;   BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedNode*0;
-% figure ; PlotBoundaryConditions(CtrlVar,MUA,BCsAdjoint) ;
-% %%
 
 
 
