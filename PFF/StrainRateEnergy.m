@@ -11,7 +11,7 @@ exy=0.5*(dudy+dvdx);
 
 eInt=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
 
-e=ProjectFintOntoNodes(MUA,eInt);
+e=ProjectFintOntoNodes(CtrlVar,MUA,eInt);
 e(e<0)=0; 
 
 

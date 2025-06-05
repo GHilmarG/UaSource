@@ -2423,7 +2423,7 @@ CtrlVar.PhaseFieldFracture.UpdateRatio=0.5;
 CtrlVar.PhaseFieldFracture.MaxMeshRefinements=5;   % max number of mesh refinements per phi solve where phi is not updated 
 CtrlVar.PhaseFieldFracture.MaxUpdates=100;           % number of updates in phi and Psi
 CtrlVar.PhaseFieldFracture.RiftsAre="-thin ice above inviscid water-"; 
-
+CtrlVar.PhaseFieldFracture.isDefineF=false; % this is true when using the drivers, temporary approach 
 
 
 %%

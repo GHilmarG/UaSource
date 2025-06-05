@@ -90,6 +90,7 @@ arguments
     options.MeshColor char="k"
     options.logColorbar=false;
     options.Plot string = ""
+    
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
     % options.ColorMap double=othercolor("Mlightterrain",1028)

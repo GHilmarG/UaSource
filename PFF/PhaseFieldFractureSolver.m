@@ -176,7 +176,7 @@ while true % phi "evolution" loop, ie here the driving term Psi is updated
         [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ;
     
 
-        isDefineF=false;  % this is the option I'm using with the drivers
+        isDefineF=CtrlVar.PhaseFieldFracture.isDefineF ; % I currently use this with the PFF drivers
         if isDefineF
 
             Fnew=DefineF(UserVar,CtrlVar,MUAnew) ;
@@ -206,9 +206,9 @@ while true % phi "evolution" loop, ie here the driving term Psi is updated
         break
     end
 
-    % if dphiNorm < 1e-15
-    %      break
-    % end
+    if dphiNorm < 1e-5  % for the time being this is hardwired
+         break
+    end
 
    PlotTitle=sprintf("phi loop %i, mesh refinement %i",iphiUpdate,iMeshRefinements) ;
    [F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi

@@ -1,6 +1,6 @@
 
 function ghg_arrow(x,y,vx,vy,velscale,headscale,sharp,head,col,lw,io,xyratio)
-                   1 2  3  4     5        6       7     8   9  10 11  12
+                   
 [nx,ny]=size(x);
 
 if nx ==1

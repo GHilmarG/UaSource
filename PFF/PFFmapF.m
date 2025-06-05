@@ -24,7 +24,8 @@ Fnew.h0=Fnew.h;
 hf=Fnew.rhow.*(Fnew.S-Fnew.B)./Fnew.rho0 ;
 Fnew.GF.node = HeavisideApprox(CtrlVar.kH,Fnew.h0-hf,CtrlVar.Hh0);  % 1 if grounded, 0 if afloat
 
-[UserVar,Fnew.C,Fnew.m,Fnew.q,Fnew.muk,Fnew.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
+%[UserVar,Fnew.C,Fnew.m,Fnew.q,Fnew.muk,Fnew.V0]=DefineSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
+[UserVar,Fnew.C,Fnew.m]=DefineSlipperyDistribution(UserVar,CtrlVar,MUAnew,Fnew);
 
 OutsideValues=[];
 [RunInfo,Fnew.ub,Fnew.vb,Fnew.phi]=MapNodalVariablesFromMesh1ToMesh2(CtrlVar,RunInfo,MUAold,MUAnew,OutsideValues,F.ub,F.vb,F.phi);
