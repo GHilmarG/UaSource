@@ -172,6 +172,7 @@ while true % phi "evolution" loop, ie here the driving term Psi is updated
 
         end
 
+        
         CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; CtrlVar.InfoLevelAdaptiveMeshing=1;
         [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ;
     
