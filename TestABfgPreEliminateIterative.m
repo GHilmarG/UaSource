@@ -31,6 +31,8 @@
 %
 % Using single precision on GPU causes convergence issues and does not speed things up (most likely problem dependent).
 %
+% The surprising thing is that the ilu takes longer than a direct solve...?!
+%
 %%
 
 NumWorkers=8 ;

@@ -4,7 +4,7 @@
 
 
 
-function [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0)
+function [x,y,tolA,tolB,L,U,P,perm,xtilde,Q2,D]=ABfgPreEliminateIterative(CtrlVar,A,B,f,g,x0,y0,L,U,P,perm,xtilde0,Q2,D)
 
 %%
 %
@@ -12,8 +12,8 @@ function [x,y,tolA,tolB,L,U,P,perm,xtilde]=ABfgPreEliminateIterative(CtrlVar,A,B
 %
 %
 
-nargoutchk(9,9)
-narginchk(12,12)
+nargoutchk(11,11)
+narginchk(14,14)
 
 persistent nCalls
 
@@ -36,6 +36,10 @@ if nargin<6
     y0=[];
 end
 
+if nargin < 13
+    Q=[];
+    D=[];
+end
 
 %%
 
@@ -70,13 +74,11 @@ end
 setup.type = "nofill"; setup.milu = "off";
 tol=1e-13 ; maxit=5; restart=50;   % quick for testing purposes
 
-% takes forever
-% setup.type = "crout"; setup.milu = "off"; setup.droptol = 1e-6 ; 
-% tol=1e-13 ; maxit=5; restart=5;   % quick for testing purposes
-
-setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-4;    setup.udiag=0 ;  
-%setup.type = "nofill"; setup.milu = "off"; setup.droptol = 0;    setup.udiag=0 ;  % ilu nofill option much faster, but convergence is also much worse
-tol=1e-6 ; maxit=25; restart=10;   % quick for testing purposes
+% The puzzling thing is that ilu very often takes longer than a full LU factorization  ... ?! 
+ setup.type = "crout"; setup.milu = "off"; setup.droptol = 1 ;     % takes forever 
+%setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-4;    setup.udiag=0 ;  % generally converges but is relatively slow
+% setup.type = "nofill"; setup.milu = "off" ;  % fast, but generally does not converge
+tol=1e-6 ; restart=10;   % quick for testing purposes
 
 IterationsMax=1000;
 maxit=ceil(IterationsMax/restart);
@@ -142,7 +144,10 @@ else
 
         tdissectAtilde=tic;
         if isempty(perm)  % If the matrix has the same sparsity structure, then I don't need to do the permutation again
-            perm=dissect(Atilde);  % does not work for distributed or gpuArray
+
+            % increasing the number of separators and iterations only slows things down, and does not appear to speed up the LU
+            % further.
+            perm=dissect(Atilde,NumSeparators=1,NumIterations=10);  % does not work for distributed or gpuArray
 
             % The nested dissection algorithm produces high quality reordering and performs particularly well with finite element
             % matrices compared to other reordering techniques. For more information about the nested dissection ordering
@@ -162,14 +167,36 @@ else
         % can't use setup.type = "ilutp" with distributed arrays
         % but even for setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 1e-6;    setup.udiag=0 ;
         % using distributed arrays is slower...
+      
         tluinc=tic;
         if isempty(L)
-            [L,U,P] = ilu(Atilde,setup);
+             [L,U,P] = ilu(Atilde,setup);
+             % [L,U,P] = lu(Atilde) ;  % as hoped, this gives correct solution in one iteration
+             % [L,U,P,Q2,D] = lu(Atilde) ;  % as hoped, this gives correct solution in one iteration, works (presumably can be
+             % sped up my using permutation vectors) 
+        
         end
         tluinc=toc(tluinc);
 
         if setup.type == "ilutp"
-            Atilde=P*Atilde ; btilde=P*btilde;
+            if isempty(Q2) && isempty(D)
+                Atilde=P*Atilde ; btilde=P*btilde;
+            else
+
+                % A x = b 
+                % P D^{-1} A Q = L U 
+                % D P' L U Q' x = b
+                % xnew = Q' x - > L U xnew = bnew 
+                % bnew -> P D\btilde
+                %
+                %  L U xnew = bnew
+                %
+                Atilde=P*(D\Atilde)*Q2 ; 
+                btilde=P*(D\btilde) ; 
+                % after solve x= Q xnew
+
+
+            end
         end
 
         %fprintf("norm(Atilde-L*U)/norm(Atilde)=%g \n",norm(Atilde-L*U,"fro")/norm(Atilde,"fro"))
@@ -207,11 +234,25 @@ else
 
 
              tgmresGPU=tic;
+             if ~isfield(CtrlVar,"ItSolver")
+                 CtrlVar.ItSolver="-bicgstab-";
+             end
 
-             %[xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0gpu);      FigTitle="gmres (GPU) ";
-             % [xtilde,flag,relresGPU,iter,resvecGPU]=qmr(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);       FigTitle="qmr (GPU) ";
-             [xtilde,flag,relresGPU,iter,resvecGPU]=bicgstab(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);    FigTitle="bicgstab (GPU) ";
-             
+             switch CtrlVar.ItSolver
+                 case "-gmres-"
+                     [xtilde,flag,relresGPU,iter,resvecGPU]=gmres(AtildeGPU,btildeGPU,restart,tol,maxit,Lgpu,Ugpu,xtilde0gpu);      FigTitle="gmres (GPU) ";
+                 case "-qmr-"
+                     [xtilde,flag,relresGPU,iter,resvecGPU]=qmr(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);       FigTitle="qmr (GPU) ";
+                 case "-bicgstab-"
+                     [xtilde,flag,relresGPU,iter,resvecGPU]=bicgstab(AtildeGPU,btildeGPU,tol,IterationsMax,Lgpu,Ugpu,xtilde0gpu);    FigTitle="bicgstab (GPU) ";
+                 otherwise
+                     error("case not found")
+             end
+
+             if ~isempty(Q2)
+                  xtilde=Q2*xtilde;
+              end
+
              x=xtilde(iperm) ;
              tgmresGPU=toc(tgmresGPU);
              tgmresCPU=nan; 
@@ -268,8 +309,8 @@ else
 
             fprintf("                   dissect Atilde %f sec\n",tdissectAtilde)
             fprintf("                              ilu %f sec\n",tluinc)
-            fprintf("                         CPU gmres %f sec\n",tgmresCPU)
-            fprintf("                         GPU gmres %f sec\n",tgmresGPU)
+            fprintf("                         CPU %s %f sec\n",CtrlVar.ItSolver,tgmresCPU)
+            fprintf("                         GPU %s %f sec\n",CtrlVar.ItSolver,tgmresGPU)
             fprintf("total time for iterative solution %f sec\n",tCPUtotal)
 
             if CtrlVar.InfoLevelLinSolve>=100
