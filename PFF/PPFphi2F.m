@@ -3,6 +3,34 @@
 
 function  [AE,rhoE,sE,bE,hE,GF]=PPFphi2F(CtrlVar,MUA,F)
 
+%%  Maps phase field variable (F.phi) to A, rho, s, h and GF  
+%
+% $A$ and $\rho$
+%
+% $$A=A_0/g_{\phi}^n $$
+%
+% $$\rho=g_{\phi} \rho_0 + (1-g_{\phi} ) \rho_w $$
+%
+%
+% Then there are two options for the ice thickness $h$
+%
+%
+% Thin ice above inviscid water:
+%
+% $$h=g_{\phi} h_0 $$ 
+%
+%
+% or as viscous water columns:
+%
+% $$ h=(S-b_0) \rho_w/\rho $$
+%
+% where $g_{\phi}$ is the degradation function.
+%
+% $$ g_{\phi}=(1-k) (1-\phi)^2 + k $$
+%
+% where $k$ is a regularization parameter.
+%
+%
 % use:
 %
 % F.rho0
@@ -11,6 +39,8 @@ function  [AE,rhoE,sE,bE,hE,GF]=PPFphi2F(CtrlVar,MUA,F)
 % F.h0
 %
 %
+%%
+
 
 phi=F.phi;
 A0=F.AGlen0;

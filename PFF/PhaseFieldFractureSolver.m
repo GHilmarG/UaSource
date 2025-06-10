@@ -31,16 +31,25 @@ function [MUA,BCs,BCsphi,F]=PhaseFieldFractureSolver(UserVar,RunInfo,CtrlVar,MUA
 %%
 
 
-clear PFFPlots
+
 CtrlVar.Parallel.BuildWorkers=true;
 MUA=UpdateMUA(CtrlVar,MUA) ; 
 
 % currently only spatially constant intact A (ie F.AGlen0), and rhoi allowed
-F.AGlen=zeros(MUA.Nnodes,1)+mean(F.AGlen); 
-F.rho=zeros(MUA.Nnodes,1) + 920 ; 
 
+isAconstant=all(F.AGlen==F.AGlen(1));
+isrhoConstant=all(F.rho==F.rho(1));
 
-F.AGlen0=F.AGlen(1); 
+if isAconstant && isrhoConstant
+    F.AGlen=zeros(MUA.Nnodes,1)+mean(F.AGlen);
+    F.rho=zeros(MUA.Nnodes,1) + 920 ;
+else
+
+    error("PhaserFieldFractureSolver:AnotConstant","Currently undamaged A and rho must be constant in the phase field sover.")
+
+end
+
+F.AGlen0=F.AGlen(1);
 F.rho0=F.rho(1); 
 F.b0=F.b ;
 F.h0=F.h ;
@@ -62,6 +71,7 @@ end
 % Make initial phi feasible
 BCsphi=BoundaryConditions;
 CtrlVar.BCs="-phi-" ;
+fprinft("Getting BCs for the phase field (phi) \n ")
 [UserVar,BCsphi]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCsphi,F) ;
 
 F.phi(BCsphi.hFixedNode)=BCsphi.hFixedValue;
@@ -85,7 +95,7 @@ lm=UaLagrangeVariables ;
 [F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
 PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle) ;
 
-while true % phi "evolution" loop, ie here the driving term Psi is updated
+while true % phi "evolution" loop, i.e. here the driving term Psi is updated
 
     iMeshRefinements=0 ;
     iphiUpdate= iphiUpdate + 1;
@@ -106,8 +116,7 @@ while true % phi "evolution" loop, ie here the driving term Psi is updated
         %% Solve uv problem: this depends only on phi from the (previous) phase-field solution
         %
         %
-        % [F.AGlen,F.rho]=ArhoPFF(CtrlVar,F.phi,F.rho0,F.rhow,F.AGlen0,n) ;
-        % [F.s,F.h]=sPFF(CtrlVar,F.S,F.b0,F.rho0,F.rhow,F.phi);  % redefine upper surface s, to reflect changes in effective density
+   
         [F.AGlen,F.rho,F.s,F.b,F.h,F.GF]=PPFphi2F(CtrlVar,MUA,F) ;
         [UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;
      
