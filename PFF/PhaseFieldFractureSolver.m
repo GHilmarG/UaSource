@@ -226,7 +226,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         break
     end
 
-    if dphiNorm < 1e-5  % for the time being this is hardwired
+    if dphiNorm < 1e-4  % for the time being this is hardwired
          break
     end
 

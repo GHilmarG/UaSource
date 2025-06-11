@@ -31,17 +31,26 @@ FindOrCreateFigure("BCs Phi") ; PlotBoundaryConditions(CtrlVar,MUA,BCsphi);
 hold on ; plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
-UaPlots(CtrlVar,MUA,F,F.AGlen,FigureTitle="A Effective") ; set(gca,'ColorScale','log')
+if CtrlVar.PhaseFieldFracture.Formulation=="-elastic-" 
+FigTitle="Effective Shear Modulus (G)";
+else
+    FigTitle="Effective rate factor (A)";
+end
+
+UaPlots(CtrlVar,MUA,F,F.AGlen,FigureTitle=FigTitle) ; 
+
+
+set(gca,'ColorScale','log')
 hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
 title(sprintf("$A$ ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 
 %% uv 
-uvVideoFile="uv-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+uvVideoFile="uv-"+UserVar.Experiment+UserVar.VideoFileName;
 if CtrlVar.PhaseFieldFracture.Video
     if isempty(uvVideo)
-        uvVideo=VideoWriter(uvVideoFile) ;
+        uvVideo=VideoWriter(uvVideoFile,"MPEG-4") ;
         uvVideo.FrameRate=1;
         open(uvVideo)
     end
@@ -70,12 +79,12 @@ if CtrlVar.PhaseFieldFracture.Video
 end
 %% phi
 
-phiVideoFile="phi-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+phiVideoFile="phi-"+UserVar.Experiment+UserVar.VideoFileName;
 
 
 if CtrlVar.PhaseFieldFracture.Video
     if isempty(phiVideo)
-        phiVideo=VideoWriter(phiVideoFile) ;
+        phiVideo=VideoWriter(phiVideoFile,"MPEG-4")  ;
         phiVideo.FrameRate=1;
         open(phiVideo)
     end
@@ -119,11 +128,11 @@ end
 %% Mesh
 
 
-MeshVideoFile="Mesh-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+MeshVideoFile="Mesh-"+UserVar.Experiment+UserVar.VideoFileName;
 
 if CtrlVar.PhaseFieldFracture.Video
     if isempty(MeshVideo)
-        MeshVideo=VideoWriter(MeshVideoFile) ;
+        MeshVideo=VideoWriter(MeshVideoFile,"MPEG-4") ;
         MeshVideo.FrameRate=1;
         open(MeshVideo)
     end
@@ -178,10 +187,10 @@ end
 % xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 %%
-eVideoFile="e-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+eVideoFile="e-"+UserVar.Experiment+UserVar.VideoFileName;
 if CtrlVar.PhaseFieldFracture.Video
     if isempty(eVideo)
-        eVideo=VideoWriter(eVideoFile) ;
+        eVideo=VideoWriter(eVideoFile,"MPEG-4") ; 
         eVideo.FrameRate=1;
         open(eVideo)
     end
