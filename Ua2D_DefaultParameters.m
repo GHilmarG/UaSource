@@ -2415,7 +2415,7 @@ CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}
 %
 
 %%  Phase field fracture
-
+CtrlVar.PhaseFieldFracture.Phase="-elastic-"; 
 CtrlVar.PhaseFieldFracture.Gc=1e5;  
 CtrlVar.PhaseFieldFracture.l=10e3;
 CtrlVar.PhaseFieldFracture.k=1e-3; % regularization parameter

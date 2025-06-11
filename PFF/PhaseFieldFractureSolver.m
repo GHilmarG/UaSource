@@ -45,7 +45,7 @@ if isAconstant && isrhoConstant
     F.rho=zeros(MUA.Nnodes,1) + 920 ;
 else
 
-    error("PhaserFieldFractureSolver:AnotConstant","Currently undamaged A and rho must be constant in the phase field sover.")
+    error("PhaserFieldFractureSolver:AnotConstant","Currently undamaged A and rho must be constant in the phase field solver.")
 
 end
 
@@ -71,7 +71,7 @@ end
 % Make initial phi feasible
 BCsphi=BoundaryConditions;
 CtrlVar.BCs="-phi-" ;
-fprinft("Getting BCs for the phase field (phi) \n ")
+fprintf("Getting BCs for the phase field (phi) \n ")
 [UserVar,BCsphi]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCsphi,F) ;
 
 F.phi(BCsphi.hFixedNode)=BCsphi.hFixedValue;
@@ -91,8 +91,14 @@ CtrlVar.PhaseFieldFracture.MeshRefinement=0;
 
 PlotTitle="initial configuration" ;
 lm=UaLagrangeVariables ;
-[UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;
-[F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
+
+
+%% Initial solve for velocities using the initial phase field 
+%  This would typically be at the start of the run where phi=0 everywhere, i.e. undamaged material.
+%
+F=PPFphi2F(CtrlVar,MUA,F) ;           % Map from phi over to material parameters
+[UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;   % Now solve for velocities
+[F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ;            % Update Psi
 PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle) ;
 
 while true % phi "evolution" loop, i.e. here the driving term Psi is updated
@@ -117,7 +123,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         %
         %
    
-        [F.AGlen,F.rho,F.s,F.b,F.h,F.GF]=PPFphi2F(CtrlVar,MUA,F) ;
+        F=PPFphi2F(CtrlVar,MUA,F) ;
         [UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;
      
         %%
@@ -132,6 +138,8 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         [F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
 
         phiLast=F.phi;
+
+        % Now solve the phase-field equation to arrive at a new phi field
         [UserVar,F.phi]=PFFequation(UserVar,CtrlVar,MUA,BCsphi,Gc,l,F.Psi);
     
         F.phi(F.GF.node > 0.5 )=0 ; % Here manually resetting damage to zero over grounded areas
@@ -165,6 +173,8 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         Tarea=TriAreaFE(MUA.coordinates,MUA.connectivity);
         EleSize=sqrt(Tarea);
 
+        % For the time being, the mesh-refinement criterion is hard-wired in the code.
+        % 
         ElementsToBeRefined   = ( phiEle > 0.5 )  &  ( EleSize > EleSizeMin ) ;
         ElementsToBeCoarsened = ( phiEle < 0.5 )  ; 
 

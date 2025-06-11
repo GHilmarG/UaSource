@@ -14,11 +14,7 @@ function [UserVar,CtrlVar]=GetInitialInputs(UserVar,CtrlVar,varargin)
     
     InputFile="DefineInitialInputs.m" ;
     TestIfInputFileInWorkingDirectory(InputFile) ;
-    
-    
-    
-    % Get user-defined parameter values
-    %  CtrlVar,UsrVar,Info,UaOuts
+
     if nargin("DefineInitialInputs.m")>2
         [UserVar,CtrlVar,MeshBoundaryCoordinates]=DefineInitialInputs(UserVar,CtrlVar,varargin{:});
     else

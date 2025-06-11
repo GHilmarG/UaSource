@@ -38,7 +38,7 @@ function [fig,FigFound]=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 
 persistent nFigs FigsArray
 
-R25=isMATLABReleaseOlderThan("R2025a") ;
+isOlderThanR25=isMATLABReleaseOlderThan("R2025a") ;
 
 
 NumberOfInputArguments=nargin ;
@@ -92,7 +92,7 @@ if isempty(fig)
 
     %% Positions
     if NumberOfInputArguments>1 && ~isempty(Position)
-        if R25
+        if isOlderThanR25
             fig.Position=Position;
         end
     else
@@ -104,7 +104,7 @@ if isempty(fig)
         ny=mod(mod(nFigs,Nx*Ny),Ny);
         % nx=0;
 
-        if R25
+        if isOlderThanR25
             fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
         end
         nFigs=nFigs+1;
@@ -119,7 +119,7 @@ else
     end
 
     Position=fig.Position;
-    if R25
+    if isOlderThanR25
         fig.Position=Position;
     end
     hold off

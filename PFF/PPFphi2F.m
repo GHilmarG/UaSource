@@ -1,9 +1,16 @@
 
 
 
-function  [AE,rhoE,sE,bE,hE,GF]=PPFphi2F(CtrlVar,MUA,F)
+function  F=PPFphi2F(CtrlVar,MUA,F)
 
-%%  Maps phase field variable (F.phi) to A, rho, s, h and GF  
+%%  Maps phase field variable (F.phi) to A, n, rho, s, h and GF  
+%
+%
+% $\phi$ is the phase-field variable.
+%
+% $\phi=0$ for undamaged material 
+% $\phi=1$ for (fully) damaged material 
+%
 %
 % $A$ and $\rho$
 %
@@ -41,14 +48,42 @@ function  [AE,rhoE,sE,bE,hE,GF]=PPFphi2F(CtrlVar,MUA,F)
 %
 %%
 
+% Shear modulus G
+% Young modulus E
+% Poisson's ratio mu
+%
+%  epsilon = tau/(2 G)
+%
+% G= E/(2*(1+mu)) = E/(2*(1+1/2)) = E/3
+
+nargoutchk(1,1)
+
+
+if CtrlVar.PhaseFieldFracture.Phase=="-elastic-"
+
+    % Solving the elastic problem to determine energy release and the resulting phase field 
+    % E=9 GPa = 9e6 kPa
+    E=9.5e6 ;
+    mu=0.5 ; 
+    G= E/(2*(1+mu)) ;
+    A0=G+zeros(MUA.Nnodes,1);
+    n=1+zeros(MUA.Nnodes,1);
+
+
+else
+
+    A0=F.AGlen0;
+    n=F.n;
+
+end
 
 phi=F.phi;
-A0=F.AGlen0;
+
 rhoi0=F.rho0;
 h0=F.h0;
 b0=F.b0;
-rhow=F.rhow ; 
-n=F.n; 
+rhow=F.rhow ;
+
 S=F.S;
 B=F.B;
 
@@ -85,5 +120,16 @@ end
 hE=h0.*F.GF.node + (1-F.GF.node).*hE; 
 
 [bE,sE,hE,GF]=Calc_bs_From_hBS(CtrlVar,MUA,hE,S,B,rhoE,rhow) ; 
+
+
+%% Here I do all of the modifications to F
+F.AGlen=AE;
+F.n=n; 
+F.rho=rhoE;
+F.s=sE;
+F.b=bE;
+F.h=hE;
+F.GF=GF;
+%%
 
 end

@@ -179,7 +179,7 @@ switch CtrlVar.MeshRefinementMethod
         if isMeshChangedSufficiently
             fprintf('In local mesh-refinement step the change in the number of elements and nodes was %i and %i, respectivily  (#R/#C)=(%i/%i). \n',...
                 Eb-Ea,Nb-Na,nRefine,nCoarsen)
-            % This will also change the element type back to 6 adn 10 nodes if required
+            % This will also change the element type back to 6 and 10 nodes if required
             MUAnew=CreateMUA(CtrlVar,mesh.elements,mesh.coordinates,mesh);
             
         else
