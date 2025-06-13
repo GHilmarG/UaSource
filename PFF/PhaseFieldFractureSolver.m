@@ -98,8 +98,8 @@ lm=UaLagrangeVariables ;
 %
 F=PPFphi2F(CtrlVar,MUA,F) ;           % Map from phi over to material parameters
 [UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;   % Now solve for velocities
-[F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ;            % Update Psi
-PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle) ;
+[F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,F.AGlen0) ;            % Update Psi
+PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video);
 
 while true % phi "evolution" loop, i.e. here the driving term Psi is updated
 
@@ -135,7 +135,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         CtrlVar.BCs="-phi-" ; 
         [UserVar,BCsphi]= GetBoundaryConditions(UserVar,CtrlVar,MUA,BCsphi,F); 
 
-        [F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
+        [F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
 
         phiLast=F.phi;
 
@@ -157,7 +157,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
 
         F.phi= CtrlVar.PhaseFieldFracture.UpdateRatio*F.phi+(1- CtrlVar.PhaseFieldFracture.UpdateRatio)*phiLast;
         
-        PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle) ;
+        PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video);
 
 
         iMeshRefinements=iMeshRefinements+1;
@@ -223,21 +223,26 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
     
 
     if iphiUpdate > nphiUpdates
+        fprintf("Exiting phi solve loop as phi updates greater than max number of updates .\n")
+
         break
     end
 
-    if dphiNorm < 1e-4  % for the time being this is hardwired
+    if dphiNorm < 1e-2  % for the time being this is hardwired
+        fprintf("Exiting phi solve loop as dphiNorm meets tolerance.\n")
          break
     end
 
    PlotTitle=sprintf("phi loop %i, mesh refinement %i",iphiUpdate,iMeshRefinements) ;
-   [F.Psi,e,eInt]=StrainRateEnergy(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
-   PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle) ;
+   [F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
+   PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video);
 
     drawnow
 
 end
 
+
+PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video,CloseVideos=true) ;
 
 
 FindOrCreateFigure("Dphi"); 

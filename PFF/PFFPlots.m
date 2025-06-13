@@ -1,10 +1,31 @@
 
-function PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,phi,Psi,e,PlotTitle) 
+function PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,phi,Psi,e,PlotTitle,options) 
+
+
+
+
+arguments
+    UserVar struct
+    CtrlVar struct
+    MUA     struct
+    F       {mustBeA(F,{'struct','UaFields','numeric'})}
+    BCs     {mustBeA(BCs,{'struct','BoundaryConditions','numeric'})}
+    BCsphi  {mustBeA(BCsphi,{'struct','BoundaryConditions','numeric'})}
+    phi     (:,1) {mustBeNumeric}
+    Psi     (:,1) {mustBeNumeric}
+    e       (:,1) {mustBeNumeric}
+    PlotTitle string=""
+    options.CreateVideos logical=false
+    options.CloseVideos logical=false
+
+end
+
 
 
 persistent phiVideo MeshVideo uvVideo eVideo
 
 narginchk(10,10)
+
 
 if ~isfield(CtrlVar.PhaseFieldFracture,"Video")
     CtrlVar.PhaseFieldFracture.Video=false;
@@ -48,7 +69,7 @@ xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") 
 
 %% uv 
 uvVideoFile="uv-"+UserVar.Experiment+UserVar.VideoFileName;
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(uvVideo)
         uvVideo=VideoWriter(uvVideoFile,"MPEG-4") ;
         uvVideo.FrameRate=1;
@@ -68,9 +89,9 @@ hold on ; PlotMuaBoundary(CtrlVar,MUA,"b")
 axis tight 
 %vel.Position=[900 70 1200 1200]; 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     CurFig=gcf; CurFig.Position=[900 70 1200 1200];
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
+    if options.CloseVideos 
         close(uvVideo)
     else
         frame=getframe(gcf);
@@ -82,7 +103,7 @@ end
 phiVideoFile="phi-"+UserVar.Experiment+UserVar.VideoFileName;
 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(phiVideo)
         phiVideo=VideoWriter(phiVideoFile,"MPEG-4")  ;
         phiVideo.FrameRate=1;
@@ -110,16 +131,11 @@ title(Tphi,Interpreter="latex")
 subtitle(PlotTitle,Interpreter="latex");
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex")
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
 
     CurFig=gcf; CurFig.Position=[25 70 1200 1200]; axis tight
-
-
-
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
-
+    if options.CloseVideos 
         close(phiVideo)
-
     else
         frame=getframe(gcf);
         writeVideo(phiVideo,frame) ;
@@ -130,7 +146,7 @@ end
 
 MeshVideoFile="Mesh-"+UserVar.Experiment+UserVar.VideoFileName;
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(MeshVideo)
         MeshVideo=VideoWriter(MeshVideoFile,"MPEG-4") ;
         MeshVideo.FrameRate=1;
@@ -147,12 +163,12 @@ title(sprintf("Mesh ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex")
 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
 
     CurFig=gcf; CurFig.Position=[25 70 1200 1200]; axis tight
 
 
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
+    if options.CloseVideos
 
         close(MeshVideo)
 
@@ -188,7 +204,7 @@ end
 
 %%
 eVideoFile="e-"+UserVar.Experiment+UserVar.VideoFileName;
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(eVideo)
         eVideo=VideoWriter(eVideoFile,"MPEG-4") ; 
         eVideo.FrameRate=1;
