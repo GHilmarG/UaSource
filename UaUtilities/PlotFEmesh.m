@@ -176,7 +176,7 @@ else
 end
 
 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel)
-axis equal
+axis equal padded
 
 end
 

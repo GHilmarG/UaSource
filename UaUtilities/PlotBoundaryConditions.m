@@ -199,6 +199,7 @@ if ~isempty(ubvbFixedNodes)
     end
 end
 
+axis equal padded
 
 if nargout==0
     clearvars lgd

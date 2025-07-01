@@ -291,7 +291,7 @@ figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
 CtrlVar=Ua2D_DefaultParameters(); 
 CtrlVar.PlotXYscale=1; 
 CtrlVar.MeshGenerator='gmsh';  
-% CtrlVar.MeshGenerator='mesh2d';  
+CtrlVar.MeshGenerator='mesh2d';  
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=1;
 
 CtrlVar.MeshSizeMax=0.1; CtrlVar.MeshSize=0.1;
