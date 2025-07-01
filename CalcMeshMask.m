@@ -34,20 +34,20 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 %
 % Example: Create a mask based on ice thickness above and below 100. 
 %
-%   load PIG-TWG-RestartFile.mat
-%   CtrlVar=CtrlVarInRestartFile;
-%   Mask=CalcMeshMask(CtrlVar,MUA,F.h,100); 
-% 
-%   FindOrCreateFigure("Nodal Mask") ; 
-%   CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
-%   PlotMuaMesh(CtrlVar,MUA) ; 
-%   hold on ; 
-%   x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ; 
-%   p1=plot(x(Mask.NodesIn)/CtrlVar.PlotXYscale,y(Mask.NodesIn)/CtrlVar.PlotXYscale,'or','DisplayName','In');
-%   p2=plot(x(Mask.NodesOn)/CtrlVar.PlotXYscale,y(Mask.NodesOn)/CtrlVar.PlotXYscale,'og','DisplayName','On');
-%   p3=plot(x(Mask.NodesOut)/CtrlVar.PlotXYscale,y(Mask.NodesOut)/CtrlVar.PlotXYscale,'ob','DisplayName','Out');
-%   legend([p1 p2 p3])
-% 
+  % load PIG-TWG-RestartFile.mat
+  % CtrlVar=CtrlVarInRestartFile;
+  % Mask=CalcMeshMask(CtrlVar,MUA,F.h,100); 
+  % 
+  % FindOrCreateFigure("Nodal Mask") ; 
+  % CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+  % PlotMuaMesh(CtrlVar,MUA) ; 
+  % hold on ; 
+  % x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ; 
+  % p1=plot(x(Mask.NodesIn)/CtrlVar.PlotXYscale,y(Mask.NodesIn)/CtrlVar.PlotXYscale,'or','DisplayName','In');
+  % p2=plot(x(Mask.NodesOn)/CtrlVar.PlotXYscale,y(Mask.NodesOn)/CtrlVar.PlotXYscale,'og','DisplayName','On');
+  % p3=plot(x(Mask.NodesOut)/CtrlVar.PlotXYscale,y(Mask.NodesOut)/CtrlVar.PlotXYscale,'ob','DisplayName','Out');
+  % legend([p1 p2 p3])
+
 %
 % 
 %%
