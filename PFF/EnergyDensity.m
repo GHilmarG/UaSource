@@ -10,7 +10,9 @@
 
 
 
-function [Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,A0)
+function [Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F)
+
+narginchk(3,3)
 
 
 %% 
