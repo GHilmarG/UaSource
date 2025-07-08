@@ -10,7 +10,7 @@
 
 
 
-function [Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F)
+function [Psi,e]=EnergyDensity(CtrlVar,MUA,F)
 
 narginchk(3,3)
 
@@ -96,6 +96,8 @@ eyy=dvdy;
 exy=0.5*(dudy+dvdx);
 % ezz=-(exx+eyy) ;
 
+e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
+
 K=1./(2*F.AGlen);   % Here I use the degraded A (i.e. shear modulus, G) 
 txx=2*K.*exx;
 tyy=2*K.*eyy;
@@ -105,6 +107,10 @@ txy=2*K.*exy;
 Psi=(2*txx+tyy).*exx+(txx+2*tyy).*eyy+2*txy.*txy ; 
 Psi(Psi<0)=0; 
 
+return
+
+%% Boundary traction calculations:
+% As far as I can see, calculating the work of boundary tractions is not needed
 Txy= 0.25*F.rho.*F.g.*(1-F.rho./F.rhow).*F.h  ; 
 % Psi=2*A0.^(-1./F.n) .* e.^((F.n+1)./F.n) ; 
 

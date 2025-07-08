@@ -63,6 +63,8 @@ if CtrlVar.PhaseFieldFracture.Phase=="-elastic-"
 
     % Solving the elastic problem to determine energy release and the resulting phase field 
     % E=9 GPa = 9e6 kPa
+    % This is a work in progress, and at the moment the value of the elastic shear modulus is hardwired into the code at this
+    % place,
     E=9.5e6 ;
     mu=0.5 ; 
     G= E/(2*(1+mu)) ;

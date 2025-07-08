@@ -46,7 +46,6 @@ if isempty(l)
     l=UaLagrangeVariables; 
 end
 
-hOnInput=F.h; 
 
 
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -72,7 +71,7 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
-%hTiny=1e-10;
+
 if any(F.h<CtrlVar.ThickMin)
 
     indh0=find(F.h<CtrlVar.ThickMin);
@@ -82,9 +81,6 @@ if any(F.h<CtrlVar.ThickMin)
     if CtrlVar.ResetThicknessToMinThickness==0
         CtrlVar.ResetThicknessToMinThickness=1;
     end
-
-
-  %  CtrlVar.ThickMin=hTiny;
 
 
     fprintf('For the purpose of the uv solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)

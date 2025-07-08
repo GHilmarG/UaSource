@@ -98,7 +98,7 @@ lm=UaLagrangeVariables ;
 %
 F=PPFphi2F(CtrlVar,MUA,F) ;           % Map from phi over to material parameters
 [UserVar,RunInfo,F,lm]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,lm) ;   % Now solve for velocities
-[F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F) ;            % Update Psi
+[F.Psi,e]=EnergyDensity(CtrlVar,MUA,F) ;            % Update Psi
 PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video);
 
 while true % phi "evolution" loop, i.e. here the driving term Psi is updated
@@ -135,7 +135,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         CtrlVar.BCs="-phi-" ; 
         [UserVar,BCsphi]= GetBoundaryConditions(UserVar,CtrlVar,MUA,BCsphi,F); 
 
-        [F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
+        [F.Psi,e]=EnergyDensity(CtrlVar,MUA,F) ; % Update Psi
 
         phiLast=F.phi;
 
@@ -234,7 +234,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
     end
 
    PlotTitle=sprintf("phi loop %i, mesh refinement %i",iphiUpdate,iMeshRefinements) ;
-   [F.Psi,e,eInt]=EnergyDensity(CtrlVar,MUA,F,F.AGlen0) ; % Update Psi
+   [F.Psi,e]=EnergyDensity(CtrlVar,MUA,F) ; % Update Psi
    PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,F.phi,F.Psi,e,PlotTitle,CreateVideo=CtrlVar.PhaseFieldFracture.Video);
 
     drawnow

@@ -111,8 +111,8 @@ if options.CreateVideos
     end
 end
 
-figphi=FindOrCreateFigure("phi")  ; clf(figphi) ;
-cbar=UaPlots(CtrlVar,MUA,F,phi) ;
+figphi=FindOrCreateFigure("phi")  ; clf(figphi) ; 
+cbar=UaPlots(CtrlVar,MUA,F,phi,GroundingLineColor="k") ;
 CM=cmocean('-ice',150) ; colormap(CM);
 title(cbar,"$\phi$",interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;

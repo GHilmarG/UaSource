@@ -2415,7 +2415,9 @@ CtrlVar.Tracer.SUPG.tau='tau2' ; % {'tau1','tau2','taus','taut'}
 %
 
 %%  Phase field fracture
+% This is in development, do not use!
 CtrlVar.PhaseFieldFracture.Phase="-elastic-"; 
+CtrlVar.PhaseFieldFracture.Formulation="-elastic-"; % I think this is a duplication, get rid of later
 CtrlVar.PhaseFieldFracture.Gc=1e5;  
 CtrlVar.PhaseFieldFracture.l=10e3;
 CtrlVar.PhaseFieldFracture.k=1e-3; % regularization parameter
@@ -2425,7 +2427,7 @@ CtrlVar.PhaseFieldFracture.MaxUpdates=100;           % number of updates in phi 
 CtrlVar.PhaseFieldFracture.RiftsAre="-thin ice above inviscid water-"; 
 CtrlVar.PhaseFieldFracture.isDefineF=false; % this is true when using the drivers, temporary approach 
 
-
+CtrlVar.PhaseFieldFracture.Video=false;
 %%
 CtrlVar.fidlog=1;  % unit number for standard output, no need to change.
 
