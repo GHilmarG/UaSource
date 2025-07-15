@@ -7,9 +7,6 @@
 
 
 
-
-
-
 function [Psi,e]=EnergyDensity(CtrlVar,MUA,F)
 
 narginchk(3,3)
