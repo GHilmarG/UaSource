@@ -82,6 +82,7 @@
                 <tocitem target="CalculateReactions.html">Calculate nodal reactions due to applied boundary conditions.</tocitem>
                 <tocitem target="PathIntegral.html">Calculate fluxes normal and tangential to a path.</tocitem>
                 <tocitem target="Node2Int.html">Calculates integration point values, and the (x,y) coordinates of the integration points.</tocitem>
+                <tocitem target="ElementErrorEstimator.html">Element error indicator.</tocitem>
             </tocitem>
             <tocitem target="MeshingUtilities.html">Meshing Utilities 
                 <tocitem target="PrintInfoAboutElementsSizes.html">Calculate effective element sizes. </tocitem>

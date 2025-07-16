@@ -22,18 +22,18 @@ function R=ElementErrorEstimator(CtrlVar,MUA,F)
 %
 % Then L2 project the IP gradients onto nodal points (NP), and the integrate those over elements.
 %
-% Note: this is a provisional implementation...
+% 
 %
 %%
 
-eInt=StrainRatesInt(CtrlVar,MUA,F);
-eNode=ProjectFintOntoNodes(CtrlVar,MUA,eInt);
+eInt=StrainRatesInt(CtrlVar,MUA,F);               % Calculate effective strain rates at integration points
+eNode=ProjectFintOntoNodes(CtrlVar,MUA,eInt);     % Project onto nodes
 
-eIntEle=FEintegrate2D(CtrlVar,MUA,eInt);
+eIntEle=FEintegrate2D(CtrlVar,MUA,eInt);          % integrate effective strain rates using both integration and nodal values 
 eNodeEle=FEintegrate2D(CtrlVar,MUA,eNode);
 
 
-R=abs(eIntEle-eNodeEle);
+R=abs(eIntEle-eNodeEle);                          % Element-based error estimator 
 
 end
 
