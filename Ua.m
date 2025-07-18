@@ -63,19 +63,17 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % model runs. Most of the parameters of a given model run are defined by the
 % user through ` *user m-files'* that are called by Úa during the run.
 %
-%% User m-files :
+%% User m-files (not a complete list):
 % 
 % * DefineInitialUserInput.m
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
 % * DefineBoundaryConditions.m 
-% * DefineGeometry.m
-% * DefineDensities.m
+% * DefineGeometryAndDensities.m
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
-% * DefineInverseModellingVariables.m
 % * DefineOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
@@ -83,6 +81,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % Make sure to do this from the Úa home directory, or at least not from another
 % directory that has a m-file with the same name.
 %
+% For a complete list of user m-files, look at all Define*.m files found in the source directory.
 %
 % When defining a new model-run, just copy these user m-files from the Úa home
 % directory into your own model-run directory and modify as needed.
@@ -208,10 +207,15 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParameters.m'
+%
+% There are some videos on how to use the code at: 
+%
+% <https://livenorthumbriaac-my.sharepoint.com/:f:/g/personal/hilmar_gudmundsson_northumbria_ac_uk/EjeMBaDznHJJsruaO-YzBSMBrmmVDNIYU0z6xXp-Wqr5vQ?e=07v5nn UaVideos>
+%
+%
+%
 %%
 
-%
-%
 
 
 if nargin==0

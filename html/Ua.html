@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>Ua</title>
-<meta name="generator" content="MATLAB 24.2">
+<meta name="generator" content="MATLAB 25.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-09-12">
+<meta name="DC.date" content="2025-07-17">
 <meta name="DC.source" content="Ua.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -95,7 +95,7 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <a href="#6">Defining model run</a>
 </li>
 <li>
-<a href="#7">User m-files :</a>
+<a href="#7">User m-files (not a complete list):</a>
 </li>
 <li>
 <a href="#8">Name of variables</a>
@@ -149,24 +149,23 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 </pre>
 <h2 id="6">Defining model run</h2>
 <p>Whenever setting up your own model, create your own working directory for your model runs. Most of the parameters of a given model run are defined by the user through ` <b>user m-files'</b> that are called by &Uacute;a during the run.</p>
-<h2 id="7">User m-files :</h2>
+<h2 id="7">User m-files (not a complete list):</h2>
 <div>
 <ul>
 <li>DefineInitialUserInput.m</li>
 <li>DefineAGlenDistribution.m</li>
 <li>DefineSlipperyDistribution.m</li>
 <li>DefineBoundaryConditions.m</li>
-<li>DefineGeometry.m</li>
-<li>DefineDensities.m</li>
+<li>DefineGeometryAndDensities.m</li>
 <li>DefineMassBalance.m</li>
 <li>DefineDesiredEleSize.m</li>
 <li>DefineStartVelValues.m</li>
 <li>DefineInputsForInverseRun.m</li>
-<li>DefineInverseModellingVariables.m</li>
 <li>DefineOutputs.m</li>
 </ul>
 </div>
 <p>To get further information on how to use individual user m-files use help. For example: help DefineGeometry Make sure to do this from the &Uacute;a home directory, or at least not from another directory that has a m-file with the same name.</p>
+<p>For a complete list of user m-files, look at all Define*.m files found in the source directory.</p>
 <p>When defining a new model-run, just copy these user m-files from the &Uacute;a home directory into your own model-run directory and modify as needed.</p>
 <p>Not all of these user m-files are always needed. For example `DefineInverseModellingVariables.m' is only needed for inverse runs. Also 'DefineStartVelValues.m' is not often required as setting start velocities to zero (the default option) is usually a good approach. And DefineDesiredEleSizes is only needed if one finds that the standard remeshing options within &Uacute;a are too limited.</p>
 <p>DefineOutputs is only needed for producing output files or for some plotting, etc.</p>
@@ -237,11 +236,14 @@ doc <span class="string">Ua2D_DefaultParameters</span>
 </p>
 <p>The ExamplesOfMeshGeneration.m contains information and examples on how to define inputs for various types of meshes.</p>
 <p>There are also various ways of refining the mesh. Both global and local (explicit) adaptive meshing is supported. See further explanations in 'Ua2D_DefaultParameters.m'</p>
+<p>There are some videos on how to use the code at:</p>
+<p>
+<a href="https://livenorthumbriaac-my.sharepoint.com/:f:/g/personal/hilmar_gudmundsson_northumbria_ac_uk/EjeMBaDznHJJsruaO-YzBSMBrmmVDNIYU0z6xXp-Wqr5vQ?e=07v5nn">UaVideos</a>
+</p>
+<p>
+<a href="https://www.mathworks.com">MathWorks</a>
+</p>
 <pre class="codeinput">
-<span class="comment">%</span>
-<span class="comment">%</span>
-
-
 <span class="keyword">if</span> nargin==0
     UserVar=[]; CtrlVarOnInput=[];
 <span class="keyword">elseif</span> nargin==1
@@ -265,7 +267,7 @@ UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin{:});
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025a</a>
 <br>
 </p>
 </div>
@@ -336,19 +338,17 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % model runs. Most of the parameters of a given model run are defined by the
 % user through ` *user m-files'* that are called by Úa during the run.
 %
-%% User m-files :
+%% User m-files (not a complete list):
 % 
 % * DefineInitialUserInput.m
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
 % * DefineBoundaryConditions.m 
-% * DefineGeometry.m
-% * DefineDensities.m
+% * DefineGeometryAndDensities.m
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
-% * DefineInverseModellingVariables.m
 % * DefineOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
@@ -356,6 +356,7 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % Make sure to do this from the Úa home directory, or at least not from another
 % directory that has a m-file with the same name.
 %
+% For a complete list of user m-files, look at all Define*.m files found in the source directory.
 %
 % When defining a new model-run, just copy these user m-files from the Úa home
 % directory into your own model-run directory and modify as needed.
@@ -481,10 +482,16 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParameters.m'
+%
+% There are some videos on how to use the code at: 
+%
+% <https://livenorthumbriaac-my.sharepoint.com/:f:/g/personal/hilmar_gudmundsson_northumbria_ac_uk/EjeMBaDznHJJsruaO-YzBSMBrmmVDNIYU0z6xXp-Wqr5vQ?e=07v5nn UaVideos>
+%
+% <https://www.mathworks.com MathWorks> 
+%
+%
 %%
 
-%
-%
 
 
 if nargin==0

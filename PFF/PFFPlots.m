@@ -111,9 +111,15 @@ if options.CreateVideos
     end
 end
 
-figphi=FindOrCreateFigure("phi")  ; clf(figphi) ; 
+figphi=FindOrCreateFigure("phi")  ; clf(figphi) ;
 cbar=UaPlots(CtrlVar,MUA,F,phi,GroundingLineColor="k") ;
-CM=cmocean('-ice',150) ; colormap(CM);
+%CM=cmocean('-ice',15) ; colormap(CM);
+CL=clim;
+if min(CL) < 0.4 && max(CL)>0.6
+    CM=cmocean('balanced',25,'pivot',0.5) ; colormap(CM);
+else
+    CM=cmocean('balanced',25) ; colormap(CM);
+end
 title(cbar,"$\phi$",interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 clim([0 1])
@@ -235,6 +241,16 @@ title(cbar,"$\Psi$",interpreter="latex")
 hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
 title(sprintf("Strain energy density, $\\Psi$  ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+
+
+cbar=UaPlots(CtrlVar,MUA,F,[F.ub F.vb],FigureTitle="elastic displacements") ;  
+title(cbar,"displacements",interpreter="latex")
+hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+title(sprintf("Elastic displacement vectors")+PlotTitle,Interpreter="latex")
+xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+
+
+figure(figphi)
 
 
 return

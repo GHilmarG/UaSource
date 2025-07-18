@@ -382,7 +382,7 @@ if   CtrlVar.doplots==1 && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptive
         nRefineEle=numel(find(ElementsToBeRefined));
         nCoarsenedEle=numel(find(ElementsToBeCoarsened)) ;
         
-        if nRefineEle>0 && nCoarsenedEle>0
+        if nRefineEle>0 || nCoarsenedEle>0
             
             FigureName="Local mesh refinement";
             
