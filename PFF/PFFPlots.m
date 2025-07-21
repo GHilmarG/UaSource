@@ -22,7 +22,7 @@ end
 
 
 
-persistent phiVideo MeshVideo uvVideo eVideo
+persistent phiVideo MeshVideo uvVideo eVideo phiLast
 
 narginchk(10,10)
 
@@ -115,11 +115,11 @@ figphi=FindOrCreateFigure("phi")  ; clf(figphi) ;
 cbar=UaPlots(CtrlVar,MUA,F,phi,GroundingLineColor="k") ;
 %CM=cmocean('-ice',15) ; colormap(CM);
 CL=clim;
-if min(CL) < 0.4 && max(CL)>0.6
-    CM=cmocean('balanced',25,'pivot',0.5) ; colormap(CM);
-else
-    CM=cmocean('balanced',25) ; colormap(CM);
-end
+% if min(CL) < 0.1 && max(CL)>0.6
+%     CM=cmocean('balanced',25,'pivot',0.1) ; colormap(CM);
+% else
+%     CM=cmocean('balanced',25) ; colormap(CM);
+% end
 title(cbar,"$\phi$",interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 clim([0 1])
@@ -136,7 +136,7 @@ Tphi=sprintf("Phase field, $\\phi$, with $l=$%g m, $G_c$=%g",CtrlVar.PhaseFieldF
 title(Tphi,Interpreter="latex")
 subtitle(PlotTitle,Interpreter="latex");
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex")
-
+CM=cmocean('-ice',15) ; colormap(CM);
 if options.CreateVideos
 
     CurFig=gcf; CurFig.Position=[25 70 1200 1200]; axis tight
@@ -250,7 +250,23 @@ title(sprintf("Elastic displacement vectors")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 
-figure(figphi)
+cbar=UaPlots(CtrlVar,MUA,F,F.h,FigureTitle="h",PlotUnderMesh=true) ;  
+title(cbar,"$h$ (m)",interpreter="latex")
+hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+title(sprintf("Ice thickness, $h$  ")+PlotTitle,Interpreter="latex")
+xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+
+% only works if same mesh
+% if ~isempty(phiLast)
+%     cbar=UaPlots(CtrlVar,MUA,F,phi-phiLast,FigureTitle="dphi",PlotUnderMesh=true) ;
+%     title(cbar,"$\Delta \phi$ (m)",interpreter="latex")
+%     hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+%     title(sprintf("Change in phase field, $\\Delta \\phi$  ")+PlotTitle,Interpreter="latex")
+%     xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+% end
+
+
+phiLast=phi; 
 
 
 return

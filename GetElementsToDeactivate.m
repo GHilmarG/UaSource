@@ -20,7 +20,7 @@ if NarginInputFile==18
 % This is the old input format, which is still accepted
 
     [UserVar,ElementsToBeDeactivated]=...
-        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
+        DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,MUA.xEle,MUA.yEle,ElementsToBeDeactivated,F.s,F.b,F.S,F.B,F.rho,F.rhow,F.ub,F.vb,F.ud,F.vd,F.GF);
 
 elseif NarginInputFile==7
 

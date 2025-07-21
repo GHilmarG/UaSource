@@ -91,6 +91,7 @@ narginchk(3,3)
 exx=dudx;
 eyy=dvdy;
 exy=0.5*(dudy+dvdx);
+ezz=-(exx+eyy); 
 % ezz=-(exx+eyy) ;
 
 e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
@@ -101,7 +102,12 @@ tyy=2*K.*eyy;
 %tzz=2*K.*ezz;
 txy=2*K.*exy; 
 
-Psi=(2*txx+tyy).*exx+(txx+2*tyy).*eyy+2*txy.*txy ; 
+%Psi=eij*eij
+%   =exx*exx+eyy*eyy+ezz*ezz+2*exy*txy+2*exz*exz+2*eyz*eyz
+%   =exx*exx+eyy*eyy+ezz*ezz+2*exy*exy+ 0 + 0 
+
+Psi=K.*(exx.*exx+eyy.*eyy+ezz.*ezz+2*exy.*exy);
+%Psi=(2*txx+tyy).*exx+(txx+2*tyy).*eyy+2*txy.*txy ; 
 Psi(Psi<0)=0; 
 
 return

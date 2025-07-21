@@ -91,8 +91,7 @@ B=F.B;
 
 gphi=DegradationFunction(CtrlVar,phi) ;
 
-rhoE=gphi.*rhoi0+(1-gphi).*rhow ;
-AE=A0./ (gphi.^n)  ;
+
 
 switch CtrlVar.PhaseFieldFracture.RiftsAre
 
@@ -101,15 +100,19 @@ switch CtrlVar.PhaseFieldFracture.RiftsAre
         % Reduced thickness, where afloat.
         % In the limit of gphi=0 (full damage) the ice thickness is ThickMin where afloat.
         % h0=(S-b0).*rhow./rhoi0;
+
+        % Here ONLY the ice thickness is changed!
         hE=gphi.*h0+(1-gphi)*CtrlVar.ThickMin ;
-     
+        rhoE=F.rho;
+        AE=F.AGlen; 
 
     case "-viscous water columns-"
 
         % flotation:  (s-b) rhoE = (S-b) rhow
-        hE=(S-b0).*rhow./rhoiE;  % for fully damaged ice, rhoE=rhow and h0=S-b0 
-     
-     
+        hE=(S-b0).*rhow./rhoiE;  % for fully damaged ice, rhoE=rhow and h0=S-b0
+        rhoE=gphi.*rhoi0+(1-gphi).*rhow ;
+        AE=A0./ (gphi.^n)  ;
+
 
     otherwise
 
