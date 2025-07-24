@@ -20,9 +20,29 @@ function [UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoa
 %
 %   CtrlVar.AdaptMesh=1;  
 %
-% in Ua2D_InitialUserinput for this m-file to be called.
+% in |Ua2D_InitialUserinput| for this m-file to be called.
 %
-% Allows user to set:
+% You will also, in general, need to define the mesh-refinement method you want to use. You do this by defining 
+%
+%   CtrlVar.MeshRefinementMethod
+%
+% in |DefineInitialInputs.m| 
+%
+% For example if you want to use global adaptive meshing set
+% 
+%   CtrlVar.AdaptMesh=1;  
+%   CtrlVar.MeshRefinementMethod='explicit:global'; 
+%
+% in |DefineInitialInputs.m|.
+%
+% And if you want to use local newest-vertex-bisection adaptive meshing method, set:
+%
+% can have any of these values:
+%        
+%   CtrlVar.AdaptMesh=1;  
+%   CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection';
+%
+% This m-file allows user to set:
 % 
 % * EleSizeDesired when using global mesh refinement
 % * ElementsToBeRefined when using local mesh refinement with either the red-green or the newest vertex bisection

@@ -278,6 +278,7 @@ fstress=FindOrCreateFigure("dev stresses") ; clf(fstress)
 scale=5e-3;
 
 iphi=phi>0.5 ;
+
 txx(iphi)=nan;
 txy(iphi)=nan;
 tyy(iphi)=nan;

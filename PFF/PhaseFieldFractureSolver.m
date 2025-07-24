@@ -176,12 +176,17 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         EleSize=sqrt(Tarea);
 
         % For the time being, the mesh-refinement criterion is hard-wired in the code.
-        % 
+        %
         ElementsToBeRefined   = ( phiEle > 0.5 )  &  ( EleSize > EleSizeMin ) ;
-        ElementsToBeCoarsened = ( phiEle < 0.5 )  ; 
+        ElementsToBeCoarsened = ( phiEle < 0.5 )  ;
+
+        CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; CtrlVar.InfoLevelAdaptiveMeshing=1;
+        EleSizeDesired=[] ;
+        NodalErrorIndicators=[];
+        [UserVar,RunInfo,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened]=GetDesiredEleSize(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,EleSizeDesired,ElementsToBeRefined,ElementsToBeCoarsened,NodalErrorIndicators);
 
 
-        nEleRefine=numel(find(ElementsToBeRefined)) ; 
+        nEleRefine=numel(find(ElementsToBeRefined)) ;
 
 
         fprintf("number of elements refined %i \n",nEleRefine)
@@ -194,7 +199,8 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         end
 
         
-        CtrlVar.MeshRefinementMethod='explicit:local:newest vertex bisection' ; CtrlVar.InfoLevelAdaptiveMeshing=1;
+     
+
         [MUAnew,RunInfo]=LocalMeshRefinement(CtrlVar,RunInfo,MUAold,ElementsToBeRefined,ElementsToBeCoarsened) ;
     
 
@@ -230,7 +236,7 @@ while true % phi "evolution" loop, i.e. here the driving term Psi is updated
         break
     end
 
-    if dphiNorm < 1e-2  % for the time being this is hardwired
+    if dphiNorm < 1e-5  % for the time being this is hardwired
         fprintf("Exiting phi solve loop as dphiNorm meets tolerance.\n")
          break
     end
