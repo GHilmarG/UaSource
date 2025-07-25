@@ -99,8 +99,11 @@ arguments
     % colormap(othercolor("Greys7",1028))
     % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
     % CM=cmocean('ice',150) ; colormap(CM);
+    %
+    % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
+    % 
     
-    options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
+    options.ColorMap double=othercolor("YlGnBu8",25)  % See othercolor.m for more options
 end
 
 %% Make F from old output files compatible

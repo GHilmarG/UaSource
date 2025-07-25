@@ -2,6 +2,27 @@
 
 %%
 %
+% % *Release Notes* _July 2025_
+%
+% Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
+%
+%    CtrlVar.ThicknessPenalty=1;  
+%
+% This causes and additonal implicit mass-balance term to be added 
+%
+% $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
+% 
+% where $h < h_{\min} $
+% 
+% and where:
+%
+%  a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
+%  a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
+%  a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
+%                                                             
+% Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on input is
+% immaterial. 
+%
 % By setting:
 % 
 %   CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
@@ -42,10 +63,10 @@
 %
 % *Release Notes* _March 2025_
 %
-% The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, is more consistent with the uvh
+% The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh
 % assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference
 % is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly.
-% Previously in the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolating the
+% Previously in the uv solve, it was evaluated by first forming the product, rho h, at nodes and then interpolating the
 % product to the integration points.
 %
 % Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started

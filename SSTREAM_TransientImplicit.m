@@ -568,6 +568,7 @@ end
 
 if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
 
+    %%
     [~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
     title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
@@ -600,7 +601,7 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
 
-    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration from initial guess") ;
+    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
     hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
 
     title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
@@ -640,7 +641,7 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     title(cbar,"",interpreter="latex")
 
     drawnow
-
+    %%
 end
 
 

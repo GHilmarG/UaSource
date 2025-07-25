@@ -87,7 +87,10 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
     end
 
 
-
+    %%
+    %    UaPlots(CtrlVar,MUA,F0,[F0.dubdt F0.dvbdt],FigureTitle="dv/dt")
+    %    UaPlots(CtrlVar,MUA,F0,F0.dhdt,FigureTitle="dh/dt")
+    %%
 
 
     

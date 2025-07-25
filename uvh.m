@@ -18,22 +18,6 @@ isActiveSetCyclical=NaN;
 nlIt=nan(CtrlVar.NRitmax,1);
 
 
-%%
-% if any(F1.h<CtrlVar.ThickMin)
-% 
-%     indh0=find(F1.h<CtrlVar.ThickMin);
-%     fprintf('uv: Found too small ice thicknesses in a prognostic forward run.\n')
-%     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F1.h));
-% 
-%     if CtrlVar.ResetThicknessToMinThickness==0
-%         CtrlVar.ResetThicknessToMinThickness=1;
-%     end
-% 
-%     fprintf('For the purpose of the uvh solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
-%     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
-% 
-% end
-%%
 
 
 

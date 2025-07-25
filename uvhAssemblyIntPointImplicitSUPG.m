@@ -132,6 +132,15 @@ dadhint=dadhnod*fun;
 
 if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
+    % Here an implicit mass-balance forcing is added to cause the ice thickness downstream of the calving front to
+    % approach the prescribed minimum ice thickness CtrlVar.LevelSetMinIceThickness.
+    %
+    % This fictitious mass-balance term will be either positive or negative depending on whether the ice thickness is
+    % below or above that minimum ice thickness.
+    %
+    % For this term to be positive or negative depending on ice thickness with respect to the desired thickness, the
+    % functions are odd function of ice thickness and first and third power are allowed (but not second power).
+    %
     LM=LSFMasknod*fun;
     a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
     a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
@@ -167,8 +176,6 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
     a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
 
-    %PenaltyMask1=(1-hBC).*(1-LM).*(hint<hmin) ;
-    %PenaltyMask1=PenaltyMask1>0.25;
 
     PenaltyMask1=hint<hmin ;
 
@@ -184,15 +191,12 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
 
    % PenaltyMask0=(1-hBC).*(1-LM).*(h0int<hmin) ;
    % PenaltyMask0=PenaltyMask0>0.25;
-    PenaltyMask0=h0int<hmin ;
-    
-
-    aPenalty0 =PenaltyMask0.* ( a1*(h0int-hmin)+a2*(h0int-hmin).^2 + a3*(h0int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
+   % PenaltyMask0=h0int<hmin ;
+   % aPenalty0 =PenaltyMask0.* ( a1*(h0int-hmin)+a2*(h0int-hmin).^2 + a3*(h0int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
    % daPenaltydh0=PenaltyMask0.*(a1+2*a2*(h0int-hmin) +3*a3*(h0int-hmin).^2) ;
-
-    a1int=a1int+aPenalty1;
-    dadhint=dadhint+daPenaltydh1 ;
-    a0int=a0int+aPenalty0;
+   % a1int=a1int+aPenalty1;
+   % dadhint=dadhint+daPenaltydh1 ;
+   % a0int=a0int+aPenalty0;
 
 
 if any(hint<0)
