@@ -141,9 +141,15 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
     % For this term to be positive or negative depending on ice thickness with respect to the desired thickness, the
     % functions are odd function of ice thickness and first and third power are allowed (but not second power).
     %
+    %
+    % If hint < hmin, then I want the mass-balance term to be positive,
+    % and if  hint > hmin, then I want the mass-balance term to be negative. 
+    %
+    % Therefore a1 and a3 must be negative.
+    %
     LM=LSFMasknod*fun;
-    a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
-    a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
+    a1= -abs(CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin);
+    a3= -abs(CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic);
   
     hmin=CtrlVar.LevelSetMinIceThickness;
 
@@ -170,7 +176,7 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     %
 
     hBC=hBCsMasknod*fun; % hBC is zero where there are no thickness constraints applied
-    hmin=2*CtrlVar.ThickMin ;
+    hmin=CtrlVar.ThickMin ;
 
     a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
     a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
@@ -185,25 +191,14 @@ if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
     a1int=a1int+aPenalty1;
     dadhint=dadhint+daPenaltydh1 ;
 
-    % don't apply if already applied as a part of the level-set method
-
-    % Hm, do I not need to add the same Penalty term to h0 as the one I used in last solve?
-
-   % PenaltyMask0=(1-hBC).*(1-LM).*(h0int<hmin) ;
-   % PenaltyMask0=PenaltyMask0>0.25;
-   % PenaltyMask0=h0int<hmin ;
-   % aPenalty0 =PenaltyMask0.* ( a1*(h0int-hmin)+a2*(h0int-hmin).^2 + a3*(h0int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
-   % daPenaltydh0=PenaltyMask0.*(a1+2*a2*(h0int-hmin) +3*a3*(h0int-hmin).^2) ;
-   % a1int=a1int+aPenalty1;
-   % dadhint=dadhint+daPenaltydh1 ;
-   % a0int=a0int+aPenalty0;
-
-
-if any(hint<0)
-    fprintf("hint negative, min value %g\n",min(hint))
-end
-
     
+    if CtrlVar.InfoLevelThickMin >= 1
+        ThicknessLessThanZero=hint<0 ;
+        if any(ThicknessLessThanZero)
+            fprintf("\t Some hint negative at integration point %i with min(hint)=%g. \t Number of neg integration point thicknesses: %i \n",Iint,min(hint),numel(find(ThicknessLessThanZero)))
+        end
+    end
+
 % UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
 % FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin,"r") ; xline(2*CtrlVar.ThickMin,"r--")
 

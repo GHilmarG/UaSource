@@ -129,7 +129,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;
                 dFuvdC=(U.^(1./m-1).*muk.^(m+1).*N.^(m+1).*He.*(muk.^m.*N.^m+U.*(He.*(C+C0).^(-1./m)).^m).^(-1./m-1).*(C+C0).^(-1./m-1))./m;
                 
-            case {"rCW-N0","Umbi"} % reciprocal Coulumb-Weertman with zeroth-order hydrology
+            case {"rCW-N0","Umbi"} % reciprocal Coulomb-Weertman with zeroth-order hydrology
                 
                 U=speed;
                 N=N0(CtrlVar,h,H,rho,rhow,g) ;

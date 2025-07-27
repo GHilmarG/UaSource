@@ -1426,7 +1426,7 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
 CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if lambda values are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 
-CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
+CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of added new constraints at each active-set update. 
 
 CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any active-set iteration, this is the min number of additional new constraints.
                                                                     % This can be used to suppress new active-set iteration if only a few new constraints are identified.
@@ -1434,7 +1434,7 @@ CtrlVar.MinNumberOfNewlyIntroducedActiveThicknessConstraints=0;     % In any act
                                                                     % a few new constraints need to be activated or de-activated, no-new active set iteration is needed. Here the number 5 has
                                                                     % been defined as being "a few". 
                                                                  
-CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;              % This implies that the nodes of all boundary elements are not included in the active set.
+CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This implies that the nodes of all boundary elements are not included in the active set.
                                                                     % The argument for doing this, is that the boundary elements are typically down stream of flow, and if they are not then
                                                                     % thickness is usually prescribed directly.
 
@@ -1442,21 +1442,27 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;              % This impl
 % thickness penalty, option 3
 CtrlVar.ThicknessPenalty=1;                                         % set to 1 for using penalty term (Option 3). This creates an
                                                                     % additional mass-balance term, ab,  on the form:
-                                                                    %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3) 
+                                                                    %     
                                                                     % $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
                                                                     %
-                                                                    % that is added, and applied at integration points where  h<hmin.
+                                                                    % which is added at integration points where  h<hmin.
+                                                                    %
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=1000;           % a1 in the equation for the additional mass balance term 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=0;             % a2 in the equation for the additional mass balance term 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic= 0;           % a3 in the equation for the additional mass balance term 
                                                                     % The term is only applied at integration points where h < hmin. 
-                                                                    % Therefore if a1<0 and a3<0, the resulting ab is greater than
-                                                                    % zero, and mass is added. 
+                                                                    %
                                                                     %
                                                                     % Note: The sign of these parameters is immaterial
                                                                     % as internally it is modified to ensure that this
                                                                     % always results in the melting of ice.
+                                                                    %
+                                                                    % The "Thickness Penalty" option can be used in combination with the "Thickness Constraints" option, 
+                                                                    % and this may possibly
+                                                                    % improve convergence and may reduce the number of active-set updates required.
 
+
+                                                 
                                                  
 
 

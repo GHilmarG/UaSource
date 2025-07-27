@@ -140,13 +140,16 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     % Clearly only inactivate nodes if the mass flux needed to keep them active (ah) is negative.
     % But to also consider only inactivate if the negative flux is 
     %
-    %   ah < 0.01 hMin /dt
+    %   ah < -alpha hMin /dt
     %
-    % that is, if one were to stop subtracting this mass balance, then the thickness would increase to 0.01 above the minimum
+    % where alpha is some number.
+    %
+    % Thus, if one were to stop subtracting this mass balance, then the thickness would increase to alpha above the minimum
     % thickness value over a time interval corresponding to one time unit.
 
     %isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
-    isNegavtiveMassFluxSmall=ah < -1*CtrlVar.ThickMin/F1.dt ;
+    alpha=2; 
+    isNegavtiveMassFluxSmall=ah < -alpha*CtrlVar.ThickMin/F1.dt ;
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
     iNewInActiveConstraints=numel(NewInActiveConstraints);
@@ -209,7 +212,7 @@ iNewActiveConstraints=numel(NewActive);
 
 if iNewActiveConstraints> CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints
     if CtrlVar.ThicknessConstraintsInfoLevel>=1
-        fprintf(CtrlVar.fidlog,' Number of new active-set thickness constraints %-i larger then max number of newly added constraints %-i \n ',...
+        fprintf(CtrlVar.fidlog,' Number of new active-set thickness constraints %-i larger than max user-allowed number of newly added constraints which is %-i \n ',...
             iNewActiveConstraints,CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
         fprintf(CtrlVar.fidlog,' Only the smallest %-i thickness values are constrained \n',CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints);
     end
@@ -278,10 +281,10 @@ if CtrlVar.ThicknessConstraintsInfoLevel>=1
         fprintf(CtrlVar.fidlog,'\n  Updating pos. thickness constraints: deactivated: %-i,  activated: %-i, total number of thickness constrains: %-i \n',...
             nDeactivated,nActivated,numel(BCs1.hPosNode));
         fprintf(CtrlVar.fidlog,'  Nodes inactivated: ')   ;
-        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',DeActivated);
+        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t ',DeActivated);
 
         fprintf(CtrlVar.fidlog,'\n    Nodes activated: ')   ;
-        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t \t \t \t',Activated);
+        fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t ',Activated);
         fprintf(CtrlVar.fidlog,'\n ')   ;
     else
         fprintf(CtrlVar.fidlog,'No pos.-thickness constraints activated or deactivated. \n')   ;

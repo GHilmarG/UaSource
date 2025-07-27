@@ -246,7 +246,7 @@ if options.plot
     hold on
 
     CtrlVar.PlotNodes=1;
-     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
+    CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
     PlotMuaMesh(CtrlVar,MUA,nan,"w");
     %tt=axis;
     plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-go',LineWidth=1,MarkerSize=6,DisplayName="Calving fronts before re-initialisation")
@@ -254,6 +254,7 @@ if options.plot
     %axis(tt)
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12,DisplayName="Calving fronts after re-initialisation")
     plot(xcEdges/CtrlVar.PlotXYscale,ycEdges/CtrlVar.PlotXYscale,'r.',LineWidth=1,MarkerSize=12,DisplayName="Edges")
+    title(cbar,"$\varphi$",interpreter="latex")
     axis equal
     leg=legend(Interpreter="latex") ;
     leg.String(1:3)={"$\varphi$","Mesh","Nodes"} ;
@@ -270,7 +271,7 @@ if options.plot
     %axis(tt)
     plot(xcOnInput/CtrlVar.PlotXYscale,ycOnInput/CtrlVar.PlotXYscale,'-k.',LineWidth=1,MarkerSize=12)
 
-    figc=FindOrCreateFigure("Change: LSF before - LSF after and new and old calving fronts") ; clf(figc)
+    figc=FindOrCreateFigure("Change: LSF before - LSF after, and new and old calving fronts") ; clf(figc)
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,(LSF-LSFonInput)/CtrlVar.PlotXYscale);
     hold on
