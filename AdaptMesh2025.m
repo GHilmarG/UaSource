@@ -1,3 +1,8 @@
+
+
+
+
+
 function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh2025(UserVar,RunInfo,CtrlVar,MUAold,BCsOld,Fold,lold)
 
 
@@ -12,6 +17,60 @@ function [UserVar,RunInfo,MUAnew,BCsNew,Fnew,lnew]=AdaptMesh2025(UserVar,RunInfo
 %
 %%
 
+
+
+%%
+%
+% There are various re-meshing options and cases to consider:
+%
+% *Element Activation:* Elements can be de-activated, and previously de-activated elements and can be re-activated. Both
+% cases are considered to be a case of _element activation_ .
+% 
+% An example of an element activation is the option of prescribing an automated de-activation of elements where the level-set
+% function is negative when using the level-set method to describe the evolution/position of glacier fronts. This can be
+% activated by setting
+%
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElements=true ;
+%
+% when using the level-set method.  (CtrlVar.LevelSetMethod=true)
+%
+% 
+% Another example of element deactivation is when the user manually deactivates elements. This can be achieved by setting
+%
+%   CtrlVar.ManuallyDeactivateElements=true;
+%
+%
+% and then specifying which elements are to be de-activated, i.e. removed from the mesh, in
+%
+%   DefineElementsToDeactivate.m
+%
+% Note that in this case, element re-activation happens if the user no-longer deletes elements from a region previously
+% deleted.
+%
+% *Mesh Refinement:* An existing mesh can be (locally or globally) refined or coarsened. 
+% 
+% The type of mesh refinement performed is controlled by setting
+%
+%   CtrlVar.MeshRefinementMethod
+% 
+% 
+%
+% Below the variable
+%
+%  AdaptMeshMethod
+%
+% is set to reflect these two options.
+%
+%  AdaptMeshMethod="-activation-";  % only activation of elements. This could be either element de-activation or
+%                                   % re-activation.
+% 
+% AdaptMeshMethod="-refinement-";   % Only mesh refinement. This can produce mesh un-refinement, if a previously refined
+%                                   % region is not refined to same degree at some later stage in the run.
+% 
+% AdaptMeshMethod="-refinement-activation-";
+%
+% 
+%%
 
 persistent AdaptMeshTime
 
@@ -75,7 +134,7 @@ if CtrlVar.AdaptMeshTimeInterval==0
     isAdaptMeshTime=true;
 elseif CtrlVar.time >= AdaptMeshTime
     isAdaptMeshTime=true;
-    AdaptMeshTime=ceil((CtrlVar.time+eps)/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
+    AdaptMeshTime=ceil((CtrlVar.time+eps(CtrlVar.time))/CtrlVar.AdaptMeshTimeInterval)*CtrlVar.AdaptMeshTimeInterval;
 else
     isAdaptMeshTime=false;
 end
@@ -91,35 +150,35 @@ end
 
 %%
 
-isMeshAdapt=CtrlVar.AdaptMesh  ...
-    && (CtrlVar.AdaptMeshInitial || (isAdaptMeshRunStepInterval && isAdaptMeshTime)) ;
+% Should mesh adaptation be performed? This includes element activation and mesh refinement.
+% Note: This however does not include level-set de-activation, see below.
 
+isMeshAdaptTime= (CtrlVar.AdaptMeshInitial || (isAdaptMeshRunStepInterval && isAdaptMeshTime)) ;
 
+isMeshAdapt=CtrlVar.AdaptMesh  & isMeshAdaptTime ; 
+    
 
-% Only do the automatic level set element deactivation if:
-CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements = ...
+isManuallyDeactivateElements = CtrlVar.ManuallyDeactivateElements & isMeshAdaptTime ; 
+        
+
+isLevelSetMethodAutomaticallyDeactivateElements = ...
     CtrlVar.LevelSetMethodAutomaticallyDeactivateElements ...   % 1)
     && CtrlVar.LevelSetMethod  ...                              % 2)
-    && ( mod(CtrlVar.CurrentRunStepNumber-1,CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval)==0 ) ;% 3) interval
+    && isMeshAdaptTime ; 
 
 
 
 AdaptMeshMethod="";
-if CtrlVar.ManuallyDeactivateElements || CtrlVar.isLevelSetMethodAutomaticallyDeactivateElements
-    AdaptMeshMethod=AdaptMeshMethod+"-activation-";  % this could be both deactivation and reactivation
+if isManuallyDeactivateElements || isLevelSetMethodAutomaticallyDeactivateElements
+    AdaptMeshMethod=AdaptMeshMethod+"-activation-";  % this could be either de-activation or re-activation
 end
 
 if isMeshAdapt
-    AdaptMeshMethod=AdaptMeshMethod+"-refinement-activation-";
+    AdaptMeshMethod=AdaptMeshMethod+"-refinement-";
 end
 
 
 if AdaptMeshMethod==""
-    % ToDo:  now adapt meshing is done at every time step whenever:
-    %          CtrlVar.LevelSetMethodAutomaticallyDeactivateElements && CtrlVar.LevelSetMethod  == true
-    %
-    % Consider only doing adaptive meshing with the level-set method provided isMeshAdapt is true, this would ensure that
-    % LevelSet deactivation is only done at given intervals as determined by isAdaptMeshRunStepInterval && isAdaptMeshTime
     return
 end
 
@@ -342,39 +401,46 @@ end
 if contains(AdaptMeshMethod,"-activation-")
 
     if CtrlVar.InfoLevelAdaptiveMeshing>=1
-        if CtrlVar.ManuallyDeactivateElements
+
+        if isManuallyDeactivateElements
             fprintf("AdaptMesh: Manual deactivation of elements.\n")
         end
-        if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+
+        if isLevelSetMethodAutomaticallyDeactivateElements
             fprintf("AdaptMesh: Automated deactivation of elements based on the level set. \n")
         end
+
     end
 
  
 
     ElementsToBeDeactivated=false(MUAnew.Nele,1);
     
-    if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
+    if isLevelSetMethodAutomaticallyDeactivateElements
         ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUAnew,Fnew,ElementsToBeDeactivated) ;
     end
 
 
-    if CtrlVar.ManuallyDeactivateElements
+    if isManuallyDeactivateElements
 
-        [UserVar,ElementsToBeDeactivated]=...
-            DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
+        [UserVar,ElementsToBeDeactivated]=GetElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,Fnew,BCsNew,ElementsToBeDeactivated); 
+        %[UserVar,ElementsToBeDeactivated]=...
+        %   DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUAnew,MUAnew.xEle,MUAnew.yEle,ElementsToBeDeactivated,Fnew.s,Fnew.b,Fnew.S,Fnew.B,Fnew.rho,Fnew.rhow,Fnew.ub,Fnew.vb,Fnew.ud,Fnew.vd,Fnew.GF);
     end
 
 
     if CtrlVar.doplots && CtrlVar.doAdaptMeshPlots && CtrlVar.InfoLevelAdaptiveMeshing>=100
 
-        FigureName="Elements to be deactivated (red)";
-        fig=FindOrCreateFigure(FigureName);  clf(fig) ; 
-
-        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,'r');
+        UaPlots(CtrlVar,MUAnew,Fnew,Fnew.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="Deactive elements");
+        set(gca,'ColorScale','log')
+         clim([CtrlVar.ThickMin/10 , CtrlVar.ThickMin*10])
         hold on
-        PlotMuaMesh(CtrlVar,MUAnew,~ElementsToBeDeactivated,'k');
-        title('Elements to be deactivated in red')
+        PlotMuaMesh(CtrlVar,MUAnew);
+        hold on
+        PlotMuaMesh(CtrlVar,MUAnew,ElementsToBeDeactivated,color="r",LineWidth=2)
+        title("Elements to be deactivated in red")
+
+       
     end
 
  
@@ -549,10 +615,6 @@ RunInfo.MeshAdapt.Mesh.time(k)=CtrlVar.time;
 
 %%
 
-%%
-%save TestSave
-%[UserVar,RunInfo,F,l,BCs,GF,dt]=uvh(UserVar,RunInfo,CtrlVar,MUAnew,Fnew,Fnew,lnew,lnew,BCsNew);
-%%
 
 
 

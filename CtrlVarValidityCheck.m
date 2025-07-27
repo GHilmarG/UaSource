@@ -449,7 +449,7 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
     if isempty(poolobj)
 
         
-        fprintf("\n ======= No parallel pool is open. To run Ua using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218)
+        fprintf("\n ======= No parallel pool is open. To run %ca using parallel options, a parallel pool must be opened ahead of a call to %ca.\n",218,218)
         fprintf(" ======= Parallel options are turned off.\n")
 
         CtrlVar.Parallel.uvhAssembly.parfor.isOn=false;
@@ -474,6 +474,39 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn ...
 
 end
 
+if isfield(CtrlVar,"LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval")
+
+    fprintf(" The variable CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval is no longer used")
+    fprintf(" This interval is now determined by mesh adapt variables. See: Ua2D_DefaultParameters.m \n ")
+    error("CtrlVarValidityCheck:ParameterNoLongerUsed"," The variable CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval is no longer used")
+
+end
+
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffLin")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
+
+end
+
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffQuad")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffQuad;
+
+end
+
+if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffCubic")
+
+    fprintf(" The variable CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic had been renamed to CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic. \n")
+    CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
+
+end
+
+
+
+
+end
 
 
 

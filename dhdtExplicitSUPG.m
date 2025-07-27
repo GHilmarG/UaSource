@@ -25,7 +25,7 @@ if nargin<5
     BCs=[];
 end
 
-% I tested various tau options agains the typical Galerkin without upwinding
+% I tested various tau options against the typical Galerkin without up-winding
 % for an glacier peak example, and found taus created oscillations for 
 % small velocities, i.e. too much negative diffusion.
 

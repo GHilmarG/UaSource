@@ -1,40 +1,43 @@
 
 function ghg_arrow(x,y,vx,vy,velscale,headscale,sharp,head,col,lw,io,xyratio)
- 
+                   
 [nx,ny]=size(x);
 
 if nx ==1
     x=x' ; y=y' ;vx=vx' ;vy=vy';
 end
-    
-    
-if nargin == 4
-    velscale=1 ;
-    headscale=0.3;
-    sharp=0.3;
-    head=1;
-    col='k';
-end
 
-if nargin == 5
-    headscale=0.3;
-    sharp=0.3;
-    head=1;
-    col='k';
-end
-
-if nargin <= 9
-    lw=1;
-end
-
-if nargin <= 10
-    io=1;
-end
-    
 if nargin<=11
     xyratio=1;  % this is the data aspect ratio, should be given by daspect,
-                % so sometimes this works:  daspect(daspect) ; t=daspect ; xyratio=t(2)/t(1);
+    % so sometimes this works:  daspect(daspect) ; t=daspect ; xyratio=t(2)/t(1);
+
+    if nargin <= 10
+        io=1;
+        if nargin <= 9
+            lw=1;
+            if nargin <= 8
+                col="k";
+                if nargin <= 7
+                    head =1 ;
+                    if nargin <= 6
+                        sharp=0.3;
+                        if nargin <= 5
+                            headscale=0.3;
+                            if nargin == 4
+                                velscale=1 ;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 end
+
+
+    
+
+
 vx=vx*velscale/xyratio ; vy=vy*velscale ;
 
 

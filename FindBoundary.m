@@ -34,6 +34,16 @@ function [Boundary,TR]=FindBoundary(connectivity,coordinates)
 %
 % this is not an ordered list tracing the boundary.
 %
+% Note: To create one array with all boundary elements:  
+% 
+%   BoundaryElementArray=unique([MUA.Boundary.Elements{:}]') ; 
+%
+% Note: To create an array with all the nodes of the boundary elements: 
+%
+%   BBoundaryElementNodes=unique(MUA.connectivity([MUA.Boundary.Elements{:}]',:))
+%
+%%
+
 [Nele,nod]=size(connectivity);
 
 if Nele==0
@@ -67,7 +77,7 @@ end
 %TR=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 TR=CreateFEmeshTriRep(connectivity,coordinates);
 
-Boundary.Edges=freeBoundary(TR) ; % misses the interor nodes for higher order tri
+Boundary.Edges=freeBoundary(TR) ; % misses the interior nodes for higher order tri
 %Boundary.EdgeCornerNodes=unique(Boundary.Edges(:));
 Boundary.EdgeCornerNodes=Boundary.Edges(:,1);
 Boundary.FreeElements=cell2mat(edgeAttachments(TR,Boundary.Edges));  % OK for every type
@@ -114,7 +124,7 @@ ya=coordinates(Boundary.Edges(:,1),2); yb=coordinates(Boundary.Edges(:,end),2);
 
 %% Added 19 August, 2023
 % This is a ordered list of (x,y) boundary coordinates. Includes all boundary nodes, also those for 6 and 10 node elements
-% However, this will almost certainly not work if the mesh is split into several disconected regions.
+% However, this will almost certainly not work if the mesh is split into several disconnected regions.
 % For that to work, I would need to construct 2-point edges from the Boundary.Edges, and then use LineUpEdges
 %
 %

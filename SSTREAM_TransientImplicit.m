@@ -1,3 +1,8 @@
+
+
+
+
+
 function [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1,FigNames)
 
 narginchk(8,9)
@@ -18,9 +23,6 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 
 
 %%
-
-
-
 % I need to solve
 %
 % [Kxu Kxv Kxh Luv'  0  ] [du]        =  [ -Ru ] - Luv' luv
@@ -49,6 +51,21 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % and uvh=[u;v;h], duvh=[du;dv; dh]  and l=[luv ; lh]
 % where L [u;v;h]=cuvh
 %
+%
+
+%%
+%  Newton system:
+%
+% $$ K \Delta x = -g $$
+%
+% $$ g= \nabla f  $$
+%
+% This is equivalent to a minimization of the (unconstrained) local quadratic problem:
+%
+% $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
+%
+%
+%%
 
 if nargin < 9 || isempty(FigNames)
     FigNames="";
@@ -66,7 +83,7 @@ rVector.Direction=strings(CtrlVar.NRitmax+1,1);
 BackTrackSteps=0;
 
 
-if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' thickness negative ') ; end
+% if any(F0.h<0) ; warning('MATLAB:SSTREAM_TransientImplicit',' F0 thickness negative ') ; end
 
 
 tStart=tic;
@@ -155,18 +172,36 @@ end
 
 CtrlVar.uvhMatrixAssembly.ZeroFields=true;
 CtrlVar.uvhMatrixAssembly.Ronly=true;
-[UserVar,RunInfo,R0,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+[UserVar,RunInfo,R0,~]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 Fext0=R0;
 
 
+if CtrlVar.NRitmin==0
+
+    %% Check if this is already within tolerance
+
+    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+    gamma=0 ; [r,UserVar,RunInfo,rForce,rWork]=Func(gamma);
+    r0=r; 
 
 
+    if ~isempty(L)
+        BCsError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh);
+    else
+        BCsError=0;
+    end
+else
+    rWork=nan;
+    rForce=inf; 
+    r=inf;
+    r0=inf;
+end
 
 iteration=0 ;
 
 RunInfo.Forward.uvhConverged=0;
 RunInfo.BackTrack.Converged=1 ;
-r=inf;  rWork=inf ; rForce=inf; r0=inf;
+%r=inf;  rWork=inf ; rForce=inf; r0=inf;
 gamma=1 ;
 
 rRatioVector=zeros(3,1);
@@ -250,9 +285,9 @@ while true
         break
     end
 
-    rRatioMin=0.99 ;
+    rRatioMin=0.98 ;
     rRatio=r/r0;
-    rRatioVector(mod(iteration,3)+1)=rRatio; 
+    rRatioVector(mod(iteration,3)+1)=rRatio;
 
     if all(rRatioVector>rRatioMin)
 
@@ -261,9 +296,17 @@ while true
                 CtrlVar.time,CtrlVar.dt,r/r0,rRatioMin,r,iteration) ;
         end
 
+        if rWork < 1e-14
+            % OK, Im hard-wiring this condition here. The argument is that if the residual is below 1e-14 and the solver repeatedly
+            % returns very short steps, minimum has effectively been found.
+            
+            RunInfo.Forward.uvhConverged=true;
+        else
+            RunInfo.Forward.uvhConverged=false;
+        end
 
-        RunInfo.Forward.uvhConverged=0;
         break
+
     end
 
 
@@ -277,10 +320,10 @@ while true
 
 
     CtrlVar.uvhMatrixAssembly.ZeroFields=false; CtrlVar.uvhMatrixAssembly.Ronly=false;
-    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1);
+    [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
     if ~isempty(L)
-        frhs=-Ruvh-L'*luvh;
+        frhs=-Ruvh-L'*luvh;                    % Lagrangian of the total augmented cost function 
         grhs=cuvh-L*[F1.ub;F1.vb;F1.h];
     else
         frhs=-Ruvh;
@@ -296,7 +339,7 @@ while true
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
-    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
+    Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
     gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
 
     if iteration==1  % save the first r value for plotting, etc
@@ -318,7 +361,7 @@ while true
 
     Normalisation=Fext0'*Fext0+1000*eps;
 
-    func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
+    func=@(gamma,Du,Dv,Dh,Dl) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,Du,Dv,Dh,Dl,L,luvh,cuvh,gamma,Fext0) ;
 
 
     r0=func(0,dub,dvb,dh,dl) ;
@@ -525,6 +568,7 @@ end
 
 if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
 
+    %%
     [~,xGL0,yGL0]=UaPlots(CtrlVar,MUA,F0,"-uv-",GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="(u0,v0) at start of NR iteration") ;
     title("$(u_b,v_b)$ at start of time step",Interpreter="latex")
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
@@ -557,7 +601,7 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
 
 
-    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration from initial guess") ;
+    UaPlots(CtrlVar,MUA,F1,F1.h-F0.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="h1-h0 during NR iteration") ;
     hold on ; plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"m--")
 
     title("Change in ice thickness during time step,  $h_1-h_0$  ",Interpreter="latex")
@@ -597,7 +641,7 @@ if CtrlVar.InfoLevelNonLinIt>=5 && CtrlVar.doplots==1
     title(cbar,"",interpreter="latex")
 
     drawnow
-
+    %%
 end
 
 

@@ -1,3 +1,7 @@
+
+
+
+
 function PlotBoundary(Boundary,connectivity,coordinates,CtrlVar,varargin)
 
 %% Plots/labels boundary nodes, edges and elements

@@ -36,35 +36,65 @@ function [fig,FigFound]=FindOrCreateFigure(FigureName,Position,Nx,Ny)
 %
 %%
 
-persistent nFigs
+persistent nFigs FigsArray
 
+isOlderThanR25=isMATLABReleaseOlderThan("R2025a") ;
+
+
+NumberOfInputArguments=nargin ;
 
 if isempty(nFigs)
     nFigs=0;
 end
 
+if isempty(FigsArray)
+    FigsArray=findobj('type','figure');
+end
 
-
-if nargin<1 || isempty(FigureName)
+if NumberOfInputArguments<1 || isempty(FigureName)
     error("FindOrCreateFigure:NoFigureNameGiven","FigureName is a required input")
 end
 
 
-if nargin< 3 || isempty(Nx) || isempty(Ny)
+if NumberOfInputArguments< 3 || isempty(Nx) || isempty(Ny)
     Nx=4;
     Ny=3;
 end
 
 screensize = get( groot, 'Screensize' ) ;
 
+% find if figure already exists and if it is already contained in the figure array
+fig=[];
+for I=1:numel(FigsArray)
+    if ishandle(FigsArray(I))
+        if strcmp(FigsArray(I).Name,FigureName)
+            fig=FigsArray(I);
+            break
+        end
+    end
+end
+
+if isempty(fig)  % does the figure exist, but is not in figure array?
+    fig=findobj('type','figure','name',FigureName);
+    if ~isempty(fig)
+        FigsArray=findobj('type','figure'); % OK, update figure array
+    end
+end
+
+
 %fig=findobj(0,'name',FigureName);
-fig=findobj('type','figure','name',FigureName);
+%fig=findobj('type','figure','name',FigureName);
+
 
 if isempty(fig)
-    FigFound=false; 
-    fig=figure('name',FigureName);
-    if nargin>1 && ~isempty(Position)
-        fig.Position=Position;
+    FigFound=false;
+    fig=figure('name',FigureName,NumberTitle='off');
+
+    %% Positions
+    if NumberOfInputArguments>1 && ~isempty(Position)
+        if isOlderThanR25
+            fig.Position=Position;
+        end
     else
 
 
@@ -74,12 +104,14 @@ if isempty(fig)
         ny=mod(mod(nFigs,Nx*Ny),Ny);
         % nx=0;
 
-
-        fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
+        if isOlderThanR25
+            fig.OuterPosition=[nx*figWidth ny*figHeight figWidth figHeight];
+        end
         nFigs=nFigs+1;
     end
+    FigsArray=findobj('type','figure'); % OK, update figure array
 else
-    FigFound=true; 
+    FigFound=true;
     try
         fig=figure(fig(1));
     catch
@@ -87,9 +119,12 @@ else
     end
 
     Position=fig.Position;
-    fig.Position=Position;
+    if isOlderThanR25
+        fig.Position=Position;
+    end
     hold off
 end
+
 
 set(gcf,'Color','white')
 

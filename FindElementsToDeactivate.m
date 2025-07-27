@@ -2,7 +2,7 @@ function [UserVar,Iele]=FindElementsToDeactivate(UserVar,CtrlVar,MUA_Background,
 
 % First check if there are nodes where the thickness is zero, but where the surface mass balance is positive
 % this could for example happen if the ELA is going down, then I must allow new glaciers to form that are
-% othewise isolated from the other ice masses
+% otherwise isolated from the other ice masses
 %
 %
 % I need to know the surface mass balance at ice free regions where s=b=B
@@ -47,7 +47,7 @@ switch CtrlVar.SelectElementsToDeactivateAlgorithm
         Iele=sum(Fbackground.h(MUA_Background.connectivity)>CtrlVar.ThickMinDeactivateElements,2)>=1;  % True for elements where at least one nodal thicknesses is greater that ThickMin
         PosThickNodes=MUA_Background.connectivity(Iele,:); PosThickNodes=sort(unique(PosThickNodes(:))); % list of all nodes belonging to elements in list I
         Inod(PosThickNodes)=0;  %
-        Iele=sum(Inod(MUA_Background.connectivity),2)==MUA_Background.nod;  % Elements where all nodes should be eliminted
+        Iele=sum(Inod(MUA_Background.connectivity),2)==MUA_Background.nod;  % Elements where all nodes should be eliminated
         
     case 2
         

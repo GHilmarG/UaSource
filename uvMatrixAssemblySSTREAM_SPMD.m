@@ -17,7 +17,7 @@ poolobj = gcp('nocreate');  % check if parpool exists, but do not create one if 
 if isempty(poolobj)
 
     fprintf("SPMD assembly is set to true, but parallel pool is empty. \n")
-    fprintf(" Create a parallel pool ahead of the call to Ua.\n")
+    fprintf(" Create a parallel pool ahead of the call to %ca.\n",218)
 
 else
 

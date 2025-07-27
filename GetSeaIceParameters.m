@@ -1,16 +1,31 @@
-function [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F)
+function [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,F)
 
-narginchk(5,5)
+narginchk(4,4)
 nargoutchk(2,2)
 
 if CtrlVar.IncludeMelangeModelPhysics
-    
-    
-    [UserVar,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma]=DefineSeaIceParameters(UserVar,CtrlVar,MUA,BCs,F.GF,F.ub,F.vb,F.ud,F.vd,F.uo,F.vo,F.ua,F.va,F.s,F.b,F.h,F.S,F.B,F.rho,F.rhow,F.AGlen,F.n,F.C,F.m);
-    
+
+    InputFile="DefineSeaIceParameters.m";
+    TestIfInputFileInWorkingDirectory(InputFile) ;
+    NargIn=nargin(InputFile);
+    NargOut=nargout(InputFile);
+
+    if NargIn ~= 4 || NargOut ~= 9
+
+        fprintf(" The function DefineSeaIceParameters must be on the form: \n ")
+        fprintf("[UserVar,uo,vo,Co,mo,ua,va,Ca,ma]=DefineSeaIceParameters(UserVar,CtrlVar,MUA,F) \n ")
+        error("Ua:GetSeaIceParameters","DefineSeaIceParameters.m must have 4 input and 9 output arguments")
+
+    end
+
+
+
+    [UserVar,F.uo,F.vo,F.Co,F.mo,F.ua,F.va,F.Ca,F.ma]=DefineSeaIceParameters(UserVar,CtrlVar,MUA,F);
+
+
 
     %% Test values
-    
+
     if isempty(F.uo)
         error('Ua:GetSeaIceParameters','Ocean velocity component uo is empty.')
     end

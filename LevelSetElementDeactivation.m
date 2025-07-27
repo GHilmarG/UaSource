@@ -4,8 +4,6 @@ function ElementsToBeDeactivated=LevelSetElementDeactivation(RunInfo,CtrlVar,MUA
 if isempty(F.LSF) ; return ; end
 
 
-
-
 if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
 
     if CtrlVar.LevelSetEvolution=="-Prescribed-"
@@ -13,7 +11,7 @@ if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
         % get rid of ALL elements downstream of the calving fronts
 
 
-        fprintf("LevelSetElementDeactivation:  deactivating ALL elements downstream of calving fronts. ")
+        fprintf("LevelSetElementDeactivation:  deactivating ALL elements downstream of calving fronts. \n")
         isIceNode = F.LSF >= 0 ;              % All icy nodes
         isIceElement=AllElementsContainingGivenNodes(MUA.connectivity,isIceNode) ;  % all elements containing at least one icy node
         ElementsToBeDeactivated=~isIceElement ;
@@ -31,11 +29,11 @@ if CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
 
         else
 
-            fprintf("LevelSetElementDeactivation:  deactivating ALL elements downstream of calving fronts. ")
+            fprintf("LevelSetElementDeactivation:  deactivating ALL elements downstream of calving fronts. \n ")
 
 
             % I only deactivate elements if:
-            % 1) all nodes are have LSF value below threhold
+            % 1) all nodes are have LSF value below threshold
             % 2) all nodes have a negative LSF value
 
             %

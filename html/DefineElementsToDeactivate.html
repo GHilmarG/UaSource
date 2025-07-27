@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>DefineElementsToDeactivate</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-05-31"><meta name="DC.source" content="DefineElementsToDeactivate.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>DefineElementsToDeactivate</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-05-08">
+<meta name="DC.source" content="DefineElementsToDeactivate.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,39 +72,114 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Manually deactivate elements within a mesh.</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [UserVar,ElementsToBeDeactivated]=<span class="keyword">...</span>
-    DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
-</pre><h2 id="2">Manually deactivate elements within a mesh.</h2><p>This file is called within each run step if CtrlVar.ManuallyDeactivateElements=true</p><pre class="language-matlab">[UserVar,ElementsToBeDeactivated]=<span class="keyword">...</span>
-    DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
-</pre><p><b>Example:</b>  To deactivate all elements outside of the region bounded by BoundaryCoordinats in run-step 2:</p><pre class="language-matlab"><span class="keyword">if</span> CtrlVar.CurrentRunStepNumber==2
-</pre><pre>     BoundaryCoordinates=[0 0 ; 10e3 0 ; 10e3 20e3 ; -5e3 15e3 ] ;
-     In=inpoly([xEle yEle],BoundaryCoordinates);
-     ElementsToBeDeactivated=~In;</pre><pre>     figure
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#2">Manually deactivate elements within a mesh.</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">
+<span class="keyword">function</span> [UserVar,ElementsToBeDeactivated]=DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,F)
+</pre>
+<h2 id="2">Manually deactivate elements within a mesh.</h2>
+<p>This file is called within each run step if CtrlVar.ManuallyDeactivateElements=true</p>
+<pre class="language-matlab">ElementsToBeDeactivated  : a list <span class="string">of</span> <span class="string">elements</span> <span class="string">to</span> <span class="string">be</span> <span class="string">deactivated.</span>
+                           this <span class="string">can</span> <span class="string">either</span> <span class="string">be</span> <span class="string">a</span> <span class="string">logical</span> <span class="string">variable</span> <span class="string">of</span> <span class="string">a</span> <span class="string">vector</span> <span class="string">with</span> <span class="string">element</span> <span class="string">numbers</span> <span class="string">that</span> <span class="string">are</span> <span class="string">to</span> <span class="string">be</span>
+                           deactivated.
+</pre>
+<p>
+<b>Example:</b> To deactivate elements 10 and 23, set:</p>
+<pre class="language-matlab">ElementsToBeDeactivated=[10;23];
+</pre>
+<p>
+<b>Example:</b> To deactivate elements with element x coordinates larger than 1000, set:</p>
+<pre>ElementsToBeDeactivated=MUA.xEle &gt; 1000</pre>
+<p>
+<b>Example:</b> To deactivate all elements outside of the region bounded by BoundaryCoordinates in run-step 2:</p>
+<pre class="language-matlab">
+<span class="keyword">if</span> CtrlVar.CurrentRunStepNumber==2
+</pre>
+<pre>     BoundaryCoordinates=[0 0 ; 10e3 0 ; 10e3 20e3 ; -5e3 15e3 ] ;
+     In=inpoly([MUA.xEle MUA.yEle],BoundaryCoordinates);
+     ElementsToBeDeactivated=~In;</pre>
+<pre>     figure
      PlotMuaMesh(CtrlVar,MUA,ElementsToBeDeactivated,'r')
      hold on
-     PlotMuaMesh(CtrlVar,MUA,~ElementsToBeDeactivated,'k')</pre><pre class="language-matlab"><span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+     PlotMuaMesh(CtrlVar,MUA,~ElementsToBeDeactivated,'k')</pre>
+<pre class="language-matlab">
+<span class="keyword">end</span>
+</pre>
+<p>
+<b>Example:</b> To deactivate elements where none of the nodes have ice thickness greater than 2*CtrlVar.ThickMin :</p>
+<pre class="language-matlab">AboveMinThickNodes = F.h &gt; 2*CtrlVar.ThickMin ;
+MinThickElements=AllElementsContainingGivenNodes(MUA.connectivity,AboveMinThickNodes) ;
+ElementsToBeDeactivated=~MinThickElements ;
+</pre>
+<p>
+<b>Example:</b> To plot elements that are to be deactivated:</p>
+<pre class="language-matlab">UaPlots(CtrlVar,MUA,F,F.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle=<span class="string">"min thick elements"</span>);
+set(gca,<span class="string">'ColorScale'</span>,<span class="string">'log'</span>)
+hold <span class="string">on</span>
+PlotMuaMesh(CtrlVar,MUA);
+hold <span class="string">on</span>
+PlotMuaMesh(CtrlVar,MUA,ElementsToBeDeactivated,color=<span class="string">"r"</span>,LineWidth=2)
+title(<span class="string">"Elements to be deactivated in red"</span>)
+</pre>
+<p>Note that the x and y coordinates of the elements, defined as the mean x and y values of nodes, can be found in :</p>
+<pre class="language-matlab">MUA.xEle
+MUA.yEle
+</pre>
+<pre class="codeinput">ElementsToBeDeactivated=[] ;
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [UserVar,ElementsToBeDeactivated]=...
-    DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
+
+
+
+function [UserVar,ElementsToBeDeactivated]=DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,F) 
 
 %%  Manually deactivate elements within a mesh.   
 %
 % This file is called within each run step if CtrlVar.ManuallyDeactivateElements=true
 %  
+%   ElementsToBeDeactivated  : a list of elements to be deactivated.
+%                              this can either be a logical variable of a vector with element numbers that are to be
+%                              deactivated.
+% 
+% *Example:* To deactivate elements 10 and 23, set: 
 %
-%   [UserVar,ElementsToBeDeactivated]=...
-%       DefineElementsToDeactivate(UserVar,RunInfo,CtrlVar,MUA,xEle,yEle,ElementsToBeDeactivated,s,b,S,B,rho,rhow,ub,vb,ud,vd,GF)
+%   ElementsToBeDeactivated=[10;23];
+%
+% *Example:* To deactivate elements with element x coordinates larger than 1000, set: 
+%
+%  ElementsToBeDeactivated=MUA.xEle > 1000
+% 
+%
+% 
 %
 % *Example:*  To deactivate all elements outside of the region bounded by
-% BoundaryCoordinats in run-step 2:
+% BoundaryCoordinates in run-step 2:
 %
 % 
 %   if CtrlVar.CurrentRunStepNumber==2
 %
 %       BoundaryCoordinates=[0 0 ; 10e3 0 ; 10e3 20e3 ; -5e3 15e3 ] ;    
-%       In=inpoly([xEle yEle],BoundaryCoordinates);
+%       In=inpoly([MUA.xEle MUA.yEle],BoundaryCoordinates);
 %       ElementsToBeDeactivated=~In;
 %     
 %     
@@ -109,8 +190,36 @@ function [UserVar,ElementsToBeDeactivated]=...
 %  
 %   end
 % 
+% *Example:* To deactivate elements where none of the nodes have ice thickness greater
+% than 2*CtrlVar.ThickMin : 
+%
+%   AboveMinThickNodes = F.h > 2*CtrlVar.ThickMin ; 
+%   MinThickElements=AllElementsContainingGivenNodes(MUA.connectivity,AboveMinThickNodes) ; 
+%   ElementsToBeDeactivated=~MinThickElements ; 
+%
+% *Example:* To plot elements that are to be deactivated: 
 % 
+%   UaPlots(CtrlVar,MUA,F,F.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="min thick elements"); 
+%   set(gca,'ColorScale','log') 
+%   hold on 
+%   PlotMuaMesh(CtrlVar,MUA);
+%   hold on
+%   PlotMuaMesh(CtrlVar,MUA,ElementsToBeDeactivated,color="r",LineWidth=2)
+%   title("Elements to be deactivated in red")
+% 
+%
+% Note that the x and y coordinates of the elements, defined as the mean x and y values of nodes, can be found in :
+%
+%   MUA.xEle
+%   MUA.yEle
+%
+%%
+
+
+ElementsToBeDeactivated=[] ; 
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

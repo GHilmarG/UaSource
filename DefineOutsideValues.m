@@ -28,8 +28,8 @@ function OutsideValue=DefineOutsideValues(UserVar,CtrlVar,MUA,F,OutsideValue)
 %
 %%
 
-% Prescribe here outside thickness values of twice the minimum ice thickness.
-OutsideValue.h=2*CtrlVar.ThickMin ;
+% Prescribe here outside thickness values to the minimum ice thickness.
+OutsideValue.h=CtrlVar.ThickMin ;
 
 % Make sure the s and b corresponds to flotation. However this is not essential
 % as s and b are always adjusted internally based on h, S and B given rho and

@@ -11,7 +11,7 @@ function [UserVar,f,lambda,HEmatrix,HErhs]=HelmholtzEquation(UserVar,CtrlVar,MUA
 %
 % If RHS is given as input, c and d are not used. 
 %
-% The in-homogeneous Helmholtz equation with variable coefficents in two spatial
+% The in-homogeneous Helmholtz equation with variable coefficients in two spatial
 % dimensions is
 %
 % $$  a(x,y) f(x,y) - \nabla \cdot (b(x,y) \nabla f(x,y)) = c(x,y) - \nabla \cdot \nabla  d(x,y) $$

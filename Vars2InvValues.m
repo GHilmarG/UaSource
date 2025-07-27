@@ -6,7 +6,7 @@ NB=numel(F.B);
 NC=numel(F.C);
 
 
-% always return as inverse final values the corresponding F fields (as suggested by Camilla)
+% always return as inverse final values, the corresponding F fields (as suggested by Camilla)
 InvValues.AGlen=F.AGlen;
 InvValues.B=F.B;
 InvValues.C=F.C;

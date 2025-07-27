@@ -5,7 +5,7 @@
 
 
 
-function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
+function [cbar,xGL,yGL,xCF,yCF,CtrlVar,lg]=UaPlots(CtrlVar,MUA,F,Variable,options)
 
 %%
 %
@@ -64,6 +64,10 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar]=UaPlots(CtrlVar,MUA,F,Variable,options)
 %   CtrlVar.QuiverColorSpeedLimits=[0 2000];
 %   UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle="velocities")
 %
+% Plot locations of min ice thickness:
+%
+%   UaPlots(CtrlVar,MUA,F,F.h,GetRidOfValuesDownStreamOfCalvingFronts=false,logColorbar=true,ShowMinIcethicknessLocations=true)
+%
 %%
 
 arguments
@@ -80,10 +84,13 @@ arguments
     options.PlotOverMesh=false;
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
+    options.ShowMinIcethicknessLocations=false;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
     options.MeshColor char="k"
-
+    options.logColorbar=false;
+    options.Plot string = ""
+    
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
     % options.ColorMap double=othercolor("Mlightterrain",1028)
@@ -92,8 +99,11 @@ arguments
     % colormap(othercolor("Greys7",1028))
     % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
     % CM=cmocean('ice',150) ; colormap(CM);
+    %
+    % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
+    % 
     
-    options.ColorMap double=othercolor("YlGnBu8",1028)  % See othercolor.m for more options
+    options.ColorMap double=othercolor("YlGnBu8",25)  % See othercolor.m for more options
 end
 
 %% Make F from old output files compatible
@@ -117,7 +127,9 @@ if ~isa(F,"UaFields")
         F.dt=[];
     end
 
-    if ~(isfield(F,"GF") || isfield(F.GF,"node"))
+    if ~isfield(F,"GF")
+        F.GF=[];
+    elseif ~isfield(F.GF,"node")
         F.GF=[];
     end
 else
@@ -130,6 +142,8 @@ else
 end
 %%
 
+lg=[]; % this will be a handle to the legend (if created). 
+%%
 
 % if fig title has not been set, use by default the variable name
 if options.FigureTitle=="UaPlots"
@@ -148,6 +162,11 @@ if options.CreateNewFigure
     clf(fFig)  ;
 end
 
+if isstring(Variable)
+
+        options.Plot=Variable;
+
+end
 
 if islogical(Variable)
     Variable=double(Variable) ;
@@ -155,11 +174,16 @@ end
 
 if isnumeric(Variable)
 
+    % If the Variable is entered as a Nnodes x 2 array, then assume this is a velocity field and replace the (ub,vb) velocity in
+    % F with this variable. This is an easy option to plot any velocity field over the mesh.
     [nV,mV]=size(Variable);
     if nV==MUA.Nnodes && mV==2
         F.ub=full(Variable(:,1));
         F.vb=full(Variable(:,2));
-        Variable="-uv-";
+        if options.Plot==""
+            options.Plot="-uv-" ;
+        end
+
     else
         Variable=full(Variable);
     end
@@ -169,10 +193,10 @@ if isempty(F)
     F=UaFields;
 end
 
-if isstring(Variable)
+if isstring(options.Plot)
 % {"-eta-","eta int","etaint","-eta int-"}
-    if contains(Variable,"int") || contains(Variable,"eta") || contains(Variable,"-e-") ...
-            || contains(Variable,"tau")  || contains(Variable,"basal drag") 
+    if contains(options.Plot,"int") || contains(options.Plot,"eta") || contains(options.Plot,"-e-") ...
+            || contains(options.Plot,"tau")  || contains(options.Plot,"basal drag") 
         options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     end
 
@@ -198,7 +222,7 @@ if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
 end
 
-if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && Variable~="-strain rates-"
+if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && options.Plot~="-strain rates-"
 
  
 
@@ -231,7 +255,7 @@ if options.PlotOverMesh
 end
 
 
-if isnumeric(Variable)
+if isnumeric(Variable) && options.Plot ==""
 
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,Variable);
     title(cbar,inputname(4)) ;
@@ -240,7 +264,7 @@ if isnumeric(Variable)
 else
 
 
-    switch lower(Variable)
+    switch lower(options.Plot)
 
         case {"speed","-speed-"}
 
@@ -255,7 +279,8 @@ else
             speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
-            title(cbar,"$\log_{10}(m/a)$",Interpreter="latex")
+            title(cbar,["$\log_{10}(\| \mathbf{v} \|)$","(m/yr)"],Interpreter="latex")
+            
             set(gca,'ColorScale','log')
             CM=cmocean('-ice',15) ; colormap(CM);
 
@@ -327,7 +352,9 @@ else
            
            scale=0.1 ; 
            LineWidth=1; 
-           nStride=10;
+           nLocationsPlotted=10;
+           nLocations=ceil(size(xint,1));
+           nStride=nLocations/nLocationsPlotted; 
            xint=xint(1:nStride:end,1);
            yint=yint(1:nStride:end,1);
            exx=exx(1:nStride:end,1);
@@ -395,6 +422,10 @@ else
     end
 end
 
+if options.logColorbar
+    set(gca,'ColorScale','log')
+end
+
 hold on ;
 
 if options.PlotUnderMesh
@@ -407,9 +438,9 @@ end
 
 if options.PlotGroundingLines
     if isfield(F,"GF")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor);
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
     elseif isfield(F.GF,"node")
-        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor);
+        [xGL,yGL]=PlotGroundingLines(CtrlVar,MUA,F.GF.node,[],[],[],color=options.GroundingLineColor,DisplayName="Grounding lines");
     end
 end
 
@@ -419,7 +450,7 @@ end
 
 
 if options.PlotMuaBoundary
-    PlotMuaBoundary(CtrlVar,MUA,"b--");
+    PlotMuaBoundary(CtrlVar,MUA,"b--",DisplayName="Mesh Boundary");
 end
 
 
@@ -429,6 +460,30 @@ if isfield(CtrlVar,"PlotsXaxisLabel")
     ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
 end
 
+if options.logColorbar
+    set(gca,'ColorScale','log')
+end
+
+if options.ShowMinIcethicknessLocations
+
+    iloc=F.h==CtrlVar.ThickMin ;
+    nAtMinThick=numel(find(iloc));
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="m",MarkerEdgeColor="c",MarkerSize=3,DisplayName="Node at min thick")
+
+    iloc=F.h<CtrlVar.ThickMin ;
+    nLessThanMinThick=numel(find(iloc));
+    plot(F.x(iloc)/CtrlVar.PlotXYscale,F.y(iloc)/CtrlVar.PlotXYscale,LineStyle="none",Marker="o",MarkerFaceColor="r",MarkerEdgeColor="c",MarkerSize=6,DisplayName="Node below min thick")
+
+    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.ThickMin+eps(CtrlVar.ThickMin));
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=2,DisplayName="Min thick")
+     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,2*CtrlVar.ThickMin);
+    plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=1,DisplayName="Twice min thick")
+   
+    
+    title(sprintf("Nodes at/less than min thick (%i/%i)",nAtMinThick,nLessThanMinThick))
+    lg=legend();
+
+end
 
 
 axis tight

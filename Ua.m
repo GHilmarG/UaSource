@@ -63,26 +63,25 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % model runs. Most of the parameters of a given model run are defined by the
 % user through ` *user m-files'* that are called by Úa during the run.
 %
-%% User m-files :
+%% User m-files (not a complete list):
 % 
 % * DefineInitialUserInput.m
 % * DefineAGlenDistribution.m
 % * DefineSlipperyDistribution.m
 % * DefineBoundaryConditions.m 
-% * DefineGeometry.m
-% * DefineDensities.m
+% * DefineGeometryAndDensities.m
 % * DefineMassBalance.m
 % * DefineDesiredEleSize.m
 % * DefineStartVelValues.m
 % * DefineInputsForInverseRun.m
-% * DefineInverseModellingVariables.m
 % * DefineOutputs.m
 %
 % To get further information on how to use individual user m-files use help. For
-% example: help DefineGeometry 
+% example: help DefineGeometryAndDensityies.m 
 % Make sure to do this from the Úa home directory, or at least not from another
 % directory that has a m-file with the same name.
 %
+% For a complete list of user m-files, look at all Define*.m files found in the source directory.
 %
 % When defining a new model-run, just copy these user m-files from the Úa home
 % directory into your own model-run directory and modify as needed.
@@ -95,9 +94,36 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % too limited.
 %
 % DefineOutputs is only needed for producing output files or for some plotting, etc.
+% 
+% 
 %
 % If any of the above listed m-Files are not found in the run directory, the
 % corresponding m-Files in the Úa home directory are used instead.
+%
+%% Typical workflow:
+%
+% When creating a new model experiments one would typically start as follows:
+%
+% 
+% 
+% # Create a new folder and put all your input files in that folder. You could, for example, start by copying an existing
+% example to a new folder and then modify those input files as required.
+% # You might start by modifying the |DefineInitialInputs.m| to suit your needs. In |DefineInitialInputs.m| you specify
+% various sub-field values of the variables | CtrlVar| . See Ua2D_DefaultParameters.m for more information on CtrlVar. The Ua
+% |Examples| repository <https://github.com/GHilmarG/UaExamples>, also provides varies example of how to define |CtrlVar| for
+% different types of runs. You will also need to specify the boundaries of your computational domain in
+% |DefineInitialInputs.m|. This is done using the variables |MeshBoundaryCoordinates|. Again there are various examples of
+% this in the |Examples| repository. You can also have a look at |ExamplesOfMeshGeneration.m| in the Ua source directory
+% which provides lots of examples of how to define |MeshBoundaryCoordinates|.
+% # You should then create or edit other |Define*.m| input files. You may only need to use a few of those files. Typically
+% you can expect to have to define at least the following input files: |DefineInputs.m|, |DefineAGlenDistribution.m|,
+% |DefineSlipperiness.m|, |DefineGeometryAndDensities.m|, |DefineBoundaryConditions.m|, |DefineMassBalance.m|, and
+% |DefineOutputs.m|. In many modeling situations this might be all the |Define*.m| files you will need. But if, for example,
+% you want to do inverse runs you will also need |DefineInputsForInverseRun.m|.
+% 
+% 
+%
+%
 %
 %
 %% Name of variables
@@ -208,10 +234,15 @@ function UserVar=Ua(UserVar,CtrlVarOnInput,varargin)
 % There are also various ways of refining the mesh. Both global and local
 % (explicit) adaptive meshing is supported. See further explanations in
 % 'Ua2D_DefaultParameters.m'
+%
+% There are some videos on how to use the code at: 
+%
+% <https://livenorthumbriaac-my.sharepoint.com/:f:/g/personal/hilmar_gudmundsson_northumbria_ac_uk/EjeMBaDznHJJsruaO-YzBSMBrmmVDNIYU0z6xXp-Wqr5vQ?e=07v5nn UaVideos>
+%
+%
+%
 %%
 
-%
-%
 
 
 if nargin==0

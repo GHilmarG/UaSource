@@ -1,14 +1,16 @@
-function cancel = multiWaitbar( label, varargin )
+function [cancel,figh] = multiWaitbar( label, varargin )
 %multiWaitbar: add, remove or update an entry on the multi waitbar
 %
 %   multiWaitbar(LABEL,VALUE) adds a waitbar for the specified label, or
 %   if it already exists updates the value. LABEL must be a string and
 %   VALUE a number between zero and one or the string 'Close' to remove the
 %   entry Setting value equal to 0 or 'Reset' will cause the progress bar
-%   to reset and the time estimate to be re-initialised.
+%   to reset and the time estimate to be re-initialized.
 %
-%   multiWaitbar(LABEL,COMMAND,VALUE,...) passes one or more command/value
-%   pairs for changing the named waitbar entry. Possible commands include:
+%   multiWaitbar(LABEL,COMMAND,VALUE,...)  or
+%   multiWaitbar(LABEL,VALUE,COMMAND,VALUE,...)
+%   passes one or more command/value pairs for changing the named waitbar
+%   entry. Possible commands include:
 %   'Value'       Set the value of the named waitbar entry. The
 %                 corresponding value must be a number between 0 and 1.
 %   'Increment'   Increment the value of the named waitbar entry. The
@@ -37,7 +39,7 @@ function cancel = multiWaitbar( label, varargin )
 %   it is true abort the task. The second is to set a 'CancelFcn' that is
 %   called when the user clicks the cancel button, much as is done for
 %   MATLAB's built-in WAITBAR. In either case, you can use the
-%   'ResetCancel' command if you don't want to cancel afterall.
+%   'ResetCancel' command if you don't want to cancel after all. 
 %
 %   multiWaitbar('CLOSEALL') closes the waitbar window.
 %
@@ -80,54 +82,64 @@ function cancel = multiWaitbar( label, varargin )
 %    Thanks to Jesse Hopkins for suggesting the "busy" mode.
 
 %   Author: Ben Tordoff
-%   Copyright 2007-2013 The MathWorks Ltd
+%   Copyright 2007-2025 The MathWorks, Inc.
 
-persistent figh;
+persistent FIGH;
 cancel = false;
 
 % Check basic inputs
-%error( nargchk( 1, inf, nargin ) ); %#ok<NCHKN> - kept for backwards compatibility
-if ~ischar( label )
+error( nargchk( 1, inf, nargin ) ); %#ok<NCHKN> - kept for backwards compatibility
+if ~ischar( label ) && ~isa( label, 'string' )
     error( 'multiWaitbar:BadArg', 'LABEL must be the name of the progress entry (i.e. a string)' );
 end
 
 % Try to get hold of the figure
-if isempty( figh ) || ~ishandle( figh )
-    figh = findall( 0, 'Type', 'figure', 'Tag', 'multiWaitbar:Figure' );
-    if isempty(figh)
-        figh = iCreateFig();
+if isempty( FIGH ) || ~ishandle( FIGH )
+    FIGH = findall( 0, 'Type', 'figure', 'Tag', 'multiWaitbar:Figure' );
+    if isempty(FIGH)
+        FIGH = iCreateFig();
     else
-        figh = handle( figh(1) );
+        FIGH = handle( FIGH(1) );
     end
 end
 
 % Check for close all and stop early
 if any( strcmpi( label, {'CLOSEALL','CLOSE ALL'} ) )
-    iDeleteFigure(figh);
+    iDeleteFigure(FIGH);
+    figh = [];
     return;
+end
+if nargout>1
+    figh = FIGH;
 end
 
 % Make sure we're on-screen
-if ~strcmpi( figh.Visible, 'on' )
-    figh.Visible = 'on';
+if ~strcmpi( FIGH.Visible, 'on' )
+    FIGH.Visible = 'on';
+end
+
+% Make sure the timer is still valid - it can be found and deleted
+% externally.
+if ~isvalid( getappdata( FIGH, 'BusyTimer' ) )
+    setappdata( FIGH, 'BusyTimer', iCreateTimer(FIGH) );
 end
 
 % Get the list of entries and see if this one already exists
-entries = getappdata( figh, 'ProgressEntries' );
+entries = getappdata( FIGH, 'ProgressEntries' );
 if isempty(entries)
     idx = [];
 else
     idx = find( strcmp( label, {entries.Label} ), 1, 'first' );
 end
-bgcol = getappdata( figh, 'DefaultProgressBarBackgroundColor' );
+bgcol = getappdata( FIGH, 'DefaultProgressBarBackgroundColor' );
 
 % If it doesn't exist, create it
 needs_redraw = false;
 entry_added = isempty(idx);
 if entry_added
     % Create a new entry
-    defbarcolor = getappdata( figh, 'DefaultProgressBarColor' );
-    entries = iAddEntry( figh, entries, label, 0, defbarcolor, bgcol );
+    defbarcolor = getappdata( FIGH, 'DefaultProgressBarColor' );
+    entries = iAddEntry( FIGH, entries, label, 0, defbarcolor, bgcol );
     idx = numel( entries );
 end
 
@@ -180,6 +192,9 @@ else
                     error( 'multiWaitbar:NameAlreadyExists', 'Cannot relabel an entry to a label that already exists.' );
                 end
                 entries(idx).Label = values{ii};
+                if ~isempty(entries(idx).CancelButton)
+                    set( entries(idx).CancelButton, 'Callback', @(src,evt) iCancelEntry(src, values{ii}) );
+                end
                 needs_update = true;
                 force_update = true;
                 
@@ -193,6 +208,7 @@ else
                 
             case {'RESETCANCEL'}
                 entries(idx).Cancel = false;
+                needs_redraw = true;
                 
             case {'CANCELFCN'}
                 if ~isa( values{ii}, 'function_handle' )
@@ -210,7 +226,7 @@ else
                     entries = iDeleteEntry( entries, idx );
                 end
                 if isempty( entries )
-                    iDeleteFigure( figh );
+                    iDeleteFigure( FIGH );
                     % With the window closed, there's nothing else to do
                     return;
                 else
@@ -218,22 +234,22 @@ else
                 end
                 % We can't continue after clearing the entry, so jump out
                 break;
+                
             otherwise
-                error( 'multiWaitbar:BadArg', 'Unrecognised command: ''%s''', params{ii} );
+                error( 'multiWaitbar:BadArg', 'Unrecognized command: ''%s''', params{ii} );
                 
         end
     end
 end
 
-
 % Now work out what to update/redraw
 if needs_redraw
-    setappdata( figh, 'ProgressEntries', entries );
-    iRedraw( figh );
+    setappdata( FIGH, 'ProgressEntries', entries );
+    iRedraw( FIGH );
     % NB: Redraw includes updating all bars, so never need to do both
 elseif needs_update
     [entries(idx),needs_redraw] = iUpdateEntry( entries(idx), force_update );
-    setappdata( figh, 'ProgressEntries', entries );
+    setappdata( FIGH, 'ProgressEntries', entries );
     % NB: if anything was updated onscreen, "needs_redraw" is now true.
 end
 if entry_added || needs_redraw
@@ -242,7 +258,7 @@ if entry_added || needs_redraw
 end
 
 % If we have any "busy" entries, start the timer, otherwise stop it.
-myTimer = getappdata( figh, 'BusyTimer' );
+myTimer = getappdata( FIGH, 'BusyTimer' );
 if any([entries.Busy])
     if strcmpi(myTimer.Running,'off')
         start(myTimer);
@@ -321,7 +337,7 @@ f = figure( ...
 % Resize and centre on the first screen
 screenSize = get(0,'ScreenSize');
 figSz = [360 42];
-figPos = ceil((screenSize(1,3:4)-figSz)/1.1);
+figPos = ceil((screenSize(1,3:4)-figSz)/2);
 fobj = handle( f );
 fobj.Position = [figPos, figSz];
 setappdata( fobj, 'ProgressEntries', [] );
@@ -331,14 +347,11 @@ barbgcol = uint8( 255*0.75*bgcol );
 setappdata( fobj, 'DefaultProgressBarBackgroundColor', barbgcol );
 setappdata( fobj, 'DefaultProgressBarColor', defbarcolor );
 setappdata( fobj, 'DefaultProgressBarSize', [350 16] );
+setappdata( fobj, 'MaxEntryRows', 10 );
 % Create the timer to use for "Busy" mode, being sure to delete any
 % existing ones
 delete( timerfind('Tag', 'MultiWaitbarTimer') );
-myTimer = timer( ...
-    'TimerFcn', @(src,evt) iTimerFcn(f), ...
-    'Period', 0.02, ...
-    'ExecutionMode', 'FixedRate', ...
-    'Tag', 'MultiWaitbarTimer' );
+myTimer = iCreateTimer(f);
 setappdata( fobj, 'BusyTimer', myTimer );
 
 % Setup the resize function after we've finished setting up the figure to
@@ -346,6 +359,15 @@ setappdata( fobj, 'BusyTimer', myTimer );
 fobj.ResizeFcn = @iRedraw;
 fobj.CloseRequestFcn = @iCloseFigure;
 end % iCreateFig
+
+%-------------------------------------------------------------------------%
+function t = iCreateTimer(fig)
+t = timer( ...
+    'TimerFcn', @(src,evt) iTimerFcn(fig), ...
+    'Period', 0.02, ...
+    'ExecutionMode', 'FixedRate', ...
+    'Tag', 'MultiWaitbarTimer' );
+end
 
 %-------------------------------------------------------------------------%
 function cdata = iMakeColors( baseColor, height )
@@ -431,6 +453,7 @@ cdata = iMakeColors( color, 16 );
 barcdata = iMakeBackground( bgcolor, psize(2) );
 
 % Work out the size in advance
+mypanel = uipanel( 'Parent', parent, 'Units', 'Pixels', 'BorderType', 'line' );
 labeltext = uicontrol( 'Style', 'Text', ...
     'String', label, ...
     'Parent', parent, ...
@@ -439,11 +462,19 @@ etatext = uicontrol( 'Style', 'Text', ...
     'String', '', ...
     'Parent', parent, ...
     'HorizontalAlignment', 'Right' );
-progresswidget = uicontrol( 'Style', 'Checkbox', ...
-    'String', '', ...
-    'Parent', parent, ...
-    'Position', [5 5 psize], ...
-    'CData', barcdata );
+% From R2025a onwards we must use UIImage rather than a checkbox.
+if verLessThan("MATLAB","25.1") %#ok<VERLESSMATLAB>
+    progresswidget = uicontrol( 'Style', 'Checkbox', ...
+        'String', '', ...
+        'Parent', parent, ...
+        'Position', [5 5 psize], ...
+        'CData', barcdata );
+else
+    progresswidget = uiimage( ...
+        'Parent', parent, ...
+        'Position', [5 5 psize], ...
+        'ImageSource', barcdata );
+end
 cancelwidget = uicontrol( 'Style', 'PushButton', ...
     'String', '', ...
     'FontWeight', 'Bold', ...
@@ -452,7 +483,6 @@ cancelwidget = uicontrol( 'Style', 'PushButton', ...
     'CData', iMakeCross( 8 ), ...
     'Callback', @(src,evt) iCancelEntry( src, label ), ...
     'Visible', 'off' );
-mypanel = uipanel( 'Parent', parent, 'Units', 'Pixels' );
 
 newentry = struct( ...
     'Label', label, ...
@@ -482,6 +512,8 @@ end
 setappdata( parent, 'ProgressEntries', entries );
 if strcmpi( get( parent, 'Visible' ), 'on' )
     iRedraw( parent, [] );
+    % Redraw may have modified the entries
+    entries = getappdata( parent, 'ProgressEntries');
 else
     set( parent, 'Visible', 'on' );
 end
@@ -548,23 +580,18 @@ lastfilled = max( 1, round( lastval*psize(1) ) );
 if force || (filled<lastfilled)
     % Create the bar background
     startIdx = 1;
-    bgim = entry.BackgroundCData(:,ones( 1, psize(1)-filled ),:);
+    bgim = entry.BackgroundCData(:,ones( 1, ceil(psize(1)-filled) ),:);
     barim = iMakeBarImage(entry.CData, startIdx, filled);
     progresscdata = [barim,bgim];
     
     % Add light/shadow around the markers
     markers = round( (0.1:0.1:val)*psize(1) );
-    markers(markers<startIdx | markers>(filled-2)) = [];
+    markers(markers<=startIdx | markers>(filled-2)) = [];
     highlight = [marker_weight*entry.CData, 255 - marker_weight*(255-entry.CData)];
     for ii=1:numel( markers )
         progresscdata(:,markers(ii)+[-1,0],:) = highlight;
     end
-    
-    % Set the image into the checkbox
-    entry.BarCData = progresscdata;
-    set( entry.Progress, 'cdata', progresscdata );
     updated = true;
-    
 elseif filled > lastfilled
     % Just need to update the existing data
     progresscdata = entry.BarCData;
@@ -580,10 +607,17 @@ elseif filled > lastfilled
     for ii=1:numel( markers )
         progresscdata(:,markers(ii)+[-1,0],:) = highlight;
     end
-    
-    entry.BarCData = progresscdata;
-    set( entry.Progress, 'CData', progresscdata );
     updated = true;
+end
+
+if updated
+    % Set the image into the entry and in the widget
+    entry.BarCData = progresscdata;
+    if isa(entry.Progress, "matlab.ui.control.Image")
+        entry.Progress.ImageSource = progresscdata;
+    else
+        set( entry.Progress, 'cdata', progresscdata );
+    end
 end
 
 % As an optimization, don't update any text if the bar didn't move and the
@@ -686,7 +720,11 @@ bgim(:,startIdx:endIdx,:) = barim;
 
 % Put it into the widget
 entry.BarCData = bgim;
-set( entry.Progress, 'CData', bgim );
+if isa(entry.Progress,"matlab.ui.control.Image")
+    entry.Progress.ImageSource = bgim;
+else
+    set(entry.Progress, 'cdata', bgim);
+end
 end % iUpdateBusyEntry
 
 
@@ -720,7 +758,9 @@ end % iCloseFigure
 function iDeleteFigure( fig )
 % Actually destroy the figure
 busyTimer = getappdata( fig, 'BusyTimer' );
-stop( busyTimer );
+if isvalid( busyTimer )
+    stop( busyTimer );
+end
 delete( busyTimer );
 delete( fig );
 end % iDeleteFigure
@@ -735,11 +775,14 @@ border = 5;
 textheight = 16;
 barheight = 16;
 panelheight = 10;
+maxRows = getappdata( fig, 'MaxEntryRows' );
 N = max( 1, numel( entries ) );
+Nrows = min(maxRows, N);
+Ncols = ceil(N ./ Nrows);
 
 % Check the height is correct
 heightperentry = textheight+barheight+panelheight;
-requiredheight = 2*border + N*heightperentry - panelheight;
+requiredheight = 2*border + Nrows*heightperentry - panelheight;
 if ~isequal( p(4), requiredheight )
     p(2) = p(2) + p(4) - requiredheight;
     p(4) = requiredheight;
@@ -747,47 +790,46 @@ if ~isequal( p(4), requiredheight )
     % in practice it doesn't, probably because we aren't calling "drawnow".
     set( fig, 'Position', p )
 end
-ypos = p(4) - border;
-width = p(3) - 2*border;
+width = floor((p(3) - Ncols*2*border) ./ Ncols);
 setappdata( fig, 'DefaultProgressBarSize', [width barheight] );
 
 for ii=1:numel( entries )
-    set( entries(ii).LabelText, 'Position', [border ypos-textheight width*0.75 textheight] );
-    set( entries(ii).ETAText, 'Position', [border+width*0.75 ypos-textheight width*0.25 textheight] );
+    col = ceil(ii./Nrows)-1;
+    row = ii - col.*Nrows - 1;
+    xpos = border + (width+2*border).*col;
+    ypos = p(4) - border - heightperentry.*row;
+    
+    set( entries(ii).Panel, 'Position', [xpos-border ypos+panelheight/2-heightperentry width+2*border+1 heightperentry] );
+    set( entries(ii).LabelText, 'Position', [xpos ypos-textheight width*0.75 textheight] );
+    set( entries(ii).ETAText, 'Position', [xpos+width*0.75 ypos-textheight width*0.25 textheight] );
     ypos = ypos - textheight;
+    
     if entries(ii).CanCancel
-        set( entries(ii).Progress, 'Position', [border ypos-barheight width-barheight+1 barheight] );
-        entries(ii).ProgressSize = [width-barheight barheight];
+        set( entries(ii).Progress, 'Position', [xpos ypos-barheight max(1,width-barheight+1) barheight] );
+        entries(ii).ProgressSize = max(1,[width-barheight barheight]);
         set( entries(ii).CancelButton, 'Visible', 'on', 'Position', [p(3)-border-barheight ypos-barheight barheight barheight] );
     else
-        set( entries(ii).Progress, 'Position', [border ypos-barheight width+1 barheight] );
+        set( entries(ii).Progress, 'Position', [xpos ypos-barheight width+1 barheight] );
         entries(ii).ProgressSize = [width barheight];
         set( entries(ii).CancelButton, 'Visible', 'off' );
     end
-    ypos = ypos - barheight;
-    set( entries(ii).Panel, 'Position', [-500 ypos-500-panelheight/2 p(3)+1000 500] );
-    ypos = ypos - panelheight;
     entries(ii) = iUpdateEntry( entries(ii), true );
 end
 setappdata( fig, 'ProgressEntries', entries );
 end % iRedraw
 
 function cdata = iMakeCross( sz )
-% Create a cross-shape image
+% Create a cross-shape icon of size sz*sz*3
 
-cdata = nan( sz, sz );
-for ii=1:sz
-    cdata(ii,ii) = 0;
-    cdata(sz-ii+1,ii) = 0;
-end
-for ii=2:sz
-    cdata(ii,ii-1) = 0;
-    cdata(ii-1,ii) = 0;
-    cdata(sz-ii+1,ii-1) = 0;
-    cdata(ii,sz-ii+2) = 0;
-end
+cdata = diag(ones(sz,1),0) + diag(ones(sz-1,1),1) + diag(ones(sz-1,1),-1);
+cdata = cdata + flip(cdata,2);
+
+% Convert zeros to nans (transparent) and non-zeros to zero (black)
+cdata(cdata == 0) = nan;
+cdata(~isnan(cdata)) = 0;
+
+% Convert to RGB
 cdata = cat( 3, cdata, cdata, cdata );
-
 end % iMakeCross
 
 

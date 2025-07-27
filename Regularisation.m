@@ -6,6 +6,8 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %%
 % Calculates the regularization term R, and the gradient and the Hessian of R with respect to p.
 %
+%
+%
 % This is a fairly simple thing to do as the regularization term is an explicit function of p, and the Hessian calculation can
 % be done exactly.
 %
@@ -26,6 +28,21 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %
 %
+% Note: Although here the focus is on what is generally considered to be regularization terms, these terms can also be thought of as
+% those where the inverted fields (e.g. B C A) explicitly enter the cost function.
+%
+% Here we, for example, also include the deviation of B from direct measurements. This could equally be referred to as a misfit term
+% as well. This B 'misfit' term has the form:
+%
+% $$ \int (B-B_{\mathrm{meas}}) \, C^{-1} \, (B-B_{\mathrm{meas}}) \, dA $$
+%
+% By defining:
+%
+% $$ \tilde{B} = (B-B_{\mathrm{meas}})/B_{\epsilon} $$
+% 
+% This simply has the form
+%
+% $$ \tilde{B} \, M \tilde{B} $$
 %
 %%
 
@@ -377,11 +394,12 @@ else  % Tikhonov regularization
 
         if ~isempty(Meas.B)  &&  ~isempty(Meas.BCov)  &&    isdiag(Meas.BCov)
 
-            % Adding a cost term giving the deviation from in inverted B from direct measurements of B. This has the same form as a data
+            % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
             
 
-            Berr=sqrt(spdiags(Meas.BCov));
+            Berr=sqrt(spdiags(Meas.BCov));  
+                                          
             Bres=(F.B-Meas.B)./Berr;
             RBmeas=full(Bres'*MUA.M*Bres)/2/Area;
             dRdBmeas=(MUA.M*Bres)./Berr/Area;

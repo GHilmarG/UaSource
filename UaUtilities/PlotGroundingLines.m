@@ -143,9 +143,9 @@ if isstring(MUA)
 
         tt=axis;
         if isempty(varargin)
-            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r') ;
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r',DisplayName="grounding lines") ;
         else
-            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName="Grounding lines") ; 
         end
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
@@ -208,7 +208,7 @@ if CtrlVar.PlotGLs
 
     if ~CtrlVar.PlotIndividualGLs
 
-        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:}) ;
+        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName="Grounding lines") ;
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
     else
@@ -221,7 +221,7 @@ if CtrlVar.PlotGLs
         for ii=1:numel(I)-1
             i=i+1;
 
-            plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:}) ;
+            plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:},DisplayName="Grounding lines") ;
             axis equal ; hold on ;
             if i==numel(col) ; i=0 ; end
         end

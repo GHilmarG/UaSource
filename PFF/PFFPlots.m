@@ -1,10 +1,31 @@
 
-function PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,phi,Psi,e,PlotTitle) 
+function PFFPlots(UserVar,CtrlVar,MUA,F,BCs,BCsphi,phi,Psi,e,PlotTitle,options) 
 
 
-persistent phiVideo MeshVideo uvVideo eVideo
+
+
+arguments
+    UserVar struct
+    CtrlVar struct
+    MUA     struct
+    F       {mustBeA(F,{'struct','UaFields','numeric'})}
+    BCs     {mustBeA(BCs,{'struct','BoundaryConditions','numeric'})}
+    BCsphi  {mustBeA(BCsphi,{'struct','BoundaryConditions','numeric'})}
+    phi     (:,1) {mustBeNumeric}
+    Psi     (:,1) {mustBeNumeric}
+    e       (:,1) {mustBeNumeric}
+    PlotTitle string=""
+    options.CreateVideos logical=false
+    options.CloseVideos logical=false
+
+end
+
+
+
+persistent phiVideo MeshVideo uvVideo eVideo phiLast
 
 narginchk(10,10)
+
 
 if ~isfield(CtrlVar.PhaseFieldFracture,"Video")
     CtrlVar.PhaseFieldFracture.Video=false;
@@ -31,17 +52,26 @@ FindOrCreateFigure("BCs Phi") ; PlotBoundaryConditions(CtrlVar,MUA,BCsphi);
 hold on ; plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
-UaPlots(CtrlVar,MUA,F,F.AGlen,FigureTitle="A Effective") ; set(gca,'ColorScale','log')
+if CtrlVar.PhaseFieldFracture.Formulation=="-elastic-" 
+FigTitle="Effective Shear Modulus (G)";
+else
+    FigTitle="Effective rate factor (A)";
+end
+
+UaPlots(CtrlVar,MUA,F,F.AGlen,FigureTitle=FigTitle) ; 
+
+
+set(gca,'ColorScale','log')
 hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
 title(sprintf("$A$ ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 
 %% uv 
-uvVideoFile="uv-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
-if CtrlVar.PhaseFieldFracture.Video
+uvVideoFile="uv-"+UserVar.Experiment+UserVar.VideoFileName;
+if options.CreateVideos
     if isempty(uvVideo)
-        uvVideo=VideoWriter(uvVideoFile) ;
+        uvVideo=VideoWriter(uvVideoFile,"MPEG-4") ;
         uvVideo.FrameRate=1;
         open(uvVideo)
     end
@@ -59,9 +89,9 @@ hold on ; PlotMuaBoundary(CtrlVar,MUA,"b")
 axis tight 
 %vel.Position=[900 70 1200 1200]; 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     CurFig=gcf; CurFig.Position=[900 70 1200 1200];
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
+    if options.CloseVideos 
         close(uvVideo)
     else
         frame=getframe(gcf);
@@ -70,20 +100,26 @@ if CtrlVar.PhaseFieldFracture.Video
 end
 %% phi
 
-phiVideoFile="phi-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+phiVideoFile="phi-"+UserVar.Experiment+UserVar.VideoFileName;
 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(phiVideo)
-        phiVideo=VideoWriter(phiVideoFile) ;
+        phiVideo=VideoWriter(phiVideoFile,"MPEG-4")  ;
         phiVideo.FrameRate=1;
         open(phiVideo)
     end
 end
 
 figphi=FindOrCreateFigure("phi")  ; clf(figphi) ;
-cbar=UaPlots(CtrlVar,MUA,F,phi) ;
-CM=cmocean('-ice',150) ; colormap(CM);
+cbar=UaPlots(CtrlVar,MUA,F,phi,GroundingLineColor="k") ;
+%CM=cmocean('-ice',15) ; colormap(CM);
+CL=clim;
+% if min(CL) < 0.1 && max(CL)>0.6
+%     CM=cmocean('balanced',25,'pivot',0.1) ; colormap(CM);
+% else
+%     CM=cmocean('balanced',25) ; colormap(CM);
+% end
 title(cbar,"$\phi$",interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 clim([0 1])
@@ -100,17 +136,12 @@ Tphi=sprintf("Phase field, $\\phi$, with $l=$%g m, $G_c$=%g",CtrlVar.PhaseFieldF
 title(Tphi,Interpreter="latex")
 subtitle(PlotTitle,Interpreter="latex");
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex")
-
-if CtrlVar.PhaseFieldFracture.Video
+CM=cmocean('-ice',15) ; colormap(CM);
+if options.CreateVideos
 
     CurFig=gcf; CurFig.Position=[25 70 1200 1200]; axis tight
-
-
-
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
-
+    if options.CloseVideos 
         close(phiVideo)
-
     else
         frame=getframe(gcf);
         writeVideo(phiVideo,frame) ;
@@ -119,11 +150,11 @@ end
 %% Mesh
 
 
-MeshVideoFile="Mesh-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
+MeshVideoFile="Mesh-"+UserVar.Experiment+UserVar.VideoFileName;
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
     if isempty(MeshVideo)
-        MeshVideo=VideoWriter(MeshVideoFile) ;
+        MeshVideo=VideoWriter(MeshVideoFile,"MPEG-4") ;
         MeshVideo.FrameRate=1;
         open(MeshVideo)
     end
@@ -138,12 +169,12 @@ title(sprintf("Mesh ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex")
 
 
-if CtrlVar.PhaseFieldFracture.Video
+if options.CreateVideos
 
     CurFig=gcf; CurFig.Position=[25 70 1200 1200]; axis tight
 
 
-    if CtrlVar.PhaseFieldFracture.iphiUpdate==CtrlVar.PhaseFieldFracture.MaxUpdates
+    if options.CloseVideos
 
         close(MeshVideo)
 
@@ -178,10 +209,10 @@ end
 % xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 %%
-eVideoFile="e-"+UserVar.Experiment+UserVar.VideoFileName+".avi";
-if CtrlVar.PhaseFieldFracture.Video
+eVideoFile="e-"+UserVar.Experiment+UserVar.VideoFileName;
+if options.CreateVideos
     if isempty(eVideo)
-        eVideo=VideoWriter(eVideoFile) ;
+        eVideo=VideoWriter(eVideoFile,"MPEG-4") ; 
         eVideo.FrameRate=1;
         open(eVideo)
     end
@@ -212,6 +243,32 @@ title(sprintf("Strain energy density, $\\Psi$  ")+PlotTitle,Interpreter="latex")
 xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
 
 
+cbar=UaPlots(CtrlVar,MUA,F,[F.ub F.vb],FigureTitle="elastic displacements") ;  
+title(cbar,"displacements",interpreter="latex")
+hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+title(sprintf("Elastic displacement vectors")+PlotTitle,Interpreter="latex")
+xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+
+
+cbar=UaPlots(CtrlVar,MUA,F,F.h,FigureTitle="h",PlotUnderMesh=true) ;  
+title(cbar,"$h$ (m)",interpreter="latex")
+hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+title(sprintf("Ice thickness, $h$  ")+PlotTitle,Interpreter="latex")
+xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+
+% only works if same mesh
+% if ~isempty(phiLast)
+%     cbar=UaPlots(CtrlVar,MUA,F,phi-phiLast,FigureTitle="dphi",PlotUnderMesh=true) ;
+%     title(cbar,"$\Delta \phi$ (m)",interpreter="latex")
+%     hold on ;  plot(xphi/CtrlVar.PlotXYscale,yphi/CtrlVar.PlotXYscale,Color="r",LineWidth=2)
+%     title(sprintf("Change in phase field, $\\Delta \\phi$  ")+PlotTitle,Interpreter="latex")
+%     xlabel("$x$ (km)",Interpreter="latex") ; ylabel("$y$ (km)",Interpreter="latex") ;
+% end
+
+
+phiLast=phi; 
+
+
 return
 
 % deviatoric stresses : This takes some time
@@ -221,6 +278,7 @@ fstress=FindOrCreateFigure("dev stresses") ; clf(fstress)
 scale=5e-3;
 
 iphi=phi>0.5 ;
+
 txx(iphi)=nan;
 txy(iphi)=nan;
 tyy(iphi)=nan;

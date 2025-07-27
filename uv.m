@@ -26,7 +26,7 @@ if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.
     if isempty(poolobj)
 
         fprintf("uv SPMD assembly is set to true, but parallel pool is empty. \n")
-        fprintf(" Create a parallel pool ahead of the call to Ua.\n")
+        fprintf(" Create a parallel pool ahead of the call to %ca.\n",218)
     else
         CtrlVar.Parallel.uvAssembly.spmd.nWorkers=poolobj.NumWorkers;
     end
@@ -46,7 +46,6 @@ if isempty(l)
     l=UaLagrangeVariables; 
 end
 
-hOnInput=F.h; 
 
 
 [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
@@ -72,19 +71,16 @@ if CtrlVar.TestForRealValues
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
 end
 
-hTiny=1e-10;
-if any(F.h<hTiny)
 
-    indh0=find(F.h<hTiny);
+if any(F.h<CtrlVar.ThickMin)
+
+    indh0=find(F.h<CtrlVar.ThickMin);
     fprintf('uv: Found negative ice thicknesses in a diagnostic forward run.\n')
     fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F.h));
 
     if CtrlVar.ResetThicknessToMinThickness==0
         CtrlVar.ResetThicknessToMinThickness=1;
     end
-
-
-    CtrlVar.ThickMin=hTiny;
 
 
     fprintf('For the purpose of the uv solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
@@ -154,7 +150,7 @@ switch lower(CtrlVar.FlowApproximation)
 end
 
 
-F.h=hOnInput; 
+% F.h=hOnInput; % this is questionable because then the solve will be for a different h thick
 
 if CtrlVar.InfoLevelCPU> 10
     tdiagnostic=toc(tdiagnostic);

@@ -235,7 +235,7 @@ if CtrlVar.Inverse.CalcGradI
             lAdjoint=zeros(numel(LAdjointrhs),1) ;
             
             duvJ=duvIduv;     % Because this is the only J term that depends on (u,v). 
-                              % If the regularization term depended on the state variable q, ie R=R(u,v) then this would not be correct.
+                              % If the regularization term also depended on the measurements q, ie R=R(u,v) then this would not be correct.
 
             % Now solve the linear adjoint problem for lambda
             [lambda,lAdjoint]=solveKApeSymmetric(dfuv,LAdjoint,duvJ,LAdjointrhs,[],lAdjoint,CtrlVar);

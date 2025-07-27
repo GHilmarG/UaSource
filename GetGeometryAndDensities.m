@@ -26,13 +26,14 @@ end
 % Note: GF can not be calculated without knowing both the geometrical variables (s,b,S,B) returned by
 % DefineGeometry.m and the densities (rho, rhow) returned by DefineDensities.m
 
-if ~isempty(F.GF)
-    
-    if ~isequal(numel(F.GF.node),MUA.Nnodes)
-        error('InternalUAerror: numel(F.GF.node) ~= MUA.Nnodes')
-    end
-end
-
+% It seems that GF does not need to be defined ahead of the call to DefineGeometryAndDensities
+% if ~isempty(F.GF)
+% 
+%     if ~isequal(numel(F.GF.node),MUA.Nnodes)
+%         error('GetGeometryAndDensities: numel(F.GF.node) ~= MUA.Nnodes')
+%     end
+% end
+F.GF.node=[] ; % Make sure this is undefined ahead of geometry definition (June 2025)
 
 F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
 

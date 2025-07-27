@@ -2,7 +2,7 @@ function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 
 %% Driver for the 2HD a model
 % 
-% Version 2025alpha: Feb
+
 
 if nargin==0
     UserVar=[]; 
@@ -435,8 +435,9 @@ while 1
     %% -adapt time step   automated time stepping 
     if CtrlVar.TimeDependentRun
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
+        F.dt=CtrlVar.dt; 
     end
-    
+ 
     
     %% [------------------adapt mesh    adaptive meshing,  adapt mesh, adapt-mesh
     if CtrlVar.AdaptMesh || CtrlVar.FEmeshAdvanceRetreat || CtrlVar.ManuallyDeactivateElements || CtrlVar.LevelSetMethodAutomaticallyDeactivateElements
@@ -736,7 +737,7 @@ while 1
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
 
-
+       
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
 

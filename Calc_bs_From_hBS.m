@@ -36,20 +36,32 @@ if CtrlVar.ResetThicknessToMinThickness
 
     indh0=h<CtrlVar.ThickMin;
 
-    if any(indh0)
+    isIceThicknessBelowMinValue= any(indh0) ;
+
+    if isIceThicknessBelowMinValue
         h(indh0)=CtrlVar.ThickMin;
 
-        if CtrlVar.InfoLevelThickMin>=1
-            fprintf(' Found %-i thickness values less than %-g. Min thickness is %-g.',numel(find(indh0)),CtrlVar.ThickMin,min(h));
-            fprintf(' Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
+    end
+
+    if CtrlVar.InfoLevelThickMin>=1
+
+        if isIceThicknessBelowMinValue
+            fprintf(' Calc_bs_from_hBS: Found %-i thickness values less than %-g. Min thickness is %-g.',numel(find(indh0)),CtrlVar.ThickMin,min(h));
+            fprintf('                   Setting h(h<%-g)=%-g \n ',CtrlVar.ThickMin,CtrlVar.ThickMin) ;
 
             if CtrlVar.InfoLevelThickMin>=10 && CtrlVar.doplots
-                fig=FindOrCreateFigure('ThickMin'); clf(fig) ; 
+                fig=FindOrCreateFigure('ThickMin'); clf(fig) ;
                 PlotMuaMesh(CtrlVar,MUA)
                 hold on
                 plot(MUA.coordinates(indh0,1)/CtrlVar.PlotXYscale,MUA.coordinates(indh0,2)/CtrlVar.PlotXYscale,'or')
             end
+
+        else 
+        
+            fprintf("Calc_bs_from_hBS: No ice thicknesses below min ice thickness. min(h)=%g \n",min(h))
+
         end
+
     end
 end
 
