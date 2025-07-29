@@ -2,17 +2,20 @@
 
 %%
 %
-% % *Release Notes* _July 2025_
+% *Release Notes* _July 2025_
 %
-% Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
+% * Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
+% 
 %
 %    CtrlVar.ThicknessPenalty=1;  
 %
-% This causes and additonal implicit mass-balance term to be added 
+% This causes an additional implicit mass-balance term to be added 
 %
 % $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
 % 
-% where $h < h_{\min} $
+% where 
+% 
+% $$h < h_{\min}$$
 % 
 % and where:
 %
@@ -23,14 +26,14 @@
 % Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on input is
 % immaterial. 
 %
-% By setting:
+% * By setting:
 % 
 %   CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
 %                                                        
 % nodes of boundary elements can now be excluded from the active set. By default this is false, which is the previous
 % behavior.
 %
-%  The parameter:
+% * The parameter:
 %
 %   CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
 %
@@ -39,20 +42,20 @@
 %
 % *Release Notes* _May 2025_
 %
-% The call to  
+% * The call to  
 % 
 %   DefineDesiredEleSize.m
 % 
 % now only accepts one combination of the number of input and output variables. 
 % 
-% UaUtilities contains a new function: 
+% * UaUtilities contains a new function: 
 %
 %   ElementErrorEstimator(CtrlVar,MUA,F)
 %
 % which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh
 % refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository. 
 %
-% Also within UaUtilities is the function 
+% * Also within UaUtilities is the function 
 %
 %   InfluxOutfluxNodes.m
 %
@@ -63,23 +66,23 @@
 %
 % *Release Notes* _March 2025_
 %
-% The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh
+% * The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh
 % assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference
 % is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly.
 % Previously in the uv solve, it was evaluated by first forming the product, rho h, at nodes and then interpolating the
 % product to the integration points.
 %
-% Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
+% * Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
 % ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
 % user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
 % all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
-% Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
+% * Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
+% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
 % called within the assembly loop and then the mass balance will not lag behind.
 %
-% The start and end times can now be specified using (new option):
+% * The start and end times can now be specified using (new option):
 %
 %   CtrlVar.StartTime
 %   CtrlVar.EndTime
@@ -91,20 +94,20 @@
 %
 % The previous option still works, but the new option is recommended. 
 %
-% When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
+% * When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
 % between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
 %
-% The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function
+% * The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function
 % used in the level-set solver.
 %
-% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set
+% * The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set
 % method to enforce positive thickness.
 %
 % The model was tested with MATLAB R2024b 
 %
 % *Release Notes* _September 2024_
 %
-% For comparison purposes the semi-implicit solver has been updated. 
+% * For comparison purposes the semi-implicit solver has been updated. 
 %
 % This option is NOT recommended and the (fully) implicit approach continues to be the default. The semi-implicit approach is
 % both slower and less accurate that the implicit one.  This option has now been updated and made available for use as
@@ -115,7 +118,7 @@
 %    CtrlVar.ForwardTimeIntegration="-uv-h-" ;
 %
 %
-% The default value of 
+% * The default value of 
 %
 %   CtrlVar.LevelSetMethodThicknessConstraints;
 %
@@ -125,20 +128,20 @@
 % 
 % *Release Notes* _July 2024_
 %
-% The utility
+% * The utility
 %   
 %   [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 %
 % has been updated to allow for calculation at integration points (before only calculated nodal values).
 %
-% An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
-% corrected. Thanks to Sainan Sun for point this out. 
+% * An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
+% corrected. Thanks to Sainan Sun for pointing this out. 
 %
-% A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
+% * A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
 %
 % *Release Notes* _March 2024_
 %
-% Positive thickness constraints --- added dynamically when using the active-set option --- are now not added to nodes already
+% * Positive thickness constraints --- added dynamically when using the active-set option --- are now not added to nodes already
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
 % with thickness less than CtrlVar.ThicMin.
@@ -147,7 +150,7 @@
 %
 % *Release Notes* _February 2024_
 %
-% Parallel spmd assembly option now improved and shows good scalability, although speedup always somewhat problem dependent.  
+% * Parallel spmd assembly option now improved and shows good scalability, although speedup always somewhat problem dependent.  
 % On local workstations with 12 workers, speedup ranging from 6 to 10 seems easily obtainable, and on machines with 24 workers a
 % speedup of 20 has been observed. 
 %
@@ -157,19 +160,19 @@
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     % uv assembly in parallel using spmd over sub-domain (domain decomposition)  
 %
 %
-% The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
+% * The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:
 %
 %   CtrlVar.Parallel.Distribute=true/false;                       % linear system is solved using distributed arrays. 
 %
 % Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated
-% by Ua and other FE programs. 
+% by Úa and other FE programs. 
 %
 %   CtrlVar.Parallel.isTest=false/true;             % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %                                                   % Good for testing if switching on the parallel options speeds things up, and by how much.
 % 
 % *Release Notes* _October 2023_
 %
-% A (rare) case where the Cauchy direction is not a direction of descent was incorrectly updated. This has now been addressed. 
+% * A (rare) case where the Cauchy direction is not a direction of descent was incorrectly updated. This has now been addressed. 
 %
 %
 % *Release Notes* _September 2023_
@@ -453,7 +456,7 @@
 % computational domain during the run.
 % 
 % * Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
-% Cornford, and  Umbi. Refer to the Ua compendium for definition of these
+% Cornford, and  Umbi. Refer to the Úa compendium for definition of these
 % different sliding laws. Inversion is also possible for all these sliding laws except for
 % the Coulomb sliding.
 % 
