@@ -49,8 +49,7 @@ function [UserVar,ElementsToBeDeactivated]=DefineElementsToDeactivate(UserVar,Ru
 %   NewElementsToBeDeactivated=~MinThickElements ; 
 %  ElementsToBeDeactivated=ElementsToBeDeactivated | NewElementsToBeDeactivated ; % Here it is assumed that this is a logical list
 %
-%
-%
+
 % *Example:* To plot elements that are to be deactivated: 
 % 
 %   UaPlots(CtrlVar,MUA,F,F.h,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="Elements to be deactivated"); 
@@ -67,6 +66,7 @@ function [UserVar,ElementsToBeDeactivated]=DefineElementsToDeactivate(UserVar,Ru
 %   MUA.xEle
 %   MUA.yEle
 %
+% 
 %%
 
 

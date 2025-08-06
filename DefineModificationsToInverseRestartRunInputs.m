@@ -34,5 +34,11 @@ function [UserVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
 %%
 
 
+if CtrlVar.IncludeMelangeModelPhysics  && isempty(F.uo)
+    [UserVar,F]=GetSeaIceParameters(UserVar,CtrlVar,MUA,F) ;
+end
+
+
+
 
 end

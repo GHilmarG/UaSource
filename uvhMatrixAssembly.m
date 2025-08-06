@@ -177,6 +177,7 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
     end
     LSFMask=F1.LSFMask.NodesOut ; % This is the 'strictly' definition
 else
+    
     LSFMask=zeros(MUA.Nnodes,1) ;
 end
 

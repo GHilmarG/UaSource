@@ -195,6 +195,7 @@ while iFile<=nFiles   % loop over data
 
         catch
             fprintf('could not load %s \n ',list(iFile).name)
+            iFile=iFile+1;
             continue % if data file can not be loaded (presumably corrupt), just skip to next data file and continue.
         end
 
