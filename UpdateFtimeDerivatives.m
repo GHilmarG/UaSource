@@ -1,4 +1,12 @@
-function   [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0)
+
+
+
+
+
+function   [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)
+
+
+narginchk(8,8)
 
 Fm1.dhdt=F0.dhdt ;
 Fm1.dubdt=F0.dubdt ; Fm1.dvbdt=F0.dvbdt;
@@ -91,5 +99,11 @@ end
 %      I=isoutlier(F.dubdt,'median',ThresholdFactor=1000); F.dubdt(I)=0; F.dvbdt(I)=0; F.duddt(I)=0; F.dvddt(I)=0;
 %     fprintf("                      After removing outliers: [max(abs(F.dubdt)) max(abs(F.dvbdt))]=[%f %f]\n",max(abs(F.dubdt)),max(abs(F.dvbdt)))
 % end
+
+%% comparison with other dh/dt estimates
+
+
+
+
 
 end

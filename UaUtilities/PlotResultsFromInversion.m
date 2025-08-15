@@ -3,14 +3,20 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,I
 
 %%
 %
-% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
 %
 % Does what it says on the tin.
 %
-%  Example:l
+%  Example:
 %
-%  load InversionRestartFile
-%  PlotResultsFromInversion(UserVarInRestartFile,CtrlVarInRestartFile,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+% load InversionRestartFile
+% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
+%
+% It is also possible to enter the name of the restart file as the first, and only, argument. Then the restart file will be
+% first loaded, and then plotted.
+%
+%
+% Note: This function is used by Ua for plotting results from an inversion.
 %
 %%
 

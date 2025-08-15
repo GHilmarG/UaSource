@@ -52,7 +52,12 @@ qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
 for Inod=1:nod
 
     SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-    funI=fun(Inod) ;
+
+    if  CtrlVar.uvh.SUPG.consistent
+        funI=SUPG;
+    else
+        funI=fun(Inod) ;
+    end
     
     if ~Ronly
         for Jnod=1:nod
@@ -160,8 +165,8 @@ for Inod=1:nod
                 +(rhoint.*fun(Jnod)...
                 -dt*theta*rhoint.*dadhint.*fun(Jnod)...
                 +dt*theta*rhoint.*fun(Jnod).*h1barr/lambda_h...
-                +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)+...
-                rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
+                +dt*theta.*(rhoint.*exx.*fun(Jnod)+drhodx.*uint.*fun(Jnod)+rhoint.*uint.*Deriv(:,1,Jnod)...
+                +rhoint.*eyy.*fun(Jnod)+drhody.*vint.*fun(Jnod)+rhoint.*vint.*Deriv(:,2,Jnod)))...
                 .*SUPG.*detJw;
             
             

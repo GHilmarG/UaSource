@@ -1,4 +1,10 @@
 
+
+
+
+
+
+
 function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 
 
@@ -8,7 +14,7 @@ function [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,Ctrl
 %
 % [UserVar,f0,K,dFdt]=MassContinuityEquationAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1)
 %
-% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \mathbf{v} h )  =  a(h)$$
+% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  =  \rho \, a(h)$$
 %
 %  $$a(h)$$ is a function of $h$ when using the level set with automated mass-balance feedback, and if using the thickness
 %  barrier term to (approximately) enforce positive ice thicknesses.
@@ -77,21 +83,14 @@ if isempty(F1.dabdh)
     F1.dabdh=zeros(MUA.Nnodes,1) ;
 end
 
-if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback  && ~isempty(F1.LSF)
+if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
-    if ~isempty(F1.LSF) 
-
-        if isempty(F1.LSFMask)
-            F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
-        end
-
-        LSFMask=F1.LSFMask.NodesOut ; % This is the 'strictly' definition
-        LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-
+    if isempty(F1.LSFMask)
+        F1.LSFMask=CalcMeshMask(CtrlVar,MUA,F1.LSF,0);
     end
 
-
+    LSFMask=F1.LSFMask.NodesOut ; % This is the 'strictly' definition
+    LSFMasknod=reshape(LSFMask(MUA.connectivity,1),MUA.Nele,MUA.nod);
 end
 
 
@@ -182,61 +181,29 @@ for Iint=1:MUA.nip  %Integration points
 
     if CtrlVar.LevelSetMethod && CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback
 
+
         LM=LSFMasknod*fun;
-        a1= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin;
-        a3= CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic;
-
-        hmin=CtrlVar.LevelSetMinIceThickness;
-
-        abLSF =LM.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;
-        dadhLSF=LM.*(a1+3*a3*(h1int-hmin).^2) ;
-
+        [abLSF,dadhLSF]=LevelSetMethodMassBalanceFeedback(CtrlVar,LM,h1int) ;
         a1int=a1int+abLSF;
         da1dhint=da1dhint+dadhLSF ;
+
     else
 
         LM=false ; % Level set mask for melt not applied
 
     end
 
-    if CtrlVar.ThicknessBarrier
+    if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
+
 
         %%  New simpler implementation of a thickness barrier.
-        % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback
-        % the idea here is to directly modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass
-        % balance equation
+        % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
+        % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
 
-        hmin=CtrlVar.ThickMin ;
+        [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,h1int) ;
+        a1int=a1int+aPenalty1;
+        da1dhint=da1dhint+daPenaltydh1 ;
 
-        isThickTooSmall=h1int<hmin ;
-
-        % don't apply if already applied as a part of the level-set method
-        % isThickTooSmall=isThickTooSmall & ~LM ;
-        a1= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin;
-        a3= CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic;
-
-
-        % This is only applied where ice thickness is smaller than hmin
-        %
-        % This is really a penalty term and not a barrier term, ie it only penalizes the cost function whenever h < hmin, but it does
-        % not enforce h >= hmin
-        %
-        % The idea is to keep ice thickness within 0 < h < hmin
-        %
-        %
-        abThickMin =isThickTooSmall.* ( a1*(h1int-hmin)+a3*(h1int-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, for a1<0 and a3<0.
-
-        dadhThickMin=isThickTooSmall.*(a1+3*a3*(h1int-hmin).^2) ;
-
-        a1int=a1int+abThickMin; da1dhint=da1dhint+dadhThickMin ;
-
-        % hTest=linspace(-10,10,1000) ;   P=CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin*(hTest-CtrlVar.ThickMin)+CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic*(hTest-CtrlVar.ThickMin).^3 ;
-        % FindOrCreateFigure("h min thickness penalty") ; plot(hTest,P) ; xlabel("h") ; ylabel("P") ; title("h min thickness penalty")
-
-        % nh=numel(find(isThickTooSmall)) ;
-        % if nh> 0
-        %     fprintf("#%i \t ThickMin=%f \t max(abThickMin)=%f \n ",nh,min(h1int(isThickTooSmall)),max(abThickMin))
-        % end
 
     end
 
@@ -345,11 +312,11 @@ for Iint=1:MUA.nip  %Integration points
         % Note, I solve: LSH  \phi  = - RHS
         qterm=  dt*(theta*q1xdx+(1-theta)*q0xdx+theta*q1ydy+(1-theta)*q0ydy);
         dhdt=  rhoint.*(h1int-h0int);
-        accterm=  -dt*rhoint.*((1-theta)*a0int+theta*a1int);
+        accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int);
 
-        rh= dhdt + qterm + accterm ;
+        rh= dhdt + qterm - accterm ;
 
-        % I solve K h = -Rh
+        % I solve K h = -rh
 
         %
         Rh(:,Inod)=Rh(:,Inod)+rh.*SUPG.*detJw;

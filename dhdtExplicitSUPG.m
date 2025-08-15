@@ -29,7 +29,7 @@ end
 % for an glacier peak example, and found taus created oscillations for 
 % small velocities, i.e. too much negative diffusion.
 
-CtrlVar.Tracer.SUPG.tau="tau2";
+% CtrlVar.Tracer.SUPG.tau="tau2";
 % CtrlVar.Tracer.SUPG.tau="taus";      % too much negative diffusion because of the tau=l/(2u)  goes to infinity as u to zero 
 % CtrlVar.Tracer.SUPG.tau="tau1";    % results identical to noSUPG 
 % CtrlVar.Tracer.SUPG.tau="taut";    % results identical to noSUPG 

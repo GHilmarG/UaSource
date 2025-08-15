@@ -87,6 +87,7 @@ arguments
     options.ShowMinIcethicknessLocations=false;
     options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
     options.CreateNewFigure logical = true ; 
+    options.FigurePosition=[]; 
     options.MeshColor char="k"
     options.logColorbar=false;
     options.Plot string = ""
@@ -101,7 +102,7 @@ arguments
     % CM=cmocean('ice',150) ; colormap(CM);
     %
     % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
-    % 
+    % colormap(othercolor("Mtemperaturemap",20) )
     
     options.ColorMap double=othercolor("YlGnBu8",25)  % See othercolor.m for more options
 end
@@ -157,7 +158,7 @@ end
 
 
 if options.CreateNewFigure
-    fFig=FindOrCreateFigure(options.FigureTitle)  ; 
+    fFig=FindOrCreateFigure(options.FigureTitle,options.FigurePosition)  ; 
     
     clf(fFig)  ;
 end

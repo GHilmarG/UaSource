@@ -1,20 +1,15 @@
+
+
+
+
+
 function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,RunInfo,CtrlVar,MUA,F0,Fm1,BCs1,l1,BCs0,l0)
     
     nargoutchk(7,7)
     narginchk(10,10)
     
-    
-    % The returned F1 does not depend on any of the fields of F1.  I just give this
-    % as an input so that F1 is not redefined as a structure and to ensure that the
-    % all other fields are not lost.
-    
-    %[ub1,vb1,ud1,vd1,h1]=ExplicitEstimation(CtrlVar.dt,dtRatio,CtrlVar.CurrentRunStepNumber,F.ub,F.dubdt,F.dubdtm1,F.vb,F.dvbdt,F.dvbdtm1,F.ud,F.duddt,F.duddtm1,F.vd,F.dvddt,F.dvddtm1,F.h,F.dhdt,F.dhdtm1);
-    
-    
-    % if the mesh has changed over the last time step, then only derivatives of F0 will have been updated, and not those of Fm1.
-
-
-
+ 
+  
 
     switch CtrlVar.ExplicitEstimationMethod
 
@@ -30,23 +25,23 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
 
         case "-dhdt-"
 
-            % [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs0,F0,l0);
-            % [UserVar,dhdt]=Calculate_dhdt(UserVar,CtrlVar,MUA,F0,BCs0) ;
-            % [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs0);
-            [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs0);
-            F1=F0;
-            F1.h=F0.h+dhdt.*CtrlVar.dt ;
-            F1.h(F1.h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
-            % [UserVar,RunInfo,F1,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F1,l1);
-            h=F1.h ;
 
-       
+
+            [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs0);
+            h=F0.h+dhdt.*CtrlVar.dt ;
+            h(h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
+
+            % alternative approach: 
+            % [UserVar,RunInfo,h]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l0,BCs0) ;
+            
+
+
             ub=F0.ub+F0.dubdt*CtrlVar.dt ;
             vb=F0.vb+F0.dvbdt*CtrlVar.dt ;
             ud=F0.ud+F0.duddt*CtrlVar.dt ;
             vd=F0.vd+F0.dvddt*CtrlVar.dt ;
-         
-            
+
+
         case "-Adams-Bashforth-"
 
             
@@ -74,7 +69,7 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
             
             
             
-            % [F1.ub,F1.vb,F1.ud,F1.vd,F1.h]=...
+         
             % improve by checking which fields do need to be updated
             [ub,vb,ud,vd,h]=...
                 ExplicitEstimation(CtrlVar.dt,CtrlVar.dtRatio,Itime,...

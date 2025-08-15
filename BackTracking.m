@@ -18,7 +18,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 % then further nOut-1 outputs from F are collected in varargout and returned, (nOut is then the total number of output
 % variables collected from F) the first input to F is the step variable gamma, varargin is then in addition given over to F
 %
-% F can be called several times. If the output from F are needed as input in a later call to F then that can be deal with by
+% F can be called several times. If the output from F are needed as input in a later call to F then that can be dealt with by
 % defining listInf and litOutF. When F is called additional nOut-1 outputs are collected, i.e. the total number of outputs
 % collected from F in nOut These additional outputs are then given as additional inputs to F:
 %
@@ -46,7 +46,7 @@ function [gmin,fmin,BackTrackInfo,varargout]=BackTracking(slope0,b,fa,fb,Func,Ct
 %   plot(gmin,fmin,'or')
 %   plot(BackTrackInfo.Infovector(:,1),BackTrackInfo.Infovector(:,2),'*r')
 %   ylabel("$f(\gamma)$",Interpreter="latex") ; xlabel("$\gamma$",interpreter="latex")
-%   hold on ; g=linspace(0,1) ; Armijo=Func(0)+slope0*0.1*g; plot(g,am)
+%   hold on ; g=linspace(0,1) ; Armijo=Func(0)+slope0*0.1*g; plot(g,Armijo)
 %   plot([0 0.1],[Func(0) Func(0)+slope0*0.1],'k')
 %   legend("function","returned value","function evaluations","Armijo criterion","slope at zero")
 %    

@@ -5,9 +5,43 @@
 
 function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
-narginchk(8,8)
-nargoutchk(5,5)
 
+%% Solves: 
+%
+% $$\rho \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  =  \rho \, a(h)$$
+%
+% for $h$, using an implicit approach with respect to $h$.
+%
+% $\mathbf{v}$=(F.ub,F.vb)
+%
+% The approach use the active set to enforce $h>h_{\min}$, provided 
+%
+%   CtrlVar.ThicknessConstraints=true
+% 
+% If
+%
+%   CtrlVar.LevelSetMethod=true ; 
+%
+%   CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=true;
+%
+% an additional mass-balance term is added, using same approach as done in the uvh solve.
+%
+% Also, an additional mass balance term can be added, as in the -uvh- solve, as a penalty term for too small ice thicknesses.
+% This option is activated by setting:
+%
+%   CtrlVar.ThicknessPenalty=true ;
+%
+% Further details are provided in Ua2D_DefaultParameters.m
+%
+% The assembly is identical to the Khh assembly in the -uvh- solve, and does include gradients in density.
+% 
+%%
+
+
+narginchk(8,8)
+nargoutchk(3,5)
+
+MUA=UpdateMUA(CtrlVar,MUA);  
 
 if CtrlVar.ThicknessConstraints
 
@@ -15,8 +49,7 @@ if CtrlVar.ThicknessConstraints
 
     iActiveSetIteration=0;
 
-    % CtrlVar.ThicknessConstraintsItMax=5;
-    % CtrlVar.ThicknessConstraintsInfoLevel=1;
+  
 
     [UserVar,RunInfo,F1,l1,BCs1,isActiveSetModified,Activated,Released]=ActiveSetInitialisation(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
     LastReleased=Released;  % Maybe here I should consider the possibility that the mesh has not changed and that I can use again the previous LastReleased and LastActivated list?

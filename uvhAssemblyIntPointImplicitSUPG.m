@@ -134,29 +134,12 @@ if CtrlVar.LevelSetMethod  &&  CtrlVar.LevelSetMethodAutomaticallyApplyMassBalan
 
     % Here an implicit mass-balance forcing is added to cause the ice thickness downstream of the calving front to
     % approach the prescribed minimum ice thickness CtrlVar.LevelSetMinIceThickness.
-    %
-    % This fictitious mass-balance term will be either positive or negative depending on whether the ice thickness is
-    % below or above that minimum ice thickness.
-    %
-    % For this term to be positive or negative depending on ice thickness with respect to the desired thickness, the
-    % functions are odd function of ice thickness and first and third power are allowed (but not second power).
-    %
-    %
-    % If hint < hmin, then I want the mass-balance term to be positive,
-    % and if  hint > hmin, then I want the mass-balance term to be negative. 
-    %
-    % Therefore a1 and a3 must be negative.
-    %
-    LM=LSFMasknod*fun;
-    a1= -abs(CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin);
-    a3= -abs(CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic);
   
-    hmin=CtrlVar.LevelSetMinIceThickness;
-
-    abLSF =LM.* ( a1*(hint-hmin)+a3*(hint-hmin).^3) ;
-    dadhLSF=LM.*(a1+3*a3*(hint-hmin).^2) ;
-
-    a1int=a1int+abLSF; dadhint=dadhint+dadhLSF ;
+ 
+    LM=LSFMasknod*fun;
+    [abLSF,dadhLSF]=LevelSetMethodMassBalanceFeedback(CtrlVar,LM,hint) ;
+    a1int=a1int+abLSF; 
+    dadhint=dadhint+dadhLSF ;
 
 else
     LM=0; % Level set mask for melt not applied
@@ -166,41 +149,20 @@ h1barr=0 ; h0barr=0; lambda_h=1;
 
 hBC=[];
 if isfield(CtrlVar,"ThicknessPenalty")  && CtrlVar.ThicknessPenalty
- 
+
     %%  New simpler implementation of a thickness penalty term.
     % Similar to the implementation of the LevelSetMethodAutomaticallyApplyMassBalanceFeedback the idea here is to directly
     % modify the mass-balance, a, and the da/dh rather than adding in new separate terms to the mass balance equation
     %
-    % The Penalty term is only applied where thickness is already too small. For this reason, this term should really be call a
-    % penalty term, as this is only used to deal with constraint violations.
-    %
-
+      
     hBC=hBCsMasknod*fun; % hBC is zero where there are no thickness constraints applied
-    hmin=CtrlVar.ThickMin ;
-
-    a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
-    a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
-    a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
-
-
-    PenaltyMask1=hint<hmin ;
-
-    aPenalty1 =PenaltyMask1.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;  % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
-    daPenaltydh1=PenaltyMask1.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) ;
-
+    [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hint) ;
     a1int=a1int+aPenalty1;
     dadhint=dadhint+daPenaltydh1 ;
 
-    
-    if CtrlVar.InfoLevelThickMin >= 1
-        ThicknessLessThanZero=hint<0 ;
-        if any(ThicknessLessThanZero)
-            fprintf("\t Some hint negative at integration point %i with min(hint)=%g. \t Number of neg integration point thicknesses: %i \n",Iint,min(hint),numel(find(ThicknessLessThanZero)))
-        end
-    end
 
-% UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
-% FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin,"r") ; xline(2*CtrlVar.ThickMin,"r--")
+    % UaPlots(CtrlVar,MUA,[],aPenalty1,GetRidOfValuesDownStreamOfCalvingFronts=false,FigureTitle="a1 penalty",logColorbar=true)
+    % FindOrCreateFigure("Penalty versus thickness") ; semilogx(hint,aPenalty1,".") ; xlabel("thickness"); ylabel("penalty mass balance") ; xline(CtrlVar.ThickMin,"r") ; xline(2*CtrlVar.ThickMin,"r--")
 
 
 end
@@ -356,7 +318,7 @@ end
 
 %% u=1 ; dt =1 ; l=1 ; tau=1/(u/l+l/(u*dt^2))
 
-%l=2*sqrt(TriAreaFE(MUA.coordinates,MUA.connectivity));
+
 
 l=sqrt(2*MUA.EleAreas);  % this I could take outside the int loop
 

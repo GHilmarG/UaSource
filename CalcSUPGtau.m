@@ -28,7 +28,7 @@ end
 
 speed=sqrt(u.*u+v.*v);
 
-ECN=speed.*dt./l;  % non-dimentional
+ECN=speed.*dt./l;  % non-dimensional
 
 K=coth(ECN)-1./ECN;  % (1/ECN+ECN/3+..) -1/ECN=ECN/3  if ECN->0
 % turns out the expression for K starts to suffer from numerical errors for ECN < 1e-6
@@ -37,9 +37,9 @@ I=ECN < 1e-6 ; K(I)=ECN(I)/3 ;  % replaced by the Taylor expansion
 
 %%
 %
-% tau1 : often recomended in textbooks for linear diffusion equations with
+% tau1 : often recommended in textbooks for linear diffusion equations with
 %        spatially constant non-zero advection velocity
-% taut : dt/2,  'temporal' definition, independed of velocity
+% taut : dt/2,  'temporal' definition, independent of velocity
 % taus : l/(2u) 'spatial definition', independent of time step
 % tau2 : 1./(1./taut+1./taus), an 'inverse' average of taus and taut
 tau1=K.*l./speed/2;
@@ -52,16 +52,16 @@ I=speed<100*eps ; tau1(I)=dt/6;
 taut=dt/2+eps++zeros(size(u),'like',u);
 taus=0.5*l./(speed+CtrlVar.SpeedZero);  % Now this must go down to zero gracefully...
 tau2=1./(1./taut+1./taus);
-
+       
 switch CtrlVar.Tracer.SUPG.tau
     
-    case 'tau1'   %  typical textbook recomendation for spatially constant (and non-zero) speed for linear advection equation
+    case "tau1"   %  typical textbook recommendation for spatially constant (and non-zero) speed for linear advection equation
         tau=tau1;
-    case 'tau2'   %  inversly weighted average of spatial and temporal tau
+    case "tau2"   %  inversely weighted average of spatial and temporal tau
         tau=tau2;
-    case 'taus'   % 'spatial' definition, independent of time step
+    case "taus"   % 'spatial' definition, independent of time step
         tau=taus;
-    case 'taut'   % 'temporal' definition, indepenent of speed
+    case "taut"   % 'temporal' definition, independent of speed
         tau=taut ; 
     otherwise
         error('in CalcSUPGtau case not found')

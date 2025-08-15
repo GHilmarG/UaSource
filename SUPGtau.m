@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [tau,ECN,K]=SUPGtau(CtrlVar,v,l,dt,tauOption,multiplier)
 
 
@@ -5,7 +11,7 @@ function [tau,ECN,K]=SUPGtau(CtrlVar,v,l,dt,tauOption,multiplier)
 % v    : speed
 % l    : element size  
 %
-% ECN : element Peclet number, ratio of distance travelled, dt v, to the
+% ECN : element Peclet number, ratio of distance traveled, dt v, to the
 % element size, l. 
 
 
@@ -13,7 +19,7 @@ if nargin < 6
     multiplier=1;
 end
 
-% the dimention of tau is time
+% the dimension of tau is time
 
 taut=dt/2+eps;   % temporal definition
 taus=l./(2*v+CtrlVar.SpeedZero);  % spatial definition
@@ -24,9 +30,9 @@ ECN=taut./taus ; % ECN=taut/taus=(dt/2)/(l/(2 v)) = dt v / l
 
 %%
 %
-% tau1 : often recomended in textbooks for linear diffusion equations with
+% tau1 : often recommended in textbooks for linear diffusion equations with
 %        spatially constant non-zero advection velocity
-% taut : dt/2,  'temporal' definition, independed of velocity
+% taut : dt/2,  'temporal' definition, independent of velocity
 % taus : l/(2u) 'spatial definition', independent of time step
 % tau2 : 1./(1./taut+1./taus), an 'inverse' average of taus and taut
 
@@ -38,7 +44,7 @@ ECN=taut./taus ; % ECN=taut/taus=(dt/2)/(l/(2 v)) = dt v / l
 
 switch tauOption
 
-    case "tau1"   %  typical textbook recomendation for spatially constant (and non-zero) speed for linear advection equation
+    case "tau1"   %  typical textbook recommendation for spatially constant (and non-zero) speed for linear advection equation
 
         K=coth(ECN)-1./ECN;  % (1/ECN+ECN/3+..) -1/ECN=ECN/3  if ECN->0
         % turns out the expression for K starts to suffer from numerical errors for ECN < 1e-6
@@ -47,7 +53,7 @@ switch tauOption
         tau=K.* taus ; % l./v/2;
         %I=v<100*eps ; tau(I)=dt/6;
 
-    case "tau2"   %  inversly weighted average of spatial and temporal tau
+    case "tau2"   %  inversely weighted average of spatial and temporal tau
         % tau=1./(1./taut+1./taus);
         %    =1./(1./(dt/2)  + 1/(l/2v))
         tau=(dt/2).*1./(1+ECN) ;

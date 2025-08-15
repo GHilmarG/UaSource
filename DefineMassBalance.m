@@ -49,7 +49,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 % For example, if you use a constant density for ice of 920 kg/m^3 and the surface mass balance is given as 1 m/yr of water
 % equivalent (ie 1000 kg/(m^2 yr) ), the surface mass balance you need here is 1000/920 m/yr.
 %
-%
+% Further information is provided in the Ua Compendium 
 %
 % As in all other calls:
 %
@@ -101,7 +101,7 @@ function [UserVar,as,ab]=DefineMassBalance(UserVar,CtrlVar,MUA,F)
 %
 %   [tbx,tby,tb,beta2] = CalcBasalTraction(CtrlVar,MUA,F.ub,F.vb,F.C,F.m,F.GF);
 %   L=333.44 ;                                        % Enthalpy of fusion = L = [J/gram = kJ/kg]  Make sure that the units are correct.
-%   F.ab=-(tbx.*F.ub+tby.*F.vb)./(F.rho.*L);          % Ablation (Melt) is always negative, accumulation is positive
+%   ab=-(tbx.*F.ub+tby.*F.vb)./(F.rho.*L);          % Ablation (Melt) is always negative, accumulation is positive
 %
 % 
 %

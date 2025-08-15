@@ -126,6 +126,12 @@ if ~CtrlVar.LinFEbasis
     end
 end
 
+if MUA.dM.MatrixSize(1) == 0   || MUA.dM.MatrixSize(2) == 0
+
+    MUA=UpdateMUA(CtrlVar,MUA);
+
+end
+
 if ~isempty(l.ubvb)
 
     luv=MLC.ubvbL'*l.ubvb;

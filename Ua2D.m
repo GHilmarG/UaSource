@@ -740,6 +740,9 @@ while 1
        
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
 
+            if  isfield(CtrlVar,"CompareCalculationsOfRatesOfThicknessChanges") &&  CtrlVar.CompareCalculationsOfRatesOfThicknessChanges
+                CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)
+            end
 
             CtrlVar.dt=dt;  % I might have changed dt within uvh
             F.dt=dt;
@@ -764,7 +767,7 @@ while 1
             % Recalculating geometry based on flotation not really needed here because uvh
             % does this implicitly.
             [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
-            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
+            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
             F0=F; 
 
             

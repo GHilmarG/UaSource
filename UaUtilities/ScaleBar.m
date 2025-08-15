@@ -38,10 +38,15 @@ if nargin==0
         Scale=50;
         ScaleLabel="50 km";
 
-    else
+    elseif diff(xlim)< 1000
 
         Scale=100;
         ScaleLabel="100 km";
+
+    else
+        Scale=1000;
+        ScaleLabel="1000 km";
+
 
     end
 

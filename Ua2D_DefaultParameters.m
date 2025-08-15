@@ -515,9 +515,11 @@ CtrlVar.MustBe.LSFMinimisationQuantity=["Force Residuals","Work Residuals"];
 
 CtrlVar.uvh.SUPG.tau="taus" ; % {'tau1','tau2','taus','taut'}  
 CtrlVar.h.SUPG.tau="taus";  CtrlVar.h.SUPG.Use=1;
+CtrlVar.Tracer.SUPG.tau="taus";
 
 CtrlVar.uvh.SUPG.tauMultiplier=1 ; 
 CtrlVar.h.SUPG.tauMultiplier=1 ; 
+CtrlVar.Tracer.SUPG.tauMultiplier=1 ; 
 
 %%  Newton-Raphson, modified Newton-Raphson, Picard Iteration
 %
@@ -2494,10 +2496,14 @@ CtrlVar.Development.Pre2025uvhAssembly=false ; % the uv and uvh assembly was cha
 
 CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test
-CtrlVar.nargoutJGH=[];   % internal variable, do not change
+CtrlVar.nargoutJGH=[];          % internal variable, do not change
 CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
+CtrlVar.uvh.SUPG.consistent=false ; 
+
+CtrlVar.CompareCalculationsOfRatesOfThicknessChanges=false ;  % activates call to CompareCalculationsOfRatesOfThicknessChanges.m which compares dh/dt from the the transient -uvh- solve,
+                                                              % with an explicit estimate and implicit estimates using the mass conservation equation alone.
 end
 
 

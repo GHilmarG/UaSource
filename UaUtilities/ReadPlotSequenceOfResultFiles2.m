@@ -22,7 +22,7 @@ function DataCollect=ReadPlotSequenceOfResultFiles2(options)
 %
 % Read in all .mat file in current directory and use default plot settings for plotting
 %
-%   ReadPlotSequenceOfResultFiles();
+%   ReadPlotSequenceOfResultFiles2();
 %
 % Example:
 %
@@ -181,6 +181,9 @@ while iFile<=nFiles   % loop over data
             %load(list(iFile).name)
             load(string(list(iFile).folder)+"\"+string(list(iFile).name),"CtrlVar","MUA","F")
             fprintf(' %s \n ',list(iFile).name)
+
+            CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
+            CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ;
 
             % Just in case the results files are old an from the time when F.GF and F.x and F.y were not defined as F fields.
             if ~isfield(F,"GF") && exist("GF","var")
@@ -1029,14 +1032,20 @@ while iFile<=nFiles   % loop over data
                     % Find and create a longitudinal profile
                     x1=-1600e3 ; x2=-1100e3 ;
                     y1=-450e3; y2=-220e3 ;
+                    xgl=-1558e3; ygl=-430.5e3 ; % This is the position of the grounding line along the profile at start
                     xProfile=linspace(x1,x2,1000);  yProfile=linspace(y1,y2,1000);
+
                     Fs=scatteredInterpolant(F.x,F.y,F.s);
                     Fb=scatteredInterpolant(F.x,F.y,F.b);
                     FB=scatteredInterpolant(F.x,F.y,F.B);
                     sProfile=Fs(xProfile,yProfile);
                     bProfile=Fb(xProfile,yProfile);
                     BProfile=FB(xProfile,yProfile);
-                    Profile=sqrt( (xProfile-xProfile(1)).^2 + (yProfile-yProfile(1)).^2 ) ;
+
+                    ProfileOffset=sqrt( (xgl-xProfile(1)).^2 + (ygl-yProfile(1)).^2 ) ;
+                    Profile=sqrt( (xProfile-xProfile(1)).^2 + (yProfile-yProfile(1)).^2 )-ProfileOffset;
+                  
+
 
                     % Find grounding-line position along profile
                     % min distance value for which b and B are equal
@@ -1107,7 +1116,7 @@ while iFile<=nFiles   % loop over data
                     plot(Profile/1000,sProfile,'b');
 
                     % Bedrock polygon
-                    BxPoly=[0  max(Profile)/1000  fliplr(Profile)/1000 ] ;
+                    BxPoly=[min(Profile)/1000  max(Profile)/1000  fliplr(Profile)/1000 ] ;
                     ByPoly=[-2000  -2000   fliplr(BProfile) ] ;
                     fill(BxPoly,ByPoly,[128 128 128]/255) ;
 
