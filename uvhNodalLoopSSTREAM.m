@@ -52,12 +52,8 @@ qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
 for Inod=1:nod
 
     SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
-
-    if  CtrlVar.uvh.SUPG.consistent
-        funI=SUPG;
-    else
-        funI=fun(Inod) ;
-    end
+    funI=fun(Inod) ;
+       
     
     if ~Ronly
         for Jnod=1:nod
@@ -70,7 +66,19 @@ for Inod=1:nod
             E22=  hint.*(4.*eyy+2.*exx).*Dev.*Deriv(:,2,Inod)+2*hint.*exy.*Dev.*Deriv(:,1,Inod);
             E21=  hint.*(4.*eyy+2.*exx).*Deu.*Deriv(:,2,Inod)+2*hint.*exy.*Deu.*Deriv(:,1,Inod);
             
+            % Kxu = dF_x/du
+            % Kxv = dF_x/dv
+            % Kxh = dF_x/dh
+            %
+            % Kyu = dF_y/du
+            % Kyu = dF_y/dv
+            % Kyh = dF_y/dh
             
+            % Khu = dF/du
+            % Khv = dF/dv
+            % Khh = dF/dh
+
+
             % Derivative of x-momentum (Fx) with respect to u
             Kxu(:,Inod,Jnod)=Kxu(:,Inod,Jnod)...
                 +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
@@ -154,12 +162,12 @@ for Inod=1:nod
             
             Khu(:,Inod,Jnod)=Khu(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdx.*fun(Jnod)+drhodx.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,1,Jnod))...
-                .*SUPG.*detJw*dt; % +dSUPGu.*detJw*dt;
+                .*SUPG.*detJw*dt; 
             
             
             Khv(:,Inod,Jnod)=Khv(:,Inod,Jnod)...
                 +theta*(rhoint.*dhdy.*fun(Jnod)+drhody.*hint.*fun(Jnod)+rhoint.*hint.*Deriv(:,2,Jnod))...
-                .*SUPG.*detJw*dt; % +dSUPGv.*detJw*dt;
+                .*SUPG.*detJw*dt; 
     
             Khh(:,Inod,Jnod)=Khh(:,Inod,Jnod)...
                 +(rhoint.*fun(Jnod)...

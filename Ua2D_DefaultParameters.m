@@ -2500,7 +2500,7 @@ CtrlVar.nargoutJGH=[];          % internal variable, do not change
 CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
 CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
-CtrlVar.uvh.SUPG.consistent=false ; 
+
 
 CtrlVar.CompareCalculationsOfRatesOfThicknessChanges=false ;  % activates call to CompareCalculationsOfRatesOfThicknessChanges.m which compares dh/dt from the the transient -uvh- solve,
                                                               % with an explicit estimate and implicit estimates using the mass conservation equation alone.

@@ -12,6 +12,55 @@ nargoutchk(4,5)
 
 if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Transient implicit with respect to u, v, and h  \n ') ; end
 
+
+%%
+%
+%
+% $$ \mathbf{F}_x = \langle \mathcal{F}_x | \phi_i \rangle = \mathbf{0} $$
+%
+% $$ \mathbf{F}_y  = \langle \mathcal{F}_y | \phi_i \rangle= \mathbf{0} $$
+%
+% $$ \mathbf{M}  = \langle \mathcal{M} | \phi_i + \tau \mathbf{v} \cdot \nabla \phi \rangle= \mathbf{0} $$
+%
+% where
+%
+% $$ \mathcal{M}(u,v,h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
+%
+%
+% The Newton-Raphson system is: 
+% 
+% $$
+% \left [ \begin{array}{ccc}
+% \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_x/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{F}_y/\mathrm{d}\mathbf{h}\\
+% \mathrm{d}\mathbf{M}  /\mathrm{d}\mathbf{u} &  \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{v} & \mathrm{d}\mathbf{M}/\mathrm{d}\mathbf{h}\\
+% \end{array} \right ]
+% \left [ \begin{array}{c}
+% \Delta \mathbf{u} \\
+% \Delta \mathbf{v} \\
+% \Delta \mathbf{h} \\
+% \end{array} \right ]
+% =\left [ \begin{array}{c}
+% -\mathbf{F}_x(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{F}_y(\mathbf{u},\mathbf{v},\mathbf{h})  \\
+% -\mathbf{M}(\mathbf{u},  \mathbf{v},\mathbf{h})  \\
+% \end{array} \right ]
+% $$
+%
+%
+%
+%
+%
+%
+%
+%%
+
+
+
+
+
+
+
 %%
 % Fully implicit Newton-Raphson with regard to both u, v and h
 % advances the solution by dt
@@ -19,9 +68,9 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % h0, u0, and v0 are values at the start of the time step,
 % on input h1,u1,v1 are estimates for h, u, and v at the end of the time step
 % on exit  h1, u1, and v1 are calculated values for u,v and h at the end of the time step
-
-
-
+%
+%
+%
 %%
 % I need to solve
 %
@@ -52,7 +101,7 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % where L [u;v;h]=cuvh
 %
 %
-
+%
 %%
 %  Newton system:
 %
@@ -65,7 +114,6 @@ if CtrlVar.InfoLevelNonLinIt>=10  ; fprintf(CtrlVar.fidlog,' \n SSTREAM(uvh): Tr
 % $$ \min_{x} J = f(x) + \nabla f^T \, \cdot  \Delta x + \frac{1}{2} \Delta x^T \, \cdot \, K \, \Delta x $$
 %
 %
-%%
 
 if nargin < 9 || isempty(FigNames)
     FigNames="";

@@ -571,9 +571,7 @@ while 1
         RunInfo.Forward.time(CtrlVar.CurrentRunStepNumber)=CtrlVar.time;
         RunInfo.Forward.dt(CtrlVar.CurrentRunStepNumber)=CtrlVar.dt;
         
-        % "-uvh-"
-        %
-        % if CtrlVar.ForwardTimeIntegration=="-uvh-"  ||  CtrlVar.ForwardTimeIntegration=="-uv-h-"
+   
         if CtrlVar.ForwardTimeIntegration=="-uvh-"
             
             
@@ -835,7 +833,7 @@ while 1
     
     % DefineOutputs
     
-    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (CtrlVar.dt/(10*CtrlVar.DefineOutputsDt))) || CtrlVar.DefineOutputsDt==0 
+    if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt) < (uv-h-CtrlVar.dt/(10*CtrlVar.DefineOutputsDt))) || CtrlVar.DefineOutputsDt==0 
         %(ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
         CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;

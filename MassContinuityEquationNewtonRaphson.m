@@ -13,22 +13,22 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 %
 % subject to 
 %
-% $$h(x,y,t>0$$
+% $$h(x,y,t)  h_{\min} 0$$
 %
 % for $h$, using an implicit approach with respect to $h$.
 %
 % We can also write this as
 %
-% $$ \mathcal{L}(h) = 0 $$
+% $$ \mathcal{M}(h) = 0 $$
 %   
 % where
 %
-% $$ \mathcal{L}(h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
+% $$ \mathcal{M}(h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
 %
 %
 % The Galerkin weak form can then we written as
 %
-% $$ 0= \langle \mathcal{L}(h) \vert \phi_p \rangle = \int \mathcal{L}(h) \, \phi_p \; \mathrm{d} \mathcal{A} $$
+% $$ 0= \langle \mathcal{M}(h) \vert \phi_p \rangle = \int \mathcal{M}(h) \, \phi_p \; \mathrm{d} \mathcal{A} $$
 %
 % where all fields are expanded as
 %
@@ -39,7 +39,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 % 
 % Here however the streamline-upwind Petrov-Galerkin method is used where 
 %
-% $$ 0= \langle \mathcal{L}(h) \vert \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \rangle $$
+% $$ 0= \langle \mathcal{M}(h) \vert \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \rangle $$
 %
 % Therefore
 %
@@ -82,7 +82,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 %
 % and furthermore subject to the positive thickness constraints
 %
-% $$ h_i > 0 $$ for $$i=1 \ldots n$$
+% $$ h_i > h_{\min} $$ for $$i=1 \ldots n$$
 %
 % 
 %
@@ -143,7 +143,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 % step is taken).
 %
 %
-
+%
 %
 %%
 narginchk(8,8)

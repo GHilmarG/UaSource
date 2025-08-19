@@ -35,6 +35,144 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThickne
 %
 % The assembly is identical to the Khh assembly in the -uvh- solve, and does include gradients in density.
 % 
+%% Solves: 
+%
+% $$\rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  = \rho \,  a(h)$$
+%
+% subject to 
+%
+% $$h(x,y,t) > h_{\min}$$
+%
+% for $h$, using an implicit approach with respect to $h$.
+%
+% We can also write this as
+%
+% $$ \mathcal{M}(h) = 0 $$
+%   
+% where
+%
+% $$ \mathcal{M}(h):= \rho \, \frac{\partial h}{\partial t} + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)$$
+%
+%
+% The Galerkin weak form can then we written as
+%
+% $$ 0= \langle \mathcal{M}(h) \vert \phi_p \rangle = \int \mathcal{M}(h) \, \phi_p \; \mathrm{d} \mathcal{A} $$
+%
+% where all fields are expanded as
+%
+% for $$p=1 \ldots n $$, that is
+%
+%
+% $$h(x,y) = \sum_{p=1}^n h_p \, \phi_p(x,y) $$
+% 
+% Here however the streamline-upwind Petrov-Galerkin method is used where 
+%
+% $$ 0= \langle \mathcal{M}(h) \vert \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \rangle $$
+%
+% Therefore
+%
+% $$ 0= \left  \langle  \rho \, \partial_t h  + \nabla \cdot ( \rho \, \mathbf{v} h )  - \rho \,  a(h)  \; |  \; \phi_p + \tau \, \mathbf{v} \cdot \nabla \phi_p  \right \rangle $$
+%
+% As can be seen, the SUPG-perturbation is applied to all terms. This is therefore a consistent formulation. 
+%
+% Time discretization for $t=t_0$ to $t=t_1$ is done using the $\Theta$-method, i.e
+% 
+% $$\frac{\partial h}{\partial t} \approx \frac{1}{\Delta t} (h_1- h_0 ) $$
+%
+% with
+%
+% $$\Delta t= t_1-t_0 $$
+%
+% giving 
+%
+% $$ \rho \, \frac{1}{\Delta t} (h_1- h_0 ) = (1-\Theta) \left (  \rho\, a(h_0) - \nabla \cdot ( \rho \, \mathbf{v}_0 h_0 ) \right ) + \Theta \left (  \rho\, a(h_1) - \nabla \cdot ( \rho \, \mathbf{v}_1 h_1 ) \right )  $$
+%
+% After discretization the non-linear forward model can be written on the form
+%
+%
+% $$ \mathbf{f}(\mathbf{h}) = \mathbf{0}  $$ 
+%
+% where
+%
+% $$ \mathbf{f} \in R^{n}$$
+%
+% and
+%
+% $$ \mathbf{h} \in R^n$$
+%
+% subject to the multi-nodal linear constraints
+%
+% $$
+% \mathbf{L} \mathbf{h} = \mathbf{b}
+% $$
+%
+% where  $$ \mathbf{L} \in R^{p\times n}$$ and  $$ \mathbf{b} \in R^{p}$$
+%
+% and furthermore subject to the positive thickness constraints
+%
+% $$ h_i > h_{\min} $$ for $$i=1 \ldots n$$
+%
+% 
+%
+% The multi-nodal (linear) constraints are enforced using the method of Lagrange multipliers. The positive thickness
+% constraints can be enforced using the active set method and/or by applying a penalty term whereby an additional implicit
+% mass balance term is added whenever $$a(h)< 0 $$. The resulting additional thickness constraints are internally added to
+% the matrix $$\mathbf{L}$$, and updated after each Newton-Raphson solve.
+%
+% The Newton-Raphson system is then: 
+%
+% $$
+% \left [ \begin{array}{cc}
+% \mathbf{K} & \mathbf{L}^T  \\
+% \mathbf{L} & \mathbf{0} 
+% \end{array} \right ]
+% \left [ \begin{array}{c}
+% \Delta \mathbf{h} \\
+% \Delta \mathbf{\lambda}
+% \end{array} \right ]
+% =\left [ \begin{array}{c}
+% -\mathbf{f}(\mathbf{h}_k) - \mathbf{L}^T \mathbf{\lambda}_k \\
+%   \mathbf{b} - \mathbf{L} \mathbf{h}_k
+% \end{array} \right ]
+% $$
+%
+% where $$k$$ is an iteration number (i.e. refers to the vectors at each iteration, and not to the individual components of
+% the respective vectors).
+%
+% Here
+%
+% $$ \mathbf{K} = \mathrm{d} \mathbf{f}/\mathrm{d}\mathbf{h} $$
+%
+% and therefore
+%
+% $$ \mathbf{K} \in R^{n\times n}$$
+%
+% The Lagrange multipliers are
+%
+% $$ \mathbf{\lambda} \in R^{p}$$
+%
+% The Newton update is:
+%
+% $$ \mathbf{h}_{k+1} = \mathbf{h}_{k} + \Delta \mathbf{h} $$
+%
+% and
+%
+% $$ \mathbf{\lambda}_{k+1} = \mathbf{\lambda}_{k} + \Delta \mathbf{\lambda} $$
+%
+% where $k$ is the Newton-Raphson iteration step number.
+%
+% The iteration is continued until 
+%
+% $$
+% \| \mathbf{f}(\mathbf{h}_k) + \mathbf{L}^T \mathbf{\lambda}_k \| < \epsilon
+% $$
+%
+% Because the nodal constraints are linear, they are always fulfilled exactly at each iteration step (provided a full Newton
+% step is taken).
+%
+%
+%
+%
 %%
 
 
