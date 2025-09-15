@@ -75,8 +75,8 @@ end
 if any(F.h<CtrlVar.ThickMin)
 
     indh0=find(F.h<CtrlVar.ThickMin);
-    fprintf('uv: Found negative ice thicknesses in a diagnostic forward run.\n')
-    fprintf('In total %-i negative ice thickness values found, with min ice thickness of %f. \n ',numel(indh0),min(F.h));
+    fprintf('uv: Found ice thicknesses below the min desired ice thickness of hmin=%f, in a diagnostic forward run.\n',CtrlVar.ThickMin)
+    fprintf('In total %-i ice nodal values found with too small ice thicknesses, and the min ice thickness in the domain is %f. \n ',numel(indh0),min(F.h));
 
     if CtrlVar.ResetThicknessToMinThickness==0
         CtrlVar.ResetThicknessToMinThickness=1;

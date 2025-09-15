@@ -802,8 +802,8 @@ else
 
             %% B
 
-            PlotBedrockInversionFields(CtrlVar,MUA,F,Priors,InvFinalValues,InvStartValues)
-            
+            PlotBedrockInversionFields(CtrlVar,MUA,F,Priors,InvFinalValues,InvStartValues,Meas)
+           
             
           
         end
