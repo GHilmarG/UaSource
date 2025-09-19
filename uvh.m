@@ -49,8 +49,9 @@ if ~CtrlVar.ThicknessConstraints
         [UserVar,RunInfo,F1,F0,~,l1,BCs1,dt]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1) ;
 
     end
-
-    F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
+   
+    F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0,BCs1,l1) ;
+   % F1=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F1,F0) ; % but currently F0 is not returned...
 
 
     if numel(RunInfo.Forward.uvhActiveSetIterations)<CtrlVar.CurrentRunStepNumber
