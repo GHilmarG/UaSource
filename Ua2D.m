@@ -807,7 +807,8 @@ while 1
             
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
-            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0);
+            [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);
+        
             F0=F; 
 
 

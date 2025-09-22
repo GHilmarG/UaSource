@@ -7,10 +7,9 @@ function [UserVar,RunInfo,F1,F0,l1,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplici
                                                              %   uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l) ;
 
 
-nargoutchk(9,9)
+nargoutchk(5,9)
 narginchk(8,8)
 
-CtrlVar.InfoLevelNonLinIt=0; 
 
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
@@ -62,6 +61,8 @@ dh1NormVector=nan(uv2hItMax,1) ;
 
 uvItMax=0;
 hItMax=0; 
+CtrlVar.InfoLevelNonLinIt=0; % here setting the info level to zero, as I give info on uv-h outer iteration and just the number of inner -uv- and -h- iterations
+
 for uv2hIt=1:uv2hItMax
 
     %% 1) calculate new ice thickness implicitly with respect to h: h1=h(h0,uv0,uv1Est)
@@ -72,12 +73,12 @@ for uv2hIt=1:uv2hItMax
 
 
     h1Ahead=F1.h;
-    
 
-   [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ; 
-    F1.h=h1; 
 
-    hItMax=max(RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),hItMax); 
+    [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
+    F1.h=h1;
+
+    hItMax=max(RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),hItMax);
 
     %% 2)  Update s,h and GF
     [F1.b,F1.s,F1.h,F1.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F1.h,F1.S,F1.B,F1.rho,F1.rhow);
@@ -124,7 +125,7 @@ for uv2hIt=1:uv2hItMax
 
     duv1NormVector(uv2hIt)=duv1Norm;
     dh1NormVector(uv2hIt)=dh1Norm;
-    fprintf("=============     uv-h: Outer iteration %i \t |duv| =%14g \t |dh|=%14g    \t uv-iterations=%2i \t h-iterations=%2i   \n",...
+    fprintf("=============     uv-h: Outer iteration %i \t |duv| =%14g \t |dh|=%14g    \t inner uv iterations=%2i \t inner h iterations=%2i   \n",...
         uv2hIt,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
 
 

@@ -99,6 +99,7 @@ arguments
     % options.ColorMap double=othercolor("Mtemperaturemap",1028)
     % colormap(othercolor("Greys7",1028))
     % CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % CM=cmocean('ice',25,'pivot',0) ; colormap(CM);
     % CM=cmocean('ice',150) ; colormap(CM);
     %
     % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
