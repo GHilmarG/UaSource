@@ -2258,10 +2258,17 @@ CtrlVar.ATSTargetIterations=4;      % if number of non-lin iterations has been l
                                     % each and everyone of the last ATSintervalUp iterations, the time step is
                                     % increased by the factor ATStimeStepFactorUp
 CtrlVar.ATSTdtRounding=true;        % if true then dt is rounded to within 10% of CtrlVar.DefineOutputsDt (but only if  CtrlVar.DefineOutputsDt>0)                                 
-CtrlVar.EnforceCFL=false  ;         % enforce CourantFriedrichsLewy condition on time step. Note: this is always done in a semi-implicit step
-                                    % even if this variable is set to false. 
 
-
+                                    % The implicit time-stepping algorithms used in Ua by default are not limited by the CFL condition.
+                                    % However, if one sets theta=0, i.e. by setting CtrlVar.theta=0.0 (not recommended!!!) , we get the
+                                    % explicit Euler which is (most likely) unconditionally unstable, except that because of the unwinding used
+                                    % in the SUPG the algorithm might be stable if dt>CFL (as is the case in finite-difference
+                                    % methods using forward Euler with upwinding). 
+CtrlVar.ATSEnforceCFL=false  ;      % enforce Courant-Friedrichs-Lewy condition on time step (no need to do this in general as the forward time stepping for theta=1/2 is unconditionally stable). 
+                                    % 
+CtrlVar.ATSEnforceCFLfactor=1 ;     % If enforcing CFL condition, maximum time step will be factor *v*dt/dx  
+                                    % Setting to 1 limits time step to CFL, and setting it to 2 allows times step twice as large.
+                                  
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.
 % This non-linearity can be solved in a fully consistent way using the Newton-Raphson method provided the user

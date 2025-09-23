@@ -194,50 +194,51 @@ if CtrlVar.ForwardTimeIntegration=="-uvh-" % The time stepping algorithm is base
 end
 
 
+% The uv-h time stepping is based on the number of outer uv-h iterations 
+if  CtrlVar.ForwardTimeIntegration=="-uv-h-"
 
+    if CtrlVar.AdaptiveTimeStepping
 
+        if CtrlVar.CurrentRunStepNumber>4
 
-if  CtrlVar.ForwardTimeIntegration=="-uv-h-"  || CtrlVar.EnforceCFL    % If in semi-implicit step, make sure not to violate CFL condition
+            uv2hItmean=mean(RunInfo.Forward.uv2hIterations((CtrlVar.CurrentRunStepNumber-3):(CtrlVar.CurrentRunStepNumber-1)));
+            uv2hItLast=RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber-1);
 
+            if uv2hItmean > 6  && uv2hItLast >  3
 
-    if CtrlVar.CurrentRunStepNumber>4
+                dtOut=round(dtOut/2,2,"significant") ;
 
-        uv2hIt=mean(RunInfo.Forward.uv2hIterations((CtrlVar.CurrentRunStepNumber-3):(CtrlVar.CurrentRunStepNumber-1)));
-        uv2hItLast=RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber-1);
+            elseif uv2hItmean < 3
 
-        if uv2hIt > 6  && uv2hItLast >  3
-
-            dtOut=round(dtOut/2,2,"significant") ;
-
-        elseif uv2hIt < 3.5
-
-            dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
-
-            dtcritical=round(dtcritical,2,"significant") ;
-            if ~isnan(dtcritical)
-
-                nFactorSafety=2;
-                nFactorSafety=0.01;  % "un-safety" factor, if set to less than unity
-
-                if dtOut>dtcritical/nFactorSafety
-
-                    dtOut=dtcritical/nFactorSafety ;
-                    dtOut=round(dtOut,2,"significant") ;
-                    % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
-
-                end
-
-
-                dtOut=min(dtcritical/nFactorSafety,dtOut*1.2) ;  % don't increase time step by more than 20%
-                % fprintf('AdaptiveTimeStepping: dt=dtCFL/%i=%f \n',nFactorSafety,dtOut)
+                dtOut=round(1.2*dtOut,2,"significant") ;
 
             end
 
         end
     end
+end
 
-  
+if CtrlVar.AdaptiveTimeStepping
+    if CtrlVar.EnforceCFL
 
+        dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
+        dtcritical=round(dtcritical,2,"significant") ;
+
+
+        if ~isnan(dtcritical)
+
+            dtMaxAllowed= dtcritical*CtrlVar.ATSEnforceCFLfactor;
+
+            if dtOut>dtMaxAllowed
+
+                dtOut=dtMaxAllowed ;
+                dtOut=round(dtOut,2,"significant") ;
+                % fprintf('AdaptiveTimeStepping: dt > dt (CFL) and therefore dt reduced to %f \n',dtOut)
+
+            end
+        end
+
+    end
 end
 
 
