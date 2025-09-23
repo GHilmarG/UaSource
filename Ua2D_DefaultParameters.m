@@ -62,6 +62,9 @@ CtrlVar.time=nan;               % In a transient run this variable is the (model
 %                                             also as a partitioned scheme. This is not a recommended approach as
 %                                             (unsurprisingly) this is a slower and less robust solution algorithm.
 %
+%                                             More information about the semi-implicit "-uv-h-" is provided in the m-file:
+%                                             uvhSemiImplicit.m
+%
 %
 % Note: In the past the fields
 % 
@@ -93,11 +96,7 @@ CtrlVar.Restart=0;            % If true then the run is a restart run. Note that
                               %       CtrlVar.InverseRun=1; CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-        % 0: prognostic run is semi-implicit (implicit with respect to h only)
-                              % 1: prognostic run is fully-implicit (implicit with respect to uvh)
-                              % This field is not longer required. Easier and more logical is to set
-                              % CtrlVar.ForwardTimeIntegration="-uvh-" (implicit/monolithic) or
-                              % CtrlVar.ForwardTimeIntegration="-uv-h-" (-semi-implicit/partitioned)
+  
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
@@ -491,7 +490,15 @@ CtrlVar.hAcceptableWorkAndForceTolerances=[inf 1e-6];
 CtrlVar.hAcceptableWorkOrForceTolerances=[1 1e-8];
 CtrlVar.hSolverMaxIterations=50;
 
+CtrlVar.uv2h.uvTolerance=1e-5; % this is the tolerance in the change of the uv solution 
+                               % when solving the transient problem semi-implicitly, 
+                               % ie. when using CtrlVar.ForwardTimeIntegration="-uv-h-" 
+                               %
+                               % This is the norm of the changes in the velocity solve (actually the square of the norm).
 
+CtrlVar.uv2h.MaxIterations=15; % The maximum number of (outer) iterations in the semi-implicit -uv-h- solver
+                               % The  -uv-h- solver solves for uv and h repeatedly. The iterations required for the uv solve and the h solver are referred
+                               % to as "inner" iterations, and the repeated solve of uv and h as the outer iteration. 
 
 CtrlVar.LevelSetSolverMaxIterations=100;
 CtrlVar.LSFDesiredWorkAndForceTolerances=[1e-15 1e-15]; 
