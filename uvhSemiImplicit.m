@@ -108,13 +108,25 @@ narginchk(8,8)
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
     %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if requested by the user.
-    
+
 
     fprintf(" initial diagnostic step at t=%-.15g \n ",F0.time);
 
-    [UserVar,RunInfo,F0,l1]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l1);
-    
+    [UserVar,RunInfo,F0,l0]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs1,F0,l1);
 
+        CtrlVar.DefineOutputsInfostring="Diagnostic step";
+        CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
+        fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
+
+        
+        InvStartValues=[] ; InvFinalValues=[] ; Priors=[] ; Meas=[] ; BCsAdjoint=[] ; 
+        UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs1,F0,l0,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
+            fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
+                CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
+            return
+        end
+    
 
 end
 
@@ -153,15 +165,23 @@ end
 %
 
 
-
-duv1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
-dh1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
+if CtrlVar.uv2h.MaxIterations==Inf
+    duv1NormVector=nan(10000,1) ;
+    dh1NormVector=nan(10000,1) ;
+else
+    duv1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
+    dh1NormVector=nan(CtrlVar.uv2h.MaxIterations,1) ;
+end
 
 uvItMax=0;
 hItMax=0; 
+iteration=0; 
 CtrlVar.InfoLevelNonLinIt=0; % here setting the info level to zero, as I give info on uv-h outer iteration and just the number of inner -uv- and -h- iterations
 
-for uv2hIt=1:CtrlVar.uv2h.MaxIterations  % this is the "outer" iteration
+
+while true
+
+    iteration=iteration+1 ;
 
     %% 1) calculate new ice thickness implicitly with respect to h: h1=h(h0,uv0,uv1Est)
 
@@ -214,10 +234,10 @@ for uv2hIt=1:CtrlVar.uv2h.MaxIterations  % this is the "outer" iteration
     dh1Norm=dh1'*MUA.M*dh1/MUA.Area;
 
 
-    duv1NormVector(uv2hIt)=duv1Norm;
-    dh1NormVector(uv2hIt)=dh1Norm;
-    fprintf("=============     uv-h: Outer iteration %i \t |duv|^2 =%14g \t |dh|^2=%14g    \t inner uv iterations=%2i \t inner h iterations=%2i   \n",...
-        uv2hIt,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
+    duv1NormVector(iteration)=duv1Norm;
+    dh1NormVector(iteration)=dh1Norm;
+    fprintf("\t uv-h: Outer iteration %i \t |duv|^2 =%14g \t |dh|^2=%14g    \t inner uv iterations=%2i \t inner h iterations=%2i   \n",...
+        iteration,duv1Norm,dh1Norm,RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber))
 
 
     if CtrlVar.InfoLevelNonLinIt>= 5 && CtrlVar.doplots
@@ -241,13 +261,17 @@ for uv2hIt=1:CtrlVar.uv2h.MaxIterations  % this is the "outer" iteration
 
         Ti.Title.Interpreter="latex";
         Ti.Title.String=sprintf("$uv-h$ outer iteration %i at $t$=%g and $\\Delta t$=%g : total inner iterations: $h$=%i,  $uv$=%i",...
-            uv2hIt,F1.time,F1.dt,RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)) ;
+            iteration,F1.time,F1.dt,RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber),RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)) ;
         Ti.Title.Color="blue";
 
     end
 
     if duv1Norm< CtrlVar.uv2h.uvTolerance
         break
+    end
+
+    if iteration>= CtrlVar.uv2h.MaxIterations  
+      break
     end
 
  
@@ -257,7 +281,7 @@ end
 % Here I return the max number of uv and h iterations during the outer uv-h iteration
 RunInfo.Forward.uvIterations(CtrlVar.CurrentRunStepNumber)=uvItMax;
 RunInfo.Forward.hIterations(CtrlVar.CurrentRunStepNumber)=hItMax;
-RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=uv2hIt;
+RunInfo.Forward.uv2hIterations(CtrlVar.CurrentRunStepNumber)=iteration;
 
 if CtrlVar.InfoLevel>=10
 

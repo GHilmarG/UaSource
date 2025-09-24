@@ -799,12 +799,41 @@ while 1
             % CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
             % F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
 
+
+
+
             CtrlVar.Parallel.BuildWorkers=true;
             MUA=UpdateMUA(CtrlVar,MUA);
+
+
+      
+            if  CtrlVar.Compare_uvh_uv2h_CPUtimes
+
+                % Comparing CPU times between -uvh- and -uv-h- solves. Note that I here use F=F0 as initial "guess" for F in both cases.
+                %
+
+                tCPUuv2h=tic;
+                [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
+                tCPUuv2h=toc(tCPUuv2h) ;
+
+
+                tCPUuvh=tic;
+                [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+                tCPUuvh=toc(tCPUuvh) ;
+
+
+                fprintf("\n\n======> Comparing -uh-h- and -uyvh- CPU times : \n")
+                fprintf("\t \t uv-h in %f sec \n",tCPUuv2h)
+                fprintf("\t \t  uvh in %f sec \n",tCPUuvh)
+
+            end
+
+
+
             [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,BCs) ;
-            
+
             CtrlVar.InitialDiagnosticStep=0;
-            
+
             CtrlVar.time=CtrlVar.time+CtrlVar.dt; 
             F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [F,Fm1]=UpdateFtimeDerivatives(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l);

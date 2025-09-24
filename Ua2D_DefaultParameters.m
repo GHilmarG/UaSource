@@ -2518,6 +2518,9 @@ CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 
 CtrlVar.CompareCalculationsOfRatesOfThicknessChanges=false ;  % activates call to CompareCalculationsOfRatesOfThicknessChanges.m which compares dh/dt from the the transient -uvh- solve,
                                                               % with an explicit estimate and implicit estimates using the mass conservation equation alone.
+
+CtrlVar.Compare_uvh_uv2h_CPUtimes=false;
+
 end
 
 
