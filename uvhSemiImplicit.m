@@ -28,7 +28,13 @@ narginchk(8,8)
 %
 % If we have not done so already, we initially solve for $u_0$ and $v_0$ for a known $h_0$, i.e.
 %
-% solve $F(u_0,v_0,h_0) = 0$ for $u_0$ and $v_0$ with $h_0$ known.
+% solve 
+% 
+% $$F(u_0,v_0;h_0) = 0$$
+% 
+% for $u_0$ and $v_0$, with $h_0$ known.
+%
+% The semicolon is to indicate that $h_0$ is here a known input field, while $u_0$ and $v_0$ are the unknowns that we solve for.
 %
 % We then make an initial explicit guess for what the velocities are for $t=t_1$. We call this guess
 %
@@ -40,9 +46,9 @@ narginchk(8,8)
 % 
 % This involves solving
 %
-% $$ F(u_1^1,v_1^1,h_1^0) = 0 $$ 
+% $$ F(u_1^1,v_1^1;h_1^0) = 0 $$ 
 %
-% for $u_1^1$ and  $v_1^1$, which is our new velocity iterate to $t=t_1$.
+% for $u_1^1$ and  $v_1^1$, which is our new velocity iterate for $t=t_1$.
 % 
 % We now check by how much the velocity iterate has changed by evaluating
 %
@@ -102,7 +108,7 @@ narginchk(8,8)
 %% If required, calculate uv at the beginning of the time step, ie at t=t0;
 if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
     %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if requested by the user.
-    CtrlVar.InitialDiagnosticStep=0;
+    
 
     fprintf(" initial diagnostic step at t=%-.15g \n ",F0.time);
 
@@ -133,7 +139,7 @@ if CtrlVar.StartSemiImplicitWithExtrapolation
     % implicitly.
 
 else
-    F1=F0; % The starting point for the future state is here simply the current state.
+    F1=F0; % The starting point for the future state at t=t1, is here simply the current state at t=t0.
 end
 
 
@@ -166,7 +172,7 @@ for uv2hIt=1:CtrlVar.uv2h.MaxIterations  % this is the "outer" iteration
 
     h1Ahead=F1.h;  % keep this to track changes in the estimate h at t=t1
 
-                                 % now solve for the thickness, this may involve iterating over h, and these are the "inner" h-iterations. 
+    % now solve for the thickness at t=t1. this may involve iterating over h, and these are the "inner" h-iterations. 
     [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphsonThicknessContraints(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1) ;
     F1.h=h1;
 

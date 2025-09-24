@@ -219,7 +219,7 @@ if  CtrlVar.ForwardTimeIntegration=="-uv-h-"
 end
 
 if CtrlVar.AdaptiveTimeStepping
-    if CtrlVar.EnforceCFL
+    if CtrlVar.ATSEnforceCFL
 
         dtcritical=CalcCFLdt2D(UserVar,RunInfo,CtrlVar,MUA,F) ;
         dtcritical=round(dtcritical,2,"significant") ;
