@@ -17,6 +17,8 @@ function [Emin,Emax,Emean,Emedian,Tlength]=PrintInfoAboutElementsSizes(CtrlVar,M
 %
 % These two different estimates is sqrt(2), with option (1) giving the numerically larger number.  
 %
+% Tlength   : size measure for every element in the mesh (element vector)
+%
 %
 % Example:
 %

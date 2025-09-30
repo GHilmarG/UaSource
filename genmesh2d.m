@@ -37,7 +37,7 @@ end
 
 switch lower(CtrlVar.MeshGenerator)
     
-    case 'mesh2d'
+    case "mesh2d"
         
         opts=CtrlVar.Mesh2d.opts;
         
@@ -55,13 +55,20 @@ switch lower(CtrlVar.MeshGenerator)
         end
 
         
-    case 'gmsh'
+    case "gmsh"
         
     
         
         [coordinates,connectivity]=GmshInterfaceRoutine(CtrlVar,CtrlVar.MeshBoundaryCoordinates,EleSizeScalarField);
+
+
+    case "uasquaremesh"
+
+        [coordinates,connectivity]=UaSquareMesh(CtrlVar); 
         
     otherwise
+
+
         error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
 end
 

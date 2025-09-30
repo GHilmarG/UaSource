@@ -6,7 +6,7 @@ function [coordinates,connectivity]=FE2dRefineMesh(coordinates,connectivity)
     [NeleIn,nodIn]=size(connectivity);
     
     
-    % change all elements into 3-node elemetns
+    % change all elements into 3-node elements
     [coordinates,connectivity]=ChangeElementType(coordinates,connectivity,3);
     
     % refine all 3-node elements by globally splitting into four elements

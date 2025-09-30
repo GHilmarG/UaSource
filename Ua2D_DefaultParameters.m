@@ -1218,7 +1218,7 @@ CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic info
 %
 %   MeshBoundaryCoordinates
 %
-% Currently two external mesh generators can be called direclty from a:
+% Currently two external mesh generators can be called directly from a:
 %
 %   gmsh
 %   mesh2d
@@ -1309,7 +1309,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no
 %
 %CtrlVar.MeshGenerator="gmsh";  % possible values: {mesh2d|gmsh}
 CtrlVar.MeshGenerator="mesh2d";  % this is the default option 
-CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh"]; 
+CtrlVar.MustBe.MeshGenerator=["mesh2d","gmsh","UaSquareMesh"]; 
 %% Options related to the use of the gmsh external mesh generator
 
 
@@ -1360,7 +1360,32 @@ CtrlVar.Mesh2dInputFormat= 1;  % {1,2}
                                % MeshBoundaryCoordinates become the 'points' input field in mesh2d.
 CtrlVar.Mesh2d.edge=[];
 CtrlVar.Mesh2d.part=[];
-                              
+
+
+%% Options related to the UaSquareMesh generator
+%
+% The UaSquareMesh generator is a very simple meshing generator for square meshes. This is, for example, useful when
+% conducting synthetic experiments using simple square-shaped geometries. All elements are of equal sizes, (unless some additional mesh
+% refinements are used at a later stage).
+% 
+% The parameters used are:
+%
+CtrlVar.UaSquareMesh.xmin=nan ; 
+CtrlVar.UaSquareMesh.xmax=nan;
+CtrlVar.UaSquareMesh.ymin=nan;
+CtrlVar.UaSquareMesh.ymax=nan;
+
+CtrlVar.UaSquareMesh.nx=nan;
+CtrlVar.UaSquareMesh.ny=nan; 
+
+% The mesh generated is a square extending from x=xmin to x=xmax, and y=ymin to y=ymax, subdivided nx times in the
+% x-direction, and ny times in the y-direction.
+%
+% The number of elements generated in this way is: nele= 2*nx*ny
+% 
+% The size of the elements will be (xmax-xmin)*(ymax-ymin)/(nx*ny), when measured as the leg of an isosceles right triangle.
+%
+
 
 %% Controlling element sizes
 % 
