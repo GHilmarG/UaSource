@@ -7,6 +7,7 @@ if CtrlVar.NeverChangePrescribedTimeStep
 
     fprintf("uvh2NotConvergent: The uvh solve did not converge. But dt is not allowed to be reduced because user has set CtrlVar.NeverChangePrescribedTimeStep to true \n")
     dtOut=CtrlVar.dt ;
+    return
 
 end
 

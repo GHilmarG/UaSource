@@ -51,7 +51,8 @@ qy0dy=rhoint.*eyy0.*h0int+rhoint.*v0int.*dh0dy+drhody.*v0int.*h0int;
 
 for Inod=1:nod
 
-    SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    %SUPG=fun(Inod)+(1-theta).*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod));
+    SUPG=fun(Inod)+0.5.*tau0.*(u0int.*Deriv(:,1,Inod)+v0int.*Deriv(:,2,Inod)); % always keep this, even if theta=1, this has nothing to do with theta
     funI=fun(Inod) ;
        
     

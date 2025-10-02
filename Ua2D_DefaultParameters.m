@@ -2559,6 +2559,8 @@ CtrlVar.CompareCalculationsOfRatesOfThicknessChanges=false ;  % activates call t
 
 CtrlVar.Compare_uvh_uv2h_CPUtimes=false;
 
+CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false;
+
 end
 
 

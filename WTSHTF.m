@@ -1,4 +1,10 @@
-function [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l)
+
+
+
+
+
+
+function [UserVar,RunInfo,F,F0,l]= WTSHTF(UserVar,RunInfo,CtrlVar,MUA,BCs,F,F0,Fm1,l)
 
 %%
 %
@@ -13,19 +19,19 @@ function [UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb]= WTSHTF(UserVar,RunInfo,CtrlVar,
 % significant reduction in accuracy.
 %
 
+narginchk(9,9)
+nargoutchk(5,5)
 
-filename="Dumpfile_Ua2D-"+CtrlVar.Experiment+".mat";
-fprintf(' ===>>> uvh did not converge! Saving all data in a dumpfile %s \n',filename)
-save(filename)
-
-% Make sure not to overwrite the RunInfo from the uvh step
-
-% Since 
+if ~isfield(CtrlVar,"Try_uv_SolveIf_uvh_SolveNotConvergent")
+    CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false; 
+end
 
 
-% [UserVar,~,F,F0,l,Kuv,Ruv,Lubvb]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,Fm1,l);
-
-[UserVar,RunInfo,F,F0,l,Kuv,Ruv,Lubvb,duv1NormVector]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l,BCs)  ; 
+if CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent
+    fprintf("WTSHTF: Now trying uv-h solve. \n")
+    [UserVar,RunInfo,F,F0,l]= uvhSemiImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F0,l,BCs)  ;
+end
+   
 
 end
 
