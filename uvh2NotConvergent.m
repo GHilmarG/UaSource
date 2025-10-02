@@ -1,6 +1,16 @@
 
 function [UserVar,RunInfo,F1,F0,l0,l1,BCs1,dtOut]=uvh2NotConvergent(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l0,l1,BCs1)
 
+
+
+if CtrlVar.NeverChangePrescribedTimeStep
+
+    fprintf("uvh2NotConvergent: The uvh solve did not converge. But dt is not allowed to be reduced because user has set CtrlVar.NeverChangePrescribedTimeStep to true \n")
+    dtOut=CtrlVar.dt ;
+
+end
+
+
 dtIn=CtrlVar.dt ;
 isF0reset=false;
 

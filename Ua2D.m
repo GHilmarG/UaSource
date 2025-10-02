@@ -3,7 +3,6 @@ function UserVar=Ua2D(UserVar,CtrlVarOnInput,varargin)
 %% Driver for the 2HD a model
 % 
 
-
 if nargin==0
     UserVar=[]; 
     CtrlVarOnInput=[];
@@ -360,7 +359,7 @@ CtrlVar.CurrentRunStepNumber0=CtrlVar.CurrentRunStepNumber;
 
 RunInfo.Forward.IterationsTotal=0; 
 RunInfo.Forward.uvhConverged=true; 
-
+CtrlVar.dtRatio=1;
 %% PPF  
 
 if CtrlVar.ForwardTimeIntegration=="-phi-"
@@ -433,7 +432,7 @@ while 1
     MUA=UpdateMUA(CtrlVar,MUA);
     F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
     %% -adapt time step   automated time stepping 
-    if CtrlVar.TimeDependentRun
+    if CtrlVar.TimeDependentRun && ~CtrlVar.NeverChangePrescribedTimeStep 
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
         F.dt=CtrlVar.dt; 
     end

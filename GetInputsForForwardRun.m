@@ -68,9 +68,14 @@ end
 PrintInfoAboutElementsSizes(CtrlVar,MUA); 
 
 if ~isempty(CtrlVar.SaveInitialMeshFileName)
-    MUA.workers=[];  % saving composites not supported, MATLAB2024a 
-    save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
-    fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
+    MUA.workers=[];  % saving composites not supported, MATLAB2024a
+    try
+        save(CtrlVar.SaveInitialMeshFileName,'MUA') ;
+        fprintf(CtrlVar.fidlog,' MUA was saved in %s .\n',CtrlVar.SaveInitialMeshFileName);
+    catch exception
+        fprintf(" GetInputsForForwardRun: Could not save initial mesh file: %s \n",CtrlVar.SaveInitialMeshFileName)
+        warning(" could not save initial mesh file, will continue the run.  ")
+    end
 end
 
 F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 

@@ -2293,6 +2293,19 @@ CtrlVar.ATSEnforceCFL=false  ;      % enforce Courant-Friedrichs-Lewy condition 
                                     % 
 CtrlVar.ATSEnforceCFLfactor=1 ;     % If enforcing CFL condition, maximum time step will be factor *v*dt/dx  
                                     % Setting to 1 limits time step to CFL, and setting it to 2 allows times step twice as large.
+
+CtrlVar.NeverChangePrescribedTimeStep=false ; % Even if adaptive time stepping is not used, the code may still change the time step. 
+                                              % For example, if the transient solution does not converge, the time step is automatically reduced.
+                                              %
+                                              % There might also be some slight rounding of the time step to try to make sure that
+                                              %
+                                              % time step is an integer  multiple of the output time step (CtrlVar.DefineOutputsDt)
+                                              % This can be disabled completely by setting
+                                              %
+                                              % CtrlVar.NeverChangePrescribedTimeStep=true; 
+                                              % 
+                                              % This is, for example, possibly a good idea when conducting numerical convergence
+                                              % studies with respect to dt.
                                   
 %% Mass-balance geometry feedback
 % If the mass balance is a function of geometry, an additional non-linearity is introduced to transient runs.

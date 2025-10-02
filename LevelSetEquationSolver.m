@@ -178,25 +178,32 @@ if contains(CtrlVar.LevelSetPhase,"Propagation")
                 fprintf("LevelSetEquationSolver: Level set solver did not converge. Trying backward Euler. \n")
 
             elseif Ntries==2
-                
+
                 fprintf("LevelSetEquationSolver: Level set solver did not converge. Performing a new re-initialisation \n")
-                CtrlVar.LevelSetReinitializePDist=false ; 
+                CtrlVar.LevelSetReinitializePDist=false ;
                 [UserVar,RunInfo,LSF,Mask,l,LSFqx,LSFqy]=LevelSetEquationInitialisation(UserVar,RunInfo,CtrlVar,MUA,BCs,F0,F1,l);
                 F0.LSF=LSF ; F1.LSF=LSF ;
-                
+
             else
-                % oops, did not converge, so decrease time step and do not advance solution or time,
-                % and try again.
-                CtrlVar.LevelSetTheta=1;  % Backward Euler
-                dtBefore=CtrlVar.dt;
-                dtNew=dtBefore/10 ;
-                CtrlVar.dt=dtNew;
-                fprintf("LevelSetEquationSolver: Level set solver did not converge. Reducing time step and attempting solve again. \n")
-                
+
+                if CtrlVar.NeverChangePrescribedTimeStep
+
+                    fprintf("LevelSetEquationSolver: The level-set equation solver did not converge. But dt is not allowed to be reduced because user has set CtrlVar.NeverChangePrescribedTimeStep to true \n")
+
+                else
+                    % oops, did not converge, so decrease time step and do not advance solution or time,
+                    % and try again.
+                    CtrlVar.LevelSetTheta=1;  % Backward Euler
+                    dtBefore=CtrlVar.dt;
+                    dtNew=dtBefore/10 ;
+                    CtrlVar.dt=dtNew;
+                    fprintf("LevelSetEquationSolver: Level set solver did not converge. Reducing time step and attempting solve again. \n")
+                end
+
             end
-            
+
         end
-        
+
         fprintf("time=%f \t tEnd=%f \t dtNew=%g \t dtOld=%g \t dt=%g  \n",CtrlVar.time,tEnd,dtNew,dtBefore,CtrlVar.dt)
         
         
