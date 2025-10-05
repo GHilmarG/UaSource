@@ -1,6 +1,6 @@
 %%
 %   Just a shorthand for a clearing of all variables and functions, closes all figures
-%   Deliberately as agressiv reset as possible.   
+%   Deliberately as aggressive reset as possible.   
 %
 
 clc ; clear ; clear all force ; close all
