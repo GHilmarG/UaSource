@@ -21,6 +21,12 @@ end
 connectivity=reshape(J,size(connectivity));
 coordinates=coordinates(K,:);
 
+%% This is done in genmesh
+%if CtrlVar.sweep
+%    [coordinates,connectivity] = ElementSweep(coordinates,connectivity,CtrlVar.SweepAngle);
+%    [coordinates,connectivity] = NodalSweep(coordinates,connectivity,CtrlVar.SweepAngle);
+%end
+
 % First check if element type on input is as requested by user, and if not change
 [MUA.coordinates,MUA.connectivity]=ChangeElementType(coordinates,connectivity,CtrlVar.TriNodes);
 MUA.Nnodes=size(MUA.coordinates,1);

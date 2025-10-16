@@ -1,7 +1,74 @@
+function [coordinates,connectivity,MUA]=UaSquareMesh(CtrlVar)
 
-
-function [coordinates,connectivity]=UaSquareMesh(CtrlVar)
-
+%% Simple mesh generator for square domains.
+%
+% The idea is that the mesh is completely regular. This can not be achieved with gmsh or mesh2d.
+%
+% This is good for, for example, convergence studies, and when applying periodic boundary conditions, which is often done
+% using very simple mesh geometries, e.g. square shaped domains. 
+%
+%
+% To arrive at a mesh consisting of regular smaller squares divided into four triangles, set
+%
+%   CtrlVar.UaSquareMesh.Refine=true;
+% 
+% Otherwise the mesh will be based on straightforward delaunay triangulation which, typically, results in a mesh that is not
+% symmetrical with respect to a rotation about 90 degrees, and mirror reflections around x and y.
+%
+%
+% This simple mesh generator is selected by setting 
+%
+%
+%    CtrlVar.MeshGenerator="UaSquareMesh"; 
+%
+% in DefineInitialInputs.m
+%
+% The extent of the square is specified by setting
+%
+%   CtrlVar.UaSquareMesh.xmin  
+%   CtrlVar.UaSquareMesh.xmax 
+%   CtrlVar.UaSquareMesh.ymin   
+%   CtrlVar.UaSquareMesh.ymax
+%
+%
+% And this square is then subdivided into nx and ny elements in the x and the y directions.
+%
+%   CtrlVar.UaSquareMesh.nx;
+%   CtrlVar.UaSquareMesh.ny;
+%
+% If additionally, and this is recommended, 
+%
+%   CtrlVar.UaSquareMesh.Refine=true;
+%
+% each triangle is additionally subdivided from the longest vertex.
+%
+% If, for example, 
+%
+%
+%   CtrlVar.UaSquareMesh.xmin=-50e3 ;
+%   CtrlVar.UaSquareMesh.xmax=50e3 ;
+%   CtrlVar.UaSquareMesh.ymin=-50e3;
+%   CtrlVar.UaSquareMesh.ymax=50e3;
+% 
+%   CtrlVar.UaSquareMesh.nx=10;
+%   CtrlVar.UaSquareMesh.ny=10;
+%
+% and
+%
+% CtrlVar.UaSquareMesh.Refine=false;
+%
+% then the resulting size of every element will be:
+%
+% 100e3/10=10
+%
+% If 
+%
+%   CtrlVar.UaSquareMesh.Refine=true;
+% 
+% then the element size will be
+%
+% 100e3/10/sqrt(2) =   7071.06781186548
+%
 %%
 
 if ~isfield(CtrlVar,"UaSquareMesh") ...
@@ -12,12 +79,18 @@ if ~isfield(CtrlVar,"UaSquareMesh") ...
     fprintf("When using the UaSquareMesh mesh generator, the fields : \n ")
     fprintf(" CtrlVar.UaSquareMesh.xmin \n CtrlVar.UaSquareMesh.xmax \n CtrlVar.UaSquareMesh.ymin \n CtrlVar.UaSquareMesh.ymax \n CtrlVar.UaSquareMesh.nx \n CtrlVar.UaSquareMesh.ny \n")
     fprintf("Must all be defined. \n ")
-    
-  
+
+
     error("UaSquareMesh:Inputs","not all input fields defined")
-  
+
 
 end
+
+
+if ~isfield(CtrlVar.UaSquareMesh,"Refine")
+    CtrlVar.UaSquareMesh.Refine=true;
+end
+
 
 xmin=CtrlVar.UaSquareMesh.xmin;
 xmax=CtrlVar.UaSquareMesh.xmax;
@@ -28,7 +101,7 @@ nx=CtrlVar.UaSquareMesh.nx;
 ny=CtrlVar.UaSquareMesh.ny;
 
 
-% xmin=-10 ; xmax=10 ; ymin=-5 ; ymax=5;  dx=1 ; dy=1 ;  nx=round((xmax-xmin)/dx); ny=round((ymax-ymin)/dy); 
+% xmin=-10 ; xmax=10 ; ymin=-5 ; ymax=5;  dx=1 ; dy=1 ;  nx=round((xmax-xmin)/dx); ny=round((ymax-ymin)/dy);
 
 
 x=linspace(xmin,xmax,nx+1);
@@ -36,12 +109,43 @@ y=linspace(ymin,ymax,ny+1);
 [X,Y]=ndgrid(x,y);
 
 
-x=X(:); 
+x=X(:);
 y=Y(:) ;
-DT = delaunayTriangulation(x,y) ; 
+DT = delaunayTriangulation(x,y) ;
 
 connectivity=DT.ConnectivityList;
-coordinates=DT.Points ; 
+coordinates=DT.Points ;
+MUA=CreateMUA(CtrlVar,connectivity,coordinates);
+
+if CtrlVar.UaSquareMesh.Refine
+
+    ElementsToBeRefined=true(MUA.Nele,1);
+    ElementsToBeCoarsened=false(MUA.Nele,1);
+    RunInfo=[];
+
+    CtrlVar.MeshRefinementMethod="explicit:local:newest vertex bisection";
+    %CtrlVar.MeshRefinementMethod="explicit:local:red-green"; CtrlVar.LocalAdaptMeshSmoothingIterations=0;
+
+
+    MUA=LocalMeshRefinement(CtrlVar,RunInfo,MUA,ElementsToBeRefined,ElementsToBeCoarsened);
+
+
+end
+
+coordinates=MUA.coordinates;
+connectivity=MUA.connectivity ;
+
+[Nele,Nod]=size(connectivity);
+
+if Nele > CtrlVar.MaxNumberOfElements
+    fprintf("UaSquareMesh: Too many elements! \n")
+    fprintf("  The maximu allowed number of elements is CtrlVar.MaxNumberOfElements=%i \n",CtrlVar.MaxNumberOfElements)
+    fprintf("  This is larger than the number of elments in the mesh which is %i \n",Nele)
+    error("UaSquareMesh:TooManyElements","Too Many Elements")
+end
+
+
+end
 
 % figure(999) ; plot(x,y,".") ; axis equal
 % figure(1002); triplot(DT) ; axis equal

@@ -138,10 +138,10 @@ end
 
 if CtrlVar.TimeDependentRun &&  ~CtrlVar.Restart
     CtrlVar.InitialDiagnosticStep=1;  % Always do an initial diagnostic step when starting a transient run. But if a restart run, then do not change this value from that set by the user.
-    % An inital diagnostic step is therefore done if:
+    % An initial diagnostic step is therefore done if:
     % 1) so asked by the user, ie if the user sets CtrlVar.InitialDiagnosticStep=1, and
-    % 2) at the beginning of an implicut uvh transient run.
-    % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicut uvh transient restart run.
+    % 2) at the beginning of an implicit uvh transient run.
+    % Unless asked by the user, no initial diagnostic step is done at the beginning of an implicit uvh transient restart run.
 end
 
 % AdaptMesh not allowed in combination with an inverse run

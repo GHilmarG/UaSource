@@ -431,7 +431,7 @@ while 1
     
     MUA=UpdateMUA(CtrlVar,MUA);
     F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; 
-    %% -adapt time step   automated time stepping 
+    %% -adapt time step   automated time stepping adaptive time stepping 
     if CtrlVar.TimeDependentRun && ~CtrlVar.NeverChangePrescribedTimeStep 
         [RunInfo,CtrlVar.dt,CtrlVar.dtRatio]=AdaptiveTimeStepping(UserVar,RunInfo,CtrlVar,MUA,F);
         F.dt=CtrlVar.dt; 
