@@ -2561,6 +2561,10 @@ CtrlVar.Compare_uvh_uv2h_CPUtimes=false;
 
 CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false;
 
+CtrlVar.Abort.State=false ; % This is an internal variable. If, for example, some calculations could not be performed as specified, 
+                            % then the idea is that the run will abort the calculations and terminate gracefully. 
+CtrlVar.Abort.Message="" ; 
+
 end
 
 

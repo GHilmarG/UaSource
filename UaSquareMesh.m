@@ -115,31 +115,41 @@ DT = delaunayTriangulation(x,y) ;
 
 connectivity=DT.ConnectivityList;
 coordinates=DT.Points ;
-MUA=CreateMUA(CtrlVar,connectivity,coordinates);
+
 
 if CtrlVar.UaSquareMesh.Refine
 
-    ElementsToBeRefined=true(MUA.Nele,1);
-    ElementsToBeCoarsened=false(MUA.Nele,1);
+    % For the refinement, I need to temporarily create a MUA structure. 
+    CtrlVar.CalcMUA_Derivatives=false;
+    CtrlVar.FindMUA_Boundary=false;
+    CtrlVar.MUA.MassMatrix=false ;
+    CtrlVar.MUA.DecomposeMassMatrix=false ;
+    CtrlVar.MUA.DecomposeMassMatrix=false ;
+    CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
+    CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ;
+    MUA=CreateMUA(CtrlVar,connectivity,coordinates);
+
+    ElementsToBeRefined=true(MUA.Nele,1);             % refine all elements
+    ElementsToBeCoarsened=false(MUA.Nele,1);          % unrefine none
     RunInfo=[];
 
     CtrlVar.MeshRefinementMethod="explicit:local:newest vertex bisection";
     %CtrlVar.MeshRefinementMethod="explicit:local:red-green"; CtrlVar.LocalAdaptMeshSmoothingIterations=0;
 
-
     MUA=LocalMeshRefinement(CtrlVar,RunInfo,MUA,ElementsToBeRefined,ElementsToBeCoarsened);
 
+    coordinates=MUA.coordinates;
+    connectivity=MUA.connectivity ;
 
 end
 
-coordinates=MUA.coordinates;
-connectivity=MUA.connectivity ;
+
 
 [Nele,Nod]=size(connectivity);
 
 if Nele > CtrlVar.MaxNumberOfElements
     fprintf("UaSquareMesh: Too many elements! \n")
-    fprintf("  The maximu allowed number of elements is CtrlVar.MaxNumberOfElements=%i \n",CtrlVar.MaxNumberOfElements)
+    fprintf("  The maximum allowed number of elements is CtrlVar.MaxNumberOfElements=%i \n",CtrlVar.MaxNumberOfElements)
     fprintf("  This is larger than the number of elments in the mesh which is %i \n",Nele)
     error("UaSquareMesh:TooManyElements","Too Many Elements")
 end

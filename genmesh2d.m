@@ -69,7 +69,7 @@ switch lower(CtrlVar.MeshGenerator)
     otherwise
 
 
-        error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh} ')
+        error('Mesh generator not correctly defined. Define variable CtrlVar.MeshGenerator {mesh2d|gmsh|UaSquareMesh} ')
 end
 
 
