@@ -26,6 +26,10 @@ function Int=FEintegrate2D(CtrlVar,MUA,f)
 %
 %  M=sum(FEintegrate2D(CtrlVar,MUA,F.as.*F.GF.node)) ;
 %
+% Mean value of ub velocity over the domain:
+%
+%  ubMean=sum(FEintegrate2D(CtrlVar,MUA,F.ub))/MUA.Area
+%
 %
 %% 
 

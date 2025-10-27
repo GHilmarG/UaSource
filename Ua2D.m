@@ -36,8 +36,11 @@ InvFinalValues=InversionValues;
 
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 
+WallTimeAtStart=datetime ; 
+CPUTimeAtStart=duration(0,0,cputime) ; 
+RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
+RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
 
-WallTime0=tic;
 %% Clear any persistent variables
 ClearPersistentUaVariables();
 
@@ -308,17 +311,19 @@ if CtrlVar.doInverseStep   % -inverse
     F.AGlen=InvFinalValues.AGlen  ; %fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
     F.m=InvFinalValues.m ; 
     F.n=InvFinalValues.n ;
-    
-  
-    
-    
+
+
+
+
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-    
-    
+
+    RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
+    RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
+
     if CtrlVar.Inverse.WriteRestartFile
-        
+
         WriteAdjointRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo,InvStartValues,Priors,Meas,BCsAdjoint,InvFinalValues);
-        
+
     end
     
     % inverse plots
@@ -364,23 +369,25 @@ CtrlVar.dtRatio=1;
 
 if CtrlVar.ForwardTimeIntegration=="-phi-"
 
-    [MUA,BCs,BCsphi,F]=PhaseFieldFractureSolver(UserVar,RunInfo,CtrlVar,MUA,F,BCs) ; 
+    [MUA,BCs,BCsphi,F]=PhaseFieldFractureSolver(UserVar,RunInfo,CtrlVar,MUA,F,BCs) ;
 
 end
 
 
 %%  RunStep Loop
 while 1
-    
+
     CtrlVar.CurrentRunStepNumber=CtrlVar.CurrentRunStepNumber+1;
 
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
-    RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
-    
+
+    RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
+    RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array 
+
     %% check run-step stop criteria
     if CtrlVar.CurrentRunStepNumber >(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
-        
+
         fprintf('Exiting run-step loop because total number of steps reached. \n')
    
         break
@@ -585,8 +592,9 @@ while 1
             
             if CtrlVar.WriteRunInfoFile
                 
-                RunInfo.CPU.Total=duration(0,0,cputime);
-                RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
+                
+                RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
+                RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
                 fprintf(RunInfo.File.fid,...
                     '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
                     CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),...
@@ -608,17 +616,18 @@ while 1
                 [UserVar,RunInfo,F0,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
                 % F0 : F calculated at current time step t=t0
                 %  F : Here F is the initial guess for F at time step t1=t0+ dt
-                
-                F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt 
 
-                
-                
-                
+                F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt
+
+                RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
+                RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
+
+
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
                     CtrlVar.DefineOutputsInfostring="Diagnostic step";
                     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
                     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-                    
+
                     UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
                     if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
                         fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
@@ -860,22 +869,24 @@ while 1
         %(ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
         CtrlVar.DefineOutputsInfostring="inside transient loop and inside run-step loop";
         CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
-        
+
         if CtrlVar.MassBalanceGeometryFeedback>0
 
             CtrlVar.time=CtrlVar.time+CtrlVar.dt;  % I here need the mass balance at the end of the time step, hence must increase t
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
             [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
-            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning. 
-            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ; 
-           
+            CtrlVar.time=CtrlVar.time-CtrlVar.dt; % and then take it back to t at the beginning.
+            F.time=CtrlVar.time ;  F.dt=CtrlVar.dt ;
+
         end
-        
+
         fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-        
+
+        RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
+        RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
         UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
-        
-        
+
+
         if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
             fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
                 CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
@@ -889,13 +900,18 @@ while 1
 
     end
     
-    
-    
-    
-    
+
+
+
+
 end
 
-RunInfo.CPU.Total=duration(0,0,cputime);
+
+RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
+RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
+
+
+
 RunInfo.Message="Calculations done. Creating outputs. ";
 CtrlVar.RunInfoMessage=RunInfo.Message;
 
@@ -941,8 +957,8 @@ end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
 
-RunInfo.CPU.WallTime=duration(0,0,toc(WallTime0));
-fprintf(CtrlVar.fidlog,' Wall-clock time : %s (hh:mm:ss) \n',RunInfo.CPU.WallTime) ;
+RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
+RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
 
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
@@ -950,6 +966,7 @@ if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
 UserVar=DefineFinalReturnedValueOfUserVar(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
+fprintf("\t Wall time: %s \t CPU time: %s \n",RunInfo.CPU.WallTime,RunInfo.CPU.Total)
 SayGoodbye(CtrlVar,RunInfo)
 
 
