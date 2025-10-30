@@ -1,10 +1,21 @@
-function UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+
+
+
+
+function [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+
+narginchk(12,12)
+nargoutchk(2,2)
 
 warning('off','MATLAB:structOnObject')
 
 % convert objects to structures. Otherwise it will not be possible to save/re-use these
 % objects outside of �a.
 %
+RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+
+
 l=struct(l);
 BCs=struct(BCs) ;
 F=struct(F);

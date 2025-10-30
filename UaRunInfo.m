@@ -90,13 +90,18 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.LevelSet.BackTrackSteps=NaN(N,1);
             obj.LevelSet.Phase=strings(N,1);
 
-            obj.CPU.Total=0;
-            obj.CPU.Assembly.uv=0;
-            obj.CPU.Solution.uv=0;
-            obj.CPU.Assembly.uvh=0;
-            obj.CPU.Solution.uvh=0;
-            obj.CPU.WallTime="";
-            obj.CPU.Inversion=0;
+
+            obj.CPU.AtStart=[];
+            obj.CPU.WallTimeAtStart=[];
+            obj.CPU.Total=[];
+            obj.CPU.WallTime=[];
+
+            obj.CPU.Assembly.uv=[];
+            obj.CPU.Solution.uv=[];
+            obj.CPU.Assembly.uvh=[];
+            obj.CPU.Solution.uvh=[];
+
+            obj.CPU.Inversion=[];
 
 
             obj.Message="" ;

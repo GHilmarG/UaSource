@@ -36,10 +36,9 @@ InvFinalValues=InversionValues;
 
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 
-WallTimeAtStart=datetime ; 
-CPUTimeAtStart=duration(0,0,cputime) ; 
-RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
-RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
+RunInfo.CPU.WallTimeAtStart=datetime ; 
+RunInfo.CPU.AtStart=duration(0,0,cputime) ; 
+
 
 %% Clear any persistent variables
 ClearPersistentUaVariables();
@@ -283,7 +282,7 @@ if CtrlVar.doInverseStep   % -inverse
     CtrlVar.DefineOutputsCounter=1;
     InvFinalValues=InversionValues;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 
     %         [db,dc] = Deblurr2D(NaN,...
@@ -317,8 +316,8 @@ if CtrlVar.doInverseStep   % -inverse
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
-    RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
-    RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
+    RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+    RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
 
     if CtrlVar.Inverse.WriteRestartFile
 
@@ -334,7 +333,7 @@ if CtrlVar.doInverseStep   % -inverse
     CtrlVar.DefineOutputsInfostring="End of Inverse Run";
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
     SayGoodbye(CtrlVar,RunInfo);
     return  % This is the end of the (inverse) run
@@ -348,7 +347,7 @@ if CtrlVar.CreateOutputsBeginningOfRun  && ~CtrlVar.Restart
     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
@@ -381,9 +380,10 @@ while 1
 
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
-
-    RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
-    RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array 
+ 
+    RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+    RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+ 
 
     %% check run-step stop criteria
     if CtrlVar.CurrentRunStepNumber >(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
@@ -589,12 +589,11 @@ while 1
                 '\n ==========================>  Implicit uvh going from t=%-.10g to t=%-.10g with dt=%-g. Done %-g %% of total time, and  %-g %% of steps. (%s) \n ',...
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime),...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
-            
+
             if CtrlVar.WriteRunInfoFile
-                
-                
-                RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
-                RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
+
+                RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+                RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
                 fprintf(RunInfo.File.fid,...
                     '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
                     CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),...
@@ -619,16 +618,15 @@ while 1
 
                 F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt
 
-                RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
-                RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
-
+                RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+                RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
                     CtrlVar.DefineOutputsInfostring="Diagnostic step";
                     CtrlVar.DefineOutputsCounter=CtrlVar.DefineOutputsCounter+1;
                     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
 
-                    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+                    [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
                     if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
                         fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
                             CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)
@@ -882,9 +880,8 @@ while 1
 
         fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
 
-        RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
-        RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
-        UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+     
+        [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
 
         if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
@@ -899,16 +896,15 @@ while 1
         WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
 
     end
-    
+
 
 
 
 
 end
 
-
-RunInfo.CPU.WallTime=datetime-WallTimeAtStart ;
-RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ;  % cputime returns seconds, here change this to a duration array
+RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
 
 
 
@@ -938,7 +934,7 @@ if CtrlVar.CreateOutputsEndOfRun
     end
     
     fprintf(' Calling DefineOutputs. DefineOutputsInfostring=%s , DefineOutputsCounter=%i \n ',CtrlVar.DefineOutputsInfostring,CtrlVar.DefineOutputsCounter)
-    UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+    [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     
     if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
         fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
@@ -957,9 +953,9 @@ end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
 
-RunInfo.CPU.WallTime=datetime-WallTimeAtStart ; 
-RunInfo.CPU.Total=duration(0,0,cputime)-CPUTimeAtStart ; 
 
+RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
+RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
