@@ -51,7 +51,8 @@ else
 end
 Kplot=0;
 
-fig=FindOrCreateFigure('Measuments') ; clf(fig)
+
+fig=FindOrCreateFigure('Measurments') ; clf(fig)
 
 Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
@@ -339,7 +340,7 @@ cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled sp
 title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
 
 nexttile
-cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed mesurement error') ; set(gca,'ColorScale','log')
+cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
 title(cbar,"error",interpreter="latex")
 
 nexttile
