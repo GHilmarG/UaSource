@@ -388,11 +388,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
                 stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,2*rForce0);
         end
         
-        if CtrlVar.WriteRunInfoFile
-            
-            fprintf(RunInfo.File.fid,'%sNR-SSTREAM(uv):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rWork=%-14.7g , Assembly=%f sec. Solution=%f sec.\n ',...
-                stri,iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rWork,RunInfo.CPU.Assembly.uv,RunInfo.CPU.Solution.uv);
-        end
+    
         
     end
     

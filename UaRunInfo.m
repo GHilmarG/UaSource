@@ -6,6 +6,7 @@ classdef (ConstructOnLoad) UaRunInfo
         Forward
         BackTrack
         CPU
+        WallTime
         Message
         MeshAdapt
         File
@@ -91,10 +92,11 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.LevelSet.Phase=strings(N,1);
 
 
-            obj.CPU.AtStart=[];
-            obj.CPU.WallTimeAtStart=[];
+            obj.CPU.tic=[];
+            obj.CPU.toc=[];
+          
             obj.CPU.Total=[];
-            obj.CPU.WallTime=[];
+            
 
             obj.CPU.Assembly.uv=[];
             obj.CPU.Solution.uv=[];
@@ -103,6 +105,9 @@ classdef (ConstructOnLoad) UaRunInfo
 
             obj.CPU.Inversion=[];
 
+            obj.WallTime.Total=[];
+            obj.WallTime.tic=[];
+            obj.WallTime.toc=[];
 
             obj.Message="" ;
 

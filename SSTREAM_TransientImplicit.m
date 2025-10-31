@@ -564,14 +564,6 @@ while true
 
 
 
-    if CtrlVar.WriteRunInfoFile
-
-        fprintf(RunInfo.File.fid,...
-            'NR-SSTREAM(uvh):%3u/%-2u g=%-14.7g , r/r0=%-14.7g ,  r0=%-14.7g , r=%-14.7g , rForce=%-14.7g , rWork=%-14.7g , BCsError=%-g   \n ',...
-            iteration,RunInfo.BackTrack.iarm,gamma,r/r0,r0,r,rForce,rWork,BCsError);
-
-    end
-
     BackTrackSteps=BackTrackSteps+RunInfo.BackTrack.iarm ;
 
 
@@ -720,13 +712,7 @@ RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber)=iteration ;
 RunInfo.Forward.uvhResidual(CtrlVar.CurrentRunStepNumber)=r;
 RunInfo.Forward.uvhBackTrackSteps(CtrlVar.CurrentRunStepNumber)=BackTrackSteps ;
 
-if CtrlVar.WriteRunInfoFile
 
-    fprintf(RunInfo.File.fid,' --->  SSTREAM(uvh/%s) \t time=%15.5f \t dt=%-g \t r=%-g \t #it=% i \t CPUsec=%-g \n',...
-        CtrlVar.uvhImplicitTimeSteppingMethod,CtrlVar.time,CtrlVar.dt,RunInfo.Forward.Residual,...
-        RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),tEnd) ;
-
-end
 
 
 end

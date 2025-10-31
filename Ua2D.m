@@ -32,12 +32,19 @@ BCsAdjoint=BoundaryConditions;
 Meas=Measurements;
 Priors=PriorProbabilityDistribution;
 InvStartValues=InversionValues;
-InvFinalValues=InversionValues; 
+InvFinalValues=InversionValues;
 
 RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 
-RunInfo.CPU.WallTimeAtStart=datetime ; 
-RunInfo.CPU.AtStart=duration(0,0,cputime) ; 
+%% Initialize run-time and cpu-time variables
+RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
+RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.CPU.Total=RunInfo.CPU.toc-RunInfo.CPU.tic;
+%%
 
 
 %% Clear any persistent variables
@@ -116,15 +123,7 @@ CtrlVar=CtrlVarValidityCheck(CtrlVar);
 PrintRunInfo(CtrlVar);
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
-RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-if CtrlVar.WriteRunInfoFile
-    if CtrlVar.Restart
-        RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-        fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
-    else
-        RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
-    end
-end
+
 
 
 %% Check and set some parallel variables
@@ -229,17 +228,8 @@ F.x=MUA.coordinates(:,1) ;  F.y=MUA.coordinates(:,2) ; F.time=CtrlVar.time ;  F.
 %% RunInfo initialisation
 RunInfo.Message="Start of Run";
 CtrlVar.RunInfoMessage=RunInfo.Message;
-RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
 
-if CtrlVar.WriteRunInfoFile
-    if CtrlVar.Restart
-        if ~isnan(RunInfo.File.fid) ; fclose(RunInfo.File.fid) ; end
-        RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-        fprintf(RunInfo.File.fid,'  Restart run starts on %s \n',datetime('now'));
-    else
-        RunInfo.File.fid = fopen(RunInfo.File.Name,'w');
-    end
-end
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,16 +298,17 @@ if CtrlVar.doInverseStep   % -inverse
     
     F.C=InvFinalValues.C          ; %fprintf(CtrlVar.fidlog,' C set equal to InvFinalValues.C. ');
     F.AGlen=InvFinalValues.AGlen  ; %fprintf(CtrlVar.fidlog,' AGlen set equal InvFinalValues.AGlen \n ');
-    F.m=InvFinalValues.m ; 
+    F.m=InvFinalValues.m ;
     F.n=InvFinalValues.n ;
-
-
 
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
-    RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-    RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+
+    RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+    RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic;
+    RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+
 
     if CtrlVar.Inverse.WriteRestartFile
 
@@ -339,6 +330,10 @@ if CtrlVar.doInverseStep   % -inverse
     return  % This is the end of the (inverse) run
     
 end
+
+RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;               
+RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable 
 
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
@@ -380,16 +375,16 @@ while 1
 
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
- 
-    RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-    RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
- 
+
+    RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+    RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
+    RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable
 
     %% check run-step stop criteria
     if CtrlVar.CurrentRunStepNumber >(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
 
         fprintf('Exiting run-step loop because total number of steps reached. \n')
-   
+
         break
     end
     
@@ -590,17 +585,7 @@ while 1
                 CtrlVar.time,CtrlVar.time+CtrlVar.dt,CtrlVar.dt,100*(CtrlVar.time-CtrlVar.StartTime)/(CtrlVar.EndTime-CtrlVar.StartTime),...
                 100*(CtrlVar.CurrentRunStepNumber-1-CtrlVar.CurrentRunStepNumber0)/CtrlVar.TotalNumberOfForwardRunSteps,datetime('now'));
 
-            if CtrlVar.WriteRunInfoFile
-
-                RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-                RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
-                fprintf(RunInfo.File.fid,...
-                    '  t-dt-tCPU-it-itTotal-date-uvhAssembly-uvhSolution-WallTime , %g , %g , %s  ,  %i , %i , %s , %s , %s , %s \n',...
-                    CtrlVar.time,CtrlVar.dt,RunInfo.CPU.Total,RunInfo.Forward.uvhIterations(CtrlVar.CurrentRunStepNumber),...
-                    RunInfo.Forward.IterationsTotal,datetime('now'),...
-                    duration(0,0,RunInfo.CPU.Assembly.uvh),duration(0,0,RunInfo.CPU.Solution.uvh),RunInfo.CPU.WallTime);
-            end
-
+       
 
             if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitly requested by user, then do not do an initial diagnostic step
                 %% diagnostic step, solving for uv.  Always needed at a start of a transient run. Also done if asked by the user.
@@ -618,8 +603,7 @@ while 1
 
                 F=F0; % here set F to the current solution, this F will then be recalculated in the uvh-solver and will retrun F at t=t0 + dt
 
-                RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-                RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+          
 
                 if (ReminderFraction(CtrlVar.time,CtrlVar.DefineOutputsDt)<1e-5 || CtrlVar.DefineOutputsDt==0 )
                     CtrlVar.DefineOutputsInfostring="Diagnostic step";
@@ -903,8 +887,7 @@ while 1
 
 end
 
-RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+
 
 
 
@@ -947,22 +930,32 @@ end
 
 %% saving outputs
 
-if CtrlVar.WriteRestartFile==1 
+if CtrlVar.WriteRestartFile==1
     WriteForwardRunRestartFile(UserVar,CtrlVar,MUA,BCs,F,F.GF,l,RunInfo);
 end
 
 if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
 
 
-RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
+%% updating wall-time and cpu-time variables
+
+
+RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
+RunInfo.WallTime.Total=RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+
+
+RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.CPU.Total=RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable
+%%
 
 if CtrlVar.fidlog~= 1 ; fclose(CtrlVar.fidlog); end
 
 
 UserVar=DefineFinalReturnedValueOfUserVar(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
 
-fprintf("\t Wall time: %s \t CPU time: %s \n",RunInfo.CPU.WallTime,RunInfo.CPU.Total)
+fprintf("\t Wall time: %s \t CPU time: %s \n",RunInfo.WallTime.Total,RunInfo.CPU.Total)
 SayGoodbye(CtrlVar,RunInfo)
 
 

@@ -1204,7 +1204,7 @@ CtrlVar.CreateOutputsEndOfRun=true;         % If true, then call DefineOutputs a
 % run-step number.
 %
 CtrlVar.CurrentRunStepNumber=0 ;  % This is a counter that is increased by one at each run step.
-CtrlVar.WriteRunInfoFile=0;       % True to get a .txt file with some basic information about the run, such as number of iterations and residuals
+
 %% General Meshing Options
 % There are various ways of meshing the computational domain.
 %

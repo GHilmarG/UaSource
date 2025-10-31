@@ -12,9 +12,16 @@ warning('off','MATLAB:structOnObject')
 % convert objects to structures. Otherwise it will not be possible to save/re-use these
 % objects outside of �a.
 %
-RunInfo.CPU.WallTime=datetime-RunInfo.CPU.WallTimeAtStart ;
-RunInfo.CPU.Total=duration(0,0,cputime)-RunInfo.CPU.AtStart;
 
+
+
+RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
+RunInfo.WallTime.Total=RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+
+RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; 
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
 
 l=struct(l);
 BCs=struct(BCs) ;
@@ -62,5 +69,10 @@ switch Nouts
         end
 
 end
+
+% Here the CPU and wall time tic variables are reset. The idea here is not to include CPU time used by DefineOutputs 
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+
 
 end
