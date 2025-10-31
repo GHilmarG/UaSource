@@ -11,7 +11,7 @@ function [x,y,nx,ny,tvector] = Smooth2dPos(x,y,smoothing,ds)
 %   [x,y,nx,ny] = Smooth2dPos(x,y,smoothing,ds)
 %   Takes xy points defining a line in the plane
 %   and returns a smooth line along (approximately) equally spaced points.
-%   Obmitting the smoothing parameter implies no smoothing
+%   Omitting the smoothing parameter implies no smoothing
 %   Degree of smoothing is determined by CtrlVar.GLtension;
 %   0<CtrlVar.GLtension<=1
 %   CtrlVar.GLtension=1 implies `natural' smoothing, see help pages for csaps

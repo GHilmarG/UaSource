@@ -91,6 +91,15 @@ if ~isfield(CtrlVar.UaSquareMesh,"Refine")
     CtrlVar.UaSquareMesh.Refine=true;
 end
 
+if ~isfield(CtrlVar,"TriNodes")
+    CtrlVar.TriNodes=3;
+end
+
+if ~isfield(CtrlVar,"QueadRules2021")
+    CtrlVar.QuadRules2021=true;
+end
+
+
 
 xmin=CtrlVar.UaSquareMesh.xmin;
 xmax=CtrlVar.UaSquareMesh.xmax;
@@ -123,10 +132,21 @@ if CtrlVar.UaSquareMesh.Refine
     CtrlVar.CalcMUA_Derivatives=false;
     CtrlVar.FindMUA_Boundary=false;
     CtrlVar.MUA.MassMatrix=false ;
+    CtrlVar.MUA.StiffnessMatrix=false;
     CtrlVar.MUA.DecomposeMassMatrix=false ;
     CtrlVar.MUA.DecomposeMassMatrix=false ;
     CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
     CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ;
+    CtrlVar.InfoLevelAdaptiveMeshing=0 ;
+
+    if ~isfield(CtrlVar,"AdaptMeshUntilChangeInNumberOfElementsLessThan")
+        CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan=0;
+    end
+
+    if ~isfield(CtrlVar,"MaxNumberOfElements")
+        CtrlVar.MaxNumberOfElements=inf;
+    end
+
     MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
     ElementsToBeRefined=true(MUA.Nele,1);             % refine all elements

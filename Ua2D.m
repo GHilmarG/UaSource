@@ -257,8 +257,19 @@ F.h=F.s-F.b;
 % [DTxy,TRIxy,DTint,TRIint,Xint,Yint,xint,yint,Iint]=TriangulationNodesIntegrationPoints(MUA);
 
 
-F0=F; 
+F0=F;
 
+RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
+if isempty(RunInfo.WallTime.Total)
+    RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+else
+    RunInfo.WallTime.Total=RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+end
+RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+
+RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
+RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic;
+RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
 
 
 %%
@@ -305,9 +316,6 @@ if CtrlVar.doInverseStep   % -inverse
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 
-    RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-    RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic;
-    RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
 
 
     if CtrlVar.Inverse.WriteRestartFile
@@ -331,9 +339,7 @@ if CtrlVar.doInverseStep   % -inverse
     
 end
 
-RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;               
-RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
-RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable 
+
 
 %% DefineOutputs
 CtrlVar.DefineOutputsCounter=0;
@@ -376,9 +382,7 @@ while 1
     RunInfo.Message="-RunStepLoop-"; % While within run-step loop the Message field always contains the string "-RunStepLoop-"
     CtrlVar.RunInfoMessage=RunInfo.Message;
 
-    RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-    RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; % increment in CPU time since last tic added to total sum
-    RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;      % reset the CPU tic variable
+
 
     %% check run-step stop criteria
     if CtrlVar.CurrentRunStepNumber >(CtrlVar.TotalNumberOfForwardRunSteps+CtrlVar.CurrentRunStepNumber0)
