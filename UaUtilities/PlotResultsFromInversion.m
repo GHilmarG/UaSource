@@ -52,7 +52,7 @@ end
 Kplot=0;
 
 
-fig=FindOrCreateFigure('Measurments') ; clf(fig)
+fig=FindOrCreateFigure('Measurements') ; clf(fig)
 
 Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
@@ -445,7 +445,12 @@ PlotCalvingFronts(CtrlVar,MUA,F,"b");
 
 UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
 title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
-CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); 
+CL=clim;
+if CL(1) < 0 && CL(2)>0
+    CM=cmocean('balanced',25,pivot',0) ; colormap(CM);
+else
+    CM=cmocean('balanced',25) ;
+end
 
 %%  Prior
 
