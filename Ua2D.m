@@ -39,7 +39,7 @@ RunInfo.Forward.AdaptiveTimeSteppingTimeStepModifiedForOutputs=0;
 %% Initialize run-time and cpu-time variables
 RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+RunInfo.WallTime.Total=duration(RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS") ;
 
 RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
 RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
