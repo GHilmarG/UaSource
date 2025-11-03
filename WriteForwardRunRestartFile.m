@@ -21,6 +21,7 @@ end
 
 
 try
+    
     save(RestartFile,'CtrlVarInRestartFile','UserVarInRestartFile','MUA','BCs','F','GF','l','RunInfo','-v7.3');
     fprintf(CtrlVar.fidlog,' Writing restart file was successful. \n');
 

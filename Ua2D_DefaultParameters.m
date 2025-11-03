@@ -693,7 +693,7 @@ CtrlVar.InfoLevelInverse=1; % Overall level of information (inverse runs).
 CtrlVar.InfoLevelNonLinIt=1; 
 %
 %
-% The level of information giving about the non-linear iteration is determine
+% The level of information giving about the non-linear iteration is determined
 % by the variable 
 %
 %   CtrlVar.InfoLevelNonLinIt 
@@ -876,7 +876,7 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 
 CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
-% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-muliplier,
+% If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,
 % and with respect to the l2 inner product when using the I pre-multiplier.
 %
 

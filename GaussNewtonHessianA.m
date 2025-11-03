@@ -1,7 +1,7 @@
 function [ddIdAA,UserVar]=GaussNewtonHessianA(UserVar,CtrlVar,MUA,dIdA,F,Meas)
 
 
-% Gauss Newton estimate of ddIdCC
+% Gauss Newton estimate of ddIdAA
 
 % uErr=sqrt(spdiags(Meas.usCov)); vErr=sqrt(spdiags(Meas.vsCov));
 

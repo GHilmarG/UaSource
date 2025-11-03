@@ -1,9 +1,9 @@
 function  [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
-%  p is the paramter set, i.e. func(p)
+%  p is the parameter set, i.e. func(p)
 %
-%  Func is func evaluated as a function of stepsize gamma in the direction of
+%  Func is func evaluated as a function of step-size gamma in the direction of
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
 
@@ -63,7 +63,7 @@ for Iteration=1:CtrlVar.Inverse.Iterations
     % A sensible step length is something like
     if isnan(gamma)
         gamma=-0.01*J0/slope0  ;
-        % gamma=-dJdp'*dp/(dp'*Hess*dp);  % or if I beleve in the Hessian then...
+        % gamma=-dJdp'*dp/(dp'*Hess*dp);  % or if I believe in the Hessian then...
         
         % gamma*dp/norm<1e-4  -> gamma=1e-4 norm(p)/norm(dp)
         % gamma=1e-4*norm(p)/norm(dp);

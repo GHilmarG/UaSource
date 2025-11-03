@@ -104,6 +104,7 @@ arguments
     %
     % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
     % colormap(othercolor("Mtemperaturemap",20) )
+    % CM=cmocean('-ice',15) ; colormap(CM);
     
     options.ColorMap double=othercolor("YlGnBu8",25)  % See othercolor.m for more options
 end

@@ -259,6 +259,7 @@ F.h=F.s-F.b;
 
 F0=F;
 
+%% CPU and wall-time RunInfo variables
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
 if isempty(RunInfo.WallTime.Total)
     RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
@@ -945,7 +946,7 @@ if CtrlVar.PlotWaitBar ;     multiWaitbar('CloseAll'); end
 
 
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.Total=RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic;
+RunInfo.WallTime.Total=duration(RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS");
 RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
 
 

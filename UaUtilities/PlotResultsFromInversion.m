@@ -429,13 +429,13 @@ end
 T.Padding="tight";   T.TileSpacing="tight";
 
 %%
-fig=FindOrCreateFigure("calculated velocities") ; clf(fig)
+fig=FindOrCreateFigure("Modelled velocities") ; clf(fig)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverPar.QuiverColorSpeedLimits=[];
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; 
-title("Calculated horizontal velocities") ;
+title("Modelled horizontal velocities") ;
 hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,"r");
 PlotCalvingFronts(CtrlVar,MUA,F,"b");
@@ -444,10 +444,10 @@ PlotCalvingFronts(CtrlVar,MUA,F,"b");
 [~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
 UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
-title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
+title('Modelled $dh/dt$ (assuming plug flow)','interpreter','latex') ;
 CL=clim;
 if CL(1) < 0 && CL(2)>0
-    CM=cmocean('balanced',25,pivot',0) ; colormap(CM);
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 else
     CM=cmocean('balanced',25) ;
 end

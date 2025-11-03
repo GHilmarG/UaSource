@@ -74,6 +74,7 @@ function [coordinates,connectivity,MUA]=UaSquareMesh(CtrlVar)
 if ~isfield(CtrlVar,"UaSquareMesh") ...
         || ~isfield(CtrlVar.UaSquareMesh,"xmin")  ...
         || ~isfield(CtrlVar.UaSquareMesh,"xmax")  ...
+        ||~isfield(CtrlVar.UaSquareMesh,"nx") ...
         ||~isfield(CtrlVar.UaSquareMesh,"nx")
 
     fprintf("When using the UaSquareMesh mesh generator, the fields : \n ")
@@ -109,6 +110,15 @@ ymax=CtrlVar.UaSquareMesh.ymax;
 nx=CtrlVar.UaSquareMesh.nx;
 ny=CtrlVar.UaSquareMesh.ny;
 
+% If the user only defines nx, than calculate a reasonable ny
+if isfinite(nx) && isnan(ny)
+    ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin))*CtrlVar.UaSquareMesh.nx;
+end
+
+% If the user only defines nx, than calculate a reasonable ny
+if isfinite(ny) && isnan(nx)
+    nx=round((CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin)/(CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin))*CtrlVar.UaSquareMesh.ny;
+end
 
 % xmin=-10 ; xmax=10 ; ymin=-5 ; ymax=5;  dx=1 ; dy=1 ;  nx=round((xmax-xmin)/dx); ny=round((ymax-ymin)/dy);
 

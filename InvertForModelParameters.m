@@ -145,8 +145,13 @@ CtrlVar.WriteRunInfoFile=0;
 % This is then passed to the optimization libraries. For some reason the MATLAB optimization library requires a separate
 % handle to the Hessian.
 
-func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
-Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
+func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
+Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
+                                                                                                                         % Somewhat annoyingly MATLAB optimisation toolbox 
+                                                                                                                         % wants the Hessian returned in 
+                                                                                                                         % a separate function, so I can't use JGH (!?).
+                                                                                                                         % The function HessianAC is just a wrapper around 
+                                                                                                                         % JGH and returns the same Hessian as JGH.
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 

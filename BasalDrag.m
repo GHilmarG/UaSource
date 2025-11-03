@@ -61,6 +61,13 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     C0=CtrlVar.Czero;
     u0=CtrlVar.SpeedZero;
     
+   if any((C+C0)<0)
+    
+       fprintf("BasalDrag: C+CtrlVar.Czero is negative. min(C)=%g",min(C))
+       fprintf("BasalDrag: A possible solution might be to increase the value of CtrlVar.Czero. \n")
+
+   end
+
     speed=(sqrt(ub.*ub+vb.*vb+u0^2)); 
     Um=speed.^(1./m-1) ;
     beta2i=(C+C0).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
