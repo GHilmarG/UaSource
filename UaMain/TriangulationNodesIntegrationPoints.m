@@ -40,7 +40,7 @@ function [DTxy,tri,DTint,DTintTriInside,Xint,Yint,xint,yint,Iint]=TriangulationN
         
         % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
         ic=incenters(DTint);
-        [cnInt,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+        [cnInt,on] = UaInpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
         
         DTintTriInside=DTint.Triangulation(cnInt,:);
         
