@@ -3,14 +3,20 @@ function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,I
 
 %%
 %
-% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
 %
 % Does what it says on the tin.
 %
-%  Example:l
+%  Example:
 %
-%  load InversionRestartFile
-%  PlotResultsFromInversion(UserVarInRestartFile,CtrlVarInRestartFile,MUA,BCs,F,l,GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+% load InversionRestartFile
+% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
+%
+% It is also possible to enter the name of the restart file as the first, and only, argument. Then the restart file will be
+% first loaded, and then plotted.
+%
+%
+% Note: This function is used by Ua for plotting results from an inversion.
 %
 %%
 
@@ -45,7 +51,8 @@ else
 end
 Kplot=0;
 
-fig=FindOrCreateFigure('Measuments') ; clf(fig)
+
+fig=FindOrCreateFigure('Measurements') ; clf(fig)
 
 Kplot=Kplot+1;
 subplot(Iplot,Jplot,Kplot)
@@ -333,7 +340,7 @@ cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled sp
 title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
 
 nexttile
-cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed mesurement error') ; set(gca,'ColorScale','log')
+cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
 title(cbar,"error",interpreter="latex")
 
 nexttile
@@ -422,13 +429,13 @@ end
 T.Padding="tight";   T.TileSpacing="tight";
 
 %%
-fig=FindOrCreateFigure("calculated velocities") ; clf(fig)
+fig=FindOrCreateFigure("Modelled velocities") ; clf(fig)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverPar.QuiverColorSpeedLimits=[];
 QuiverPar.QuiverSameVelocityScalingsAsBefore=0;
 QuiverColorGHG(x,y,us,vs,QuiverPar); axis equal ; 
-title("Calculated horizontal velocities") ;
+title("Modelled horizontal velocities") ;
 hold on ;
 [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,"r");
 PlotCalvingFronts(CtrlVar,MUA,F,"b");
@@ -437,8 +444,13 @@ PlotCalvingFronts(CtrlVar,MUA,F,"b");
 [~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
 UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
-title('Calculated $dh/dt$ (assuming plug flow)','interpreter','latex') ;
-CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); 
+title('Modelled $dh/dt$ (assuming plug flow)','interpreter','latex') ;
+CL=clim;
+if CL(1) < 0 && CL(2)>0
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+else
+    CM=cmocean('balanced',25) ;
+end
 
 %%  Prior
 
@@ -796,8 +808,8 @@ else
 
             %% B
 
-            PlotBedrockInversionFields(CtrlVar,MUA,F,Priors,InvFinalValues,InvStartValues)
-            
+            PlotBedrockInversionFields(CtrlVar,MUA,F,Priors,InvFinalValues,InvStartValues,Meas)
+           
             
           
         end

@@ -1,0 +1,13 @@
+function isChanged=HasMeshChanged(MUAa,MUAb)
+
+
+isChanged = isequal(MUAa.Nele,MUAb.Nele) ...
+    && isequal(MUAa.Nnodes,MUAb.Nnodes) ...
+    && isequal(MUAa.nod,MUAb.nod) ...
+    && isequal(MUAa.coordinates(:,1),MUAb.coordinates(:,1)) ...
+    && isequal(MUAa.coordinates(:,2),MUAb.coordinates(:,2)) ;
+
+isChanged=~isChanged;
+
+
+end

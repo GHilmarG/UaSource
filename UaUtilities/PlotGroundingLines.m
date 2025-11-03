@@ -25,10 +25,10 @@ function [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,GF,GLgeo,xGL,yGL,varargi
 %   MUA GF
 %
 % Other fields can be left empty. However, if the grounding line needs to be plotted repeatedly for same MUA and GF, entering
-% GLgeo, xGL and yGL, obtained as outputs from a previouis call, will speed things up.
+% GLgeo, xGL and yGL, obtained as outputs from a previous call, will speed things up.
 %
 % varargin is passed over the the plot function and can be any input
-% accepted by the matlap plot function.
+% accepted by the matlab plot function.
 %
 % *Examples:*
 %
@@ -117,6 +117,9 @@ if ~isfield(CtrlVar,"PlotIndividualGLs")
     CtrlVar.PlotIndividualGLs=0;
 end
 
+if ~isfield(CtrlVar,"DisplayName")
+    CtrlVar.DisplayName="Grounding lines"; 
+end
 
 
 if isstring(MUA)
@@ -143,9 +146,9 @@ if isstring(MUA)
 
         tt=axis;
         if isempty(varargin)
-            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r',DisplayName="grounding lines") ;
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,'r',DisplayName=CtrlVar.DisplayName) ;
         else
-            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName="Grounding lines") ; 
+            plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName=CtrlVar.DisplayName) ; 
         end
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
@@ -189,7 +192,7 @@ if nargin<6 || ( isempty(xGL) || isempty(yGL))
         xa=GLgeo(:,3) ;  xb=GLgeo(:,4) ; ya=GLgeo(:,5) ;  yb=GLgeo(:,6) ;
         [xGL,yGL]=LineUpEdges2(CtrlVar,xa,xb,ya,yb);
 
-        %% get rid of duplicats and almost duplicates
+        %% get rid of duplicates and almost duplicates
 
     else
         xGL=[GLgeo(:,3)  ; GLgeo(:,4) ] ;
@@ -208,7 +211,7 @@ if CtrlVar.PlotGLs
 
     if ~CtrlVar.PlotIndividualGLs
 
-        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName="Grounding lines") ;
+        plot(xGL/CtrlVar.PlotXYscale,yGL/CtrlVar.PlotXYscale,varargin{:},DisplayName=CtrlVar.DisplayName) ;
         ax=gca; ax.DataAspectRatio=[1 1 1];
 
     else
@@ -221,7 +224,7 @@ if CtrlVar.PlotGLs
         for ii=1:numel(I)-1
             i=i+1;
 
-            plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:},DisplayName="Grounding lines") ;
+            plot(xGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,yGL(I(ii):I(ii+1))/CtrlVar.PlotXYscale,'color',col(i),varargin{:},CtrlVar.DisplayName) ;
             axis equal ; hold on ;
             if i==numel(col) ; i=0 ; end
         end

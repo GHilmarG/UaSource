@@ -73,7 +73,7 @@ end
 plot(Boundary.x/CtrlVar.PlotXYscale,Boundary.y/CtrlVar.PlotXYscale,varargin{:}) ;
 
 % plot boundary elements,  do not label nodes or elements here because
-% the labelling will be incorrect
+% the labeling will be incorrect
 CtrlVar.PlotLabels=0;
 if CtrlVar.PlotBoundaryElements
     PlotFEmesh(coordinates,connectivity(Boundary.FreeElements,:),CtrlVar)
@@ -88,7 +88,7 @@ end
 
 
 
-% this gives correct labeling of nodes and elemetns
+% this gives correct labeling of nodes and elements
 if CtrlVar.PlotBoundaryLabels
     labels = arrayfun(@(n) {sprintf(' N%d', n)}, Boundary.Nodes(:));
     text(coordinates(Boundary.Nodes,1)/CtrlVar.PlotXYscale,coordinates(Boundary.Nodes,2)/CtrlVar.PlotXYscale,labels)

@@ -26,8 +26,8 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %                   lon labels.
 %
 % Colour:   color of the lat, lon lines
-
-
+%
+%
 %
 % isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.
 %
