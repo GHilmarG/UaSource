@@ -28,7 +28,7 @@ Kisnan=find(isnan(boundary(:,1)));
 
 if numel(Kisnan)==0
     
-    [isInside,isOnBounday]=inpoly2(xy,boundary);
+    [isInside,isOnBounday]=UaInpoly2(xy,boundary);
     
 else
     

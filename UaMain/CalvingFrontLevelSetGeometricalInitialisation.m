@@ -101,7 +101,7 @@ if options.test
     CtrlVar.PlotXYscale=1000;
 
     x=MUA.coordinates(:,1); y=MUA.coordinates(:,2);
-    inside = inpoly2([x y],P1);
+    inside = UaInpoly2([x y],P1);
     LSF=ones(MUA.Nnodes,1);
     LSF(~inside)=-1;
 
@@ -128,7 +128,7 @@ coo=MUA.coordinates;
 if options.GetRidOfCalvingFrontOutsideComputationalDomain
     % 1) Get rid of any points of the calving profile outside the mesh domain
     % But be careful with this as it does not deal with more than one calving front!
-    io=inpoly2(P1, [MUA.Boundary.x MUA.Boundary.y]);
+    io=UaInpoly2(P1, [MUA.Boundary.x MUA.Boundary.y]);
     P1=P1(io,:) ;
 end
 
