@@ -2,7 +2,43 @@
 
 %%
 %
+% *Release Notes* _November 2025_
+%
+% * The file structure of the Ua folder on github has been changed so that all key m-files are now in the sub-folder UaMain.
+%   This should not cause any changes, however, there were two m-files with the name "inpoly2.m", one in the previous top
+%   folder, and one inside of the Mesh2d folder. If you were using inpoly2.m in your own m-files, you must now use UaInpoly.m
+%   to get the same behaviour as before, i.e. rename/replace all calls to inpoly2 with UaInpoly2
+%
+% * MATLAB seems to have been busy working on their optimization functions, and the performance of using
+%
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+%
+% now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to
+% some genuine bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
+% appears much improved. This is currently not the default option, but users might consider setting
+%
+%    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
+% 
+% in their DefineInitialInputs.m files, to benefit from these improvements. (The old default setting using a Hessian guestimate still works as before.) 
+%
+% * To select the algorithm for the forward-time integration, use the string variable
+%
+%   CtrlVar.ForwardTimeIntegration
+%
+% and set to either 
+%
+% 
+% # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
+% time-independent run, or as a diagnostic run.)
+% # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
+% # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
+% implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
+% the time step. This is not a recommended option, and is slower than the -uvh- option. 
+%
+%
 % *Release Notes* _July 2025_
+%
+%
 %
 % * Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
 % 
@@ -145,7 +181,7 @@
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
 % with thickness less than CtrlVar.ThicMin.
-%
+% 
 %
 %
 % *Release Notes* _February 2024_
