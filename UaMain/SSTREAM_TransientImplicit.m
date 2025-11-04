@@ -324,11 +324,7 @@ while true
                 CtrlVar.time,CtrlVar.dt,r,iteration) ;
         end
 
-        if CtrlVar.WriteRunInfoFile
-            fprintf(RunInfo.File.fid,' SSTREAM(uvh) (time|dt)=(%g|%g): Backtracting within non-linear iteration stagnated! \n Exiting non-lin iteration with r=%-g   after %-i iterations. \n',...
-                CtrlVar.time,CtrlVar.dt,r,iteration) ;
-        end
-
+     
         RunInfo.Forward.uvhConverged=0;
         break
     end

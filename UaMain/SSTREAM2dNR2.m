@@ -178,11 +178,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
                 fprintf(' Exiting uv iteration after %-i iterations with r=%-g \n',iteration,r)
             end
             
-            if CtrlVar.WriteRunInfoFile
-                fprintf(RunInfo.File.fid,' SSTREAM(uv) (time|dt)=(%g|%g): Maximum number of non-linear iterations reached. uv iteration did not converge! \n',CtrlVar.time,CtrlVar.dt);
-                fprintf(RunInfo.File.fid,' Exiting uv iteration after %-i iterations with r=%-g \n',iteration,r);
-            end
-            
+       
             RunInfo.Forward.uvConverged=0; 
             break
         end
