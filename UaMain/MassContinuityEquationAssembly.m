@@ -44,7 +44,6 @@ a1=F1.as+F1.ab;
 a0=F0.as+F0.ab;
 da1dh=F1.dasdh+F1.dabdh;
 
-
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
