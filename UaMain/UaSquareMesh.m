@@ -159,6 +159,18 @@ if CtrlVar.UaSquareMesh.Refine
 
     MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
+
+    if ~isempty(CtrlVar.MeshBoundaryCoordinates)
+
+        % if MeshBoundaryCoordinates have been defined, eliminate elements outside of the desired computational boundary
+        xy=[MUA.xEle,MUA.yEle];
+        isInside=InsideOutside(xy,CtrlVar.MeshBoundaryCoordinates) ;
+        CtrlVar.UpdateMUAafterDeactivating=true;
+        MUA=DeactivateMUAelements(CtrlVar,MUA,~isInside) ;
+
+    end
+
+
     ElementsToBeRefined=true(MUA.Nele,1);             % refine all elements
     ElementsToBeCoarsened=false(MUA.Nele,1);          % unrefine none
     RunInfo=[];

@@ -4,6 +4,18 @@ function  [xp,yp]=GetMousePoints(xp,yp,PlotPoints)
 % only selects left-clicks
 % returns if right or middle mouse buttons pressed
 % if xp yp given as inputs, then appends
+%
+% Examples:
+%
+% collect point and plot
+%
+% [xp,yp]=GetMousePoints([],[],true) ;
+%
+% collect some more points:
+%
+%  [xp,yp]=GetMousePoints(xp,yp,true) ;
+%
+%%
 
 N=1000 ;
 
