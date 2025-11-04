@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>Ua2D_DefaultParameters</title>
-<meta name="generator" content="MATLAB 24.1">
+<meta name="generator" content="MATLAB 24.2">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-07-30">
+<meta name="DC.date" content="2025-04-05">
 <meta name="DC.source" content="Ua2D_DefaultParameters.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -269,27 +269,71 @@ That user m-file should be located in a separate run-directory, together with al
 <pre class="codeinput">CtrlVar.WhoAmI=<span class="string">"Ua2D CtrlVar"</span> ;
 </pre>
 <pre class="codeinput">CtrlVar.Experiment=<span class="string">'UaDefaultRun'</span>;
-CtrlVar.time=0;               <span class="comment">% In a transient run this variable is the (model) time. Set to some</span>
-                              <span class="comment">% reasonable initial value, for example CtrlVar.time=0;</span>
+CtrlVar.time=nan;               <span class="comment">% In a transient run this variable is the (model) time. Set to some</span>
+                                <span class="comment">% reasonable initial value, for example CtrlVar.time=0;</span>
 </pre>
 <h2 id="6">Types of run</h2>
-<pre class="codeinput">CtrlVar.UaRunType=<span class="string">""</span> ; <span class="comment">% "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ;</span>
+<p>When doing a forward run, i.e. whenever</p>
+<pre class="language-matlab">CtrlVar.InverseRun=false
+</pre>
+<p>the type of a forward run is set by the user in</p>
+<pre class="language-matlab">DefineInitialImputs.m
+</pre>
+<p>by the value of the field:</p>
+<pre class="language-matlab">CtrlVar.ForwardTimeIntegration
+</pre>
+<p>as follows:</p>
+<pre class="language-matlab">CtrlVar.ForwardTimeIntegration=<span class="string">"-uvh-"</span> ; <span class="comment">% implies a time-dependent run whereby velocities (uv) and thickness (h) are</span>
+                                         <span class="comment">% solved for simultaneously. This is the most common approach and the recommended</span>
+                                         <span class="comment">% option for a transient simulations. Here the momentum and the mass conservation</span>
+                                         <span class="comment">% equations are solved in a single solution step. This is sometimes referred to</span>
+                                         <span class="comment">% as a fully-implicit approach, or as a monolithic scheme.</span>
+</pre>
+<pre class="language-matlab">CtrlVar.ForwardTimeIntegration=<span class="string">"-uv-"</span> ;  <span class="comment">% implies that only the velocities are solved for. i.e. here only the</span>
+                                         <span class="comment">% momentum="-uv-" equations are solved. This is in principle not a transient</span>
+                                         <span class="comment">% solution as the thickness is not evolved. However, the user might be interested</span>
+                                         <span class="comment">% in changing some other fields at each runstep, and the user might think of this</span>
+                                         <span class="comment">% as a transient run.</span>
+</pre>
+<pre>These two above options, i.e. "-uvh-"  and "-uv-" are the only options that are recommended for general use. There are
+some other options that have been implemented, but they are not recommended.</pre>
+<pre>CtrlVar.ForwardTimeIntegration="-uv-h-" ;  implies that only the velocities (uv) and the ice thickness (h) are solved for
+                                           in a staggered manner, whereby the velocities are solved for a given thickness,
+                                           and then the thickness is evolved forward in time. Here the momentum and the
+                                           mass conservation equations are solved in separate solution steep. This is
+                                           often referred to as a semi-implicit approach, or as a staggered scheme and
+                                           also as a partitioned scheme. This is not a recommended approach as
+                                           (unsurprisingly) this is a slower and less robust solution algorithm.</pre>
+<p>Note: In the past the fields</p>
+<pre class="language-matlab">CtrlVar.TimeDependentRun
+CtrlVar.Implicituvh
+</pre>
+<p>where used to specify if the run was time-independent or not, and if a partitioned or a monolithic solver was used. This can still be done as before, but using</p>
+<pre class="language-matlab">CtrlVar.ForwardTimeIntegration
+</pre>
+<p>to provide this information is now recommended.</p>
+<pre class="codeinput">CtrlVar.ForwardTimeIntegration=<span class="string">""</span> ; <span class="comment">% "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ;</span>
+CtrlVar.MustBe.ForwardTimeIntegration=[<span class="string">"-uvh-"</span>,<span class="string">"-uv-h-"</span>,<span class="string">"-uv-"</span>,<span class="string">"-h-"</span>,<span class="string">""</span>] ; <span class="comment">% "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ;</span>
 
 
 CtrlVar.TimeDependentRun=0 ;  <span class="comment">% either [0|1].</span>
-                              <span class="comment">% If true (i.e. set to 1) then the run is a forward transient one, if not</span>
-                              <span class="comment">% then velocities based on the current geometry are calculated.</span>
+                              <span class="comment">% If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are</span>
+                              <span class="comment">% calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;</span>
+
+
 CtrlVar.InverseRun=0;         <span class="comment">% if true then a surface-to-bed inversion is to be performed.</span>
                               <span class="comment">% (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)</span>
 
 CtrlVar.Restart=0;            <span class="comment">% If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.</span>
                               <span class="comment">% For example setting:</span>
-                              <span class="comment">%       CtrlVar.InverseRun=1;</span>
-                              <span class="comment">%       CtrlVar.Restart=1;</span>
+                              <span class="comment">%       CtrlVar.InverseRun=1; CtrlVar.Restart=1;</span>
                               <span class="comment">% results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)</span>
                               <span class="comment">%</span>
-CtrlVar.Implicituvh=1;           <span class="comment">% 0: prognostic run is semi-implicit (implicit with respect to h only)</span>
-                                 <span class="comment">% 1: prognostic run is fully-implicit (implicit with respect to uvh)</span>
+        <span class="comment">% 0: prognostic run is semi-implicit (implicit with respect to h only)</span>
+                              <span class="comment">% 1: prognostic run is fully-implicit (implicit with respect to uvh)</span>
+                              <span class="comment">% This field is not longer required. Easier and more logical is to set</span>
+                              <span class="comment">% CtrlVar.ForwardTimeIntegration="-uvh-" (implicit/monolithic) or</span>
+                              <span class="comment">% CtrlVar.ForwardTimeIntegration="-uv-h-" (-semi-implicit/partitioned)</span>
 
 CtrlVar.TotalNumberOfForwardRunSteps=1;   <span class="comment">% maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.</span>
                                           <span class="comment">% In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.</span>
@@ -376,7 +420,18 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  <span class="comment">% Possible values are 
 </pre>
 <h2 id="15">Control on transient runs</h2>
 <p>Once either the number of time steps or total time modeled reaches prescribed values the run stops.</p>
-<pre class="codeinput">CtrlVar.TotalTime=1e10;          <span class="comment">% maximum model time</span>
+<p>Either prescribe (old approach):</p>
+<pre class="language-matlab">CtrlVar.time
+CtlrVar.TotalTime
+</pre>
+<p>or (new and recommended):</p>
+<pre class="language-matlab">CtrlVar.StartTime
+CtrlVar.EndTime
+</pre>
+<p>If CtrlVar.StartTime and CtrlVar.EndTime are specified, then CtrlVar.time=CtrlVar.StartTime at the beginning of the run, and CtrlVar.TotalTime=CtrlVar.EndTime</p>
+<pre class="codeinput">CtrlVar.TotalTime=nan;          <span class="comment">% maximum model time</span>
+CtrlVar.StartTime=nan;
+CtrlVar.EndTime=nan;
 CtrlVar.dt=1;                    <span class="comment">% time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile</span>
 CtrlVar.dtmin=1e-12;             <span class="comment">% for numerical reasons the time step should always be larger than some very small value</span>
 
@@ -568,8 +623,8 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 <span class="comment">% 2) If the step length in the backtracking becomes smaller than</span>
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 <span class="comment">% while at the same time these Work and Force tolerances also fulfilled:</span>
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  <span class="comment">% both of those must be fulfilled</span>
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     <span class="comment">% and in addition, one of those</span>
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
@@ -695,20 +750,21 @@ CtrlVar.Solve.LUvector=false; <span class="comment">% LU factorisation done usin
 <h2 id="29">Internal variables related to matrix assembly</h2>
 <p>These variables are only for testing purposes. Do not change from default values.</p>
 <h2 id="30">Number of integration points and/or quadrature rule degree</h2>
-<p>if left empty, the number of integration points is set automatically</p>
+<p>For Ua 2020 and older:</p>
 <pre class="codeinput">CtrlVar.niph=[] ;  <span class="comment">% number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs</span>
 CtrlVar.nip=[] ;   <span class="comment">% number of integration points for the uv solver</span>
                    <span class="comment">% Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37.</span>
-                   <span class="comment">% The default values are:</span>
-                   <span class="comment">% nip=6 and niph=6 for linear elements (three node elements)</span>
-                   <span class="comment">% nip=12 and niph=12 for quadratic elements (six node elements)</span>
-                   <span class="comment">% nip=16 and niph=16 for cubic elements (ten node elements)</span>
-                   <span class="comment">% The default values are usually fine, but sometimes increasing the number of</span>
                    <span class="comment">% integration points improves convergence of the Newton-Raphson iteration.</span>
 
-CtrlVar.QuadratureRuleDegree=[] ; <span class="comment">%  leaving empty means automated selection</span>
-CtrlVar.QuadRules2021=true ; <span class="comment">% Use the new quad rules implemented in 2021</span>
-                             <span class="comment">% This option allows for greater flexibility in selecting quad points.</span>
+<span class="comment">% For Ua 2021 and older:</span>
+CtrlVar.QuadRules2021=true ;        <span class="comment">% Use the new quad rules implemented in 2021</span>
+                                    <span class="comment">% This option allows for greater flexibility in selecting quad points.</span>
+CtrlVar.QuadratureRuleDegree=[] ;   <span class="comment">% leaving empty means automated selection</span>
+                                    <span class="comment">% Default values are:</span>
+                                    <span class="comment">%</span>
+                                    <span class="comment">% degree=4 for 3-nod linear elements</span>
+                                    <span class="comment">% degree=8 for 6-nod quadratic elements</span>
+                                    <span class="comment">% degree=10 for 10-nod cubic elements</span>
 </pre>
 <h2 id="31">Level of information given during a run</h2>
 <p>A number of variables affect the information given during a run. Generally the higher the number, the more information is given.</p>
@@ -792,23 +848,23 @@ CtrlVar.StandartOutToLogfile=false ; <span class="comment">% if true standard ou
 <p>Inversion can currently be done for A and C.</p>
 <p>One can invert for either A or C individually, or both.</p>
 <p>The default option is to invert for log(A) and log(C) simultaneously.</p>
-<p>The objective function <img src="Ua2D_DefaultParameters_eq07719450564690685999.png" alt="$J$" style="width:10px;height:13px;"> (i.e. the function to be minimized) has the form</p>
+<p>The objective function <img src="Ua2D_DefaultParameters_eq07719450564690685999.png" alt="$J$" style="width:9px;height:11px;"> (i.e. the function to be minimized) has the form</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq05807929389032372116.png" alt="$$ J=  I + R  $$" style="width:78px;height:14px;"></p>
+<img src="Ua2D_DefaultParameters_eq05807929389032372116.png" alt="$$ J=  I + R  $$" style="width:65px;height:12px;"></p>
 <p>where I is a misfit term, and R a regularization term.</p>
 <p>The misfit term is:</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq10024211797872095766.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:530px;height:39px;"></p>
+<img src="Ua2D_DefaultParameters_eq10024211797872095766.png" alt="$$I= (1/{\cal{A}})   \int  \left (((u-u_{\mathrm{Meas}})/u_{\mathrm{Errors}})^2 + ((v-v_{\mathrm{Meas}})/v_{\mathrm{Errors}})^2) \right ) dx dy = 0$$" style="width:442px;height:33px;"></p>
 <p>where</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq01878602293849951994.png" alt="$${\cal A} = \int dx dy$$" style="width:95px;height:39px;"></p>
+<img src="Ua2D_DefaultParameters_eq01878602293849951994.png" alt="$${\cal A} = \int dx dy$$" style="width:79px;height:33px;"></p>
 <p>and the regularization term can be either on the form (Bayesian)</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq01765491164605855405.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:486px;height:22px;"></p>
-<p>where  <img src="Ua2D_DefaultParameters_eq06066998096614611954.png" alt="$K_C$" style="width:24px;height:15px;"> and  <img src="Ua2D_DefaultParameters_eq11690864388985667333.png" alt="$K_A$" style="width:24px;height:15px;"> are covariance matrices, or (Tikhonov)</p>
+<img src="Ua2D_DefaultParameters_eq01765491164605855405.png" alt="$$ R= (C-C_{prior}) K_C^{-1} (C-C_{prior})  +  (A-A_{prior}) K_A^{-1} (A-A_{prior})  $$" style="width:405px;height:18px;"></p>
+<p>where  <img src="Ua2D_DefaultParameters_eq06066998096614611954.png" alt="$K_C$" style="width:20px;height:13px;"> and  <img src="Ua2D_DefaultParameters_eq11690864388985667333.png" alt="$K_A$" style="width:20px;height:13px;"> are covariance matrices, or (Tikhonov)</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq10296661230749944397.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:438px;height:39px;"></p>
-<p>where <img src="Ua2D_DefaultParameters_eq03729901751903020778.png" alt="$p$" style="width:10px;height:12px;"> is <img src="Ua2D_DefaultParameters_eq08772416954200330719.png" alt="$A$" style="width:13px;height:13px;"> or <img src="Ua2D_DefaultParameters_eq14208478268740022418.png" alt="$log(A)$" style="width:48px;height:18px;"> , <img src="Ua2D_DefaultParameters_eq08596374860807106346.png" alt="$C$" style="width:13px;height:13px;"> or <img src="Ua2D_DefaultParameters_eq06488775577432398857.png" alt="$log(C)$" style="width:49px;height:18px;"></p>
+<img src="Ua2D_DefaultParameters_eq10296661230749944397.png" alt="$$ R= (1/Area)  \int (  g_s^2 (\nabla (p-p_{\mathrm{prior}}))^2  + g_a^2 (p-p_{\mathrm{prior}})^2) \; dx dy $$" style="width:365px;height:33px;"></p>
+<p>where <img src="Ua2D_DefaultParameters_eq03729901751903020778.png" alt="$p$" style="width:8px;height:10px;"> is <img src="Ua2D_DefaultParameters_eq08772416954200330719.png" alt="$A$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq14208478268740022418.png" alt="$log(A)$" style="width:40px;height:15px;"> , <img src="Ua2D_DefaultParameters_eq08596374860807106346.png" alt="$C$" style="width:11px;height:11px;"> or <img src="Ua2D_DefaultParameters_eq06488775577432398857.png" alt="$log(C)$" style="width:41px;height:15px;"></p>
 <p>There are number of different minimization methods implemented. Although the methodology behind the inversion is rigorous, in practice when working with real data the inversions sometimes get stuck in some local minimum. The different optimization methods implemented use slightly different search directions, and switching methods may help getting out of a local minimum as seen by one particular method. (When using synthetic data this is hardly ever an issue).</p>
 <p>Hint: Often starting inverting for C using the fix-point method (see "FixPointEstimationOfSlipperiness" below) drives the misfit initially quite significantly down. Once that method stagnates (which it almost always will because the gradient used in that method is just a rough estimate and generally not exact), switch to another minimization approach, for example the UaOptimisation using the adjoint gradients.</p>
 <p>FixPoint inversion is an ad-hoc method of estimating the gradient of the cost function with respect to C.% It can produce quite good estimates for C using just one or two inversion iterations, but then typically stagnates. The FixPoint method can often be used right at the start of an inversion to get a reasonably good C estimate, after which in a restart step one can switch to gradient calculation using adjoint</p>
@@ -976,43 +1032,19 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
 
 
     <span class="comment">% These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox</span>
-    CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(<span class="string">'fmincon'</span>,<span class="keyword">...</span>
-        <span class="string">'Algorithm'</span>,<span class="string">'interior-point'</span>,<span class="keyword">...</span>
-        <span class="string">'CheckGradients'</span>,false,<span class="keyword">...</span>
-        <span class="string">'ConstraintTolerance'</span>,1e-10,<span class="keyword">...</span>
-        <span class="string">'HonorBounds'</span>,true,<span class="keyword">...</span>
-        <span class="string">'Diagnostics'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
-        <span class="string">'DiffMaxChange'</span>,Inf,<span class="keyword">...</span>
-        <span class="string">'DiffMinChange'</span>,0,<span class="keyword">...</span>
-        <span class="string">'Display'</span>,<span class="string">'iter-detailed'</span>,<span class="keyword">...</span>
-        <span class="string">'FunValCheck'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
-        <span class="string">'MaxFunctionEvaluations'</span>,1e6,<span class="keyword">...</span>
-        <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span><span class="comment">,...</span>
-        <span class="string">'OptimalityTolerance'</span>,1e-20,<span class="keyword">...</span>
-        <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
-        <span class="string">'PlotFcn'</span>,{@optimplotlogfval,@optimplotstepsize},<span class="keyword">...</span>
-        <span class="string">'StepTolerance'</span>,1e-30,<span class="keyword">...</span>
-        <span class="string">'FunctionTolerance'</span>,1,<span class="keyword">...</span>
-        <span class="string">'UseParallel'</span>,true,<span class="keyword">...</span>
-        <span class="string">'HessianApproximation'</span>,{<span class="string">'lbfgs'</span>,250},<span class="keyword">...</span>
-        <span class="string">'HessianFcn'</span>,[],<span class="keyword">...</span>
-        <span class="string">'HessianMultiplyFcn'</span>,[],<span class="keyword">...</span>
-        <span class="string">'InitBarrierParam'</span>,1e-7,<span class="keyword">...</span><span class="comment">           % On a restart this might have to be reduced if objective function starts to increase</span>
-        <span class="string">'ScaleProblem'</span>,<span class="string">'none'</span>,<span class="keyword">...</span>
-        <span class="string">'InitTrustRegionRadius'</span>,1,<span class="keyword">...</span><span class="comment">         % set to smaller value if the forward problem is not converging</span>
-        <span class="string">'SpecifyConstraintGradient'</span>,false,<span class="keyword">...</span>
-        <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
-        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default</span>
 
-    <span class="comment">% 2022-05-21: tried to fix the error with M2022a when using the gradient-based option</span>
-    <span class="comment">% by redefining and simplifying the options, but this did not work either.</span>
-     options=optimoptions(<span class="string">"fmincon"</span>);
-     options.Algorithm=<span class="string">"trust-region-reflective"</span>;
-     options.HessianApproximation=<span class="string">"lbfgs"</span>;
-     options.SpecifyConstraintGradient=true;
-     CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
 
-     <span class="comment">% These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox</span>
+    <span class="comment">% 2022-05-21: tried to fix the error with R2022a when using the gradient-based option</span>
+    <span class="comment">% by redefining and simplifying the options, but this did not work</span>
+    <span class="comment">% either. Turned out this was an issue with R2022a. As of R2024b this</span>
+    <span class="comment">% is all working, and possibly this was fixed much sooner.</span>
+    <span class="comment">% options=optimoptions("fmincon");</span>
+    <span class="comment">% options.Algorithm="trust-region-reflective";</span>
+    <span class="comment">% options.HessianApproximation="lbfgs";</span>
+    <span class="comment">% options.SpecifyConstraintGradient=true;</span>
+    <span class="comment">% CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;</span>
+
+    <span class="comment">% These are the default parameters using gradient based inversion with the MATLAB optimization toolbox</span>
     CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(<span class="string">'fmincon'</span>,<span class="keyword">...</span>
         <span class="string">'Algorithm'</span>,<span class="string">'interior-point'</span>,<span class="keyword">...</span>
         <span class="string">'CheckGradients'</span>,false,<span class="keyword">...</span>
@@ -1027,7 +1059,7 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
         <span class="string">'MaxIterations'</span>,CtrlVar.Inverse.Iterations,<span class="keyword">...</span><span class="comment">,...</span>
         <span class="string">'OptimalityTolerance'</span>,CtrlVar.Inverse.OptimalityTolerance,<span class="keyword">...</span>
         <span class="string">'OutputFcn'</span>,@fminuncOutfun,<span class="keyword">...</span>
-        <span class="string">'PlotFcn'</span>,{@optimplotlogfval,@optimplotstepsize},<span class="keyword">...</span>
+        <span class="string">'PlotFcn'</span>,{@optimplotlogfval,@optimplotstepsize,@optimplotfirstorderopt},<span class="keyword">...</span>
         <span class="string">'StepTolerance'</span>,CtrlVar.Inverse.StepTolerance,<span class="keyword">...</span>
         <span class="string">'FunctionTolerance'</span>,CtrlVar.Inverse.FunctionTolerance,<span class="keyword">...</span>
         <span class="string">'UseParallel'</span>,true,<span class="keyword">...</span>
@@ -1037,7 +1069,7 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
         <span class="string">'ScaleProblem'</span>,false,<span class="keyword">...</span>
         <span class="string">'SpecifyConstraintGradient'</span>,false,<span class="keyword">...</span>
         <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
-        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are '</span>
+        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'factorization'</span>);
 
     <span class="comment">% These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox</span>
     Hfunc=@(p,lambda) p+lambda ;  <span class="comment">% just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.</span>
@@ -1066,7 +1098,7 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
         <span class="string">'InitTrustRegionRadius'</span>,1,<span class="keyword">...</span><span class="comment">         % set to smaller value if the forward problem is not converging</span>
         <span class="string">'SpecifyConstraintGradient'</span>,false,<span class="keyword">...</span>
         <span class="string">'SpecifyObjectiveGradient'</span>,true,<span class="keyword">...</span>
-        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are 'gc' and 'factorization', unclear whic</span>
+        <span class="string">'SubproblemAlgorithm'</span>,<span class="string">'cg'</span>);  <span class="comment">% here the options are 'gc' and 'factorization', unclear which is better.</span>
 
 <span class="keyword">else</span>
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
@@ -1080,9 +1112,11 @@ CtrlVar.ConjugatedGradientsUpdate=<span class="string">'PR'</span>; <span class=
 CtrlVar.Inverse.InfoLevelBackTrack=1;  <span class="comment">% info on backtracking within inverse step, only relevant when using UaOptimisation</span>
 
 <span class="comment">% &gt;=100 for further info and plots</span>
+<span class="comment">%</span>
 <span class="comment">% In an inversion it it generally better to set other infolevels to a low value. So</span>
 <span class="comment">% consider setting:</span>
-<span class="comment">% CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;</span>
+<span class="comment">%</span>
+<span class="comment">%   CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;</span>
 </pre>
 <h2 id="44">Comparing adjoint gradients with finite-difference gradients</h2>
 <p>The derivatives obtained with the adjoint method can be compared with those obtained from brute force finite difference calculations. Only do this for small problems!</p>
@@ -1101,10 +1135,9 @@ CtrlVar.MustBe.TestAdjointFiniteDifferenceType=<span class="keyword">...</span>
 
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  <span class="comment">% range of nodes/elements over which brute force gradient is to be calculated.</span>
 <span class="comment">%</span>
-<span class="comment">% if left empty, values are calculated for every node/element within the mesh.</span>
-<span class="comment">% If set to for example [1,10,45] values are calculated for these three</span>
-<span class="comment">% nodes/elements.</span>
-<span class="comment">% end, testing adjoint parameters.</span>
+<span class="comment">% if left empty, values are calculated for every node/element within the</span>
+<span class="comment">% mesh. If set to for example [1,10,45] values are calculated for these</span>
+<span class="comment">% three nodes/elements.</span>
 </pre>
 <h2 id="45">Inverse testing parameters (do not change)</h2>
 <pre class="codeinput">CtrlVar.Inverse.CalcGradI=true;   <span class="comment">% do not change, just for testing</span>
@@ -1121,7 +1154,7 @@ CtrlVar.CuthillMcKee=0;       <span class="comment">% renumber nodes using spars
 <pre class="language-matlab">DefineOutputs.m
 </pre>
 <p>Write your own version of this routine to fit your own output/plotting needs and keep the routine into you local run directory, i.e. the directory from which you run Ua Start by copying the example DefineOutputs.m routine from the Ua source installation folder to you local run directory.</p>
-<pre class="codeinput">CtrlVar.DefineOutputsDt=0; <span class="comment">% model time interval between calling DefineOutputs.m</span>
+<pre class="codeinput">CtrlVar.DefineOutputsDt=0; <span class="comment">% model time interval between calling DefineOutputs.m, output interval</span>
 <span class="comment">% if set to zero DefineOutputs is called at every time/run step</span>
 <span class="comment">% if set to a negative number, or NaN, DefineOutputs is never called</span>
 CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  <span class="comment">% maximum nr of calls to DefineOutputs</span>
@@ -1327,7 +1360,7 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     <span class="comment">% maximum numb
 
 
 
-CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  <span class="comment">% if Thickconstraints are larger than this value they are inactivated, should be zero</span>
+CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  <span class="comment">% if lambda values are larger than this value they are inactivated, should be zero</span>
 CtrlVar.NumberOfActiveThicknessConstraints=0;      <span class="comment">% The number of active thickness constraints (just for information, always set initially to zero)</span>
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; <span class="comment">% In any active-set iteration, this is the maximum number of additional new constraints</span>
@@ -1346,6 +1379,8 @@ CtrlVar.ThicknessBarrier=1;                                         <span class=
                                                                     <span class="comment">% is added, and applied at integration points where  h&lt;hmin.</span>
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          <span class="comment">% a1 in the equation for the additional mass balance term (should always be negative)</span>
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           <span class="comment">% a3 in the equation for the additional mass balance term (should always be negative)</span>
+                                                                    <span class="comment">% The term is only applied at integration points where h &lt; hmin. Therefore if a1&lt;0 and a3&lt;0, the resulting ab is greater than</span>
+                                                                    <span class="comment">% zero, and mass is added. This (of course) results in a local violation of mass conservation.</span>
 </pre>
 <h2 id="56">Advance/Retreat mesh and automated activation/deactivation of elements</h2>
 <p>This option allows for deactivation/activation of elements based on ice thickness.</p>
@@ -1506,7 +1541,7 @@ CtrlVar.MaxNumberOfIslands=1 ;          <span class="comment">%    A maximum num
 </pre>
 <p>The level-set method involves solving the level-set equation:</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq14605434632712507500.png" alt="$$\partial_t \varphi + (\mathbf{v}-\mathbf{c}) \cdot \nabla \varphi =0  $$" style="width:144px;height:15px;"></p>
+<img src="Ua2D_DefaultParameters_eq14605434632712507500.png" alt="$$\partial_t \varphi + (\mathbf{v}-\mathbf{c}) \cdot \nabla \varphi =0  $$" style="width:145px;height:15px;"></p>
 <p>where <img src="Ua2D_DefaultParameters_eq04676952084846956389.png" alt="$\varphi$" style="width:9px;height:10px;"> is the level-set function. Those familiar with continuum mechanics will recognize this as an evolutionary equation for the scalar filed <img src="Ua2D_DefaultParameters_eq04676952084846956389.png" alt="$\varphi$" style="width:9px;height:10px;"> traveling with the velocity <img src="Ua2D_DefaultParameters_eq07435094601798114607.png" alt="$(\mathbf{v}-\mathbf{c})$" style="width:43px;height:15px;"></p>
 <p>Here</p>
 <p>
@@ -1515,10 +1550,10 @@ CtrlVar.MaxNumberOfIslands=1 ;          <span class="comment">%    A maximum num
 <p>The general idea behind the method is to set the the initial position of the calving front to be the zero contour lines of the level set function <img src="Ua2D_DefaultParameters_eq04676952084846956389.png" alt="$\varphi$" style="width:9px;height:10px;">, at the start of the run. The level-set function, <img src="Ua2D_DefaultParameters_eq04676952084846956389.png" alt="$\varphi$" style="width:9px;height:10px;">, is then evolved over time, and the location of the calving front at later times is then reconstructed by finding the zero contour line of <img src="Ua2D_DefaultParameters_eq04676952084846956389.png" alt="$\varphi$" style="width:9px;height:10px;">.</p>
 <p>Upstream of the calving front we have</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq17795987604436023217.png" alt="$$\varphi(x,y,t) > 0 $$" style="width:82px;height:15px;"></p>
+<img src="Ua2D_DefaultParameters_eq17795987604436023217.png" alt="$$\varphi(x,y,t) > 0 $$" style="width:81px;height:15px;"></p>
 <p>and downstream</p>
 <p>
-<img src="Ua2D_DefaultParameters_eq10448201770513874491.png" alt="$$\varphi(x,y,t) < 0 $$" style="width:82px;height:15px;"></p>
+<img src="Ua2D_DefaultParameters_eq10448201770513874491.png" alt="$$\varphi(x,y,t) < 0 $$" style="width:81px;height:15px;"></p>
 <p>The normal <img src="Ua2D_DefaultParameters_eq05509844809795130280.png" alt="$\hat{\mathbf{n}}$" style="width:9px;height:11px;"> can then be expressed as</p>
 <p>
 <img src="Ua2D_DefaultParameters_eq10036331968857946924.png" alt="$$\hat{\mathbf{n}} = \frac{\nabla \varphi}{\| \nabla \varphi \|} $$" style="width:67px;height:34px;"></p>
@@ -1561,7 +1596,7 @@ CtrlVar.LevelSetEvolution=<span class="string">"-By solving the level set equati
 <p>
 <img src="Ua2D_DefaultParameters_eq02851864253424017727.png" alt="$$\frac{dc}{d (d \phi/dx)}$$" style="width:59px;height:34px;"></p>
 <p>
-<img src="Ua2D_DefaultParameters_eq01195850433064937765.png" alt="$$\frac{dc}{d (d \phi/dy)}$$" style="width:58px;height:34px;"></p>
+<img src="Ua2D_DefaultParameters_eq01195850433064937765.png" alt="$$\frac{dc}{d (d \phi/dy)}$$" style="width:59px;height:34px;"></p>
 <p>More details are provided in the UaCompendium</p>
 <pre class="codeinput">CtrlVar.LevelSetMethod=0;
 CtrlVar.LevelSetMethodTest=0;  <span class="comment">%</span>
@@ -1595,7 +1630,7 @@ CtrlVar.LevelSetPhase=<span class="string">""</span> ;
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; <span class="comment">% 1) This simply resets the thickness to min thickness. NOT recommended!</span>
 
-CtrlVar.LevelSetMethodThicknessConstraints=0;           <span class="comment">% 2) This uses the active-set method, done as a part of the active set approach.</span>
+CtrlVar.LevelSetMethodThicknessConstraints=1;           <span class="comment">% 2) This uses the active-set method, done as a part of the active set approach.</span>
                                                         <span class="comment">% Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1</span>
 
 
@@ -1610,7 +1645,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          <span class="comm
                                                                <span class="comment">% year and meters) suggest using -10 as a value, ie the default</span>
                                                                <span class="comment">% value might be on the lower side.</span>
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0;
-<span class="comment">% a3 in the above equaiton for ab.</span>
+<span class="comment">% a3 in the above equation for ab.</span>
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             <span class="comment">% hmin in the above equation.</span>
 
@@ -1689,6 +1724,10 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  <span class="comment"
 <pre class="language-matlab">CtrlVar.AdaptMeshIterations
 CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 </pre>
+<p>To enforc adapt meshing ahead of the first runs step only, set:</p>
+<pre class="language-matlab">CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
+</pre>
+<p>This could, for example, be used to ensure that mesh is only adapted in the initial uv (diagnostic) calculation and not during the uvh (transient) solve.</p>
 <pre class="codeinput">CtrlVar.AdaptMeshInitial=1  ;        <span class="comment">% remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval</span>
 
 
@@ -1972,33 +2011,33 @@ myCluster.NumWorkers = 6;
 saveProfile(myCluster)
 </pre>
 <p>Consult the MATLAB documentation for further information.</p>
-<p>Note: Generally it appears that the parfor option does not speed up the assembly. However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is</p>
-<pre class="codeinput">
-<span class="comment">%</span>
-<span class="comment">%       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly</span>
-<span class="comment">%       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered</span>
-<span class="comment">%       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system</span>
-<span class="comment">%       the gain is greater and shows good scaling properties.</span>
-<span class="comment">%</span>
-<span class="comment">% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and</span>
-<span class="comment">% test the performance in a short run by setting isTest=true, that is set:</span>
-<span class="comment">%</span>
-<span class="comment">%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)</span>
-<span class="comment">%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)</span>
-<span class="comment">%   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance.</span>
-<span class="comment">%</span>
-<span class="comment">% Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.</span>
-<span class="comment">%</span>
-<span class="comment">%</span>
-
-CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      <span class="comment">% assembly over integration points done in parallel using parfor</span>
+<p>Note: Generally it appears that the parfor option does not speed up the assembly. However, spmd assembly can speed things up significantly.</p>
+<pre>     Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
+     problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
+     here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
+     the gain is greater and shows good scaling properties.</pre>
+<p>The currently RECOMENDED APPROACH is to leave all parfor option off (ie set to false) and then turn spmd assembly on and test the performance in a short run by setting isTest=true, that is set:</p>
+<pre class="language-matlab">CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.Distribute=false;                   <span class="comment">% linsolve NOT done using distributed arrays</span>
+</pre>
+<p>As an example, using 8 workers on a domain with 610,000 Elements and 929,000 nodes, using uvh assembly resulted in a speedup of about 4.3, and using distributed arrays resulted in a speedup of 1.7. So here the best option would be to set</p>
+<pre class="language-matlab">CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.Distribute=true;                    <span class="comment">% linsolve is done using distributed arrays</span>
+</pre>
+<p>One can test how much of a speed-up results from using these options by setting:</p>
+<pre class="language-matlab">CtrlVar.Parallel.isTest=true;                        <span class="comment">% Runs both with and without parallel approach, and prints out some information on relative performance.</span>
+</pre>
+<p>Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.</p>
+<pre class="codeinput">CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      <span class="comment">% assembly over integration points done in parallel using parfor</span>
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   <span class="comment">% If left empty, all workers available are used</span>
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   <span class="comment">% currently used as in internal variable, always set the properties of the parallel pool ahead of running Una</span>
 
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         <span class="comment">% assembly in parallel using spmd over sub-domain (domain decomposition)</span>
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         <span class="comment">% assembly in parallel using parfeval over sub-domain (domain decomposition)</span>
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;     <span class="comment">% assembly in parallel using parfeval over sub-domain (domain decomposition)</span>
 
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  <span class="comment">% currently used as in internal variable, always set the properties of the parallel pool ahead of running Una</span>
 
 CtrlVar.Parallel.isTest=false;                 <span class="comment">% Runs both with and without parallel approach, and prints out some information on relative performance.</span>
                                                <span class="comment">% Good for testing if switching on the parallel options speeds things up, and by how much.</span>
@@ -2010,6 +2049,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 CtrlVar.Parallel.Distribute=false;                      <span class="comment">% linear system is solved using distributed arrays.</span>
 
 CtrlVar.Parallel.BuildWorkers=false;   <span class="comment">% this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.</span>
+                                       <span class="comment">% Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly.</span>
 </pre>
 <pre class="codeinput">CtrlVar.UseMexFiles=false ;
 CtrlVar.UseMexFilesCPUcompare=false;
@@ -2060,8 +2100,12 @@ CtrlVar.MapOldToNew.Test=false;   <span class="comment">%</span>
 <pre class="codeinput">CtrlVar.uvhMatrixAssembly.ZeroFields=false;
 CtrlVar.uvhMatrixAssembly.Ronly=false;
 CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
-CtrlVar.DevelopmentVersion=false;  <span class="comment">% Internal variable, always set to 0</span>
-                                <span class="comment">% (unless you want to use some untried, untested and unfinished features....)</span>
+CtrlVar.DevelopmentVersion=false ; <span class="comment">% Internal variable, always set to false</span>
+<span class="comment">% (unless you want to use some untried, untested and unfinished features....)</span>
+
+CtrlVar.Development.Pre2025uvAssembly=false ; <span class="comment">% the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.</span>
+CtrlVar.Development.Pre2025uvhAssembly=false ; <span class="comment">% the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.</span>
+
 CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; <span class="comment">% Test</span>
 CtrlVar.nargoutJGH=[];   <span class="comment">% internal variable, do not change</span>
@@ -2074,7 +2118,7 @@ CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 </pre>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
 <br>
 </p>
 </div>
@@ -2091,7 +2135,6 @@ function CtrlVar=Ua2D_DefaultParameters
 %
 
 
-
 %%
 %  
 %  Most likely when running Ua, only a fairly limited number of the parameters listed below need to be set/changed. 
@@ -2103,29 +2146,84 @@ function CtrlVar=Ua2D_DefaultParameters
 CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
 %%
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=0;               % In a transient run this variable is the (model) time. Set to some 
-                              % reasonable initial value, for example CtrlVar.time=0;
+CtrlVar.time=nan;               % In a transient run this variable is the (model) time. Set to some 
+                                % reasonable initial value, for example CtrlVar.time=0;
 %% Types of run
 % 
+% When doing a forward run, i.e. whenever 
+% 
+%   CtrlVar.InverseRun=false
+% 
+% the type of a forward run is set by the user in
+% 
+%   DefineInitialImputs.m
+% 
+% by the value of the field: 
+% 
+%   CtrlVar.ForwardTimeIntegration
+%
+% as follows:
+%
+%   CtrlVar.ForwardTimeIntegration="-uvh-" ; % implies a time-dependent run whereby velocities (uv) and thickness (h) are
+%                                            % solved for simultaneously. This is the most common approach and the recommended
+%                                            % option for a transient simulations. Here the momentum and the mass conservation
+%                                            % equations are solved in a single solution step. This is sometimes referred to
+%                                            % as a fully-implicit approach, or as a monolithic scheme.
+%
+%   CtrlVar.ForwardTimeIntegration="-uv-" ;  % implies that only the velocities are solved for. i.e. here only the
+%                                            % momentum="-uv-" equations are solved. This is in principle not a transient
+%                                            % solution as the thickness is not evolved. However, the user might be interested
+%                                            % in changing some other fields at each runstep, and the user might think of this
+%                                            % as a transient run.
+%
+%
+%  These two above options, i.e. "-uvh-"  and "-uv-" are the only options that are recommended for general use. There are
+%  some other options that have been implemented, but they are not recommended.
+%
+%  CtrlVar.ForwardTimeIntegration="-uv-h-" ;  implies that only the velocities (uv) and the ice thickness (h) are solved for
+%                                             in a staggered manner, whereby the velocities are solved for a given thickness,
+%                                             and then the thickness is evolved forward in time. Here the momentum and the
+%                                             mass conservation equations are solved in separate solution steep. This is
+%                                             often referred to as a semi-implicit approach, or as a staggered scheme and
+%                                             also as a partitioned scheme. This is not a recommended approach as
+%                                             (unsurprisingly) this is a slower and less robust solution algorithm.
+%
+%
+% Note: In the past the fields
+% 
+%   CtrlVar.TimeDependentRun
+%   CtrlVar.Implicituvh
+%
+% where used to specify if the run was time-independent or not, and if a partitioned or a monolithic solver was used. This can
+% still be done as before, but using
+% 
+%   CtrlVar.ForwardTimeIntegration
+%
+% to provide this information is now recommended.
+%
 
-
-CtrlVar.UaRunType="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
+CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
-                              % If true (i.e. set to 1) then the run is a forward transient one, if not
-                              % then velocities based on the current geometry are calculated. 
+                              % If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are
+                              % calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;
+    
+
 CtrlVar.InverseRun=0;         % if true then a surface-to-bed inversion is to be performed.
                               % (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)
                               
 CtrlVar.Restart=0;            % If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.
-                              % For example setting: 
-                              %       CtrlVar.InverseRun=1; 
-                              %       CtrlVar.Restart=1;
+                              % For example setting:
+                              %       CtrlVar.InverseRun=1; CtrlVar.Restart=1;
                               % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
                               %
-CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
-                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
+        % 0: prognostic run is semi-implicit (implicit with respect to h only)
+                              % 1: prognostic run is fully-implicit (implicit with respect to uvh)
+                              % This field is not longer required. Easier and more logical is to set
+                              % CtrlVar.ForwardTimeIntegration="-uvh-" (implicit/monolithic) or
+                              % CtrlVar.ForwardTimeIntegration="-uv-h-" (-semi-implicit/partitioned)
                               
 CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
                                           % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
@@ -2242,8 +2340,26 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 %% Control on transient runs
 % Once either the number of time steps or total time modeled reaches prescribed values
 % the run stops.
+%
+% Either prescribe  (old approach):
+%
+%   CtrlVar.time     
+%   CtlrVar.TotalTime
+%
+% or (new and recommended):
+%
+%   CtrlVar.StartTime
+%   CtrlVar.EndTime
+%
+%
+% If CtrlVar.StartTime and CtrlVar.EndTime are specified, then
+% CtrlVar.time=CtrlVar.StartTime at the beginning of the run, and
+% CtrlVar.TotalTime=CtrlVar.EndTime
+%
 
-CtrlVar.TotalTime=1e10;          % maximum model time
+CtrlVar.TotalTime=nan;          % maximum model time
+CtrlVar.StartTime=nan;
+CtrlVar.EndTime=nan;
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
@@ -2483,8 +2599,8 @@ CtrlVar.uvhDesiredWorkOrForceTolerances=[inf 1e-15];
 % 2) If the step length in the backtracking becomes smaller than
 CtrlVar.uvhExitBackTrackingStepLength=1e-3;
 % while at the same time these Work and Force tolerances also fulfilled:
-CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];
-CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];
+CtrlVar.uvhAcceptableWorkAndForceTolerances=[inf 1e-6];  % both of those must be fulfilled
+CtrlVar.uvhAcceptableWorkOrForceTolerances=[1 1e-8];     % and in addition, one of those
 
 
 CtrlVar.uvDesiredWorkAndForceTolerances=[inf 1e-15];
@@ -2641,21 +2757,25 @@ CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consi
 % values.
 
 %% Number of integration points and/or quadrature rule degree
-% if left empty, the number of integration points is set automatically
-
+%
+%
+% For Ua 2020 and older: 
 CtrlVar.niph=[] ;  % number of integration points for uvh in implicit runs, and for the h-solver in semi-implicit runs
 CtrlVar.nip=[] ;   % number of integration points for the uv solver
                    % Possible Nr of integration points: 1, 3, 4, 6, 7, 9, 12, 13, 16, 19, 28, 37. 
-                   % The default values are: 
-                   % nip=6 and niph=6 for linear elements (three node elements)
-                   % nip=12 and niph=12 for quadratic elements (six node elements)
-                   % nip=16 and niph=16 for cubic elements (ten node elements)
-                   % The default values are usually fine, but sometimes increasing the number of
                    % integration points improves convergence of the Newton-Raphson iteration.
 
-CtrlVar.QuadratureRuleDegree=[] ; %  leaving empty means automated selection
-CtrlVar.QuadRules2021=true ; % Use the new quad rules implemented in 2021
-                             % This option allows for greater flexibility in selecting quad points.
+% For Ua 2021 and older: 
+CtrlVar.QuadRules2021=true ;        % Use the new quad rules implemented in 2021
+                                    % This option allows for greater flexibility in selecting quad points.
+CtrlVar.QuadratureRuleDegree=[] ;   % leaving empty means automated selection
+                                    % Default values are:
+                                    %
+                                    % degree=4 for 3-nod linear elements
+                                    % degree=8 for 6-nod quadratic elements
+                                    % degree=10 for 10-nod cubic elements
+
+
                              
 %% Level of information given during a run
 % A number of variables affect the information given during a run.
@@ -3033,45 +3153,21 @@ if license('test','Optimization_Toolbox')
     %  file and modify as needed. See Matlab documentation for further information.
     %
     
-    
-    % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
-    CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
-        'Algorithm','interior-point',...
-        'CheckGradients',false,...
-        'ConstraintTolerance',1e-10,...
-        'HonorBounds',true,...
-        'Diagnostics','on',...
-        'DiffMaxChange',Inf,...
-        'DiffMinChange',0,...
-        'Display','iter-detailed',...
-        'FunValCheck','off',...
-        'MaxFunctionEvaluations',1e6,...
-        'MaxIterations',CtrlVar.Inverse.Iterations,...,...
-        'OptimalityTolerance',1e-20,...
-        'OutputFcn',@fminuncOutfun,...
-        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
-        'StepTolerance',1e-30,...
-        'FunctionTolerance',1,...
-        'UseParallel',true,...
-        'HessianApproximation',{'lbfgs',250},...
-        'HessianFcn',[],...
-        'HessianMultiplyFcn',[],...
-        'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase
-        'ScaleProblem','none',...
-        'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
-        'SpecifyConstraintGradient',false,...
-        'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which one is the better one, 'factorization' is the matlab default
-    
-    % 2022-05-21: tried to fix the error with M2022a when using the gradient-based option
-    % by redefining and simplifying the options, but this did not work either.
-     options=optimoptions("fmincon");
-     options.Algorithm="trust-region-reflective";
-     options.HessianApproximation="lbfgs";
-     options.SpecifyConstraintGradient=true;
-     CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
 
-     % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
+    % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
+
+
+    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option
+    % by redefining and simplifying the options, but this did not work
+    % either. Turned out this was an issue with R2022a. As of R2024b this
+    % is all working, and possibly this was fixed much sooner.
+    % options=optimoptions("fmincon");
+    % options.Algorithm="trust-region-reflective";
+    % options.HessianApproximation="lbfgs";
+    % options.SpecifyConstraintGradient=true;
+    % CtrlVar.Inverse.MatlabOptimisationGradientParameters = options ;
+
+    % These are the default parameters using gradient based inversion with the MATLAB optimization toolbox
     CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions('fmincon',...
         'Algorithm','interior-point',...
         'CheckGradients',false,...
@@ -3086,7 +3182,7 @@ if license('test','Optimization_Toolbox')
         'MaxIterations',CtrlVar.Inverse.Iterations,...,...
         'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance,...
         'OutputFcn',@fminuncOutfun,...
-        'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
+        'PlotFcn',{@optimplotlogfval,@optimplotstepsize,@optimplotfirstorderopt},...
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
         'UseParallel',true,...
@@ -3096,7 +3192,7 @@ if license('test','Optimization_Toolbox')
         'ScaleProblem',false,...
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','cg');  % here the options are '
+        'SubproblemAlgorithm','factorization');  
     
     % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
     Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.
@@ -3125,7 +3221,7 @@ if license('test','Optimization_Toolbox')
         'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
         'SpecifyConstraintGradient',false,...
         'SpecifyObjectiveGradient',true,...
-        'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear whic
+        'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which is better.
 
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
@@ -3140,9 +3236,11 @@ CtrlVar.Inverse.InfoLevel=1;  % Set to 1 to get some basic information on J, R a
 CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse step, only relevant when using UaOptimisation
 
 % >=100 for further info and plots
+%
 % In an inversion it it generally better to set other infolevels to a low value. So
 % consider setting:
-% CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
+%
+%   CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;
 
 %% Comparing adjoint gradients with finite-difference gradients
 %
@@ -3164,10 +3262,9 @@ CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
 
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
 %
-% if left empty, values are calculated for every node/element within the mesh.
-% If set to for example [1,10,45] values are calculated for these three
-% nodes/elements.
-% end, testing adjoint parameters.
+% if left empty, values are calculated for every node/element within the
+% mesh. If set to for example [1,10,45] values are calculated for these
+% three nodes/elements. 
 %% Inverse testing parameters (do not change)
 
 
@@ -3198,7 +3295,7 @@ CtrlVar.CuthillMcKee=0;       % renumber nodes using sparse reverse Cuthill-McKe
 
 
 
-CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m
+CtrlVar.DefineOutputsDt=0; % model time interval between calling DefineOutputs.m, output interval
 % if set to zero DefineOutputs is called at every time/run step
 % if set to a negative number, or NaN, DefineOutputs is never called
 CtrlVar.DefineOutputsMaxNrOfCalls=NaN;  % maximum nr of calls to DefineOutputs
@@ -3449,7 +3546,7 @@ CtrlVar.ThicknessConstraintsItMax=10  ;     % maximum number of active-set itera
                                       
                                             
                                             
-CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if Thickconstraints are larger than this value they are inactivated, should be zero
+CtrlVar.ThicknessConstraintsLambdaPosThreshold=0;  % if lambda values are larger than this value they are inactivated, should be zero
 CtrlVar.NumberOfActiveThicknessConstraints=0;      % The number of active thickness constraints (just for information, always set initially to zero)
 
 CtrlVar.MaxNumberOfNewlyIntroducedActiveThicknessConstraints=1000 ; % In any active-set iteration, this is the maximum number of additional new constraints
@@ -3468,6 +3565,10 @@ CtrlVar.ThicknessBarrier=1;                                         % set to 1 f
                                                                     % is added, and applied at integration points where  h<hmin.
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffLin=-1000;          % a1 in the equation for the additional mass balance term (should always be negative)
 CtrlVar.ThicknessBarrierMassBalanceFeedbackCoeffCubic=-0;           % a3 in the equation for the additional mass balance term (should always be negative)
+                                                                    % The term is only applied at integration points where h < hmin. Therefore if a1<0 and a3<0, the resulting ab is greater than
+                                                                    % zero, and mass is added. This (of course) results in a local violation of mass conservation.
+
+                                                 
 
 
 %% Advance/Retreat mesh and automated activation/deactivation of elements
@@ -3823,7 +3924,7 @@ CtrlVar.LevelSetPhase="" ;
 
 CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=0;           % 2) This uses the active-set method, done as a part of the active set approach.
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
@@ -3838,7 +3939,7 @@ CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffLin=-1;          % a1 in the above
                                                                % year and meters) suggest using -10 as a value, ie the default
                                                                % value might be on the lower side.
 CtrlVar.LevelSetMethodMassBalanceFeedbackCoeffCubic=-0; 
-% a3 in the above equaiton for ab.
+% a3 in the above equation for ab.
 
 CtrlVar.LevelSetMinIceThickness=CtrlVar.ThickMin;             % hmin in the above equation. 
 
@@ -3924,6 +4025,14 @@ CtrlVar.LevelSetGeometricInitialisationDistanceFactor=10;  % When using a geomet
 %   CtrlVar.AdaptMeshIterations 
 %   CtrlVar.AdaptMeshUntilChangeInNumberOfElementsLessThan
 % 
+%
+% To enforc adapt meshing ahead of the first runs step only, set:
+%
+%   CtrlVar.AdaptMeshInitial=1 ; CtrlVar.AdaptMeshRunStepInterval=inf ;
+%
+% This could, for example, be used to ensure that mesh is only adapted in
+% the initial uv (diagnostic) calculation and not during the uvh
+% (transient) solve. 
 %
 
 CtrlVar.AdaptMeshInitial=1  ;        % remesh in first run-step irrespective of the value of AdaptMeshRunStepInterval
@@ -4274,19 +4383,32 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 % Consult the MATLAB documentation for further information.
 %
 % Note: Generally it appears that the parfor option does not speed up the assembly.
-%       However, spmd assembly can speed things up significantly. For example, on a 32 cores machine the uvh assembly is
-
+%       However, spmd assembly can speed things up significantly. 
 %
 %       Solving the matrix problem using distributed arrays can lead to some speedup, but the performance gain appears highly
 %       problem dependent. Generally for sparse system with very low density (typical for FE problems such as encountered
 %       here), the solution is maybe only twice as fast using distributed approach. For full systems, and dense sparse system
 %       the gain is greater and shows good scaling properties.
 %
-% The currently recommended approach is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
+% The currently RECOMENDED APPROACH is to leave all parfor option off (ie set to false) and then turn spmd assembly on and
 % test the performance in a short run by setting isTest=true, that is set:
 % 
 %   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
 %   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=false;                   % linsolve NOT done using distributed arrays
+%
+% As an example, using 8 workers on a domain with 610,000 Elements and 929,000 nodes, using uvh assembly resulted in a
+% speedup of about 4.3, and using distributed arrays resulted in a speedup of 1.7. So here the best option would be to set 
+% 
+%   CtrlVar.Parallel.uvhAssembly.spmd.isOn=true ;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.uvAssembly.spmd.isOn=true;          % assembly in parallel using spmd over sub-domain (domain decomposition)  
+%   CtrlVar.Parallel.Distribute=true;                    % linsolve is done using distributed arrays
+%
+%
+% 
+%
+% One can test how much of a speed-up results from using these options by setting:
+%
 %   CtrlVar.Parallel.isTest=true;                        % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %
 % Then based on the results of that test, either keep the spmd on or turn off, and set the test option to false.
@@ -4295,12 +4417,12 @@ CtrlVar.InpolyTol=0.1;       % tolerance when checking inside outpoints using th
 
 CtrlVar.Parallel.uvhAssembly.parfor.isOn=0;      % assembly over integration points done in parallel using parfor
 CtrlVar.Parallel.uvhAssembly.spmd.isOn=0;        % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % If left empty, all workers available are used
+CtrlVar.Parallel.uvhAssembly.spmd.nWorkers=[];   % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.uvAssembly.spmd.isOn=0;         % assembly in parallel using spmd over sub-domain (domain decomposition)  
-CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;         % assembly in parallel using parfeval over sub-domain (domain decomposition)  
+CtrlVar.Parallel.uvAssembly.parfeval.isOn=0;     % assembly in parallel using parfeval over sub-domain (domain decomposition)  
 
-CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];
+CtrlVar.Parallel.uvAssembly.spmd.nWorkers=[];  % currently used as in internal variable, always set the properties of the parallel pool ahead of running Una
 
 CtrlVar.Parallel.isTest=false;                 % Runs both with and without parallel approach, and prints out some information on relative performance. 
                                                % Good for testing if switching on the parallel options speeds things up, and by how much.
@@ -4312,6 +4434,7 @@ CtrlVar.Parallel.LSFAssembly.parfor.isOn=0;
 CtrlVar.Parallel.Distribute=false;                      % linear system is solved using distributed arrays. 
 
 CtrlVar.Parallel.BuildWorkers=false;   % this is an internal flag, building workers is generally suppressed, and only done ahead of a uvh or uv solve.
+                                       % Note: is you call the uv/uvh solvers in your own code, you most likely will need to set this flag to true when using parallel assembly. 
                                    
 
 %%  
@@ -4396,16 +4519,20 @@ CtrlVar.MapOldToNew.Test=false;   %
 %% Internal variables and  temporary testing parameters
 %%
 CtrlVar.uvhMatrixAssembly.ZeroFields=false;
-CtrlVar.uvhMatrixAssembly.Ronly=false; 
-CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ; 
-CtrlVar.DevelopmentVersion=false;  % Internal variable, always set to 0 
-                                % (unless you want to use some untried, untested and unfinished features....)
-CtrlVar.DebugMode=false; 
+CtrlVar.uvhMatrixAssembly.Ronly=false;
+CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity=false ;
+CtrlVar.DevelopmentVersion=false ; % Internal variable, always set to false
+% (unless you want to use some untried, untested and unfinished features....)
+
+CtrlVar.Development.Pre2025uvAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+CtrlVar.Development.Pre2025uvhAssembly=false ; % the uv and uvh assembly was changed slightly in the 2025a version. The previous evaluation and be switch on by setting this flag to true.
+
+CtrlVar.DebugMode=false;
 CtrlVar.Enforce_bAboveB=false ; % Test
 CtrlVar.nargoutJGH=[];   % internal variable, do not change
-CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ; 
-CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ; 
+CtrlVar.inUpdateFtimeDerivatives.SetAllTimeDerivativesToZero=0;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesDowstreamOfCalvingFrontsToZero=0 ;
+CtrlVar.inUpdateFtimeDerivatives.SetTimeDerivativesAtMinIceThickToZero=0 ;
 end
 
 

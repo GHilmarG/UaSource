@@ -47,6 +47,12 @@ function hTri=PlotMuaMesh(CtrlVar,MUA,ElementList,varargin)
 %   CtrlVar.PlotNodesSymbolSize=10;
 %   figure ; PlotMuaMesh(CtrlVar,MUA,3:10,'g')
 %
+%
+%
+% Show elements that are to be deactivated in red 
+%
+%  PlotMuaMesh(CtrlVar,MUA,ElementsToBeDeactivated,color="r",LineWidth=2,DisplayName="Elements to be deactivated")
+%
 %%
 
 

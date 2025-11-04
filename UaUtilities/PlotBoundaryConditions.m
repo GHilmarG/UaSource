@@ -1,3 +1,8 @@
+
+
+
+
+
 function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %%
 %  PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
@@ -194,6 +199,7 @@ if ~isempty(ubvbFixedNodes)
     end
 end
 
+axis equal padded
 
 if nargout==0
     clearvars lgd

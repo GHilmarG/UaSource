@@ -48,6 +48,10 @@ if isempty(CtrlVar)
     CtrlVar(1).PlotXYscale=1000;
 end
 
+if ~isfield(CtrlVar,"DisplayName")
+    CtrlVar.DisplayName="Calving fronts"; 
+end
+
 
 if isstring(MUA)
 
@@ -79,9 +83,9 @@ if isstring(MUA)
 
     tt=axis;
     if isempty(varargin)
-        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'b') ;
+        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'b',DisplayName="calving fronts") ;
     else
-        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,varargin{:}) ;
+        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,varargin{:},DisplayName="calving fronts") ;
     end
     ax=gca; ax.DataAspectRatio=[1 1 1];
 
@@ -112,6 +116,7 @@ CtrlVar.LineUpGLs=true ;
 GF.node=LSF ;
 
 CtrlVar.GLthreshold=0;
+
 [xc,yc]=PlotGroundingLines(CtrlVar,MUA,GF,[],[],[],varargin{:}) ;
 
 

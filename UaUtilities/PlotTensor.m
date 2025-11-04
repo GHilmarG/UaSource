@@ -47,7 +47,7 @@ for k=1:length(x)
         D=[txx(k) txy(k) ; txy(k) tyy(k)];
         [pAxis,pStrains]=eig(D); l1=pStrains(1,1) ; l2=pStrains(2,2);
         
-        % pStrains : Principla strains
+        % pStrains : Principal strains
         
         p1x=l1*pAxis(1,1) ; p1y=l1*pAxis(2,1) ;
         p2x=l2*pAxis(1,2) ; p2y=l2*pAxis(2,2) ;

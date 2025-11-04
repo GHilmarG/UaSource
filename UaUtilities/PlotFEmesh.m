@@ -63,6 +63,7 @@ if nargin < 3
     CtrlVar.PlotFEmeshAndSaveMesh=0;
     CtrlVar.PlotsXaxisLabel='x';
     CtrlVar.PlotsYaxisLabel='y';
+    CtrlVar.MarkElements=false;
 else
     
     if ~isfield(CtrlVar,'PlotLabels') ; CtrlVar.PlotLabels=0; end
@@ -77,7 +78,7 @@ else
     if ~isfield(CtrlVar,'PlotFEmeshAndSaveMesh') ; CtrlVar.PlotFEmeshAndSaveMesh=0;end
     if ~isfield(CtrlVar,'PlotsXaxisLabel') ; CtrlVar.PlotsXaxisLabel='x'; end
     if ~isfield(CtrlVar,'PlotsYaxisLabel') ; CtrlVar.PlotsYaxisLabel='x'; end
-    
+    if ~isfield(CtrlVar,'MarkElements') ; CtrlVar.MarkElements=false;  end
     
 end
 
@@ -118,7 +119,7 @@ coordinates=coordinates/CtrlVar.PlotXYscale;
 %FEmeshCPT=CreateFEmeshCornerPointTriangulation(connectivity,coordinates);
 TR=CreateFEmeshTriRep(connectivity,coordinates);
 
-if numel(varargin)==1
+if isscalar(varargin)
    varargin={'color',varargin{1}};
 end
 
@@ -155,6 +156,12 @@ if CtrlVar.PlotEleLabels
     text(ic(:,1), ic(:,2), trilabels, 'FontWeight', 'bold','HorizontalAlignment', 'center','Color', 'red');
 end
 
+if CtrlVar.MarkElements
+    fprintf(' marking elements\n')
+    ic = incenter(TR);
+    plot(ic(:,1), ic(:,2),varargin{:},LineStyle="none",Marker="*")
+end
+
 
 [Nele,nod]=size(connectivity);
 
@@ -169,7 +176,7 @@ else
 end
 
 xlabel(CtrlVar.PlotsXaxisLabel) ; ylabel(CtrlVar.PlotsYaxisLabel)
-axis equal
+axis equal padded
 
 end
 

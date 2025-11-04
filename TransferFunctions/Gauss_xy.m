@@ -1,4 +1,9 @@
-function [s,u,v,w,db,dc]=Gauss_xy(x,dx,y,dy,alpha,C,ampl_b,sigma_bx,sigma_by,ampl_c,sigma_cx,sigma_cy,theta)
+
+
+
+
+
+function [s,u,v,w,db,dc]=Gauss_xy(x,dx,y,dy,alpha,C,ampl_b,sigma_bx,sigma_by,ampl_c,sigma_cx,sigma_cy,theta,t)
 
 % Calculates surface shape (s) and velocity (u,w) as linear medium
 % flows over a Gaussian shaped bedrock and slipperiness perturbations.
@@ -15,7 +20,16 @@ function [s,u,v,w,db,dc]=Gauss_xy(x,dx,y,dy,alpha,C,ampl_b,sigma_bx,sigma_by,amp
 % amp is the amplitude, sigma_x and sigma_y the widths, and theta the
 % orientation of the peak with respect to mean flow direction
 
-% _b referst to a B pert, and _c to a C pert
+% _b refers to a B pert, and _c to a C pert
+
+
+if nargin == 13
+
+    t=nan ;
+    transient=false;
+else
+    transient=true;
+end
 
 
 [X,Y]=meshgrid(x,y);
@@ -35,10 +49,25 @@ ky=fftspace(ny,dy); ky(1)=eps ;
 % multiply transfer functions with corresponding basal perturbations
 % do inverse fft and only keep the real part
 
-s=real(fft2(T_SB_3vcs(kx,ky,C,ca).*Delta_b+T_SC_3vcs(kx,ky,C,ca).*Delta_c));
-u=real(fft2(T_UB_3vcs(kx,ky,C,ca).*Delta_b+T_UC_3vcs(kx,ky,C,ca).*Delta_c));
-v=real(fft2(T_VB_3vcs(kx,ky,C,ca).*Delta_b+T_VC_3vcs(kx,ky,C,ca).*Delta_c));
-w=real(fft2(T_WB_3vcs(kx,ky,C,ca).*Delta_b+T_WC_3vcs(kx,ky,C,ca).*Delta_c));
+if transient
+
+
+    s=real(fft2(T_SB_3vct(kx,ky,C,ca,t).*Delta_b+T_SC_3vct(kx,ky,C,ca,t).*Delta_c));
+   
+    % for the transient case, velocity transfer functions have not been implemented
+    %u=real(fft2(T_UB_3vct(kx,ky,C,ca,t).*Delta_b+T_UC_3vct(kx,ky,C,ca,t).*Delta_c));
+    %v=real(fft2(T_VB_3vct(kx,ky,C,ca,t).*Delta_b+T_VC_3vct(kx,ky,C,ca,t).*Delta_c));
+    %w=real(fft2(T_WB_3vct(kx,ky,C,ca,t).*Delta_b+T_WC_3vct(kx,ky,C,ca,t).*Delta_c));
+    u=nan ; v=nan ; w=nan ;
+
+else
+
+    s=real(fft2(T_SB_3vcs(kx,ky,C,ca).*Delta_b+T_SC_3vcs(kx,ky,C,ca).*Delta_c));
+    u=real(fft2(T_UB_3vcs(kx,ky,C,ca).*Delta_b+T_UC_3vcs(kx,ky,C,ca).*Delta_c));
+    v=real(fft2(T_VB_3vcs(kx,ky,C,ca).*Delta_b+T_VC_3vcs(kx,ky,C,ca).*Delta_c));
+    w=real(fft2(T_WB_3vcs(kx,ky,C,ca).*Delta_b+T_WC_3vcs(kx,ky,C,ca).*Delta_c));
+
+end
 
 
 return
