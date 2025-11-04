@@ -139,7 +139,6 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % The parameters passed in the anonymous function are those that exist at the time the anonymous function is created.
 
 
-CtrlVar.WriteRunInfoFile=0;
 
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
 % This is then passed to the optimization libraries. For some reason the MATLAB optimization library requires a separate
