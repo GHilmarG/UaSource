@@ -339,12 +339,13 @@ CL=clim;
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled speed') ; set(gca,'ColorScale','log')
 title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
+clim(CL);
+subtitle("(Same colorbar scale as for measured speed)")
 
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
 title(cbar,"error",interpreter="latex")
-subtitle("(Same colorbar scale as for measured speed)")
-clim(CL);
+
 
 nexttile
 D=speedMeas-speedCalc ;
