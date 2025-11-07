@@ -27,10 +27,11 @@
 %
 % and set to either 
 %
-% 
 % # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
 % time-independent run, or as a diagnostic run.)
+%
 % # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
+%
 % # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
 % implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
 % the time step. This is not a recommended option, and is slower than the -uvh- option. 
