@@ -148,7 +148,8 @@ if numel(BCs1.hPosNode)>0   % are there any min thickness constraints? If so see
     % thickness value over a time interval corresponding to one time unit.
 
     %isNegavtiveMassFluxSmall=ah < -0.01*CtrlVar.ThickMin/F1.dt ;
-    alpha=2; 
+    alpha=0; 
+    
     isNegavtiveMassFluxSmall=ah < -alpha*CtrlVar.ThickMin/F1.dt ;
 
     NewInActiveConstraints=find(isNegavtiveMassFluxSmall); % the nodes are BCs1.hPosNode(NewInActiveConstraints)
@@ -278,7 +279,7 @@ BCs1.hPosNodeActivated=Activated;
 %% print information on new active set
 if CtrlVar.ThicknessConstraintsInfoLevel>=1
     if nDeactivated > 0 || nActivated > 0
-        fprintf(CtrlVar.fidlog,'\n  Updating pos. thickness constraints: deactivated: %-i,  activated: %-i, total number of thickness constrains: %-i \n',...
+        fprintf(CtrlVar.fidlog,'\n  Updating pos. thickness constraints: deactivated: %-i,  activated: %-i, total number of thickness constraints: %-i \n',...
             nDeactivated,nActivated,numel(BCs1.hPosNode));
         fprintf(CtrlVar.fidlog,'  Nodes inactivated: ')   ;
         fprintf(CtrlVar.fidlog,' \t %7i \t %7i \t %7i \t %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \t  %7i \n \t \t ',DeActivated);

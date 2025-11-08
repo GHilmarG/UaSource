@@ -1,6 +1,6 @@
 function y = HeavisideApprox(k,x,x0)
 
-if nargin==2 ; error('HeavisideApprox: Need three arguments \n') ; end
+if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 
 %%
 % Approximation to the Heaviside step  function

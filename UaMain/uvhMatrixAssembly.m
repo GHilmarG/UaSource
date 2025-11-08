@@ -453,7 +453,11 @@ end
 %%
 
 R=Tint-Fext;
+if any(isnan(R)) ||  any(isnan(Tint)) || any(isnan(Fext)) 
 
+    fprintf("nan in R or Tint or Fext")
+
+end
 % R=Tint-Fext;
 % Tint=[Tx ; Ty ; Th] ;
 % Rint=[Fx ; Fy ; Fh] ;
@@ -570,13 +574,12 @@ end
 
 if ~Ronly
     if full(any(isnan(diag(K))))
-        save TestSave  ;
         error(' NaN in K ' ) ;
     end 
 end
 
 if any(isnan(R))
-    save TestSave  ;
+    
     error("uvhMatrixAssembly:NaNinR"," NaN in R " ) ;
 end
 end
