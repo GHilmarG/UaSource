@@ -1475,12 +1475,55 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This impli
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=1;                                         % set to 1 for using penalty term (Option 3). This creates an
-                                                                    % additional mass-balance term, ab,  on the form:
-                                                                    %     
-                                                                    % $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
-                                                                    %
-                                                                    % which is added at integration points where  h<hmin.
+CtrlVar.ThicknessPenalty=1;                                         % set to true for using penalty term, 
+                                                                    % (can be done in combination with the active set method.)
+
+                                                                    
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftMax";      %The functional form of the penalty term
+                                                                    % The options are: "SoftMax", "exponential", "polynomial" 
+CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftMax","exponential","polynomial"]; 
+
+% For
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftMax";   
+%
+% the penalty term has the form K*log(1+exp(-(h-hmin)/l)
+%
+% where K and l are parameters, and hmin=CtrlVar.ThickMin
+%
+% Reasonable values for K and l are:
+%
+%    l=CtrlVar.ThickMin/10
+%
+% K large compared to typical mass balance values, for example often K=1000 is a reasonable selection.
+
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.K=1000;  % This is assuming 1000 is large compared to typical mass balance values
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.l=CtrlVar.ThickMin/10;
+
+% For
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="Exponentail";   
+%
+% the penalty term has the form K*exp(-(h-hmin)/l)
+%
+% where K and l are parameters, and hmin=CtrlVar.ThickMin
+%
+% Reasonable values for K and l are:
+%
+%    l=CtrlVar.ThickMin/10
+%
+% and K set so that K exp(hmin) is reasonably large compared to typical mass balance values
+%
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K=10;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.lCtrlVar.ThickMin/10;
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="polynomial";   
+% 
+% additional mass-balance term, ab, added has the form:
+%
+% $$a^{\star} = a_1 (h-h_{\min}+ a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
+%
+% which is added at integration points where  h<hmin.
                                                                     %
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=1000;           % a1 in the equation for the additional mass balance term 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=0;             % a2 in the equation for the additional mass balance term 

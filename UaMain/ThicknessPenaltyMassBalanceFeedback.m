@@ -6,23 +6,24 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 % penalty term. It is only applied if the ice thickness is below:
 %
 %   hmin=CtrlVar.ThickMin ;
-% 
+%
 % This option is used in the -uvh- and the -h- solvers, and can be activated by setting:
 %
-%    CtrlVar.ThicknessPenalty=1;  
+%    CtrlVar.ThicknessPenalty=1;
 %
 % The additional implicit mass-balance term has the form
 %
 % $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
-% 
+%
 % where
-% 
+%
 % $$h < h_{\min}$$
-% 
+%
 % and where:
 %
-%  a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad; a_3
-%  = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
+%   a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin 
+%   a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad; 
+%   a_3= CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
 %
 % Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on
 % input is immaterial.
@@ -36,45 +37,61 @@ function [aPenalty1,daPenaltydh1]=ThicknessPenaltyMassBalanceFeedback(CtrlVar,hi
 %
 %%
 
-%% Polynomial barrier
-hmin=2*CtrlVar.ThickMin ;
+switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 
-% make sure the signs are correct.
-a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
-a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
-a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
+    case "polynomical"
 
+        %% Polynomial barrier
+        hmin=2*CtrlVar.ThickMin ;
 
-%PenaltyMask1=hint<hmin ;
-k=10000/hmin; 
-PenaltyMask1 = HeavisideApprox(k,hmin,hint) ; 
-dPenaltyMask1dh = DiracDelta(k,hmin,hint) ; 
-
-% if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
-
-aPenalty1 = PenaltyMask1.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;
-daPenaltydh1=PenaltyMask1.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) +  dPenaltyMask1dh .* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;
+        % make sure the signs are correct.
+        a1= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin);
+        a2= +abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad);
+        a3= -abs(CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic);
 
 
-%% exponential barrier
-hmin=CtrlVar.ThickMin ; K=10; l=hmin/10 ;
-aPenalty1=K*exp(-(hint-hmin)/l);
-daPenaltydh1=-K*exp(-(hint-hmin))/l;
+        %PenaltyMask1=hint<hmin ;
+        k=10000/hmin;
+        PenaltyMask1 = HeavisideApprox(k,hmin,hint) ;
+        dPenaltyMask1dh = DiracDelta(k,hmin,hint) ;
+
+        % if thickness too small, then (hint-hmin) < 0, and ab > 0, provided a1 and a3 are negative
+
+        aPenalty1 = PenaltyMask1.* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;
+        daPenaltydh1=PenaltyMask1.*(a1+2*a2*(hint-hmin) +3*a3*(hint-hmin).^2) +  dPenaltyMask1dh .* ( a1*(hint-hmin)+a2*(hint-hmin).^2 + a3*(hint-hmin).^3) ;
 
 
-%% Softplus
+    case "exponential"
 
-K=2000 ; l=hmin/10;
-E=exp(-(hint-hmin)/l);
-SoftPlus=K*log(1+E);
-dSoftPlusdh=(-K/l)./ (1./E+1);
-aPenalty1=SoftPlus;
-daPenaltydh1=dSoftPlusdh;
+        %% exponential barrier
+        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K;
+        l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l;
+        hmin=CtrlVar.ThickMin ; 
+        %K=10; l=hmin/10 ;
+        aPenalty1=K*exp(-(hint-hmin)/l);
+        daPenaltydh1=-K*exp(-(hint-hmin))/l;
 
-if ~isfinite(aPenalty1)  | ~isfinite(daPenaltydh1)
 
-    fprintf("oops\n")
+    case "softplux"
+        %% Softplus
+
+        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.K;
+        l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.l;
+
+        hmin=CtrlVar.ThickMin ; 
+        %K=2000 ; l=hmin/10;
+        E=exp(-(hint-hmin)/l);
+        SoftPlus=K*log(1+E);
+        dSoftPlusdh=(-K/l)./ (1./E+1);
+        aPenalty1=SoftPlus;
+        daPenaltydh1=dSoftPlusdh;
+
+    otherwise
+
+        error("ThicknessPenaltyMassBalanceFeedback:CaseNotFound","Case not found")
+
 end
+
 
 if CtrlVar.InfoLevelThickMin >= 1
     ThicknessLessThanZero=hint<0 ;
@@ -93,7 +110,7 @@ if CtrlVar.InfoLevelThickMin >= 1
         yyaxis right ;
         plot(hint,daPenaltydh1,".r") ; ylabel("da/dh")
 
-        xlim([0 5*hmin]) ;    
+        xlim([0 5*hmin]) ;
         xlabel("hint") ;
         title("a penalty") ;
         xline(hmin,"--k","hmin") ;
