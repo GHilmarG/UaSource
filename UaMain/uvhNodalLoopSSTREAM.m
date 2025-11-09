@@ -216,9 +216,6 @@ for Inod=1:nod
     th=-dhdt;
     fh=  accterm - qterm;
 
-    if ~isfinite(fh)
-        fprintf("fh is not finite\n")
-    end
 
     % R is calculated as R=th-fh  and then I solve K x = -R
     % thus: th has opposite sign but fh not
@@ -228,9 +225,5 @@ for Inod=1:nod
     Th(:,Inod)=Th(:,Inod)+th.*detJw;
     Fh(:,Inod)=Fh(:,Inod)+fh.*detJw;
 
-
-    if ~isfinite(Fh)
-        fprintf("Fh is not finite\n")
-    end
 
 end

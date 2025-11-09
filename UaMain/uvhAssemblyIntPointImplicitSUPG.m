@@ -528,10 +528,4 @@ switch lower(CtrlVar.FlowApproximation)
 end
 
 
-if ~all(isfinite(Fh))
-
-    fprintf(" Fh not finite.\n")
-
-end
-
 end
