@@ -72,11 +72,11 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         daPenaltydh1=-K*exp(-(hint-hmin))/l;
 
 
-    case "softplux"
+    case "softplus"
         %% Softplus
 
-        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.K;
-        l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.l;
+        K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
+        l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
 
         hmin=CtrlVar.ThickMin ; 
         %K=2000 ; l=hmin/10;

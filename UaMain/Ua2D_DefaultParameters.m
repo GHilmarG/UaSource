@@ -1479,15 +1479,18 @@ CtrlVar.ThicknessPenalty=1;                                         % set to tru
                                                                     % (can be done in combination with the active set method.)
 
                                                                     
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftMax";      %The functional form of the penalty term
-                                                                    % The options are: "SoftMax", "exponential", "polynomial" 
-CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftMax","exponential","polynomial"]; 
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";      %The functional form of the penalty term
+                                                                    % The options are: "SoftPlus", "exponential", "polynomial" 
+CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponential","polynomial"]; 
 
 % For
 %
-%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftMax";   
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";   
 %
-% the penalty term has the form K*log(1+exp(-(h-hmin)/l)
+% the penalty term has the form 
+% 
+% $$K*log(1+exp(-(h-hmin)/l) $$
+% 
 %
 % where K and l are parameters, and hmin=CtrlVar.ThickMin
 %
@@ -1496,9 +1499,9 @@ CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftMax","exponenti
 %    l=CtrlVar.ThickMin/10
 %
 % K large compared to typical mass balance values, for example often K=1000 is a reasonable selection.
-
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.K=1000;  % This is assuming 1000 is large compared to typical mass balance values
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.l=CtrlVar.ThickMin/10;
+%
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000;  % This is assuming 1000 is large compared to typical mass balance values
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
 
 % For
 %
@@ -1515,7 +1518,7 @@ CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftMax.l=CtrlVar.ThickMin/10;
 % and K set so that K exp(hmin) is reasonably large compared to typical mass balance values
 %
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K=10;
-CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.lCtrlVar.ThickMin/10;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l=CtrlVar.ThickMin/10;
 %
 %    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="polynomial";   
 % 
