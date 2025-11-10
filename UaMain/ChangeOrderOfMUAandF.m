@@ -52,7 +52,7 @@ CtrlVar.InfoLevelAdaptiveMeshing=0 ;
 
 %%
 
-FindOrCreateFigure("MUA in") ; PlotMuaMesh(CtrlVar,MUA)
+FindOrCreateFigure("MUA in") ; PlotMuaMesh(CtrlVar,MUA) ; axis tight
 UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle=" vel in ")
 
 %%
@@ -85,7 +85,9 @@ if (From==6 || From==10)  && To==3  % reducing the order
     for k=1:numel(fieldNames)
 
         currentFieldName = fieldNames{k};
-        F.(currentFieldName)=F.(currentFieldName)(C);
+        if ~F.(currentFieldName)
+            F.(currentFieldName)=F.(currentFieldName)(C);
+        end
 
     end
 
@@ -109,9 +111,13 @@ elseif  From==3 && (To==6 || To==10)    % increasing the order (I think this mig
     F.x=MUA.coordinates(:,1) ; F.y=MUA.coordinates(:,2);
     for k=1:numel(fieldNames)
 
+
         currentFieldName = fieldNames{k};
-        FInterpolant.Values=F.(currentFieldName);
-        F.(currentFieldName)=FInterpolant(F.x,F.y);
+
+        if ~isempty(F.(currentFieldName))
+            FInterpolant.Values=F.(currentFieldName);
+            F.(currentFieldName)=FInterpolant(F.x,F.y);
+        end
 
 
     end
@@ -127,7 +133,7 @@ end
 [UserVar,BCs]=GetBoundaryConditions(UserVar,CtrlVar,MUA,BCs,F) ;
 
 %%
-FindOrCreateFigure("MUA out") ; PlotMuaMesh(CtrlVar,MUA)
+FindOrCreateFigure("MUA out") ; PlotMuaMesh(CtrlVar,MUA) ; axis tight 
 UaPlots(CtrlVar,MUA,F,"-uv-",FigureTitle=" vel out ")
 
 
