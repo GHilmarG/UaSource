@@ -11,18 +11,18 @@ function [vert,edge,tria,tnum] = triread(name)
 %   nt. VERT(TRIA(II,1),:), VERT(TRIA(II,2),:) and VERT(TRIA
 %   (II,3),:) are the coordinates of the II-TH triangle. The
 %   edges in EDGE are defined in a similar manner. NUM is an
-%   array of part indexing, such that TNUM(II) is the index 
+%   array of part indexing, such that TNUM(II) is the index
 %   of the part in which the II-TH triangle resides.
 %
 %   Data is returned non-empty if it is present in the file.
 %
-%   See also TRISAVE 
+%   See also TRISAVE
 
 %   This routine borrows functionality from the JIGSAW pack-
 %   age: github.com/dengwirda/jigsaw-matlab.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 01/10/2017
 
     vert = []; edge = []; tria = []; tnum = [];
@@ -39,7 +39,7 @@ function [vert,edge,tria,tnum] = triread(name)
 %----------------------------------- extract data if present
     if (isfield(mesh,'point') && ...
         isfield(mesh.point,'coord'))
-    vert = mesh.point.coord(:,1:2) ;    
+    vert = mesh.point.coord(:,1:2) ;
     end
     if (isfield(mesh,'edge2') && ...
         isfield(mesh.edge2,'index'))
