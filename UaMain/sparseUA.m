@@ -8,7 +8,7 @@ function S=sparseUA(varargin)
 % Some time ago, the sparse2 mex function in http://faculty.cse.tamu.edu/davis/suitesparse.html\n')
 % was considerably faster than the MATLAB sparse function.
 %
-% However, now the MATLAB sparse function is now (R2024a) just as fast as the mex sparse2 function.
+% However, the MATLAB sparse function is now (R2024a) just as fast as the mex sparse2 function.
 %
 % This wrapper is therefore not really needed anymore. 
 %
