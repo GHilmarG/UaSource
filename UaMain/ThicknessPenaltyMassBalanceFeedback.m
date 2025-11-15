@@ -75,16 +75,26 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
     case "softplus"
         %% Softplus
 
+       
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
+        k=1/l ;
+        hmin=CtrlVar.ThickMin ;
 
-        hmin=CtrlVar.ThickMin ; 
-        %K=2000 ; l=hmin/10;
-        E=exp(-(hint-hmin)/l);
-        SoftPlus=K*log(1+E);
-        dSoftPlusdh=(-K/l)./ (1./E+1);
-        aPenalty1=SoftPlus;
-        daPenaltydh1=dSoftPlusdh;
+        
+        [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
+      
+        % E=exp(-(hint-hmin)/l);
+        % aPlus=log(1+E);
+        % daPlusdh=(-1/l)./ (1./E+1);
+
+        aPenalty1=K*aPlus;
+        daPenaltydh1=K*daPlusdh ; 
+
+        if any(isnan(aPenalty1))   || any(~isfinite(aPenalty1))
+            fprintf("test")
+        end
+
 
     otherwise
 
@@ -114,7 +124,7 @@ if CtrlVar.InfoLevelThickMin >= 1
         xlabel("hint") ;
         title("a penalty") ;
         xline(hmin,"--k","hmin") ;
-        ylim([-K/l 0])
+        %ylim([-K/l 0])
 
     end
 
