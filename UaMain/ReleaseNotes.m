@@ -9,6 +9,10 @@
 %   folder, and one inside of the Mesh2d folder. If you were using inpoly2.m in your own m-files, you must now use UaInpoly.m
 %   to get the same behaviour as before, i.e. rename/replace all calls to inpoly2 with UaInpoly2
 %
+% * The mesh2d package updated to latest version.
+%
+% * SuiteSparse folder deleted, as now is part of core MATLAB functionality (since R2024a)
+%
 % * MATLAB seems to have been busy working on their optimization functions, and the performance of using
 %
 %    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
