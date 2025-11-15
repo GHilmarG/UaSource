@@ -21,10 +21,12 @@ function y = DiracDelta(k,x,x0)
 if nargin==2 ; error('DiracDelta: Need three arguments \n') ; end
 
 
-y=2*k./(exp(k*(x-x0)) +exp(-k*(x-x0))).^2;
+% y=2*k./(exp(k*(x-x0)) +exp(-k*(x-x0))).^2;
+% y(isnan(y))=0; % underflow errors
+
+y=0.5*k*(sech(k*(x-x0))).^2;
 
 
-y(isnan(y))=0; % underflow errors
 
 end
 

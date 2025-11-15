@@ -7,10 +7,11 @@ function y = HeavisideApprox(k,x,x0)
 if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 
 %%
-% Smooth approximation to the Heaviside step function using the logistic function.
+% Smooth approximation to the Heaviside step function using the logistic function, (an example of a sigmoid function).
 %
-%  The width of the step is about $1/k$
-%  the limit $k \to \infty$ is Heaviside step function
+% $$ \frac{dy}{dx}=\frac{1}{1+e^{-2 k (x-x_0)}} $$
+%
+% The width of the step is about $1/k$, and the limit $k \to \infty$ is (exact) Heaviside step function
 %
 % $$y \approx 1 \quad \mathrm{if} \quad x > x_0$$
 %
@@ -68,8 +69,8 @@ if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 %
 %%
 
-y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function, an approximation to the Heaviside function 
+% y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function, an approximation to the Heaviside function 
 %  also same as
-%  0.5 + 0.5 tanh(k*(x-x0))
+y=0.5 + 0.5*tanh(k*(x-x0)); % this does not lead to Inf values when calculating the exponent
 
 end

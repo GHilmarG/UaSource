@@ -80,20 +80,11 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
         k=1/l ;
         hmin=CtrlVar.ThickMin ;
-
         
         [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
-      
-        % E=exp(-(hint-hmin)/l);
-        % aPlus=log(1+E);
-        % daPlusdh=(-1/l)./ (1./E+1);
 
         aPenalty1=K*aPlus;
         daPenaltydh1=K*daPlusdh ; 
-
-        if any(isnan(aPenalty1))   || any(~isfinite(aPenalty1))
-            fprintf("test")
-        end
 
 
     otherwise
