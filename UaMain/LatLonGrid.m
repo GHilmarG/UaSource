@@ -22,7 +22,10 @@ function LatLonGrid(X,Y,lat,lon,options)
 %
 % Example:
 %
-%    hold on ; LatLonGrid(X,Y,lat,lon,LineColor=[0.5 0.5 0.5],LabelSpacing=500);
+%   x=linspace(min(F.x),max(F.x),100) ; y=linspace(min(F.y),max(F.y),100)  ; 
+%   [X,Y]=ndgrid(x,y) ; 
+%   [lat,lon]=psn2ll(X,Y); 
+%   hold on ; LatLonGrid(X/1000,Y/1000,lat,lon,LineColor=[0.5 0.5 0.5],LabelSpacing=200,LevelStepLat=5,LevelStepLon=10);
 %
 %%
 
@@ -48,10 +51,12 @@ if  isempty(options.LevelStepLat )
     latRange=max(lat(:))-min(lat(:));
     if latRange <0.5
         options.LevelStepLat = 0.1;
-    elseif lalRange<1.0
+    elseif latRange<1.0
         options.LevelStepLat = 0.2;
-    else
+    elseif latRange<10.0
         options.LevelStepLat = 1;
+    else
+        options.LevelStepLat = 5;
     end
 end
 
@@ -61,8 +66,10 @@ if  isempty(options.LevelStepLon )
         options.LevelStepLon = 0.1;
     elseif lonRange<1.0
         options.LevelStepLon = 0.2;
+    elseif lonRange<10.0
+        options.LevelStepLon = 1;
     else
-        options.LevelStepLon = 1.0;
+        options.LevelStepLon = 5.0;
     end
 end
 

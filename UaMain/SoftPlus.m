@@ -62,6 +62,8 @@ if nargout > 1
 
     dydx=HeavisideApprox(k,x,x0) ;
 
+    %dydx=1./(1+exp(-2*k*(x-x0)));  
+
     if nargout ==3
         ddydxx = DiracDelta(k,x,x0);
     end

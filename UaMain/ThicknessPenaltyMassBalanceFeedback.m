@@ -78,13 +78,28 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
        
         K= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K;
         l= CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;
-        k=1/l ;
         hmin=CtrlVar.ThickMin ;
-        
-        [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
+        k=1/(2*l); 
 
+
+        % E=exp(-(hint-hmin)/l);
+        % SoftMinus=K*log(1+E);
+        % dSoftMinusdh=(-K/l)./ (1./E+1);
+        % 
+        
+        % E=exp(-2*k*(hint-hmin)); 
+        % SoftMinus=(K/(2*k)) * log(1+E);
+        % dSoftMinusdh=-K./(1+1./E );  
+        % 
+        % 
+        % aPenalty1=SoftMinus;
+        % daPenaltydh1=dSoftMinusdh;
+
+        % 
+        % k=1/l ;
+        [aPlus,daPlusdh] = SoftPlus(k,-hint,-hmin);
         aPenalty1=K*aPlus;
-        daPenaltydh1=K*daPlusdh ; 
+        daPenaltydh1=-K*daPlusdh ; % don't forget the outer derivative, because the input to SoftPlus is -hint and not +hint
 
 
     otherwise

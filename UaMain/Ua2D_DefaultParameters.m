@@ -1508,7 +1508,7 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This impli
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=1;                                         % set to true for using penalty term, 
+CtrlVar.ThicknessPenalty=0;                                         % set to true for using penalty term, 
                                                                     % (can be done in combination with the active set method.)
 
                                                                     
