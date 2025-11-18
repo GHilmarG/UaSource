@@ -1,6 +1,7 @@
 function y = DiracDelta(k,x,x0)
 
-%%
+%% Returns a "soft" Dirac Delta function
+%
 %  Smooth approximation of the Dirac Delta function
 %
 %  The width of the approximation is about 1/k
@@ -11,9 +12,10 @@ function y = DiracDelta(k,x,x0)
 %
 %  W=100 ; A=5; x0=0 ; x=linspace(-10*W,10*W,1000) ; Peak = A*2*W*DiracDelta(1/W,x,x0) ; figure ; plot(x,Peak)
 %
-% 
+% See also:
 %
-%  
+%   HeavisideApprox.m 
+%   SoftPlus.m
 % 
 %  
 %%

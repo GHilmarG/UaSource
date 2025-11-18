@@ -6,10 +6,18 @@ function y = HeavisideApprox(k,x,x0)
 
 if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 
-%%
+%% Returns a "soft" Heaviside step function 
+%
 % Smooth approximation to the Heaviside step function using the logistic function, (an example of a sigmoid function).
 %
-% $$ \frac{dy}{dx}=\frac{1}{1+e^{-2 k (x-x_0)}} $$
+% The derivative is the "soft" Dirac Delta function, and the integral is the SoftPlus function:
+%
+% $$ \mathrm{SoftPlus}(x) =  \frac{1}{2k} \, \ln \left ( 1+e^{2k(x-x_0)} \right ) $$
+%
+% $$ \mathrm{SoftHeaviside}(x) = \mathrm{SoftPlus}^{\prime}(x) = \frac{1}{1+e^{-2 k (x-x_0)}} $$
+%
+% $$\mathrm{SoftDiracDelta}(x) = \mathrm{SoftPlus}^{\prime\,\prime}(x) = \frac{2 k}{\left (e^{k (x-x_0)} +e^{-k (x-x_0)} \right )^2}$$
+%
 %
 % The width of the step is about $1/k$, and the limit $k \to \infty$ is (exact) Heaviside step function
 %
@@ -59,13 +67,17 @@ if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 %
 % $$ \int H \, dx = \frac{1}{2k} \, \ln (1+e^{2k(x-x_0)}) $$
 %
-%
-% Also
-%
+% Also:
 %
 % $$ H=\frac{1}{1+e^{-2 k (x-x_0) }} = \frac{1}{2} + \frac{1}{2} \tanh( k (x-x_0) )  $$
 %
 % $$\delta(x)= \frac{2k}{(e^{-k (x-x_0) }+e^{k(x-x_0)})^2}  = \frac{1}{2} \frac{k}{\cosh^2(k(x-x_0))} $$
+%
+%
+% See also:
+%
+%  SoftPlus.m
+%  DiracDelta.m
 %
 %%
 

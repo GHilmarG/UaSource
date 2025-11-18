@@ -15,7 +15,7 @@ function LatLonGrid(X,Y,lat,lon,options)
 %
 % Note:
 %
-% To calculate lat lon from X,Y use:
+% To calculate lat lon from X,Y use something like:
 %
 %   [lat,lon]=psn2ll(X,Y);
 %
@@ -33,30 +33,52 @@ arguments
     Y    (:,:) double
     lat  (:,:) double
     lon  (:,:) double
-   
-    options.LineColor double = [0.5 , 0.5 , 0.5] 
-    options.LabelSpacing double = 200 
+
+    options.LineColor double = [0.5 , 0.5 , 0.5]
+    options.LabelSpacing double = 200
     options.FontSize double = 9
     options.LineStyle  string = "--"
+    options.LevelStepLat = [];
+    options.LevelStepLon = [];
 
 end
 
+% Guessing a sensible step between contour lines, if the user does not specify this in the call
+if  isempty(options.LevelStepLat )
+    latRange=max(lat(:))-min(lat(:));
+    if latRange <0.5
+        options.LevelStepLat = 0.1;
+    elseif lalRange<1.0
+        options.LevelStepLat = 0.2;
+    else
+        options.LevelStepLat = 1;
+    end
+end
 
+if  isempty(options.LevelStepLon )
+    lonRange=max(lon(:))-min(lon(:));
+    if lonRange<0.5
+        options.LevelStepLon = 0.1;
+    elseif lonRange<1.0
+        options.LevelStepLon = 0.2;
+    else
+        options.LevelStepLon = 1.0;
+    end
+end
 
-
-hold on 
-[clat,hlat]=contour(X,Y,lat,LabelFormat=@mylabelfunLat,LineColor=options.LineColor,linestyle=options.LineStyle);
+hold on
+[clat,hlat]=contour(X,Y,lat,LabelFormat=@mylabelfunLat,LineColor=options.LineColor,linestyle=options.LineStyle,LevelStep=options.LevelStepLat);
 set(hlat,'ShowText','on','TextStep',get(hlat,'LevelStep')*2,'LabelSpacing',options.LabelSpacing)
 
 clabel(clat,hlat,fontsize=options.FontSize) ;
 
-[clon,hlon]=contour(X,Y,lon,LabelFormat=@mylabelfunLon,LineColor=options.LineColor,linestyle=options.LineStyle);
+[clon,hlon]=contour(X,Y,lon,LabelFormat=@mylabelfunLon,LineColor=options.LineColor,linestyle=options.LineStyle,LevelStep=options.LevelStepLon);
 set(hlon,'ShowText','on','TextStep',get(hlon,'LevelStep')*2,'LabelSpacing',options.LabelSpacing)
 
 clabel(clon,hlon,fontsize=options.FontSize)
 
 
-  function labels=mylabelfunLon(vals)
+    function labels=mylabelfunLon(vals)
 
         % Degree=string(char(176))
 
