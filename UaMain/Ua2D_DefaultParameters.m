@@ -26,7 +26,6 @@ CtrlVar.Experiment='UaDefaultRun';
 % 
 %
 
-
 CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
                               % If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are
                               % calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;
