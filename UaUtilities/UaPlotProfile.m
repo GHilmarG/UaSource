@@ -3,11 +3,19 @@
 function UaPlotProfile(CtrlVar,MUA,F,xyProfile)
 
 
-% xyProfile=[-433.352739726027         -1024.47864625302 ; ...
-%             151.872078968574         -1491.31829170024 ];
+if nargin<4
+    xyProfile=[];
+end
 
-% xyProfile=xyProfile*1000;
-% 
+if isempty(xyProfile)
+
+    xyProfile=[-433.352739726027         -1024.47864625302 ; ...
+        151.872078968574         -1491.31829170024 ];
+
+    xyProfile=xyProfile*1000;
+
+end
+
 x1=xyProfile(1,1); x2=xyProfile(2,1);
 y1=xyProfile(1,2); y2=xyProfile(2,2);
 
