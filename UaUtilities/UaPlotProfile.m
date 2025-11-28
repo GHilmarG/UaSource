@@ -1,15 +1,17 @@
 
 
-function UaPlotProfile(CtrlVar,MUA,F)
+function UaPlotProfile(CtrlVar,MUA,F,xyProfile)
 
 
-xyProfile=[-433.352739726027         -1024.47864625302 ; ...
-            151.872078968574         -1491.31829170024 ];
+% xyProfile=[-433.352739726027         -1024.47864625302 ; ...
+%             151.872078968574         -1491.31829170024 ];
 
-xyProfile=xyProfile*1000;
-
+% xyProfile=xyProfile*1000;
+% 
 x1=xyProfile(1,1); x2=xyProfile(2,1);
 y1=xyProfile(1,2); y2=xyProfile(2,2);
+
+
 nPoints=100;
 
 xProfile=linspace(x1,x2,nPoints);  yProfile=linspace(y1,y2,nPoints);
