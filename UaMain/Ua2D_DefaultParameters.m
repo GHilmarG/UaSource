@@ -387,8 +387,7 @@ CtrlVar.hTheta=0.5;
 
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
-                % Note, only theta=0.5 is strictly consistent with TG3=1, so
-                % for backward Euler set theta=1 and TG3=0                 
+           
 CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     % keep zero (only used for testing)
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used for testing)
   
