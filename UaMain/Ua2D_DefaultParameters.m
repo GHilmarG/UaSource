@@ -181,16 +181,15 @@ CtrlVar.LinFEbasis=false;  % test parameter, do not change
 
 %% Ensuring flotation 
 %
-% Where the ice is afloat the upper and lower surfaces (s and b), the ocean
-% surface (S) and bedrock (B) and ice density (rho) and ocean density (rhow)
-% become interlinked.
+% Where the ice is afloat the upper and lower surfaces (s and b), the ocean surface (S) and bedrock (B) and ice density (rho) and
+% ocean density (rhow) become interlinked.
 %
-% Generally, s and b are always calculated from h, B and S given rho and rhow.
-% This is done internally at various different stages. Note that s and b, as
-% returned by the user in DefineGeometry.m, will be changed to ensure flotation.
+% Generally, s and b are always calculated from h, B and S given rho and rhow. This is done internally at various different
+% stages. Note that s and b, as returned by the user in DefineGeometry.m, will be recalculated to ensure flotation, while ensuring
+% that the ice thickness, h, is not affected.
+%
 % 
-% It is possible to change the default behavior and calculate h and b from s, B
-% and S. 
+% It is possible to change the default behavior and calculate h and b from s, B and S.
 CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 
 
@@ -321,7 +320,7 @@ CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smal
                                             % equally long)
 
 CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrows indicating boundary conditions when plotting boundary conditions. 
-                                                  % The arrows are automatically scales with respect to mesh size, but if they are
+                                                  % The arrows are automatically scaled with respect to mesh size, but if they are
                                                   % too small or too large this parameter can be used to affect their size. 
                                                  
                                                   

@@ -48,6 +48,12 @@ ProfileOffset=0; % sqrt( (xgl-xProfile(1)).^2 + (ygl-yProfile(1)).^2 ) ;
 Profile=sqrt( (xProfile-xProfile(1)).^2 + (yProfile-yProfile(1)).^2 )-ProfileOffset;
 
 
+
+cbar=UaPlots(CtrlVar,MUA,F,F.s,FigureTitle="Profile Location") ; 
+hold on 
+plot([x1 x2]/CtrlVar.PlotXYscale,[y1 y2]/CtrlVar.PlotXYscale,LineWidt=2,color="k",LineStyle="-")
+title(cbar,"s")
+
 fig=FindOrCreateFigure("UaPlotProfile") ; clf(fig)
 
 
