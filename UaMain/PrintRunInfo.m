@@ -5,7 +5,7 @@
 function PrintRunInfo(CtrlVar)
 
 fprintf(CtrlVar.fidlog,'\n \n');
-fprintf(CtrlVar.fidlog,' **************************    %ca version: 26 November 2025 (alpha)  ********************** \n',218);
+fprintf(CtrlVar.fidlog,' **************************    %ca version: 4 October 2025 (alpha)  ********************** \n',218);
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
