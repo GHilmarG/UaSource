@@ -13,6 +13,49 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % However, there are quite a few cases to consider...
 %
+%
+% The regularization terms can be thought of as the Priors in Bayesian context, provided they result in a valid covariance. 
+%
+% Here the regularization terms are on the form: 
+% 
+% 
+% $$ I = \int_{\mathcal{A}} \left ( \frac{1}{2} ( g f^2 +  k_x (\partial_x  f)^2 +  k_y (\partial_y  f)^2 )  \right ) \, \mathrm{d}\mathcal{A}   $$
+%
+% where $f$ is the deviation of the model parameter $p$ from the prior value $\tilde{p}$, i.e. 
+% 
+% $$f=p-\tilde{p}$$
+%
+% Taking the variation of $I$ results in the FE-equations
+%
+% $$ \delta I =  \langle g f | \delta f \rangle  + \langle k_x \partial_x f | \partial_x \delta f \rangle +  \langle k_y \partial_y f_y|\partial_y \delta f \rangle $$
+%
+% If we set $g=\gamma_a $ and $k_x=k_y = \gamma_s$ where $\gamma_a$ and $\gamma_s$ are constants, the FE discretized system is 
+%
+%
+% $$\delta I =  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x + \mathbf{D}_y ) ) \, \mathbf{f} $$ 
+%
+% and
+%
+% $$I =  \frac{1}{2} \mathbf{f}^T  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x +\mathbf{D}_y ) ) \mathbf{f} $$ 
+%
+% The discretized precision matrix $\mathbf{P}$ is therefore
+%
+% $$ \mathbf{P}= \frac{1}{2} ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x +\mathbf{D}_y ) ) $$ 
+%
+% The precision matrix relates to our estimated covariance between $p$ and $\tilde{p}$. We may have some additional
+% (direct) information about $p$ in the form of some further measurements of $p$ not included in our prior estimate
+% $\tilde{p}$. If our prior for $p$ is $P(p)$ before we obtain the data $\hat{p}$, and $P(\hat{p} | p)$ is the likelihood of
+% the data given $p$, then updated estimate for $p$ after having seen the data is 
+% 
+% $$ P(p|\hat{p}) \propto P(\hat{p}|p) P(p) $$
+%
+%
+%
+% The precision matrix above can be thought of as the inverse covariance of the noise free latent (i.e. unobserved) variable.
+%
+% If our prior
+% 
+%
 % For each variable (A,B,C) the regularization term typically has the form
 %
 %   R= ( ga.^2* Ra + gs.^2 * Rs ) /(2*Area)
@@ -23,7 +66,7 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 %  Ra = dp'*M*dp
 %
-%  Rs= dp'*(Dxx_Dyy)*dp
+%  Rs= dp'*(Dxx+ Dyy)*dp
 %
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %

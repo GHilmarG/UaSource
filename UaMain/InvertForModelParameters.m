@@ -124,7 +124,7 @@ F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
 
-% The parameter that we are inverting for are contained in the variable p. p0 is the starting values.
+% The parameter that we are inverting for are contained in the variable p. p0 is the starting value.
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
 
 
