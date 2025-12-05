@@ -17,3 +17,9 @@ resources/
 *.asv
 
 *.mat
+
+*.fig
+
+*.avi
+
+*.log
