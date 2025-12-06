@@ -109,10 +109,10 @@ switch lower(CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction)
 end
 
 
-if CtrlVar.InfoLevelThickMin >= 1
+if CtrlVar.InfoLevelThickMin >= 10
     ThicknessLessThanZero=hint<0 ;
     if any(ThicknessLessThanZero)
-        fprintf("\t Some hint negative at integration point %i with min(hint)=%g. \t Number of neg integration point thicknesses: %i \n",min(hint),numel(find(ThicknessLessThanZero)))
+        fprintf("\t Some hint negative at integration point with min(hint)=%g. \t Number of neg integration point thicknesses: %i \n",min(hint),numel(find(ThicknessLessThanZero)))
     end
 
     if CtrlVar.InfoLevelThickMin >= 10
