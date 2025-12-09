@@ -260,6 +260,9 @@ F.h=F.s-F.b;
 F0=F;
 
 %% CPU and wall-time RunInfo variables
+if isempty(RunInfo.WallTime.tic)
+    RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+end
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
 if isempty(RunInfo.WallTime.Total)
     RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
@@ -732,6 +735,7 @@ while 1
 
        
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
 
             if  isfield(CtrlVar,"CompareCalculationsOfRatesOfThicknessChanges") &&  CtrlVar.CompareCalculationsOfRatesOfThicknessChanges
                 CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)

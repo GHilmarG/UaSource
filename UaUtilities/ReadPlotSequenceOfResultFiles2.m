@@ -811,7 +811,7 @@ while iFile<=nFiles   % loop over data
 
                 %%
 
-            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-','-ds-VAF-','-dt-','-ds-VAF-dSLRdt-'}
+            case {'-ubvb-','-ubvb-B-','-ubvb-h-','-ubvb-VAF-','-ubvb-ab-','-ubvb-s','-ubvb-ds-','-ds-','-ds-VAF-','-dt-','-ds-VAF-dSLRdt-','-s-VAF-dSLRdt-'}
                 % plotting horizontal velocities
                 %%
 
@@ -831,7 +831,7 @@ while iFile<=nFiles   % loop over data
                 CtrlVar.RelativeVelArrowSize=1;
                 CtrlVar.QuiverColorPowRange=3;
 
-                if contains(options.PlotType,"-ds-VAF-")
+                if contains(options.PlotType,"-VAF-")
                     isTiles=true;
                     T=tiledlayout(2,3) ; % this get rids of previous axis
                     T.TileSpacing="tight";
@@ -842,6 +842,23 @@ while iFile<=nFiles   % loop over data
                 end
 
                 [VAF,IceVolume,GroundedArea]=CalcVAF(CtrlVar,MUA,F.h,F.B,F.S,F.rho,F.rhow,F.GF,boundary=options.VAFBoundary);
+
+                if iCount==0
+                    s0=F.s ;
+                    Fs0=scatteredInterpolant(F.x,F.y,s0);
+                    timeVector=nan(1000,1);
+                    dSLRmmVector=nan(1000,1);
+                    GLminVector=nan(1000,1);
+                    GLmaxVector=nan(1000,1);
+                    SLR0mm=-VAF.Total/362.5e9 ;
+                end
+
+
+                SLRmm=-VAF.Total/362.5e9;
+                dSLRmm=SLRmm-SLR0mm ;
+                timeVector(iCount+1)=time;
+                dSLRmmVector(iCount+1)=dSLRmm;
+
 
                 if contains(options.PlotType,"-B-")
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.B) ;
@@ -859,12 +876,16 @@ while iFile<=nFiles   % loop over data
 
                 elseif contains(options.PlotType,"-s-")
 
+                    if isTiles
+                        nexttile([2 2])
+                    end
 
 
                     [~,cbarB]=PlotMeshScalarVariable(CtrlVar,MUA,F.s) ;
                     title(cbarB,"$s\, (\mathrm{m.a.s.l.})$",Interpreter="latex")  ;
+                    ax1=gca;
                     clim(ax1,[0 4000])
-
+                    CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
 
 
 
@@ -873,11 +894,7 @@ while iFile<=nFiles   % loop over data
                     if iCount==0
                         s0=F.s ;
                         Fs0=scatteredInterpolant(F.x,F.y,s0);
-                        timeVector=nan(1000,1);
-                        dSLRmmVector=nan(1000,1);
-                        GLminVector=nan(1000,1);
-                        GLmaxVector=nan(1000,1);
-                        SLR0mm=-VAF.Total/362.5e9 ;
+                        
                     end
 
 
@@ -896,11 +913,6 @@ while iFile<=nFiles   % loop over data
                     title(cbarB,"$(\mathrm{m})$",Interpreter="latex")  ;
                     ax1=gca;
                     clim(ax1,[-1500 100])
-
-                    SLRmm=-VAF.Total/362.5e9;
-                    dSLRmm=SLRmm-SLR0mm ;
-                    timeVector(iCount+1)=time;
-                    dSLRmmVector(iCount+1)=dSLRmm;
 
 
 
@@ -964,16 +976,11 @@ while iFile<=nFiles   % loop over data
 
 
 
-                if iCount==0
-                    SLR0mm=-VAF.Total/362.5e9 ;
-                end
-
-                SLRmm=-VAF.Total/362.5e9;
-                dSLRmm=SLRmm-SLR0mm ;
-
 
                 if  contains(options.PlotType,"-ds-")
                     title(ax1,sprintf("Surface elevation changes at t=%5.2f (yr) \n Mean sea-level rise=%5.2f (cm)",F.time,dSLRmm/10),interpreter="latex",FontSize=18) ;
+                elseif contains(options.PlotType,"-s-")
+                    title(ax1,sprintf("Surface elevation at t=%5.2f (yr) \n Mean sea-level rise=%5.2f (cm)",F.time,dSLRmm/10),interpreter="latex",FontSize=18) ;
                 else
                     title(ax1,sprintf('t=%5.2f (yr), Global sea-level rise=%5.2f (cm)',F.time,dSLRmm/10),interpreter="latex",FontSize=22) ;
                 end
@@ -983,8 +990,7 @@ while iFile<=nFiles   % loop over data
                 if contains(options.PlotType,"-ds-")
                     %ModifyColormap(GrayLevelRange=100) ;
                     CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); ModifyColormap(100,5,ChangeColormap=false) ;
-                else
-                    colormap(ax1,flipud(othercolor("YlGnBu8",1028))) ;
+
                 end
 
                 plot(xGL0/CtrlVar.PlotXYscale,yGL0/CtrlVar.PlotXYscale,"r");

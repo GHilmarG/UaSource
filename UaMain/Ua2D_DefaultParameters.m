@@ -21,23 +21,73 @@ function CtrlVar=Ua2D_DefaultParameters
 CtrlVar.WhoAmI="Ua2D CtrlVar" ; 
 %%
 CtrlVar.Experiment='UaDefaultRun';
-CtrlVar.time=nan;               % In a transient run this variable is the (model) time. Set to some 
-                                % reasonable initial value, for example CtrlVar.time=0;
+
 %% Types of run
 % 
-% When doing a forward run, i.e. whenever 
-% 
-%   CtrlVar.InverseRun=false
-% 
-% the type of a forward run is set by the user in
-% 
-%   DefineInitialImputs.m
-% 
-% by the value of the field: 
-% 
-%   CtrlVar.ForwardTimeIntegration
 %
-% as follows:
+
+CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
+                              % If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are
+                              % calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;
+    
+
+CtrlVar.InverseRun=0;         % if true then a surface-to-bed inversion is to be performed.
+                              % (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)
+                              
+CtrlVar.Restart=0;            % If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.
+                              % For example setting:
+                              %       CtrlVar.InverseRun=1; CtrlVar.Restart=1;
+                              % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
+                              %
+%% Controlling total (model) run time and run steps
+%
+% The runs stops once either:
+% 
+%   CtrlVar.TotalNumberOfForwardRunSteps 
+% 
+% has been reached 
+%
+% or,  model time is larger than
+%
+%   CtrlVar.EndTime
+%
+%
+% A "RunStep" is basically one solve of the system.
+% 
+% In a transient run (CtrlVar.TimeDependentRun=1) this is also the number of time steps and the number of solves for velocity
+% and thickness. In a time independent run (CtrlVar.TimeDependentRun=0) this will be the number of velocity solves.
+%
+% Typically in a transient run where CtrlVar.TimeDependentRun=1, the parameter CtrlVar.TotalNumberOfForwardRunSteps is set to
+% some sufficiently large value so the the model can run until the prescribed end time (CtrlVar.EndTime) has been reached.
+% However, initially it might be good to set this to some small value to test if the solve can do a few solves ahead of
+% submitting a longer run.
+%
+% In a time-independent run (CtrlVar.TimeDependentRun=0), this is usually set to some small value, for example
+% CtrlVar.TotalNumberOfForwardRunSteps=1, as one typically may want to solve for velocities for a given (unchanging)
+% geometry.
+%
+% However, if in a time-independent run, one is, for example, interested in manually changing some other input variables (e.g.
+% geometry, A and C) one could then set CtrlVar.TotalNumberOfForwardRunSteps to some larger value.
+%
+
+                              
+CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
+                                          % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
+                                          % (Typically, the number of forward run steps in a non-transient run will be 1, and the user must make sure to set 
+                                          % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
+                                          % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
+                                          % not the total accumulated number of forward run steps.
+                                          
+CtrlVar.UseUserDefinedRunStopCriterion=false ;  
+                    
+
+%% Further controls over the solution algorithm
+%
+% Note: The user will generally not need to set these options, and they are set automatically based on whether the run is a
+% transient run or not.
+% 
+%
+% In a transient run one can either solve for uvh simultaneously, which is refereed to as a fully implicit approach
 %
 %   CtrlVar.ForwardTimeIntegration="-uvh-" ;  implies a time-dependent run whereby velocities (uv) and thickness (h) are
 %                                             solved for simultaneously. This is the most common approach and the recommended
@@ -66,48 +116,25 @@ CtrlVar.time=nan;               % In a transient run this variable is the (model
 %                                             More information about the semi-implicit "-uv-h-" is provided in the m-file:
 %                                             uvhSemiImplicit.m
 %
-%
-% Note: In the past the fields
 % 
-%   CtrlVar.TimeDependentRun
-%   CtrlVar.Implicituvh
-%
-% where used to specify if the run was time-independent or not, and if a partitioned or a monolithic solver was used. This can
-% still be done as before, but using
+%  By default these variables are set internally as follows;
 % 
-%   CtrlVar.ForwardTimeIntegration
-%
-% to provide this information is now recommended.
-%
+% if CtrlVar.ForwardTimeIntegration=="" 
+%     if  CtrlVar.TimeDependentRun
+%         CtrlVar.ForwardTimeIntegration="-uvh-";
+%     else
+%         CtrlVar.ForwardTimeIntegration="-uv-";
+%     end
+%  end
+% 
+%  
+%%
 
 CtrlVar.ForwardTimeIntegration="" ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 CtrlVar.MustBe.ForwardTimeIntegration=["-uvh-","-uv-h-","-uv-","-h-","-phi-",""] ; % "-uvh-" , "-uv-h-" , "-uv-" , "-h-" ; 
 
 
-CtrlVar.TimeDependentRun=0 ;  % either [0|1].  
-                              % If true (i.e. set to 1) then the run is a forward transient one, if not then velocities based on the current geometry are
-                              % calculated. This field is not longer required. Easier and more logical is to set CtrlVar.ForwardTimeIntegration="-uv-" ;
-    
 
-CtrlVar.InverseRun=0;         % if true then a surface-to-bed inversion is to be performed.
-                              % (in an inverse run the value of CtrlVar.TimeDependentRun is irrelevant)
-                              
-CtrlVar.Restart=0;            % If true then the run is a restart run. Note that this variable applies to both forward and inverse runs.
-                              % For example setting:
-                              %       CtrlVar.InverseRun=1; CtrlVar.Restart=1;
-                              % results in a restart of an inverse run. (make sure a corresponding restart file does exist, see below.)
-                              %
-  
-                              
-CtrlVar.TotalNumberOfForwardRunSteps=1;   % maximum number of forward run steps.  In a transient run this will be the maximum number of time steps.
-                                          % In a non-transient (stationary) run, this will be the maximum number of diagnostic calculations.
-                                          % (Typically, the number of forward run steps in a non-transient run will be 1, and the user must make sure to set 
-                                          % the value accordingly, i.e.  CtrlVar.TotalNumberOfForwardRunSteps=1;)
-                                          % In a restart run, TotalNumberOfForwardRunSteps is the total number of run steps done within that restart run, i.e.
-                                          % not the total accumulated number of forward run steps.
-                                          
-CtrlVar.UseUserDefinedRunStopCriterion=false ;  
-                              
 %% Ice flow approximation
 CtrlVar.FlowApproximation="SSTREAM" ;  % any of ['SSTREAM'|'SSHEET'|'Hybrid']  
                                        % Note, both SSTREAM and SSHEET are implemented.
@@ -154,16 +181,15 @@ CtrlVar.LinFEbasis=false;  % test parameter, do not change
 
 %% Ensuring flotation 
 %
-% Where the ice is afloat the upper and lower surfaces (s and b), the ocean
-% surface (S) and bedrock (B) and ice density (rho) and ocean density (rhow)
-% become interlinked.
+% Where the ice is afloat the upper and lower surfaces (s and b), the ocean surface (S) and bedrock (B) and ice density (rho) and
+% ocean density (rhow) become interlinked.
 %
-% Generally, s and b are always calculated from h, B and S given rho and rhow.
-% This is done internally at various different stages. Note that s and b, as
-% returned by the user in DefineGeometry.m, will be changed to ensure flotation.
+% Generally, s and b are always calculated from h, B and S given rho and rhow. This is done internally at various different
+% stages. Note that s and b, as returned by the user in DefineGeometry.m, will be recalculated to ensure flotation, while ensuring
+% that the ice thickness, h, is not affected.
+%
 % 
-% It is possible to change the default behavior and calculate h and b from s, B
-% and S. 
+% It is possible to change the default behavior and calculate h and b from s, B and S.
 CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
 
 
@@ -232,9 +258,13 @@ CtrlVar.MustBe.TriNodes=[3,6,10] ;  % Possible values are 3, 6, 10 node (linear/
 % CtrlVar.TotalTime=CtrlVar.EndTime
 %
 
-CtrlVar.TotalTime=nan;          % maximum model time
 CtrlVar.StartTime=nan;
 CtrlVar.EndTime=nan;
+
+
+CtrlVar.time=nan;               % this is how, in older versions of Ua, the start time was set. Now this value is set internally as based on other inputs.
+CtrlVar.TotalTime=nan;          % maximum model time
+
 CtrlVar.dt=1;                    % time step (usually overwritten by user by defining dt in the DefineInitialUserInputFile
 CtrlVar.dtmin=1e-12;             % for numerical reasons the time step should always be larger than some very small value
 
@@ -290,7 +320,7 @@ CtrlVar.MinSpeedWhenPlottingVelArrows=0;    % when plotting vel arrows with smal
                                             % equally long)
 
 CtrlVar.BoundaryConditionsFixedNodeArrowScale=1;  % Determines the size of arrows indicating boundary conditions when plotting boundary conditions. 
-                                                  % The arrows are automatically scales with respect to mesh size, but if they are
+                                                  % The arrows are automatically scaled with respect to mesh size, but if they are
                                                   % too small or too large this parameter can be used to affect their size. 
                                                  
                                                   
@@ -335,8 +365,6 @@ CtrlVar.MeshColor='k'; CtrlVar.NodeColor='k';
 % The default time-stepping method is: Fully implicit Streamline-Upwind Petrov-Galerkin with theta=0.5 (Lax Wendroff).
 %
 %
-CtrlVar.Implicituvh=1;           % 0: prognostic run is semi-implicit (implicit with respect to h only)
-                                 % 1: prognostic run is fully-implicit (implicit with respect to uvh)
 
 CtrlVar.uvhImplicitTimeSteppingMethod="SUPG"; % 
 CtrlVar.uvhSemiImplicitTimeSteppingMethod="SUPG"; % 'Galerkin'|'supg'
@@ -359,8 +387,7 @@ CtrlVar.hTheta=0.5;
 
 CtrlVar.TG3=0 ; % if true, the prognostic steps uses a third-order Taylor-Galerkin method
                 % currently only implemented for periodic boundary conditions                         
-                % Note, only theta=0.5 is strictly consistent with TG3=1, so
-                % for backward Euler set theta=1 and TG3=0                 
+           
 CtrlVar.IncludeTG3uvhBoundaryTerm=0;                     % keep zero (only used for testing)
 CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic=0;    % keep zero (only used for testing)
   
@@ -1304,6 +1331,7 @@ CtrlVar.AdaptMeshAndThenStop=0;      % Tf true, then mesh will be adapted but no
 %
 % As external mesh generators one can use either `gmsh' or `mesh2d'
 %
+
 % Note that mesh2d does not support periodic boundary conditions.
 %
 %
@@ -1419,17 +1447,19 @@ CtrlVar.FindMUA_Boundary=1;
 %  3) `thickness-penalty' method
 %
 % The active-set method is the preferred option and is arguably the only correct way of enforcing min ice thickness.
-% The active-set method should therefore be used whenever possible.
-% However, in some cases the active set method does not converge, in which case
-% options 1) or 3), or combinations thereof, must be used.  If the differences between approach 1) and 2) are small, then using 1)
-% allows for shortest computation times
+% The active-set method should therefore be used whenever possible. However, in some cases the active set method does not
+% converge, in which case options 1) or 3), or combinations thereof, must be used.  If the differences between approach 1)
+% and 2) are small, then using 1) allows for shortest computation times
 %
-% The thickness-penalty method introduces a fictitious surface mass balance term.
-% The thickness-penalty method can be used on its own, but should primarily be used in combination with the active-set method
-% to improve convergence.
+% The thickness-penalty method introduces a fictitious surface mass balance term. The thickness-penalty method can be used on
+% its own, but should primarily be used in combination with the active-set method to improve convergence.
 %
-
-
+% The default approach is to use the active set method, in combination with a thickness penalty term. 
+%
+% As described below, the thickness penalty term has some tunable parameters. It might generally be good to select these
+% parameters in such a way that the number of nodes in the active set is not too large.
+%
+%
 CtrlVar.ThickMin=1;                      % minimum allowed thickness without (potentially) doing something about it
 
 % reset method, option 1
@@ -1475,12 +1505,68 @@ CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=false;             % This impli
 
 
 % thickness penalty, option 3
-CtrlVar.ThicknessPenalty=1;                                         % set to 1 for using penalty term (Option 3). This creates an
-                                                                    % additional mass-balance term, ab,  on the form:
-                                                                    %     
-                                                                    % $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
-                                                                    %
-                                                                    % which is added at integration points where  h<hmin.
+CtrlVar.ThicknessPenalty=0;                                         % set to true for using penalty term, 
+                                                                    % (can be done in combination with the active set method.)
+
+                                                                    
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";      %The functional form of the penalty term
+                                                                    % The options are: "SoftPlus", "exponential", "polynomial" 
+CtrlVar.MustBe.ThicknessPenaltyMassBalanceFeedbackFunction=["SoftPlus","exponential","polynomial"]; 
+
+%% Thickness penalty term based on the SoftPlus function  
+% For
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="SoftPlus";   
+%
+% the penalty term has the form 
+% 
+% 
+% $$ y = \frac{K l}{2} \, \ln \left ( 1+e^{-2(h-hmin)/l} \right ) $$
+% 
+%
+% where K and l are parameters, and hmin=CtrlVar.ThickMin
+%
+% Reasonable values for K and l are:
+%
+%    l=CtrlVar.ThickMin/10
+%
+% and K*l large compared to the (climatic) mass balance values, for example K=1000/l might be a reasonable selection if the mass
+% balance is on the order of 10
+%
+
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l=CtrlVar.ThickMin/10;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.K=1000/CtrlVar.ThicknessPenaltyMassBalanceFeedbackSoftPlus.l;  % This is assuming 1000 is large compared to typical mass balance values
+
+%% Thickness penalty term based on the exponential function  
+%
+% For
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="Exponential";   
+%
+% the penalty term has the form 
+% 
+% %% K*exp(-(h-hmin)/l) %%
+%
+% where K and l are parameters, and hmin=CtrlVar.ThickMin
+%
+% Reasonable values for K and l are:
+%
+%    l=CtrlVar.ThickMin/10
+%
+% and K set so that K exp(hmin) is reasonably large compared to typical mass balance values
+%
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.K=10;
+CtrlVar.ThicknessPenaltyMassBalanceFeedbackExponential.l=CtrlVar.ThickMin/10;
+
+%% Thickness penalty term based on polynomials  
+%
+%    CtrlVar.ThicknessPenaltyMassBalanceFeedbackFunction="polynomial";   
+% 
+% additional mass-balance term, ab, added has the form:
+%
+% $$a^{\star} = a_1 (h-h_{\min}+ a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
+%
+% which is added at integration points where  h<hmin.
                                                                     %
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin=1000;           % a1 in the equation for the additional mass balance term 
 CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad=0;             % a2 in the equation for the additional mass balance term 
@@ -2565,6 +2651,10 @@ CtrlVar.Try_uv_SolveIf_uvh_SolveNotConvergent=false;
 CtrlVar.Abort.State=false ; % This is an internal variable. If, for example, some calculations could not be performed as specified, 
                             % then the idea is that the run will abort the calculations and terminate gracefully. 
 CtrlVar.Abort.Message="" ; 
+
+ CtrlVar.uvhMakeInitialIterateFeasible=true; 
+ CtrlVar.uvMakeInitialIterateFeasible=true; 
+ 
 
 end
 

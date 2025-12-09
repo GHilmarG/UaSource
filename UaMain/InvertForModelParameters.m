@@ -31,11 +31,11 @@ narginchk(11,11)
 %
 % 2) Then for this $q$, solve the linear adjoint problem:
 %
-% $$ \langle (d_p F)^* \lambda | \phi \rangle = - \langle  d_q J | \phi \rangle  $$
+% $$ \langle (d_q F)^* \lambda | \phi \rangle = - \langle  d_q J | \phi \rangle  $$
 %
 % 3) And then evaluate the total derivative with respect to $p$ as
 %
-% $$ d_p J = \langle (d_p F)^* | \lambda  \rangle + \partial_p J $$
+% $$ d_p J = \langle (d_q F)^* | \lambda  \rangle + \partial_p J $$
 %
 % As an example, consider a $B$ inversion using momentum and mass conservation (for grounded ice where $h=s-B$):
 %
@@ -124,7 +124,7 @@ F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
 F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
 
-% The parameter that we are inverting for are contained in the variable p. p0 is the starting values.
+% The parameter that we are inverting for are contained in the variable p. p0 is the starting value.
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
 
 

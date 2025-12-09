@@ -1,11 +1,25 @@
+
+
+
+
 function y = HeavisideApprox(k,x,x0)
 
-if nargin==2 ; error('HeavisideApprox: Need three arguments \n') ; end
+if nargin==2 ; error('HeavisideApprox: Need at least two arguments \n') ; end
 
-%%
-% Approximation to the Heaviside step  function
-%  The width of the step is about $1/k$
-%  the limit $k \to \infty$ is Heaviside step function
+%% Returns a "soft" Heaviside step function 
+%
+% Smooth approximation to the Heaviside step function using the logistic function, (an example of a sigmoid function).
+%
+% The derivative is the "soft" Dirac Delta function, and the integral is the SoftPlus function:
+%
+% $$ \mathrm{SoftPlus}(x) =  \frac{1}{2k} \, \ln \left ( 1+e^{2k(x-x_0)} \right ) $$
+%
+% $$ \mathrm{SoftHeaviside}(x) = \mathrm{SoftPlus}^{\prime}(x) = \frac{1}{1+e^{-2 k (x-x_0)}} $$
+%
+% $$\mathrm{SoftDiracDelta}(x) = \mathrm{SoftPlus}^{\prime\,\prime}(x) = \frac{2 k}{\left (e^{k (x-x_0)} +e^{-k (x-x_0)} \right )^2}$$
+%
+%
+% The width of the step is about $1/k$, and the limit $k \to \infty$ is (exact) Heaviside step function
 %
 % $$y \approx 1 \quad \mathrm{if} \quad x > x_0$$
 %
@@ -19,12 +33,56 @@ if nargin==2 ; error('HeavisideApprox: Need three arguments \n') ; end
 %
 %   DiracDelta(k,x,x0)
 %
+% and is know as the density of the logistic distribution 
+%
+% and the integral by 
+%
+%   SoftPlus(k,x,x0)
+% 
+% Heaviside:
+%
+% $$ H=\frac{1}{1+e^{-x}} $$
+%
+% Dirac delta:
+% 
+% $$\delta(x)=dH/dx= \frac{1}{\left (e^{-x/2}+e^{x/2} \right )^2} = H(x) (1-H(x)) $$
+%
+%
+% Softplus:
+%
+% $$ \int H \, dx = \ln (1+e^{x}) $$
+%
+%
+%
+% Scaled and offset Heaviside:
+%
+% $$ H=\frac{1}{1+e^{-2 k (x-x_0) }} $$
+%
+% Scaled and offset Dirac delta:
+% 
+% $$\delta(x)=dH/dx= \frac{2k}{(e^{-k (x-x_0) }+e^{k(x-x_0)})^2}  $$
+%
+%
+% Scaled and offset Softplus:
+%
+% $$ \int H \, dx = \frac{1}{2k} \, \ln (1+e^{2k(x-x_0)}) $$
+%
+% Also:
+%
+% $$ H=\frac{1}{1+e^{-2 k (x-x_0) }} = \frac{1}{2} + \frac{1}{2} \tanh( k (x-x_0) )  $$
+%
+% $$\delta(x)= \frac{2k}{(e^{-k (x-x_0) }+e^{k(x-x_0)})^2}  = \frac{1}{2} \frac{k}{\cosh^2(k(x-x_0))} $$
+%
+%
+% See also:
+%
+%  SoftPlus.m
+%  DiracDelta.m
 %
 %%
 
-
-y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function
+% y=1./(1+exp(-2*k*(x-x0)));  %  The logistic function, an approximation to the Heaviside function 
 %  also same as
-%  0.5 + 0.5 tanh(x/2)
+y=0.5 + 0.5*tanh(k*(x-x0)); % this does not lead to Inf values when calculating the exponent
 
 end

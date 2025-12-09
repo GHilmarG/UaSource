@@ -122,7 +122,7 @@ if I==ItMax   % if the NR iteration above, taking a blind NR step does not work,
     % hand this over the matlab opt.
     % Why not do so right away? Because the above options is based on
     % my experience always faster if it converges (fminunc is very reluctant to take
-    % large steps, and apparantly does not take a full NR step...?!)
+    % large steps, and apparently does not take a full NR step...?!)
     
     warning("Calc_bh_From_SBS:NoConvergence","Calc_bh_from_sBS did not converge! \n")
 
