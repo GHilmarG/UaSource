@@ -61,13 +61,9 @@ end
 
 
 
-
-
 % RunInfo=UaRunInfo;
-RunInfo.File.Name=CtrlVar.Experiment+"-RunInfo.txt";
-if CtrlVar.WriteRunInfoFile
-    RunInfo.File.fid = fopen(RunInfo.File.Name,'a');
-end
+
+
 
 if exist('BCs','var')==0
     fprintf(' The variable BCs not found in restart file. Reset. \n')

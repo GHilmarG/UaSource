@@ -62,7 +62,7 @@ if isempty(F.LSF)   % Do I need to initialize the level set function?
         Yc=UserVar.CalvingFront0.Yc;
 
         % A rough sign-correct initialization for the LSF
-        io=inpoly2([F.x F.y],[Xc(:) Yc(:)]);
+        io=UaInpoly2([F.x F.y],[Xc(:) Yc(:)]);
         LSF=-ones(MUA.Nnodes,1) ;
         LSF(io)=+1;
 

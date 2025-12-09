@@ -89,7 +89,7 @@ hAF= (h>hfPos).*(h-hfPos) ;                    % (positive) ice thickness above 
 
 if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate VAF inside of that boundary
     xy=[MUA.coordinates(:,1) MUA.coordinates(:,2)] ;
-    isInside=inpoly2(xy,options.boundary);
+    isInside=UaInpoly2(xy,options.boundary);
     hAF(~isInside)=0;                       % simply set all nodal values outside of that boundary to zero. 
 end
 
