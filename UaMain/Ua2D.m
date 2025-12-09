@@ -735,6 +735,7 @@ while 1
 
        
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
 
             if  isfield(CtrlVar,"CompareCalculationsOfRatesOfThicknessChanges") &&  CtrlVar.CompareCalculationsOfRatesOfThicknessChanges
                 CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)

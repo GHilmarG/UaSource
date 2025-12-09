@@ -96,12 +96,15 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     % [Luv   0    ]  [dl]      [cuv-Luv uv]
     %
     
-    
-    %% Make sure iterate is feasible
-    F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+
+    %% Make sure iterate is feasible, at least with respect to directs BCs
+    if CtrlVar.uvMakeInitialIterateFeasible
+        F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
+        F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+    end
     %%
-    
-    
+
+
     dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
     
     

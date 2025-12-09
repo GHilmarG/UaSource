@@ -2652,6 +2652,10 @@ CtrlVar.Abort.State=false ; % This is an internal variable. If, for example, som
                             % then the idea is that the run will abort the calculations and terminate gracefully. 
 CtrlVar.Abort.Message="" ; 
 
+ CtrlVar.uvhMakeInitialIterateFeasible=true; 
+ CtrlVar.uvMakeInitialIterateFeasible=true; 
+ 
+
 end
 
 

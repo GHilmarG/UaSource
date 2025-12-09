@@ -333,12 +333,7 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
                 sObj.Forward.ubvbRecalculatedOnNewMesh=false;
             end
 
-            if ~isfield(sObj.LevelSet,'SolverConverged')
-                sObj.LevelSet.SolverConverged=0;
-                sObj.LevelSet.Iterations=NaN;
-                sObj.LevelSet.rForce=NaN;
-                sObj.LevelSet.rWork=NaN;
-            end
+     
 
             if ~isfield(sObj.Inverse,'nFuncEval')
                 sObj.Inverse.nFuncEval = 0 ;
@@ -357,6 +352,9 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
                 sObj.CPU.Total=duration(0,0,0);
             end
 
+            if ~sObj.hasNameValue("WallTime")
+               sObj.addNameValue("WallTime",struct("Total",duration(0,0,0),"tic",duration(0,0,0),"toc",duration(0,0,0)))
+            end
      
 
             if ~isfield(sObj.WallTime,"Total")
@@ -365,8 +363,14 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
                 sObj.WallTime.toc=duration(0,0,0);
             end
 
-        
+            if ~sObj.hasNameValue("LevelSet")
 
+                N=2;
+                sObj.addNameValue("LevelSet",struct("iCount",0,"time",NaN(N,1),"Iterations",NaN(N,1),"Residual",NaN(N,1),"BackTrackSteps",NaN(N,1),"Phase",strings(N,1)))
+           
+            end
+
+       
 
             %if sObj.hasNameValue("Name")
             %     nameArray = split(sObj.Name);
