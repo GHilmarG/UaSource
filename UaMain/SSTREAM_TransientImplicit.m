@@ -204,7 +204,7 @@ end
 %%
 if ~isempty(L)
     cuvhNorm=norm(cuvh);
-    if cuvhNorm<eps
+    if cuvhNorm< eps(cuvhNorm)
         cuvhNorm=1;
     end
     BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/cuvhNorm;
