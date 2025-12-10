@@ -33,7 +33,9 @@ function [VAF,IceVolume,GroundedArea,hAF,hfPos]=CalcVAF(CtrlVar,MUA,h,B,S,rho,rh
 % value by a few %.
 %
 %
-%   VAF       :  Volume above flotation
+%   VAF.total       : Volume above flotation
+%   VAF.node        : nodal thickness above flotation 
+%   
 %   IceVolume :  Total ice volume withing the domain, i.e. including areas that are afloat.
 %   hAF       :  (positive) ice thickness above flotation
 %   hfPOs     :  (positive) flotation thickness (also sometimes referred to as flotation profile). Where h>fhPos, the ice is grounded.
@@ -87,7 +89,7 @@ hAF= (h>hfPos).*(h-hfPos) ;                    % (positive) ice thickness above 
 
 if ~isnan(options.boundary)  % OK boundary was given as input, so only calculate VAF inside of that boundary
     xy=[MUA.coordinates(:,1) MUA.coordinates(:,2)] ;
-    isInside=inpoly2(xy,options.boundary);
+    isInside=UaInpoly2(xy,options.boundary);
     hAF(~isInside)=0;                       % simply set all nodal values outside of that boundary to zero. 
 end
 

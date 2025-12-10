@@ -26,8 +26,8 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 %                   lon labels.
 %
 % Colour:   color of the lat, lon lines
-
-
+%
+%
 %
 % isCircumpolar:  set to true if the plot area is circumpolar, ie includes the pole itself.
 %
@@ -61,7 +61,7 @@ function [Lat,Lon,X0,Y0,Clat,hlat,Clon,hlon,ax1,ax2]=PlotLatLonGrid(scale,dlat,d
 % see also:
 %
 %   LatLonGrid
-%
+%   ScaleBar
 %%
 
 fig = gcf;
@@ -137,11 +137,15 @@ if nargin ==0
 
     % guessing here a bit
 
-    if (xmax-xmin)< 300 % assuming km as units
-        dlon=5;
+    if (xmax-xmin)<100
+        dlon=1;
+    elseif (xmax-xmin) < 400 % assuming km as units
+        dlon=3;
     end
 
-    if (ymax-ymin)< 400 % assuming km as units
+    if (ymax-ymin)< 150 % assuming km as units
+        dlat=0.5; 
+    elseif (ymax-ymin)< 400 % assuming km as units
         dlat=1;
     end
 

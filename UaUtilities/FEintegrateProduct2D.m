@@ -1,3 +1,7 @@
+
+
+
+
 function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %%
 %
@@ -13,49 +17,63 @@ function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %   Int=FEintegrateProduct2D(CtrlVar,MUA,h,s)
 %
 %
-% Testing integration using different number of integration points
-%
+% Testing integration using different quadrature rules of different degrees
+% 
 %   coordinates=[0 0 ; 0 1 ; 1 1 ; 1 0];
 %   connectivity=[1 2  4 ; 4 2 3 ];
 %   CtrlVar=Ua2D_DefaultParameters;
 %   CtrlVar.TriNodes=3;
 %   MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-%
+% 
 %   CtrlVar.TriNodes=10; MUA=UpdateMUA(CtrlVar,MUA);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2) ;
 %   p=4;
 %   f=(1+x+y).^p;
-%
+% 
 %   I=0 ;
-%   nipv=[1 3 4 6 7 9 12 13 16 19 28 37];
-%   F=nipv*0;
-%   for nip=nipv
-%      CtrlVar.nip=nip ; CtrlVar.niph=nip ;
-%      Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
-%      Int=sum(Int);
-%      fprintf(' nip %i   \t Int=%f \n ',nip,Int)
-%      I=I+1 ; F(I)=Int;
+% 
+%   F=nan(10,1);
+%   D=nan(10,1);
+%   for Degree=1:15
+% 
+% 
+%     MUA.QuadratureRuleDegree=Degree;
+%     Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+%     MUA.nip=size(Q.Points,1);
+%     MUA.niph=size(Q.Points,1);
+%     CtrlVar.nip=MUA.nip;
+%     CtrlVar.niph=MUA.niph;
+%     MUA.points=Q.Points;
+%     MUA.weights=Q.Weights;
+%     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+% 
+%     Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
+% 
+%     Int=sum(Int);
+%     fprintf(' Degree %i \t  nip %i  \t Int=%f \n ',Degree,MUA.nip,Int)
+%     I=I+1 ; F(I)=Int; D(I)=Degree; 
+% 
 %   end
-%
-%   figure ; plot(nipv,F,'-x')
-%   xlabel('nip')
+% 
+%   figure ; plot(D,F,'-x')
+%   xlabel('Degree')
 %   ylabel('Fint')
+% 
+% 
+% See Also: FE_inner_product
 %
-%%
+% %%
 
 ndim=2;
 
-MUA=UpdateMUA(CtrlVar,MUA);
-
-[points,weights]=sample('triangle',MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     fint=1;
     for k=1:numel(varargin)

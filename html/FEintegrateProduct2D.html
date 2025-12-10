@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>FEintegrateProduct2D</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-12-26"><meta name="DC.source" content="FEintegrateProduct2D.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>FEintegrateProduct2D</title>
+<meta name="generator" content="MATLAB 24.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-03-19">
+<meta name="DC.source" content="FEintegrateProduct2D.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,45 +72,68 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
-</pre><pre>Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
-calculates the integral of the product of the nodal variable
-varargin over each of the elements of the FE mesh.</pre><p>Example: To calculate the product of h and s over the mesh:</p><pre class="language-matlab">Int=FEintegrateProduct2D(CtrlVar,MUA,h,s)
-</pre><p>Testing integration using different number of integration points</p><pre class="language-matlab">coordinates=[0 0 ; 0 1 ; 1 1 ; 1 0];
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
+</pre>
+<pre>Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)</pre>
+<pre>calculates the integral of the product of the nodal variable
+varargin over each of the elements of the FE mesh.</pre>
+<p>Example: To calculate the product of h and s over the mesh:</p>
+<pre class="language-matlab">Int=FEintegrateProduct2D(CtrlVar,MUA,h,s)
+</pre>
+<p>Testing integration using different quadrature rules of different degrees</p>
+<pre class="language-matlab">coordinates=[0 0 ; 0 1 ; 1 1 ; 1 0];
 connectivity=[1 2  4 ; 4 2 3 ];
 CtrlVar=Ua2D_DefaultParameters;
 CtrlVar.TriNodes=3;
 MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-</pre><pre class="language-matlab">CtrlVar.TriNodes=10; MUA=UpdateMUA(CtrlVar,MUA);
+</pre>
+<pre class="language-matlab">CtrlVar.TriNodes=10; MUA=UpdateMUA(CtrlVar,MUA);
 x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2) ;
 p=4;
 f=(1+x+y).^p;
-</pre><pre class="language-matlab">I=0 ;
-nipv=[1 3 4 6 7 9 12 13 16 19 28 37];
-F=nipv*0;
-<span class="keyword">for</span> nip=nipv
-   CtrlVar.nip=nip ; CtrlVar.niph=nip ;
-   Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
-   Int=sum(Int);
-   fprintf(<span class="string">' nip %i   \t Int=%f \n '</span>,nip,Int)
-   I=I+1 ; F(I)=Int;
+</pre>
+<pre class="language-matlab">I=0 ;
+</pre>
+<pre class="language-matlab">F=nan(10,1);
+D=nan(10,1);
+<span class="keyword">for</span> Degree=1:10
+</pre>
+<pre>   MUA.QuadratureRuleDegree=Degree;
+   Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+   MUA.nip=size(Q.Points,1);
+   MUA.niph=size(Q.Points,1);
+   CtrlVar.nip=MUA.nip;
+   CtrlVar.niph=MUA.niph;
+   MUA.points=Q.Points;
+   MUA.weights=Q.Weights;
+   [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);</pre>
+<pre>   Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;</pre>
+<pre>   Int=sum(Int);
+   fprintf(' Degree %i \t  nip %i  \t Int=%f \n ',Degree,MUA.nip,Int)
+   I=I+1 ; F(I)=Int; D(I)=Degree;</pre>
+<pre class="language-matlab">
 <span class="keyword">end</span>
-</pre><pre class="language-matlab">figure ; plot(nipv,F,<span class="string">'-x'</span>)
-xlabel(<span class="string">'nip'</span>)
+</pre>
+<pre class="language-matlab">figure ; plot(D,F,<span class="string">'-x'</span>)
+xlabel(<span class="string">'Degree'</span>)
 ylabel(<span class="string">'Fint'</span>)
-</pre><pre class="codeinput">ndim=2;
+</pre>
+<p>%%</p>
+<pre class="codeinput">ndim=2;
 
-MUA=UpdateMUA(CtrlVar,MUA);
-
-[points,weights]=sample(<span class="string">'triangle'</span>,MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
 
 <span class="keyword">for</span> Iint=1:MUA.nip
 
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
 
     fint=1;
     <span class="keyword">for</span> k=1:numel(varargin)
@@ -118,18 +147,24 @@ Int=zeros(MUA.Nele,1);
     Int=Int+fint.*detJw;
 
 <span class="keyword">end</span>
-</pre><pre class="codeoutput error">Not enough input arguments.
-
-Error in FEintegrateProduct2D (line 47)
-MUA=UpdateMUA(CtrlVar,MUA);
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %%
 %
 %  Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
-% calculates the integral of the product of the nodal variable
+%
+%  calculates the integral of the product of the nodal variable
 %  varargin over each of the elements of the FE mesh.
 %
 %
@@ -139,49 +174,62 @@ function Int=FEintegrateProduct2D(CtrlVar,MUA,varargin)
 %   Int=FEintegrateProduct2D(CtrlVar,MUA,h,s)
 %
 %
-% Testing integration using different number of integration points
-%
+% Testing integration using different quadrature rules of different degrees
+% 
 %   coordinates=[0 0 ; 0 1 ; 1 1 ; 1 0];
 %   connectivity=[1 2  4 ; 4 2 3 ];
 %   CtrlVar=Ua2D_DefaultParameters;
 %   CtrlVar.TriNodes=3;
 %   MUA=CreateMUA(CtrlVar,connectivity,coordinates);
-%
+% 
 %   CtrlVar.TriNodes=10; MUA=UpdateMUA(CtrlVar,MUA);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2) ;
 %   p=4;
 %   f=(1+x+y).^p;
-%
+% 
 %   I=0 ;
-%   nipv=[1 3 4 6 7 9 12 13 16 19 28 37];
-%   F=nipv*0;
-%   for nip=nipv
-%      CtrlVar.nip=nip ; CtrlVar.niph=nip ;
-%      Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
-%      Int=sum(Int);
-%      fprintf(' nip %i   \t Int=%f \n ',nip,Int)
-%      I=I+1 ; F(I)=Int;
+% 
+%   F=nan(10,1);
+%   D=nan(10,1);
+%   for Degree=1:10
+% 
+% 
+%     MUA.QuadratureRuleDegree=Degree;
+%     Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+%     MUA.nip=size(Q.Points,1);
+%     MUA.niph=size(Q.Points,1);
+%     CtrlVar.nip=MUA.nip;
+%     CtrlVar.niph=MUA.niph;
+%     MUA.points=Q.Points;
+%     MUA.weights=Q.Weights;
+%     [MUA.Deriv,MUA.DetJ]=CalcMeshDerivatives(CtrlVar,MUA.connectivity,MUA.coordinates,MUA.nip,MUA.points);
+% 
+%     Int=FEintegrateProduct2D(CtrlVar,MUA,x,y,f,f,f,f,f,f,f,f,f) ;
+% 
+%     Int=sum(Int);
+%     fprintf(' Degree %i \t  nip %i  \t Int=%f \n ',Degree,MUA.nip,Int)
+%     I=I+1 ; F(I)=Int; D(I)=Degree; 
+% 
 %   end
-%
-%   figure ; plot(nipv,F,'-x')
-%   xlabel('nip')
+% 
+%   figure ; plot(D,F,'-x')
+%   xlabel('Degree')
 %   ylabel('Fint')
-%
-%%
+% 
+% 
+% 
+% %%
 
 ndim=2;
 
-MUA=UpdateMUA(CtrlVar,MUA);
-
-[points,weights]=sample('triangle',MUA.nip,ndim);
 
 Int=zeros(MUA.Nele,1);
 
 for Iint=1:MUA.nip
     
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     detJ=MUA.DetJ(:,Iint);
-    detJw=detJ*weights(Iint);
+    detJw=detJ*MUA.weights(Iint);
     
     fint=1;
     for k=1:numel(varargin)
@@ -199,4 +247,6 @@ end
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

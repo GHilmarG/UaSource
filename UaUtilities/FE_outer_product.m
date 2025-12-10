@@ -14,6 +14,21 @@ function [UserVar,AB]=FE_outer_product(UserVar,CtrlVar,MUA,a,b)
 %
 % $$ M= |\phi> <\phi| $$
 %
+%
+% Note: If a and b are vectors which elements are all equal to 1, the outer product produced is equal to the mass matrix:
+%
+%   a=ones(MUA.Nnodes,1) ; b=ones(MUA.Nnodes,1) ;    
+%   [~,AB]=FE_outer_product(UserVar,CtrlVar,MUA,a,b);
+%   isequal(AB,MUA.M)
+%
+% The matrix is always symmetric:
+%
+%   a=rand(MUA.Nnodes,1) ; b=rand(MUA.Nnodes,1) ;    
+%   [~,AB]=FE_outer_product(UserVar,CtrlVar,MUA,a,b);
+%   all(all(abs(AB-AB')<eps(max(AB(:)))))
+%
+% apart from numerical rounding errors. To make it numerically symmetric I set:  AB=(AB+AB')/2; 
+%
 %% 
 
 narginchk(4,5)
@@ -29,8 +44,6 @@ a=a+zeros(MUA.Nnodes,1);
 b=b+zeros(MUA.Nnodes,1);
 anod=reshape(a(MUA.connectivity,1),MUA.Nele,MUA.nod);
 bnod=reshape(b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 
 ElementMatrix=zeros(MUA.Nele,MUA.nod,MUA.nod);
@@ -80,5 +93,7 @@ for Inod=1:MUA.nod
 end
 
 AB=sparseUA(Iind,Jind,Xval,neq,neq);
+AB=(AB+AB')/2 ; % make numerically symmetric
+
 
 end

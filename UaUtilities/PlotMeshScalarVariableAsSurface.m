@@ -103,6 +103,6 @@ axis equal ; tt=daspect ;
 daspect([mean(tt(1)+tt(2)) mean(tt(1)+tt(2)) tt(3)*CtrlVar.PlotXYscale/AspectRatio]);
 axis tight
 
-
+colormap(othercolor("Mdarkterrain",28))
 
 end

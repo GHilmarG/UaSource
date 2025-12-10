@@ -7,9 +7,9 @@ This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
       -->
 <title>ReleaseNotes</title>
-<meta name="generator" content="MATLAB 24.2">
+<meta name="generator" content="MATLAB 25.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2025-03-02">
+<meta name="DC.date" content="2025-07-29">
 <meta name="DC.source" content="ReleaseNotes.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -80,11 +80,58 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <!--introduction-->
 <!--/introduction-->
 <p>
+<b>Release Notes</b> <i>July 2025</i>
+</p>
+<div>
+<ul>
+<li>Enforcing post ice thickness can, as before, be done using the penalty method, by setting</li>
+</ul>
+</div>
+<pre>  CtrlVar.ThicknessPenalty=1;</pre>
+<p>This causes and additional implicit mass-balance term to be added</p>
+<p>
+<img src="ReleaseNotes_eq10662714216991378782.png" alt="$$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$" style="width:285px;height:16px;"></p>
+<p>where</p>
+<p>
+<img src="ReleaseNotes_eq07689733156841144414.png" alt="$$h < h_{\min}$$" style="width:49px;height:13px;"></p>
+<p>and where:</p>
+<pre>a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
+a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
+a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;</pre>
+<p>Note: <img src="ReleaseNotes_eq03340046386025214237.png" alt="$a_1$" style="width:12px;height:9px;"> and <img src="ReleaseNotes_eq04501319792892868238.png" alt="$a_3$" style="width:13px;height:9px;"> need to be negative and <img src="ReleaseNotes_eq05038974766009111163.png" alt="$a_2$" style="width:12px;height:9px;"> positive, however, this is check internally so actually the sign on input is immaterial.</p>
+<div>
+<ul>
+<li>By setting:</li>
+</ul>
+</div>
+<pre class="language-matlab">CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
+</pre>
+<p>nodes of boundary elements can now be excluded from the active set. By default this is false, which is the previous behavior.</p>
+<pre>The parameter:</pre>
+<pre class="language-matlab">CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
+</pre>
+<p>is no longer used. Instead the interval is now identical to the general adapt-meshing interval. See further explanation in Ua2D_DefaultParameters.m</p>
+<p>
+<b>Release Notes</b> <i>May 2025</i>
+</p>
+<p>The call to</p>
+<pre class="language-matlab">DefineDesiredEleSize.m
+</pre>
+<p>now only accepts one combination of the number of input and output variables.</p>
+<p>UaUtilities contains a new function:</p>
+<pre class="language-matlab">ElementErrorEstimator(CtrlVar,MUA,F)
+</pre>
+<p>which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository.</p>
+<p>Also within UaUtilities is the function</p>
+<pre class="language-matlab">InfluxOutfluxNodes.m
+</pre>
+<p>which can be used to find nodes along the boundary where the velocity vectors are oriented into the domain (influx/inflow nodes) and out of the domain (outflux/outflow nodes). This can be used, for example, in when defining boundary condition to ensure that flux into the domain is some given value, e.g. zero.</p>
+<p>
 <b>Release Notes</b> <i>March 2025</i>
 </p>
-<p>The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration points.</p>
-<p>Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the user setting imply automated start of a parallel pool whenever parfor or smpd is encountered.</p>
-<p>Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the F from previous time step. Note that when the mass balance/thickness feedback is activated, the mass balance function is called within the assembly loop and then the mass balance will not lag behind.</p>
+<p>The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference is that the flotation condition, which involves the product rho and h, is now evaluated at integration pSainanoints directly. Previously in the uv solve, it was evaluated by first forming the product, rho h, at nodes and then interpolating the product to the integration points.</p>
+<p>Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found, all parallel options are turned off, and the run proceeds in non-parallel mode.</p>
+<p>Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the &Uacute;a fields, F0, was same as the F from previous time step. Note that when the mass balance/thickness feedback is activated, the mass balance function is called within the assembly loop and then the mass balance will not lag behind.</p>
 <p>The start and end times can now be specified using (new option):</p>
 <pre class="language-matlab">CtrlVar.StartTime
 CtrlVar.EndTime
@@ -95,8 +142,9 @@ CtlrVar.TotalTime
 </pre>
 <p>The previous option still works, but the new option is recommended.</p>
 <p>When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.</p>
-<p>The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function used in the level-set solver.</p>
-<p>The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set method to enforce positive thickness.</p>
+<p>The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function used in the level-set solver.</p>
+<p>The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set method to enforce positive thickness.</p>
+<p>The model was tested with MATLAB R2024b</p>
 <p>
 <b>Release Notes</b> <i>September 2024</i>
 </p>
@@ -115,8 +163,8 @@ CtlrVar.TotalTime
 <pre class="language-matlab">[tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
 </pre>
 <p>has been updated to allow for calculation at integration points (before only calculated nodal values).</p>
-<p>An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations corrected. Thanks to Sainan Sun for point this out.</p>
-<p>A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.</p>
+<p>An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations corrected. Thanks to Sainan Sun for pointing this out.</p>
+<p>*A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.</p>
 <p>
 <b>Release Notes</b> <i>March 2024</i>
 </p>
@@ -132,7 +180,7 @@ CtrlVar.Parallel.uvAssembly.spmd.isOn=true;     <span class="comment">% uv assem
 <p>The linear system can now also be solved using distributed arrays, although not all cases yet implemented. Turn this on/off as:</p>
 <pre class="language-matlab">CtrlVar.Parallel.Distribute=true/false;                       <span class="comment">% linear system is solved using distributed arrays.</span>
 </pre>
-<p>Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated by Ua and other FE programs.</p>
+<p>Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated by &Uacute;a and other FE programs.</p>
 <pre class="language-matlab">CtrlVar.Parallel.isTest=false/true;             <span class="comment">% Runs both with and without parallel approach, and prints out some information on relative performance.</span>
                                                 <span class="comment">% Good for testing if switching on the parallel options speeds things up, and by how much.</span>
 </pre>
@@ -374,7 +422,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 </div>
 <div>
 <ul>
-<li>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and Umbi. Refer to the Ua compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</li>
+<li>Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai, Cornford, and Umbi. Refer to the &Uacute;a compendium for definition of these different sliding laws. Inversion is also possible for all these sliding laws except for the Coulomb sliding.</li>
 </ul>
 </div>
 <div>
@@ -417,7 +465,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 <p>finds all nodes/elements connected to a given node fulfilling some additional criterion.</p>
 <p class="footer">
 <br>
-<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024b</a>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025a</a>
 <br>
 </p>
 </div>
@@ -427,22 +475,85 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 
 %%
 %
+% *Release Notes* _July 2025_
+%
+% * Enforcing post ice thickness can, as before, be done using the penalty method, by setting 
+% 
+%
+%    CtrlVar.ThicknessPenalty=1;  
+%
+% This causes and additional implicit mass-balance term to be added 
+%
+% $$a^{\star} = a_1 (h-h_{\min}) + a_2 (h-h_{\min})^2 + a_3 (h-h_{\min})^3 $$
+% 
+% where 
+% 
+% $$h < h_{\min}$$
+% 
+% and where:
+%
+%  a_1 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffLin
+%  a_2 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffQuad;
+%  a_3 = CtrlVar.ThicknessPenaltyMassBalanceFeedbackCoeffCubic;
+%                                                             
+% Note: $a_1$ and $a_3$ need to be negative and $a_2$ positive, however, this is check internally so actually the sign on input is
+% immaterial. 
+%
+% * By setting:
+% 
+%   CtrlVar.ActiveSet.ExcludeNodesOfBoundaryElements=true;
+%                                                        
+% nodes of boundary elements can now be excluded from the active set. By default this is false, which is the previous
+% behavior.
+%
+%  The parameter:
+%
+%   CtrlVar.LevelSetMethodAutomaticallyDeactivateElementsRunStepInterval
+%
+% is no longer used.  Instead the interval is now identical to the general adapt-meshing interval. See further
+% explanation in Ua2D_DefaultParameters.m
+%
+% *Release Notes* _May 2025_
+%
+% The call to  
+% 
+%   DefineDesiredEleSize.m
+% 
+% now only accepts one combination of the number of input and output variables. 
+% 
+% UaUtilities contains a new function: 
+%
+%   ElementErrorEstimator(CtrlVar,MUA,F)
+%
+% which provides a "Recovery-based error estimator". An example of how to use this error indicator for automated mesh
+% refinement and un-refinement is provided in "1dIceStream" example within the UaExamples repository. 
+%
+% Also within UaUtilities is the function 
+%
+%   InfluxOutfluxNodes.m
+%
+% which can be used to find nodes along the boundary where the velocity vectors are oriented into the domain (influx/inflow nodes) and
+% out of the domain (outflux/outflow nodes). This can be used, for example, in when defining boundary condition to ensure
+% that flux into the domain is some given value, e.g. zero.
+%
+%
 % *Release Notes* _March 2025_
 %
-% The uv assembly was changed slightly to make the assembly with respect to h more consistent with the uvh assembly. This can
-% lead to uv solve to be different if the ice density is varying greatly specially. The basic difference is that the
-% flotation condition, which involves the product rho and h, is now evaluated at integration points directly. Previously in
-% the uv solve it was evaluated by first forming the product, rho h, at nodes and then interpolated to the integration
-% points.
+% The uv assembly was changed slightly to make the assembly with respect to ice thickness, h, better consistent with the uvh
+% assembly. This can lead to uv solve to be different if the ice density is varying greatly spatially. The basic difference
+% is that the flotation condition, which involves the product rho and h, is now evaluated at integration pSainanoints directly.
+% Previously in the uv solve, it was evaluated by first forming the product, rho h, at nodes and then interpolating the
+% product to the integration points.
 %
 % Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
 % ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
-% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered.
+% user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
+% all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
 % Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce the calls to DefineMassBalance, and to make sure that the mass balance of the Ua fields, F0, was same as the
+% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
-% called within the assembly loop and then the mass balance will not lag behind. 
+% called within the assembly loop and then the mass balance will not lag behind.
 %
 % The start and end times can now be specified using (new option):
 %
@@ -459,11 +570,13 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % When not inverting for both A and C, the variable InvValues was not updated in last call, leading to a possible mismatch
 % between F.A and InvValues.A. Thanks to Camilla Schelpe for identifying this.
 %
-% The implementation of the ice-thickness barrier function has been simplified, and is not similar to the barrier function
+% The implementation of the ice-thickness barrier function has been simplified, and is now similar to the barrier function
 % used in the level-set solver.
 %
-% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), not uses the active-set
+% The MassContinuity solver, (only used when solving for h alone, and not in uv or uvh solves), now uses the active-set
 % method to enforce positive thickness.
+%
+% The model was tested with MATLAB R2024b 
 %
 % *Release Notes* _September 2024_
 %
@@ -495,9 +608,9 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % has been updated to allow for calculation at integration points (before only calculated nodal values).
 %
 % An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
-% corrected. Thanks to Sainan Sun for point this out. 
+% corrected. Thanks to Sainan Sun for pointing this out. 
 %
-% A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
+% *A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
 %
 % *Release Notes* _March 2024_
 %
@@ -525,7 +638,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 %   CtrlVar.Parallel.Distribute=true/false;                       % linear system is solved using distributed arrays. 
 %
 % Again, the speedup is problem dependent and never particularly large for low density sparse matrices as typically generated
-% by Ua and other FE programs. 
+% by Úa and other FE programs. 
 %
 %   CtrlVar.Parallel.isTest=false/true;             % Runs both with and without parallel approach, and prints out some information on relative performance. 
 %                                                   % Good for testing if switching on the parallel options speeds things up, and by how much.
@@ -816,7 +929,7 @@ find <span class="string">.</span> <span class="string">-name</span> <span class
 % computational domain during the run.
 % 
 % * Several new sliding laws are now implemented. These include Weertman, Coulomb, Budd, Tsai,
-% Cornford, and  Umbi. Refer to the Ua compendium for definition of these
+% Cornford, and  Umbi. Refer to the Úa compendium for definition of these
 % different sliding laws. Inversion is also possible for all these sliding laws except for
 % the Coulomb sliding.
 % 

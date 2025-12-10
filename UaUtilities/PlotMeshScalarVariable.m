@@ -82,7 +82,7 @@ elseif N==MUA.Nele && M==MUA.nip % integration-point  variable
     % get rid of triangles outside of the polygon define by MeshBoundaryCoordinates
     ic=incenter(DTint);
    
-    %[isInside,on] = inpoly2(ic,[x(MUA.Boundary.EdgeCornerNodes) y(MUA.Boundary.EdgeCornerNodes)]);
+  
 
     % 10/07/2024: This takes care of multiple boundaries, separated by nans
     [isInside,isOnBounday]=InsideOutside(ic,[MUA.Boundary.x MUA.Boundary.y]) ;

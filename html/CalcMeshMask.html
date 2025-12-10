@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcMeshMask</title><meta name="generator" content="MATLAB 9.11"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2022-01-25"><meta name="DC.source" content="CalcMeshMask.m"><style type="text/css">
+      -->
+<title>CalcMeshMask</title>
+<meta name="generator" content="MATLAB 25.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-06-24">
+<meta name="DC.source" content="CalcMeshMask.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,14 +72,35 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
-</pre><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
-</pre><p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p><p>Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.</p><p>Mask is returned as a logical array where:</p><p>Mask.NodesOn  :  True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold</p><p>Mask.NodesIn  :  True for nodes belonging to elements where ALL of the nodal values are above the Threshold</p><p>Mask.NodesOut :  True for nodes belonging to elements where ALL of the nodal values are below the Threshold</p><p>A corresponding element mask is also returned.</p><p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strickly' below a given threshold value.</p><p>Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.</p><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0) ;
-</pre><p>or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.</p><pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0) ;
-</pre><p>Example: Create a mask based on ice thickness above and below 100.</p><pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span>
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
+</pre>
+<pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
+</pre>
+<p>In general a (nodal) mask is an nodal array of values between 0 and 1 indicating if a the value of the NodalField at a given node is lower or higher than the specified Threshold.</p>
+<p>Here both an element and a nodal mask is calculated for the NodalField based on the value of Threshold.</p>
+<p>Mask is returned as a logical array where:</p>
+<p>Mask.NodesOn : True for nodes belonging to elements where SOME of the nodal values are above AND SOME below the Threshold</p>
+<p>Mask.NodesIn : True for nodes belonging to elements where ALL of the nodal values are above the Threshold</p>
+<p>Mask.NodesOut : True for nodes belonging to elements where ALL of the nodal values are below the Threshold</p>
+<p>A corresponding element mask is also returned.</p>
+<p>This definition of In/Out is sometimes also referred to as being 'strictly' above or 'strictly' below a given threshold value.</p>
+<p>Typical uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.</p>
+<pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0.5) ;
+</pre>
+<p>or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.</p>
+<pre class="language-matlab">Mask=CalcMeshMask(CtrlVar,MUA,F.LSF,0) ;
+</pre>
+<p>Example: Create a mask based on ice thickness above and below 100.</p>
+<pre class="language-matlab">load <span class="string">PIG-TWG-RestartFile.mat</span>
 CtrlVar=CtrlVarInRestartFile;
 Mask=CalcMeshMask(CtrlVar,MUA,F.h,100);
-</pre><pre class="language-matlab">FindOrCreateFigure(<span class="string">"Nodal Mask"</span>) ;
+</pre>
+<pre class="language-matlab">FindOrCreateFigure(<span class="string">"Nodal Mask"</span>) ;
 CtrlVar.PlotNodes=0; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 PlotMuaMesh(CtrlVar,MUA) ;
 hold <span class="string">on</span> ;
@@ -83,10 +109,12 @@ p1=plot(x(Mask.NodesIn)/CtrlVar.PlotXYscale,y(Mask.NodesIn)/CtrlVar.PlotXYscale,
 p2=plot(x(Mask.NodesOn)/CtrlVar.PlotXYscale,y(Mask.NodesOn)/CtrlVar.PlotXYscale,<span class="string">'og'</span>,<span class="string">'DisplayName'</span>,<span class="string">'On'</span>);
 p3=plot(x(Mask.NodesOut)/CtrlVar.PlotXYscale,y(Mask.NodesOut)/CtrlVar.PlotXYscale,<span class="string">'ob'</span>,<span class="string">'DisplayName'</span>,<span class="string">'Out'</span>);
 legend([p1 p2 p3])
-</pre><pre class="codeinput">narginchk(3,6)
+</pre>
+<pre class="codeinput">narginchk(3,6)
 nargoutchk(1,4)
 
 <span class="keyword">if</span> isempty(NodalField)
+    Mask=[];
     <span class="keyword">return</span>
 <span class="keyword">end</span>
 
@@ -113,8 +141,19 @@ Mask.NodesIn=Mask.NodesIn &amp; ~Mask.NodesOn;
 
 
 <span class="keyword">return</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021b</a><br></p></div><!--
+</pre>
+<pre class="codeoutput error">Error using CalcMeshMask (line 55)
+Not enough input arguments.</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025a</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 
@@ -126,7 +165,7 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % if a the value of the NodalField at a given node is lower or higher than
 % the specified Threshold.
 % 
-% Here both an element and a nodel mask is calculated for the NodalField based on the value of Threshold.
+% Here both an element and a nodal mask is calculated for the NodalField based on the value of Threshold.
 %
 % Mask is returned as a logical array where:
 % 
@@ -139,11 +178,11 @@ function Mask=CalcMeshMask(CtrlVar,MUA,NodalField,Threshold)
 % A corresponding element mask is also returned. 
 % 
 % This definition of In/Out is sometimes also referred to as being 'strictly' above or
-% 'strickly' below a given threshold value. 
+% 'strictly' below a given threshold value. 
 %
-% Typicall uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
+% Typical uses involve calculating nodes above and below the grounding line based on the NodalField F.GF.node, e.g.
 %
-%   Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0) ;
+%   Mask=CalcMeshMask(CtrlVar,MUA,F.GF.node,0.5) ;
 %
 % or to find nodes and elements above and below the calving front if one uses the level-set method, e.g.
 %
@@ -174,6 +213,7 @@ narginchk(3,6)
 nargoutchk(1,4)
 
 if isempty(NodalField)
+    Mask=[]; 
     return
 end
 
@@ -205,4 +245,6 @@ return
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

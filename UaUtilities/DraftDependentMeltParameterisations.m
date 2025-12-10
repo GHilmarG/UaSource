@@ -119,7 +119,7 @@ switch MRP
                 dMax=-500  ; % Here abMax is y-dependent
 
                 Y1=-700e3 ;    abMaxY1=-50;
-                Y2=-400e3 ;    abMaxY2=-175;
+                Y2=-400e3 ;    abMaxY2=-200;
 
             case {"ASE6","lASE6"}  % an attempt to come up with something for the Amundsen Sea Embayment that works for the whole region
 

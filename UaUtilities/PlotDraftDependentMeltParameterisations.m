@@ -21,6 +21,7 @@ MUA=[];
 
 
 MRP=["0","1","2","3","4","5"] ;
+MRP=["l0","l1","l2","l3","l4","l5"] ;
 
 % MRP=["0","l0"] ;
 % MRP=["1","l1"] ;
@@ -36,13 +37,15 @@ fig=FindOrCreateFigure("ab") ; clf(fig) ;
 
 hold on
 
+linestyleVector=["-","-",":","-.","-.","--"] ;
+
 for I=1:numel(MRP)
 
     [F.ab,F.dabdh]=DraftDependentMeltParameterisations(UserVar,CtrlVar,F,MRP(I)) ;
 
     %yyaxis left
-    plot(F.b,F.ab,color=ColorMap(I,:),LineStyle="-",LineWidth=2,Marker="none",Displayname="Melt "+MRP(I))
-    ylabel("basal ablation, $a_b$ (m/yr)",Interpreter="latex")
+    plot(F.b,F.ab,color=ColorMap(I,:),LineStyle=linestyleVector(I),LineWidth=2,Marker="none",Displayname=" "+MRP(I))
+    ylabel("basal ablation, $a_b$ (m/yr)",Interpreter="latex",FontSize=14)
 
     % hold on
     % yyaxis right
@@ -51,9 +54,10 @@ for I=1:numel(MRP)
 
 end
 
-xlabel("lower ice surface, $b$ (m a.s.l.)",Interpreter="latex")
 
-legend(Location="best")
+xlabel("lower ice surface, $b$ (m a.s.l.)",Interpreter="latex",FontSize=14)
+lg=legend(Location="best",FontSize=14);
+title(lg,"Parameterisation")
 
 axis padded
 fig = gcf; exportgraphics(fig,'MeltRateParameterisations.pdf')
