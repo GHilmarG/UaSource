@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=...
     DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 
@@ -27,17 +33,19 @@ if isempty(FuMeas)
     %
     % which is the name of a mat file containing surface velocity data interpolants.
     %
-    %
+    
     
     fprintf('Loading interpolants for surface velocity data: %-s ',UserVar.SurfaceVelocityInterpolant)
     load(UserVar.SurfaceVelocityInterpolant,'FuMeas','FvMeas','FerrMeas')
     fprintf(' done.\n')
+
+
 end
 
 % Now interpolate the data onto the nodes of the mesh
-Meas.us=double(FuMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
-Meas.vs=double(FvMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
-Err=double(FerrMeas(MUA.coordinates(:,1),MUA.coordinates(:,2)));
+Meas.us=double(FuMeas(F.x,F.y));
+Meas.vs=double(FvMeas(F.x,F.y));
+Err=double(FerrMeas(F.x,F.y));
 
 % Here I set any NaN values to 0. The assumption here is that these NaN values represent missing data and I set these values to 0. This
 % may, or may not, be a good idea. But the important thing is to set the errors where data is missing to some really high value. Here I
