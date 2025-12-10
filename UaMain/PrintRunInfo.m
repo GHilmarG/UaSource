@@ -6,11 +6,7 @@ function PrintRunInfo(CtrlVar)
 
 
 fprintf(CtrlVar.fidlog,'\n \n');
-<<<<<<< HEAD
-fprintf(CtrlVar.fidlog,' *************************    %ca version: 8 December 2025 (beta)  ********************* \n',218);
-=======
-fprintf(CtrlVar.fidlog,' **************************    %ca version: 9 December 2025 (alpha)  ********************** \n',218);
->>>>>>> c510258bb5a147120099f6d25a6eae88f6f9c365
+fprintf(CtrlVar.fidlog,' *************************    %ca version: 9 December 2025 (beta)  ********************* \n',218);
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
 fprintf(CtrlVar.fidlog,'   Experiment: %s  \n ',CtrlVar.Experiment);
 
@@ -55,7 +51,7 @@ if  status==0
     fprintf('   Running on: %s ',hostname)
 end
 
-fprintf(CtrlVar.fidlog,'***************************************************************************** \n \n');
+fprintf(CtrlVar.fidlog,'****************************************************************************** \n \n');
 
 
 end
