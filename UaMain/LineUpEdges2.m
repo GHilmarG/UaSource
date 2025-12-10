@@ -1,10 +1,10 @@
 function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 
-%% Line up line segments to form continous lines with NaN where gaps.
+%% Line up line segments to form continuous lines with NaN where gaps.
 % [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %
 % Lines up edges. Takes edges (i.e. line segments) and lines them up to form
-% continous lines, with NaN where there is a gap between edges
+% continuous lines, with NaN where there is a gap between edges
 %
 %
 %  xa,  xb, ya, yb     : vectors defining the start and end x,y coordinates of
@@ -16,7 +16,7 @@ function [xPolygon,yPolygon]=LineUpEdges2(CtrlVar,xa,xb,ya,yb,LineMax)
 %                        longest line is returned
 %
 %
-% Line segments are considered to belong to seperate lines if the distance between start/end points
+% Line segments are considered to belong to separate lines if the distance between start/end points
 % is larger than CtrlVar.LineUpTolerance
 %
 % The default value is CtrlVar.LineUpTolerance=100*eps ;
@@ -80,14 +80,14 @@ if nargin<6
     LineMax=inf;
 end
 
-% sort values in a circular manner around the mean centerpoint.
+% sort values in a circular manner around the mean center-point.
 % This usually speeds things up as it makes it more likely that individual line segments are already aligned.
 Theta=atan2(ya-mean(ya),xa-mean(xa));
 [~,I]=sort(Theta);
 xa=xa(I) ; ya=ya(I) ; xb=xb(I) ; yb=yb(I);
 
 N=length(xa);
-xPolygon=zeros(3*N,1)+inf ; yPolygon=zeros(3*N,1)+inf; % upper estimate, all edges are seperate lines segments
+xPolygon=zeros(3*N,1)+inf ; yPolygon=zeros(3*N,1)+inf; % upper estimate, all edges are separate lines segments
 
 i=1;
 l=i; % l is the starting point of the current segment
@@ -105,7 +105,7 @@ while ~all(isnan(xa))
    
     
     % find input GL location closest to last included output GL pos
-    % the current endpoint of the polygone is
+    % the current endpoint of the polygon is
     % (xPolygon(k),yPolygon(k))
     sa=(xPolygon(k)-xa).^2+(yPolygon(k)-ya).^2;  % distance to all the `a' end points of remaining edges to the current end point of the merged line
     sb=(xPolygon(k)-xb).^2+(yPolygon(k)-yb).^2;  % distance to all the `b' end points of remaining edges to the current end point of the merged line
@@ -174,10 +174,10 @@ while ~all(isnan(xa))
             end
         end
         
-    elseif ~flipped   % flipp once
+    elseif ~flipped   % flip once
         
         flipped=1;
-        % Now flip the line segment and transverse in the oposite direction
+        % Now flip the line segment and transverse in the opposite direction
         xPolygon(l:k)=flipud(xPolygon(l:k));
         yPolygon(l:k)=flipud(yPolygon(l:k));
         
@@ -222,7 +222,7 @@ end
 I=isinf(xPolygon);
 xPolygon(I)=[] ; yPolygon(I)=[];
 
-%% rearange GLs in order of total number of points withing each GL
+%% rearrange GLs in order of total number of points withing each GL
 
 
 xPolygon=[xPolygon;NaN] ; yPolygon=[yPolygon;NaN];
@@ -275,7 +275,7 @@ I=isnan(xx);
 K=find(I);                % labels of nan
 if any(diff(K)==2)  % OK so there are some segments with just one point
 
-    d=xx+nan ;                % generous pre-allocation
+    d=xx+nan ;                % generous preallocation
     nn=1;
     for k=1:numel(K)-1      % loop over nan
         iD=K(k+1)-K(k) ;    % if two adjacent nan are diff by 2, then the line between those has only one point

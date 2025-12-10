@@ -50,10 +50,16 @@ end
 % Populate F with the current values in the vector p ahead of a call the the forward model.
 F=p2F(CtrlVar,MUA,p,F,Meas,Priors);
 
-if any(isnan(F.C)) 
-    save TestSave ; 
-    error( ' C nan ') ; 
+if anynan(F.C)
+    error("JGH:Cnan","nan in C")
 end
+if anynan(F.AGlen)
+    error("JGH:Anan","nan in A")
+end
+if anynan(F.B)
+    error("JGH:Bnan","nan in B")
+end
+
 
 % This is a call to the forward model.
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);

@@ -323,37 +323,41 @@ end
 
 %%
 
-fig=FindOrCreateFigure('Speed misfit') ; clf(fig)
+fig=FindOrCreateFigure("Speed misfit") ; clf(fig)
 speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
 ErrSpeed=sqrt(usError.^2+vsError.^2);
 
-
-T=tiledlayout(2,2);
+T=tiledlayout("flow");
 
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,speedMeas,CreateNewFigure=false) ; title('Measured speed') ; set(gca,'ColorScale','log')
 title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|$",interpreter="latex")
+CL=clim; 
 
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,speedCalc,CreateNewFigure=false) ; title('Modelled speed') ; set(gca,'ColorScale','log')
 title(cbar,"$\|\mathbf{v}_\mathrm{Modelled}\|$",interpreter="latex")
+clim(CL);
+subtitle("(Same colorbar scale as for measured speed)")
 
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
 title(cbar,"error",interpreter="latex")
 
+
 nexttile
 D=speedMeas-speedCalc ;
-cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','log')
+cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','lin')
 title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
 T.Padding="tight";   T.TileSpacing="tight";
 
 
 %%
 fig=FindOrCreateFigure('velocity misfit') ; clf(fig)
-Kplot=0;
-T=tiledlayout;
+
+
+T=tiledlayout("flow");
 
 nexttile
 % Kplot=Kplot+1;     subplot(Iplot,Jplot,Kplot);
@@ -649,7 +653,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
         %%
         IFigb=FindOrCreateFigure("Inversion B") ; clf(IFigb)
-        TileB=tiledlayout(2,2) ;
+        TileB=tiledlayout("flow");
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
         title('$dJ/dB$ Adjoint gradient')
@@ -722,12 +726,12 @@ else
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
     if contains(lower(CtrlVar.Inverse.InvertFor),'c')
-        if ~isempty(Priors.TrueC)
+        if ~isempty(Priors.TrueC)  && ~anynan(Priors.TrueC)
 
 
             figC=FindOrCreateFigure("True and estimated C"); clf(figC);
 
-            T=tiledlayout(2,3);
+            T=tiledlayout("flow");
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
@@ -767,13 +771,13 @@ else
 
     if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
 
-        if ~isempty(Priors.TrueAGlen)
+        if ~isempty(Priors.TrueAGlen) && ~anynan(Priors.TrueAGlen)
 
 
 
             tFig1=FindOrCreateFigure("True and estimated AGlen"); clf(tFig1 );
 
-            T=tiledlayout(2,2);
+            T=tiledlayout("flow");
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
@@ -804,7 +808,7 @@ else
 
     if contains(CtrlVar.Inverse.InvertFor,'-B-')
 
-        if ~isempty(Priors.TrueB)
+        if ~isempty(Priors.TrueB)  && ~anynan(Priors.TrueB)
 
             %% B
 
@@ -814,11 +818,11 @@ else
           
         end
 
-        if ~isempty(Priors.Trueh)
+        if ~isempty(Priors.Trueh)  && ~anynan(Priors.Trueh)
             %% h
 
             figh=FindOrCreateFigure("True and estimated h"); clf(figh)
-            TB=tiledlayout(2,2) ;
+            TB=tiledlayout("flow") ;
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.Trueh,CreateNewFigure=false);

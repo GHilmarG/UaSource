@@ -1,4 +1,6 @@
-classdef (ConstructOnLoad) UaRunInfo
+
+
+classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization 
 
     properties
 
@@ -92,10 +94,10 @@ classdef (ConstructOnLoad) UaRunInfo
             obj.LevelSet.Phase=strings(N,1);
 
 
-            obj.CPU.tic=[];
-            obj.CPU.toc=[];
+            obj.CPU.tic=duration(0,0,0);
+            obj.CPU.toc=duration(0,0,0);
           
-            obj.CPU.Total=[];
+            obj.CPU.Total=duration(0,0,0);
             
 
             obj.CPU.Assembly.uv=[];
@@ -105,9 +107,9 @@ classdef (ConstructOnLoad) UaRunInfo
 
             obj.CPU.Inversion=[];
 
-            obj.WallTime.Total=[];
-            obj.WallTime.tic=[];
-            obj.WallTime.toc=[];
+            obj.WallTime.Total=duration(0,0,0);
+            obj.WallTime.tic=duration(0,0,0);
+            obj.WallTime.toc=duration(0,0,0);
 
             obj.Message="" ;
 
@@ -208,73 +210,180 @@ classdef (ConstructOnLoad) UaRunInfo
     end
 
     methods (Static)
-        function obj = loadobj(s)
+        % function obj = loadobj(s)
+        % 
+        %     obj=s;
+        % 
+        %     % Make sure the loaded UaRunInfo is up-to date
+        %     % add in here any new modifications
+        %     if ~isfield(s.Forward,'AdaptiveTimeSteppingResetCounter')
+        %         obj.Forward.AdaptiveTimeSteppingResetCounter=0;
+        %     end
+        % 
+        %     if ~isfield(s.Forward,'uvhIterations')
+        % 
+        %         N=2; % initial memory allocation
+        %         obj.Forward.time=NaN(N,1);
+        %         obj.Forward.dt=NaN(N,1);
+        %         obj.Forward.uvhIterations=NaN(N,1);
+        %         obj.Forward.uvhResidual=NaN(N,1);
+        %         obj.Forward.uvhBackTrackSteps=NaN(N,1);
+        % 
+        %         obj.Forward.uvhActiveSetIterations=NaN(N,1);
+        %         obj.Forward.uvhActiveSetCyclical=NaN(N,1);
+        %         obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+        % 
+        %     end
+        % 
+        %     if ~isfield(s.Forward,'hActiveSetIterations')
+        %         N=2; 
+        %         obj.Forward.hActiveSetIterations=NaN(N,1);
+        %         obj.Forward.hActiveSetCyclical=NaN(N,1);
+        %         obj.Forward.hActiveSetConstraints=NaN(N,1);
+        % 
+        %     end
+        % 
+        %     if ~isfield(s.BackTrack,'iarm')
+        % 
+        %         obj.BackTrack.Converged=NaN;
+        %         obj.BackTrack.iarm=NaN;
+        %         obj.BackTrack.Infovector=NaN;
+        %         obj.BackTrack.nFuncEval=NaN;
+        %         obj.BackTrack.nExtrapolationSteps=NaN;
+        % 
+        % 
+        %     end
+        % 
+        %     if ~isfield(s.Forward,'hiCount')
+        %         obj.Forward.hiCount=0;
+        %     end
+        % 
+        % 
+        %     if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
+        %         obj.Forward.ubvbRecalculatedOnNewMesh=false;
+        %     end
+        % 
+        %     if ~isfield(s.LevelSet,'SolverConverged')
+        %         obj.LevelSet.SolverConverged=0;
+        %         obj.LevelSet.Iterations=NaN;
+        %         obj.LevelSet.rForce=NaN;
+        %         obj.LevelSet.rWork=NaN;
+        %     end
+        % 
+        %     if ~isfield(s.Inverse,'nFuncEval')
+        %         obj.Inverse.nFuncEval = 0 ;
+        %     end
+        %
+        %
+        %     if ~isfield(s.CPU,'tic')
+        %         s.CPU.tic=0;
+        %     end
+        % end
 
-            obj=s;
+
+        function modifyIncomingSerializationContent(sObj)
+
 
             % Make sure the loaded UaRunInfo is up-to date
             % add in here any new modifications
-            if ~isfield(s.Forward,'AdaptiveTimeSteppingResetCounter')
-                obj.Forward.AdaptiveTimeSteppingResetCounter=0;
+            if ~isfield(sObj.Forward,'AdaptiveTimeSteppingResetCounter')
+                sObj.Forward.AdaptiveTimeSteppingResetCounter=0;
             end
 
-            if ~isfield(s.Forward,'uvhIterations')
+            if ~isfield(sObj.Forward,'uvhIterations')
 
                 N=2; % initial memory allocation
-                obj.Forward.time=NaN(N,1);
-                obj.Forward.dt=NaN(N,1);
-                obj.Forward.uvhIterations=NaN(N,1);
-                obj.Forward.uvhResidual=NaN(N,1);
-                obj.Forward.uvhBackTrackSteps=NaN(N,1);
+                sObj.Forward.time=NaN(N,1);
+                sObj.Forward.dt=NaN(N,1);
+                sObj.Forward.uvhIterations=NaN(N,1);
+                sObj.Forward.uvhResidual=NaN(N,1);
+                sObj.Forward.uvhBackTrackSteps=NaN(N,1);
 
-                obj.Forward.uvhActiveSetIterations=NaN(N,1);
-                obj.Forward.uvhActiveSetCyclical=NaN(N,1);
-                obj.Forward.uvhActiveSetConstraints=NaN(N,1);
+                sObj.Forward.uvhActiveSetIterations=NaN(N,1);
+                sObj.Forward.uvhActiveSetCyclical=NaN(N,1);
+                sObj.Forward.uvhActiveSetConstraints=NaN(N,1);
 
             end
 
-            if ~isfield(s.Forward,'hActiveSetIterations')
+            if ~isfield(sObj.Forward,'hActiveSetIterations')
                 N=2; 
-                obj.Forward.hActiveSetIterations=NaN(N,1);
-                obj.Forward.hActiveSetCyclical=NaN(N,1);
-                obj.Forward.hActiveSetConstraints=NaN(N,1);
+                sObj.Forward.hActiveSetIterations=NaN(N,1);
+                sObj.Forward.hActiveSetCyclical=NaN(N,1);
+                sObj.Forward.hActiveSetConstraints=NaN(N,1);
 
             end
 
-            if ~isfield(s.BackTrack,'iarm')
+            if ~isfield(sObj.BackTrack,'iarm')
 
-                obj.BackTrack.Converged=NaN;
-                obj.BackTrack.iarm=NaN;
-                obj.BackTrack.Infovector=NaN;
-                obj.BackTrack.nFuncEval=NaN;
-                obj.BackTrack.nExtrapolationSteps=NaN;
+                sObj.BackTrack.Converged=NaN;
+                sObj.BackTrack.iarm=NaN;
+                sObj.BackTrack.Infovector=NaN;
+                sObj.BackTrack.nFuncEval=NaN;
+                sObj.BackTrack.nExtrapolationSteps=NaN;
 
 
             end
 
-            if ~isfield(s.Forward,'hiCount')
-                obj.Forward.hiCount=0;
-            end
-          
-
-            if ~isfield(s.Forward,'ubvbRecalculatedOnNewMesh')
-                obj.Forward.ubvbRecalculatedOnNewMesh=false;
+            if ~isfield(sObj.Forward,'hiCount')
+                sObj.Forward.hiCount=0;
             end
 
-            if ~isfield(s.LevelSet,'SolverConverged')
-                obj.LevelSet.SolverConverged=0;
-                obj.LevelSet.Iterations=NaN;
-                obj.LevelSet.rForce=NaN;
-                obj.LevelSet.rWork=NaN;
+
+            if ~isfield(sObj.Forward,'ubvbRecalculatedOnNewMesh')
+                sObj.Forward.ubvbRecalculatedOnNewMesh=false;
             end
 
-            if ~isfield(s.Inverse,'nFuncEval')
-                obj.Inverse.nFuncEval = 0 ;
+     
+
+            if ~isfield(sObj.Inverse,'nFuncEval')
+                sObj.Inverse.nFuncEval = 0 ;
             end
 
+
+
+
+
+            if ~isfield(sObj.CPU,"tic")
+                sObj.CPU.tic=duration(0,0,0);
+                sObj.CPU.toc=duration(0,0,0);
+            end
+
+            if ~isfield(sObj.CPU,"Total")
+                sObj.CPU.Total=duration(0,0,0);
+            end
+
+            if ~sObj.hasNameValue("WallTime")
+               sObj.addNameValue("WallTime",struct("Total",duration(0,0,0),"tic",duration(0,0,0),"toc",duration(0,0,0)))
+            end
+     
+
+            if ~isfield(sObj.WallTime,"Total")
+                sObj.WallTime.Total=duration(0,0,0);
+                sObj.WallTime.tic=duration(0,0,0);
+                sObj.WallTime.toc=duration(0,0,0);
+            end
+
+            if ~sObj.hasNameValue("LevelSet")
+
+                N=2;
+                sObj.addNameValue("LevelSet",struct("iCount",0,"time",NaN(N,1),"Iterations",NaN(N,1),"Residual",NaN(N,1),"BackTrackSteps",NaN(N,1),"Phase",strings(N,1)))
+           
+            end
+
+       
+
+            %if sObj.hasNameValue("Name")
+            %     nameArray = split(sObj.Name);
+            %     sObj.addNameValue("FirstName",nameArray(1));
+            %     sObj.addNameValue("LastName",nameArray(2));
+            %     sObj.remove("Name");
+            %     sObj.rename("Department","Division");
+            %     id = split(sObj.EmployeeID,"-");
+            %     sObj.updateValue("EmployeeID",id(2));
+            % end
+            %end
 
         end
-
     end
 
 end

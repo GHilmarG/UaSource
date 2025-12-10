@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcNodalStrainRatesAndStresses</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-03-22"><meta name="DC.source" content="CalcNodalStrainRatesAndStresses.m"><style type="text/css">
+      -->
+<title>CalcNodalStrainRatesAndStresses</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-12-05">
+<meta name="DC.source" content="CalcNodalStrainRatesAndStresses.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,17 +72,35 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
-</pre><pre class="codeinput">narginchk(4,4)
-</pre><p>Calculates strains and devitoric stresses.</p><p>[txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)</p><p>Strains and stresses are first calculated at integration points, then projeted onto nodes. On output all variables are nodal variables.</p><pre class="language-matlab">txzb, tyzb    : x and <span class="string">y</span> <span class="string">components</span> <span class="string">of</span> <span class="string">the</span> <span class="string">basal</span> <span class="string">shear</span> <span class="string">stresses</span> <span class="string">(i.e. not x and y components of basal traction).</span>
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [tbx,tby,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
+</pre>
+<pre class="codeinput">narginchk(4,4)
+</pre>
+<p>Calculates strains and deviatoric stresses.</p>
+<p>[txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)</p>
+<p>Strains and stresses are first calculated at integration points, then projected onto nodes.</p>
+<p>On output, all variables are nodal variables.</p>
+<pre class="language-matlab">txzb, tyzb    : x and <span class="string">y</span> <span class="string">components</span> <span class="string">of</span> <span class="string">the</span> <span class="string">basal</span> <span class="string">shear</span> <span class="string">stresses</span> <span class="string">(i.e. not x and y components of basal traction).</span>
 txx,tyy,txy   : horizontal deviatoric <span class="string">stresses</span>
 exx,eyy,exy   : horizontal strain <span class="string">rates</span>
 e             : effective strain <span class="string">rate</span>
 eta           : effective viscosity
-</pre><p>the basal stress caculation is done using the basal boundary condition as:</p><pre class="language-matlab">txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
+</pre>
+<p>the basal stress calculation is done using the basal boundary condition as:</p>
+<pre class="language-matlab">txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
     &lt; N_p | N_q &gt;  txzb_q = &lt; N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b <span class="string">&gt;</span>
-</pre><p>Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz} where \sigma_{zz}= - \rho g (s-z)</p><p>Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h</p><p>Example:</p><pre class="language-matlab">load(<span class="string">'CrackRestartfileExample.mat'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'MUA'</span>,<span class="string">'F'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>)
+</pre>
+<p>Cauchy stresses can then be calculated as \sigma_{xx}=2 \tau_{xx} + \tau_{yy} + \sigma_{zz} where \sigma_{zz}= - \rho g (s-z)</p>
+<p>Upper surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} Lower surface stresses are \sigma_{xx}=2 \tau_{xx} + \tau_{yy} - \rho g h</p>
+<p>Example:</p>
+<pre class="language-matlab">load(<span class="string">'CrackRestartfileExample.mat'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'UserVarInRestartFile'</span>,<span class="string">'MUA'</span>,<span class="string">'F'</span>,<span class="string">'BCs'</span>,<span class="string">'GF'</span>)
 CtrlVar=CtrlVarInRestartFile;
+CtrlVar.etaZero=10;
 UserVar=UserVarInRestartFile
 [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F);
 x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2);
@@ -89,90 +112,91 @@ PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,txx(I),txy(I),tyy(I
 hold <span class="string">on</span>
 PlotMuaBoundary(CtrlVar,MUA,<span class="string">'k'</span>)
 axis <span class="string">equal</span>
-</pre><pre class="codeinput">[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F); <span class="comment">% returns nodal values</span>
+</pre>
+<pre class="codeinput">[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,CalcNodalValues=true,CalcIntegrationPointValues=false); <span class="comment">% returns nodal values and uses the sliding law</span>
 [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); <span class="comment">% returns integration point values</span>
 
-ndim=2; neq=MUA.Nnodes;
-
-bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-
-
-tbxnod=reshape(tbx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-tbynod=reshape(tby(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-[points,weights]=sample(<span class="string">'triangle'</span>,MUA.nip,ndim);
+<span class="comment">% ndim=2; neq=MUA.Nnodes;</span>
+<span class="comment">%</span>
+<span class="comment">% bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);</span>
+<span class="comment">% snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);</span>
 
 
-Tx=zeros(MUA.Nele,MUA.nod);
-Ty=zeros(MUA.Nele,MUA.nod);
-
-
-<span class="comment">% vector over all elements for each integration point</span>
-<span class="keyword">for</span> Iint=1:MUA.nip
-
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; <span class="comment">% nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points</span>
-
-    <span class="keyword">if</span> isfield(MUA,<span class="string">'Deriv'</span>) &amp;&amp; isfield(MUA,<span class="string">'DetJ'</span>)
-        Deriv=MUA.Deriv(:,:,:,Iint);
-        detJ=MUA.DetJ(:,Iint);
-    <span class="keyword">else</span>
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    <span class="keyword">end</span>
-
-    dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
-    dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
-
-    <span class="comment">% derivatives for all elements at this integration point</span>
-    <span class="keyword">for</span> Inod=1:MUA.nod
-        dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
-        dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
-        dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
-        dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
-    <span class="keyword">end</span>
-
-    dbdx=kk_proj(dbdx,-CtrlVar.dbdxZero,CtrlVar.dbdxZero);
-    dbdy=kk_proj(dbdy,-CtrlVar.dbdyZero,CtrlVar.dbdyZero);
-
-
-    tbxint=tbxnod*fun;  <span class="comment">% values at this integration point</span>
-    tbyint=tbynod*fun;
-
-    txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;
-    tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;
-
-    detJw=detJ*weights(Iint);
-
-    <span class="keyword">for</span> Inod=1:MUA.nod
-
-        Tx(:,Inod)=Tx(:,Inod)+txzint.*fun(Inod).*detJw;
-        Ty(:,Inod)=Ty(:,Inod)+tyzint.*fun(Inod).*detJw;
-
-
-    <span class="keyword">end</span>
-<span class="keyword">end</span>
-
-<span class="comment">% assemble right-hand side</span>
-
-rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
-<span class="keyword">for</span> Inod=1:MUA.nod
-    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-<span class="keyword">end</span>
-
-
-M=MassMatrix2D1dof(MUA);
-
-sol=M\[rhx rhy] ;
-txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
+<span class="comment">%</span>
+<span class="comment">% % tbxnod=reshape(tbx(MUA.connectivity,1),MUA.Nele,MUA.nod);</span>
+<span class="comment">% % tbynod=reshape(tby(MUA.connectivity,1),MUA.Nele,MUA.nod);</span>
+<span class="comment">%</span>
+<span class="comment">% % [points,weights]=sample('triangle',MUA.nip,ndim);</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% Tx=zeros(MUA.Nele,MUA.nod);</span>
+<span class="comment">% Ty=zeros(MUA.Nele,MUA.nod);</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">% % vector over all elements for each integration point</span>
+<span class="comment">% for Iint=1:MUA.nip</span>
+<span class="comment">%</span>
+<span class="comment">%     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points</span>
+<span class="comment">%</span>
+<span class="comment">%     if ~(isfield(MUA,'Deriv') &amp;&amp; isfield(MUA,'DetJ') &amp;&amp; ~isempty(MUA.Deriv) &amp;&amp; ~isempty(MUA.DetJ))</span>
+<span class="comment">%         fprintf("CalcNodalStrainRatesAndStresses: MUA is not in an expected state. MUA updated. Consider doing this ahead of this call. \n")</span>
+<span class="comment">%         fprintf("             MUA=UpdateMUA(CtrlVar,MUA)   \n")</span>
+<span class="comment">%         MUA=UpdateMUA(CtrlVar,MUA) ;</span>
+<span class="comment">%     end</span>
+<span class="comment">%</span>
+<span class="comment">%     Deriv=MUA.Deriv(:,:,:,Iint);</span>
+<span class="comment">%     detJ=MUA.DetJ(:,Iint);</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);</span>
+<span class="comment">%     dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);</span>
+<span class="comment">%</span>
+<span class="comment">%     % derivatives for all elements at this integration point</span>
+<span class="comment">%     for Inod=1:MUA.nod</span>
+<span class="comment">%         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);</span>
+<span class="comment">%         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);</span>
+<span class="comment">%         dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);</span>
+<span class="comment">%         dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);</span>
+<span class="comment">%     end</span>
+<span class="comment">%</span>
+<span class="comment">%     dbdx=kk_proj(dbdx,-CtrlVar.dbdxZero,CtrlVar.dbdxZero);</span>
+<span class="comment">%     dbdy=kk_proj(dbdy,-CtrlVar.dbdyZero,CtrlVar.dbdyZero);</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%     tbxint=tbxnod*fun;  % values at this integration point</span>
+<span class="comment">%     tbyint=tbynod*fun;</span>
+<span class="comment">%</span>
+<span class="comment">%     txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;</span>
+<span class="comment">%     tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;</span>
+<span class="comment">%</span>
+<span class="comment">%     detJw=detJ*MUA.weights(Iint);</span>
+<span class="comment">%</span>
+<span class="comment">%     for Inod=1:MUA.nod</span>
+<span class="comment">%</span>
+<span class="comment">%         Tx(:,Inod)=Tx(:,Inod)+txzint.*fun(Inod).*detJw;</span>
+<span class="comment">%         Ty(:,Inod)=Ty(:,Inod)+tyzint.*fun(Inod).*detJw;</span>
+<span class="comment">%</span>
+<span class="comment">%</span>
+<span class="comment">%     end</span>
+<span class="comment">% end</span>
+<span class="comment">%</span>
+<span class="comment">% % assemble right-hand side</span>
+<span class="comment">%</span>
+<span class="comment">% rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);</span>
+<span class="comment">% for Inod=1:MUA.nod</span>
+<span class="comment">%     rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);</span>
+<span class="comment">%     rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);</span>
+<span class="comment">% end</span>
+<span class="comment">% M=MassMatrix2D1dof(MUA);</span>
+<span class="comment">% sol=M\[rhx rhy] ;</span>
+<span class="comment">% txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));</span>
 
 <span class="keyword">if</span> nargout&gt;2
-    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
+    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(CtrlVar,MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
 <span class="keyword">end</span>
 
-<span class="keyword">if</span> ~isreal(txzb) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:txzbNotReal'</span>,<span class="string">'txzb not real!'</span>) ; <span class="keyword">end</span>
-<span class="keyword">if</span> ~isreal(tyzb) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:tyzbNotReal'</span>,<span class="string">'tyzb not real!'</span>) ; <span class="keyword">end</span>
+<span class="comment">% if ~isreal(txzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txzbNotReal','txzb not real!') ; end</span>
+<span class="comment">% if ~isreal(tyzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:tyzbNotReal','tyzb not real!') ; end</span>
 <span class="keyword">if</span> ~isreal(txx) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:txxbNotReal'</span>,<span class="string">'txx not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(txx) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:txxbNotReal'</span>,<span class="string">'txx not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(tyy) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:tyybNotReal'</span>,<span class="string">'tyy not real!'</span>) ; <span class="keyword">end</span>
@@ -181,20 +205,35 @@ txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 <span class="keyword">if</span> ~isreal(eyy) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:eyybNotReal'</span>,<span class="string">'eyy not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(exy) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:eyybNotReal'</span>,<span class="string">'exy not real!'</span>) ; <span class="keyword">end</span>
 <span class="keyword">if</span> ~isreal(e) ; save <span class="string">TestSave</span> ; error(<span class="string">'CalcNodalStrainRatesAndStresses:ebNotReal'</span>,<span class="string">'e not real!'</span>) ; <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
+
+
+
+
+
+function [tbx,tby,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F)
 
 narginchk(4,4)
 
 %%
-% Calculates strains and devitoric stresses.
+% Calculates strains and deviatoric stresses.
 %
 % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F) 
 %
-% Strains and stresses are first calculated at integration points, then projeted onto nodes.
-% On output all variables are nodal variables.
+% Strains and stresses are first calculated at integration points, then projected onto nodes.
+%
+% On output, all variables are nodal variables.
 %
 %   txzb, tyzb    : x and y components of the basal shear stresses (i.e. not x and y components of basal traction).
 %   txx,tyy,txy   : horizontal deviatoric stresses
@@ -202,7 +241,7 @@ narginchk(4,4)
 %   e             : effective strain rate
 %   eta           : effective viscosity
 %
-% the basal stress caculation is done using the basal boundary condition as:
+% the basal stress calculation is done using the basal boundary condition as:
 %
 %   txzb = tbx + ( 2 txx + tyy) \p_x b + txy \p_y b
 %       < N_p | N_q >  txzb_q = < N_p | tbx + ( 2 txx + tyy) \p_x b + txy \p_y b >
@@ -216,8 +255,9 @@ narginchk(4,4)
 %
 % Example:
 % 
-%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','UserVarInRestartFile','MUA','F','BCs','GF')
 %   CtrlVar=CtrlVarInRestartFile;
+%   CtrlVar.etaZero=10;
 %   UserVar=UserVarInRestartFile
 %   [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
@@ -234,90 +274,90 @@ narginchk(4,4)
 %%
 
 
-[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F); % returns nodal values
+[tbx,tby,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,CalcNodalValues=true,CalcIntegrationPointValues=false); % returns nodal values and uses the sliding law 
 [etaInt,xint,yint,exx,eyy,exy,Eint,e,txx,tyy,txy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
-ndim=2; neq=MUA.Nnodes;
-
-bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
-snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-
-
-tbxnod=reshape(tbx(MUA.connectivity,1),MUA.Nele,MUA.nod);
-tbynod=reshape(tby(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% ndim=2; neq=MUA.Nnodes;
+% 
+% bnod=reshape(F.b(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-Tx=zeros(MUA.Nele,MUA.nod);
-Ty=zeros(MUA.Nele,MUA.nod);
-
-
-% vector over all elements for each integration point
-for Iint=1:MUA.nip
-    
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
-    
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ')
-        Deriv=MUA.Deriv(:,:,:,Iint);
-        detJ=MUA.DetJ(:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
-    
-    dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
-    dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
-    
-    % derivatives for all elements at this integration point
-    for Inod=1:MUA.nod
-        dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
-        dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
-        dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
-        dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
-    end
-    
-    dbdx=kk_proj(dbdx,-CtrlVar.dbdxZero,CtrlVar.dbdxZero);
-    dbdy=kk_proj(dbdy,-CtrlVar.dbdyZero,CtrlVar.dbdyZero);
-    
-    
-    tbxint=tbxnod*fun;  % values at this integration point
-    tbyint=tbynod*fun;
-    
-    txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;
-    tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;
-    
-    detJw=detJ*weights(Iint);
-    
-    for Inod=1:MUA.nod
-        
-        Tx(:,Inod)=Tx(:,Inod)+txzint.*fun(Inod).*detJw;
-        Ty(:,Inod)=Ty(:,Inod)+tyzint.*fun(Inod).*detJw;
-        
-        
-    end
-end
-
-% assemble right-hand side
-
-rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
-for Inod=1:MUA.nod
-    rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
-    rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);
-end
-
-
-M=MassMatrix2D1dof(MUA);
-
-sol=M\[rhx rhy] ;
-txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
+% 
+% % tbxnod=reshape(tbx(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% % tbynod=reshape(tby(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% 
+% % [points,weights]=sample('triangle',MUA.nip,ndim);
+% 
+% 
+% Tx=zeros(MUA.Nele,MUA.nod);
+% Ty=zeros(MUA.Nele,MUA.nod);
+% 
+% 
+% % vector over all elements for each integration point
+% for Iint=1:MUA.nip
+% 
+%     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
+% 
+%     if ~(isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ))
+%         fprintf("CalcNodalStrainRatesAndStresses: MUA is not in an expected state. MUA updated. Consider doing this ahead of this call. \n")
+%         fprintf("             MUA=UpdateMUA(CtrlVar,MUA)   \n")
+%         MUA=UpdateMUA(CtrlVar,MUA) ;
+%     end
+% 
+%     Deriv=MUA.Deriv(:,:,:,Iint);
+%     detJ=MUA.DetJ(:,Iint);
+% 
+% 
+%     dsdx=zeros(MUA.Nele,1); dsdy=zeros(MUA.Nele,1);
+%     dbdx=zeros(MUA.Nele,1); dbdy=zeros(MUA.Nele,1);
+% 
+%     % derivatives for all elements at this integration point
+%     for Inod=1:MUA.nod
+%         dsdx=dsdx+Deriv(:,1,Inod).*snod(:,Inod);
+%         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
+%         dbdx=dbdx+Deriv(:,1,Inod).*bnod(:,Inod);
+%         dbdy=dbdy+Deriv(:,2,Inod).*bnod(:,Inod);
+%     end
+% 
+%     dbdx=kk_proj(dbdx,-CtrlVar.dbdxZero,CtrlVar.dbdxZero);
+%     dbdy=kk_proj(dbdy,-CtrlVar.dbdyZero,CtrlVar.dbdyZero);
+% 
+% 
+%     tbxint=tbxnod*fun;  % values at this integration point
+%     tbyint=tbynod*fun;
+% 
+%     txzint=tbxint+(2*txx(:,Iint)+tyy(:,Iint)).*dbdx+txy(:,Iint).*dbdy;
+%     tyzint=tbyint+txy(:,Iint).*dbdx+(2*tyy(:,Iint)+txx(:,Iint)).*dbdy;
+% 
+%     detJw=detJ*MUA.weights(Iint);
+% 
+%     for Inod=1:MUA.nod
+% 
+%         Tx(:,Inod)=Tx(:,Inod)+txzint.*fun(Inod).*detJw;
+%         Ty(:,Inod)=Ty(:,Inod)+tyzint.*fun(Inod).*detJw;
+% 
+% 
+%     end
+% end
+% 
+% % assemble right-hand side
+% 
+% rhx=sparseUA(neq,1); rhy=sparseUA(neq,1);
+% for Inod=1:MUA.nod
+%     rhx=rhx+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Tx(:,Inod),neq,1);
+%     rhy=rhy+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),Ty(:,Inod),neq,1);
+% end
+% M=MassMatrix2D1dof(MUA);
+% sol=M\[rhx rhy] ;
+% txzb=full(sol(:,1)) ; tyzb=full(sol(:,2));
 
 if nargout>2
-    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
+    [txx,tyy,txy,exx,eyy,exy,e,eta]=ProjectFintOntoNodes(CtrlVar,MUA,txx,tyy,txy,exx,eyy,exy,e,etaInt);
 end
 
-if ~isreal(txzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txzbNotReal','txzb not real!') ; end
-if ~isreal(tyzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:tyzbNotReal','tyzb not real!') ; end
+% if ~isreal(txzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txzbNotReal','txzb not real!') ; end
+% if ~isreal(tyzb) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:tyzbNotReal','tyzb not real!') ; end
 if ~isreal(txx) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txxbNotReal','txx not real!') ; end
 if ~isreal(txx) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:txxbNotReal','txx not real!') ; end
 if ~isreal(tyy) ; save TestSave ; error('CalcNodalStrainRatesAndStresses:tyybNotReal','tyy not real!') ; end
@@ -334,4 +374,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

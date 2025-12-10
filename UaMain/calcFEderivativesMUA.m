@@ -33,7 +33,11 @@ function [dfdx,dfdy,xint,yint]=calcFEderivativesMUA(f,MUA,CtrlVar)
 % See also: ProjectFintOntoNodes
 %%
 
-narginchk(3,3)
+narginchk(2,3)
+
+if nargin==2
+    CtrlVar=[];
+end
 
 ndim=2;
 % [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -53,7 +57,7 @@ if isempty(MUA.Deriv)
  
     
 
-        [MUA.Deriv,MUA.DetJ]=CalcNuaMeshDerivatives(CtrlVar,MUA);
+        [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 end
 
 

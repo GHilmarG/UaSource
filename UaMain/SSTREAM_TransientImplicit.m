@@ -194,14 +194,17 @@ nlubvb=numel(l1.ubvb) ;
 
 [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 dl=luvh*0;
-%% Make sure iterate is feasible, at least with respect to direct BCs
-F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue; 
-F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
-F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+
+if CtrlVar.uvhMakeInitialIterateFeasible
+    %% Make sure iterate is feasible, at least with respect to direct BCs
+    F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue;
+    F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
+    F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+end
 %%
 if ~isempty(L)
     cuvhNorm=norm(cuvh);
-    if cuvhNorm<eps
+    if cuvhNorm< eps(cuvhNorm)
         cuvhNorm=1;
     end
     BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/cuvhNorm;
@@ -428,7 +431,7 @@ while true
 
 
     %% If desired, plot residual along search direction
-    if CtrlVar.InfoLevelNonLinIt>=1000 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=2 && CtrlVar.doplots==1
         nnn=50;
         gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
         Upper=2.2;

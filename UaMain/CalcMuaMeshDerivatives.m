@@ -5,6 +5,8 @@
 
 function [MeshDeriv,MeshDetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA) 
 
+% Note: CtrlVar is never used and can be left empty (2025 Dec)
+
 narginchk(2,2)
 
 dof=2; 

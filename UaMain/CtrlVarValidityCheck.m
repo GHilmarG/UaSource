@@ -79,17 +79,9 @@ end
 if CtrlVar.ForwardTimeIntegration==""  %  "-uvh-" , "-uv-h-" ,  "-uv-" , "-h-" ;
 
     if  CtrlVar.TimeDependentRun
-
-        if CtrlVar.Implicituvh
-            CtrlVar.ForwardTimeIntegration="-uvh-";
-        else
-            CtrlVar.ForwardTimeIntegration="-uv-h-";
-        end
-
+        CtrlVar.ForwardTimeIntegration="-uvh-";
     else
-
         CtrlVar.ForwardTimeIntegration="-uv-";
-
     end
 
 else
@@ -98,12 +90,6 @@ else
         CtrlVar.TimeDependentRun=0;
     else
         CtrlVar.TimeDependentRun=1;
-
-        if CtrlVar.ForwardTimeIntegration=="-uvh-"
-            CtrlVar.Implicituvh=1;  % This field is actually no longer used by Ua, use CtrlVar.ForwardTimeIntegration instead
-        else
-            CtrlVar.Implicituvh=0;  % This field is actually no longer used by Ua, use CtrlVar.ForwardTimeIntegration instead
-        end
     end
 
 end

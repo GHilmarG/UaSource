@@ -267,7 +267,22 @@ if isnumeric(Variable) && options.Plot ==""
 else
 
 
-    switch lower(options.Plot)
+    switch options.Plot
+
+        case {"B","-B-"}
+
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.B);
+
+            if any(F.B < 0 )  && any(F.B>0)
+                CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
+            else
+                CM=cmocean('-balanced',25) ; colormap(CM);
+            end
+
+            title("Bedrock")
+            subtitle("")
+            title(cbar,"(m a.s.l.)")
 
         case {"speed","-speed-"}
 

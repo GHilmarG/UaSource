@@ -160,7 +160,7 @@ if CtrlVar.UaSquareMesh.Refine
     MUA=CreateMUA(CtrlVar,connectivity,coordinates);
 
 
-    if ~isempty(CtrlVar.MeshBoundaryCoordinates)
+    if  isfield(CtrlVar,"MeshBoundaryCoordinates") &&  ~isempty(CtrlVar.MeshBoundaryCoordinates)
 
         % if MeshBoundaryCoordinates have been defined, eliminate elements outside of the desired computational boundary
         xy=[MUA.xEle,MUA.yEle];
