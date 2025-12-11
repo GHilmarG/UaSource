@@ -290,15 +290,26 @@ CM=cmocean('balanced') ; colormap(CM);
 if isprop(InvFinalValues,'uAdjoint')
     if ~isempty(InvFinalValues.uAdjoint)
         fig=FindOrCreateFigure('Adjoint variables') ; clf(fig)
-        subplot(1,2,1)
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.uAdjoint);
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title(' u Adjoint variable')
+        T=tiledlayout("flow");
 
-        subplot(1,2,2)
-        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.vAdjoint);
-        hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+        nexttile
+        cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.uAdjoint,CreateNewFigure=false);
+        title(' u Adjoint variable')
+        CL=clim;
+        if min(CL)< 0 && max(CL) > 0
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+        end
+
+        nexttile
+        cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.vAdjoint,CreateNewFigure=false);
+
         title(' v Adjoint variable')
+        T.Padding="tight";   T.TileSpacing="tight";
+
+        if min(CL)< 0 && max(CL) > 0
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+        end
+
     end
 end
 %% Plot velocities and velocity residuals
