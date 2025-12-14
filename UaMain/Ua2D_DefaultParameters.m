@@ -1158,15 +1158,13 @@ CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse ste
 
 %% Comparing adjoint gradients with finite-difference gradients
 %
-% The derivatives obtained with the adjoint method can be
-% compared with those obtained from brute force finite difference calculations.
-% Only do this for small problems!
+% The derivatives obtained with the adjoint method can be compared with those obtained from brute force finite difference
+% calculations.
 CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calculation
 % of the directional derivative of the objective function.
 %
-% The brute-force gradient can be calculated using first-order forward
-% differences, second-order central differences, or fourth-order central
-% differences.
+% The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or
+% fourth-order central differences.
 CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
 CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ;
 CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
@@ -1176,9 +1174,17 @@ CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
 
 CtrlVar.Inverse.TestAdjoint.iRange=[] ;  % range of nodes/elements over which brute force gradient is to be calculated.
 %
-% if left empty, values are calculated for every node/element within the
-% mesh. If set to for example [1,10,45] values are calculated for these
-% three nodes/elements. 
+% if left empty, values are calculated for every node/element within the mesh. If set to for example [1,10,45] values are
+% calculated for these three nodes/elements.
+% 
+% Note: When testing adjoint gradients, the perturbation is done with respect of nodal values and one must set
+%
+%   CtrlVar.Inverse.AdjointGradientPreMultiplier="I";
+% 
+
+
+
+
 %% Inverse testing parameters (do not change)
 
 

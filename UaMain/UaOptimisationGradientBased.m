@@ -1,9 +1,9 @@
 function  [p,UserVar,RunInfo]=UaOptimisationGradientBased(UserVar,CtrlVar,~,MUA,func,p,plb,pub)
 %
 % func is the function to me minimized
-%  p is the paramter set, i.e. func(p)
+%  p is the parameter set, i.e. func(p)
 %
-%  Func is func evaluated as a function of stepsize gamma in the direction of
+%  Func is func evaluated as a function of step-size gamma in the direction of
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
 
@@ -75,7 +75,7 @@ else
         iCount=iCount+1;
     end
     
-    gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadradic approx
+    gamma=-gamma1*slope0/2/((J1-J0)/gamma1-slope0);  % quadratic approx
     if gamma<0 ; gamma=gamma1; end
     
 end
@@ -100,7 +100,7 @@ end
 
 while RunInfo.Forward.uvIterations==0
    
-    % the gamma step caused so little change in the model paramters that the previous J0 uv solution was accepted.
+    % the gamma step caused so little change in the model parameters that the previous J0 uv solution was accepted.
     % So increase gamma
     fprintf(" Increasing the stepsize as the previous one caused insufficient changes in model parameters to require a new uv solution.\n")
     fprintf(" gamma increased from %g to %g \n",gamma,gamma*1000)

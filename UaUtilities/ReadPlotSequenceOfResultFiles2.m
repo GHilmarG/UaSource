@@ -1,3 +1,7 @@
+
+
+
+
 function DataCollect=ReadPlotSequenceOfResultFiles2(options)
 
 
@@ -78,6 +82,7 @@ arguments
     options.DataToBeCollected string = "" ;
     options.isCenterLineProfile logical= false ;
     options.VAFBoundary (:,2) double = NaN
+    options.PlotPolygon (:,:) double = NaN
 
 end
 
@@ -1009,7 +1014,7 @@ while iFile<=nFiles   % loop over data
                 axis off
                 ScaleBar();
 
-
+                hold on ;  plot(options.PlotPolygon(:,1)/1000,options.PlotPolygon(:,2)/1000,color="k",LineStyle="--",LineWidth=2)
 
                 if contains(options.PlotType,"-VAF-")
                     nexttile
@@ -1405,7 +1410,8 @@ end
 if CreateVideo
     close(vidObj);
     fprintf('\n video file closed \n')
-    fprintf("Video saved in %s \n",pwd)
+    fprintf("Video file: %s  \n ",options.VideoFileName)
+    fprintf("saved in folder %s \n",pwd)
 end
 
 

@@ -88,7 +88,7 @@ if ~isfield(CtrlVar,"UaSquareMesh") ...
 end
 
 
-if ~isfield(CtrlVar.UaSquareMesh,"Refine")
+if ~isfield(CtrlVar.UaSquareMesh,"Refine") || isnan(CtrlVar.UaSquareMesh.Refine) 
     CtrlVar.UaSquareMesh.Refine=true;
 end
 
@@ -125,6 +125,18 @@ end
 
 x=linspace(xmin,xmax,nx+1);
 y=linspace(ymin,ymax,ny+1);
+
+nEleEstimated=(numel(x)-1)*(numel(y)-1)*4; 
+
+fprintf("UaSquareMesh: Estimated number of elements within square is %i \n",nEleEstimated)
+
+if nEleEstimated > CtrlVar.MaxNumberOfElements
+
+    fprintf("UaSquareMesh: Numer of elements generated (%i) will exceed maximum allowed number of elements (CtrlVar.MaxNumberOfElements=%i) \n",nEleEstimated,CtrlVar.MaxNumberOfElements)
+    error("UaSquareMesh:TopManyElements","To many elements generated")
+
+end
+
 [X,Y]=ndgrid(x,y);
 
 
@@ -145,6 +157,11 @@ if CtrlVar.UaSquareMesh.Refine
     CtrlVar.MUA.StiffnessMatrix=false;
     CtrlVar.MUA.DecomposeMassMatrix=false ;
     CtrlVar.MUA.DecomposeMassMatrix=false ;
+
+
+
+
+
     CtrlVar.Parallel.uvAssembly.spmd.isOn=false ;
     CtrlVar.Parallel.uvhAssembly.spmd.isOn=false ;
     CtrlVar.InfoLevelAdaptiveMeshing=0 ;

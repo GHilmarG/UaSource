@@ -154,7 +154,8 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
 
     fig=FindOrCreateFigure('Change in A during inversion run') ; clf(fig)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
-    title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
+    title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; 
+    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
@@ -473,14 +474,14 @@ if isscalar(Priors.AGlen)
     Priors.AGlen=Priors.AGlen+zeros(MUA.Nnodes,1);
 end
 
-cbar=UaPlots(CtrlVar,MUA,F,Priors.AGlen,FigureTitle="log10(APrior)") ;
+cbar=UaPlots(CtrlVar,MUA,F,Priors.AGlen,FigureTitle="APrior") ;
 set(gca,'ColorScale','log')
 title(cbar, '($\mathrm{yr}^{-1}\,\mathrm{kPa}^{-n}$)','interpreter','latex');
 title("$A_{\mathrm{Prior}}$",Interpreter="latex")
 
 
 
-cbar=UaPlots(CtrlVar,MUA,F,Priors.C,FigureTitle="log10(CPrior)") ;
+cbar=UaPlots(CtrlVar,MUA,F,Priors.C,FigureTitle="CPrior") ;
 set(gca,'ColorScale','log')
 title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
 title("$C_{\mathrm{Prior}}$",Interpreter="latex")
@@ -493,91 +494,107 @@ title("$C_{\mathrm{Prior}}$",Interpreter="latex")
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
 
-    dJdp=InvFinalValues.dJdp;
-    dJdpTest=InvFinalValues.dJdpTest;
-    %     fprintf('#Parameter  dJdp          dJdpTest      dJdp-dJdpTest     dJdp/dtdpTest \n')
-    %
-    %     for ii=1:numel(iRange)
-    %         I=iRange(ii);
-    %         fprintf('%i %15g %15g  %15g  %15g \n',I,dJdp(I),dJdpTest(I),dJdp(I)-dJdpTest(I),dJdp(I)/dJdpTest(I))
-    %     end
+   
 
-    IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
-    fprintf('------------------------------------ AGlen gradients ---------------------------------------------------------------------\n')
-    fprintf('#Node/Ele  dJdA          dJdATest      dJdA-dJdATest     dJdA/dtdATest  (dJdA-dJdATest)/dJdA \n')
+    if ~isempty(InvFinalValues.dJdAGlenTest) | all(isnan(InvFinalValues.dJdAGlenTest))
+        IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
+        fprintf('------------------------------------ AGlen gradients ---------------------------------------------------------------------\n')
+        fprintf('#Node/Ele  dJdA          dJdATest      dJdA-dJdATest     dJdA/dtdATest  (dJdA-dJdATest)/dJdA \n')
 
-    for ii=1:numel(IA)
-        I=IA(ii);
-        fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
-            InvFinalValues.dJdAGlen(I),...
-            InvFinalValues.dJdAGlenTest(I),...
-            InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I),...
-            InvFinalValues.dJdAGlen(I)/InvFinalValues.dJdAGlenTest(I),...
-            (InvFinalValues.dJdAGlen(I)-InvFinalValues.dJAGlenCTest(I))/InvFinalValues.dAGlendC(I))
+        for ii=1:numel(IA)
+            I=IA(ii);
+            fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
+                InvFinalValues.dJdAGlen(I),...
+                InvFinalValues.dJdAGlenTest(I),...
+                InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I),...
+                InvFinalValues.dJdAGlen(I)/InvFinalValues.dJdAGlenTest(I),...
+                (InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I))/InvFinalValues.dJdAGlen(I))
+        end
+
+        figAgrad=FindOrCreateFigure("A gradient test") ;  clf(figAgrad)
+        plot(InvFinalValues.dJdAGlen,InvFinalValues.dJdAGlenTest,"or") ;
+        hold on
+        plot(InvFinalValues.dJdAGlen,InvFinalValues.dJdAGlen,"--k") ;
+        axis equal tight ; 
+        xlabel("Adjoint $dJ/dA$",Interpreter="latex")  ;
+        ylabel("Finite difference $dJ/dA$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision betweenadjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
+
+
+
     end
 
+    if ~isempty(InvFinalValues.dJdCTest) | all(isnan(InvFinalValues.dJdCTest))
 
-    IC=find(~isnan(InvFinalValues.dJdCTest)) ;
+        IC=find(~isnan(InvFinalValues.dJdCTest)) ;
 
-    fprintf('--------------------------------------- C gradients ----------------------------------------------------------------------\n')
+        fprintf('--------------------------------------- C gradients ----------------------------------------------------------------------\n')
 
-    fprintf('#Node/Ele  dJdC          dJdCTest      dJdC-dJdCTest     dJdC/dtdCTest   (dJdC-dJdCTest)/dJdC\n')
+        fprintf('#Node/Ele  dJdC          dJdCTest      dJdC-dJdCTest     dJdC/dtdCTest   (dJdC-dJdCTest)/dJdC\n')
 
-    for ii=1:numel(IC)
-        I=IC(ii);
-        fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
-            InvFinalValues.dJdC(I),...
-            InvFinalValues.dJdCTest(I),...
-            InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I),...
-            InvFinalValues.dJdC(I)/InvFinalValues.dJdCTest(I),...
-            (InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I))/InvFinalValues.dJdC(I))
+        for ii=1:numel(IC)
+            I=IC(ii);
+            fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
+                InvFinalValues.dJdC(I),...
+                InvFinalValues.dJdCTest(I),...
+                InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I),...
+                InvFinalValues.dJdC(I)/InvFinalValues.dJdCTest(I),...
+                (InvFinalValues.dJdC(I)-InvFinalValues.dJdCTest(I))/InvFinalValues.dJdC(I))
+        end
+
+        %%
+
+        figCgrad=FindOrCreateFigure("C gradient test") ;  clf(figCgrad)
+        plot(InvFinalValues.dJdC,InvFinalValues.dJdCTest,"or") ;
+        hold on
+        plot(InvFinalValues.dJdC,InvFinalValues.dJdC,"--k") ;
+        axis equal tight  ; xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
+        ylabel("Finite difference $dJ/dC$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight; 
+        box off
+        title("Comparision betweenadjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
     end
 
-    %%
-    figCgrad=FindOrCreateFigure("C gradient test") ;  clf(figCgrad)
-    plot(InvFinalValues.dJdC,InvFinalValues.dJdCTest,"or") ;
-    hold on
-    plot(InvFinalValues.dJdC,InvFinalValues.dJdC,"--k") ;
-    axis equal ; xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
-    ylabel("Finite difference $dJ/dC$",Interpreter="latex")
-    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
-    axis on ; axis equal ; box off
-    title("Comparision betweenadjoint and finite-differences gradient calculations")
-    set(gcf,'Color','white')
-    %%
+    if ~isempty(InvFinalValues.dJdBTest) | all(isnan(InvFinalValues.dJdBTest))
+        fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
 
-    fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
+        IB=find(~isnan(InvFinalValues.dJdBTest)) ;
 
-    IB=find(~isnan(InvFinalValues.dJdBTest)) ;
 
-    
 
-    fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
+        fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
 
-    for ii=1:numel(IB)
-        I=IB(ii);
-        fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
-            InvFinalValues.dJdB(I),...
-            InvFinalValues.dJdBTest(I),...
-            InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I),...
-            InvFinalValues.dJdB(I)/InvFinalValues.dJdBTest(I),...
-            (InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I))/InvFinalValues.dJdB(I))
+        for ii=1:numel(IB)
+            I=IB(ii);
+            fprintf('%i %15g %15g  %15g  %15g %15g \n',I,...
+                InvFinalValues.dJdB(I),...
+                InvFinalValues.dJdBTest(I),...
+                InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I),...
+                InvFinalValues.dJdB(I)/InvFinalValues.dJdBTest(I),...
+                (InvFinalValues.dJdB(I)-InvFinalValues.dJdBTest(I))/InvFinalValues.dJdB(I))
+        end
+
+
+        fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
+
+        %%
+
+        figBgrad=FindOrCreateFigure("B gradient test") ;  clf(figBgrad)
+        plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ;
+        hold on
+        plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ;
+        axis equal ; xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
+        ylabel("Finite difference $dJ/dB$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision between adjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
     end
-
-
-    fprintf('--------------------------------------------------------------------------------------------------------------------------\n')
-
-    %%
-    figBgrad=FindOrCreateFigure("B gradient test") ;  clf(figBgrad)
-    plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ; 
-    hold on 
-    plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ; 
-    axis equal ; xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ; 
-    ylabel("Finite difference $dJ/dB$",Interpreter="latex")
-    ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin'; 
-    axis on ; axis equal ; box off
-    title("Comparision between adjoint and finite-differences gradient calculations")
-    set(gcf,'Color','white')
     %%
     %[dJdp(iRange) dJdpTest(iRange)   dJdp(iRange)-dJdpTest(iRange) dJdp(iRange)./dJdpTest(iRange)]
     % iRange=find(~isnan(dJdpTest));
@@ -588,38 +605,43 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     if ~(isempty(InvFinalValues.dJdC) && isempty(InvFinalValues.dJdCTest))
 
-        IFigC=FindOrCreateFigure("Inversion C") ; clf(IFigC);
+        IFigC=FindOrCreateFigure("dJ/dC gradient test over mesh") ; clf(IFigC);
 
+        TileC=tiledlayout("flow");
+        nexttile
 
-
-        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdC Adjoint gradient')
 
-        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('$dJ/dC$ Brute force gradient','interpreter','latex')
 
 
-        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
 
-        subplot(2,2,4) ;
 
+        nexttile
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC./InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
 
-        IFigC.Position=[948.43 41.571 1246.3 1115.4];
+        TileC.TileSpacing='tight';
+        TileC.Padding='tight';
+        %IFigC.Position=[948.43 41.571 1246.3 1115.4];
         %%
     end
 
@@ -627,35 +649,42 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     if ~(isempty(InvFinalValues.dJdAGlen) && isempty(InvFinalValues.dJdAGlenTest))
 
 
-        IFigAGlen=FindOrCreateFigure("Inversion A") ; clf(IFigAGlen);
+        IFigAGlen=FindOrCreateFigure("dJ/dA Test over mesh") ; clf(IFigAGlen);
 
+        TileA=tiledlayout("flow");
 
-        subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Adjoint gradient')
 
-        subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlenTest) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdAGlen Brute force gradient')
 
 
-        subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen-InvFinalValues.dJdAGlenTest) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen-InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Difference between adjoint and brute force derivatives')
 
-        subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen./InvFinalValues.dJdAGlenTest) ;
+        nexttile
+        PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen./InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('Ratio between adjoint and brute force derivatives')
-
-        IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
+        
+        TileA.TileSpacing='tight';
+        TileA.Padding='tight';
+        % IFigAGlen.Position=[1.5714 41.571 1096 1115.4];
         %%
     end
 
@@ -663,7 +692,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
 
         %%
-        IFigb=FindOrCreateFigure("Inversion B") ; clf(IFigb)
+        IFigb=FindOrCreateFigure("dJ/dB gradient test over mesh") ; clf(IFigb)
         TileB=tiledlayout("flow");
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
@@ -681,7 +710,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB./InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false) ;
         title('Ratio between adjoint and brute force derivatives')
 
-        IFigb.Position=[1.5714 41.571 1096 1115.4];
+      %  IFigb.Position=[1.5714 41.571 1096 1115.4];
         TileB.TileSpacing='tight';
         TileB.Padding='tight';
         %%
