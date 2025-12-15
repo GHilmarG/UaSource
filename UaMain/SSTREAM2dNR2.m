@@ -322,8 +322,6 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         if BackTrackInfo.Converged==0
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
-            fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
-            save SSTREAM2dNRDump
             RunInfo.Forward.uvConverged=0; 
             break
         end
@@ -332,17 +330,19 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
         %%
 
-        %% If requested, plot residual as function of steplength
+        %% If requested, plot residual as function of step-length
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
-            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1); rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
+            rForceTestvector=zeros(nnn,1); rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             
-            Up=2;
-            if gamma>0.7*Up ; Up=2*gamma; end
+            Upper=2; Lower=-0.5 ; 
+            if gamma>0.7*Upper ; Upper=2*gamma; end
+
+            gammaTestVector=linspace(Lower,Upper,nnn);
             for I=1:nnn
-                gammaTest=Up*(I-1)/(nnn-1)+gamma/1000;
+                gammaTest=gammaTestVector(I);
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
-                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
+                rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
             end
             
             [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;  rD2Testvector=rD2Testvector(ind) ;
