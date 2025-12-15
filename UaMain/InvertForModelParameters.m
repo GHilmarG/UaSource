@@ -1,8 +1,4 @@
 
-
-
-
-
 function [UserVar,F,l,InvFinalValues,RunInfo]=...
     InvertForModelParameters(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo)
 

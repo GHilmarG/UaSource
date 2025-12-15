@@ -12,8 +12,6 @@ The flow model is matlab based. You will need a matlab installation to run it.
 Documentation and help can be accessed through the matlab doc/help.
 
 
-<p align="center">
-  <img src = "https://zenodo.org/badge/doi/10.5281/zenodo.3706624.svg">
-</p>
+
 
 
