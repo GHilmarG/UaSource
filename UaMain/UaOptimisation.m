@@ -2,9 +2,9 @@ function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,p
 
 %
 % func is the function to me minimized
-%  p is the paramter set, i.e. func(p)
+%  p is the parameter set, i.e. func(p)
 %
-%  Func is func evaluated as a function of stepsize gamma in the direction of
+%  Func is func evaluated as a function of step-size gamma in the direction of
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
 

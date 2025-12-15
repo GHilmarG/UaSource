@@ -10,9 +10,9 @@ function [AGlen,n]=TestAGlenInputValues(CtrlVar,MUA,AGlen,n)
 [nn,mn]=size(n);
 
 
-if numel(AGlen)==1 
+if isscalar(AGlen) 
     
-    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
+    %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is spatially constant. \n')
     if  CtrlVar.AGlenisElementBased
         AGlen=AGlen+zeros(MUA.Nele,1);
     else
@@ -65,7 +65,7 @@ end
 
 
 
-if  numel(n)==1
+if  isscalar(n)
     %fprintf(' AGlen given by user is a scalar. Assuming that AGlen is same everywhere. \n')
     if  CtrlVar.AGlenisElementBased
         n=n+zeros(MUA.Nele,1);
