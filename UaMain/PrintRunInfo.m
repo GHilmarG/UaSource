@@ -4,7 +4,6 @@
 
 function PrintRunInfo(CtrlVar)
 
-
 fprintf(CtrlVar.fidlog,'\n \n');
 fprintf(CtrlVar.fidlog,' *************************    %ca version: 18 December 2025 (beta)  ********************* \n',218);
 fprintf(CtrlVar.fidlog,'    Run starts at %s  \n ',datetime);
@@ -22,7 +21,6 @@ if CtrlVar.doInverseStep
     fprintf('\tCtrlVar.Inverse.Measurements=''%s''\n',CtrlVar.Inverse.Measurements)
     fprintf('\tCtrlVar.Inverse.Regularize.Field=''%s''\n',CtrlVar.Inverse.Regularize.Field)
     fprintf('\tCtrlVar.Inverse.DataMisfit.GradientCalculation=''%s''\n',CtrlVar.Inverse.DataMisfit.GradientCalculation)
-    
     
     
 end
@@ -51,7 +49,7 @@ if  status==0
     fprintf('   Running on: %s ',hostname)
 end
 
-fprintf(CtrlVar.fidlog,'****************************************************************************** \n \n');
+fprintf(CtrlVar.fidlog,'********************************************************************************** \n \n');
 
 
 end

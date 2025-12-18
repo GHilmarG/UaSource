@@ -4,13 +4,11 @@ function tri=TriFE(connectivity)
 %
 % tri=TriFE(connectivity)
 %
-% On return tri is a 3-node connectivity matrix
-% that uses all nodes in connectivity and is based on identical nodal numbering sceme
-% as connectivity.
+% On return tri is a 3-node connectivity matrix that uses all nodes in connectivity and is based on identical nodal numbering
+% scheme as connectivity.
 %
-% If on input connectivity is that of 3-node elements, same connectivity is returned.
-% If on input connectivity is that of 6 or 10 node elements, each element is split into
-% 4 or 9 elements, respectively.
+% If on input connectivity is that of 3-node elements, same connectivity is returned. If on input connectivity is that of 6
+% or 10 node elements, each element is split into 4 or 9 elements, respectively.
 %
 
 
