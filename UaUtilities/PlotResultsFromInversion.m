@@ -54,31 +54,29 @@ Kplot=0;
 
 fig=FindOrCreateFigure('Measurements') ; clf(fig)
 
-Kplot=Kplot+1;
-subplot(Iplot,Jplot,Kplot)
+T=tiledlayout("flow");
 
-PlotMeshScalarVariable(CtrlVar,MUA,Meas.us) ;
-hold on ; [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+nexttile
+
+cbar=UaPlots(CtrlVar,MUA,F,Meas.us,CreateNewFigure=false);
 
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('us Meas on numerical grid') ;
 
-Kplot=Kplot+1;
-subplot(Iplot,Jplot,Kplot)
 
-PlotMeshScalarVariable(CtrlVar,MUA,Meas.vs) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+nexttile
+
+cbar=UaPlots(CtrlVar,MUA,F,Meas.vs,CreateNewFigure=false);
 
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('vs Meas on numerical grid') ;
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
-    Kplot=Kplot+1;
-    subplot(Iplot,Jplot,Kplot)
-    PlotMeshScalarVariable(CtrlVar,MUA,Meas.dhdt) ; hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    
+    nexttile
+    cbar=UaPlots(CtrlVar,MUA,F,Meas.dhdt,CreateNewFigure=false);
 
     xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
     ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
@@ -90,32 +88,27 @@ vsError=sqrt(spdiags(Meas.vsCov));
 dhdtError=sqrt(spdiags(Meas.dhdtCov));
 
 
-Kplot=Kplot+1;
-subplot(Iplot,Jplot,Kplot)
 
-
-PlotMeshScalarVariable(CtrlVar,MUA,usError) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+nexttile
+cbar=UaPlots(CtrlVar,MUA,F,usError,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us error on numerical grid') ;
 
-Kplot=Kplot+1;
-subplot(Iplot,Jplot,Kplot)
-PlotMeshScalarVariable(CtrlVar,MUA,vsError) ; hold on ;
-[xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+
+nexttile
+cbar=UaPlots(CtrlVar,MUA,F,vsError,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
-    Kplot=Kplot+1;
-    subplot(Iplot,Jplot,Kplot)
-    PlotMeshScalarVariable(CtrlVar,MUA,dhdtError) ; hold on ;
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+  
+    nexttile
+    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     title('dh/dt error on numerical grid') ;
 
 end
-
+T.Padding="tight";   T.TileSpacing="tight";
 
 
 %%
