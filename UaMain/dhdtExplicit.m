@@ -35,6 +35,11 @@ vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 b=zeros(MUA.Nele,MUA.nod);
 
 
+if isempty(MUA.Deriv)  || anynan(MUA.Deriv)
+    CtrlVar.CalcMUA_Derivatives=true;
+    MUA=UpdateMUA(CtrlVar,MUA);
+end
+
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
     

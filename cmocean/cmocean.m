@@ -206,10 +206,20 @@ end
 %% Adjust values to current caxis limits? 
 
 if autopivot
-   clim = caxis; 
-   assert(PivotValue>=clim(1) & PivotValue<=clim(2),'Error: pivot value must be within the current color axis limits.') 
-   maxval = max(abs(clim-PivotValue)); 
-   cmap = interp1(linspace(-maxval,maxval,size(cmap,1))+PivotValue, cmap, linspace(clim(1),clim(2),size(cmap,1)),'linear');
+   CL = clim; 
+    
+   % Hilmar: I got tired of this error message, anyhow if the user wants a pivot value, give the user a pivot value and just
+   % extend the limits to include it.
+   if PivotValue < CL(1)
+       PivotValue=CL(1)-100*eps(CL(1)); 
+   end
+   if PivotValue > CL(2)
+       PivotValue=CL(2)+100*eps(CL(2)); 
+   end
+
+   assert(PivotValue>=CL(1) & PivotValue<=CL(2),'Error: pivot value must be within the current color axis limits.') 
+   maxval = max(abs(CL-PivotValue)); 
+   cmap = interp1(linspace(-maxval,maxval,size(cmap,1))+PivotValue, cmap, linspace(CL(1),CL(2),size(cmap,1)),'linear');
 end
 
 %% Interpolate if necessary: 
