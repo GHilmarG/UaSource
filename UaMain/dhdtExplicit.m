@@ -95,8 +95,19 @@ if ~isfield(MUA,'M')
     MUA.M=MassMatrix2D1dof(MUA);
 end
 
-[hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
+%% BCs
+%
+% Since this is an explicit estimate, it seems right to use the BCs for h.
+% If h is fixed, the the explicit estimate should be dh/dt=0 for those nodes
+%
+% Also, if there is a nodal link (tie) for h, then the same nodal tie should be used for dh/dt
+%
+% So for all BCs.hFixed nodes, set BCs.hFixedValue=0, and use the h ties.
 
+
+[hL,hRhs]=createLh(MUA.Nnodes,BCs.hFixedNode,BCs.hFixedValue*0,BCs.hTiedNodeA,BCs.hTiedNodeB);
+
+%% Solve system
 %CtrlVar.SymmSolver='AugmentedLagrangian';
 x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
     

@@ -46,6 +46,8 @@ hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+
 if ~isempty(F.dhdt) || ~isnan(F.dhdt)
     dhdtnod=reshape(F.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 else
