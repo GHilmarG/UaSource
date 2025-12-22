@@ -3,6 +3,41 @@
 
 function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas)
 
+%%  Provides cost function and derivatives with respect to $u$, $v$, and $h$, of the cost function term involving $\dot{h}$
+%
+% $$J_{\dot{h}} = \| \dot{h} - \hat{\dot{h}} \| $$
+%
+% where
+%
+% $$\dot{h} = a - ( \partial_x (u h ) + \partial (v h) ) $$ 
+%
+% and
+%
+% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  (\dot{h} - \hat{\dot{h}} \right )^2 \; dx \, dy $$ 
+%
+%
+% $$ d_u J_{\dot{h}} = \frac{1}{\mathcal{A}} \int \! \int (\dot{h} - \hat{\dot{h}} ) \, (\partial_u \dot{h} ) \; \delta u \; dx \, dy $$ 
+%
+%
+% $$ \partial_u \dot{h} = \partial_ u  (  a - ( \partial_x (u h ) + \partial (v h) )) = - \partial_ u  \,  \partial_x (u h ) $$ 
+%
+% or
+%
+% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (u h ) = -\partial_x (\delta u \, h) = - h \, \partial_x \delta u - \delta u \, \partial_x h $$ 
+%
+% $$ d_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int (\dot{h} - \hat{\dot{h}} ) \, ( h \partial_x \delta u - \delta u \, \partial_x h ) \; dx \, dy $$ 
+%
+% Note: if F.dhdt is available, then one can simply calculate 
+%
+% $$ J_{\dot{h}} =  \frac{1}{2 \mathcal{A}}  (\dot{h}-\hat{\dot{h}})' \, M \, (\dot{h}-\hat{\dot{h}}) $$
+%
+% where $\dot{h}$=F.dhdt. Doing so ensures that $h$ boundary conditions have been accounted for.
+%
+% 
+%
+%
+%%
+
 
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
@@ -10,6 +45,12 @@ anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connect
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+if ~isempty(F.dhdt) || ~isnan(F.dhdt)
+    dhdtnod=reshape(F.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
+else
+    dhdtnod=nan;
+end
 
 dhdtMeasnod=reshape(Meas.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -26,16 +67,18 @@ dhdtErrnod=reshape(dhdtErr(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
-    
-    
+
+
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
+
     aint=anod*fun;
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
+
+
     dhdtMeasint=dhdtMeasnod*fun;
     dhdtErrInt=dhdtErrnod*fun;
     
@@ -53,25 +96,35 @@ for Iint=1:MUA.nip
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
         
     end
+
+
+     if ~isnan(dhdtnod)
+        hdot=dhdtnod*fun;
+    else
+        hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ;
+     end
+
+
     
     detJw=detJ*MUA.weights(Iint);
     
-    JhdotIntSum=JhdotIntSum+((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; 
+  
+    JhdotIntSum=JhdotIntSum+((hdot-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; 
     
     for Inod=1:MUA.nod
         
+        % hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ; 
         
-        
-        duJhdotInt=-((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt)...
+        duJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
             .*((dhdx.*fun(Inod)+hint.*Deriv(:,1,Inod))./dhdtErrInt)...
             .*detJw/Area;
         
         
-        dvJhdotInt=-((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt)...
+        dvJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
             .*((dhdy.*fun(Inod)+hint.*Deriv(:,2,Inod))./dhdtErrInt)...
             .*detJw/Area;
         
-        dhJhdotInt=-((aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy)-dhdtMeasint)./dhdtErrInt)...
+        dhJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
             .*((dudx.*fun(Inod)+uint.*Deriv(:,1,Inod)+dvdy.*fun(Inod)+vint.*Deriv(:,2,Inod))./dhdtErrInt)...
             .*detJw/Area;
         
@@ -104,5 +157,9 @@ duJhdot=full(duJhdot);
 dvJhdot=full(dvJhdot);
 dhJhdot=full(dhJhdot);
 
+
+%% If F.dhdt is available this should give the same answer
+% dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
+%%
 
 end

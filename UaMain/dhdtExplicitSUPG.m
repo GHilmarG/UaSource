@@ -1,3 +1,5 @@
+
+
 function [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
@@ -54,6 +56,10 @@ tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dd=zeros(MUA.Nele,MUA.nod,MUA.nod);
 b=zeros(MUA.Nele,MUA.nod);
 
+if isempty(MUA.Deriv)  || anynan(MUA.Deriv)
+    CtrlVar.CalcMUA_Derivatives=true;
+    MUA=UpdateMUA(CtrlVar,MUA);
+end
 
 % vector over all elements for each integration point
 for Iint=1:MUA.nip

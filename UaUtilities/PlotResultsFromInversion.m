@@ -44,12 +44,7 @@ GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar); xGL=[] ; yGL=[]
 
 %%
 
-if ~isempty(Meas.dhdt)
-    Iplot=2 ; Jplot=3;
-else
-    Iplot=2 ; Jplot=2;
-end
-Kplot=0;
+
 
 
 fig=FindOrCreateFigure('Measurements') ; clf(fig)
@@ -283,12 +278,13 @@ CM=cmocean('balanced') ; colormap(CM);
 % uAdjoint vAdjoint
 if isprop(InvFinalValues,'uAdjoint')
     if ~isempty(InvFinalValues.uAdjoint)
-        fig=FindOrCreateFigure('Adjoint variables') ; clf(fig)
+        fig=FindOrCreateFigure("Adjoint variables") ; clf(fig)
         T=tiledlayout("flow");
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.uAdjoint,CreateNewFigure=false);
         title(' u Adjoint variable')
+        subtitle("")
         CL=clim;
         if min(CL)< 0 && max(CL) > 0
             CM=cmocean('balanced',25,'pivot',0) ; 
@@ -299,6 +295,7 @@ if isprop(InvFinalValues,'uAdjoint')
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.vAdjoint,CreateNewFigure=false);
 
         title(' v Adjoint variable')
+        subtitle("")
         T.Padding="tight";   T.TileSpacing="tight";
 
         if min(CL)< 0 && max(CL) > 0
@@ -480,13 +477,14 @@ PlotCalvingFronts(CtrlVar,MUA,F,"b");
 
 UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
 title('Modelled $dh/dt$ (assuming plug flow)','interpreter','latex') ;
+subtitle("")
 CL=clim;
 if CL(1) < 0 && CL(2)>0
-    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    CM=cmocean('balanced',25,'pivot',0) ; 
 else
     CM=cmocean('balanced',25) ;
 end
-
+colormap(CM);
 %%  Prior
 
 if isscalar(Priors.AGlen)
@@ -742,6 +740,7 @@ else
         fig=FindOrCreateFigure('dJdA'); clf(fig) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
         title('$dJ/dA$','interpreter','latex')
+        subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
@@ -755,6 +754,7 @@ else
         fig=FindOrCreateFigure("dJdC"); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
         title('$dJ/dC$','interpreter','latex');
+        subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
@@ -768,6 +768,7 @@ else
         fig=FindOrCreateFigure("dJdB"); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         title('$dJ/dB$','interpreter','latex');
+        subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
@@ -978,5 +979,6 @@ else
 
 end
 
+fprintf("...done \n")
 
 end
