@@ -41,7 +41,7 @@ if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || 
         
     else
         CtrlVar=NrOfIntegrationPoints(CtrlVar);
-        
+
         MUA.QuadratureRuleDegree=nan;
         MUA.niph=CtrlVar.niph;
         MUA.nip=CtrlVar.nip;
@@ -49,6 +49,23 @@ if ~isfield(MUA,'niph')  || ~isfield(MUA,'nip')  ||  ~isfield(MUA,'points')  || 
     end
 
 end
+
+ QuadratureRuleHasChanged=false;
+% has the quadrature degree changed?
+if CtrlVar.QuadRules2021 &&  ~isempty(CtrlVar.QuadratureRuleDegree)  &&  MUA.QuadratureRuleDegree ~= CtrlVar.QuadratureRuleDegree
+    
+    Degree=QuadratureRuleDegree(CtrlVar);
+    Q=quadtriangle(Degree,'Type','nonproduct','Points','inside','Domain',[0 0 ; 1 0 ; 0 1]) ;
+
+    MUA.QuadratureRuleDegree=Degree;
+    MUA.nip=size(Q.Points,1);
+    MUA.niph=size(Q.Points,1);
+    MUA.points=Q.Points;
+    MUA.weights=Q.Weights;
+    QuadratureRuleHasChanged=true;
+
+end
+
 
 if ~isfield(CtrlVar,'MUA')
     CtrlVar.MUA.MassMatrix=0;
@@ -85,7 +102,7 @@ end
 
 %% Now consider the possibility that we are using the post 2021 quad rules and that the quadrature degree has changed
 
- QuadratureRuleHasChanged=false;
+
 
 if CtrlVar.QuadRules2021
     Degree=QuadratureRuleDegree(CtrlVar);

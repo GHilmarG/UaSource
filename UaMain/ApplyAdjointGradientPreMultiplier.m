@@ -14,7 +14,7 @@ varargout=varargin;
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
     P=MUA.M/MUA.Area ;
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="D"
-    P=MUA.Dxx+MUA.Dyy  ;
+    P=MUA.Dxx+MUA.Dyy;  
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ...
         || CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical" ...
         || isempty(P)
