@@ -1,6 +1,28 @@
 function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange)
 
 
+
+%%
+%
+% p0 : are the model parameters (A,B,C)
+%
+% The function handle func
+
+%
+% [J,G,H]=func(p) 
+%
+% returns the cost (J), gradient (G) and Hessian (H). (Only cost, J, is used here.) 
+%
+% The function returns a finite-differences estimate of dJ/dp for selected elements of p in the range iRange
+%
+% On return dJ is a vector of
+%
+% [dJ/dA(iRange) dJ/dB(iRange) dJ/dC(iRange)]
+%
+% assuming one is inverting for A, B and C. 
+%
+%%
+
 CPUstart=tic;
 
 fprintf(' Calculating gradients using brute-force method...')

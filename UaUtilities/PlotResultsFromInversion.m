@@ -58,15 +58,15 @@ cbar=UaPlots(CtrlVar,MUA,F,Meas.us,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('us Meas on numerical grid') ;
-
+subtitle("")
 
 nexttile
 
 cbar=UaPlots(CtrlVar,MUA,F,Meas.vs,CreateNewFigure=false);
-
 xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
 ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
 title('vs Meas on numerical grid') ;
+subtitle("")
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     
@@ -76,6 +76,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     xlabel(CtrlVar.PlotsXaxisLabel,'interpreter','latex');
     ylabel(CtrlVar.PlotsYaxisLabel,'interpreter','latex');
     title('dh/dt Meas on numerical grid') ;
+    subtitle("")
 end
 
 usError=sqrt(spdiags(Meas.usCov));
@@ -88,12 +89,13 @@ nexttile
 cbar=UaPlots(CtrlVar,MUA,F,usError,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('us error on numerical grid') ;
-
+subtitle("")
 
 nexttile
 cbar=UaPlots(CtrlVar,MUA,F,vsError,CreateNewFigure=false);
 xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 title('vs error on numerical grid') ;
+subtitle("")
 
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
   
@@ -101,6 +103,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     title('dh/dt error on numerical grid') ;
+    subtitle("")
 
 end
 T.Padding="tight";   T.TileSpacing="tight";
@@ -234,18 +237,21 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
 
     cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,FigureTitle="B final");
     title('InvFinalValues.B') ;
+    subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mdarkterrain",32))
 
     cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,FigureTitle="B start");
     title('Bstart')
+    subtitle("")
     title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mdarkterrain",32))
 
     cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,FigureTitle="B final - B start");
     title('InvFinalValues.B-Bstart') ;
+    subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mdarkterrain",32))
@@ -254,6 +260,7 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     fig=FindOrCreateFigure("sbB");  clf(fig)
     Plot_sbB(CtrlVar,MUA,[],[],F.B,[],[],AspectRatio) ; 
     title('B')
+    subtitle("")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     
 
@@ -271,6 +278,7 @@ tb(tb<eps)=nan ;
 cbar=UaPlots(CtrlVar,MUA,F,tb) ;
 title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
 title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
+subtitle("")
 set(gca,'ColorScale','log')
 clim([1 1000])
 CM=cmocean('balanced') ; colormap(CM);
@@ -336,6 +344,7 @@ T=tiledlayout("flow");
 TS1=nexttile; 
 cbar=UaPlots(CtrlVar,MUA,F,speedMeas,CreateNewFigure=false) ; title('Measured speed') ; set(gca,'ColorScale','log')
 title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|$",interpreter="latex")
+subtitle("")
 CL=clim; 
 
 Ts2=nexttile; 
@@ -347,12 +356,13 @@ subtitle("(Same colorbar scale as for measured speed)")
 TS3=nexttile;
 cbar=UaPlots(CtrlVar,MUA,F,ErrSpeed,CreateNewFigure=false) ; title('Speed measurement error') ; set(gca,'ColorScale','log')
 title(cbar,"error",interpreter="latex")
-
+subtitle("")
 
 TS4=nexttile;
 D=speedMeas-speedCalc ;
 cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','lin')
 title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
+subtitle("")
 T.Padding="tight";   T.TileSpacing="tight";
 
 axis(TS4);
@@ -495,14 +505,14 @@ cbar=UaPlots(CtrlVar,MUA,F,Priors.AGlen,FigureTitle="APrior") ;
 set(gca,'ColorScale','log')
 title(cbar, '($\mathrm{yr}^{-1}\,\mathrm{kPa}^{-n}$)','interpreter','latex');
 title("$A_{\mathrm{Prior}}$",Interpreter="latex")
-
+subtitle("")
 
 
 cbar=UaPlots(CtrlVar,MUA,F,Priors.C,FigureTitle="CPrior") ;
 set(gca,'ColorScale','log')
 title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
 title("$C_{\mathrm{Prior}}$",Interpreter="latex")
-
+subtitle("")
 
 
 
@@ -714,6 +724,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
         title('$dJ/dB$ Adjoint gradient')
+        subtitle("")
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
@@ -722,10 +733,12 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('Difference between adjoint and brute force derivatives')
+        subtitle("")
 
         nexttile
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB./InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false) ;
         title('Ratio between adjoint and brute force derivatives')
+        subtitle("")
 
       %  IFigb.Position=[1.5714 41.571 1096 1115.4];
         TileB.TileSpacing='tight';
@@ -796,10 +809,12 @@ else
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
             title("True C") ; set(gca,'ColorScale','log')
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
             title("Retrieved C") ; set(gca,'ColorScale','log')
+            subtitle("")
 
             nexttile
 
@@ -807,19 +822,23 @@ else
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
             title('abs(True C - Retrieved C)') ; set(gca,'ColorScale','log')
             title(cbar,"$|C-\tilde{C}|$",interpreter="latex")
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvStartValues.C,CreateNewFigure=false);
             title("C at start of inversion") ; set(gca,'ColorScale','log')
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.C,CreateNewFigure=false) ;
             title('Prior C') ; set(gca,'ColorScale','log')
+            subtitle("")
 
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C-Priors.C,CreateNewFigure=false);
             title("Retrieved C -  Prior C ") ; set(gca,'ColorScale','log')
+            subtitle("")
 
             %figC.Position=[400 200 1300 800];
             T.Padding="tight";   
@@ -842,10 +861,12 @@ else
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
             title('True AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
             title('Retrieved AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
 
             nexttile
 
@@ -853,10 +874,12 @@ else
             cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
             title('abs(True A -Retrieved A)') ; set(gca,'ColorScale','log')
             title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
             title('Prior AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
 
             T.Padding="tight";   T.TileSpacing="tight";
 
@@ -887,6 +910,7 @@ else
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.Trueh,CreateNewFigure=false);
             title('True h')
+            subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,F.h,CreateNewFigure=false);
@@ -895,11 +919,13 @@ else
             nexttile
             UaPlots(CtrlVar,MUA,F,F.h-Priors.Trueh,CreateNewFigure=false);
             title('h estimated-true')
+            subtitle("")
 
             nexttile
             [bStart,hStart]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,InvStartValues.B,F.S,F.rho,F.rhow); %
             UaPlots(CtrlVar,MUA,F,hStart,CreateNewFigure=false);
             title("h at start of inversion")
+            subtitle("")
 
 
             figB.Position=[500 200 900 800];
