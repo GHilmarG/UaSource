@@ -328,7 +328,7 @@ if CtrlVar.doInverseStep   % -inverse
 
     end
     
-    % inverse plots
+    % inverse plots , inversion plots
     if CtrlVar.doplots
         PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end

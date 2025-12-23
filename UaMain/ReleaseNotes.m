@@ -2,6 +2,14 @@
 
 %%
 %
+% *Release Notes* _December 2025_
+%
+% * When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated
+% explicitly using those BCs. Previously, when evaluating the sensitivities of the dh/dt-cost function term at integration
+% points as part of the adjoint approach, this was not the case. 
+%
+% 
+%
 % *Release Notes* _November 2025_
 %
 % * The file structure of the Ua folder on github has been changed so that all key m-files are now in the sub-folder UaMain.

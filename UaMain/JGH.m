@@ -61,10 +61,14 @@ if anynan(F.B)
 end
 
 
-% This is a call to the forward model.
+%% Forward model solution
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
+if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+end
 
+%%
 % The cost function, J), is split into a misfit (I) and a regularization term (R). These usually consist of further
 % terms.
 %

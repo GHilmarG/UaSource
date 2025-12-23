@@ -92,8 +92,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
 end
 
 
-Happrox=MUA.M/MUA.Area;
-dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,Happrox,dIdA);
+dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdA);
 
 end
 
