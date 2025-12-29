@@ -6,8 +6,8 @@ function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange)
 %
 % p0 : are the model parameters (A,B,C)
 %
-% The function handle func
-
+% func : A function handle
+%
 %
 % [J,G,H]=func(p) 
 %

@@ -160,35 +160,29 @@ dJdpTest=[];
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
-   
+
     % Get the gradient using the adjoint method
     [J,dJdp,Hessian,JGHouts]=func(p0);
-    
-    
-    %NA=numel(InvStartValues.AGlen);  % Number of parameters to invert for
-    NA=MUA.Nnodes; 
-    
+
+    NA=MUA.Nnodes;
+
     % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
     if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes 
-                      
+        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes
     else
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
-    
+
     % if the inversion is done for more than one field, then expand iRange accordingly. 
     switch strlength(CtrlVar.Inverse.InvertForField)
-        
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
     
-    I=(iRange>=1) & (iRange <= numel(p0));  % As far as I can see, this should not be needed...
+    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
     iRange=iRange(I);
-    
-    % calculate brute force gradient
 
     % Gradient calculated using a brute-force finite difference approach 
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
@@ -211,9 +205,7 @@ else
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
         
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        
         [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc);
-        
         
     else
         

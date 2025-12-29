@@ -1,3 +1,8 @@
+
+
+
+
+
 function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
 
 
@@ -750,9 +755,10 @@ else
 
     if ~isempty(InvFinalValues.dJdAGlen)
 
-        fig=FindOrCreateFigure('dJdA'); clf(fig) ;
+        PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
+        fig=FindOrCreateFigure("dJdA "+PM); clf(fig) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
-        title('$dJ/dA$','interpreter','latex')
+        title("$dJ/dA$ pre-multipiler: "+PM,'interpreter','latex');
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
@@ -760,19 +766,53 @@ else
         else
             CM=cmocean('balanced',25) ; colormap(fig,CM);
         end
+
+        if PM=="I"
+            dJdA=MUA.M\InvFinalValues.dJdAGlen;
+            fig=FindOrCreateFigure("M\dJdC "+PM); clf(fig)
+            UaPlots(CtrlVar,MUA,F,dJdA,CreateNewFigure=false);
+            T=sprintf("$M^{-1} dJdA, pre-multipiler: %s",PM);
+            title(T,interpreter="latex")
+            subtitle("")
+            cl=clim;
+            if min(cl) <0 && max(cl)> 0
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            else
+                CM=cmocean('balanced',25) ; colormap(fig,CM);
+            end
+        end
+
     end
+
+
 
     if ~isempty(InvFinalValues.dJdC)
 
-        fig=FindOrCreateFigure("dJdC"); clf(fig)
+        PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
+        fig=FindOrCreateFigure("dJdC "+PM); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
-        title('$dJ/dC$','interpreter','latex');
+        title("$dJ/dC$ pre-multipiler: "+PM,'interpreter','latex');
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
         else
             CM=cmocean('balanced',25) ; colormap(fig,CM);
+        end
+
+        if PM=="I"
+            dJdC=MUA.M\InvFinalValues.dJdC;
+            fig=FindOrCreateFigure("M\dJdC "+PM); clf(fig)
+            UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
+            T=sprintf("$M^{-1} dJdC$, pre-multipiler: %s",PM);
+            title(T,interpreter="latex")
+            subtitle("")
+            cl=clim;
+            if min(cl) <0 && max(cl)> 0
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            else
+                CM=cmocean('balanced',25) ; colormap(fig,CM);
+            end
         end
     end
 
@@ -954,12 +994,12 @@ else
     %%
     if ~isempty(RunInfo.Inverse.J)
 
-        fig=FindOrCreateFigure('Inverse Parameter Optimisation');
+        fig=FindOrCreateFigure("Inverse Parameter Optimisation");
         clf(fig)
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
-        ylabel('J','interpreter','latex')
+        ylabel("$J$",'interpreter','latex')
 
         if ~isempty(RunInfo.Inverse.GradNorm)  && ~all(isnan(RunInfo.Inverse.GradNorm)) ...
                 &&  numel(RunInfo.Inverse.Iterations) == numel(RunInfo.Inverse.GradNorm)

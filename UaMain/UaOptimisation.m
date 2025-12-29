@@ -11,8 +11,11 @@ function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,p
 narginchk(8,8)
 nargoutchk(3,3)
 
+if contains(CtrlVar.Inverse.MinimisationMethod,"BruteForceHessian")
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+     [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub); 
+
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     
     [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
 
