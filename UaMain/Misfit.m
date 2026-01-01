@@ -216,7 +216,7 @@ if CtrlVar.Inverse.CalcGradI
             %
             % [UserVar,RunInfo,F,l,dFduv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
             %% Step 2:  Solve adjoint equation, i.e.   dfuv l = -dJduv
-            % fprintf(' Solve ajoint problem \n ')
+            % fprintf(' Solve adjoint problem \n ')
             % I need to impose boundary conditions on lx and ly
             % if the problem is (fully) adjoint I have exactly the same BC
             % I need to solve

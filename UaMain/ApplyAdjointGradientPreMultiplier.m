@@ -11,10 +11,17 @@ narginchk(4,inf)
 
 varargout=varargin;
 
+CtrlVar.Inverse.AdjointGradientPreMultiplier="M";
+
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    P=MUA.M/MUA.Area ;
+    if isa(MUA.dM,"decomposition")
+        P=MUA.dM/MUA.Area ;
+    else
+        P=MUA.M/MUA.Area ;
+    end
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="D"
-    P=MUA.Dxx+MUA.Dyy;  
+    l=1e-10; 
+    P=MUA.Dxx+MUA.Dyy+l*MUA.M;
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ...
         || CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical" ...
         || isempty(P)

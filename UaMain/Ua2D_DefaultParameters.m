@@ -901,7 +901,11 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
 % matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
 % presumably to use 'I', and then to try out 'M' for comparison.
-
+%
+% Note: using the pre-multiplier results in the directional derivatives being multiplied by INVERSE of the pre-multiplier. So
+% if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
+% CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
+%
 CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 % If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,

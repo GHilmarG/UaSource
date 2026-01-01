@@ -6,6 +6,9 @@ function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
 narginchk(7,7)
 
 %%
+% Calculates:
+%
+% $$ \lambda \partial F/\partial C = (\lambda_x,\lambda_y)^T \cdot ( \partial F_x/\partial C, \partial F_y/\partial C) $$
 %
 % When performing an inversion with respect to a parameter p we minimize a
 % cost function J, on the form
@@ -50,7 +53,11 @@ narginchk(7,7)
 % if dC=phi then : <u l phi_q | phi >
 %
 % nodal based gradient
-
+%
+%
+%
+%
+%%
 ndim=2;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -120,19 +127,21 @@ for Iint=1:MUA.nip
     %
     % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
     %
-    
+
     % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
-    
- 
-    
+
+    % Note: I include the u and v in the adjoint calculation itself below, so I just need the
+    % derivative without the u and the v. Therefore 
+    %
     detJw=detJ*MUA.weights(Iint);
     for Inod=1:MUA.nod
 
-        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;
+
+        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;  
 
     end
 end

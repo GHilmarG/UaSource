@@ -10,7 +10,20 @@ function [UserVar,RunInfo,F,l,Kuv,Ruv,Lubvb]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs
 %
 % solves for velocities
 %
+% If we write the finite-element formulation of the forward model on the form
+% 
+% $$\mathbf{F}_{\mathbf{v}} = \mathbf{0} $$
 %
+% and then write
+%
+% $$ \mathbf{f}_{\mathbf{v}} - \mathbf{v} = 0$$
+%
+%
+% then the vector uv is $\mathbf{f}$
+%
+% the vector Ruv is $\mathbf{F}_{\mathbf{v}}$
+%
+% and the matrix Kuv = $d_{\mathbf{v}} \mathbf{F}_{\mathbf{uv}}$ 
 %
 %%
 

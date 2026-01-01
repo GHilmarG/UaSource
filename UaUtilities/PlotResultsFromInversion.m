@@ -296,7 +296,7 @@ if isprop(InvFinalValues,'uAdjoint')
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.uAdjoint,CreateNewFigure=false);
-        title(' u Adjoint variable')
+        title("$u$ Adjoint variable",Interpreter="latex")
         subtitle("")
         CL=clim;
         if min(CL)< 0 && max(CL) > 0
@@ -307,13 +307,21 @@ if isprop(InvFinalValues,'uAdjoint')
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.vAdjoint,CreateNewFigure=false);
 
-        title(' v Adjoint variable')
+        title("$v$ Adjoint variable",Interpreter="latex")
         subtitle("")
-        T.Padding="tight";   T.TileSpacing="tight";
+     
 
         if min(CL)< 0 && max(CL) > 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
         end
+
+           T.Padding="compact";   T.TileSpacing="tight";
+
+      cbar=UaPlots(CtrlVar,MUA,F,[InvFinalValues.uAdjoint, InvFinalValues.vAdjoint],FigureTitle="uv Adjoint") ; 
+      title(cbar,"") ; 
+      subtitle("") ; 
+      title("Adjoint velocities")
+
 
     end
 end
@@ -745,7 +753,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         title('Ratio between adjoint and brute force derivatives')
         subtitle("")
 
-      %  IFigb.Position=[1.5714 41.571 1096 1115.4];
+        %  IFigb.Position=[1.5714 41.571 1096 1115.4];
         TileB.TileSpacing='tight';
         TileB.Padding='tight';
         %%
@@ -756,9 +764,16 @@ else
     if ~isempty(InvFinalValues.dJdAGlen)
 
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        fig=FindOrCreateFigure("dJdA "+PM); clf(fig) ;
+        fig=FindOrCreateFigure(PM+"\dJdA "); clf(fig) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
-        title("$dJ/dA$ pre-multipiler: "+PM,'interpreter','latex');
+
+        if PM=="M"
+            T="$\nabla_A J = M^{-1} dJ/dA$";
+        else
+            T="$\nabla_A J=dJ/dA$";
+        end
+        title(T,Interpreter="latex")
+
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
@@ -769,9 +784,9 @@ else
 
         if PM=="I"
             dJdA=MUA.M\InvFinalValues.dJdAGlen;
-            fig=FindOrCreateFigure("M\dJdC "+PM); clf(fig)
+            fig=FindOrCreateFigure("M\dJdA "+PM); clf(fig)
             UaPlots(CtrlVar,MUA,F,dJdA,CreateNewFigure=false);
-            T=sprintf("$M^{-1} dJdA, pre-multipiler: %s",PM);
+            T=sprintf("$\nabla_C J =M^{-1} dJdA$") ; 
             title(T,interpreter="latex")
             subtitle("")
             cl=clim;
@@ -789,9 +804,15 @@ else
     if ~isempty(InvFinalValues.dJdC)
 
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        fig=FindOrCreateFigure("dJdC "+PM); clf(fig)
+        fig=FindOrCreateFigure(PM+"\dJdC "); clf(fig)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
-        title("$dJ/dC$ pre-multipiler: "+PM,'interpreter','latex');
+        if PM=="M"
+            T="$\nabla_C J = M^{-1} dJ/dC$";
+        else
+            T="$\nabla_C J=dJ/dC$";
+        end
+
+        title(T,Interpreter="latex")
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
@@ -804,7 +825,7 @@ else
             dJdC=MUA.M\InvFinalValues.dJdC;
             fig=FindOrCreateFigure("M\dJdC "+PM); clf(fig)
             UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
-            T=sprintf("$M^{-1} dJdC$, pre-multipiler: %s",PM);
+            T=sprintf("$\nabla_C J =M^{-1} dJ/dC$"); 
             title(T,interpreter="latex")
             subtitle("")
             cl=clim;

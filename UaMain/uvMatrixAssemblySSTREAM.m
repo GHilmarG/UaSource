@@ -5,11 +5,26 @@
 
 function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
+%%
 %
+% assembles the matrix Kuv which is the FE form of 
+% 
+% $$d_{\mathbf{v}} \mathbf{F}_{\mathbf{v}}$$
+%
+% where
+% 
+% $$\mathbf{F}_{\mathbf{v}}$$
+%
+% is the forward model.
+% 
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
-
+%
+%
+%
+%
+%%
 
 narginchk(4,4)
 nargoutchk(1,4)
