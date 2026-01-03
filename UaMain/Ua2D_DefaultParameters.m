@@ -663,7 +663,7 @@ CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
                             % A value of 1e-8 is arguably already a relatively small number, in many cases 1e-6 would be considered acceptable
 CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider setting to true if memory an issue                            
-
+CtrlVar.TestKApeSolve=true;  % tests if KApe Solve is accurate
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.

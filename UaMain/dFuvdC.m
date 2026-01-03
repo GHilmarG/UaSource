@@ -14,12 +14,9 @@ function K=dFuvdC(CtrlVar,MUA,F)
 %
 % is the forward model.
 % 
-% Ruv=Tint-Fext;
-% Tint   : internal nodal forces
-% Fint   : external nodal forces
 %
 %
-% \p F/\p_ C = [ \p F_1^x/\p C_1    \p F_1^x/\p C_2   ...  \p F_1^x/\p C_n ]
+% \p F/\p_C = [ \p F_1^x/\p C_1    \p F_1^x/\p C_2   ...  \p F_1^x/\p C_n ]
 %              [ \p F_2^x/\p C_1    \p F_2^x/\p C_2   ...  \p F_1^x/\p C_n ]
 %              [         .                 .                      .        ]
 %              [ \p F_n^x/\p C_1    \p F_n^x/\p C_2   ...  \p F_n^x/\p C_n ]
@@ -57,7 +54,7 @@ function K=dFuvdC(CtrlVar,MUA,F)
 %%
 
 
-ndim=2; dof=2;
+ndim=2; 
 nNodes=MUA.Nnodes ;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -115,18 +112,6 @@ for Iint=1:MUA.nip
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);  % important to calculate Heint and deltaint in a consistent manner
 
 
-
-
-
-    %
-    % dF/dC=dtaux/dC uAdjoint + dtauy/dC vAdjoint
-    %
-    % dtaux/dC= He u * dbeta2/dC
-    %
-    % beta2= (C+CtrlVar.Czero).^(-1./m).*(sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
-    %
-
-    % setting this CtrlVar field to true ensures that BasalDrag.m returns the (point) derivative
     CtrlVar.Inverse.dFuvdClambda=true;
     Ctemp= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
@@ -149,11 +134,10 @@ for Iint=1:MUA.nip
     end
 end
 
-
 Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32'); 
 Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32');
-
 Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1);
+
 istak=0;
 
 for Inod=1:MUA.nod
@@ -166,29 +150,13 @@ for Inod=1:MUA.nod
 
         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+nNodes; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFydC(:,Inod,Jnod);
         istak=istak+MUA.Nele;
-    
 
     end
-    %K=K+sparse(Iind,Jind,Xval,neq,neq);
 end
-
-% tSparse=tic;
 
 K=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
-% tSparse=toc(tSparse);
-
-
-
-
-
-
-
-
-
 
 end
-
-
 
 
 

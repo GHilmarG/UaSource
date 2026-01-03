@@ -1,6 +1,6 @@
 
 
-function duvC=duvdCFunc(CtrlVar,MUA,F,BCs)
+function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs)
 
 %% Calculates the sensitivity matrix duv/dC
 %
@@ -44,17 +44,54 @@ function duvC=duvdCFunc(CtrlVar,MUA,F,BCs)
 %
 % and the F provided as an input to this function must be this solution to the forward problem.
 %
+% see also: dFuvdA.m, dFuvdC.m , TestSensitivityMatrixCalculations.m
+% 
 %%
 
-
-dFdp=dFuvdC(CtrlVar,MUA,F) ;
+dFdC=dFuvdC(CtrlVar,MUA,F) ;
+dFdC=-dFdC; % there is actually a different sign convention inside of this...
 
 CtrlVar.uvAssembly.ZeroFields=false;
 CtrlVar.uvMatrixAssembly.Ronly=false;
 
-[~,dFdq]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+[~,dFduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+
+% test for one particular node and compare to finite-differences 
+
+% if velocities are prescribed, the sensitivity of those velocities to changes in model parameters is zero.
+% make sure that the BCs reflect this.
+if numel(BCs.ubFixedValue) > 0
+    BCs.ubFixedValue=BCs.ubFixedValue*0;
+end
+if numel(BCs.vbFixedValue) > 0
+    BCs.vbFixedValue=BCs.vbFixedValue*0;
+end
+
+[L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
+
+if isempty(cuv)
+    l.ubvb=[];
+else
+    l.ubvb=zeros(numel(cuv),1) ;
+end
+
+if ~isempty(L)
+    frhs=-dFdC-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
+    grhs=cuv-L*[F.ub;F.vb] ;
+else
+    frhs=-dFdA ;
+    grhs=[];
+end
+
+duvb=zeros(2*MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
+CtrlVar.TestKApeSolve=false; 
+sol=solveKApe(dFduv,L,frhs,grhs,duvb,dl,CtrlVar);
+
+%l.ubvb=dl; 
+
+dudC=sol(1:MUA.Nnodes,:);
+dvdC=sol(MUA.Nnodes+1:end,:);
 
 
-duvC=dFdq\dFdp; % Note a minus is not missing because of the way dFuvdC is constructed (might want to change this later...)
 
 end

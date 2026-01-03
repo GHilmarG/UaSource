@@ -176,52 +176,63 @@ end
 
 tSolve=toc(tSolve);
 if CtrlVar.InfoLevelLinSolve>=10
-    fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
-        n+m,n,m,tSolve,CtrlVar.AsymmSolver)
-    if CtrlVar.InfoLevelCPU
-        fprintf(CtrlVar.fidlog,' in %-g sec. \n',tSolve) ;
-    end
+    fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t Nr of rhs=%-i \t time=%-g sec \t method=%s \n ',...
+        n+m,n,m,mf,tSolve,CtrlVar.AsymmSolver)
 end
 
 %% Testing
-if isempty(B)
-    if norm(f)>eps
-        res=norm(A*x-f)/norm(f);
+if ~isfield(CtrlVar,"TestKApeSolve")
+    CtrlVar.TestKApeSolve=true;
+end
+
+if  CtrlVar.TestKApeSolve
+    tTesting=tic;
+    fNorm=norm(f,"fro");
+    if isempty(B)
+        if norm(f)>eps
+            res=norm(A*x-f)/fNorm;
+        else
+            res=norm(A*x-f);
+        end
+        if res>1e-5
+            fprintf('solveKApe: Solution residual appears too large! %g \n',res)
+        end
     else
-        res=norm(A*x-f);
+        if fNorm>1e-10
+            res1=norm(A*x+B'*y-f,"fro")/norm(B'*y-f,"fro");
+        elseif fMorm && (norm(x,"fro") > 0 || norm(y,"fro")>0)
+            res1=norm(A*x+B'*y,"fro")/norm(B'*y,"fro");
+        else
+            res1=norm(A*x+B'*y-f,"fro");
+        end
+        if norm(g)>1e-10
+            res2=norm(B*x-g,"fro")/norm(g,"fro");
+        else
+            res2=norm(B*x-g,"fro");
+        end
+        if res1> 1e-5 || res2 > 1e-5
+            fprintf('solveKApe: Solution residuals appear to be too large! %g %g \n',res1,res2)
+        end
     end
-    if res>1e-5
-        fprintf('solveKApe: Solution residual appears too large! %g \n',res)
+
+    if CtrlVar.TestForRealValues
+
+        if ~isreal(x) && CtrlVar.IgnoreComplexPart
+            x=real(x);
+        end
+
+        if ~isreal(y) && CtrlVar.IgnoreComplexPart
+            y=real(y) ;
+        end
+
     end
-else
-    if norm(f)>1e-10
-        res1=norm(A*x+B'*y-f)/norm(B'*y-f);
-    elseif norm(f)==0  && (norm(x) > 0 || norm(y)>0) 
-        res1=norm(A*x+B'*y)/norm(B'*y);
-    else
-        res1=norm(A*x+B'*y-f);
-    end
-    if norm(g)>1e-10
-        res2=norm(B*x-g)/norm(g);
-    else
-        res2=norm(B*x-g);
-    end
-    if res1> 1e-5 || res2 > 1e-5
-        fprintf('solveKApe: Solution residuals appear to be too large! %g %g \n',res1,res2)
+    tTesting=toc(tTesting);
+    if CtrlVar.InfoLevelLinSolve>=10
+        fprintf("Testing in %g sec \n",tTesting)
     end
 end
 
-if CtrlVar.TestForRealValues
-    
-    if ~isreal(x) && CtrlVar.IgnoreComplexPart
-        x=real(x);
-    end
-    
-    if ~isreal(y) && CtrlVar.IgnoreComplexPart
-        y=real(y) ;
-    end
-    
-end
+
 
 % 		%[ Schur complement reduction
 % 		%  -S:=B/A*B'+C  (negative Schur compliment)

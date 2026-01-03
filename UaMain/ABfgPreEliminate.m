@@ -60,7 +60,7 @@ else
 
         Q=speye(nA,nA)-BtB ;
         Atilde=Q*A+ BtB ;
-        btilde=(Q*f+B'*g) ;
+        btilde=(Q*f+B'*g) ; % when solving for multiple right-hand sides, this will use automatic implicit expansion to expand B'*g to match Q*f
 
 
         if CtrlVar.Parallel.isTest
