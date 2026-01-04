@@ -11,7 +11,7 @@ narginchk(4,inf)
 
 varargout=varargin;
 
-CtrlVar.Inverse.AdjointGradientPreMultiplier="M";
+
 
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
     if isa(MUA.dM,"decomposition")

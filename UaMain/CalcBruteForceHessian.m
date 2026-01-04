@@ -37,7 +37,8 @@ end
 
 [J0,g0]=func(p0);
 
-deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
+
+deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
 
 if any(deltaStep==0)
     fprintf("At least one of the deltaStep values is equal to zero. \n")

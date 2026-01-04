@@ -100,24 +100,31 @@ switch CtrlVar.Inverse.Regularize.Field
             isempty(CtrlVar.Inverse.Regularize.AGlen.gs) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.gs) ;
-        
-        
+
+
     case '-AGlen-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.AGlen.gs);
-        
+
     case '-C-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+
+    case '-B-'
+
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.B.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.B.gs) ;
+
 end
 
 
 if isE
-    
+
     fprintf(' Input Error: Some or all Tikhonov regularisation parameters not defined! \n')
     fprintf(' The Tikhonov regularisation parameters are: \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.ga \n')
@@ -128,7 +135,10 @@ if isE
     fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.gs \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.C.ga \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.C.gs \n')
-    
+    fprintf(' \t CtrlVar.Inverse.Regularize.B.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.B.gs \n')
+
+
     error(' Some or all Tikhonov regularisation parameters not defined. \n')
 end
 

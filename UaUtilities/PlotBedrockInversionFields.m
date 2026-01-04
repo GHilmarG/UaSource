@@ -12,17 +12,19 @@ if ~isempty(Priors.TrueB)
     % the True B field is not empty. This could, for example, be a synthetic test case.
 
     figB=FindOrCreateFigure("True and estimated B"); clf(figB)
-    TB=tiledlayout(2,3) ;
+    TB=tiledlayout("flow") ;
 
     ax1=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("True B")
+    subtitle("")
 
     ax2=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B")
+    subtitle("")
 
 
     if isempty(Priors.TrueB)
@@ -34,12 +36,14 @@ if ~isempty(Priors.TrueB)
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("B retrieved - B true")
+    subtitle("")
 
 
     ax4=nexttile;
     UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("B at start of current inversion")
+    subtitle("")
 
     ax5=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
@@ -50,6 +54,7 @@ if ~isempty(Priors.TrueB)
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B -  Prior B ")
+    subtitle("")
 
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
@@ -122,7 +127,7 @@ if ~isempty(Meas.B)
 
 
     figB=FindOrCreateFigure("Measured and estimated B"); clf(figB)
-    TB=tiledlayout(2,3) ;
+    TB=tiledlayout("flow") ;
 
     ax1=nexttile;
     UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);

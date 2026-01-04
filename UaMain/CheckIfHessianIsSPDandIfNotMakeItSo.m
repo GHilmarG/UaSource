@@ -3,13 +3,8 @@
 
 function [H,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(H,MUA,lStart)
 
-lEnd=0;
-%return
 
-
-lStart=1e-8;
 l=lStart;
-
 
 nNodes=size(MUA.M,1);
 nH=size(H,1);
@@ -27,7 +22,7 @@ while true
     [~, pp] = chol(H);
     if pp == 0
         fprintf('Hessian is positive definite.\n');
-        l=l/10;
+        l=l/100;
         break;
     else
         fprintf('Modifying Hessian to make it positive definite.\n');

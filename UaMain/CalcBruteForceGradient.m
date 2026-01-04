@@ -30,7 +30,9 @@ fprintf(' Calculating gradients using brute-force method...')
 
 J0=func(p0);
 
-deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
+%deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
+deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+
 
 % Testing gradient using brute force method
 

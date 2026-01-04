@@ -86,22 +86,6 @@ if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Initia
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
 end
 
-if CtrlVar.Inverse.Regularize.Field=="-logAGlen-logC-"
-
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.ga is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.gs is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
-end
-
 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
@@ -173,16 +157,18 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
 
-    % if the inversion is done for more than one field, then expand iRange accordingly. 
+    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
+    iRange=iRange(I);
+
+    % if the inversion is done for more than one field, then expand iRange accordingly.
     switch strlength(CtrlVar.Inverse.InvertForField)
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-    
-    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
-    iRange=iRange(I);
+
+
 
     % Gradient calculated using a brute-force finite difference approach 
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);

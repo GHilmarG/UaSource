@@ -1169,7 +1169,27 @@ CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calcu
 %
 % The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or
 % fourth-order central differences.
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+% The finite-difference step size is calculated as:
+%
+%    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+%
+% where p0 are the model parameters, i.e. A, B, C.
+%
+% To test the B and C gradients, it seems good to put 
+%
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+%
+% However, when testing B, this might not be a good choice if, for example, if B=0 in some places. Then a better approach is
+% to select CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize, based on typical ice thickness, for example as
+%  
+% CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.0;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0.01 hmean;  
+%
+
+
 CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ;
 CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
     ["forward-first-order","central-second-order","forward-second-order"...

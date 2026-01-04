@@ -11,12 +11,12 @@ function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,
 
 p=p0;
 
-nNewtonSteps=1;
-Jvector=nan(nNewtonSteps+1,1);
-SlopeVector=nan(nNewtonSteps+1,1);
-gammaVector=nan(nNewtonSteps+1,1);
-SubOptimalityVector=nan(nNewtonSteps+1,1);
-GradNormVector=nan(nNewtonSteps+1,1);
+MaxNewtonSteps=10;
+Jvector=nan(MaxNewtonSteps+1,1);
+SlopeVector=nan(MaxNewtonSteps+1,1);
+gammaVector=nan(MaxNewtonSteps+1,1);
+SubOptimalityVector=nan(MaxNewtonSteps+1,1);
+GradNormVector=nan(MaxNewtonSteps+1,1);
 
 nPar=numel(p);
 
@@ -30,7 +30,7 @@ dJTolerance=0.0;
 dpTolerance=0.0;
 
 iNewton=0;
-lmin=0.1; lEnd=0; 
+lmin=1e-12; lEnd=0; 
 while true
 
     iNewton=iNewton+1;
@@ -43,7 +43,7 @@ while true
 
 
     lStart=max(lEnd,lmin);
-    [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
+   [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
 
     dp=Hfull\(-g0);
  
@@ -99,7 +99,7 @@ while true
         error("wrong dimentions")
     end
 
-    g0SD=EYE*g0; % pre-multiplying
+    g0SD=EYE\g0; % pre-multiplying, note that I must use the inverse...!
     Func=@(gamma) func(p-gamma*g0SD); % switching to the direction of the (negative) gradient
     slope0=-g0'*g0SD;
     gamma=-0.1*J0/slope0;
@@ -151,7 +151,7 @@ while true
     drawnow
 
     % exit?
-    if iNewton>(nNewtonSteps-1)
+    if iNewton>(MaxNewtonSteps-1)
         fprintf("maximum number of iterations reached. \n")
         break
     end

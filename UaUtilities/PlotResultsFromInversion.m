@@ -536,7 +536,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
    
 
-    if ~isempty(InvFinalValues.dJdAGlenTest) | all(isnan(InvFinalValues.dJdAGlenTest))
+    if ~isempty(InvFinalValues.dJdAGlenTest) 
         IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
         fprintf('------------------------------------ AGlen gradients ---------------------------------------------------------------------\n')
         fprintf('#Node/Ele  dJdA          dJdATest      dJdA-dJdATest     dJdA/dtdATest  (dJdA-dJdATest)/dJdA \n')
@@ -567,7 +567,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     end
 
-    if ~isempty(InvFinalValues.dJdCTest) | all(isnan(InvFinalValues.dJdCTest))
+    if ~isempty(InvFinalValues.dJdCTest) 
 
         IC=find(~isnan(InvFinalValues.dJdCTest)) ;
 
@@ -600,7 +600,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         set(gcf,'Color','white')
     end
 
-    if ~isempty(InvFinalValues.dJdBTest) | all(isnan(InvFinalValues.dJdBTest))
+    if ~isempty(InvFinalValues.dJdBTest)
         fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
 
         IB=find(~isnan(InvFinalValues.dJdBTest)) ;
@@ -764,7 +764,7 @@ else
     if ~isempty(InvFinalValues.dJdAGlen)
 
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        fig=FindOrCreateFigure(PM+"\dJdA "); clf(fig) ;
+        figPMdJdA=FindOrCreateFigure(PM+"\dJdA "); clf(figPMdJdA) ;
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdAGlen,CreateNewFigure=false);
 
         if PM=="M"
@@ -784,7 +784,7 @@ else
 
         if PM=="I"
             dJdA=MUA.M\InvFinalValues.dJdAGlen;
-            fig=FindOrCreateFigure("M\dJdA "+PM); clf(fig)
+            figMdJdA=FindOrCreateFigure("M\dJdA "+PM); clf(figMdJdA)
             UaPlots(CtrlVar,MUA,F,dJdA,CreateNewFigure=false);
             T=sprintf("$\nabla_C J =M^{-1} dJdA$") ; 
             title(T,interpreter="latex")
@@ -804,7 +804,7 @@ else
     if ~isempty(InvFinalValues.dJdC)
 
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        fig=FindOrCreateFigure(PM+"\dJdC "); clf(fig)
+        figPMdJdC=FindOrCreateFigure(PM+"\dJdC "); clf(figPMdJdC)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
         if PM=="M"
             T="$\nabla_C J = M^{-1} dJ/dC$";
@@ -823,7 +823,7 @@ else
 
         if PM=="I"
             dJdC=MUA.M\InvFinalValues.dJdC;
-            fig=FindOrCreateFigure("M\dJdC "+PM); clf(fig)
+            figMdJdC=FindOrCreateFigure("M\dJdC "+PM); clf(figMdJdC)
             UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
             T=sprintf("$\nabla_C J =M^{-1} dJ/dC$"); 
             title(T,interpreter="latex")
@@ -839,16 +839,40 @@ else
 
     if ~isempty(InvFinalValues.dJdB)
 
-        fig=FindOrCreateFigure("dJdB"); clf(fig)
+        PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
+        figdJdB=FindOrCreateFigure("dJdB"+PM); clf(figdJdB)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
-        title('$dJ/dB$','interpreter','latex');
+        if PM=="M"
+            T="$\nabla_B J = M^{-1} dJ/dC$";
+        else
+            T="$\nabla_B J=dB/dC$";
+        end
+        title(T,Interpreter="latex")
         subtitle("")
+
         cl=clim;
         if min(cl) <0 && max(cl)> 0
             CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
         else
             CM=cmocean('balanced',25) ; colormap(fig,CM);
         end
+
+        if PM=="I"
+            dJdB=MUA.M\InvFinalValues.dJdB;
+            figMB=FindOrCreateFigure("M\dJdB "+PM); clf(figMB)
+            UaPlots(CtrlVar,MUA,F,dJdB,CreateNewFigure=false);
+            T=sprintf("$\nabla_B J =M^{-1} dJ/dB$");
+            title(T,interpreter="latex")
+            subtitle("")
+            cl=clim;
+            if min(cl) <0 && max(cl)> 0
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            else
+                CM=cmocean('balanced',25) ; colormap(fig,CM);
+            end
+        end
+
+
     end
 
 
@@ -989,10 +1013,10 @@ else
             subtitle("")
 
 
-            figB.Position=[500 200 900 800];
+            %figB.Position=[500 200 900 800];
             TB.TileSpacing="tight";
             TB.Padding="tight";
-            figh.Position=[500 200 900 800];
+            %figh.Position=[500 200 900 800];
 
         end
 
