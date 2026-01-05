@@ -591,7 +591,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         plot(InvFinalValues.dJdC,InvFinalValues.dJdCTest,"or") ;
         hold on
         plot(InvFinalValues.dJdC,InvFinalValues.dJdC,"--k") ;
-        axis equal tight  ; xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
+        axis equal tight  ; 
+        
+        xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
         ylabel("Finite difference $dJ/dC$",Interpreter="latex")
         ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
         axis on ; axis equal tight; 
@@ -628,7 +630,9 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ;
         hold on
         plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ;
-        axis equal ; xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
+        axis equal ; 
+        axis([min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest) min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest)])
+        xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
         ylabel("Finite difference $dJ/dB$",Interpreter="latex")
         ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
         axis on ; axis equal tight ; box off
@@ -736,7 +740,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         TileB=tiledlayout("flow");
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
-        title('$dJ/dB$ Adjoint gradient')
+        title("$dJ/dB$ Adjoint gradient")
         subtitle("")
 
         nexttile
