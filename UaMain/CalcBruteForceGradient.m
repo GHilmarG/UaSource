@@ -41,7 +41,7 @@ deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVa
 dJ=p0*0+NaN;
 dJtemp=dJ;
 
-Pool=gcp ;
+
 parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:genericError');
 parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 

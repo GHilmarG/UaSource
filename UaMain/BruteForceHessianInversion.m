@@ -172,6 +172,7 @@ while true
     end
 
 
+
 end
 
 I=~isnan(Jvector); Jvector=Jvector(I); 

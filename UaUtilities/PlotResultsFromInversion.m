@@ -52,7 +52,7 @@ GLgeo=GLgeometry(MUA.connectivity,MUA.coordinates,F.GF,CtrlVar); xGL=[] ; yGL=[]
 
 
 
-fig=FindOrCreateFigure('Measurements') ; clf(fig)
+figMeas=FindOrCreateFigure('Measurements') ; clf(figMeas)
 
 T=tiledlayout("flow");
 
@@ -117,7 +117,7 @@ T.Padding="tight";   T.TileSpacing="tight";
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
 
-    fig=FindOrCreateFigure('A at the end of inversion') ; clf(fig)
+    figAeI=FindOrCreateFigure('A at the end of inversion') ; clf(figAeI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);
     set(gca,'ColorScale','log')
     hold on
@@ -136,7 +136,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     end
     clim(ColorbarLimits)
 
-    fig=FindOrCreateFigure('A at the start of inversion') ; clf(fig)
+    figAsI=FindOrCreateFigure('A at the start of inversion') ; clf(figAsI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.AGlen);
     set(gca,'ColorScale','log')
     title("$A$ at start of inversion",Interpreter="latex")
@@ -148,7 +148,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    fig=FindOrCreateFigure('Change in A during inversion run') ; clf(fig)
+    figAcI=FindOrCreateFigure('Change in A during inversion run') ; clf(figAcI)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
     title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ; 
     cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
@@ -170,7 +170,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
         ColorbarLimits(1)=ColorbarLimits(1)-Eps;
         ColorbarLimits(2)=ColorbarLimits(2)+Eps;
     end
-    fig=FindOrCreateFigure('C at the end of inversion') ; clf(fig)
+    figCeI=FindOrCreateFigure('C at the end of inversion') ; clf(figCeI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C);
     set(gca,'ColorScale','log')
     hold on
@@ -185,7 +185,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    fig=FindOrCreateFigure('C at the beginning of inversion') ; clf(fig)
+    figCbI=FindOrCreateFigure('C at the beginning of inversion') ; clf(figCbI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.C);
     set(gca,'ColorScale','log')
     title("$C$ at start of inversion",Interpreter="latex")
@@ -197,7 +197,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    fig=FindOrCreateFigure('Change in C during inversion run') ; clf(fig)
+    figCcI=FindOrCreateFigure('Change in C during inversion run') ; clf(figCcI)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ;
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
@@ -262,7 +262,7 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     colormap(othercolor("Mdarkterrain",32))
 
     AspectRatio=1;
-    fig=FindOrCreateFigure("sbB");  clf(fig)
+    figsbB=FindOrCreateFigure("sbB");  clf(figsbB)
     Plot_sbB(CtrlVar,MUA,[],[],F.B,[],[],AspectRatio) ; 
     title('B')
     subtitle("")
@@ -291,7 +291,7 @@ CM=cmocean('balanced') ; colormap(CM);
 % uAdjoint vAdjoint
 if isprop(InvFinalValues,'uAdjoint')
     if ~isempty(InvFinalValues.uAdjoint)
-        fig=FindOrCreateFigure("Adjoint variables") ; clf(fig)
+        figAV=FindOrCreateFigure("Adjoint variables") ; clf(figAV)
         T=tiledlayout("flow");
 
         nexttile
@@ -347,7 +347,7 @@ end
 
 %%
 
-fig=FindOrCreateFigure("Speed misfit") ; clf(fig)
+figSM=FindOrCreateFigure("Speed misfit") ; clf(figSM)
 speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
 ErrSpeed=sqrt(usError.^2+vsError.^2);
@@ -385,7 +385,7 @@ if CL(1)< 0 && CL(2) > 0
 end
 
 %%
-fig=FindOrCreateFigure('velocity misfit') ; clf(fig)
+figVmis=FindOrCreateFigure("velocity misfit") ; clf(figVmis)
 
 
 T=tiledlayout("flow");
@@ -437,9 +437,9 @@ T.Padding="tight";   T.TileSpacing="tight";
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     %%
-    fig=FindOrCreateFigure('dh/dt misfit') ; clf(fig)
+    figdhdt=FindOrCreateFigure("dh/dt misfit") ; clf(figdhdt)
 
-    [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+ 
 
     T=tiledlayout("flow");
 
@@ -453,20 +453,22 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
-
+    CL=clim;
 
     axdhdt2=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,dhdt,CreateNewFigure=false);
+    cbar=UaPlots(CtrlVar,MUA,F,F.dhdt,CreateNewFigure=false);
     title("$\dot{h}_{\mathrm{Modelled}}$",Interpreter="latex") ;
     title(cbar,"$\dot{h}_\mathrm{Modelled}$",interpreter="latex")
     subtitle("")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    clim(CL)
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
 
+
     axdhdt3=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,(dhdt-Meas.dhdt)./dhdtError,CreateNewFigure=false);
+    cbar=UaPlots(CtrlVar,MUA,F,(F.dhdt-Meas.dhdt)./dhdtError,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title("$\dot{h}_{\mathrm{Modelled}}-\dot{h}_{\mathrm{Measured}}$",Interpreter="latex") ;
@@ -474,8 +476,8 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
     title(cbar,"$\Delta \dot{h}$",interpreter="latex")
     
-    axis(axdhdt1); CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
-    axis(axdhdt2); CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
+    axis(axdhdt1); clim(CL) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
+    axis(axdhdt2); clim(CL) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
     %%
     T.Padding="tight";   T.TileSpacing="tight";
@@ -484,7 +486,7 @@ end
 
 
 %%
-fig=FindOrCreateFigure("Modelled velocities") ; clf(fig)
+figVel=FindOrCreateFigure("Modelled velocities") ; clf(figVel)
 PlotBoundary(MUA.Boundary,MUA.connectivity,MUA.coordinates,CtrlVar,'k')
 hold on
 QuiverPar.QuiverColorSpeedLimits=[];
@@ -496,9 +498,9 @@ hold on ;
 PlotCalvingFronts(CtrlVar,MUA,F,"b");
 %%
 
-[~,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
-UaPlots(CtrlVar,MUA,F,dhdt,FigureTitle="dh/dt modelled")
+
+UaPlots(CtrlVar,MUA,F,F.dhdt,FigureTitle="dh/dt modelled")
 title('Modelled $dh/dt$ (assuming plug flow)','interpreter','latex') ;
 subtitle("")
 CL=clim;
@@ -538,7 +540,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     if ~isempty(InvFinalValues.dJdAGlenTest) 
         IA=find(~isnan(InvFinalValues.dJdAGlenTest)) ;
-        fprintf('------------------------------------ AGlen gradients ---------------------------------------------------------------------\n')
+        fprintf('------------------------------------ dJ/dA  ---------------------------------------------------------------------\n')
         fprintf('#Node/Ele  dJdA          dJdATest      dJdA-dJdATest     dJdA/dtdATest  (dJdA-dJdATest)/dJdA \n')
 
         for ii=1:numel(IA)
@@ -551,15 +553,16 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
                 (InvFinalValues.dJdAGlen(I)-InvFinalValues.dJdAGlenTest(I))/InvFinalValues.dJdAGlen(I))
         end
 
-        figAgrad=FindOrCreateFigure("A gradient test") ;  clf(figAgrad)
+        figAgrad=FindOrCreateFigure("dJ/dA test") ;  clf(figAgrad)
         plot(InvFinalValues.dJdAGlen,InvFinalValues.dJdAGlenTest,"or") ;
         hold on
         plot(InvFinalValues.dJdAGlen,InvFinalValues.dJdAGlen,"--k") ;
-        axis equal tight ; 
+
         xlabel("Adjoint $dJ/dA$",Interpreter="latex")  ;
         ylabel("Finite difference $dJ/dA$",Interpreter="latex")
         ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
         axis on ; axis equal tight ; box off
+        axis([min(InvFinalValues.dJACTest) max(InvFinalValues.dJACTest) min(InvFinalValues.dJdATest) max(InvFinalValues.dJdATest)])
         title("Comparision betweenadjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
 
@@ -571,7 +574,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
         IC=find(~isnan(InvFinalValues.dJdCTest)) ;
 
-        fprintf('--------------------------------------- C gradients ----------------------------------------------------------------------\n')
+        fprintf('--------------------------------------- dJ/dC ----------------------------------------------------------------------\n')
 
         fprintf('#Node/Ele  dJdC          dJdCTest      dJdC-dJdCTest     dJdC/dtdCTest   (dJdC-dJdCTest)/dJdC\n')
 
@@ -587,27 +590,24 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
         %%
 
-        figCgrad=FindOrCreateFigure("C gradient test") ;  clf(figCgrad)
+        figCgrad=FindOrCreateFigure("dJ/dC test") ;  clf(figCgrad)
         plot(InvFinalValues.dJdC,InvFinalValues.dJdCTest,"or") ;
         hold on
         plot(InvFinalValues.dJdC,InvFinalValues.dJdC,"--k") ;
-        axis equal tight  ; 
-        
         xlabel("Adjoint $dJ/dC$",Interpreter="latex")  ;
         ylabel("Finite difference $dJ/dC$",Interpreter="latex")
         ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
-        axis on ; axis equal tight; 
+        axis on ; axis equal tight;
+        axis([min(InvFinalValues.dJdCTest) max(InvFinalValues.dJdCTest) min(InvFinalValues.dJdCTest) max(InvFinalValues.dJdCTest)])
         box off
         title("Comparision betweenadjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
     end
 
     if ~isempty(InvFinalValues.dJdBTest)
-        fprintf('--------------------------------------- B gradients ----------------------------------------------------------------------\n')
+        fprintf('--------------------------------------- dJ/dB ----------------------------------------------------------------------\n')
 
         IB=find(~isnan(InvFinalValues.dJdBTest)) ;
-
-
 
         fprintf('#Node/Ele  dJdB          dJdBTest      dJdB-dJdBTest     dJdB/dtdBTest   \n')
 
@@ -626,16 +626,16 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
         %%
 
-        figBgrad=FindOrCreateFigure("B gradient test") ;  clf(figBgrad)
+        figBgrad=FindOrCreateFigure("dJ/dB test") ;  clf(figBgrad)
         plot(InvFinalValues.dJdB,InvFinalValues.dJdBTest,"or") ;
         hold on
         plot(InvFinalValues.dJdB,InvFinalValues.dJdB,"--k") ;
-        axis equal ; 
+        axis equal tight ; 
         axis([min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest) min(InvFinalValues.dJdBTest) max(InvFinalValues.dJdBTest)])
+        box off
         xlabel("Adjoint $dJ/dB$",Interpreter="latex")  ;
         ylabel("Finite difference $dJ/dB$",Interpreter="latex")
         ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
-        axis on ; axis equal tight ; box off
         title("Comparision between adjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
     end
@@ -649,7 +649,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
 
     if ~(isempty(InvFinalValues.dJdC) && isempty(InvFinalValues.dJdCTest))
 
-        IFigC=FindOrCreateFigure("dJ/dC gradient test over mesh") ; clf(IFigC);
+        IFigC=FindOrCreateFigure("dJ/dC test over mesh") ; clf(IFigC);
 
         TileC=tiledlayout("flow");
         nexttile
@@ -658,14 +658,14 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('dJdC Adjoint gradient')
+        title('dJdC Adjoint directional derivative')
 
         nexttile
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('$dJ/dC$ Brute force gradient','interpreter','latex')
+        title('$dJ/dC$ Brute force directional derivative','interpreter','latex')
 
 
         nexttile
@@ -673,7 +673,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Difference between adjoint and brute force derivatives')
+        title('Difference between adjoint and brute force directional derivatives')
 
 
         nexttile
@@ -681,7 +681,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Ratio between adjoint and brute force derivatives')
+        title('Ratio between adjoint and brute force directional derivatives')
 
         TileC.TileSpacing='tight';
         TileC.Padding='tight';
@@ -693,7 +693,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     if ~(isempty(InvFinalValues.dJdAGlen) && isempty(InvFinalValues.dJdAGlenTest))
 
 
-        IFigAGlen=FindOrCreateFigure("dJ/dA Test over mesh") ; clf(IFigAGlen);
+        IFigAGlen=FindOrCreateFigure("dJ/dA test over mesh") ; clf(IFigAGlen);
 
         TileA=tiledlayout("flow");
 
@@ -702,14 +702,14 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('dJdAGlen Adjoint gradient')
+        title('dJdAGlen Adjoint directional derivative')
 
         nexttile
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('dJdAGlen Brute force gradient')
+        title('dJdAGlen Brute force directional derivative')
 
 
         nexttile
@@ -717,14 +717,14 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Difference between adjoint and brute force derivatives')
+        title('Difference between adjoint and brute force directional derivatives')
 
         nexttile
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdAGlen./InvFinalValues.dJdAGlenTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-        title('Ratio between adjoint and brute force derivatives')
+        title('Ratio between adjoint and brute force directional derivatives')
         
         TileA.TileSpacing='tight';
         TileA.Padding='tight';
@@ -736,16 +736,16 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
 
         %%
-        IFigb=FindOrCreateFigure("dJ/dB gradient test over mesh") ; clf(IFigb)
+        IFigb=FindOrCreateFigure("dJ/dB test over mesh") ; clf(IFigb)
         TileB=tiledlayout("flow");
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
-        title("$dJ/dB$ Adjoint gradient")
+        title("$dJ/dB$ Adjoint directional derivative")
         subtitle("")
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
-        title('$dJ/dB$ Brute force gradient',Interpreter='latex')
+        title('$dJ/dB$ Brute force directional derivative',Interpreter='latex')
 
         nexttile
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
@@ -781,9 +781,9 @@ else
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(figPMdJdA,CM);
         else
-            CM=cmocean('balanced',25) ; colormap(fig,CM);
+            CM=cmocean('balanced',25) ; colormap(figPMdJdA,CM);
         end
 
         if PM=="I"
@@ -795,9 +795,9 @@ else
             subtitle("")
             cl=clim;
             if min(cl) <0 && max(cl)> 0
-                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(figMdJdA,CM);
             else
-                CM=cmocean('balanced',25) ; colormap(fig,CM);
+                CM=cmocean('balanced',25) ; colormap(figMdJdA,CM);
             end
         end
 
@@ -820,9 +820,9 @@ else
         subtitle("")
         cl=clim;
         if min(cl) <0 && max(cl)> 0
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(figPMdJdC,CM);
         else
-            CM=cmocean('balanced',25) ; colormap(fig,CM);
+            CM=cmocean('balanced',25) ; colormap(figPMdJdC,CM);
         end
 
         if PM=="I"
@@ -834,9 +834,9 @@ else
             subtitle("")
             cl=clim;
             if min(cl) <0 && max(cl)> 0
-                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(figMdJdC,CM);
             else
-                CM=cmocean('balanced',25) ; colormap(fig,CM);
+                CM=cmocean('balanced',25) ; colormap(figMdJdC,CM);
             end
         end
     end
@@ -856,9 +856,9 @@ else
 
         cl=clim;
         if min(cl) <0 && max(cl)> 0
-            CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(figdJdB,CM);
         else
-            CM=cmocean('balanced',25) ; colormap(fig,CM);
+            CM=cmocean('balanced',25) ; colormap(figdJdB,CM);
         end
 
         if PM=="I"
@@ -870,9 +870,9 @@ else
             subtitle("")
             cl=clim;
             if min(cl) <0 && max(cl)> 0
-                CM=cmocean('balanced',25,'pivot',0) ; colormap(fig,CM);
+                CM=cmocean('balanced',25,'pivot',0) ; colormap(figMB,CM);
             else
-                CM=cmocean('balanced',25) ; colormap(fig,CM);
+                CM=cmocean('balanced',25) ; colormap(figMB,CM);
             end
         end
 
@@ -1043,8 +1043,8 @@ else
     %%
     if ~isempty(RunInfo.Inverse.J)
 
-        fig=FindOrCreateFigure("Inverse Parameter Optimisation");
-        clf(fig)
+        figIPO=FindOrCreateFigure("Inverse Parameter Optimisation");
+        clf(figIPO)
         hold off
         yyaxis left
         semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)
@@ -1067,8 +1067,8 @@ else
 
         if ~all(isnan(RunInfo.Inverse.R))
 
-            fig=FindOrCreateFigure('J=I+R');
-            clf(fig)
+            figJIR=FindOrCreateFigure('J=I+R');
+            clf(figJIR)
             hold off
             yyaxis left
             semilogy(RunInfo.Inverse.Iterations,RunInfo.Inverse.J,'-bo','LineWidth',2)

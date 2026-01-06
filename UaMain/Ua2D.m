@@ -318,7 +318,7 @@ if CtrlVar.doInverseStep   % -inverse
 
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-
+    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
 
 
