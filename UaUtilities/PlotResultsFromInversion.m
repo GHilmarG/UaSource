@@ -847,9 +847,9 @@ else
         figdJdB=FindOrCreateFigure("dJdB"+PM); clf(figdJdB)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         if PM=="M"
-            T="$\nabla_B J = M^{-1} dJ/dC$";
+            T="$\nabla_B J = M^{-1} dJ/dB$";
         else
-            T="$\nabla_B J=dB/dC$";
+            T="$\nabla_B J=dJ/dB$";
         end
         title(T,Interpreter="latex")
         subtitle("")

@@ -366,7 +366,7 @@ for Inod=1:MUA.nod
     dFdhlambda=dFdhlambda+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),T(:,Inod),MUA.Nnodes,1);
 end
 
-P=MUA.M/MUA.Area;
+P=[];
 dFdhlambda=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,P,dFdhlambda);
 
 end
