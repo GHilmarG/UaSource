@@ -315,6 +315,7 @@ else
 
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
+            CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("$dh/dt$ at t=%g",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")
