@@ -463,9 +463,9 @@ else  % Tikhonov regularization
 
     
     % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdBB,dRdB);
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdAGlen);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdC);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdB);
     
     R=RAGlen+RB+RC;
     dRdp=[dRdAGlen;dRdB;dRdC];

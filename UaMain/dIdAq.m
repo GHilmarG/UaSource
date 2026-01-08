@@ -6,11 +6,13 @@
 % function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 
 
-function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
+function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 
 %
 % nodal-based gradients
 %
+
+narginchk(8,8)
 
 ndim=2;
 
@@ -92,7 +94,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
 end
 
 
-dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdA);
+dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dIdA);
 
 end
 

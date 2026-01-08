@@ -52,7 +52,7 @@ classdef BoundaryConditions
         hPosNodeDeActivated=[] ;
 
         % Boundary conditions for the level set field
-        % Only need when using the level-set method (currenlty under development, so don't
+        % Only need when using the level-set method (currently under development, so don't
         % use!)
         LSFFixedNode=[];
         LSFFixedValue=[];

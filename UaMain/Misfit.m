@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Meas,BCsAdjoint,RunInfo,dfuv)
 
 %%
@@ -292,7 +298,7 @@ if CtrlVar.Inverse.CalcGradI
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
-                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
+                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,BCs,uAdjoint,vAdjoint,Meas);
                 
                 dCI=0 ;               % This is the explicit derivative of I with respect to C. 
                                       % The misfit term I is not an explicit function of C, so this equals to zero.
@@ -305,7 +311,7 @@ if CtrlVar.Inverse.CalcGradI
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
                
-                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas);
+                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,BCs,uAdjoint,vAdjoint,Meas);
                 
                 dAI=0 ; % No explicit dependency of the misfit term I on A.
 
@@ -326,23 +332,26 @@ if CtrlVar.Inverse.CalcGradI
                 % if only -dhdt- meas and no regularization
                 % then dJdB=dh/db*dhJhdot
                 
-                dBFuvLambda=dIdbq(CtrlVar,MUA,uAdjoint,vAdjoint,F,dhdp,dbdp,dBdp);
-             %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
+                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp);
+                %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
                 %dBFuvLambda=dBFuvLambda2;
-                
-                
+
+
                 dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
+
+                dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dBI); % added 7 Jan 2025
+
                 DBI=dBFuvLambda+dBI;
-                % 
+                %
                 % if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
                 %     F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
                 %     DBI(~F.GF.NodesUpstreamOfGroundingLines)=0;
                 % end
-                % 
-                
-                
+                %
+
+
             end
-            
+
             
             
         otherwise

@@ -1467,7 +1467,8 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=true ;
+CtrlVar.MUA.DecomposeMassMatrix=false;
+CtrlVar.MUA.CholeskyMassMatrix=true;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -2020,13 +2021,13 @@ CtrlVar.LevelSetPhase="" ;
 % the active-set method.
 %
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
+
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 1) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additional mass-balance term, ab,  on the form:
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 2) Here an additional mass-balance term, ab,  on the form:
                                                                %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
                                                                % is added. This is quite similar to the "penalty method", 
                                                                % but the thickness  penalty method does not have to be activated as

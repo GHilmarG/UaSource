@@ -167,9 +167,11 @@ dhJhdot=full(dhJhdot);
 % dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
 %%
 
-P=[];
 
-[duJhdot,dvJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,P,duJhdot,dvJhdot,dhJhdot);
+% Don't apply this here!  Because duJhdot and dvJhdot contribute to the right-hand side of the Adjoint equations.
+% However, dhJhdot does not and this derivative needs to be projected, but do this later
+%
+% [duJhdot,dvJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCs,duJhdot,dvJhdot,dhJhdot);
 
 
 

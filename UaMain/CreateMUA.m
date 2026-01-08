@@ -71,13 +71,25 @@ else
     MUA.TR=[];
 end
 
-if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
+if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.CholeskyMassMatrix
+    
     MUA.M=MassMatrix2D1dof(MUA);
+
+    if CtrlVar.MUA.DecomposeMassMatrix
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+    end
+
+    if CtrlVar.MUA.CholeskyMassMatrix
+
+        [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
+
+    end
+else
+
+    MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ; 
+
 end
 
-if CtrlVar.MUA.DecomposeMassMatrix
-    MUA.dM=decomposition(MUA.M,'chol','upper') ;  
-end
 
 
 if CtrlVar.MUA.StiffnessMatrix

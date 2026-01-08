@@ -1,9 +1,9 @@
 
 
 
-function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,uAdjoint,vAdjoint,Meas)
+function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 
-narginchk(7,7)
+narginchk(8,8)
 
 %%
 % Calculates:
@@ -160,7 +160,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
 end
 
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,[],dIdC);
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dIdC);
 
 
 

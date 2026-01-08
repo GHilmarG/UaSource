@@ -9,7 +9,7 @@ function BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint)
 %
 % This ensures that all periodic boundary conditions of the forward problem are
 % carried over to the adjoint problem. Also the essential boundary conditions of
-% both problems are applied over same sections of the computational boundary. 
+% both problems are applied over same sections of the computational boundary.
 %
 %
 
@@ -19,8 +19,10 @@ if isequal(BCsAdjoint,BCsDefault)  % user had not modified BSsAdjoint
     BCsAdjoint=BCs;                % copy BCs of forward run, and the homogenize
     BCsAdjoint.ubFixedValue=BCsAdjoint.ubFixedValue*0;
     BCsAdjoint.vbFixedValue=BCsAdjoint.vbFixedValue*0;
-    
+    BCsAdjoint.hFixedValue=BCsAdjoint.hFixedValue*0;
+
 end
 
 
 end
+
