@@ -1,12 +1,17 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>IceSheetIceShelves</title><meta name="generator" content="MATLAB 9.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-08-28"><meta name="DC.source" content="IceSheetIceShelves.m"><style type="text/css">
+      -->
+<title>IceSheetIceShelves</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2026-01-08">
+<meta name="DC.source" content="IceSheetIceShelves.m">
+<style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -67,24 +72,41 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
-</pre><p>Adds further fields to GF listing elements and nodes upstream, downstream, and over grounding lines.</p><pre class="language-matlab">[GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
-</pre><p>GLgeo, GLnodes and GLele are optional, but giving them as an input, for example from a previous call, speeds things up. (But only do so if GF and MUA has not changed between calls!)</p><p>Element is defined as crossing a grounding line if not all of its nodes are either afloat or grounded, as based on the value of the  GL.node floating mask with respect to the CtrlVar.GLthreshold value (typically set to 0.5).</p><p>Nodes are defined as crossing a grounding line if they are nodes of elements that cross a grounding line. Example:</p><pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+</pre>
+<p>Adds further fields to GF listing elements and nodes upstream, downstream, and over grounding lines.</p>
+<pre class="language-matlab">[GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
+</pre>
+<p>GLgeo, GLnodes and GLele are optional, but giving them as an input, for example from a previous call, speeds things up. (But only do so if GF and MUA has not changed between calls!)</p>
+<p>All calculated fields are logical variables, ie not nodal numbers.</p>
+<p>Element is defined as crossing a grounding line if not all of its nodes are either afloat or grounded, as based on the value of the GL.node floating mask with respect to the CtrlVar.GLthreshold value (typically set to 0.5).</p>
+<p>Nodes are defined as crossing a grounding line if they are nodes of elements that cross a grounding line. Example:</p>
+<pre class="language-matlab">load(<span class="string">'MUA-PIG-TWG-Example.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'GF'</span>,<span class="string">'CtrlVar'</span>)
 [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF);
-</pre><pre class="language-matlab">figure
+</pre>
+<pre class="language-matlab">figure
 PlotMuaMesh(CtrlVar,MUA,GF.ElementsUpstreamOfGroundingLines,<span class="string">'color'</span>,<span class="string">'k'</span>)
 hold <span class="string">on</span>
 PlotMuaMesh(CtrlVar,MUA,GF.ElementsDownstreamOfGroundingLines,<span class="string">'color'</span>,<span class="string">'b'</span>)
 PlotMuaMesh(CtrlVar,MUA,GF.ElementsCrossingGroundingLines,<span class="string">'color'</span>,<span class="string">'r'</span>)
-</pre><pre class="language-matlab">x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
+</pre>
+<pre class="language-matlab">x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2) ;
 figure
-</pre><pre class="language-matlab">hold <span class="string">on</span>
+</pre>
+<pre class="language-matlab">hold <span class="string">on</span>
 plot(x(GF.NodesDownstreamOfGroundingLines)/CtrlVar.PlotXYscale,y(GF.NodesDownstreamOfGroundingLines)/CtrlVar.PlotXYscale,<span class="string">'.b'</span>)
 hold <span class="string">on</span>
 plot(x(GF.NodesUpstreamOfGroundingLines)/CtrlVar.PlotXYscale,y(GF.NodesUpstreamOfGroundingLines)/CtrlVar.PlotXYscale,<span class="string">'.k'</span>)
 plot(x(GF.NodesCrossingGroundingLines)/CtrlVar.PlotXYscale,y(GF.NodesCrossingGroundingLines)/CtrlVar.PlotXYscale,<span class="string">'.r'</span>)
 axis <span class="string">equal</span>
-</pre><p>SEE ALSO GLgeometry</p><pre class="codeinput">narginchk(3,6)
+</pre>
+<p>SEE ALSO GLgeometry</p>
+<pre class="codeinput">narginchk(3,6)
 nargoutchk(1,4)
 
 GF.ele=Nodes2EleMean(MUA.connectivity,GF.node);
@@ -113,8 +135,17 @@ GF.NodesUpstreamOfGroundingLines=GF.NodesUpstreamOfGroundingLines &amp; ~GF.Node
 
 
 <span class="keyword">return</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2023a</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnodes,GLele)
 
@@ -127,6 +158,9 @@ function [GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,GF,GLgeo,GLnode
 % GLgeo, GLnodes and GLele are optional, but giving them as an input, for example
 % from a previous call, speeds things up. (But only do so if GF and MUA has not
 % changed between calls!)
+%
+% All calculated fields are logical variables, ie not nodal numbers. 
+%
 %
 % Element is defined as crossing a grounding line if not all of its nodes are either
 % afloat or grounded, as based on the value of the  GL.node floating mask with respect to the
@@ -194,4 +228,6 @@ return
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

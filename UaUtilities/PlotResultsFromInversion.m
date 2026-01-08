@@ -790,7 +790,7 @@ else
             dJdA=MUA.M\InvFinalValues.dJdAGlen;
             figMdJdA=FindOrCreateFigure("M\dJdA "+PM); clf(figMdJdA)
             UaPlots(CtrlVar,MUA,F,dJdA,CreateNewFigure=false);
-            T=sprintf("$\nabla_C J =M^{-1} dJdA$") ; 
+            T="$\nabla_C J =M^{-1} dJdA$" ; 
             title(T,interpreter="latex")
             subtitle("")
             cl=clim;
@@ -829,7 +829,7 @@ else
             dJdC=MUA.M\InvFinalValues.dJdC;
             figMdJdC=FindOrCreateFigure("M\dJdC "+PM); clf(figMdJdC)
             UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
-            T=sprintf("$\nabla_C J =M^{-1} dJ/dC$"); 
+            T="$\nabla_C J =M^{-1} dJ/dC$"; 
             title(T,interpreter="latex")
             subtitle("")
             cl=clim;
@@ -865,7 +865,7 @@ else
             dJdB=MUA.M\InvFinalValues.dJdB;
             figMB=FindOrCreateFigure("M\dJdB "+PM); clf(figMB)
             UaPlots(CtrlVar,MUA,F,dJdB,CreateNewFigure=false);
-            T=sprintf("$\nabla_B J =M^{-1} dJ/dB$");
+            T="$\nabla_B J =M^{-1} dJ/dB$";
             title(T,interpreter="latex")
             subtitle("")
             cl=clim;
