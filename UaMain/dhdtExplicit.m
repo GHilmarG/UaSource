@@ -13,7 +13,12 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %
 % see also : ProjectFintOntoNodes
 %
+% Note: Homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if thickness is set to some
+% prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined
+% between nodes, those same times will be applied to dh/dt.
 %
+%%
+
 
 narginchk(5,5)
 
@@ -109,15 +114,19 @@ end
 
 %% Solve system
 %CtrlVar.SymmSolver='AugmentedLagrangian';
-x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;
-    
+x0=[] ; y0=hRhs*0;
+
+if isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
+end
+
 [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
-dhdt=full(dhdt);    
- 
+dhdt=full(dhdt);
+
 % Now there is an issue here regarding what to do about dhdt<0 when h<=thickmin
 
 I=(F.h<=CtrlVar.ThickMin)  & (dhdt< 0) ;
-dhdt(I)=0 ; 
+dhdt(I)=0 ;
 
 
 end

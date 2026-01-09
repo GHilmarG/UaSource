@@ -173,7 +173,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     % Gradient calculated using a brute-force finite difference approach 
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
 
-    filename=CtrlVar.Experiment+"BruteForceGradient";
+    filename="BruteForceGradient"+CtrlVar.Experiment;
     fprintf('BruteForceGradient save in the file : %s \n',filename)
     save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
     

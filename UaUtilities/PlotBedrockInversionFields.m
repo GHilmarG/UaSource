@@ -134,6 +134,7 @@ if ~isempty(Meas.B)
     climMeasured=clim;
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Measured B (projected onto nodes)")
+    subtitle("")
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
     lg=legend;
@@ -143,7 +144,7 @@ if ~isempty(Meas.B)
     ax2=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Retrieved B")
+    title("Retrieved B") ; subtitle("")
     clim(climMeasured);
 
 
@@ -152,7 +153,7 @@ if ~isempty(Meas.B)
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B estimated - B measured")
+    title("B estimated - B measured") ; subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$";
     lg.Interpreter="latex";
@@ -166,6 +167,7 @@ if ~isempty(Meas.B)
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
     % hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})/B_{\mathrm{Error}}$",Interpreter="latex")
+    subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})/B_{\mathrm{Error}}$";
     lg.Interpreter="latex";
