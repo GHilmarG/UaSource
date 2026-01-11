@@ -175,13 +175,11 @@ if ~isempty(Meas.B)
 
     ax5=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
-    hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B prior")
+    title("B prior") ;  subtitle("");
 
     ax6=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
-    hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Retrieved B -  Prior B ")
+    title("Retrieved B -  Prior B ")   ; subtitle("");
 
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
@@ -243,7 +241,28 @@ if ~isempty(Meas.B)
 
 end
 
+%%
+figh=FindOrCreateFigure("h retrieved"); clf(figh)
 
+Th=tiledlayout("flow") ;
 
+axh1=nexttile;
+UaPlots(CtrlVar,MUA,F,F.h,CreateNewFigure=false);
+title("Retrieved ice thickness") ; subtitle("");
+CM=cmocean('-ice',15) ; colormap(CM);
+%set(gca,'ColorScale','log')
+
+axh2=nexttile;
+UaPlots(CtrlVar,MUA,F,F.s-Priors.B,CreateNewFigure=false);
+title("s-B prior") ; subtitle("");
+CM=cmocean('-ice',15) ; colormap(CM);
+%set(gca,'ColorScale','log')
+
+CbarLink=linkprop([axh1 axh2],'CLim') ; assignin('base','CbarLink_clim',CbarLink)
+
+Th.TileSpacing="tight";
+Th.Padding="tight";
+
+%%
 
 end

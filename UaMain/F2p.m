@@ -59,11 +59,23 @@ end
 
 
 if contains(CtrlVar.Inverse.InvertFor,'-B-')
-    
+
     pB=F.B;
-    lbB=F.Bmin+zeros(size(pB));
-    ubB=F.Bmax+zeros(size(pB));
-    
+
+    % lbB=F.Bmin+zeros(size(pB));
+    % ubB=F.Bmax+zeros(size(pB));
+
+
+
+    % Make sure ice never goes afloat
+    BAboveFloatationMinimum=10;
+    lbB=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % this is Bmin, we must have B > Bmin
+
+    % ensure that min ice thickness is not violated
+    %ubB=[];
+    ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax
+
+
 end
 
 

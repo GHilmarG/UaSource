@@ -243,19 +243,17 @@ else
     
 end
 
-if ~isfield(MUA,'M')
-    M=MassMatrix2D1dof(MUA);
-else
-    M=MUA.M;
+if ~isfield(MUA,'M') || isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if ~isfield(MUA,'Dxx')
-    [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
-else
-    Dxx=MUA.Dxx ;
-    Dyy=MUA.Dyy;
+if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
+M=MUA.M;
+Dxx=MUA.Dxx;
+Dyy=MUA.Dyy;
 
 
 

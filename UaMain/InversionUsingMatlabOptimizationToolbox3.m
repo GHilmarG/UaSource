@@ -1,5 +1,11 @@
 
-function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc)
+
+
+
+
+function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq)
+
+   
 
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
@@ -31,8 +37,7 @@ if isa(Test,'optim.options.Fminunc')
     
 elseif isa(Test,'optim.options.Fmincon')
     
-    A = [];
-    b = [];
+  
     Aeq = [];
     beq = [];
     nonlcon = [];
@@ -42,12 +47,12 @@ elseif isa(Test,'optim.options.Fmincon')
   
         
         
-        [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
+        [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
         
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
         
         
-        [p,J,exitflag,output] = fmincon(func,p0,A,b,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
+        [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
         
     else
 

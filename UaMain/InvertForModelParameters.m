@@ -86,6 +86,15 @@ if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Initia
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
 end
 
+%%
+
+if ~isfield(MUA,'M') || isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
+end
+
+if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+end
 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
@@ -130,11 +139,19 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
 Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
-                                                                                                                         % Somewhat annoyingly MATLAB optimisation toolbox 
-                                                                                                                         % wants the Hessian returned in 
-                                                                                                                         % a separate function, so I can't use JGH (!?).
-                                                                                                                         % The function HessianAC is just a wrapper around 
-                                                                                                                         % JGH and returns the same Hessian as JGH.
+% Somewhat annoyingly MATLAB optimisation toolbox
+% wants the Hessian returned in
+% a separate function, so I can't use JGH (!?).
+% The function HessianAC is just a wrapper around
+% JGH and returns the same Hessian as JGH.
+
+%%
+
+
+Aineq=[];
+bineq=[];
+
+
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
@@ -191,10 +208,11 @@ else
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
         
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc);
+        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
         
     else
         
+
         fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
         fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
         error('what case? ')

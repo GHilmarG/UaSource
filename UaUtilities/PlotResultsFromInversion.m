@@ -652,7 +652,8 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         IFigC=FindOrCreateFigure("dJ/dC test over mesh") ; clf(IFigC);
 
         TileC=tiledlayout("flow");
-        nexttile
+        
+        TdJdC=nexttile;
 
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC) ;
         hold on
@@ -660,7 +661,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         hold on ;  [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
         title('dJdC Adjoint directional derivative')
 
-        nexttile
+        TdJdCTest=nexttile;
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
@@ -668,7 +669,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         title('$dJ/dC$ Brute force directional derivative','interpreter','latex')
 
 
-        nexttile
+        TdJdCDiff=nexttile;
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC-InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
@@ -676,7 +677,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         title('Difference between adjoint and brute force directional derivatives')
 
 
-        nexttile
+        TdJdCRatio=nexttile; 
         PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.dJdC./InvFinalValues.dJdCTest) ;
         hold on
         PlotMuaMesh(CtrlVar,MUA);
@@ -736,23 +737,24 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
     if ~(isempty(InvFinalValues.dJdB) && isempty(InvFinalValues.dJdBTest))
 
         %%
+
         IFigb=FindOrCreateFigure("dJ/dB test over mesh") ; clf(IFigb)
         TileB=tiledlayout("flow");
-        nexttile
+        TdJdB=nexttile;
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,PlotUnderMesh=true,CreateNewFigure=false);
         title("$dJ/dB$ Adjoint directional derivative")
         subtitle("")
 
-        nexttile
+        TdJdBTest=nexttile;
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('$dJ/dB$ Brute force directional derivative',Interpreter='latex')
 
-        nexttile
+        TdJdBDiff=nexttile;
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('Difference between adjoint and brute force derivatives')
         subtitle("")
 
-        nexttile
+        TdJdBRatio=nexttile; 
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB./InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false) ;
         title('Ratio between adjoint and brute force derivatives')
         subtitle("")
@@ -760,6 +762,8 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         %  IFigb.Position=[1.5714 41.571 1096 1115.4];
         TileB.TileSpacing='tight';
         TileB.Padding='tight';
+        %CL=TdJdB.CLim; TdJdBTest.CLim=CL;  TdJdBDiff.CLim=CL; TdJdBRatio.CLim=[0.7 1.3]; 
+        axis(TdJdBDiff) ; CM=cmocean('balanced',25,'pivot',0) ; colormap(TdJdBDiff,CM);  
         %%
     end
 
@@ -1042,6 +1046,9 @@ else
 
 
 end
+
+FindOrCreateFigure("Boundary Conditions") ; 
+PlotBoundaryConditions(CtrlVar,MUA,BCs)
 
 fprintf("...done \n")
 
