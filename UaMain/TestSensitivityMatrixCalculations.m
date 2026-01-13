@@ -135,7 +135,7 @@ xlabel(" $du/dC$",Interpreter="latex")  ;
 ylabel("Finite difference $du/dC$",Interpreter="latex")
 ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
 axis on ; axis equal tight ; box off
-title("Comparision betweenadjoint and finite-differences gradient calculations")
+title("Comparision between adjoint and finite-differences gradient calculations")
 set(gcf,'Color','white')
 
 
@@ -149,7 +149,7 @@ xlabel(" $dv/dC$",Interpreter="latex")  ;
 ylabel("Finite difference $dv/dC$",Interpreter="latex")
 ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
 axis on ; axis equal tight ; box off
-title("Comparision betweenadjoint and finite-differences gradient calculations")
+title("Comparision between adjoint and finite-differences gradient calculations")
 set(gcf,'Color','white')
 
 duC=dudC-dudCpert;  dvC=dvdC-dvdCpert;

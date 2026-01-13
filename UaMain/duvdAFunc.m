@@ -1,6 +1,6 @@
 
 
-function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs)
+function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 
 %% Calculates the sensitivity matrix duv/dA
 %
@@ -48,6 +48,11 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs)
 % 
 %%
 
+if nargin<5 || isempty(Nodes)
+    Nodes=1:MUA.Nnodes;
+end
+
+
 dFdA=dFuvdA(CtrlVar,MUA,F);
 
 CtrlVar.uvAssembly.ZeroFields=false;
@@ -74,7 +79,7 @@ else
 end
 
 if ~isempty(L)
-    frhs=-dFdA-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
+    frhs=-dFdA(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
     %frhs=-dFdA(:,Node)-L'*l.ubvb; % if only calculate for one given node
     grhs=cuv-L*[F.ub;F.vb] ;
 else

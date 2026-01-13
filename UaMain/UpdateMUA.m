@@ -240,7 +240,7 @@ if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(
         MUA.dM=decomposition(MUA.M,'chol','upper') ;
     end
 
-    if CtrlVar.MUA.CholeskyMassMatrix
+    if isfield(CtrlVar.MUA,"CholeskyMassMatrix") && CtrlVar.MUA.CholeskyMassMatrix
 
         [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
 

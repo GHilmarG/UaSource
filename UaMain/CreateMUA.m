@@ -71,6 +71,10 @@ else
     MUA.TR=[];
 end
 
+  if ~isfield(CtrlVar.MUA,"CholeskyMassMatrix") 
+      CtrlVar.MUA.CholeskyMassMatrix=false;
+  end
+
 if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.CholeskyMassMatrix
     
     MUA.M=MassMatrix2D1dof(MUA);

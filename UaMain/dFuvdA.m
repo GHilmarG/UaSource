@@ -62,6 +62,11 @@ nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dFxdA=zeros(MUA.Nele,MUA.nod,MUA.nod);
 dFydA=zeros(MUA.Nele,MUA.nod,MUA.nod);
 
+if isempty(MUA.Deriv)
+    [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
+end
+
+
 for Iint=1:MUA.nip
 
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
