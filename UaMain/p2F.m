@@ -77,8 +77,10 @@ if isB
     % the floating areas from flotation argument using GF, and with it h and B Over
     % the grounded areas, again use s=Meas.s, and set b=B. However, this raises the
     % possibility that:
-    %   1) As b is modified over the floating areas we get b<B in places. 2) As B is
-    %   modified over the grounding areas, some areas go afloat.
+    %
+    %   1) As b is modified over the floating areas we get b<B in places. 
+    % 
+    %   2) As B is modified over the grounding areas, some areas go afloat.
     % 
     % This is a difficult one, but I assume Meas.s is know quite accurately so
     % whatever is done, keep s=Meas.s. Also do not change B as it is given by p.
@@ -86,7 +88,7 @@ if isB
     % So I must calculate b from s over the floating areas, and set b=B over the
     % grounded areas. However, this might cause b to be below B (b<B) for two
     % separate reasons: 1) Calculating b from the floating condition might results
-    % in b<B. And changes in B below the GL (regularisation effects) may also give
+    % in b<B. And 2) changes in B below the GL (regularisation effects) may also give
     % rise to b<B.
     %
     % Solution:

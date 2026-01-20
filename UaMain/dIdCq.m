@@ -1,9 +1,9 @@
 
 
 
-function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,Meas)
+function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 
-narginchk(8,8)
+narginchk(9,9)
 
 %%
 % Calculates:

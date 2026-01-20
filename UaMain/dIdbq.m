@@ -1,7 +1,7 @@
 
 
 
-function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp)
+function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp)
         
 
 %%
@@ -38,7 +38,7 @@ function dFdhlambda=dIdbq(CtrlVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,d
 %
 %%
 
-narginchk(9,9)
+narginchk(10,10)
 
 ndim=2;
 

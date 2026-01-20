@@ -330,7 +330,7 @@ if CtrlVar.doInverseStep   % -inverse
     
     % inverse plots , inversion plots
     if CtrlVar.doplots
-        PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
     CtrlVar.DefineOutputsInfostring="End of Inverse Run";

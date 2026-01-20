@@ -284,6 +284,22 @@ else
             subtitle("")
             title(cbar,"(m a.s.l.)")
 
+        case {"s","-s-"}
+
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
+
+            if any(F.B < 0 )  && any(F.B>0)
+                CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
+            else
+                CM=cmocean('-balanced',25) ; colormap(CM);
+            end
+
+            title("Ice upper surface")
+            subtitle("")
+            title(cbar,"(m a.s.l.)")
+
+
         case {"speed","-speed-"}
 
             speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;

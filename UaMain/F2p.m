@@ -67,14 +67,30 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
 
 
 
-    % Make sure ice never goes afloat
+    % Where initially grounded, make sure ice never goes afloat
     BAboveFloatationMinimum=10;
-    lbB=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % this is Bmin, we must have B > Bmin
+    Bstar=(F.s-F.S.*F.rhow./F.rho)./(1-F.rhow./F.rho)+ BAboveFloatationMinimum;  % this is Bmin, we must have B > Bmin
+
+    GF=F.GF.node>0.5;
+    lbB=nan(MUA.Nnodes,1);
+    lbB(GF)=Bstar(GF) ;      % where grounded, set lower bound just above flotation as based on s, S and densities 
+    lbB(~GF)=F.B(~GF)-100 ;  % where afloat, set lower bound to some small value, although this should not really have an impact on retrieved B
+
+
+
+    % set
+
 
     % ensure that min ice thickness is not violated
     %ubB=[];
     ubB=F.s-CtrlVar.ThickMin ; % This is Bmax, we must have B < Bmax
 
+    ubB=max(lbB,ubB) ; % make sure ubB >= lbB
+
+    UaPlots(CtrlVar,MUA,F,lbB,FigureTitle="lbB")
+    UaPlots(CtrlVar,MUA,F,ubB,FigureTitle="ubB")
+    UaPlots(CtrlVar,MUA,F,ubB-lbB,FigureTitle="ubB-lbB") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    UaPlots(CtrlVar,MUA,F,"-B-",FigureTitle="B")
 
 end
 
@@ -83,6 +99,8 @@ p=[pA;pB;pC];
 plb=[lbA;lbB;lbC];
 pub=[ubA;ubB;ubC];
 
+% make sure is feasible
+p=kk_proj(p,pub,plb) ;
 
 end
 

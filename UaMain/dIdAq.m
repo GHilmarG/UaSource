@@ -6,13 +6,13 @@
 % function dIdA=dIdAq(CtrlVar,MUA,uAdjoint,vAdjoint,s,b,h,S,B,ub,vb,ud,vd,AGlen,n,C,m,rho,rhow,alpha,g,GF)
 
 
-function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,Meas)
+function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 
 %
 % nodal-based gradients
 %
 
-narginchk(8,8)
+narginchk(9,9)
 
 ndim=2;
 

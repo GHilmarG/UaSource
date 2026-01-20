@@ -3,19 +3,21 @@
 
 
 
-function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
+function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+       
 
 
 %%
-%
-% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
+% function PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+% 
 %
 % Does what it says on the tin.
 %
 %  Example:
 %
 % load InversionRestartFile
-% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,~,~,InvStartValues,InvFinalValues,Priors,Meas,~,RunInfo)
+% PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo)
+% 
 %
 % It is also possible to enter the name of the restart file as the first, and only, argument. Then the restart file will be
 % first loaded, and then plotted.
@@ -155,7 +157,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'A')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    colormap(othercolor("Mtemperaturemap",1028))
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);  
     PlotMuaBoundary(CtrlVar,MUA,'k');
 
 
@@ -204,7 +206,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    colormap(othercolor("Mtemperaturemap",1028))
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);  
     PlotMuaBoundary(CtrlVar,MUA,'k');
 end
 
@@ -259,7 +261,7 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    colormap(othercolor("Mdarkterrain",32))
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
     AspectRatio=1;
     figsbB=FindOrCreateFigure("sbB");  clf(figsbB)
@@ -311,7 +313,7 @@ if isprop(InvFinalValues,'uAdjoint')
         axis(TvAdjoint); clim(CLvAdjoint)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(TvAdjoint,CM);
         T.Padding="compact";   T.TileSpacing="tight";
 
-        cbar=UaPlots(CtrlVar,MUA,F,[InvFinalValues.uAdjoint, InvFinalValues.vAdjoint],FigureTitle="uv Adjoint") ;
+        cbar=UaPlots(CtrlVar,MUA,F,[InvFinalValues.uAdjoint, InvFinalValues.vAdjoint],FigureTitle="Adjoint velocities") ;
         title(cbar,"") ;
         subtitle("") ;
         title("Adjoint velocities")
@@ -753,6 +755,7 @@ if CtrlVar.Inverse.TestAdjoint.isTrue
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB-InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false);
         title('Difference between adjoint and brute force derivatives')
         subtitle("")
+        axis(TdJdBDiff) ; CM=cmocean('balanced',25,'pivot',0) ; colormap(TdJdBDiff,CM);  
 
         TdJdBRatio=nexttile; 
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB./InvFinalValues.dJdBTest,PlotUnderMesh=true,CreateNewFigure=false) ;
@@ -891,6 +894,50 @@ else
     %%
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
+    if contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
+
+        figAC=FindOrCreateFigure("True and estimated A and C"); clf(figAC);
+
+        T=tiledlayout("flow");
+
+        TTrueC=nexttile;
+        UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
+        title("True $C$",interpreter="latex") ; set(gca,'ColorScale','log')
+        subtitle("")
+
+        TRetrievedC=nexttile;
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
+        title("Retrieved $C$",interpreter="latex") ; 
+        set(gca,'ColorScale','log')
+        subtitle("")
+
+   
+        CCbarLink=linkprop([TTrueC TRetrievedC],'CLim') ; assignin('base','CbarLink_clim',CCbarLink)
+
+        TTrueA=nexttile;
+        UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
+        title("True $A$",Interpreter="latex") ; 
+        set(gca,'ColorScale','log')
+        subtitle("")
+
+        TRetrievedA=nexttile;
+        UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
+        title("Retrieved $A$",Interpreter="latex") ; set(gca,'ColorScale','log')
+        subtitle("")
+
+    
+        ACbarLink=linkprop([TTrueA TRetrievedA],'CLim') ; assignin('base','CbarLink_clim',ACbarLink)
+
+        %figC.Position=[400 200 1300 800];
+        T.Padding="tight";
+        T.TileSpacing="tight";
+
+    end
+
+
+
+
+
     if contains(lower(CtrlVar.Inverse.InvertFor),'c')
         if ~isempty(Priors.TrueC)  && ~anynan(Priors.TrueC)
 
@@ -901,12 +948,12 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
-            title("True C") ; set(gca,'ColorScale','log')
+            title("True $C$",interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
-            title("Retrieved C") ; set(gca,'ColorScale','log')
+            title("Retrieved $C$",interpreter="latex") ; set(gca,'ColorScale','log')
             subtitle("")
 
             nexttile
@@ -1047,9 +1094,17 @@ else
 
 end
 
-FindOrCreateFigure("Boundary Conditions") ; 
+FindOrCreateFigure("Forward Boundary Conditions") ;
 PlotBoundaryConditions(CtrlVar,MUA,BCs)
 
 fprintf("...done \n")
+
+FindOrCreateFigure("Adjoint Boundary Conditions") ;
+CtrlVar.BCsType="adjoint";
+
+PlotBoundaryConditions(CtrlVar,MUA,BCsAdjoint);
+
+fprintf("...done \n")
+
 
 end

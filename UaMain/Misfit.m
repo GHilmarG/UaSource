@@ -298,7 +298,7 @@ if CtrlVar.Inverse.CalcGradI
             
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
                 
-                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,BCs,uAdjoint,vAdjoint,Meas);
+                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas);
                 
                 dCI=0 ;               % This is the explicit derivative of I with respect to C. 
                                       % The misfit term I is not an explicit function of C, so this equals to zero.
@@ -311,7 +311,7 @@ if CtrlVar.Inverse.CalcGradI
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
                 
                
-                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,BCs,uAdjoint,vAdjoint,Meas);
+                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas);
                 
                 dAI=0 ; % No explicit dependency of the misfit term I on A.
 
@@ -320,19 +320,34 @@ if CtrlVar.Inverse.CalcGradI
             
             
             if contains(CtrlVar.Inverse.InvertFor,"-B-")
-                
-                %  p= B ;
-                
-                dBdp=  1+zeros(MUA.Nnodes,1);
-                %dBdp=  F.GF.node ; %
-                dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
-                dhdp= -F.GF.node ;
-                
+                    
+                OnlyGrounded=true;
+
+
+                if OnlyGrounded
+                    %  p= B ;
+
+                    dBdp=  1+zeros(MUA.Nnodes,1);
+                    dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
+                    dhdp= -F.GF.node ;
+
+                else
+
+                    %  p= B ;
+                    dBdp=  F.GF.node ; %
+                    dbdp=  F.GF.node ; % - (1-F.GF.node).*F.GF.node.*F.rho/F.rhow;
+                    dhdp= -F.GF.node ;
+
+
+
+                end
+
                 % dIdB= dhF^* \lambda + dhJ
                 % if only -dhdt- meas and no regularization
                 % then dJdB=dh/db*dhJhdot
-                
-                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp);
+
+
+                dBFuvLambda=dIdbq(CtrlVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,dhdp,dbdp,dBdp);
                 %   dBFuvLambda2=dIdBq2(CtrlVar,MUA,uAdjoint,vAdjoint,F);
                 %dBFuvLambda=dBFuvLambda2;
 
@@ -349,6 +364,8 @@ if CtrlVar.Inverse.CalcGradI
                 % end
                 %
 
+                % UaPlots(CtrlVar,MUA,F,dBFuvLambda,FigureTitle="dBFuvLambda")
+                % UaPlots(CtrlVar,MUA,F,dBI,FigureTitle="dBI") ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
             end
 
