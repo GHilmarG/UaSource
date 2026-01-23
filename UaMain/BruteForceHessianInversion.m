@@ -32,23 +32,31 @@ dJTolerance=0.0;
 dpTolerance=0.0;
 
 iNewton=0;
-lmin=1e-12; lEnd=0; 
+lmin=1e-12; lEnd=0;
 while true
 
     iNewton=iNewton+1;
 
-    [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
+    if contains(CtrlVar.Inverse.MinimisationMethod,"BruteForceHessian")
 
-    if isnan(J0)
-        error("BruteForceHessianInversion:J0IsNaN","NaN in J0")
+        [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
+
+        if isnan(J0)
+            error("BruteForceHessianInversion:J0IsNaN","NaN in J0")
+        end
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
+
+        [Hsparse,Hfull,g0,J0] = CalcDirectAdjointHessian(func,p,CtrlVar,iRange) ;
+
     end
 
 
+
     lStart=max(lEnd,lmin);
-   [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
+    [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
 
     dp=Hfull\(-g0);
- 
+
 
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
@@ -77,12 +85,12 @@ while true
     slope0=g0'*dp;
 
     if slope0<0
-          CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001;
-          [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001;
+        [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     else
-          fprintf("Slope at origin in Newton direction is positive! \n")
-          gammaNewton=nan;
-          JNewton=inf;
+        fprintf("Slope at origin in Newton direction is positive! \n")
+        gammaNewton=nan;
+        JNewton=inf;
     end
 
 
@@ -106,7 +114,7 @@ while true
     slope0=-g0'*g0SD;
     gamma=-0.1*J0/slope0;
     J1=Func(gamma);
-  
+
     CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/100;
     [gammaSD,JSD,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
 
@@ -139,7 +147,7 @@ while true
         p=p-gammaSD*g0SD;
     end
 
-  
+
     fprintf("%3i:(%s) \t gamma=%g \t J=%g \t J0=%g \t sub-obtimality=%g \t |dp|/|p|=%g \t J/J0=%g \n",iNewton,Direction,gamma,J,J0,SubOptimality,dpNorm,J/J0)
 
     Jvector(iNewton)=J0;
@@ -177,7 +185,7 @@ while true
 
 end
 
-I=~isnan(Jvector); Jvector=Jvector(I); 
+I=~isnan(Jvector); Jvector=Jvector(I);
 itVector=0:(numel(Jvector)-1) ; itVector=itVector(:);
 
 I=~isnan(GradNormVector); GradNormVector=GradNormVector(I); GradNormVector=GradNormVector(:) ;  GradNormVector=[GradNormVector;NaN]; % Make sure it has the same length as itVector
@@ -186,21 +194,19 @@ I=~isnan(gammaVector); gammaVector=gammaVector(I); gammaVector=gammaVector(:) ; 
 figIt=FindOrCreateFigure("J iteration") ; clf(figIt)
 yyaxis left
 semilogy(itVector,Jvector,"ob-",LineWidth=2) ;
-ylabel("$J$",Interpreter="latex") ; 
+ylabel("$J$",Interpreter="latex") ;
 yyaxis right
 semilogy(itVector,GradNormVector,"or-",LineWidth=2) ;
-ylabel("$\|\nabla J \|$",Interpreter="latex") ; 
+ylabel("$\|\nabla J \|$",Interpreter="latex") ;
 xlabel("Iteration")
 
 
-itRestart=max(RunInfo.Inverse.Iterations); 
+itRestart=max(RunInfo.Inverse.Iterations);
 
 RunInfo.Inverse.Iterations=[RunInfo.Inverse.Iterations;itVector+itRestart];
 RunInfo.Inverse.J=[RunInfo.Inverse.J;Jvector];
 RunInfo.Inverse.GradNorm=[RunInfo.Inverse.GradNorm;GradNormVector];
 RunInfo.Inverse.StepSize=[RunInfo.Inverse.StepSize;gammaVector];
-
-
 
 
 
