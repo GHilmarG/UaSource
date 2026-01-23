@@ -31,7 +31,7 @@ if isstring(UserVar) && (isfile(UserVar)  || isfile(UserVar+".mat"))
 
     fprintf("loading and plotting results from %s \n",UserVar)
 
-    load(UserVar,"UserVarInRestartFile","CtrlVarInRestartFile","MUA","BCs","F","InvStartValues","InvFinalValues","Priors","Meas","RunInfo") ;
+    load(UserVar,"UserVarInRestartFile","CtrlVarInRestartFile","MUA","BCs","F","BCsAdjoint","InvStartValues","InvFinalValues","Priors","Meas","RunInfo") ;
 
     CtrlVar=CtrlVarInRestartFile;
     UserVar=UserVarInRestartFile;
@@ -1105,6 +1105,5 @@ CtrlVar.BCsType="adjoint";
 PlotBoundaryConditions(CtrlVar,MUA,BCsAdjoint);
 
 fprintf("...done \n")
-
 
 end

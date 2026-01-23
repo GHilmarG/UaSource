@@ -11,7 +11,9 @@ function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,
 
 p=p0;
 
-MaxNewtonSteps=10;
+%MaxNewtonSteps=10;
+MaxNewtonSteps=CtrlVar.Inverse.Iterations;
+
 Jvector=nan(MaxNewtonSteps+1,1);
 SlopeVector=nan(MaxNewtonSteps+1,1);
 gammaVector=nan(MaxNewtonSteps+1,1);

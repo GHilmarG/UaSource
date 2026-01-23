@@ -57,7 +57,7 @@ Hvalues=nan(n*nColumns,1) ;
 Loop="-parfor-";
 
 HessianFiniteDifferenceType="central second order" ;
-HessianFiniteDifferenceType="central fourth order" ;
+% HessianFiniteDifferenceType="central fourth order" ;
 
 if contains(Loop,"-parfor-")  % the parfor option can only be used when calculating ALL columns of the Hessian
     parfevalOnAll(@warning,0,'off','all');
