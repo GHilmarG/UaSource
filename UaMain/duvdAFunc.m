@@ -10,8 +10,8 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 %
 % $$\left[\begin{array}{cccc} 
-% \partial u_1 /\partial A_1  & \partial u_1 /\partial A_2  & \ldots & \partial u_1 ;\partial A_n  \\  
-% \partial u_2 /\partial A_1  & \partial u_2 /\partial A_2  & \ldots & \partial u_2 ;\partial A_n  \\  
+% \partial u_1 /\partial A_1  & \partial u_1 /\partial A_2  & \ldots & \partial u_1 /\partial A_n  \\  
+% \partial u_2 /\partial A_1  & \partial u_2 /\partial A_2  & \ldots & \partial u_2 /\partial A_n  \\  
 %              .              &              .              &  .  &    .                          \\  
 % \partial v_1 /\partial A_1  & \partial v_1 /\partial A_2 & \ldots & \partial v_1 /\partial A_n  \\
 % \partial v_2 /\partial A_1  & \partial v_2 /\partial A_2 & \ldots & \partial v_2 /\partial A_n  \\
@@ -30,11 +30,11 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 % or
 %
-% $$ \partial F/\partial q \; \partial q / \partial q = - \partial F / \partial p  $$
+% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial q} = - \frac{\partial F }{ \partial p}  $$
 %
 % which can be solved for the sensitives
 %
-% $$ \partial q / \partial q $$ 
+% $$ \xi : = \frac{\partial q}{\partial q} $$ 
 % 
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called

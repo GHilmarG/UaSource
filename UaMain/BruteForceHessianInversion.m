@@ -1,7 +1,9 @@
 
 
-function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
+function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,F,BCs)
 
+
+narginchk(10,10)
 
 %%
 %load("TestSaveH.mat","func","p0","CtrlVar","iRange","MUA","F")  ;
@@ -44,9 +46,11 @@ while true
         if isnan(J0)
             error("BruteForceHessianInversion:J0IsNaN","NaN in J0")
         end
+
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
 
-        [Hsparse,Hfull,g0,J0] = CalcDirectAdjointHessian(func,p,CtrlVar,iRange) ;
+       [J0,g0,Hfull]=func(p);
+       
 
     end
 

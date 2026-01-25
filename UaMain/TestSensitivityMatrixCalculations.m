@@ -4,7 +4,7 @@
 
 
 
-function TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l)
+function TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l,Node)
 
 
 %% Calculates sensitivity matrices and tests them against brute-force finite-differences calculations at selected nodes
@@ -19,7 +19,7 @@ function TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% A
 
-Node=1050;
+%Node=1050;
 [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs);
 
 dudA=dudA(:,Node);
@@ -42,7 +42,8 @@ A0=F.AGlen;
 Ap=A0;
 Ap(Node)=Ap(Node)+dA;
 F.AGlen=Ap;
-[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); up=F.ub; vp=F.vb;
+[UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); 
+up=F.ub; vp=F.vb;
 F.AGlen=A0;
 
 Am=A0;

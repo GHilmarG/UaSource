@@ -30,11 +30,12 @@ function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs)
 %
 % or
 %
-% $$ \partial F/\partial q \; \partial q / \partial q = - \partial F / \partial p  $$
+% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial q} = - \frac{\partial F }{ \partial p}  $$
 %
 % which can be solved for the sensitives
 %
-% $$ \partial q / \partial q $$ 
+% $$ \xi : = \frac{\partial q}{\partial q} $$ 
+% 
 % 
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called

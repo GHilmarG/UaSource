@@ -4,7 +4,7 @@
 
 function [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p0,CtrlVar,iRange)
 
-
+narginchk(4,4)
 
 %%
 %
