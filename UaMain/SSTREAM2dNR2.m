@@ -228,8 +228,7 @@ nargoutchk(7,7)
             if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
         end
         
-        if anynan(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-        if anynan(L) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
+     
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
 

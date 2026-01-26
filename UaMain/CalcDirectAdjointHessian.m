@@ -6,8 +6,26 @@ function d2Idpp = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,B
 narginchk(13,13)
 
 
-%%
+%% Calculates some of the terms of the Hessian using the direct-adjoint approach.
 %
+% Here this is done for the misfit term and later the Hessian of the regularization term is added (this is easy).
+% 
+% The tricky part is to do this for the misfit term.
+%
+%
+% $$
+%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j} 
+%   + \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
+%   +\frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}  
+%   +\frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
+%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki} 
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} 
+% $$
+%  
+% 
+% %
 % Currently only for u, v as q variables
 %
 %
@@ -32,15 +50,15 @@ narginchk(13,13)
 %
 %%
 
-
+%% Get the sensitivity matrices 
 
 
 [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs) ;  % this has been tested against finite-differences and is good
 
 [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs) ; % this has been tested against finite-differences and is good
 
-
-% But I need here log10 sensitivities
+%%
+% log10 sensitivities
 %
 % du/dA=du/dx  dx/dA
 %
@@ -66,7 +84,7 @@ scale=log(10)*F.C';  % this has to be a row vector
 dudC=dudC.*scale ; % using implicit expansion
 dvdC=dvdC.*scale ; % using implicit expansion
 
-
+%%
 
 xi=[dudA dudC ; dvdA dvdC];
 

@@ -25,7 +25,7 @@ while true
         l=l/100;
         break;
     else
-        fprintf('Modifying Hessian to make it positive definite.\n');
+        fprintf(sprintf("Modifying Hessian to make it positive definite. l=%g \n",l));
         H = H + l * EYE;
         l = l * 10;
     end

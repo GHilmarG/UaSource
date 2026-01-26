@@ -29,12 +29,12 @@ iRange=1:nPar; % all of them
 CtrlVar.LineSearchAllowedToUseExtrapolation=true;
 
 
-SubOptimalityTolerance=1e-7;
+SubOptimalityTolerance=0;
 dJTolerance=0.0;
 dpTolerance=0.0;
 
-iNewton=0;
-lmin=1e-12; lEnd=0;
+iNewton=0; lmin=1e-15; lEnd=0;
+
 while true
 
     iNewton=iNewton+1;
@@ -59,7 +59,8 @@ while true
     lStart=max(lEnd,lmin);
     [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
 
-    dp=Hfull\(-g0);
+    dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
+                     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
 
     if anynan(dp)
@@ -125,7 +126,7 @@ while true
     fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)
 
     if JNewton  < JSD
-        fprintf("Newton step resulted in  greater reduction than steepest decent \n ")
+        fprintf("Newton step resulted in a greater reduction than steepest decent \n ")
         SubOptimality=-g0'*dp/2  ;
         dpNorm=norm(gamma*dp)/norm(p);
         J=JNewton;
