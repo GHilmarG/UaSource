@@ -9,22 +9,22 @@ narginchk(13,13)
 %% Calculates some of the terms of the Hessian using the direct-adjoint approach.
 %
 % Here this is done for the misfit term and later the Hessian of the regularization term is added (this is easy).
-% 
+%
 % The tricky part is to do this for the misfit term.
 %
 %
 % $$
-%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j} 
+%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j}
 %   + \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
 %   +\frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}  
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}
 %   +\frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
 %   +\Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
-%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki} 
-%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} 
+%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
 % $$
-%  
-% 
+%
+%
 % %
 % Currently only for u, v as q variables
 %
@@ -50,12 +50,19 @@ narginchk(13,13)
 %
 %%
 
-%% Get the sensitivity matrices 
+%% Get the sensitivity matrices
 
 
+tA=tic;
 [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs) ;  % this has been tested against finite-differences and is good
+tA=toc(tA);
+fprintf("dudA and dvdA sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
 
+tC=tic;
 [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs) ; % this has been tested against finite-differences and is good
+tC=toc(tC);
+fprintf("dudC and dvdC sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
+
 
 %%
 % log10 sensitivities
@@ -70,19 +77,27 @@ narginchk(13,13)
 %
 % du/d(ln(A)) = A du/dA
 %
-% or 
+% or
 %
 % du/d(ln(A)) = log(10) A du/dA
 %
 %
+if contains(CtrlVar.Inverse.Regularize.Field,"logaglen",IgnoreCase=true)
 
-scale=log(10)*F.AGlen';  % this has to be a row vector 
-dudA=dudA.*scale ; % using implicit expansion
-dvdA=dvdA.*scale ; % using implicit expansion
+    scale=log(10)*F.AGlen';  % this has to be a row vector
+    dudA=dudA.*scale ; % using implicit expansion
+    dvdA=dvdA.*scale ; % using implicit expansion
+end
 
-scale=log(10)*F.C';  % this has to be a row vector 
-dudC=dudC.*scale ; % using implicit expansion
-dvdC=dvdC.*scale ; % using implicit expansion
+if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
+  
+    scale=log(10)*F.C';  % this has to be a row vector
+    dudC=dudC.*scale ; % using implicit expansion
+    dvdC=dvdC.*scale ; % using implicit expansion
+
+end
+
+
 
 %%
 
@@ -114,11 +129,11 @@ if TestSensitivites
 
     Fxi=FindOrCreateFigure("xi=dq/dp") ; contourf(rot90(xi),LineStyle="none") ; axis equal ; colorbar
     title("abs(xi)")
-     CM=cmocean('balanced',25,'pivot',0) ; colormap(Fxi,CM);
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(Fxi,CM);
 
     %set(gca,'ColorScale','log')
 
-   FindOrCreateFigure("d2Idpp") ; contourf(abs(rot90(d2Idpp)),LineStyle="none") ; axis equal ; colorbar
+    FindOrCreateFigure("d2Idpp") ; contourf(abs(rot90(d2Idpp)),LineStyle="none") ; axis equal ; colorbar
     title("abs(d2Idpp)")
     set(gca,'ColorScale','log')
 

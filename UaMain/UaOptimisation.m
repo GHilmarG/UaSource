@@ -15,8 +15,8 @@ nargoutchk(3,3)
 
 if  contains(CtrlVar.Inverse.MinimisationMethod,"-BruteForceHessian-") || contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
 
-    % once the DirectAdjoint Hessian has been implemented in JGH, get rid of F and BCs in this call
-     [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,F,BCs); 
+    % 
+     [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub); 
      
 
 elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")

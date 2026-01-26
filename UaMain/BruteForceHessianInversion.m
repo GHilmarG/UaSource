@@ -1,9 +1,9 @@
 
 
-function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,F,BCs)
+function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
 
 
-narginchk(10,10)
+narginchk(8,8)
 
 %%
 %load("TestSaveH.mat","func","p0","CtrlVar","iRange","MUA","F")  ;
