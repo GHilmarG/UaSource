@@ -9,11 +9,11 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 %
 % assembles the matrix Kuv which is the FE form of 
 % 
-% $$d_{\mathbf{v}} \mathbf{F}_{\mathbf{v}}$$
+% $$d_{\mathbf{v}} \mathbf{F}(\mathbf{v})$$
 %
 % where
 % 
-% $$\mathbf{F}_{\mathbf{v}}$$
+% $$\mathbf{F}(\mathbf{v})$$
 %
 % is the forward model.
 % 
@@ -21,7 +21,17 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
 %
+% If the forward model is
 %
+% $$F_n(\mathbf{v})=0 $$
+% 
+% Then 
+%
+% $$F_n=R_n$$
+% 
+% and
+%
+% $$K=\frac{dF}{d\mathbf{v}}$$
 %
 %
 %%

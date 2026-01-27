@@ -99,17 +99,8 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            % \p F_x/C = Ctemp * u
-            % \p F_y/C = Ctemp * y
-
-            %  Fx_i =taux.*fun(Inod);
-            % \p Fx_i/\p C_j = (\p taux/\p C_j) fun(Inod)  = Ctemp uint fun(Inod) fun(Jnod)
-
-
             dFxdA(:,Inod,Jnod)=dFxdA(:,Inod,Jnod)+hint.*dEtadA.*((4*exx+2*eyy).*Deriv(:,1,Inod)+2.*exy.*Deriv(:,2,Inod)).*fun(Jnod).*detJw;
             dFydA(:,Inod,Jnod)=dFydA(:,Inod,Jnod)+hint.*dEtadA.*((4*eyy+2*exx).*Deriv(:,2,Inod)+2.*exy.*Deriv(:,1,Inod)).*fun(Jnod).*detJw;
-
-       
 
         end
     end

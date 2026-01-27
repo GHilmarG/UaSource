@@ -25,7 +25,7 @@ narginchk(13,13)
 % $$
 %
 %
-% %
+% 
 % Currently only for u, v as q variables
 %
 %
@@ -48,6 +48,22 @@ narginchk(13,13)
 % \end{array} \right ) $$
 %
 %
+% If the forward model is
+%
+% $$ F(q(p),p) = 0 $$
+%
+% where $q$ are output variables and $p$ model parameters, then
+%
+% $$ \partial F/\partial q \; \partial q / \partial p + \partial F / \partial p = 0 $$
+%
+% or
+%
+% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial p} = - \frac{\partial F }{ \partial p}  $$
+%
+% which can be solved for the sensitives
+%
+% $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$ 
+% 
 %%
 
 %% Get the sensitivity matrices

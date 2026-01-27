@@ -26,15 +26,15 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 % where $q$ are output variables and $p$ model parameters, then
 %
-% $$ \partial F/\partial q \; \partial q / \partial q + \partial F / \partial p = 0 $$
+% $$ \partial F/\partial q \; \partial q / \partial p + \partial F / \partial p = 0 $$
 %
 % or
 %
-% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial q} = - \frac{\partial F }{ \partial p}  $$
+% $$ \frac{\partial F}{\partial q} \; \frac{\partial q }{ \partial p} = - \frac{\partial F }{ \partial p}  $$
 %
 % which can be solved for the sensitives
 %
-% $$ \xi : = \frac{\partial q}{\partial q} $$ 
+% $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$ 
 % 
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called
