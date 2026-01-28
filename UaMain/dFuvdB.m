@@ -85,6 +85,8 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$\mathrm{d}b/\mathrm{d}B=1$$
 %
+% $$\mathrm{d}h/\mathrm{d}B=-1$$
+%
 % $$\mathrm{d}H/\mathrm{d}B=-1 $$
 %
 % $$\mathrm{d} h_f/\mathrm{d}B=(\rho_o/\rho) \; \mathrm{d}H/\mathrm{d}B = -\frac{\rho_0}{\rho} $$
