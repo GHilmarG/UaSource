@@ -28,6 +28,13 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
 % 
+% or
+%
+% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B =0 $$
+%
+% $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \partial_y B =0 $$
+% 
+%
 % with
 %
 % $$ t_x = t_x(C,u,v) $$
@@ -41,10 +48,10 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$ \partial F_x /\partial C = \partial t_x/\partial C $$
 %
-% $$ \partial F^x_i/\partial A_j =  \langle h (\partial \eta/\partial A)  ( 4 \partial_x u + 2 \partial_y v))\, \phi_j | \partial_x \phi_i \rangle 
+% $$ \partial F^x_i/\partial A =  \langle h (\partial \eta/\partial A)  ( 4 \partial_x u + 2 \partial_y v))\, \phi_j | \partial_x \phi_i \rangle 
 % + \langle h (\partial \eta/\partial A) (\partial_y u + \partial_x v)\, \phi_j | \partial_y \phi_i \rangle $$
 %
-% $$ \partial F^y_i/\partial A_j =  \langle h (\partial \eta/\partial A)  ( 4 \partial_y v + 2 \partial_x u))\, \phi_j | \partial_y \phi_i \rangle 
+% $$ \partial F^y_i/\partial A =  \langle h (\partial \eta/\partial A)  ( 4 \partial_y v + 2 \partial_x u))\, \phi_j | \partial_y \phi_i \rangle 
 % + \langle h (\partial \eta/\partial A) (\partial_x v + \partial_y u)\, \phi_j | \partial_x \phi_i \rangle $$
 %
 % Currently only done for grounded area where $B=b$, but once this works for grounded area, will do for the more general
@@ -58,7 +65,7 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % $$ b=\frac{1}{1-(1-\mathcal{G}) \rho/\rho_o} \, ( \mathcal{G} B + (1-\mathcal{G}) ( S - \rho s/\rho_o ) ) $$
 %
 % However, this expression still contains a dependency on $b$ on the right-hand side because $\mathcal{G}$ depends on $h$ and
-% therefore on $b$.
+% therefore on $b$. This is, thus, an implicit function for $b$. To calculate the (total) derivative $db/dB$ we can use implicit differentiation. 
 %
 %
 % $$h=s-b$$
@@ -78,12 +85,17 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % = (1-\mathcal{G}) \rho h /\rho_o + \mathcal{G} \; H^{+}
 % $$
 %
+% $$ \tau = \mathcal{G} \, \beta^2 v  $$
 %
-% Derivatives for $\mathcal{G}=1$ and $\mathrm{d}\mathcal{G}/\mathrm{d}B=0$ with $s$ and $S$ given:
+%
+% Derivatives for grounded ice only, i.e. where $\mathcal{G}=1$ and $\mathrm{d}\mathcal{G}/\mathrm{d}B=0$ with $s$ and $S$ given:
 %
 % $$\mathrm{d}s/\mathrm{d}B=\mathrm{d}S/\mathrm{d}B=0$$
 %
 % $$\mathrm{d}b/\mathrm{d}B=1$$
+%
+% $$\mathrm{d}h/\mathrm{d}B=\mathrm{d}s/\mathrm{B}-\mathrm{d}b/\mathrm{d}B = 0-1=-1$$
+%
 %
 % $$\mathrm{d}H/\mathrm{d}B=-1 $$
 %
@@ -95,7 +107,29 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$ \mathrm{d} d/\mathrm{d} B = \mathrm{d} H^{+}/\mathrm{d} B = -\delta(H)\, H - \mathcal{H}(H)$$
 %
+% $$\mathrm{d} \tau_x /\mathrm{d} B = \frac{\partial \tau_x}{\partial h } \, \frac{\mathcal{d} h}{\mathcal{d} B} = 0 \; (-1) = 0  $$
 %
+%
+%
+% Grounded:
+%
+% $$ \partial F^x_i/\partial B 
+% = \langle \eta (\partial h/\partial B) (4 \partial_x u+2 \partial_y v) \phi_j | \partial_x \phi_i \rangle 
+% + \langle \eta (\partial h/\partial B) \partial_y u+\partial_x v) \phi_j | \partial_y \phi_i \rangle  
+% + \langle g \rho h (\partial h/\partial B) - d (\partial d/\partial B) ) \phi_j | \partial_x \phi_i \rangle  
+% + \langle g \mathcal{G} \, \rho (\partial h /\partial B) - \rho_0 \partial H^}/\partial B) \partial_x B + g \mathcal{G} (\rho h -\rho_o H^{+}) \partial \phi_i \rangle 
+% $$ 
+%
+%
+
+
+   t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
+        t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
+        t5=taux.*fun(Inod);
+
+
 %%
 
 
