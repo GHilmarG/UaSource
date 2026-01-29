@@ -46,12 +46,11 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % $$ \eta=\eta(A,u,v) $$
 %
 %
-% $$ \partial F_x /\partial C = \partial t_x/\partial C $$
 %
-% $$ \partial F^x_i/\partial A =  \langle h (\partial \eta/\partial A)  ( 4 \partial_x u + 2 \partial_y v))\, \phi_j | \partial_x \phi_i \rangle 
+% $$ \partial F^x_i/\partial A_j =  \langle h (\partial \eta/\partial A)  ( 4 \partial_x u + 2 \partial_y v))\, \phi_j | \partial_x \phi_i \rangle 
 % + \langle h (\partial \eta/\partial A) (\partial_y u + \partial_x v)\, \phi_j | \partial_y \phi_i \rangle $$
 %
-% $$ \partial F^y_i/\partial A =  \langle h (\partial \eta/\partial A)  ( 4 \partial_y v + 2 \partial_x u))\, \phi_j | \partial_y \phi_i \rangle 
+% $$ \partial F^y_i/\partial A_j =  \langle h (\partial \eta/\partial A)  ( 4 \partial_y v + 2 \partial_x u))\, \phi_j | \partial_y \phi_i \rangle 
 % + \langle h (\partial \eta/\partial A) (\partial_x v + \partial_y u)\, \phi_j | \partial_x \phi_i \rangle $$
 %
 % Currently only done for grounded area where $B=b$, but once this works for grounded area, will do for the more general
@@ -107,17 +106,37 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$ \mathrm{d} d/\mathrm{d} B = \mathrm{d} H^{+}/\mathrm{d} B = -\delta(H)\, H - \mathcal{H}(H)$$
 %
-% $$\mathrm{d} \tau_x /\mathrm{d} B = \frac{\partial \tau_x}{\partial h } \, \frac{\mathcal{d} h}{\mathcal{d} B} = 0 \; (-1) = 0  $$
+% $$\mathrm{d} \tau_x /\mathrm{d} B = \frac{\partial \tau_x}{\partial h } \, \frac{\mathrm{d} h}{\mathrm{d} B} = 0 \; (-1) = 0  $$
+%
+% FE-formulation, note how I use  
+%
+% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$ 
+%
+%
+% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi \right \rangle 
+%     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle  
+%    + \langle t_x | \phi_i \rangle 
+%    + \left \langle \frac{1}{2} g  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle 
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle=0 
+% $$
+%
+% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi \rangle 
+%     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle  
+%    + \langle t_y | \phi_i \rangle 
+%    + \left \langle \frac{1}{2} g (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle 
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0 
+% $$
 %
 %
 %
 % Grounded:
 %
-% $$ \partial F^x_i/\partial B 
-% = \langle \eta (\partial h/\partial B) (4 \partial_x u+2 \partial_y v) \phi_j | \partial_x \phi_i \rangle 
-% + \langle \eta (\partial h/\partial B) \partial_y u+\partial_x v) \phi_j | \partial_y \phi_i \rangle  
-% + \langle g \rho h (\partial h/\partial B) - d (\partial d/\partial B) ) \phi_j | \partial_x \phi_i \rangle  
-% + \langle g \mathcal{G} \, \rho (\partial h /\partial B) - \rho_0 \partial H^}/\partial B) \partial_x B + g \mathcal{G} (\rho h -\rho_o H^{+}) \partial \phi_i \rangle 
+% $$ \partial F^x_i/\partial B_j 
+% = \langle \eta \, (\partial h/\partial B) \, (4 \partial_x u+2 \partial_y v) \,  \phi_j | \partial_x \phi_i \rangle 
+% + \langle \eta \, (\partial h/\partial B) \, (\partial_y u+\partial_x v) \, \phi_j | \partial_y \phi_i \rangle  
+% + \langle g \, ( \rho h \, (\partial h/\partial B) - d \, (\partial d/\partial B) ) \,  \phi_j | \partial_x \phi_i \rangle  
+% + \langle g \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial_x B)) \, \partial_x B \; \phi_j | \phi_i \rangle 
+% + \langle  g \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x \phi_j | \phi_i  \rangle 
 % $$ 
 %
 %
