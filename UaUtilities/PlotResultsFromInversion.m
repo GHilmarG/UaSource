@@ -308,7 +308,7 @@ if isprop(InvFinalValues,'uAdjoint')
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.uAdjoint,CreateNewFigure=false);
         title("$u$ Adjoint variable",Interpreter="latex")
         subtitle("")
-        CLuAdjoint=clim;
+      
 
         TvAdjoint=nexttile;
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.vAdjoint,CreateNewFigure=false);
@@ -883,6 +883,9 @@ else
         end
 
         if PM=="I"
+            if isempty(MUA.M())
+               MUA.M=MassMatrix2D1dof(MUA);
+            end
             dJdB=MUA.M\InvFinalValues.dJdB;
             figMB=FindOrCreateFigure("M\dJdB "+PM); clf(figMB)
             UaPlots(CtrlVar,MUA,F,dJdB,CreateNewFigure=false);

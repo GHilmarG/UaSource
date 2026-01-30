@@ -104,7 +104,7 @@ nargoutchk(7,7)
     
 
     %% Make sure iterate is feasible, at least with respect to directs BCs
-    if CtrlVar.uvMakeInitialIterateFeasible
+    if isfield(CtrlVar,"uvMakeInitialIterateFeasible") &&  CtrlVar.uvMakeInitialIterateFeasible
         F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
         F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     end

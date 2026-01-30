@@ -32,6 +32,11 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+if isempty(RunInfo) 
+    RunInfo=UaRunInfo();
+end
+
+
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
     poolobj = gcp('nocreate');

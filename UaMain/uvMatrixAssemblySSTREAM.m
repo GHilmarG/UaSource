@@ -451,10 +451,10 @@ for Iint=1:MUA.nip
             end
         end
 
+        % R=T-F
 
-
-        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod); % opposite sign
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);                            % opposite sign
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod);
@@ -464,8 +464,8 @@ for Iint=1:MUA.nip
 
 
 
-        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;
-        t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);
+        t1=-F.g*(rhoint.*hint-F.rhow*dint).*dbdy.*fun(Inod)*ca;                                  % opposite sign
+        t2=0.5*ca*F.g.*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,2,Inod);                       % opposite sign
         t3=hint.*etaint.*(4*eyy+2*exx).*Deriv(:,2,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,1,Inod);
         t5=tauy.*fun(Inod);
