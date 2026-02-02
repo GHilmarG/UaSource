@@ -5,11 +5,36 @@
 
 function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 
+%%
+%
+% assembles the matrix Kuv which is the FE form of
+%
+% $$d_{\mathbf{v}} \mathbf{F}(\mathbf{v})$$
+%
+% where
+%
+% $$\mathbf{F}(\mathbf{v})$$
+%
+% is the forward model.
 %
 % Ruv=Tint-Fext;
 % Tint   : internal nodal forces
 % Fint   : external nodal forces
-
+%
+% If the forward model is
+%
+% $$F_n(\mathbf{v})=0 $$
+%
+% Then
+%
+% $$F_n=R_n$$
+%
+% and
+%
+% $$K=\frac{dF}{d\mathbf{v}}$$
+%
+%
+%%
 
 narginchk(4,4)
 nargoutchk(1,4)
@@ -93,10 +118,10 @@ vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 if CtrlVar.IncludeMelangeModelPhysics
-    
+
     uonod=reshape(F.uo(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vonod=reshape(F.vo(MUA.connectivity,1),MUA.Nele,MUA.nod);
-    
+
     uanod=reshape(F.ua(MUA.connectivity,1),MUA.Nele,MUA.nod);
     vanod=reshape(F.va(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -170,30 +195,30 @@ for Iint=1:MUA.nip
 
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
 
-  
+
     Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
     detJ=MUA.DetJ(:,Iint);
-  
 
-    
+
+
     %        fun=shape_fun(Iint,ndim,nod,points) ; % nod x 1   : [N1 ; N2 ; N3] values of form functions at integration points
     %       [Deriv,detJ]=derivVector(coordinates,connectivity,nip,Iint);
-    
+
     % Deriv : Nele x dof x nod
     %  detJ : Nele
-    
+
     % values at integration this point
     hint=hnod*fun;
     sint=snod*fun;
-    
+
     uint=ubnod*fun;
     vint=vbnod*fun;
-    
+
     if CtrlVar.IncludeMelangeModelPhysics
-        
+
         uoint=uonod*fun;
         voint=vonod*fun;
-        
+
         uaint=uanod*fun;
         vaint=vanod*fun;
 
@@ -254,7 +279,7 @@ for Iint=1:MUA.nip
     rhoint=rhonod*fun;
 
 
-  
+
     %
 
 
@@ -335,7 +360,7 @@ for Iint=1:MUA.nip
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dsdy=dsdy+Deriv(:,2,Inod).*snod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-       
+
         dBdx=dBdx+Deriv(:,1,Inod).*Bnod(:,Inod);
         dBdy=dBdy+Deriv(:,2,Inod).*Bnod(:,Inod);
 
@@ -346,64 +371,64 @@ for Iint=1:MUA.nip
 
     end
 
-    
+
 
     [taux,tauy,dtauxdu,dtauxdv,dtauydu,dtauydv] = ...
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
-  
 
-     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
-    
+
+    dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
+
     detJw=detJ*MUA.weights(Iint);
-    
-    
+
+
     for Inod=1:MUA.nod
         if ~Ronly
             for Jnod=1:MUA.nod
-                
-                
+
+
                 d1d1(:,Inod,Jnod)=d1d1(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
                     +hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
-                    +dtauxdu.*fun(Jnod).*fun(Inod)... 
-                    ).*detJw;  
-                
-                
+                    +dtauxdu.*fun(Jnod).*fun(Inod)...
+                    ).*detJw;
+
+
                 d2d2(:,Inod,Jnod)=d2d2(:,Inod,Jnod)...
                     +(4*hint.*etaint.*Deriv(:,2,Inod).*Deriv(:,2,Jnod)...
                     +hint.*etaint.*Deriv(:,1,Inod).*Deriv(:,1,Jnod)...
-                    +dtauydv.*fun(Jnod).*fun(Inod)...  
+                    +dtauydv.*fun(Jnod).*fun(Inod)...
                     ).*detJw ;
-               
-                
-                
+
+
+
                 d1d2(:,Inod,Jnod)=d1d2(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,1,Inod).*Deriv(:,2,Jnod)+Deriv(:,2,Inod).*Deriv(:,1,Jnod))...
-                    + +dtauxdv.*fun(Jnod).*fun(Inod)...   
+                    + +dtauxdv.*fun(Jnod).*fun(Inod)...
                     ).*detJw;
-                
-                
+
+
                 d2d1(:,Inod,Jnod)=d2d1(:,Inod,Jnod)...
                     +(etaint.*hint.*(2*Deriv(:,2,Inod).*Deriv(:,1,Jnod)+Deriv(:,1,Inod).*Deriv(:,2,Jnod))...
-                    +dtauydu.*fun(Jnod).*fun(Inod)...    
+                    +dtauydu.*fun(Jnod).*fun(Inod)...
                     ).*detJw;
-                
+
                 %                dxu=E (2 exx+eyy)
                 %                dyu=E exy
                 %                dyv=E (2 eyy + exx )
                 %                dxv=E exy = dyu
- 
+
                 Deu=Eint.*((2*exx+eyy).*Deriv(:,1,Jnod)+exy.*Deriv(:,2,Jnod));
                 Dev=Eint.*((2*eyy+exx).*Deriv(:,2,Jnod)+exy.*Deriv(:,1,Jnod));
-                
+
                 % E11=h Deu (4 p_x u + 2 p_y v)   + h Deu  ( p_x v + p_y u) p_y N_p
-                
+
                 E11=  hint.*(4.*exx+2.*eyy).*Deu.*Deriv(:,1,Inod)...
                     +2*hint.*exy.*Deu.*Deriv(:,2,Inod);
-                
-                
+
+
                 E12=  hint.*(4.*exx+2.*eyy).*Dev.*Deriv(:,1,Inod)...
                     +2*hint.*exy.*Dev.*Deriv(:,2,Inod);
 
@@ -426,10 +451,10 @@ for Iint=1:MUA.nip
             end
         end
 
+        % R=T-F
 
-
-        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod); % opposite sign
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);                            % opposite sign
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod);
@@ -448,10 +473,10 @@ for Iint=1:MUA.nip
         Ty(:,Inod)=Ty(:,Inod)+(t3+t4+t5).*detJw;
         Fy(:,Inod)=Fy(:,Inod)+(t1+t2).*detJw;
 
-        
-        
-        
-        
+
+
+
+
     end
 end
 
@@ -494,10 +519,10 @@ if ~Ronly
 
     %Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);
     Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1,'uint32'); Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1,'uint32');
-    
-    Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1); 
+
+    Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*4,1);
     istak=0;
-    
+
     for Inod=1:MUA.nod
         %istak=0;
         for Jnod=1:MUA.nod
@@ -522,7 +547,7 @@ if ~Ronly
     % tSparse=tic;
     Kuv=sparseUA(Iind,Jind,Xval,neq,neq);
     % tSparse=toc(tSparse);
-   
+
     %if CtrlVar.Parallel.isTest
     %    fprintf("uvMatrixAssemblySSTREAM: sparse takes %f sec. \n",tSparse)
     %end
@@ -538,13 +563,13 @@ if ~Ronly
     % Note: for numerical verification of distributed parameter gradient it is important to
     % not to use the complex conjugate transpose.
     % whos('K')
-    
+
     % Boundary contribution
-    
-%     if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
-%         [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
-%         Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
-%     end
+
+    %     if CtrlVar.IncludeDirichletBoundaryIntegralDiagnostic
+    %         [KBoundary,rhsBoundary]=DirichletBoundaryIntegralDiagnostic(MUA.coordinates,MUA.connectivity,Boundary,nip,h,ub,vb,AGlen,n,alpha,rho,rhow,g,CtrlVar);
+    %         Kuv=Kuv+KBoundary ; Ruv=Ruv+rhsBoundary;
+    %     end
 end
 
 

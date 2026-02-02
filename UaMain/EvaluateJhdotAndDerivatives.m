@@ -1,6 +1,9 @@
 
 
 
+
+
+
 function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas)
 
 %%  Provides cost function and derivatives with respect to $u$, $v$, and $h$, of the cost function term involving $\dot{h}$
@@ -163,5 +166,13 @@ dhJhdot=full(dhJhdot);
 %% If F.dhdt is available this should give the same answer
 % dhdtErr=sqrt(spdiags(Meas.dhdtCov)) ;  dhdtres=(F.dhdt-Meas.dhdt)./dhdtErr ;  JhdotTest=full(dhdtres'*MUA.M*dhdtres)/2/Area;
 %%
+
+
+% Don't apply this here!  Because duJhdot and dvJhdot contribute to the right-hand side of the Adjoint equations.
+% However, dhJhdot does not and this derivative needs to be projected, but do this later
+%
+% [duJhdot,dvJhdot,dhJhdot]=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCs,duJhdot,dvJhdot,dhJhdot);
+
+
 
 end

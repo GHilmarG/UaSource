@@ -214,15 +214,20 @@ if isempty(fb) || isnan(fb)
     if Fargcollect
         [fb,varargout{1:nOut-1}]=Func(b,varargin{:}) ;
         fb=full(fb);
-        nFuncEval=nFuncEval+1; 
-        
+        nFuncEval=nFuncEval+1;
+
         if ~isempty(listOutF) && ~isempty(listInF)
             [varargin{listInF}]=varargout{listOutF-1} ;
         end
     else
         fb=Func(b);
         fb=full(fb);
-        nFuncEval=nFuncEval+1; 
+        nFuncEval=nFuncEval+1;
+
+        if isnan(fb)
+            error("BackTracking:fbNaN","bf is NaN")
+        end
+
     end
 end
 
@@ -266,6 +271,11 @@ end
 
 if ~NoSlopeInformation
     gamma=-b*slope0/2/( (fb-fa)/b-slope0);
+
+    if isnan(gamma)
+        error("BackTracking:gNaN","gamma is NaN")
+    end
+
 else
     %gamma=0.5*a+0.5*b;
     gamma=a+0.9*(b-a);

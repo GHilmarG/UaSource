@@ -163,26 +163,32 @@ if MeshHasChanged
         MUA.Deriv=[];
         MUA.DetJ=[];
     end
-    
-    
-    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix
+
+    if CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ||  CtrlVar.MUA.CholeskyMassMatrix
+
         MUA.M=MassMatrix2D1dof(MUA);
+
+        if CtrlVar.MUA.DecomposeMassMatrix
+            MUA.dM=decomposition(MUA.M,'chol','upper') ;
+        end
+
+        if CtrlVar.MUA.CholeskyMassMatrix
+
+            [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
+
+        end
+
+    else
+
+        MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ; 
+
     end
-    
-    if CtrlVar.MUA.DecomposeMassMatrix
-        MUA.dM=decomposition(MUA.M,'chol','upper') ;
-    end
-    
-    
+
     
     if CtrlVar.MUA.StiffnessMatrix
         [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
     end
     
-
-    % if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    %     MUA.L=chol(MUA.M,'upper');
-    % end
 
 
     [MUA.xEle,MUA.yEle]=ElementCoordinates(MUA.connectivity,MUA.coordinates);
@@ -222,18 +228,29 @@ MUADerivHasChanged=isempty(MUA.Deriv)  ||  NeleTest~=MUA.Nele || nodTest~=MUA.no
 
 
 if CtrlVar.CalcMUA_Derivatives && MUADerivHasChanged
-        [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
+    [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
 end
 
 
-if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(MUA,'M') || isempty(MUA.M) || MUADerivHasChanged  )  
+if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(MUA,'M') || isempty(MUA.M) || MUADerivHasChanged  )
+
     MUA.M=MassMatrix2D1dof(MUA);
+
+    if CtrlVar.MUA.DecomposeMassMatrix
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+    end
+
+    if isfield(CtrlVar.MUA,"CholeskyMassMatrix") && CtrlVar.MUA.CholeskyMassMatrix
+
+        [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
+
+    end
+else
+
+    MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ;
+
 end
 
-
-if CtrlVar.MUA.DecomposeMassMatrix  && ( ~isfield(MUA,'dM')  ||isempty(MUA.dM)  || ~all(MUA.dM.MatrixSize==size(MUA.M)) || MUADerivHasChanged)
-    MUA.dM=decomposition(MUA.M,'chol','upper') ;
-end
 
 
 if CtrlVar.MUA.StiffnessMatrix &&  (~isfield(MUA,'Dxx')  || MUADerivHasChanged)

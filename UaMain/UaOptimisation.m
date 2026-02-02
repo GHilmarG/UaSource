@@ -1,4 +1,4 @@
-function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
+function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub,F,BCs)
 
 %
 % func is the function to me minimized
@@ -8,11 +8,18 @@ function [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p,p
 %  the gradient: Func=@(gamma) func(p-gamma*dJdp);
 %
 
-narginchk(8,8)
+narginchk(10,10)
 nargoutchk(3,3)
 
 
-if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+
+if  contains(CtrlVar.Inverse.MinimisationMethod,"-BruteForceHessian-") || contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
+
+    % 
+     [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub); 
+     
+
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     
     [p,UserVar,RunInfo]=UaOptimisationHessianBased(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub) ;
 

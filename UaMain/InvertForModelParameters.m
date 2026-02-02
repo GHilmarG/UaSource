@@ -86,22 +86,15 @@ if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.Initia
     CtrlVar.Inverse.InitialLineSearchStepSize=InvStartValues.SearchStepSize;
 end
 
-if CtrlVar.Inverse.Regularize.Field=="-logAGlen-logC-"
+%%
 
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.ga is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
-    if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
-
-        fprintf("The variable CtrlVar.Inverse.Regularize.logAGlen.gs is undefined! This variable needs to be defined in DefineInitialInputs.m \n")
-        error("Input variable not defined.")
-    end
-
+if ~isfield(MUA,'M') || isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
 end
 
+if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+end
 
 
 %% Define inverse parameters and anonymous function returning objective function, directional derivative, and Hessian
@@ -146,11 +139,19 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
 Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
-                                                                                                                         % Somewhat annoyingly MATLAB optimisation toolbox 
-                                                                                                                         % wants the Hessian returned in 
-                                                                                                                         % a separate function, so I can't use JGH (!?).
-                                                                                                                         % The function HessianAC is just a wrapper around 
-                                                                                                                         % JGH and returns the same Hessian as JGH.
+% Somewhat annoyingly MATLAB optimisation toolbox
+% wants the Hessian returned in
+% a separate function, so I can't use JGH (!?).
+% The function HessianAC is just a wrapper around
+% JGH and returns the same Hessian as JGH.
+
+%%
+
+
+Aineq=[];
+bineq=[];
+
+
 
 fprintf('\n +++++++++++ At start of inversion:  \t J=%-g \t I=%-g \t R=%-g  |grad|=%g \n \n',J0,JGHouts.MisfitOuts.I,JGHouts.RegOuts.R,norm(dJdp))
 
@@ -160,40 +161,36 @@ dJdpTest=[];
 
 if CtrlVar.Inverse.TestAdjoint.isTrue
     %% The correctness of the gradient calculation can be tested by comparing it with a brute-force finite differences calculations. 
-   
+
     % Get the gradient using the adjoint method
     [J,dJdp,Hessian,JGHouts]=func(p0);
-    
-    
-    %NA=numel(InvStartValues.AGlen);  % Number of parameters to invert for
-    NA=MUA.Nnodes; 
-    
+
+    NA=MUA.Nnodes;
+
     % Find the subset (iRange) in p, for which the brute-force gradient is to be calculated
     if isempty(CtrlVar.Inverse.TestAdjoint.iRange)
-        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes 
-                      
+        iRange=1:NA;  % If iRange is left empty, do for all of p, i.e. with respect to values over all nodes
     else
         iRange=CtrlVar.Inverse.TestAdjoint.iRange;
     end
-    
-    % if the inversion is done for more than one field, then expand iRange accordingly. 
+
+    I=(iRange>=1) & (iRange <= numel(p0));  % Just in case the use sets some CtrlVar.Inverse.TestAdjoint.iRange outside the nodal values in Mesh
+    iRange=iRange(I);
+
+    % if the inversion is done for more than one field, then expand iRange accordingly.
     switch strlength(CtrlVar.Inverse.InvertForField)
-        
         case 2
             iRange=[iRange(:);iRange(:)+NA];
         case 3
             iRange=[iRange(:);iRange(:)+NA;iRange(:)+2*NA];
     end
-    
-    I=(iRange>=1) & (iRange <= numel(p0));  % As far as I can see, this should not be needed...
-    iRange=iRange(I);
-    
-    % calculate brute force gradient
+
+
 
     % Gradient calculated using a brute-force finite difference approach 
     dJdpTest = CalcBruteForceGradient(func,p0,CtrlVar,iRange);
 
-    filename=CtrlVar.Experiment+"BruteForceGradient";
+    filename="BruteForceGradient"+CtrlVar.Experiment;
     fprintf('BruteForceGradient save in the file : %s \n',filename)
     save(filename,'CtrlVar','UserVar','MUA','F','dJdpTest','iRange')
     
@@ -205,18 +202,18 @@ else
     
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
         
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
+          % once the DirectAdjoint Hessian has been implemented in JGH, get rid of F and BCs in this call
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,F,BCs);
         
         
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")
         
         clear fminconOutputFunction fminconHessianFcn fminuncOutfun
-        
-        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc);
-        
+        [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq);
         
     else
         
+
         fprintf(' CtrlVar.Inverse.MinimisationMethod has the value %s \n',CtrlVar.Inverse.MinimisationMethod)
         fprintf(' but can only have the values ''MatlabOptimization'' or ''UaOptimization''\n')
         error('what case? ')

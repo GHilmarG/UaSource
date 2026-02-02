@@ -663,7 +663,7 @@ CtrlVar.LinSolveTol=1e-8;   % Residual when solving linear system.
                             % Residual=norm([A B' ; B sparse(m,m)]*[x;y]-[f ; g])/norm([f;g]);   
                             % A value of 1e-8 is arguably already a relatively small number, in many cases 1e-6 would be considered acceptable
 CtrlVar.Solve.LUvector=false; % LU factorisation done using vector format, consider setting to true if memory an issue                            
-
+CtrlVar.TestKApeSolve=true;  % tests if KApe Solve is accurate
 %% Internal variables related to matrix assembly
 % These variables are only for testing purposes. Do not change from default
 % values.
@@ -901,7 +901,11 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % If the gradient-based approach is used, the gradient of the objective function can be pre-multiplied with the inverse of the mass
 % matrix. This creates a `mesh independent' gradient. This has both advantages and disadvantages. The best initial approach is
 % presumably to use 'I', and then to try out 'M' for comparison.
-
+%
+% Note: using the pre-multiplier results in the directional derivatives being multiplied by INVERSE of the pre-multiplier. So
+% if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
+% CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
+%
 CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 % If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,
@@ -1100,7 +1104,7 @@ if license('test','Optimization_Toolbox')
         'StepTolerance',CtrlVar.Inverse.StepTolerance,...
         'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
         'UseParallel',true,...
-        'HessianApproximation',{'lbfgs',250},...
+        'HessianApproximation',{'lbfgs',25},...
         'HessianFcn',[],...
         'HessianMultiplyFcn',[],...
         'ScaleProblem',false,...
@@ -1165,7 +1169,27 @@ CtrlVar.Inverse.TestAdjoint.isTrue=0; % If true then perform a brute force calcu
 %
 % The brute-force gradient can be calculated using first-order forward differences, second-order central differences, or
 % fourth-order central differences.
-CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=1e-8 ;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+% The finite-difference step size is calculated as:
+%
+%    deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+%
+% where p0 are the model parameters, i.e. A, B, C.
+%
+% To test the B and C gradients, it seems good to put 
+%
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.01;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0;
+%
+% However, when testing B, this might not be a good choice if, for example, if B=0 in some places. Then a better approach is
+% to select CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize, based on typical ice thickness, for example as
+%  
+% CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize=0.0;
+%  CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize=0.01 hmean;  
+%
+
+
 CtrlVar.TestAdjointFiniteDifferenceType="central-second-order" ;
 CtrlVar.MustBe.TestAdjointFiniteDifferenceType=...
     ["forward-first-order","central-second-order","forward-second-order"...
@@ -1443,7 +1467,8 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=true ;
+CtrlVar.MUA.DecomposeMassMatrix=false;
+CtrlVar.MUA.CholeskyMassMatrix=true;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
@@ -1996,13 +2021,13 @@ CtrlVar.LevelSetPhase="" ;
 % the active-set method.
 %
 
-CtrlVar.LevelSetMethodAutomaticallyResetIceThickness=0; % 1) This simply resets the thickness to min thickness. NOT recommended!
 
-CtrlVar.LevelSetMethodThicknessConstraints=1;           % 2) This uses the active-set method, done as a part of the active set approach.
+
+CtrlVar.LevelSetMethodThicknessConstraints=1;           % 1) This uses the active-set method, done as a part of the active set approach.
                                                         % Note: For this be used one must also set  CtrlVar.ThicknessConstraints=1  
 
 
-CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 3) Here an additional mass-balance term, ab,  on the form:
+CtrlVar.LevelSetMethodAutomaticallyApplyMassBalanceFeedback=1; % 2) Here an additional mass-balance term, ab,  on the form:
                                                                %         ab =  a1*(h-hmin)+a3*(hint-hmin).^3)
                                                                % is added. This is quite similar to the "penalty method", 
                                                                % but the thickness  penalty method does not have to be activated as

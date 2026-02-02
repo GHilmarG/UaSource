@@ -4,12 +4,15 @@
 
 
 
-function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow)
+function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 
 
-narginchk(7,7)
+narginchk(7,8)
 nargoutchk(1,3)
 
+if nargin < 8
+    G0=nan;
+end
 
 %% 
 %
@@ -73,10 +76,16 @@ JVector=zeros(ItMax,1)+NaN ;
 
 while I < ItMax && J > tol
     I=I+1;
-    
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
-    dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
-    
+
+    if isnan(G0)
+        G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);  % 1
+        dGdb=-DiracDelta(CtrlVar.kH,h-hf,CtrlVar.Hh0) ;
+    else
+        G=G0;
+        dGdb=0;
+
+    end
+
     F0=    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
     dFdb = 1 - dGdb.* (B -  (rho.*s-rhow.*S)./(rho-rhow)) ;
     

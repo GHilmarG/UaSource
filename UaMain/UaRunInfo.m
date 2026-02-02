@@ -349,6 +349,10 @@ classdef (ConstructOnLoad) UaRunInfo < matlab.mixin.CustomElementSerialization
             end
 
             if ~isfield(sObj.CPU,"Total")
+                 sObj.CPU.Total=duration(0,0,0);
+            end
+
+            if ~isa(sObj.CPU.Total,"duration")
                 sObj.CPU.Total=duration(0,0,0);
             end
 

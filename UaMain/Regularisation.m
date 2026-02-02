@@ -243,19 +243,17 @@ else
     
 end
 
-if ~isfield(MUA,'M')
-    M=MassMatrix2D1dof(MUA);
-else
-    M=MUA.M;
+if ~isfield(MUA,'M') || isempty(MUA.M)
+    MUA.M=MassMatrix2D1dof(MUA);
 end
 
-if ~isfield(MUA,'Dxx')
-    [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA);
-else
-    Dxx=MUA.Dxx ;
-    Dyy=MUA.Dyy;
+if ~isfield(MUA,'Dxx') || isempty(MUA.Dxx)
+    [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 end
 
+M=MUA.M;
+Dxx=MUA.Dxx;
+Dyy=MUA.Dyy;
 
 
 
@@ -463,9 +461,9 @@ else  % Tikhonov regularization
 
     
     % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdAA,dRdAGlen);
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdCC,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,ddRdBB,dRdB);
+    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdAGlen);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdC);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdB);
     
     R=RAGlen+RB+RC;
     dRdp=[dRdAGlen;dRdB;dRdC];

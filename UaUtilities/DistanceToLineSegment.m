@@ -25,13 +25,13 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,nTol,aTol)
 % # if the distance along the line segment is less than the length of the line
 % segment using the tolerance aTol
 %
-% Usefull to determine if point p is on or close to the line segment B-A
+% Useful to determine if point p is on or close to the line segment B-A
 % and to find all nodal points along the boundary defined by the pairwise joining
 % of points in A and B.
 %
 % Inputs:
 %
-% p  : Nx2 matrix of with the (x,y) cooridnates of points
+% p  : Nx2 matrix of with the (x,y) coordinates of points
 %
 % A , B : Mx2 matrix defining start and end points of M line segments.
 %
@@ -47,7 +47,7 @@ function [Ind,AlongDist,NormDist] = DistanceToLineSegment(p, A, B,nTol,aTol)
 % of any of the line segments.  (The AlongDist is normalized.)
 %
 %
-% Resonably fast if number of elements in p much greate than in A and B, i.e if many more points in
+% Reasonably fast if number of elements in p much greater than in A and B, i.e if many more points in
 % the array p than there are number of line segments (points in A and B).
 %
 % Example:

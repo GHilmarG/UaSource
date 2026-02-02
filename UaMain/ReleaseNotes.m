@@ -2,6 +2,16 @@
 
 %%
 %
+% *Release Notes* _January 2025_
+%
+% When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
+% thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if
+% thickness links/ties are defined between nodes, those same ties will be applied to dh/dt. This has no effect on dh/dt
+% values obtained in transient runs. But this will affect calculated/modeled dh/dt values used in an inversion when compared
+% against measured dh/dt values, in combination with thickness boundary conditions.
+%
+%
+%
 % *Release Notes* _December 2025_
 %
 % * When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated

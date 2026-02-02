@@ -211,10 +211,10 @@ if autopivot
    % Hilmar: I got tired of this error message, anyhow if the user wants a pivot value, give the user a pivot value and just
    % extend the limits to include it.
    if PivotValue < CL(1)
-       PivotValue=CL(1)-100*eps(CL(1)); 
+       PivotValue=CL(1)+100*eps(CL(1)); 
    end
    if PivotValue > CL(2)
-       PivotValue=CL(2)+100*eps(CL(2)); 
+       PivotValue=CL(2)-100*eps(CL(2)); 
    end
 
    assert(PivotValue>=CL(1) & PivotValue<=CL(2),'Error: pivot value must be within the current color axis limits.') 

@@ -60,12 +60,19 @@ if anynan(F.B)
     error("JGH:Bnan","nan in B")
 end
 
+if any(F.C<0)
+    error("JGH:Cneg","negative C values")
+end
+
+if any(F.AGlen<0)
+    error("JGH:Cneg","negative A values")
+end
 
 %% Forward model solution
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
+    [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ;
 end
 
 %%

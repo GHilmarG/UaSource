@@ -20,7 +20,9 @@ function lgd=PlotBoundaryConditions(CtrlVar,MUA,BCs,varargin)
 %
 %%
 
-
+if ~isfield(CtrlVar,"BCsType")
+    CtrlVar.BCsType="forward";
+end
 
 CtrlVar.PlotMesh=1; CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 I=0; L=[];
@@ -150,19 +152,31 @@ if ~isempty(BCs.LSFFixedNode)
 end
 
 
+if CtrlVar.BCsType=="forward"
+
+    if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
+        title(...
+            sprintf('Boundary conditions: \n Arrows represent fixed $u_b$, $v_b$, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are $(u_b,v_b,h)$ nodal ties (%i,%i,%i)',...
+            numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
+            'FontSize',9,Interpreter='latex')
+    elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
+        title(...
+            sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
+            numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
+            'FontSize',9)
+    end
+
+elseif CtrlVar.BCsType=="adjoint"
 
 
-if strcmpi(CtrlVar.FlowApproximation,'SSTREAM') || strcmpi(CtrlVar.FlowApproximation,'Hybrid')
     title(...
-        sprintf('Boundary conditions: \n Arrows represent fixed $u_b$,$v_b$, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are $(u_b,v_b,h)$ nodal ties (%i,%i,%i)',...
-        numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
+        sprintf('Adjoint boundary conditions: \n Arrows represent fixed $\\lambda_x$, $\\lambda_y$, and normal velocites (%i,%i,%i). \n Blue, red and green lines are $(\\lambda_x,\\lambda_y,h)$ nodal ties (%i,%i,%i)',...
+        numel(BCs.ubFixedNode),numel(BCs.vbFixedNode),numel(BCs.ubvbFixedNormalNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
         'FontSize',9,Interpreter='latex')
-elseif strcmp(CtrlVar.FlowApproximation,'SSHEET')
-    title(...
-        sprintf('Boundary conditions: \n Arrows represent fixed ud,vd, and normal velocites (%i,%i,%i). \n Cyan and blue symbols show where the thickness is prescribed/constrained (%i,%i) \n Blue, red and green lines are (ud,vd,h) nodal ties (%i,%i,%i)',...
-        numel(BCs.udFixedNode),numel(BCs.vdFixedNode),numel(BCs.udvdFixedNormalNode),numel(BCs.hFixedNode),numel(BCs.hPosNode),numel(BCs.ubTiedNodeA),numel(BCs.vbTiedNodeA),numel(BCs.hTiedNodeA)),...
-        'FontSize',9)
+
 end
+
+
 
 if ~isempty(L)
     lgd=legend([L{:}],'interpreter','latex');

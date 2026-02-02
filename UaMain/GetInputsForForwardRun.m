@@ -147,9 +147,12 @@ F.dhdt=zeros(MUA.Nnodes,1) ;
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 
 if ~isempty(MLC.hL)
-    BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs)/norm(MLC.hRhs+1000*eps) ;
+
+    %BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs)/norm(MLC.hRhs+1000*eps) ;
+
+    BCsThicknessError=norm(MLC.hL*F.h-MLC.hRhs) > 10*eps(max(abs(F.h))) ;
     
-    if BCsThicknessError > 0.1
+    if BCsThicknessError 
         
         fprintf('\n The user-defined initial ice thickness distribution is inconsistent with the user-defined thickness boundary conditions.\n')
         fprintf(' Node \t \t h (defined) \t \t \t h (BCs) \n')

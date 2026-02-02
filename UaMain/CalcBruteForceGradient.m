@@ -1,6 +1,28 @@
 function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange)
 
 
+
+%%
+%
+% p0 : are the model parameters (A,B,C)
+%
+% func : A function handle
+%
+%
+% [J,G,H]=func(p) 
+%
+% returns the cost (J), gradient (G) and Hessian (H). (Only cost, J, is used here.) 
+%
+% The function returns a finite-differences estimate of dJ/dp for selected elements of p in the range iRange
+%
+% On return dJ is a vector of
+%
+% [dJ/dA(iRange) dJ/dB(iRange) dJ/dC(iRange)]
+%
+% assuming one is inverting for A, B and C. 
+%
+%%
+
 CPUstart=tic;
 
 fprintf(' Calculating gradients using brute-force method...')
@@ -8,7 +30,9 @@ fprintf(' Calculating gradients using brute-force method...')
 
 J0=func(p0);
 
-deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
+%deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
+deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceRelStepSize*abs(p0)+CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize;
+
 
 % Testing gradient using brute force method
 
@@ -17,7 +41,7 @@ deltaStep=CtrlVar.Inverse.TestAdjoint.FiniteDifferenceStepSize*abs(p0);
 dJ=p0*0+NaN;
 dJtemp=dJ;
 
-Pool=gcp ;
+
 parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:genericError');
 parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
 

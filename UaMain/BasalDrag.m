@@ -46,6 +46,17 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     %      hf = rhow*H./rho;
     %       H = S-B
     %
+    % It also returns derivatives of the basal drag components with respect to C (required for the adjoint), if
+    %
+    % CtrlVar.Inverse.dFuvdClambda=true
+    %
+    % Several sliding laws are implemented, all of which are isotropic i.e. 
+    %
+    %  -Taux = |Tau|  u/U,
+    %  -Tauy = |Tau|  v/U,
+    %
+    %   where U is the speed.
+    %
     %%
 
     % rounding and internal element interpolation can make these negative.
@@ -87,7 +98,8 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
     
     if CtrlVar.Inverse.dFuvdClambda
         
-        % dF/dC
+        % dF_x/dC and dF_y/dC
+        %
         %  Just take the derivative of the tau term with respect to C. And don't forget
         %  the minus in front of the tau term in the momentum equation.
         %
@@ -95,11 +107,16 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
         %  -Tauy = |Tau|  v/U, 
         %   where U is the speed.
         %
-        % I include the u and v in the adjoint calculation itself, so I just need the
+        % Note: I include the u and v in the adjoint calculation itself, so I just need the
         % derivative:
         %
         %   d (-|Tau|/U) / dC 
-        
+        %
+        % So this is actually NOT the dF_x/dC or the dF_y/dC derivative, but those can be calculated as
+        %
+        % dF_x/dC = dFuvdC  u 
+        % dF_y/dC = dFuvdC  v
+        %
        
         
         switch CtrlVar.SlidingLaw
@@ -420,8 +437,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
     if Nouts > 2
         
-        dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
-        dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+
         
         dtaubxdvi=He.*Dbeta2i.*ub.*vb;
         dtaubydui=dtaubxdvi;
