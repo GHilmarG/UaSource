@@ -208,8 +208,7 @@ for Iint=1:MUA.nip
     %  detJ : Nele
 
     % values at integration this point
-    hint=hnod*fun;
-    sint=snod*fun;
+
 
     uint=ubnod*fun;
     vint=vbnod*fun;
@@ -269,13 +268,36 @@ for Iint=1:MUA.nip
     nint=nnod*fun;
     %  end
 
+    % hint=hnod*fun;
+    % sint=snod*fun;
+    % Bint=Bnod*fun;
+    % Sint=Snod*fun;
+    % bint=sint-hint;
+    % Hint=Sint-Bint;
 
 
-
+    sint=snod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
-    bint=sint-hint;
     Hint=Sint-Bint;
+
+    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
+
+        bint=Bint ;     % ~OK, except when grounded
+        hint=sint-bint; % OK
+
+    else    % CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
+
+        hint=hnod*fun;  %  I could put calculating bs from hBS in here
+        bint=sint-hint; %
+
+    end
+
+
+
+
+
+
     rhoint=rhonod*fun;
 
 
@@ -377,9 +399,15 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,deltaint,hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,uoint,voint,Coint,moint,uaint,vaint,Caint,maint,qint,g,mukint,V0int);
     [etaint,Eint]=EffectiveViscositySSTREAM(CtrlVar,AGlenint,nint,exx,eyy,exy);
 
+    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
+        dbdx=dBdx;  % only OK if grounded
+        dbdy=dBdy;
+    else
+        dbdx=dsdx-dhdx;   %  I could put calculating bs from hBS in here
+        dbdy=dsdy-dhdy;
+    end
 
-
-    dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
+    % dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
 
     detJw=detJ*MUA.weights(Iint);
 
@@ -451,10 +479,10 @@ for Iint=1:MUA.nip
             end
         end
 
-        % R=T-F
 
-        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod); % opposite sign
-        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);                            % opposite sign
+
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
         t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
         t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
         t5=taux.*fun(Inod);

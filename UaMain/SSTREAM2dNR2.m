@@ -64,7 +64,7 @@ nargoutchk(7,7)
     
     
     if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
-    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+%    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
     if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
     if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
     if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end

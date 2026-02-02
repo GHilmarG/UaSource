@@ -203,14 +203,30 @@ for Iint=1:MUA.nip   % integration points
     Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
     detJ=MUA.DetJ(:,Iint);
 
-    hint=hnod*fun;
+
     sint=snod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
-    bint=sint-hint;
     Hint=Sint-Bint;
+
+    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
+
+        bint=Bint ;     % ~OK, expect when grounded
+        hint=sint-bint; % OK
+
+    else    % CtrlVar.Calculate.Geometry="bs-FROM-hBS" ;
+
+        hint=hnod*fun;  %  I could put calculating bs from hBS in here
+        bint=sint-hint; %
+
+    end
+
+
+
     rhoint=rhonod*fun;
     rhoo=F.rhow;
+
+
 
     Aint=Anod*fun;
     Aint(Aint<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
@@ -240,13 +256,22 @@ for Iint=1:MUA.nip   % integration points
 
     end
 
-    dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
+
+    if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
+        dbdx=dBdx;  % only OK if grounded
+        dbdy=dBdy;
+    else
+        dbdx=dsdx-dhdx;   %  I could put calculating bs from hBS in here
+        dbdy=dsdy-dhdy;
+    end
+
+
 
     hfint=rhoo*Hint./rhoint;                                         % this is linear, so fine to evaluate at int in this manner
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % important to calculate Heint and deltaint in a consistent manner
     HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
-    dHeintdh=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); 
+    dHeintdh=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
     dHEintdh=-DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
     G=Heint;
@@ -262,19 +287,19 @@ for Iint=1:MUA.nip   % integration points
     dHposintdB=dHeHdH.*dHdB.*Hint+HeH.*dHdB;
 
     dbdB=1;
-    dhdb=-1 ;   
-    dhdB=dhdb.*dbdB;  
-  
+    dhdb=-1 ;
+    dhdB=dhdb.*dbdB;
+
     dhfdB=rhoo.*dHdB./rhoint;
     dGdB=0;
 
     dint=HEint.*rhoint.*hint/rhoo + Heint.*Hposint ;  % definition of d, applied directly at integration points, also: d=(1-G).*rhoint.Uhint./rhoo+G.*Hposint;
-    dddB=dHEintdh.*dhdB.*rhoint.*hint/rhoo+HEint.*rhoint.*dhdB/rhoo+dHeintdh.*dhdB.*Hposint+Heint.*dHposintdB ; 
+    dddB=dHEintdh.*dhdB.*rhoint.*hint/rhoo+HEint.*rhoint.*dhdB/rhoo+dHeintdh.*dhdB.*Hposint+Heint.*dHposintdB ;
 
     % taub?
     %
     % [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
-   %     BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk,V0)
+    %     BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk,V0)
 
 
     detJw=detJ*MUA.weights(Iint);

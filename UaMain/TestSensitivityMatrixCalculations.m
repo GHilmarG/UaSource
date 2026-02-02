@@ -15,16 +15,22 @@ function TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l,Node)
 % see also: dFuvdA.m, dFuvdC.m , duvdCFunc.m
 %
 %load("TestSave.mat","CtrlVar","MUA","F","BCs","l");
-
+%
+%
+%   load("Hoffs-Inverse-MeshFile0k25km-B-MatlabOptimization-GradientBased-I-adjoint-RHA=E-RHC=E-IHC=FP-IHA=FP-Weertman-1-InverseRestartFile.mat") ; CtrlVar=CtrlVarInRestartFile ;  
+%   TestSensitivityMatrixCalculations(CtrlVar,MUA,F,BCs,l,6914)  ;
+%
 Testing="-B-";
-
+[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow,F.GF);
 %% C
 
 if contains(Testing,"-B-")
-  
+
+    CtrlVar.Calculate.Geometry="bh-FROM-sBS" ; % {"bs-FROM-hBS" ; "bh-FROM-sBS" }
+    %CtrlVar.Calculate.Geometry="bs-FROM-hBS" ; 
     %Node=100;
     UserVar=[]; RunInfo=[];
-    
+
     [UserVar,RunInfo,F,l]= uv([],[],CtrlVar,MUA,BCs,F,l);
     [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,BCs);
 
@@ -32,27 +38,21 @@ if contains(Testing,"-B-")
     dudB=dudB(:,Node);
     dvdB=dvdB(:,Node);
 
-
- 
-
-
     % test for one particular node and compare to finite-differences
 
     UserVar=[]; RunInfo=UaRunInfo;
- 
+
 
     % second-order centered finite differences
     B0=F.B;
 
     Bp=B0;
-    dB=0.001*F.h(Node);
+    dB=1;
     Bp(Node)=Bp(Node)+dB;
     F.B=Bp;
 
-    % I want to keep surface (s) unchanged
-    F.b=F.B;
-    F.h=F.s-F.B;
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
+    F.b=F.b+nan ; F.h=F.h+nan;
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
     up=F.ub; vp=F.vb;
@@ -61,11 +61,7 @@ if contains(Testing,"-B-")
     Bm=B0;
     Bm(Node)=Bm(Node)-dB;
     F.B=Bm;
-    
-    % I want to keep surface (s) unchanged
-    F.b=F.B;
-    F.h=F.s-F.B;
-    [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l); um=F.ub; vm=F.vb;
     F.B=B0;
@@ -105,7 +101,7 @@ if contains(Testing,"-B-")
     Tv1Lim=clim;
 
     Tv2=nexttile;
-    cbar=UaPlots(CtrlVar,MUA,F,dvdBpert,FigureTitle="dv/dB finite differences",CreateNewFigure=false); 
+    cbar=UaPlots(CtrlVar,MUA,F,dvdBpert,FigureTitle="dv/dB finite differences",CreateNewFigure=false);
     title("$du/dB$ finite differences",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
     axis(Tv1); clim(Tv1Lim)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(Tv1,CM);
