@@ -437,8 +437,7 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
     if Nouts > 2
         
-        dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
-        dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
+
         
         dtaubxdvi=He.*Dbeta2i.*ub.*vb;
         dtaubydui=dtaubxdvi;

@@ -24,22 +24,22 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 %
 %
-% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x 
-% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_x B + \rho g \sin(\alpha) h =0 
+% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x
+% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_x B + \rho g \sin(\alpha) h =0
 % $$
 %
-% $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y 
-% -   \frac{1}{2} g \cos(\alpha) \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_y B =0 
+% $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y
+% -   \frac{1}{2} g \cos(\alpha) \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_y B =0
 % $$
 %
 % or
 %
-% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x 
-% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x B+ \rho g \sin(\alpha) h  =0 
+% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x
+% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x B+ \rho g \sin(\alpha) h  =0
 % $$
 %
-% $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y 
-% - \frac{1}{2} g \cos(\alpha) \partial_y (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =0 
+% $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y
+% - \frac{1}{2} g \cos(\alpha) \partial_y (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =0
 % $$
 %
 %
@@ -144,7 +144,7 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % + \langle \eta \, (\partial h/\partial B) \, (\partial_y u+\partial_x v) \, \phi_j | \partial_y \phi_i \rangle
 % - \langle g \cos(\alpha) \, ( \rho h \, (\partial h/\partial B) - \rho_o d \, (\partial d/\partial B) ) \,  \phi_j | \partial_x \phi_i \rangle
 % + \langle g \cos(\alpha) \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial B)) \, \partial_x B \; \phi_j | \phi_i \rangle
-% + \langle  g \cos(\alpha) \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x \phi_j | \phi_i  \rangle + \langle \rho g \sin(\alpha) \, (\partial h/\partial B) \phi_j  | \phi_i \rangle 
+% + \langle  g \cos(\alpha) \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x \phi_j | \phi_i  \rangle + \langle \rho g \sin(\alpha) \, (\partial h/\partial B) \phi_j  | \phi_i \rangle
 % $$
 %
 % $$ \partial F^y_i/\partial B_j
@@ -203,10 +203,11 @@ for Iint=1:MUA.nip   % integration points
     Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
     detJ=MUA.DetJ(:,Iint);
 
-
     hint=hnod*fun;
+    sint=snod*fun;
     Bint=Bnod*fun;
     Sint=Snod*fun;
+    bint=sint-hint;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
     rhoo=F.rhow;
@@ -241,32 +242,39 @@ for Iint=1:MUA.nip   % integration points
 
     dbdx=dsdx-dhdx; dbdy=dsdy-dhdy;
 
-    hfint=rhoo*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
+    hfint=rhoo*Hint./rhoint;                                         % this is linear, so fine to evaluate at int in this manner
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % important to calculate Heint and deltaint in a consistent manner
     HEint = HeavisideApprox(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
 
+    dHeintdh=DiracDelta(CtrlVar.kH,hint-hfint,CtrlVar.Hh0); 
+    dHEintdh=-DiracDelta(CtrlVar.kH,hfint-hint,CtrlVar.Hh0);
+
     G=Heint;
 
-    Hposint = HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0).*Hint;
-
-    % Here we apply the definition of d directly at integration points
-    dint=HEint.*rhoint.*hint/rhoo + Heint.*Hposint ;  % definition of d, applied directly at integration points
-    % d=(1-G).*rhoint.Uhint./rhoo+G.*Hposint;
 
     Eta=EffectiveViscositySSTREAM(CtrlVar,Aint,nint,exx,eyy,exy);
 
     HeH=HeavisideApprox(CtrlVar.kH,Hint,CtrlVar.Hh0);
-    deltaH=DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);
-    Hplus=HeH.*Hint;
+    dHeHdH=DiracDelta(CtrlVar.kH,Hint,CtrlVar.Hh0);
+
+    dHdB=-1;
+    Hposint=HeH.*Hint;
+    dHposintdB=dHeHdH.*dHdB.*Hint+HeH.*dHdB;
 
     dbdB=1;
-    dhdB=-1;
-    dHdB=-1;
-    dhfdB=-rhoo./rhoint;
+    dhdb=-1 ;   
+    dhdB=dhdb.*dbdB;  
+  
+    dhfdB=rhoo.*dHdB./rhoint;
     dGdB=0;
-    dHplusdB=-deltaH.*Hint-HeH;
-    dddB=dHplusdB;
 
+    dint=HEint.*rhoint.*hint/rhoo + Heint.*Hposint ;  % definition of d, applied directly at integration points, also: d=(1-G).*rhoint.Uhint./rhoo+G.*Hposint;
+    dddB=dHEintdh.*dhdB.*rhoint.*hint/rhoo+HEint.*rhoint.*dhdB/rhoo+dHeintdh.*dhdB.*Hposint+Heint.*dHposintdB ; 
+
+    % taub?
+    %
+    % [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taubxo,taubyo,taubxa,taubya] = ...
+   %     BasalDrag(CtrlVar,MUA,He,delta,h,B,H,rho,rhow,ub,vb,C,m,uo,vo,Co,mo,ua,va,Ca,ma,q,g,muk,V0)
 
 
     detJw=detJ*MUA.weights(Iint);

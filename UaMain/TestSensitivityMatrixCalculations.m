@@ -42,10 +42,10 @@ if contains(Testing,"-B-")
  
 
     % second-order centered finite differences
-    dB=0.01;  % this might need to be improved
     B0=F.B;
 
     Bp=B0;
+    dB=0.001*F.h(Node);
     Bp(Node)=Bp(Node)+dB;
     F.B=Bp;
 
