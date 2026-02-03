@@ -308,7 +308,7 @@ if isprop(InvFinalValues,'uAdjoint')
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.uAdjoint,CreateNewFigure=false);
         title("$u$ Adjoint variable",Interpreter="latex")
         subtitle("")
-      
+        CLuAdjoint=clim;
 
         TvAdjoint=nexttile;
         cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.vAdjoint,CreateNewFigure=false);
@@ -318,7 +318,7 @@ if isprop(InvFinalValues,'uAdjoint')
 
 
         axis(TuAdjoint); clim(CLuAdjoint)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(TuAdjoint,CM);
-        axis(TvAdjoint); clim(CLvAdjoint)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(TvAdjoint,CM);
+        axis(TvAdjoint); clim(CLuAdjoint)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(TvAdjoint,CM);
         T.Padding="compact";   T.TileSpacing="tight";
 
         cbar=UaPlots(CtrlVar,MUA,F,[InvFinalValues.uAdjoint, InvFinalValues.vAdjoint],FigureTitle="Adjoint velocities") ;

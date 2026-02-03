@@ -42,13 +42,13 @@ if ~isempty(Priors.TrueB)
     ax4=nexttile;
     UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B at start of current inversion")
+    title("B at start of current inversion run")
     subtitle("")
 
     ax5=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B prior")
+    title("B prior") ; subtitle("")
 
     ax6=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);

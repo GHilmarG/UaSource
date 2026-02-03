@@ -258,7 +258,8 @@ for Iint=1:MUA.nip   % integration points
 
 
     if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
-        dbdx=dBdx;  % only OK if grounded
+        d
+        bdx=dBdx;  % only OK if grounded
         dbdy=dBdy;
     else
         dbdx=dsdx-dhdx;   %  I could put calculating bs from hBS in here
