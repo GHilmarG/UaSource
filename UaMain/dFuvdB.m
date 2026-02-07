@@ -10,7 +10,7 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 % $$\mathbf{F}_{\mathbf{v}}$$
 %
-% is the forward model.
+% is the uv-forward model.
 %
 %
 % $$\left[\begin{array}{cccc}
@@ -25,7 +25,7 @@ function K=dFuvdB(CtrlVar,MUA,F)
 %
 %
 % $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x
-% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_x B + \rho g \sin(\alpha) h =0
+% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+})\, \partial_x B + \rho g \sin(\alpha) \, h =0
 % $$
 %
 % $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y
@@ -35,7 +35,7 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % or
 %
 % $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x
-% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x B+ \rho g \sin(\alpha) h  =0
+% -   \frac{1}{2} g \cos(\alpha) \partial_x (\rho h^2 -  \rho_o d^2)- g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x B+ \rho g \sin(\alpha) \, h  =0
 % $$
 %
 % $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y
@@ -124,14 +124,14 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi \right \rangle
 %     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
 %    + \langle t_x | \phi_i \rangle
-%    - \left \langle \frac{1}{2} g \cos(\alpha)  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
-%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  + \langle \rho g \sin(\alpha) h  | \phi \rangle   =0
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  + \langle \rho g \sin(\alpha) \, h  | \phi \rangle   =0
 % $$
 %
 % $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi \rangle
 %     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
 %    + \langle t_y | \phi_i \rangle
-%    - \left \langle \frac{1}{2} g \cos(\alpha) (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
 %    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
 % $$
 %
@@ -143,21 +143,22 @@ function K=dFuvdB(CtrlVar,MUA,F)
 % = \langle \eta \, (\partial h/\partial B) \, (4 \partial_x u+2 \partial_y v) \,  \phi_j | \partial_x \phi_i \rangle
 % + \langle \eta \, (\partial h/\partial B) \, (\partial_y u+\partial_x v) \, \phi_j | \partial_y \phi_i \rangle
 % - \langle g \cos(\alpha) \, ( \rho h \, (\partial h/\partial B) - \rho_o d \, (\partial d/\partial B) ) \,  \phi_j | \partial_x \phi_i \rangle
-% + \langle g \cos(\alpha) \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial B)) \, \partial_x B \; \phi_j | \phi_i \rangle
-% + \langle  g \cos(\alpha) \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x \phi_j | \phi_i  \rangle + \langle \rho g \sin(\alpha) \, (\partial h/\partial B) \phi_j  | \phi_i \rangle
+% + \langle g \cos(\alpha) \, \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial B)) \, \partial_x B \; \phi_j | \phi_i \rangle
+% + \langle  g \cos(\alpha) \, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_x \phi_j | \phi_i  \rangle + \langle \rho g \sin(\alpha) \, (\partial h/\partial B) \phi_j  | \phi_i \rangle
 % $$
 %
 % $$ \partial F^y_i/\partial B_j
 % = \langle \eta \, (\partial h/\partial B) \, (4 \partial_y v+2 \partial_y u) \,  \phi_j | \partial_y \phi_i \rangle
 % + \langle \eta \, (\partial h/\partial B) \, (\partial_x v+\partial_y u) \, \phi_j | \partial_x \phi_i \rangle
 % - \langle g \cos(\alpha) \, ( \rho h \, (\partial h/\partial B) - \rho_o d \, (\partial d/\partial B) ) \,  \phi_j | \partial_y \phi_i \rangle
-% + \langle g \cos(\alpha) \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial B)) \, \partial_y B \; \phi_j | \phi_i \rangle
-% + \langle  g \cos(\alpha) \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_y \phi_j | \phi_i  \rangle
+% + \langle g \cos(\alpha) \, \mathcal{G} \, ( \rho \,(\partial h /\partial B) - \rho_o \, (\partial H^{+}/\partial B)) \, \partial_y B \; \phi_j | \phi_i \rangle
+% + \langle  g \cos(\alpha) \, \mathcal{G} \, (\rho h -\rho_o H^{+}) \, \partial_y \phi_j | \phi_i  \rangle
 % $$
 %
-
-
-
+%
+%
+% see also: duvdAFunc.m, duvdBFunc.m, duvdCFunc.m, dFuvdA.m, dFuvdB.m, dFuvdC.m, TestSensitivityMatrixCalculations.m
+%
 %%
 
 %%
@@ -258,8 +259,8 @@ for Iint=1:MUA.nip   % integration points
 
 
     if CtrlVar.Calculate.Geometry=="bh-FROM-sBS"
-        d
-        bdx=dBdx;  % only OK if grounded
+        
+        dbdx=dBdx;  % only OK if grounded
         dbdy=dBdy;
     else
         dbdx=dsdx-dhdx;   %  I could put calculating bs from hBS in here

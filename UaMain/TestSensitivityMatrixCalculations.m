@@ -124,7 +124,7 @@ if contains(Testing,"-B-")
     ylabel("Finite difference $du/dB$",Interpreter="latex")
     ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
     axis on ; axis equal tight ; box off
-    title("Comparision betweenadjoint and finite-differences gradient calculations")
+    title("Comparision between adjoint and finite-differences gradient calculations")
     set(gcf,'Color','white')
 
     figBgrad=FindOrCreateFigure("dv/dB gradient test") ;  clf(figBgrad)
@@ -137,7 +137,7 @@ if contains(Testing,"-B-")
     ylabel("Finite difference $dv/dB$",Interpreter="latex")
     ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
     axis on ; axis equal tight ; box off
-    title("Comparision betweenadjoint and finite-differences gradient calculations")
+    title("Comparision between adjoint and finite-differences gradient calculations")
     set(gcf,'Color','white')
 
 

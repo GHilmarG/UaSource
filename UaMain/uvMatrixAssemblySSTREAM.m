@@ -34,6 +34,28 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 % $$K=\frac{dF}{d\mathbf{v}}$$
 %
 %
+%
+% FE-formulation, note how I use
+%
+% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
+%
+%
+% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi \right \rangle
+%     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
+%    + \langle t_x | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  + \langle \rho g \sin(\alpha) \, h  | \phi \rangle   =0
+% $$
+%
+% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi \rangle
+%     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
+%    + \langle t_y | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
+% $$
+%
+%
+%
 %%
 
 narginchk(4,4)

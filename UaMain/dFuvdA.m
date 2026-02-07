@@ -46,6 +46,11 @@ function K=dFuvdA(CtrlVar,MUA,F)
 %
 % $$ \partial F^y_i/\partial A_j =  \langle h (\partial \eta/\partial A)  ( 4 \partial_y v + 2 \partial_x u))\, \phi_j | \partial_y \phi_i \rangle 
 % + \langle h (\partial \eta/\partial A) (\partial_x v + \partial_y u)\, \phi_j | \partial_x \phi_i \rangle $$
+%
+%
+% 
+% see also: duvdAFunc.m, duvdBFunc.m, duvdCFunc.m, dFuvdA.m, dFuvdB.m, dFuvdC.m, TestSensitivityMatrixCalculations.m
+%
 %%
 
 

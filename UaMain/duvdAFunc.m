@@ -44,7 +44,7 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 % and the F provided as an input to this function must be this solution to the forward problem.
 %
-% see also: duvdCFunc.m, dFuvdA.m, dFuvdC.m , TestSensitivityMatrixCalculations.m
+% see also: duvdAFunc.m, duvdBFunc.m, duvdCFunc.m, dFuvdA.m, dFuvdB.m, dFuvdC.m, TestSensitivityMatrixCalculations.m
 % 
 %%
 

@@ -15,16 +15,18 @@ if ~isempty(Priors.TrueB)
     TB=tiledlayout("flow") ;
 
     ax1=nexttile;
-    UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
+    cbar1=UaPlots(CtrlVar,MUA,F,Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("True B")
-    subtitle("")
+    subtitle("") ; title(cbar1,"(m a.s.l.)")
+    cl1=clim; 
 
     ax2=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
+    cbar2=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B")
-    subtitle("")
+    subtitle("") ; title(cbar2,"(m a.s.l.)")
+    clim(cl1)
 
 
     if isempty(Priors.TrueB)
@@ -33,29 +35,34 @@ if ~isempty(Priors.TrueB)
 
 
     ax3=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
+    cbar3=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.TrueB,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("B retrieved - B true")
-    subtitle("")
-
+    subtitle("") ; title(cbar3,"(m)")
+    %clim(cl1)
 
     ax4=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+    cbar4=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("B at start of current inversion run")
-    subtitle("")
+    subtitle("") ; title(cbar4,"(m a.s.l.)")
+    clim(cl1)
 
     ax5=nexttile;
-    UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
+    cbar5=UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B prior") ; subtitle("")
+    title(cbar5,"(m a.s.l.)")
+    title("B prior") ; subtitle("") ; 
+    clim(cl1)
+
 
     ax6=nexttile;
-    UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
+    cbar6=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
     hold on ; PlotGroundingLines(); PlotCalvingFronts();
     title("Retrieved B -  Prior B ")
-    subtitle("")
-
+    subtitle("") ; 
+    title(cbar6,"(m)")
+    % clim(cl1)
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
     set(figB,CurrentAxes=ax1) ;
@@ -112,7 +119,10 @@ if ~isempty(Priors.TrueB)
     % figB.Position=[200 200 1300 800];
     TB.TileSpacing="tight";
     TB.Padding="tight";
-    %colormap(othercolor("Mdarkterrain",32))
+    % colormap(othercolor("Mdarkterrain",32))
+    CM=cmocean('ice',15) ; colormap(CM);
+    set(figB,CurrentAxes=ax3) ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(ax3,CM);
+    set(figB,CurrentAxes=ax6) ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(ax6,CM);
 
 end
 
