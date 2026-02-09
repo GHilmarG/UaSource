@@ -326,7 +326,7 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
     
     
     
-else  % Tikhonov regularization
+else  % Andrey Tikhonov regularization
     
     
     
@@ -426,6 +426,11 @@ else  % Tikhonov regularization
 
     if isB   %  B
 
+        % The covariance of the prior consists of two terms:
+        %
+        % 1) The 'usual' large-scale correlation which here is a Marten covariance, 
+        % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
+        %
         NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
         dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
@@ -448,10 +453,90 @@ else  % Tikhonov regularization
 
             RB=RB+RBmeas;
             dRdB=dRdB+dRdBmeas;
-            ddRdBB=ddRdBmeasBmeas;
+            ddRdBB=ddRdBB+ddRdBmeasBmeas;
 
         end
         %
+
+        %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
+        %
+        % Idea:  Add a quadratic penalty in terms of min thickness violation.
+        %
+        % Thickness violation: F.s - F.B < hmin
+        %%
+        % 
+        %
+        % 
+        %
+        %
+        %  or    (F.s-F.B) - hmin < 0
+        %        hmin-F.s + F.B > 0 
+        %        p(B)=SoftPlus(F.B-F.s+hmin)
+        %
+        % $$ 
+        % J =\frac{1}{2} \int (p(B))^2 \, \mathrm{d}x 
+        % = \frac{1}{2} \int (p(B)_i \phi_i(x) ) \, ( p(B)_j \phi_j(x) ) \, dx
+        % = \frac{1}{2} p_i(B) \left  (  \int \phi_i(x) ) \, \phi_j(x) \, dx \right ) \, p_j(B)
+        % = \frac{1}{2} p_i(B) \, M_{ij} \, p_j(B) 
+        % $$ 
+        %
+        % $$ p(B)=\mathrm{SoftPlus}(B-s+h_{\mathrm{min}}) $$
+        %
+        %
+        % $$ p(B) = \sum_{k=1}^n \, p_k(B_k) \, \phi_k(x) $$
+        %
+        % $$ \partial p(B)/\partial p_q  =  \phi_q(x) $$
+        %
+        %
+        % $$ 
+        % \delta_B J(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx  
+        % =\int p(B) \, \frac{\partial p}{\partial B} \, \phi_q  \; dx 
+        % =  \int p_i \, \phi_i((x) \,  \phi_q(x) \frac{\partial p}{\partial B_j}  \; dx 
+        % = p_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial p}{\partial B_j} 
+        % $$
+        % 
+        % Note that for
+        %
+        % $$ p(B)=B = b_i \phi_i(x) $$  
+        %
+        % in which case
+        %
+        % $$ \frac{\partial p}{\partial B_j} = \delta_{ij} $ 
+        %
+        %
+        % we arrive at 
+        %
+        % $$ 
+        % \delta_B J(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx  
+        % = p_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial p}{\partial B_j} 
+        % = p_i M_{ij} \phi_j \, \delta_{ij} = p_i M_{ij}  
+        % $$
+        %
+        %  dJdB_q= \int p(B) dp/dB_q \phi_q
+        %
+        %  ddJdB_qB_r = \phi_r dp/dB_r dp/dB_q \phi_q + \int p(B) ddp/dB_qdB_r \phi_q
+        %             =  dpdB_r M_{rq} dpdB_q + \int p(B) ddp/dB_qdB_r \phi_q
+        %
+        % Here, ddp/dB_qdB_r = \delta(F.B-F.s-hmin) 
+        % 
+        %   The second term produces a delta function and I think it can safely be ignored.
+        %
+        % dJd
+        %
+        %%
+
+        x=-F.B ;
+        x0=-F.s;
+        k=1/100;
+        [Bbarr,dBarrdB,ddBbarrdBB] = SoftPlus(k,x,x0,Plot=false);
+        dBarrdB=-dBarrdB;
+
+        RB=RB+Bbarr;
+        dRdB=dRdB+dBarrdB;
+        ddRdBB=ddRdBB+ddBbarrdBB;
+
+        %%
+
 
     else
         RB=0;

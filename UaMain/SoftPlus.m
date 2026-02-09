@@ -16,7 +16,7 @@ function [y,dydx,ddydxx] = SoftPlus(k,x,x0,options)
 %
 % $$ \frac{dy}{dx}=\mathrm{SoftHeaviside}(x) = \frac{1}{1+e^{-2 k (x-x_0)}} $$
 %
-% ddy/dxx=Smooth approximation to the Dirac delta function: 
+% ddy/dxx=Smooth approximation to the Dirac delta function:
 %
 % $$ \frac{d^2 y}{dx \, dx}=\mathrm{SoftDiracDelta}(x) = \frac{2 k}{\left (e^{k (x-x_0)} +e^{-k (x-x_0)} \right )^2}$$
 %
@@ -27,16 +27,16 @@ function [y,dydx,ddydxx] = SoftPlus(k,x,x0,options)
 % The derivative of this function is the logistic function, which is a similar type of an approximation to the Heaviside step function
 %
 % Options:
-% 
+%
 %   Plot=true     % creates a plot of the outputs, by default Plot=false
 %
 % Example:
 %
 %   x=linspace(-2,2,1000) ; k=10 ; x0=0 ;    [y,dydx,ddydxx]=SoftPlus(k,x,x0,Plot=true);
-% 
+%
 % See also:
 %
-%   HeavisideApprox.m 
+%   HeavisideApprox.m
 %   DiracDelta.m
 %%
 
@@ -52,8 +52,12 @@ end
 y = log(1+exp(2*k*(x-x0))) /(2*k) ;
 
 I=isinf(y);  % due to overflow errors, for large positive values of x, we have y=inf, instead of y=x
-y(I)=x(I);
 
+if numel(x0)>1
+    y(I)=x(I)-x0(I);
+else
+    y(I)=x(I)-x0;
+end
 
 dydx=[] ;
 ddydxx=[];
@@ -62,32 +66,42 @@ if nargout > 1
 
     dydx=HeavisideApprox(k,x,x0) ;
 
-    %dydx=1./(1+exp(-2*k*(x-x0)));  
+    %dydx=1./(1+exp(-2*k*(x-x0)));
 
     if nargout ==3
-        ddydxx = DiracDelta(k,x,x0);
+        SoftDiracDelta = DiracDelta(k,x,x0);
+        ddydxx=SoftDiracDelta;
+        % ddydxx=sparse(1:numel(SoftDiracDelta),1:numel(SoftDiracDelta),SoftDiracDelta,numel(SoftDiracDelta),numel(SoftDiracDelta)); 
     end
+
+
 
 end
 
 
 if options.Plot
-    
-    figure ;
-    plot(x,y,DisplayName="SoftPlus") ;
+
+
+    xmx0=x-x0;
+    [xSorted,I]=sort(xmx0);
+    %ddydxx=diag(ddydxx);
+
+    FindOrCreateFigure("SoftPlus")
+    plot(xmx0(I),y(I),DisplayName="Soft-Plus") ;
     hold on ;
     if ~isempty(dydx)
-    plot(x,dydx,DisplayName="Logistic") ;
+        plot(xmx0(I),dydx(I),DisplayName="Soft-Heaviside") ;
     end
     if ~isempty(ddydxx)
-    plot(x,ddydxx,DisplayName="Delta") ;
+        plot(xmx0(I),ddydxx(I),DisplayName="Soft-Delta") ;
     end
     AL=axis;
     plot([-1/k,1/k],[AL(4)/2 AL(4)/2],"k-",DisplayName="-1/k to 1/k")
-    
-    xlabel("x") ; ylabel("y") ; 
-    title("Softplus, SoftStep, SoftDelta")  ;
-    legend();
+
+    xlabel("$x-x_0$",Interpreter="latex") ;
+    ylabel("$y$",Interpreter="latex") ;
+    title("SoftPlus, SoftStep, SoftDelta")  ;
+    lg=legend(Location="best");
 
 end
 
