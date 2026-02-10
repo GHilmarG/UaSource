@@ -6,7 +6,7 @@ function [y,dydx,ddydxx] = SoftPlus(k,x,x0,options)
 
 %%    [y,dydx,ddydxx] = SoftPlus(k,x,x0,options)
 %
-% Returns a "soft" approximation to the positive part of x.
+% Returns a "soft" approximation to the positive part of x-x0.
 %
 % y=SoftPlus:
 %
@@ -71,7 +71,7 @@ if nargout > 1
     if nargout ==3
         SoftDiracDelta = DiracDelta(k,x,x0);
         ddydxx=SoftDiracDelta;
-        % ddydxx=sparse(1:numel(SoftDiracDelta),1:numel(SoftDiracDelta),SoftDiracDelta,numel(SoftDiracDelta),numel(SoftDiracDelta)); 
+        % ddydxx=sparse(1:numel(SoftDiracDelta),1:numel(SoftDiracDelta),SoftDiracDelta,numel(SoftDiracDelta),numel(SoftDiracDelta));
     end
 
 
@@ -87,20 +87,45 @@ if options.Plot
     %ddydxx=diag(ddydxx);
 
     FindOrCreateFigure("SoftPlus")
-    plot(xmx0(I),y(I),DisplayName="Soft-Plus") ;
-    hold on ;
-    if ~isempty(dydx)
-        plot(xmx0(I),dydx(I),DisplayName="Soft-Heaviside") ;
-    end
-    if ~isempty(ddydxx)
-        plot(xmx0(I),ddydxx(I),DisplayName="Soft-Delta") ;
-    end
-    AL=axis;
-    plot([-1/k,1/k],[AL(4)/2 AL(4)/2],"k-",DisplayName="-1/k to 1/k")
 
+    T=tiledlayout("flow");
+
+    T1=nexttile;
+
+    plot(xmx0(I),y(I),DisplayName="Soft-Plus",LineWidth=2,Color="k") ;
+    xlim([-10/k 10/k])
     xlabel("$x-x_0$",Interpreter="latex") ;
     ylabel("$y$",Interpreter="latex") ;
-    title("SoftPlus, SoftStep, SoftDelta")  ;
+    title("Soft-Plus")
+    lg1=legend(Location="best");
+
+    hold on ;
+    if ~isempty(dydx)
+        T2=nexttile;
+        plot(xmx0(I),dydx(I),LineWidth=2,DisplayName="Soft-Heaviside",color="r") ;
+        xlim([-10/k 10/k])
+        xlabel("$x-x_0$",Interpreter="latex") ;
+        title("Soft Heaviside")
+        ylabel("$y$",Interpreter="latex") ;
+        lg2=legend(Location="best");
+
+    end
+    if ~isempty(ddydxx)
+        T3=nexttile;
+        plot(xmx0(I),ddydxx(I),DisplayName="Soft-Delta",LineWidth=2,Color="b") ;
+        xlim([-10/k 10/k])
+        xlabel("$x-x_0$",Interpreter="latex") ;
+        ylabel("$y$",Interpreter="latex") ;
+        lg2=legend(Location="best");
+        title("Soft delta")
+
+    end
+    % AL=axis;
+    % plot([-1/k,1/k],[AL(4)/2 AL(4)/2],"k-",DisplayName="-1/k to 1/k")
+
+    xlabel("$x-x_0$",Interpreter="latex") ;
+
+
     lg=legend(Location="best");
 
 end

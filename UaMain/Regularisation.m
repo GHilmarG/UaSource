@@ -13,13 +13,14 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % However, there are quite a few cases to consider...
 %
+% *Regularisation Terms* 
 %
 % The regularization terms can be thought of as the Priors in Bayesian context, provided they result in a valid covariance.
 %
-% Here the regularization terms are on the form:
+% Here the regularization terms are (mostly) on the form:
 %
 %
-% $$ I = \int_{\mathcal{A}} \left ( \frac{1}{2} ( g f^2 +  k_x (\partial_x  f)^2 +  k_y (\partial_y  f)^2 )  \right ) \, \mathrm{d}\mathcal{A}   $$
+% $$ R = \int_{\mathcal{A}} \left ( \frac{1}{2} ( g f^2 +  k_x (\partial_x  f)^2 +  k_y (\partial_y  f)^2 )  \right ) \, \mathrm{d}\mathcal{A}   $$
 %
 % where $f$ is the deviation of the model parameter $p$ from the prior value $\tilde{p}$, i.e.
 %
@@ -27,16 +28,16 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % Taking the variation of $I$ results in the FE-equations
 %
-% $$ \delta I =  \langle g f | \delta f \rangle  + \langle k_x \partial_x f | \partial_x \delta f \rangle +  \langle k_y \partial_y f_y|\partial_y \delta f \rangle $$
+% $$ \delta R =  \langle g f | \delta f \rangle  + \langle k_x \partial_x f | \partial_x \delta f \rangle +  \langle k_y \partial_y f_y|\partial_y \delta f \rangle $$
 %
 % If we set $g=\gamma_a $ and $k_x=k_y = \gamma_s$ where $\gamma_a$ and $\gamma_s$ are constants, the FE discretized system is
 %
 %
-% $$\delta I =  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x + \mathbf{D}_y ) ) \, \mathbf{f} $$
+% $$\delta R =  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x + \mathbf{D}_y ) ) \, \mathbf{f} $$
 %
 % and
 %
-% $$I =  \frac{1}{2} \mathbf{f}^T  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x +\mathbf{D}_y ) ) \mathbf{f} $$
+% $$R =  \frac{1}{2} \mathbf{f}^T  ( \gamma_a  \mathbf{M} + \gamma_s (\mathbf{D}_x +\mathbf{D}_y ) ) \mathbf{f} $$
 %
 % The discretized precision matrix $\mathbf{P}$ is therefore
 %
@@ -53,7 +54,6 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % The precision matrix above can be thought of as the inverse covariance of the noise free latent (i.e. unobserved) variable.
 %
-% If our prior
 %
 %
 % For each variable (A,B,C) the regularization term typically has the form
@@ -70,14 +70,21 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %
+% *Misfit Terms* 
 %
-% Note: Although here the focus is on what is generally considered to be regularization terms, these terms can also be thought of as
-% those where the inverted fields (e.g. B C A) explicitly enter the cost function.
 %
-% Here we, for example, also include the deviation of B from direct measurements. This could equally be referred to as a misfit term
-% as well. This B 'misfit' term has the form:
+% We might also have direct measurements of the latent fields (A, B, C). For example, when we have direct measurements of B.
+% This are really misfit terms, but I include those here because they are also explicit functions of the latent variables. 
+% 
+% B 'misfit' term has the form:
 %
-% $$ \int (B-B_{\mathrm{meas}}) \, C^{-1} \, (B-B_{\mathrm{meas}}) \, dA $$
+% $$ \int (B-B_{\mathrm{meas}}) \, \mathcal{E}^{-1} \, (B-B_{\mathrm{meas}}) \, dA $$
+%
+% where
+%
+% $\mathcal{E}$
+%
+% is the error covariance.
 %
 % By defining:
 %
@@ -87,95 +94,102 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % $$ \tilde{B} \, M \tilde{B} $$
 %
-% 
+% *Terms involving functions of the latent variables* 
+%
 % If we have a term involving a function of a variable, e.g.
 %
-% $$p=p(B)$$
+% $$f(B)$$
 %
 % with
 %
 % $$
-% I =\frac{1}{2} \int (p(B))^2 \, \mathrm{d}x
-% = \frac{1}{2} \int (p(B)_i \phi_i(x) ) \, ( p(B)_j \phi_j(x) ) \, dx
-% = \frac{1}{2} p_i(B) \left  (  \int \phi_i(x) ) \, \phi_j(x) \, dx \right ) \, p_j(B)
-% = \frac{1}{2} p_i(B) \, M_{ij} \, p_j(B)
+% R =\frac{1}{2} \int (f(B))^2 \, \mathrm{d}x
+% = \frac{1}{2} \int (f(B)_i \phi_i(x) ) \, ( f(B)_j \phi_j(x) ) \, dx
+% = \frac{1}{2} f_i(B) \left  (  \int \phi_i(x) ) \, \phi_j(x) \, dx \right ) \, f_j(B)
+% = \frac{1}{2} f_i(B) \, M_{ij} \, f_j(B)
 % $$
 %
 % where, for example, we could have 
 % 
-% $$ p(B)=\mathrm{SoftPlus}(B-s+h_{\mathrm{min}}) $$
+% $$ f(B)=\mathrm{SoftPlus}(B-s+h_{\mathrm{min}}) $$
 %
 %
-% $$ p(B) = \sum_{k=1}^n \, p_k(B_k) \, \phi_k(x) $$
+% $$ f(B) = \sum_{k=1}^n \, f_k(B_k) \, \phi_k(x) $$
 %
 % Denote the derivative with $g$ , i.e. 
 %
-% $$ g(B) := \partial p/\partial B = \sum_{i=1}^n \, \frac{\partial p_k}{\partial B} \, \phi_k(x) = \sum_{k=1}^n \, g_k \, \phi_k(x) $$
+% $$ g(B) := \partial f(B)/\partial B = \sum_{i=1}^n \, \frac{\partial f_k}{\partial B} \, \phi_k(x) = \sum_{k=1}^n \, g_k \, \phi_k(x) $$
 %
-% In the case where, at every node 
+% Note that in the case where, at every node 
 %
-% $$g_k=\frac{\partial p_k}{\partial B}=1 $$ 
+% $$g_k=\frac{\partial f_k}{\partial B}=1 $$ 
 %
-% for every $h$, and
-% we have
+% for every $g_k$, we have
 % 
 % $$ 
-% g(B) := \partial p/\partial B 
-% = \sum_{k=1}^n \, \frac{\partial p_k}{\partial B} \, \phi_k(x) 
+% g(B) := \partial f(B)/\partial B 
+% = \sum_{k=1}^n \, \frac{\partial f_k}{\partial B} \, \phi_k(x) 
 % = \sum_{k=1}^n \, g_k \, \phi_k(x) 
 % = \sum_{k=1}^n \, 1 \, \phi_k(x)  = 1 
 % $$
 %
-% due to the partition of unity property of the finite element form functions.
+% due to the partition of unity property of the finite element form functions
 %
-% $$ 
-% \partial p(B)/\partial B_q  = \sum_{k=1}^n \,  \frac{\partial p_k(B_k)}{\partial B_q} \, \phi_k(x) 
-% = \frac{\partial p_q(B_q)}{\partial B_q} \, \phi_q(x) 
-% $$ 
+% $$\sum_{k=1}^n \, \phi_k(x)  = 1 $$ 
 %
-% then
+%
+% In general
 %
 % $$
-% \delta_B I(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx
-% =\int p(B) \, g(B)\, \phi_q  \; dx
-% = \int \; p_i \phi_i(x) \; g_k \phi_k(x) \; \phi_q(x)  \; dx
+% \delta_B R(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (f(B(x)+\epsilon \phi_q(x)))^2 \, dx
+% =\int f(B) \, g(B)\, \phi_q  \; dx
+% = \int \; f_i \phi_i(x) \; g_k \phi_k(x) \; \phi_q(x)  \; dx
 % $$
 %
-% In the above expression, we have taken the derivatives of $p$ at the nodes and then interpolated those nodal values to the
-% integration points. We could alternative interpolate $B$ to the integration points, and then take the derivative of $p$
+% In the above expression, we have taken the derivatives of $f(B)$ at the nodes and then interpolated those nodal values to the
+% integration points. We could alternative interpolate $B$ to the integration points, and then take the derivative of $f(B)$
 % with respect of $B$ at the location of the Integration points.
 %
 % Doing so results in:
 %
 % $$
-% \delta_B I(B)  
-% = \int \; p_i \phi_i(x) \; \frac{\partial p(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
+% \delta_B R(B)  
+% = \int \; f_i \phi_i(x) \; \frac{\partial f(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
 % $$
 %
 % The term
 %
-% $$ \frac{\partial p(B_k \phi_k(x))}{\partial B}$$ 
+% $$ \frac{\partial f(B_k \phi_k(x))}{\partial B}$$ 
 %
 % is a scalar, i.e. this derivative at a given location $x$
 % 
-% Generally, when taking several derivatives and making use of the chain run, it is best to evaluation derivative and other
+% Generally, when taking several derivatives and making use of the chain rule, it is best to evaluation derivative and other
 % functions of the primary variables at the integration points.
 % 
 % The Hessian is then
 % 
 % $$
 % H = \delta_{BB} I(B)  
-% = \int \; \frac{\partial p(B_i \phi_i(x)) }{\partial B} \, \phi_r(x) \; \frac{\partial p(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
-% + \int \; p_i \phi_i(x)  \; \frac{\partial^2 p(B_k \phi_k(x))}{\partial B \, \partial B}  \; \phi_r(x) \, \phi_q(x)  \; dx
+% = \int \; \frac{\partial f(B_i \phi_i(x)) }{\partial B} \, \phi_r(x) \; \frac{\partial f(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
+% + \int \; f_i \phi_i(x)  \; \frac{\partial^2 f(B_k \phi_k(x))}{\partial B \, \partial B}  \; \phi_r(x) \, \phi_q(x)  \; dx
 % $$
 %
 % Note that for
 %
-% $$ p(B)= B = B_i \phi_i(x) $$
+% $$ f(B)= B = B_i \phi_i(x) $$
 %
 % in which case
 %
-% $$ p_i=B_I $$
+% $$ f_i=B_I $$
+%
+% and
+%
+% $$f^{\prime} =1 $$
+%
+% and
+%
+% $$f^{\prime\,\prime} =0  $$
+%
 %
 % we have
 %
@@ -185,16 +199,20 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % and we arrive at
 %
 % $$
-% \delta_B I(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx
-% = p_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial p}{\partial B_j}
-% = p_i M_{ij} \phi_j \, \delta_{ij} = B_i M_{ij} = M_{ji} B_j 
+% \delta_B R(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (f(B(x)+\epsilon \phi_q(x)))^2 \, dx
+% = f_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial f(B)}{\partial B_j}
+% = f_i M_{ij} \phi_j \, \delta_{ij} = B_i M_{ij} = M_{ji} B_j 
 % $$
 %
-% or simply
+% or we then have (as listed above)
 %
-% $$\delta_B I(B) = \mathbf{M} \mathbf{B} $$ 
+% $$ R= \frac{1}{2} \mathbf{B}^T \mathbf{M} \mathbf{B} $$
 %
+% $$\delta_B R(B) = \mathbf{M} \mathbf{B} $$ 
 %
+% and
+%
+% $$ H= \mathbf{M} $$
 %
 %
 %%
@@ -574,76 +592,26 @@ else  % Andrey Tikhonov regularization
         %
         % Thickness violation: F.s - F.B < hmin
         %%
-        %
-        %
-        %
-        %
-        %
-        %  or    (F.s-F.B) - hmin < 0
-        %        hmin-F.s + F.B > 0
-        %        p(B)=SoftPlus(F.B-F.s+hmin)
-        %
-        % $$
-        % J =\frac{1}{2} \int (p(B))^2 \, \mathrm{d}x
-        % = \frac{1}{2} \int (p(B)_i \phi_i(x) ) \, ( p(B)_j \phi_j(x) ) \, dx
-        % = \frac{1}{2} p_i(B) \left  (  \int \phi_i(x) ) \, \phi_j(x) \, dx \right ) \, p_j(B)
-        % = \frac{1}{2} p_i(B) \, M_{ij} \, p_j(B)
-        % $$
-        %
-        % $$ p(B)=\mathrm{SoftPlus}(B-s+h_{\mathrm{min}}) $$
-        %
-        %
-        % $$ p(B) = \sum_{k=1}^n \, p_k(B_k) \, \phi_k(x) $$
-        %
-        % $$ \partial p(B)/\partial p_q  =  \phi_q(x) $$
-        %
-        %
-        % $$
-        % \delta_B J(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx
-        % =\int p(B) \, \frac{\partial p}{\partial B} \, \phi_q  \; dx
-        % =  \int p_i \, \phi_i((x) \,  \phi_q(x) \frac{\partial p}{\partial B_j}  \; dx
-        % = p_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial p}{\partial B_j}
-        % $$
-        %
-        % Note that for
-        %
-        % $$ p(B)=B = b_i \phi_i(x) $$
-        %
-        % in which case
-        %
-        % $$ \frac{\partial p}{\partial B_j} = \delta_{ij} $
-        %
-        %
-        % we arrive at
-        %
-        % $$
-        % \delta_B J(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (p(B(x)+\epsilon \phi_q(x)))^2 \, dx
-        % = p_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial p}{\partial B_j}
-        % = p_i M_{ij} \phi_j \, \delta_{ij} = p_i M_{ij}
-        % $$
-        %
-        %  dJdB_q= \int p(B) dp/dB_q \phi_q
-        %
-        %  ddJdB_qB_r = \phi_r dp/dB_r dp/dB_q \phi_q + \int p(B) ddp/dB_qdB_r \phi_q
-        %             =  dpdB_r M_{rq} dpdB_q + \int p(B) ddp/dB_qdB_r \phi_q
-        %
-        % Here, ddp/dB_qdB_r = \delta(F.B-F.s-hmin)
-        %
-        %   The second term produces a delta function and I think it can safely be ignored.
-        %
-        % dJd
+    
         %
         %%
+        % Note: There is a mistake in here, the gradient calculation is not correct, presumably the Hessian as well
+        % apply penalty if B-(s-hmin)> 0
+        x=F.B - (F.s-20*CtrlVar.ThickMin);
+        x0=zeros(MUA.Nnodes,1); 
+        k=0.001; a=5;  % k is the softness and a the amplitude
+        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ; % consider dividing by area, as done for the other terms
 
-        x=-F.B ;
-        x0=-F.s;
-        k=1/100;
-        [Bbarr,dBarrdB,ddBbarrdBB] = SoftPlus(k,x,x0,Plot=false);
-        dBarrdB=-dBarrdB;
+        Bbarr=Bbarr/Area;
+        dBarrdB=dBarrdB/Area;
+        ddBbarrdBB=ddBbarrdBB/Area;
 
+     
         RB=RB+Bbarr;
         dRdB=dRdB+dBarrdB;
         ddRdBB=ddRdBB+ddBbarrdBB;
+
+        % 
 
         %%
 
