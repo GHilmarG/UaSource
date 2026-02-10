@@ -599,7 +599,7 @@ else  % Andrey Tikhonov regularization
         % apply penalty if B-(s-hmin)> 0
         x=F.B - (F.s-20*CtrlVar.ThickMin);
         x0=zeros(MUA.Nnodes,1); 
-        k=0.001; a=5;  % k is the softness and a the amplitude
+        k=0.1; a=5;  % k is the softness and a the amplitude
         [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ; % consider dividing by area, as done for the other terms
 
         Bbarr=Bbarr/Area;
