@@ -32,6 +32,11 @@ narginchk(7,7)
 
 tdiagnostic=tic;
 
+if isempty(RunInfo) 
+    RunInfo=UaRunInfo();
+end
+
+
 if ( CtrlVar.Parallel.uvAssembly.spmd.isOn || CtrlVar.Parallel.uvhAssembly.spmd.isOn  )
 
     poolobj = gcp('nocreate');
@@ -61,7 +66,7 @@ end
 
 
 
-[F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
+% [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow); % rhubarb
 
 
 

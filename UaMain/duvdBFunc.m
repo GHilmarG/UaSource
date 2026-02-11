@@ -1,20 +1,20 @@
 
 
-function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
+function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,BCs,Nodes)
 
-%% Calculates the sensitivity matrix duv/dA
+%% Calculates the sensitivity matrix duv/dB
 %
 % If $n$ is the number of nodes, the matrix returned is $2 n \times n$ 
 %
-% The $k$-column contains the response in u and v to a perturbation in $A_k$
+% The $k$-column contains the response in u and v to a perturbation in $B_k$
 %
 %
 % $$\left[\begin{array}{cccc} 
-% \partial u_1 /\partial A_1  & \partial u_1 /\partial A_2  & \ldots & \partial u_1 /\partial A_n  \\  
-% \partial u_2 /\partial A_1  & \partial u_2 /\partial A_2  & \ldots & \partial u_2 /\partial A_n  \\  
+% \partial u_1 /\partial B_1  & \partial u_1 /\partial B_2  & \ldots & \partial u_1 /\partial B_n  \\  
+% \partial u_2 /\partial B_1  & \partial u_2 /\partial B_2  & \ldots & \partial u_2 /\partial B_n  \\  
 %              .              &              .              &  .  &    .                          \\  
-% \partial v_1 /\partial A_1  & \partial v_1 /\partial A_2 & \ldots & \partial v_1 /\partial A_n  \\
-% \partial v_2 /\partial A_1  & \partial v_2 /\partial A_2 & \ldots & \partial v_2 /\partial A_n  \\
+% \partial v_1 /\partial B_1  & \partial v_1 /\partial B_2 & \ldots & \partial v_1 /\partial B_n  \\
+% \partial v_2 /\partial B_1  & \partial v_2 /\partial B_2 & \ldots & \partial v_2 /\partial B_n  \\
 %              .              &              .              &  .  &    .                          \\  
 % \end{array}\right] $$
 %
@@ -44,7 +44,7 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 % and the F provided as an input to this function must be this solution to the forward problem.
 %
-% see also: duvdAFunc.m, duvdBFunc.m, duvdCFunc.m, dFuvdA.m, dFuvdB.m, dFuvdC.m, TestSensitivityMatrixCalculations.m
+% see also: duvdCFunc.m, dFuvdA.m, dFuvdC.m, dFuvdB.m , TestSensitivityMatrixCalculations.m
 % 
 %%
 
@@ -53,7 +53,9 @@ if nargin<5 || isempty(Nodes)
 end
 
 
-dFdA=dFuvdA(CtrlVar,MUA,F);
+dFdB=dFuvdB(CtrlVar,MUA,F);
+
+
 
 CtrlVar.uvAssembly.ZeroFields=false;
 CtrlVar.uvMatrixAssembly.Ronly=false;
@@ -79,11 +81,11 @@ else
 end
 
 if ~isempty(L)
-    frhs=-dFdA(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
-    %frhs=-dFdA(:,Node)-L'*l.ubvb; % if only calculate for one given node
+    frhs=-dFdB(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdB matrix
+    %frhs=-dFdB(:,Node)-L'*l.ubvb; % if only calculate for one given node
     grhs=cuv-L*[F.ub;F.vb] ;
 else
-    frhs=-dFdA ;
+    frhs=-dFdB ;
     grhs=[];
 end
 
@@ -93,8 +95,8 @@ CtrlVar.TestKApeSolve=false;
 sol=solveKApe(dFduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
 
 
-dudA=sol(1:MUA.Nnodes,:);
-dvdA=sol(MUA.Nnodes+1:end,:);
+dudB=sol(1:MUA.Nnodes,:);
+dvdB=sol(MUA.Nnodes+1:end,:);
 
 
 end

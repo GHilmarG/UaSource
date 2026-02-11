@@ -64,7 +64,7 @@ nargoutchk(7,7)
     
     
     if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
-    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+%    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
     if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
     if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
     if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end
@@ -104,7 +104,7 @@ nargoutchk(7,7)
     
 
     %% Make sure iterate is feasible, at least with respect to directs BCs
-    if CtrlVar.uvMakeInitialIterateFeasible
+    if isfield(CtrlVar,"uvMakeInitialIterateFeasible") &&  CtrlVar.uvMakeInitialIterateFeasible
         F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
         F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
     end

@@ -14,9 +14,18 @@ if nargin < 8
     G0=nan;
 end
 
+if isstruct(G0)
+    if isfield(G0,"node")
+        G0=G0.node;
+    end
+end
+
+
 %% 
 %
 % *Calculates b and h from s, B, S and rho and rhow.*
+%
+% $$b=b(s,S,B,\rho,\rho_o)$$
 %
 %
 % Sets 
@@ -25,11 +34,25 @@ end
 %
 % over grounded areas, and 
 %
-% $b=(\rho s-\rho_w S)/(\rho-\rho_w)$  
+% $$b=\frac{\rho s-\rho_w S}{\rho-\rho_w}$$  
 %
-% over floating areas. 
+% over floating areas, and then  
+% 
+% $$h=s-b$$.
 %
-% On return $s=b+h$.
+% $b$ and $h$ are calculated as:
+%
+% $$ b=\frac{\mathcal{G} B + (1-\mathcal{G}) ( S - \rho s/\rho_o ) }{1-(1-\mathcal{G}) \rho/\rho_o} $$ 
+%
+% $$h=s-b$$
+%
+% where
+%
+% $$\mathcal{G}= \mathcal{H}(h-h_f) $$
+%
+% and where
+%
+% $$ h_f=\frac{\rho_o}{\rho}  (S-B) $$
 %
 % Note: This will not conserve thickness.
 %
@@ -39,7 +62,10 @@ end
 % Solved using the NR method. Usually only one single NR iteration is
 % required.
 %
+% G0 can be either an initial guess for the nodal grounded/floating mask itself, e.g. GF.node or F.GF.node. But it can also be GF where GF.node is
+% the grounded/floating mask.
 %
+% G0 is just an initial guess, and simply omitting it as an input is perfectly fine.
 %
 % MUA         : also optional and not currently used.
 %

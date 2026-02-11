@@ -387,7 +387,7 @@ if CtrlVar.Inverse.CalcGradI
     end
     
    
-    if contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
+    if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
 
         uErr2=spdiags(Meas.usCov);
         d2Iduu=MUA.M./uErr2/Area;  % partial derivatives 
