@@ -4,7 +4,7 @@
 
 
 
-function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD)
+function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax)
 
 %   PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,gammaSD,JSD);
 
@@ -16,7 +16,7 @@ if isnan(gammaNewton)
     gammaNewton=1;
 end
 
-gammaUp=max([1.1*gammaNewton,1]);
+gammaUp=max([1.1*gammaNewton,gammaNewtonMax]);
 gammaVector=linspace(-0.1,gammaUp,nPoints);
 
 gammaVector=unique([gammaVector 0 gammaNewton]) ; 
@@ -55,6 +55,7 @@ else
     gammaUp=1.1*gammaSD;
 end
 
+gammaUp=max(gammaUp,gammaSDmax) ; 
 
 gammaVector=linspace(0,gammaUp,nPoints);
 

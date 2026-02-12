@@ -52,24 +52,24 @@ if isA
     end
 end
 
- if isb
-     error('fdsa')
-%     F.h=F.s-p(Ib1:Ib2) ;
-%     F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
-%     
-%     
-%     %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
-%     %  dbfloat/dp= F.rho./F.rhow
-%     %
-%     % F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
-%     
-%     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
- end
+if isb
+    error('fdsa')
+    %     F.h=F.s-p(Ib1:Ib2) ;
+    %     F.B=p.*F.GF.node+(1-F.GF.node).*F.B;
+    %
+    %
+    %     %  bfloat=F.S - F.rho.*(F.s-p) /F.rhow;
+    %     %  dbfloat/dp= F.rho./F.rhow
+    %     %
+    %     % F.h=F.GF.node.*(F.s-F.B)+(1-F.GF.node).*F.hInit ;
+    %
+    %     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,[],F.h,F.S,F.B,F.rho,F.rhow);
+end
 
 if isB
-    
+
     % tested and works express geometrical variables in terms of p
-    
+
     % here the control variable is B so I need to express all other variables in
     % terms of B this includes changing the thickness.
     %
@@ -78,10 +78,10 @@ if isB
     % the grounded areas, again use s=Meas.s, and set b=B. However, this raises the
     % possibility that:
     %
-    %   1) As b is modified over the floating areas we get b<B in places. 
-    % 
+    %   1) As b is modified over the floating areas we get b<B in places.
+    %
     %   2) As B is modified over the grounding areas, some areas go afloat.
-    % 
+    %
     % This is a difficult one, but I assume Meas.s is know quite accurately so
     % whatever is done, keep s=Meas.s. Also do not change B as it is given by p.
     %
@@ -104,46 +104,49 @@ if isB
     %   due to regularisation, and therefore this step is required. Therefore, b may
     %   be shifted upwards over the areas previously afloat and this will cause new
     %   areas to become grounded.
-    %      
+    %
     %   3) set h=s-b
     %
     %   4) to ensure consistency with floating condition, recalculate GF from S and
     %   B for the new h.  Then recalculate b from Meas.s where afloat according to
     %   the new GF, and then finally set again h=s-b.
-    % 
+    %
     %   If B  is lowered over (previously) grounded areas, and therefore b as well, causing
     %   grounded areas to go afloat based on the new increased thickness h=Meas.s-b,
     %   then the recalculation of b in step 4 will only raise b, and hence not give
-    %   rise to b<B situations. 
+    %   rise to b<B situations.
     %
     %   If B is lowered over previously floating areas, GF is not affected and there
     %   are no changes to b in step 4.
     %
-    %   If B is shifted upwards over previously grounded areas, then GF 
-    %   also does not change and there is no change in b in step 4. 
+    %   If B is shifted upwards over previously grounded areas, then GF
+    %   also does not change and there is no change in b in step 4.
     %
     %   If B is shifted upwards over previous floating areas, causing possible
     %   grounding, then the recalculation of GF in step 4 ensures that b is only
     %   recalculated over areas previously afloat.
     %
-    
-    
+
+
     F.B=p(IB1:IB2) ;
-    
+
     %F.B=F.GF.node.*p(IB1:IB2)+(1-F.GF.node).*Priors.B ;
     % if CtrlVar.Inverse.OnlyModifyBedUpstreamOfGL
     %    [F.GF,GLgeo,GLnodes,GLele]=IceSheetIceShelves(CtrlVar,MUA,F.GF,GLgeo,GLnodes,GLele) ;
     %    F.B(~F.GF.NodesUpstreamOfGroundingLines)=Priors.B(~F.GF.NodesUpstreamOfGroundingLines) ;
     % end
-    
+
     F.s=Meas.s ; % note that since I'm not inverting for s, I must keep s fixed,
     % therefore calculate F.b over the floating areas from F.s using the floating relationship.
-    
+
+    % Possibly better to just do this within the assembly loop
     [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow); %
-    
- 
-    
-        
+
+    % This should not really be needed because I define this right at the start of the inversion and this never changes
+    F.as=Meas.as ;
+    F.ab=Meas.ab ;
+
+
 end
 
 if isC
@@ -153,7 +156,7 @@ if isC
     else
         F.C=p(IC1:IC2);
     end
-    
+
 end
 
 

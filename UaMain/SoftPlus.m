@@ -71,19 +71,15 @@ if nargout > 1
     if nargout ==3
         SoftDiracDelta = DiracDelta(k,x,x0);
         ddydxx=SoftDiracDelta;
-        % ddydxx=sparse(1:numel(SoftDiracDelta),1:numel(SoftDiracDelta),SoftDiracDelta,numel(SoftDiracDelta),numel(SoftDiracDelta));
     end
-
-
 
 end
 
 
 if options.Plot
 
-
     xmx0=x-x0;
-    [xSorted,I]=sort(xmx0);
+    [~,I]=sort(xmx0);
     %ddydxx=diag(ddydxx);
 
     FindOrCreateFigure("SoftPlus")
@@ -116,17 +112,17 @@ if options.Plot
         xlim([-10/k 10/k])
         xlabel("$x-x_0$",Interpreter="latex") ;
         ylabel("$y$",Interpreter="latex") ;
-        lg2=legend(Location="best");
+        lg3=legend(Location="best");
         title("Soft delta")
 
     end
     % AL=axis;
     % plot([-1/k,1/k],[AL(4)/2 AL(4)/2],"k-",DisplayName="-1/k to 1/k")
 
-    xlabel("$x-x_0$",Interpreter="latex") ;
+  
 
 
-    lg=legend(Location="best");
+ 
 
 end
 

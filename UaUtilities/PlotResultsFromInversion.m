@@ -847,6 +847,12 @@ else
         end
 
         if PM=="I"
+
+            if isempty(MUA.M)
+                MUA.M=MassMatrix2D1dof(MUA);
+            end
+
+
             dJdC=MUA.M\InvFinalValues.dJdC;
             figMdJdC=FindOrCreateFigure("M\dJdC "+PM); clf(figMdJdC)
             UaPlots(CtrlVar,MUA,F,dJdC,CreateNewFigure=false);
@@ -883,7 +889,7 @@ else
         end
 
         if PM=="I"
-            if isempty(MUA.M())
+            if isempty(MUA.M)
                MUA.M=MassMatrix2D1dof(MUA);
             end
             dJdB=MUA.M\InvFinalValues.dJdB;

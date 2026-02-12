@@ -35,7 +35,7 @@ if    contains(CtrlVar.Inverse.InvertForField,'B')
     
     if isempty(InvStartValues.B)
         
-        fprintf('InvStartValues.B can not be left empty when inverting for b or B.\n')
+        fprintf('InvStartValues.B can not be left empty when inverting for B.\n')
         error('InvStartValues2F:InvStartValues.b')
         
     end
@@ -50,6 +50,9 @@ if    contains(CtrlVar.Inverse.InvertForField,'B')
     fprintf('        The lower surface (b) and the grounding-line will initially be calculated using Meas.s.\n') 
     F.s=Meas.s ;
     
+    F.as=Meas.as ;
+    F.ab=Meas.ab ;
+
     % First calculate b from s, B and S given rho and rhow.
     G0 = F.GF.node;
     [F.b,F.h,F.GF]=Calc_bh_From_sBS(CtrlVar,MUA,F.s,F.B,F.S,F.rho,F.rhow,G0); 

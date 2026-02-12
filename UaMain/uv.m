@@ -200,8 +200,8 @@ F.solution="-uv-" ;
 
 if ~RunInfo.Forward.uvConverged
 
-    fprintf("uv solve did not converge. \n  Saving variables in uvDump.mat \n") ;
-    save("uvDump.mat","UserVar","RunInfo","CtrlVar","MUA","BCs","F","l")
+    % fprintf("uv solve did not converge. \n  Saving variables in uvDump.mat \n") ;
+    % save("uvDump.mat","UserVar","RunInfo","CtrlVar","MUA","BCs","F","l")
     F.solution="-no solution-" ;
 
 end

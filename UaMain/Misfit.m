@@ -140,17 +140,15 @@ end
 %
 % There is an interesting added aspect to this, because the mass-conservation involves both v and B, i.e. both the output of
 % the forward model (v), and the variable which we are inverting for (B), the 'output' of the inverse model. For this reason,
-% we have here a contribution from the misfit term (I) to the quantity <\partial_B J, \phi > which otherwise would only arise from
-% the regularization term (R).  Therefore, we must here calculate the derivative of the cost function term with respect to
-% both u and B. This addition is only needed when inverting for B while also including the hdot cost function term.
+% we have here a contribution from the misfit term (I) to the quantity <\partial_B J, \phi > which otherwise would only arise
+% from the regularization term (R).  Therefore, we must here calculate the derivative of the cost function term with respect
+% to both u and B. This addition is only needed when inverting for B while also including the hdot cost function term.
 %
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
 
     [Ihdot,duIhdot,dvIhdot,dhIhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas);
 
-
 end
-
 
 I=Iuv+Ihdot ;  %
 duvIduv=[duIdu(:)+duIhdot(:);dvIdv(:)+dvIhdot(:)];
@@ -168,9 +166,7 @@ MisfitOuts.dIduv=duvIduv;
 MisfitOuts.uAdjoint=[];
 MisfitOuts.vAdjoint=[];
 
-
-
-%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and C or B).
+%% Calculate the gradient of the misfit function I with respect to the control variables (model parameters) p (here A and B or C).
 %
 % This is a bit tricky because I=I(u(p))
 %
@@ -232,9 +228,6 @@ if CtrlVar.Inverse.CalcGradI
             % [  Luv      0] [lambdauv]     [ Luvrhs  ]
             % All matrices are Nnodes x Nnodes, apart from:
             % Luv is #uv constraints x 2 Nnodes
-
-
-
 
             MLC_Adjoint=BCs2MLC(CtrlVar,MUA,BCsAdjoint);
             LAdjoint=MLC_Adjoint.ubvbL;
@@ -385,30 +378,22 @@ if CtrlVar.Inverse.CalcGradI
     if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
         error(' field no longer used ')
     end
-    
-   
+
+
     if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
 
         uErr2=spdiags(Meas.usCov);
-        d2Iduu=MUA.M./uErr2/Area;  % partial derivatives 
-         
+        d2Iduu=MUA.M./uErr2/Area;  % partial derivatives
+
         vErr2=spdiags(Meas.usCov);
         d2Idvv=MUA.M./vErr2/Area;
-        
-        dhdtErr2=spdiags(Meas.dhdtCov) ;    
+
+        dhdtErr2=spdiags(Meas.dhdtCov) ;
         d2Idhdothdot=MUA.M./dhdtErr2/Area;
-      
-     
-     
+
         ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,uAdjoint,vAdjoint);
 
-
-
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-
-
-      
-
 
         if contains(CtrlVar.Inverse.InvertForField,"C")
 
@@ -452,54 +437,59 @@ if CtrlVar.Inverse.CalcGradI
         end
     end
 
-    switch CtrlVar.Inverse.InvertForField
+    %% Commented out and changed on 22 Feb 2026
+    % switch CtrlVar.Inverse.InvertForField
+    % 
+    %     case "A"
+    %         dIdp=DAI;
+    %         ddIdpp=ddIdAA ;
+    %     case "b"
+    %         error("fdsa")
+    %     case "B"
+    %         dIdp=DBI;
+    %     case "C"
+    %         dIdp=DCI;
+    %         ddIdpp=ddIdCC ;
+    %     case "AC"
+    %         dIdp=[DAI;DCI];
+    % 
+    %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian") &&  ~contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
+    % 
+    %             % N=MUA.Nnodes;
+    %             % ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
+    %             % ddIdpp(1:N,1:N) = ddIdAA;
+    %             % ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
+    % 
+    %             ddIdpp=blkdiag(ddIdAA,ddIdCC);  % 2026 Feb, I think this is the same
+    %         end
+    % 
+    %     case "BC"
+    % 
+    %         % DCI=DCI*0;
+    %         dIdp=[DBI;DCI];
+    % 
+    %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+    %             N=MUA.Nnodes;
+    %             ddIdBB=speye(N,N);  % I have not thought about a good Hessian estimate here, so just enter the identity matrix.
+    %             ddIdBB=MUA.M;           % I have not thought about a good Hessian estimate here, so just enter the mass matrix
+    % 
+    % 
+    % 
+    %             ddIdBB=speye(N,N);
+    %             ddIdCC=speye(N,N);
+    % 
+    %             ddIdpp = spalloc(N+N,N+N,nnz(ddIdBB)+nnz(ddIdCC));
+    %             ddIdpp(1:N,1:N) = ddIdBB;
+    %             ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
+    % 
+    %         end
+    % 
+    %     otherwise
+    % 
+    %         error("sdfsa")
+    % 
+    % end
 
-        case "A"
-            dIdp=DAI;
-            ddIdpp=ddIdAA ;
-        case "b"
-            error("fdsa")
-        case "B"
-            dIdp=DBI;
-        case "C"
-            dIdp=DCI;
-            ddIdpp=ddIdCC ;
-        case "AC"
-            dIdp=[DAI;DCI];
-
-            if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian") &&  ~contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
-                N=MUA.Nnodes;
-                ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
-                ddIdpp(1:N,1:N) = ddIdAA;
-                ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-            end
-
-        case "BC"
-
-            % DCI=DCI*0;
-            dIdp=[DBI;DCI];
-
-            if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-                N=MUA.Nnodes;
-                ddIdBB=speye(N,N);  % I have not thought about a good Hessian estimate here, so just enter the identity matrix.
-                ddIdBB=MUA.M;           % I have not thought about a good Hessian estimate here, so just enter the mass matrix
-
-
-
-                ddIdBB=speye(N,N);
-                ddIdCC=speye(N,N);
-
-                ddIdpp = spalloc(N+N,N+N,nnz(ddIdBB)+nnz(ddIdCC));
-                ddIdpp(1:N,1:N) = ddIdBB;
-                ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-
-            end
-
-        otherwise
-
-            error("sdfsa")
-
-    end
 
 
 else
@@ -508,10 +498,22 @@ else
 
 end
 
+dIdp=[DAI;DBI;DCI] ;  % 2026 Feb
 
-if ~isempty(ddIdppDA)  % the Hessian was calculated using the direct-adjoint approach
+
+if contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
+
     ddIdpp=ddIdppDA;
+
+elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+
+    ddIdpp=blkdiag(ddIdAA,ddIdBB,ddIdCC);
+
 end
+
+
+
+
 
 I=CtrlVar.Inverse.DataMisfit.Multiplier*I;
 

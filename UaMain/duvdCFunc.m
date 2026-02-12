@@ -80,7 +80,7 @@ if ~isempty(L)
     frhs=-dFdC-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
     grhs=cuv-L*[F.ub;F.vb] ;
 else
-    frhs=-dFdA ;
+    frhs=-dFdC ;
     grhs=[];
 end
 

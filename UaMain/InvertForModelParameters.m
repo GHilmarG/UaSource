@@ -114,8 +114,8 @@ F.GF=IceSheetIceShelves(CtrlVar,MUA,F.GF) ;
 
 % Make sure initial point is feasible
 F.AGlen=kk_proj(F.AGlen,F.AGlenmax,F.AGlenmin) ;
-F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 F.B=kk_proj(F.B,F.Bmax,F.Bmin) ;
+F.C=kk_proj(F.C,F.Cmax,F.Cmin) ;
 
 % The parameter that we are inverting for are contained in the variable p. p0 is the starting value.
 [p0,plb,pub]=F2p(CtrlVar,MUA,F); 
@@ -138,7 +138,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % handle to the Hessian.
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
-Hfunc=@(p,lambda) HessianAC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianAC is just a wrapper around JGH and returns the same

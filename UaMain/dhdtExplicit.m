@@ -1,5 +1,5 @@
 
-function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) 
+function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
 %
@@ -47,45 +47,45 @@ end
 
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
-    
-    
+
+
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
+
     aint=anod*fun;
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    
+
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
     dudx=zeros(MUA.Nele,1);
     dvdy=zeros(MUA.Nele,1);
     % derivatives at one integration point for all elements
     for Inod=1:MUA.nod
-        
+
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-        
+
         dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-        
+
     end
-    
+
     detJw=detJ*MUA.weights(Iint);
-    
+
     for Inod=1:MUA.nod
-        
+
 
         tx=(dhdx.*uint+hint.*dudx);
         ty=(dhdy.*vint+hint.*dvdy);
-        
+
         term=(aint-tx-ty).*fun(Inod).*detJw;
 
         b(:,Inod)=b(:,Inod)+term;
-        
-        
+
+
     end
 end
 

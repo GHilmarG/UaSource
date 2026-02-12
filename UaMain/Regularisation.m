@@ -456,23 +456,17 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
 
 else  % Andrey Tikhonov regularization
 
-
-
     if isA
-
-
 
         NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
         %RAGlen=dpA'*NA*dpA/2;
         dRdAGlen=(NA*dpA).*dAfactor;
-
 
         RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
         RAa= dpA'    *M    *dpA   /(2*Area);
         RAGlen=gsA.^2*RAs+gaA.^2*RAa;
 
         RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
-
 
         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
@@ -494,8 +488,6 @@ else  % Andrey Tikhonov regularization
     end
 
     if isC
-
-
 
         % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
         % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
@@ -571,7 +563,6 @@ else  % Andrey Tikhonov regularization
             % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
 
-
             Berr=sqrt(spdiags(Meas.BCov));
 
             Bres=(F.B-Meas.B)./Berr;
@@ -591,16 +582,12 @@ else  % Andrey Tikhonov regularization
         % Idea:  Add a quadratic penalty in terms of min thickness violation.
         %
         % Thickness violation: F.s - F.B < hmin
-        %%
+ 
     
-        %
-        %%
-        % Note: There is a mistake in here, the gradient calculation is not correct, presumably the Hessian as well
-        % apply penalty if B-(s-hmin)> 0
         x=F.B - (F.s-20*CtrlVar.ThickMin);
         x0=zeros(MUA.Nnodes,1); 
         k=0.1; a=5;  % k is the softness and a the amplitude
-        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ; % consider dividing by area, as done for the other terms
+        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ; 
 
         Bbarr=Bbarr/Area;
         dBarrdB=dBarrdB/Area;
@@ -630,16 +617,18 @@ else  % Andrey Tikhonov regularization
 
     R=RAGlen+RB+RC;
     dRdp=[dRdAGlen;dRdB;dRdC];
+    % 
+    % tic
+    % [Am,An] = size(ddRdAA);
+    % [Bm,Bn] = size(ddRdBB);
+    % [Cm,Cn] = size(ddRdCC);
+    % ddRdpp = spalloc(Am+Bm+Cm,An+Bn+Cn,nnz(ddRdAA)+nnz(ddRdCC)+nnz(ddRdBB));
+    % ddRdpp(1:Am,1:An) = ddRdAA;
+    % ddRdpp(Am+1:Am+Bm,An+1:An+Bn) = ddRdBB;
+    % ddRdpp(Am+Bm+1:Am+Bm+Cm,An+Bn+1:An+Bn+Cn) = ddRdCC;
+    % toc
 
-
-    [Am,An] = size(ddRdAA);
-    [Bm,Bn] = size(ddRdBB);
-    [Cm,Cn] = size(ddRdCC);
-    ddRdpp = spalloc(Am+Bm+Cm,An+Bn+Cn,nnz(ddRdAA)+nnz(ddRdCC)+nnz(ddRdBB));
-    ddRdpp(1:Am,1:An) = ddRdAA;
-    ddRdpp(Am+1:Am+Bm,An+1:An+Bn) = ddRdBB;
-    ddRdpp(Am+Bm+1:Am+Bm+Cm,An+Bn+1:An+Bn+Cn) = ddRdCC;
-
+    ddRdpp=blkdiag(ddRdAA,ddRdBB,ddRdCC) ; % much faster
 
 end
 

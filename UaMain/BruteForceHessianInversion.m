@@ -26,7 +26,7 @@ nPar=numel(p);
 
 iRange=1:nPar; % all of them
 
-CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+
 
 
 SubOptimalityTolerance=0;
@@ -62,6 +62,7 @@ while true
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
                      %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
+  
 
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
@@ -73,9 +74,29 @@ while true
         error("BruteForceHessianInversion:pIsNaN","NaN in p")
     end
 
+    % Since the Hessian may have been modified, it is not clear what a sensible first step could be.
+    %
+    % Also, the Hessian is not exact.
+    %
+    % Furthermore, what is the largest gamma I can use without violating the limits?
+    %
+    gammaVector=-(pub-p)./dp;
+    gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
+    gammaNewtonMax=min(gammaVector)  ; % this is the smallest positive gamma that does not violate
 
-    % Since the Hessian may have been modified, it is not clear what a sensible first step could be
-    gamma=1;
+    if gammaNewtonMax< 1
+        gamma=gammaNewtonMax;
+        CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+    else
+        gamma=1;
+    end
+
+
+    % good summary at
+    % https://uk.mathworks.com/help/releases/R2025b/optim/ug/constrained-nonlinear-optimization-algorithms.html#briahj8
+
+
+    % gamma=1;
     J1=func(p+gamma*dp);
 
     while isnan(J1)
@@ -115,10 +136,28 @@ while true
     end
 
     g0SD=EYE\g0; % pre-multiplying, note that I must use the inverse...!
+
+
     Func=@(gamma) func(p-gamma*g0SD); % switching to the direction of the (negative) gradient
+
     slope0=-g0'*g0SD;
     gamma=-0.1*J0/slope0;
+
+    % What is the largest gamma I can use without violating the limits?
+    gammaVector=-(pub-p)./g0SD;
+    gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
+    gammaSDMax=min(gammaVector)      ;  % this is th
+
+    if gamma > gammaSDMax
+        gamma=gammaSDMax;
+    end
+
     J1=Func(gamma);
+    
+    while isnan(J1)
+        gamma=gamma/10;
+        J1=func(p+gamma*g0SD);
+    end
 
     CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/100;
     [gammaSD,JSD,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
@@ -142,7 +181,7 @@ while true
 
 
 
-    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD);
+    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDMax);
 
     dJ=J0-J;
 

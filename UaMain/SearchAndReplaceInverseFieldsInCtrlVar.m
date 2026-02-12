@@ -60,7 +60,7 @@ switch lower(InvertString)
         
         InvertString="-AGlen-logC-";
         
-    case {"-b-logc-"}
+    case {"-b-logc-","-logc-b-"}
 
         InvertString="-B-logC-";
 
