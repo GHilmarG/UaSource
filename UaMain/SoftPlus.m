@@ -8,6 +8,9 @@ function [y,dydx,ddydxx] = SoftPlus(k,x,x0,options)
 %
 % Returns a "soft" approximation to the positive part of x-x0.
 %
+% The smoothed part is approximately from -1/k to 1/k
+%
+%
 % y=SoftPlus:
 %
 % $$ y(x) =\mathrm{SoftPlus}(x) = \frac{1}{2k} \, \ln \left ( 1+e^{2k(x-x_0)} \right ) $$

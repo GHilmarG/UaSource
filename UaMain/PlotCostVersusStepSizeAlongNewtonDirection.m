@@ -16,10 +16,10 @@ if isnan(gammaNewton)
     gammaNewton=1;
 end
 
-gammaUp=max([1.1*gammaNewton,gammaNewtonMax]);
+gammaUp=min([1.1*gammaNewton,gammaNewtonMax]);
 gammaVector=linspace(-0.1,gammaUp,nPoints);
 
-gammaVector=unique([gammaVector 0 gammaNewton]) ; 
+gammaVector=unique([gammaVector 0 gammaNewton]) ;
 nPoints=numel(gammaVector);
 JVector=nan(nPoints,1);
 
@@ -46,7 +46,7 @@ title("Cost function ($J$) along Newton (dp) direction",Interpreter="latex")
 %% gradient direction
 nPoints=13;
 
-slope0=-g0'*g0SD;
+slope0=g0'*g0SD;
 gammaUp=-0.1*J0/slope0;
 
 if isnan(gammaSD)
@@ -55,18 +55,18 @@ else
     gammaUp=1.1*gammaSD;
 end
 
-gammaUp=max(gammaUp,gammaSDmax) ; 
+gammaUp=min(gammaUp,gammaSDmax) ;
 
 gammaVector=linspace(0,gammaUp,nPoints);
 
-gammaVector=unique([gammaVector 0 gammaSD]) ; 
+gammaVector=unique([gammaVector 0 gammaSD]) ;
 nPoints=numel(gammaVector);
 JVector=nan(nPoints,1);
 
 
 parfor I=1:nPoints
 
-    p=p0+gammaVector(I)*(-g0SD);
+    p=p0+gammaVector(I)*g0SD;
     JVector(I)=func(p);
 
 end
@@ -100,12 +100,12 @@ end
 
 function theta = angleBetweenVector(x,y)
 
-    if all(x==0) || all(y==0)
-        theta = NaN;
-        return
-    end
-    a = x*norm(y) - y*norm(x);
-    b = x*norm(y) + y*norm(x);
-    theta = 2 * atan2d( norm(a),norm(b) ); % degrees
-    
+if all(x==0) || all(y==0)
+    theta = NaN;
+    return
+end
+a = x*norm(y) - y*norm(x);
+b = x*norm(y) + y*norm(x);
+theta = 2 * atan2d( norm(a),norm(b) ); % degrees
+
 end

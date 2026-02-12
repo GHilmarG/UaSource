@@ -13,7 +13,7 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % However, there are quite a few cases to consider...
 %
-% *Regularisation Terms* 
+% *Regularisation Terms*
 %
 % The regularization terms can be thought of as the Priors in Bayesian context, provided they result in a valid covariance.
 %
@@ -70,12 +70,12 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % where dp = p-pPrior, and M is the mass matrix and Dxx and Dyy the stiffness matrices.
 %
-% *Misfit Terms* 
+% *Misfit Terms*
 %
 %
 % We might also have direct measurements of the latent fields (A, B, C). For example, when we have direct measurements of B.
-% This are really misfit terms, but I include those here because they are also explicit functions of the latent variables. 
-% 
+% This are really misfit terms, but I include those here because they are also explicit functions of the latent variables.
+%
 % B 'misfit' term has the form:
 %
 % $$ \int (B-B_{\mathrm{meas}}) \, \mathcal{E}^{-1} \, (B-B_{\mathrm{meas}}) \, dA $$
@@ -94,7 +94,7 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 %
 % $$ \tilde{B} \, M \tilde{B} $$
 %
-% *Terms involving functions of the latent variables* 
+% *Terms involving functions of the latent variables*
 %
 % If we have a term involving a function of a variable, e.g.
 %
@@ -109,33 +109,33 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % = \frac{1}{2} f_i(B) \, M_{ij} \, f_j(B)
 % $$
 %
-% where, for example, we could have 
-% 
+% where, for example, we could have
+%
 % $$ f(B)=\mathrm{SoftPlus}(B-s+h_{\mathrm{min}}) $$
 %
 %
 % $$ f(B) = \sum_{k=1}^n \, f_k(B_k) \, \phi_k(x) $$
 %
-% Denote the derivative with $g$ , i.e. 
+% Denote the derivative with $g$ , i.e.
 %
 % $$ g(B) := \partial f(B)/\partial B = \sum_{i=1}^n \, \frac{\partial f_k}{\partial B} \, \phi_k(x) = \sum_{k=1}^n \, g_k \, \phi_k(x) $$
 %
-% Note that in the case where, at every node 
+% Note that in the case where, at every node
 %
-% $$g_k=\frac{\partial f_k}{\partial B}=1 $$ 
+% $$g_k=\frac{\partial f_k}{\partial B}=1 $$
 %
 % for every $g_k$, we have
-% 
-% $$ 
-% g(B) := \partial f(B)/\partial B 
-% = \sum_{k=1}^n \, \frac{\partial f_k}{\partial B} \, \phi_k(x) 
-% = \sum_{k=1}^n \, g_k \, \phi_k(x) 
-% = \sum_{k=1}^n \, 1 \, \phi_k(x)  = 1 
+%
+% $$
+% g(B) := \partial f(B)/\partial B
+% = \sum_{k=1}^n \, \frac{\partial f_k}{\partial B} \, \phi_k(x)
+% = \sum_{k=1}^n \, g_k \, \phi_k(x)
+% = \sum_{k=1}^n \, 1 \, \phi_k(x)  = 1
 % $$
 %
 % due to the partition of unity property of the finite element form functions
 %
-% $$\sum_{k=1}^n \, \phi_k(x)  = 1 $$ 
+% $$\sum_{k=1}^n \, \phi_k(x)  = 1 $$
 %
 %
 % In general
@@ -153,23 +153,23 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % Doing so results in:
 %
 % $$
-% \delta_B R(B)  
+% \delta_B R(B)
 % = \int \; f_i \phi_i(x) \; \frac{\partial f(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
 % $$
 %
 % The term
 %
-% $$ \frac{\partial f(B_k \phi_k(x))}{\partial B}$$ 
+% $$ \frac{\partial f(B_k \phi_k(x))}{\partial B}$$
 %
 % is a scalar, i.e. this derivative at a given location $x$
-% 
+%
 % Generally, when taking several derivatives and making use of the chain rule, it is best to evaluation derivative and other
 % functions of the primary variables at the integration points.
-% 
+%
 % The Hessian is then
-% 
+%
 % $$
-% H = \delta_{BB} I(B)  
+% H = \delta_{BB} I(B)
 % = \int \; \frac{\partial f(B_i \phi_i(x)) }{\partial B} \, \phi_r(x) \; \frac{\partial f(B_k \phi_k(x))}{\partial B}  \; \phi_q(x)  \; dx
 % + \int \; f_i \phi_i(x)  \; \frac{\partial^2 f(B_k \phi_k(x))}{\partial B \, \partial B}  \; \phi_r(x) \, \phi_q(x)  \; dx
 % $$
@@ -201,14 +201,14 @@ function [R,dRdp,ddRdpp,RegOuts]=Regularisation(UserVar,CtrlVar,MUA,BCs,F,l,Prio
 % $$
 % \delta_B R(B) = \lim_{\epsilon \to 0} \, \frac{1}{2} \frac{d}{d \epsilon} \int  (f(B(x)+\epsilon \phi_q(x)))^2 \, dx
 % = f_i \; \left ( \int \phi_i(x) \, \phi_j(x) \, dx \right ) \frac{\partial f(B)}{\partial B_j}
-% = f_i M_{ij} \phi_j \, \delta_{ij} = B_i M_{ij} = M_{ji} B_j 
+% = f_i M_{ij} \phi_j \, \delta_{ij} = B_i M_{ij} = M_{ji} B_j
 % $$
 %
 % or we then have (as listed above)
 %
 % $$ R= \frac{1}{2} \mathbf{B}^T \mathbf{M} \mathbf{B} $$
 %
-% $$\delta_B R(B) = \mathbf{M} \mathbf{B} $$ 
+% $$\delta_B R(B) = \mathbf{M} \mathbf{B} $$
 %
 % and
 %
@@ -575,30 +575,30 @@ else  % Andrey Tikhonov regularization
             ddRdBB=ddRdBB+ddRdBmeasBmeas;
 
         end
-        %
+
 
         %%  Barrier term to push B solution away from min ice thickness, i.e. to discourage F.B being close to F.s/Meas.s#
         %
         % Idea:  Add a quadratic penalty in terms of min thickness violation.
         %
         % Thickness violation: F.s - F.B < hmin
- 
-    
+
+
         x=F.B - (F.s-20*CtrlVar.ThickMin);
-        x0=zeros(MUA.Nnodes,1); 
-        k=0.1; a=5;  % k is the softness and a the amplitude
-        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ; 
+        x0=zeros(MUA.Nnodes,1);
+        k=0.1; a=5;  % 1/k is the softness and a the amplitude
+        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
 
         Bbarr=Bbarr/Area;
         dBarrdB=dBarrdB/Area;
         ddBbarrdBB=ddBbarrdBB/Area;
 
-     
+
         RB=RB+Bbarr;
         dRdB=dRdB+dBarrdB;
         ddRdBB=ddRdBB+ddBbarrdBB;
 
-        % 
+        %
 
         %%
 
@@ -617,7 +617,7 @@ else  % Andrey Tikhonov regularization
 
     R=RAGlen+RB+RC;
     dRdp=[dRdAGlen;dRdB;dRdC];
-    % 
+    %
     % tic
     % [Am,An] = size(ddRdAA);
     % [Bm,Bn] = size(ddRdBB);

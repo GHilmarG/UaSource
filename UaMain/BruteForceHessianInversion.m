@@ -49,8 +49,8 @@ while true
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
 
-       [J0,g0,Hfull]=func(p);
-       
+        [J0,g0,Hfull]=func(p);
+
 
     end
 
@@ -60,9 +60,9 @@ while true
     [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
 
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
-                     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
+    %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
-  
+    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
@@ -80,13 +80,38 @@ while true
     %
     % Furthermore, what is the largest gamma I can use without violating the limits?
     %
-    gammaVector=-(pub-p)./dp;
+    gammaVector=(pub-p)./dp;
     gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
-    gammaNewtonMax=min(gammaVector)  ; % this is the smallest positive gamma that does not violate
+    [gammaNewtonMax,Imin]=min(gammaVector)  ; % this is the smallest positive gamma that does not violate
+
+    % What to do where p_i=pub_i and dp_i > 0  ? Then any finite positive step size will violate pub at those locations
+    % This would cause zero step size, or more generally, a very small step size if p_i is very close to pub_i and dp_i >0.
+    %
+    % Here one can try 'reflection' where p_i is reflected by setting it to -p_i
+
+
+    %% reflection
+    gammaNewtonMin=0.2;
+    if gammaNewtonMax < gammaNewtonMin
+
+        I=find(gammaVector<gammaNewtonMin);
+        dp(I)=-dp(I) ;      % Reflection
+
+        gammaVector=(pub-p)./dp;
+        gammaVector(gammaVector<eps)=nan ;       
+        [gammaNewtonMax,Imin]=min(gammaVector)  ; 
+
+    end
+    %%
 
     if gammaNewtonMax< 1
         gamma=gammaNewtonMax;
         CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+        pUpperViolation=pub-(p+gamma*dp) ;  
+        UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation Newton")  ;  
+        CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); 
+        min(pUpperViolation)
+
     else
         gamma=1;
     end
@@ -135,25 +160,35 @@ while true
         error("wrong dimentions")
     end
 
-    g0SD=EYE\g0; % pre-multiplying, note that I must use the inverse...!
+    g0SD=EYE\(-g0); % pre-multiplying, note that I must use the inverse...!
 
 
-    Func=@(gamma) func(p-gamma*g0SD); % switching to the direction of the (negative) gradient
+    Func=@(gamma) func(p+gamma*g0SD);
 
-    slope0=-g0'*g0SD;
+    slope0=g0'*g0SD;
     gamma=-0.1*J0/slope0;
 
     % What is the largest gamma I can use without violating the limits?
-    gammaVector=-(pub-p)./g0SD;
+    % What do to if pub=p at some locations? Then I must have g0SD<=0 at those locations
+    gammaVector=(pub-p)./g0SD;
     gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
+    % or rather, where pub>p then there is not contraint on gamma if
+    % g0SD is negative at those same locations
+    %
+    % What to do where pub=p and g0SD > 0  ? Then any finite step size will violate pub at those locations
+
     gammaSDMax=min(gammaVector)      ;  % this is th
 
     if gamma > gammaSDMax
         gamma=gammaSDMax;
     end
 
+   % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
+
+
+
     J1=Func(gamma);
-    
+
     while isnan(J1)
         gamma=gamma/10;
         J1=func(p+gamma*g0SD);
@@ -188,9 +223,13 @@ while true
     if Direction=="Newton"
         p=p+gammaNewton*dp;
     elseif Direction=="gradient"
-        p=p-gammaSD*g0SD;
+        p=p+gammaSD*g0SD;
     end
 
+    pUpperViolation=pub-p;
+    if any(pUpperViolation<0)
+        fprintf("p violates pub! \n")
+    end
 
     fprintf("%3i:(%s) \t gamma=%g \t J=%g \t J0=%g \t sub-obtimality=%g \t |dp|/|p|=%g \t J/J0=%g \n",iNewton,Direction,gamma,J,J0,SubOptimality,dpNorm,J/J0)
 
