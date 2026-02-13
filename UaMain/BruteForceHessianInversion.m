@@ -80,9 +80,9 @@ while true
     %
     % Furthermore, what is the largest gamma I can use without violating the limits?
     %
-    gammaVector=(pub-p)./dp;
-    gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
-    [gammaNewtonMax,Imin]=min(gammaVector)  ; % this is the smallest positive gamma that does not violate
+    gammaUpperVector=(pub-p)./dp;
+    gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
+    [gammaNewtonMax,Imin]=min(gammaUpperVector)  ; % this is the smallest positive gamma that does not violate
 
     % What to do where p_i=pub_i and dp_i > 0  ? Then any finite positive step size will violate pub at those locations
     % This would cause zero step size, or more generally, a very small step size if p_i is very close to pub_i and dp_i >0.
@@ -175,14 +175,14 @@ while true
 
     % What is the largest gamma I can use without violating the limits?
     % What do to if pub=p at some locations? Then I must have g0SD<=0 at those locations
-    gammaVector=(pub-p)./g0SD;
-    gammaVector(gammaVector<eps)=nan ;  % where this is negative, there is no contraint on the gamma
-    % or rather, where pub>p then there is not contraint on gamma if
+    gammaUpperVector=(pub-p)./g0SD;
+    gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
+    % or rather, where pub>p then there is not constraint on gamma if
     % g0SD is negative at those same locations
     %
     % What to do where pub=p and g0SD > 0  ? Then any finite step size will violate pub at those locations
 
-    gammaSDMax=min(gammaVector)      ;  % this is th
+    gammaSDMax=min(gammaUpperVector)      ;  % this is th
 
     if gamma > gammaSDMax
         gamma=gammaSDMax;
