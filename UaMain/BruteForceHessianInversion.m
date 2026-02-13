@@ -118,8 +118,13 @@ while true
 
 
     % good summary at
+    %
     % https://uk.mathworks.com/help/releases/R2025b/optim/ug/constrained-nonlinear-optimization-algorithms.html#briahj8
-
+    %
+    % https://ecommons.cornell.edu/server/api/core/bitstreams/e68cc955-5b7c-4128-8707-522eb31ad378/content
+    %
+    % https://nmayorov.wordpress.com/2015/06/19/trust-region-reflective-algorithm/
+    %
 
     % gamma=1;
     J1=func(p+gamma*dp);
