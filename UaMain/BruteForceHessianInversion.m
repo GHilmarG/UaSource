@@ -125,6 +125,9 @@ while true
     %
     % https://nmayorov.wordpress.com/2015/06/19/trust-region-reflective-algorithm/
     %
+    % https://nmayorov.wordpress.com/2015/06/19/trust-region-reflective-algorithm/#more-207
+    %
+    %%
 
     % gamma=1;
     J1=func(p+gamma*dp);
