@@ -180,7 +180,7 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
         ColorbarLimits(1)=ColorbarLimits(1)-Eps;
         ColorbarLimits(2)=ColorbarLimits(2)+Eps;
     end
-    figCeI=FindOrCreateFigure('C at the end of inversion') ; clf(figCeI)
+    figCeI=FindOrCreateFigure("C at the end of inversion") ; clf(figCeI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C);
     set(gca,'ColorScale','log')
     hold on
@@ -191,11 +191,11 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ;
     title("$C$ at end of inversion",Interpreter="latex")
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    colormap(othercolor("Mtemperaturemap",1028))
+    CM=cmocean('-ice',15) ; colormap(CM);
     PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    figCbI=FindOrCreateFigure('C at the beginning of inversion') ; clf(figCbI)
+    figCbI=FindOrCreateFigure("C at the beginning of inversion") ; clf(figCbI)
     PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.C);
     set(gca,'ColorScale','log')
     title("$C$ at start of inversion",Interpreter="latex")
@@ -203,11 +203,11 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     hold on
     [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    colormap(othercolor("Mtemperaturemap",1028))
+    CM=cmocean('-ice',15) ; colormap(CM);
     PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    figCcI=FindOrCreateFigure('Change in C during inversion run') ; clf(figCcI)
+    figCcI=FindOrCreateFigure("Change in C during inversion run") ; clf(figCcI)
     PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
     title('log10(InvFinalValues.C)-log10(Cstart)') ;
     cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');

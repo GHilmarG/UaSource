@@ -583,20 +583,25 @@ else  % Andrey Tikhonov regularization
         %
         % Thickness violation: F.s - F.B < hmin
 
+        CtrlVar.Inverse.Penalty=false;
 
-        x=F.B - (F.s-20*CtrlVar.ThickMin);
-        x0=zeros(MUA.Nnodes,1);
-        k=0.1; a=5;  % 1/k is the softness and a the amplitude
-        [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
+        if CtrlVar.Inverse.Penalty
 
-        Bbarr=Bbarr/Area;
-        dBarrdB=dBarrdB/Area;
-        ddBbarrdBB=ddBbarrdBB/Area;
+            x=F.B - (F.s-20*CtrlVar.ThickMin);
+            x0=zeros(MUA.Nnodes,1);
+            k=0.1; a=5;  % 1/k is the softness and a the amplitude
+            [Bbarr,dBarrdB,ddBbarrdBB]=JgHpenalty(UserVar,CtrlVar,MUA,x,x0,k,a) ;
+
+            Bbarr=Bbarr/Area;
+            dBarrdB=dBarrdB/Area;
+            ddBbarrdBB=ddBbarrdBB/Area;
 
 
-        RB=RB+Bbarr;
-        dRdB=dRdB+dBarrdB;
-        ddRdBB=ddRdBB+ddBbarrdBB;
+            RB=RB+Bbarr;
+            dRdB=dRdB+dBarrdB;
+            ddRdBB=ddRdBB+ddBbarrdBB;
+
+        end
 
         %
 

@@ -74,33 +74,58 @@ while true
         error("BruteForceHessianInversion:pIsNaN","NaN in p")
     end
 
+
+
+
     % Since the Hessian may have been modified, it is not clear what a sensible first step could be.
     %
     % Also, the Hessian is not exact.
     %
     % Furthermore, what is the largest gamma I can use without violating the limits?
     %
-    gammaUpperVector=(pub-p)./dp;
-    gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
-    [gammaNewtonMax,Imin]=min(gammaUpperVector)  ; % this is the smallest positive gamma that does not violate
 
-    % What to do where p_i=pub_i and dp_i > 0  ? Then any finite positive step size will violate pub at those locations
-    % This would cause zero step size, or more generally, a very small step size if p_i is very close to pub_i and dp_i >0.
-    %
-    % Here one can try 'reflection' where p_i is reflected by setting it to -p_i
+    CtrlVar.GradientReflective=false;
+
+    if CtrlVar.GradientReflective
+
+        % This just about OK. 
+        %
+        % The Reflective Transformation, R(p), only reflects points that are outside of the box constraints. If for some i, p_i=l_i
+        % or p_i=u_i, the value of p_i is not changed. This means that for a given search direction (-g) direction, g, the line-search may result
+        % in values being exactly at the boundary, but never outside the box constraints.
+        %
+        % Once the gradient is recalculated, i.e. at the start of next iteration, the corresponding elements of the search direction
+        % are flipped where p is at the boundary and the unmodified search direction points out. This ensures that the next update
+        % will shift p away from the box boundary. However, now the gradient is no longer the gradient of the cost function!
+        %
+        % 1) change the sign of a gradient element whenever a box constraint is violated
+        % 2) 
+        %
+        %
+        gammaUpperVector=(pub-p)./dp;
+        gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
+        [gammaNewtonMax,Imin]=min(gammaUpperVector)  ; % this is the smallest positive gamma that does not violate
+
+        % What to do where p_i=pub_i and dp_i > 0  ? Then any finite positive step size will violate pub at those locations
+        % This would cause zero step size, or more generally, a very small step size if p_i is very close to pub_i and dp_i >0.
+        %
+        % Here one can try 'reflection' where p_i is reflected by setting it to -p_i
 
 
-    %% reflection
-    gammaNewtonMin=0.2;
-    if gammaNewtonMax < gammaNewtonMin
+        %% reflection
+        gammaNewtonMin=0.2;
+        if gammaNewtonMax < gammaNewtonMin
 
-        I=find(gammaVector<gammaNewtonMin);
-        dp(I)=-dp(I) ;      % Reflection
+            I=find(gammaVector<gammaNewtonMin);
+            dp(I)=-dp(I) ;      % Reflection
 
-        gammaVector=(pub-p)./dp;
-        gammaVector(gammaVector<eps)=nan ;       
-        [gammaNewtonMax,Imin]=min(gammaVector)  ; 
+            gammaVector=(pub-p)./dp;
+            gammaVector(gammaVector<eps)=nan ;
+            [gammaNewtonMax,Imin]=min(gammaVector)  ;
 
+        end
+    else
+        gammaNewtonMax=inf;
     end
     %%
 
@@ -127,6 +152,17 @@ while true
     %
     % https://nmayorov.wordpress.com/2015/06/19/trust-region-reflective-algorithm/#more-207
     %
+    % https://ecommons.cornell.edu/server/api/core/bitstreams/8830d99b-7b61-4271-ac76-f62504405051/content
+    %
+    % https://cs.uwaterloo.ca/~yuying/papers/Branch.pdf
+    %
+    % https://www.numerical.rl.ac.uk/media/people/nick-gould/ConnGoulToin88_mc.pdf
+    %
+    %
+    % https://math.stackexchange.com/questions/2814292/minimizing-convex-quadratic-with-box-constraints  (simple nice example of
+    % not just projecting onto the feasible domain)
+    %
+    % file:///C:/Users/Hilmar/Downloads/1984_Dembo_Tulowitzki_BQP_Yale_CS_tr302.pdf
     %%
 
     % gamma=1;
@@ -174,24 +210,23 @@ while true
     Func=@(gamma) func(p+gamma*g0SD);
 
     slope0=g0'*g0SD;
-    gamma=-0.1*J0/slope0;
+    gammaSlope0=-0.1*J0/slope0;
 
-    % What is the largest gamma I can use without violating the limits?
-    % What do to if pub=p at some locations? Then I must have g0SD<=0 at those locations
+    % calculate maximum step-size that does not violate upper limit
+    %if CtrlVar.GradientReflective
+
     gammaUpperVector=(pub-p)./g0SD;
     gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
-    % or rather, where pub>p then there is not constraint on gamma if
-    % g0SD is negative at those same locations
-    %
-    % What to do where pub=p and g0SD > 0  ? Then any finite step size will violate pub at those locations
 
-    gammaSDMax=min(gammaUpperVector)      ;  % this is th
+    gammaSDMax=min(gammaUpperVector);
 
-    if gamma > gammaSDMax
-        gamma=gammaSDMax;
-    end
+    %else
+    %    gammaSDMax=inf;
+    %end
 
-   % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
+    gamma=max(gammaSlope0,gammaSDMax); 
+  
+    % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
 
 
 

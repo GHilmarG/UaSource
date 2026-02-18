@@ -915,7 +915,7 @@ CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {'I','M'}
 
 CtrlVar.Inverse.Iterations=1; % Maximum number of inverse iterations
 CtrlVar.Inverse.OptimalityTolerance=1e-10; % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
-CtrlVar.Inverse.FunctionTolerance=1 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
+CtrlVar.Inverse.FunctionTolerance=1e-6 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
 CtrlVar.Inverse.StepTolerance=1e-30 ;  % see MATLAB documentation on the use of the fmincon function, needed for inversion using the matlab optimisation toolbox
 
 CtrlVar.Inverse.WriteRestartFile=1;  % always a good idea to write a restart file. 

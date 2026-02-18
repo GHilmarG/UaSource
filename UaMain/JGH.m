@@ -17,7 +17,7 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BC
 % Calculates objective function (J), gradient (dJdp, accurate), Hessian (guessed).
 %
 %
-%% 
+%%
 
 persistent ubP vbP
 
@@ -43,6 +43,44 @@ if ~isempty(ubP)
     F.ub=ubP;
     F.vb=vbP;
 end
+
+
+%% Reflection?
+
+
+
+if CtrlVar.ReflectiveTransformation
+
+    if ~isempty(pub)  && isempty(plb)
+
+        iu=p>pub;
+        p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+
+    elseif isempty(pub)  && ~isempty(plb)
+
+        il=p>plb;
+        p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+
+    elseif ~isempty(pub)  && ~isempty(plb)
+
+        %%
+        % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
+
+        d=pub-plb;
+        t=mod(p-plb,2*d);
+        p=plb+min(t,2*d-t);
+        %%
+
+    end
+
+end
+
+
+
+%%
+
+
+
 
 % The vector p contains the variables for which the inversion is being performed. So if the inversion is done over log(c)
 % only, then p=log(C). And if the inversion is done over A, B and C then p=[A;B;C].
@@ -95,7 +133,7 @@ if nargout>1   % gradient needed
     dJdp=dRdp+dIdp;
 end
 
-if nargout>2  % Hessian needed 
+if nargout>2  % Hessian needed
     if isempty(ddIddp)
         Hessian=ddRddp;
     else
@@ -105,10 +143,10 @@ end
 
 
 if RunInfo.Forward.uvConverged
-     % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
-     % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
-     % next, so the (u,v) solution is likely to be similar to the previously calculated one.
-    ubP=F.ub; 
+    % To speed up the forward solve, the previous solution is stored locally and then used as a starting value in next
+    % calculation. The idea is that usually the parameter vector (p) only changes slightly form one inverse iteration to the
+    % next, so the (u,v) solution is likely to be similar to the previously calculated one.
+    ubP=F.ub;
     vbP=F.vb;
 else
     warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
