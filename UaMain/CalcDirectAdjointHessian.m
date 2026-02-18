@@ -139,11 +139,12 @@ xi=[dudA dudB dudC ; dvdA dvdB dvdC] ; % 2 Nnodes \times nP Nnodes where nP is t
 
 d2Jdqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
 
-
+tMult=tic;
 d2Idpp=xi'*(d2Jdqq*xi);
 
 d2Idpp=0.5*(d2Idpp+d2Idpp');
-
+tMult=toc(tMult);
+fprintf(" Multiplication calculated in %f sec\n",tMult)
 
 
 

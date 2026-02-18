@@ -4,8 +4,10 @@
 function [lat,lon]=xy2LatLonIceland(x,y)
 
 %%
+% projects lat lon to a common xy system used in Iceland
 %
 %
+% requires the MATLAB mapping toolbox
 %
 % see also: LatLon2xyIceland
 %
@@ -21,8 +23,6 @@ mstruct.origin=[65.0 -19.0];
 mstruct.falsenorthing=500000;
 mstruct.falseeasting=500000;
 mstruct=defaultm(mstruct);
-
-
 
 
 [lat,lon]=projinv(mstruct,x,y) ;

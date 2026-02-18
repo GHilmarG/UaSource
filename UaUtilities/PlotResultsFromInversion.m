@@ -127,47 +127,50 @@ T.Padding="tight";   T.TileSpacing="tight";
 %%
 if contains(upper(CtrlVar.Inverse.InvertFor),'A')
 
-    figAeI=FindOrCreateFigure('A at the end of inversion') ; clf(figAeI)
-    PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.AGlen);
-    set(gca,'ColorScale','log')
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ;
-    title("$A$ at end of inversion",Interpreter="latex")
-    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
-    colormap(othercolor("Mtemperaturemap",1028))
-    PlotMuaBoundary(CtrlVar,MUA,'k');
     ColorbarLimits=10.^[mean(log10(InvFinalValues.AGlen))-4*std(log10(InvFinalValues.AGlen))  mean(log10(InvFinalValues.AGlen))+4*std(log10(InvFinalValues.AGlen))];
     if ColorbarLimits(1)==ColorbarLimits(2)
         Eps=10*eps(ColorbarLimits(1));
         ColorbarLimits(1)=ColorbarLimits(1)-Eps;
         ColorbarLimits(2)=ColorbarLimits(2)+Eps;
     end
-    clim(ColorbarLimits)
 
-    figAsI=FindOrCreateFigure('A at the start of inversion') ; clf(figAsI)
-    PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.AGlen);
-    set(gca,'ColorScale','log')
-    title("$A$ at start of inversion",Interpreter="latex")
-    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    colormap(othercolor("Mtemperaturemap",1028))
-    PlotMuaBoundary(CtrlVar,MUA,'k');
-    clim(ColorbarLimits)
+    figCeI=FindOrCreateFigure("Change in A during inversion") ; clf(figCeI)
 
-    figAcI=FindOrCreateFigure('Change in A during inversion run') ; clf(figAcI)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen));
-    title('log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen)') ;
-    cbar=colorbar; title(cbar, '($\mathrm{a}^{-1}$ $\mathrm{kPa}^{-3}$)',interpreter="latex");
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+
+    T=tiledlayout("flow");
+
+
+    T1=nexttile ;
+    UaPlots(CtrlVar,MUA,F,F.AGlen,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
-    PlotMuaBoundary(CtrlVar,MUA,'k');
+    title("$A$ at end of inversion",Interpreter="latex"); subtitle("")
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    CM=cmocean('-ice',15) ; colormap(CM);
+    clim(ColorbarLimits)
 
+    T2=nexttile ;
+    UaPlots(CtrlVar,MUA,F,InvStartValues.AGlen,CreateNewFigure=false,logColorbar=true);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+    title("$A$ at start of current inversion run",Interpreter="latex") ; subtitle("")
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    CM=cmocean('-ice',15) ; colormap(CM);
+    clim(ColorbarLimits)
+
+
+    T3=nexttile ;
+    dC=log10(InvFinalValues.AGlen)-log10(InvStartValues.AGlen);
+    cbar=UaPlots(CtrlVar,MUA,F,dC,CreateNewFigure=false);
+    xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+    title("Change in $A$ during current inversion run",Interpreter="latex") ;
+    subtitle("$\log(A_{\mathrm{End}})-\log(A_{\mathrm{Start}})$",Interpreter="latex")
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    set(figCeI,CurrentAxes=T3) ;
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+
+    T.Padding="tight";   T.TileSpacing="tight";
 
 end
 
@@ -180,42 +183,45 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
         ColorbarLimits(1)=ColorbarLimits(1)-Eps;
         ColorbarLimits(2)=ColorbarLimits(2)+Eps;
     end
-    figCeI=FindOrCreateFigure("C at the end of inversion") ; clf(figCeI)
-    PlotMeshScalarVariable(CtrlVar,MUA,InvFinalValues.C);
-    set(gca,'ColorScale','log')
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
-    clim(ColorbarLimits)
 
+    figCeI=FindOrCreateFigure("Change in C during inversion") ; clf(figCeI)
+
+
+    T=tiledlayout("flow");
+
+
+    T1=nexttile ;
+    UaPlots(CtrlVar,MUA,F,F.C,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    CtrlVar.PlotNodes=0 ; % PlotMuaMesh(CtrlVar,MUA,[],'k') ;
-    title("$C$ at end of inversion",Interpreter="latex")
-    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+    title("$C$ at end of inversion",Interpreter="latex"); subtitle("")
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     CM=cmocean('-ice',15) ; colormap(CM);
-    PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    figCbI=FindOrCreateFigure("C at the beginning of inversion") ; clf(figCbI)
-    PlotMeshScalarVariable(CtrlVar,MUA,InvStartValues.C);
-    set(gca,'ColorScale','log')
-    title("$C$ at start of inversion",Interpreter="latex")
-    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+    T2=nexttile ;
+    UaPlots(CtrlVar,MUA,F,InvStartValues.C,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
+    title("$C$ at start of current inversion run",Interpreter="latex") ; subtitle("")
+    cbar=colorbar;
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
     CM=cmocean('-ice',15) ; colormap(CM);
-    PlotMuaBoundary(CtrlVar,MUA,'k');
     clim(ColorbarLimits)
 
-    figCcI=FindOrCreateFigure("Change in C during inversion run") ; clf(figCcI)
-    PlotMeshScalarVariable(CtrlVar,MUA,log10(InvFinalValues.C)-log10(InvStartValues.C));
-    title('log10(InvFinalValues.C)-log10(Cstart)') ;
-    cbar=colorbar; title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
-    hold on
-    [xGL,yGL,GLgeo]=PlotGroundingLines(CtrlVar,MUA,F.GF,GLgeo,xGL,yGL,'r');
+
+    T3=nexttile ;
+    dC=log10(InvFinalValues.C)-log10(InvStartValues.C);
+    cbar=UaPlots(CtrlVar,MUA,F,dC,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel,Interpreter="latex")  ; ylabel(CtrlVar.PlotsYaxisLabel,Interpreter="latex")
-    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
-    PlotMuaBoundary(CtrlVar,MUA,'k');
+    title("Change in $C$ during current inversion run",Interpreter="latex") ;
+    subtitle("$\log(C_{\mathrm{End}})-\log(C_{\mathrm{Start}})$",Interpreter="latex")
+    title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
+ 
+   set(figCeI,CurrentAxes=T3) ;
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+    T.Padding="tight";   T.TileSpacing="tight";
+
 end
 
 if contains(CtrlVar.Inverse.InvertFor,'b')
@@ -247,29 +253,41 @@ end
 
 
 
-if contains(CtrlVar.Inverse.InvertFor,'-B-')
+if contains(CtrlVar.Inverse.InvertFor,"-B-")
+
+    figB=FindOrCreateFigure("Change in B during inversion") ; clf(figB)
 
 
-    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,FigureTitle="B final");
-    title('InvFinalValues.B') ;
+    T=tiledlayout("flow");
+
+
+    T1=nexttile ;
+    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
+    title("$B$ at end of inversion run",Interpreter="latex")
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mdarkterrain",32))
 
-    cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,FigureTitle="B start");
-    title('Bstart')
+    T2=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
+    title("$B$ at start of current inversion run",Interpreter="latex")
     subtitle("")
     title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     colormap(othercolor("Mdarkterrain",32))
 
-    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,FigureTitle="B final - B start");
-    title('InvFinalValues.B-Bstart') ;
+    T3=nexttile ;
+    cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,CreateNewFigure=false);
+    title("Change in $B$ during current inversion run",Interpreter="latex")
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+
+    set(figB,CurrentAxes=T3) ;
+    CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+    T.Padding="tight";   T.TileSpacing="tight";
+
 
     AspectRatio=1;
     figsbB=FindOrCreateFigure("sbB");  clf(figsbB)
@@ -279,10 +297,8 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
 
+
 end
-
-
-
 
 
 
@@ -290,7 +306,7 @@ end
 
 [~,~,tb] = CalcBasalTraction(CtrlVar,UserVar,MUA,F) ;
 tb(tb<eps)=nan ;
-cbar=UaPlots(CtrlVar,MUA,F,tb) ;
+cbar=UaPlots(CtrlVar,MUA,F,tb,FigureTitle="Basal drag") ;
 title('Basal drag, $\Vert \mathbf{t}_b \Vert$ ','interpreter','latex') ;
 title(cbar, '($\mathrm{kPa}$)','interpreter','latex');
 subtitle("")
@@ -351,7 +367,7 @@ end
 
 %%
 
-figSM=FindOrCreateFigure("Speed misfit") ; clf(figSM)
+figSM=FindOrCreateFigure("Misfit:Speed") ; clf(figSM)
 speedMeas=sqrt(Meas.us.^2+Meas.vs.^2);
 speedCalc=sqrt(F.ub.^2+F.vb.^2) ;
 ErrSpeed=sqrt(usError.^2+vsError.^2);
@@ -380,16 +396,18 @@ D=speedMeas-speedCalc ;
 cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ; title('Measured speed - modelled speed') ; set(gca,'ColorScale','lin')
 title(cbar,"$\|\mathbf{v}_\mathrm{Meas}\|-\|\mathbf{v}_{\mathrm{Modelled}}\|$",interpreter="latex")
 subtitle("")
-T.Padding="tight";   T.TileSpacing="tight";
+
 
 axis(TS4);
 CL=clim;
 if CL(1)< 0 && CL(2) > 0
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(TS4,CM);
 end
+   
+T.Padding="tight";   T.TileSpacing="tight";
 
 %%
-figVmis=FindOrCreateFigure("velocity misfit") ; clf(figVmis)
+figVmis=FindOrCreateFigure("Misfit:Velocities") ; clf(figVmis)
 
 
 T=tiledlayout("flow");
@@ -441,7 +459,7 @@ T.Padding="tight";   T.TileSpacing="tight";
 if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     %%
-    figdhdt=FindOrCreateFigure("dh/dt misfit") ; clf(figdhdt)
+    figdhdt=FindOrCreateFigure("Misfit:dh/dt") ; clf(figdhdt)
 
     T=tiledlayout("flow");
 
@@ -890,7 +908,7 @@ else
 
         if PM=="I"
             if isempty(MUA.M)
-               MUA.M=MassMatrix2D1dof(MUA);
+                MUA.M=MassMatrix2D1dof(MUA);
             end
             dJdB=MUA.M\InvFinalValues.dJdB;
             figMB=FindOrCreateFigure("M\dJdB "+PM); clf(figMB)
@@ -917,47 +935,45 @@ else
     %%
     CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=0;
 
-    if contains(lower(CtrlVar.Inverse.InvertFor),'c') && contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
-
-        figAC=FindOrCreateFigure("True and estimated A and C"); clf(figAC);
-
-        T=tiledlayout("flow");
-
-        TTrueC=nexttile;
-        UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
-        title("True $C$",interpreter="latex") ; set(gca,'ColorScale','log')
-        subtitle("")
-
-        TRetrievedC=nexttile;
-        UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
-        title("Retrieved $C$",interpreter="latex") ;
-        set(gca,'ColorScale','log')
-        subtitle("")
 
 
-        CCbarLink=linkprop([TTrueC TRetrievedC],'CLim') ; assignin('base','CbarLink_clim',CCbarLink)
+    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
 
-        TTrueA=nexttile;
-        UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
-        title("True $A$",Interpreter="latex") ;
-        set(gca,'ColorScale','log')
-        subtitle("")
+        if ~isempty(Priors.TrueAGlen) && ~anynan(Priors.TrueAGlen)
 
-        TRetrievedA=nexttile;
-        UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
-        title("Retrieved $A$",Interpreter="latex") ; set(gca,'ColorScale','log')
-        subtitle("")
+            tFig1=FindOrCreateFigure("True and estimated AGlen"); clf(tFig1 );
+
+            T=tiledlayout("flow");
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
+            title('True AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
+            title('Retrieved AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
+
+            nexttile
+
+            D=abs(Priors.TrueAGlen-InvFinalValues.AGlen) ;
+            cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
+            title('abs(True A -Retrieved A)') ; set(gca,'ColorScale','log')
+            title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
+            subtitle("")
+
+            nexttile
+            UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
+            title('Prior AGlen') ; set(gca,'ColorScale','log')
+            subtitle("")
+
+            T.Padding="tight";   T.TileSpacing="tight";
 
 
-        ACbarLink=linkprop([TTrueA TRetrievedA],'CLim') ; assignin('base','CbarLink_clim',ACbarLink)
 
-        %figC.Position=[400 200 1300 800];
-        T.Padding="tight";
-        T.TileSpacing="tight";
-
+        end
     end
-
-
 
 
 
@@ -1006,46 +1022,6 @@ else
             %figC.Position=[400 200 1300 800];
             T.Padding="tight";
             T.TileSpacing="tight";
-
-
-        end
-    end
-
-    if contains(lower(CtrlVar.Inverse.InvertFor),'aglen')
-
-        if ~isempty(Priors.TrueAGlen) && ~anynan(Priors.TrueAGlen)
-
-
-
-            tFig1=FindOrCreateFigure("True and estimated AGlen"); clf(tFig1 );
-
-            T=tiledlayout("flow");
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
-            title('True AGlen') ; set(gca,'ColorScale','log')
-            subtitle("")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
-            title('Retrieved AGlen') ; set(gca,'ColorScale','log')
-            subtitle("")
-
-            nexttile
-
-            D=abs(Priors.TrueAGlen-InvFinalValues.AGlen) ;
-            cbar=UaPlots(CtrlVar,MUA,F,D,CreateNewFigure=false) ;
-            title('abs(True A -Retrieved A)') ; set(gca,'ColorScale','log')
-            title(cbar,"$|A-\tilde{A}|$",interpreter="latex")
-            subtitle("")
-
-            nexttile
-            UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
-            title('Prior AGlen') ; set(gca,'ColorScale','log')
-            subtitle("")
-
-            T.Padding="tight";   T.TileSpacing="tight";
-
 
 
         end
