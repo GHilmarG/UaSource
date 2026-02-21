@@ -17,7 +17,8 @@ if isnan(gammaNewton)
 end
 
 gammaUp=min([1.1*gammaNewton,gammaNewtonMax]);
-gammaVector=linspace(-0.1,gammaUp,nPoints);
+gammaDown=-0.2*gammaUp;
+gammaVector=linspace(gammaDown,gammaUp,nPoints);
 
 gammaVector=unique([gammaVector 0 gammaNewton]) ;
 nPoints=numel(gammaVector);

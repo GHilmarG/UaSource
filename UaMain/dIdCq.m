@@ -8,7 +8,26 @@ narginchk(9,9)
 %%
 % Calculates:
 %
-% $$ \lambda \partial F/\partial C = (\lambda_x,\lambda_y)^T \cdot ( \partial F_x/\partial C, \partial F_y/\partial C) $$
+% $$ \lambda \, \delta_C F $$
+%
+% For example, for Weertman
+%
+% $$F_x= -t_x=-\mathcal{G} \beta^2 \, v_x $$
+%
+% $$F_y=- t_y=-\mathcal{G} \beta^2 \, v_y $$
+%
+% $$\beta^2=(C+C_0)^{-1/m} \; U^{1/m-1} $$
+% 
+% $$ v=\sqrt{v_x^2+v_y^2+v_0} $$
+%
+% $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, u \; \delta C$$
+%
+% $$
+% \lambda \, \delta_C F = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% $$
+%
+% This is a vector.
+%
 %
 % When performing an inversion with respect to a parameter p we minimize a
 % cost function J, on the form
@@ -20,7 +39,7 @@ narginchk(9,9)
 %    F(d(p),p)=0
 %
 %
-% Here F is the forward model, wich allows us to solve for d given p.
+% Here F is the forward model, which allows us to solve for d given p.
 %
 % p are the model parameters we want to invert for, and \tilde{p} are
 % direct estimates/measurements of those parameters, i.e. the priors.
@@ -52,7 +71,7 @@ narginchk(9,9)
 %
 % if dC=phi then : <u l phi_q | phi >
 %
-% nodal based gradient
+% directional derivative.
 %
 %
 %

@@ -1036,6 +1036,8 @@ CtrlVar.ConjugatedGradientsUpdate='PR'; % (FR|PR|HS|DY)
                                         % PR :Polak-Ribi\`ere
                                         % HR: Hestenes-Stiefel
                                         % DY :Dai-Yan
+                   
+CtrlVar.ReflectiveTransformation=false ; %                      
 % end, UaOptimization parameters
 % ------------]
 

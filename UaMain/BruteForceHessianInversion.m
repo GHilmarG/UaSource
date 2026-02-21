@@ -62,7 +62,7 @@ while true
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
-    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+%    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
@@ -163,6 +163,10 @@ while true
     % not just projecting onto the feasible domain)
     %
     % file:///C:/Users/Hilmar/Downloads/1984_Dembo_Tulowitzki_BQP_Yale_CS_tr302.pdf
+    %
+    %
+    % https://ccsp.hms.harvard.edu/wp-content/uploads/2022/10/Froehlich-Sorger-2022-Fides-Reliable-trust-region-optimization-for-parameter-estimation-of-ordinary-differential-equation-models.pdf
+    %
     %%
 
     % gamma=1;

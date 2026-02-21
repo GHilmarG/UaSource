@@ -14,14 +14,17 @@ function K=dFuvdA(CtrlVar,MUA,F)
 % 
 %
 %
-% \p F/\p_A = [ \p F_1^x/\p A_1    \p F_1^x/\p A_2   ...  \p F_1^x/\p A_n ]
-%              [ \p F_2^x/\p A_1    \p F_2^x/\p A_2   ...  \p F_1^x/\p A_n ]
-%              [         .                 .                      .        ]
-%              [ \p F_n^x/\p A_1    \p F_n^x/\p A_2   ...  \p F_n^x/\p A_n ]
-%              [ \p F_1^y/\p A_1    \p F_1^y/\p A_2   ...  \p F_1^y/\p A_n ]
-%              [ \p F_2^y/\p A_1    \p F_2^y/\p A_2   ...  \p F_2^y/\p A_n ]
-%              [         .                 .                      .        ]
-%              [ \p F_n^y/\p A_1    \p F_n^y/\p A_2   ...  \p F_n^y/\p A_n ]
+% $$\left[\begin{array}{cccc}
+% \partial F^x_1 /\partial A_1  & \partial F^x_1 /\partial A_2  & \ldots & \partial F^x_1 /\partial A_n  \\
+% \partial F^x_2 /\partial A_1  & \partial F^x_2 /\partial A_2  & \ldots & \partial F^x_2 /\partial A_n  \\
+%              \vdots              &              \vdots              &  \vdots  &    \vdots              \\
+% \partial F^y_1 /\partial A_1  & \partial F^y_1 /\partial A_2 & \ldots & \partial F^y_1 /\partial A_n  \\
+% \partial F^y_2 /\partial A_1  & \partial F^y_2 /\partial A_2 & \ldots & \partial F^y_2 /\partial A_n  \\
+%              \vdots              &              \vdots              &  \vdots  &    \vdots              \\
+% \end{array}\right] $$
+%
+%
+%
 %
 %
 % $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
