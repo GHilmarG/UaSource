@@ -11,6 +11,13 @@ narginchk(5,5)
 %
 % $$\Psi_n \frac{\partial^2 F_n}{\partial C_i \, \partial C_j} $$
 %
+%
+% $$ \langle \Psi(x) | \delta^2_{CC} F(x) \rangle $$
+%
+% Or in a discrete form:
+%
+% $$\Psi_n \frac{\partial^2 F_n}{\partial C_i \, \partial C_j} $$
+%
 % For example, for Weertman
 %
 % $$F_x= -t_x=-\mathcal{G} \beta^2 \, v_x $$
@@ -24,9 +31,9 @@ narginchk(5,5)
 %
 % we have
 %
-% $$ \lambda \, \delta_C F $$
-%
 % $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, v_x \; \delta C$$
+%
+% and
 %
 % $$\delta^2_{CC} F_x = \mathcal{G} \, \frac{1}{m} (-1/m-1)  \;  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, v_x \; \delta C$$
 %
@@ -36,12 +43,12 @@ narginchk(5,5)
 %
 %
 % $$
-% \lambda \, \delta_C F = \int \mathcal{G} \, (1/m)  \;  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% \langle \lambda |  \delta_C F \rangle = \int \mathcal{G} \; \frac{1}{m}  \;  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
 % $$
 %
 % Which is a vector, and
 %
-% $$ \Psi \delta^2_{CC} F =  
+% $$ \langle \Psi | \delta^2_{CC} F \rangle =  
 %  -\int  \mathcal{G} \, (1/m^2+1/m) \;   (C+C_0)^{-1/m-2} \;  v^{1/m-1} \, \left (  \lambda_x \, v_x +
 % \lambda_y \, v_y \right ) \; \delta C_i \, \delta C_j \; dx \, dy $$
 % 

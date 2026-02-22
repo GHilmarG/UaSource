@@ -8,7 +8,9 @@ narginchk(9,9)
 %%
 % Calculates:
 %
-% $$ \lambda \, \delta_C F $$
+%
+% $$ \langle  \delta_{C_i} F^x | \lambda_x \rangle + \langle  \delta_{C_i} F^y | \lambda_y \rangle $$
+%
 %
 % For example, for Weertman
 %
@@ -16,14 +18,14 @@ narginchk(9,9)
 %
 % $$F_y=- t_y=-\mathcal{G} \beta^2 \, v_y $$
 %
-% $$\beta^2=(C+C_0)^{-1/m} \; U^{1/m-1} $$
+% $$\beta^2=(C+C_0)^{-1/m} \; v^{1/m-1} $$
 % 
 % $$ v=\sqrt{v_x^2+v_y^2+v_0} $$
 %
 % $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, u \; \delta C$$
 %
 % $$
-% \lambda \, \delta_C F = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% \langle \lambda |  \delta_C F \rangle = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
 % $$
 %
 % This is a vector.
