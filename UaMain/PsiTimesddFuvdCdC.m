@@ -28,13 +28,21 @@ narginchk(5,5)
 %
 % $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, v_x \; \delta C$$
 %
+% $$\delta^2_{CC} F_x = \mathcal{G} \, \frac{1}{m} (-1/m-1)  \;  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, v_x \; \delta C$$
+%
+% or 
+%
+% $$\delta^2_{CC} F_x = -\mathcal{G}  (1/m^2+1/m)  \;  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, v_x \; \delta C$$
+%
+%
 % $$
-% \lambda \, \delta_C F = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% \lambda \, \delta_C F = \int \mathcal{G} \, (1/m)  \;  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
 % $$
 %
 % Which is a vector, and
 %
-% $$ \Psi \delta^2_{CC} F =   -\int \frac{\mathcal{G}}{m+1} \,  (C+C_0)^{-1/m-2} \;  v^{1/m-1} \, \left (  \lambda_x \, v_x +
+% $$ \Psi \delta^2_{CC} F =  
+%  -\int  \mathcal{G} \, (1/m^2+1/m) \;   (C+C_0)^{-1/m-2} \;  v^{1/m-1} \, \left (  \lambda_x \, v_x +
 % \lambda_y \, v_y \right ) \; \delta C_i \, \delta C_j \; dx \, dy $$
 % 
 % which is a matrix.
@@ -73,10 +81,6 @@ mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 H=zeros(MUA.Nele,MUA.nod,MUA.nod);
 
-if isempty(MUA.Deriv)
-    [MUA.Deriv,MUA.DetJ]=CalcMuaMeshDerivatives(CtrlVar,MUA);
-end
-
 
 for Iint=1:MUA.nip
 
@@ -106,12 +110,10 @@ for Iint=1:MUA.nip
    
     %Temp=  (1./(m+1)) .*  G.*  ((C+C0).^(-1./m-2)) .* ( U.^(1./m-1)) .*(lx.*u+ly.*v);  % at nodes
 
-    Temp= (1./(m+1)) .*  G.*  ((C+C0).^(-1./m-2)) .* ( U.^(1./m-1)) .*(lx.*u+ly.*v).* (log(10).*C).^2; % at int
+    Temp= (1./(m.^2) + 1./m) .*  G.*  ((C+C0).^(-1./m-2)) .* ( U.^(1./m-1)) .*(lx.*u+ly.*v).* (log(10).*C).^2; % at int
 
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
-
-            % H(:,Inod,Jnod)=H(:,Inod,Jnod)- (1./(m+1)) .*  G.*(C+C0).^(-1./m-2).*(lx*u+ly*v).*fun(Inod) .*fun(Jnod).*detJw;
 
             H(:,Inod,Jnod)=H(:,Inod,Jnod) - Temp .*fun(Inod) .*fun(Jnod).*detJw;
             

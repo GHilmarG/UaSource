@@ -17,6 +17,9 @@ else
     error("wrong dimentions")
 end
 
+% e=eigs(H) ; 
+% FindOrCreateFigure("Hessian eigenvalues") ; plot(sort(e),".r")   
+% 
 
 while true
     [~, pp] = chol(H);

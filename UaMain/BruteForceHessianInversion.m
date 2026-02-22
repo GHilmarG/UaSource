@@ -33,7 +33,7 @@ SubOptimalityTolerance=0;
 dJTolerance=0.0;
 dpTolerance=0.0;
 
-iNewton=0; lmin=1e-15; lEnd=0;
+iNewton=0; lmin=1e-15; lEnd=0; gammaSDLast=inf; 
 
 while true
 
@@ -241,8 +241,11 @@ while true
         J1=func(p+gamma*g0SD);
     end
 
-    CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/100;
+    gammaSDLast=min(gammaSDLast,gamma);
+
+    CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
     [gammaSD,JSD,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+    gammaSDLast=gammaSD; 
 
     fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)
 

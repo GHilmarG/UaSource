@@ -20,6 +20,7 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 %
 % where
 %
+
 % $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
 %
 % $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
@@ -62,9 +63,14 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 %
 % $$ \delta_A  \eta   = \partial_A \eta \; \delta A $$
 %
+%
 % The second derivative is:
 %
-% $$ \delta^2_{AA}  \eta   = \frac{1}{2(1-n)}  \, A^{-1/n-2} \; e^{(1-n)/n} \; \delta A \, \delta A $$
+% $$ \delta^2_{AA}  \eta   = \frac{1}{2} \;  \frac{-1}{n} \; (-1/n-1)   \, A^{-1/n-2} \; e^{(1-n)/n} \; \delta A \, \delta A $$
+%
+% i.e.
+%
+% $$ \delta^2_{AA}  \eta   = \frac{1}{2} \;  (1/n^2 + 1/n)   \, A^{-1/n-2} \; e^{(1-n)/n} \; \delta A \, \delta A $$
 %
 % or
 %
@@ -88,7 +94,7 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 % $$ 
 % \langle  \delta_{A_i} F^x | \lambda_x \rangle + \langle  \delta_{A_i} F^y | \lambda_y \rangle 
 % = -\int \, \partial_A \eta \,  \, h \, \big (  ( 4 \partial_x u + 2 \partial_y v) \, \partial_x \lambda_x  + (\partial_y u + \partial_x v) \, \partial_y \lambda_x \big ) \, \phi_i \; dx \, dy 
-%  -\int \, \partial_A \eta \,  \, h \, \big (  ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_y \lambda_y \big ) \, \phi_i \; dx \, dy 
+%   -\int \, \partial_A \eta \,  \, h \, \big (  ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_x \lambda_y \big ) \, \phi_i \; dx \, dy 
 % $$
 %
 %
@@ -98,7 +104,7 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 % \langle  \delta_{A_i} F^x | \lambda_x \rangle + \langle  \delta_{A_i} F^y | \lambda_y \rangle 
 % = -\int \, \partial_A \eta \,  \, h \, 
 %   \big  (  ( 4 \partial_x u + 2 \partial_y v) \, \partial_x \lambda_x  + (\partial_y u + \partial_x v) \, \partial_y \lambda_x 
-%  +         ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_y \lambda_y \big ) \, \phi_i \; dx \, dy 
+%  +         ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_x \lambda_y \big ) \, \phi_i \; dx \, dy 
 % $$
 %
 % This is a vector.
@@ -108,7 +114,7 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 % \langle  \delta^2_{A_i\,A_j} F^x | \lambda_x \rangle + \langle  \delta^2_{A_i\,A_j} F^y | \lambda_y \rangle 
 % = -\int \, \partial^2_{AA} \eta \,  \, h \, 
 %   \big  (  ( 4 \partial_x u + 2 \partial_y v) \, \partial_x \lambda_x  + (\partial_y u + \partial_x v) \, \partial_y \lambda_x 
-%  +         ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_y \lambda_y \big ) \, \phi_i \, \phi_j \; dx \, dy 
+%  +         ( 4 \partial_y v + 2 \partial_x u) \, \partial_y \lambda_y  + (\partial_x v + \partial_y u) \, \partial_x \lambda_y \big ) \, \phi_i \, \phi_j \; dx \, dy 
 % $$
 %
 % This is a matrix
