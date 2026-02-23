@@ -165,6 +165,13 @@ end
 
 if contains(HessianTerms,"-xi d2J/dqdq xi-")
 
+    % This requires too large memory, possible approach is to calculate Hessian-vector product and only one row of the Hessian at
+    % a time.
+    %
+    % https://arxiv.org/html/2410.22575v1
+    %
+    %
+    %
     xi=[dudA dudB dudC ; dvdA dvdB dvdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
 
     d2Jdqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
