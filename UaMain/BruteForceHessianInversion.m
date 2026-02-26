@@ -1,8 +1,9 @@
 
 
-function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
+%function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
+ function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p,plb,pub)
 
-narginchk(8,8)
+  narginchk(8,8)
 
 %%
 %load("TestSaveH.mat","func","p0","CtrlVar","iRange","MUA","F")  ;
@@ -12,7 +13,7 @@ narginchk(8,8)
 
 p=p0;
 
-
+%MaxNewtonSteps=10;
 MaxNewtonSteps=CtrlVar.Inverse.Iterations;
 
 Jvector=nan(MaxNewtonSteps+1,1);
@@ -31,7 +32,7 @@ SubOptimalityTolerance=0;
 dJTolerance=0.0;
 dpTolerance=0.0;
 
-iNewton=0; lStart=0 ; gammaSDLast=inf;
+iNewton=0; lmin=1e-15; lEnd=0; gammaSDLast=inf; 
 
 while true
 
@@ -42,7 +43,7 @@ while true
         [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
 
         if isnan(J0)
-            error("UaOptimisationHessianEstimate:J0IsNaN","NaN in J0")
+            error("BruteForceHessianInversion:J0IsNaN","NaN in J0")
         end
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
@@ -54,27 +55,22 @@ while true
 
 
 
-
-    [Hfull,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
+    lStart=max(lEnd,lmin);
+    [Hfull,lEnd]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
 
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
-    %    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+%    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
- 
-
-    %  D=norm(dp) ;   H=Hfull ; l=0 ; g=g0;  E=blkdiag(MUA.M,MUA.M) ; l=TrustRegionSubproblem(H,E,g,l,D) ;
-    
-    
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
-        error("UaOptimisationHessianEstimate:dpIsNaN","NaN in dp")
+        error("BruteForceHessianInversion:dpIsNaN","NaN in dp")
     end
 
     if anynan(p)
         fprintf("p contains nan. \n")
-        error("UaOptimisationHessianEstimate:pIsNaN","NaN in p")
+        error("BruteForceHessianInversion:pIsNaN","NaN in p")
     end
 
 
@@ -91,7 +87,7 @@ while true
 
     if CtrlVar.GradientReflective
 
-        % This just about OK.
+        % This just about OK. 
         %
         % The Reflective Transformation, R(p), only reflects points that are outside of the box constraints. If for some i, p_i=l_i
         % or p_i=u_i, the value of p_i is not changed. This means that for a given search direction (-g) direction, g, the line-search may result
@@ -102,7 +98,7 @@ while true
         % will shift p away from the box boundary. However, now the gradient is no longer the gradient of the cost function!
         %
         % 1) change the sign of a gradient element whenever a box constraint is violated
-        % 2)
+        % 2) 
         %
         %
         gammaUpperVector=(pub-p)./dp;
@@ -135,9 +131,9 @@ while true
     if gammaNewtonMax< 1
         gamma=gammaNewtonMax;
         CtrlVar.LineSearchAllowedToUseExtrapolation=false;
-        pUpperViolation=pub-(p+gamma*dp) ;
-        UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation Newton")  ;
-        CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+        pUpperViolation=pub-(p+gamma*dp) ;  
+        UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation Newton")  ;  
+        CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); 
         min(pUpperViolation)
 
     else
@@ -231,8 +227,8 @@ while true
     %    gammaSDMax=inf;
     %end
 
-    gamma=max(gammaSlope0,gammaSDMax);
-
+    gamma=max(gammaSlope0,gammaSDMax); 
+  
     % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
 
 
@@ -248,7 +244,7 @@ while true
 
     CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
     [gammaSD,JSD,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
-    gammaSDLast=gammaSD;
+    gammaSDLast=gammaSD; 
 
     fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)
 
