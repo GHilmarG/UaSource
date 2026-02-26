@@ -201,8 +201,7 @@ else
     
     if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
         
-          % once the DirectAdjoint Hessian has been implemented in JGH, get rid of F and BCs in this call
-        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,F,BCs);
+        [p,UserVar,RunInfo]=UaOptimisation(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub);
         
         
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Matlab")

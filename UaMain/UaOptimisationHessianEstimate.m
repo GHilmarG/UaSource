@@ -1,9 +1,8 @@
 
 
-function [p,UserVar,RunInfo]=BruteForceHessianInversion(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
+function [p,UserVar,RunInfo]=UaOptimisationHessianEstimate(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub)
 
-
-narginchk(8,8)
+  narginchk(8,8)
 
 %%
 %load("TestSaveH.mat","func","p0","CtrlVar","iRange","MUA","F")  ;
@@ -13,13 +12,12 @@ narginchk(8,8)
 
 p=p0;
 
-%MaxNewtonSteps=10;
+
 MaxNewtonSteps=CtrlVar.Inverse.Iterations;
 
 Jvector=nan(MaxNewtonSteps+1,1);
 SlopeVector=nan(MaxNewtonSteps+1,1);
 gammaVector=nan(MaxNewtonSteps+1,1);
-SubOptimalityVector=nan(MaxNewtonSteps+1,1);
 GradNormVector=nan(MaxNewtonSteps+1,1);
 
 nPar=numel(p);
@@ -44,7 +42,7 @@ while true
         [Hsparse,Hfull,g0,J0] = CalcBruteForceHessian(func,p,CtrlVar,iRange) ;
 
         if isnan(J0)
-            error("BruteForceHessianInversion:J0IsNaN","NaN in J0")
+            error("UaOptimisationHessianEstimate:J0IsNaN","NaN in J0")
         end
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"DirectAdjointHessian")
@@ -66,12 +64,12 @@ while true
 
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
-        error("BruteForceHessianInversion:dpIsNaN","NaN in dp")
+        error("UaOptimisationHessianEstimate:dpIsNaN","NaN in dp")
     end
 
     if anynan(p)
         fprintf("p contains nan. \n")
-        error("BruteForceHessianInversion:pIsNaN","NaN in p")
+        error("UaOptimisationHessianEstimate:pIsNaN","NaN in p")
     end
 
 
