@@ -20,7 +20,38 @@ function [I,dIdp,ddIdpp,MisfitOuts]=Misfit(UserVar,CtrlVar,MUA,BCs,F,l,Priors,Me
 %
 % The adjoint method is used to calculate the derivatives
 %
+% The misfit term, $I$, on the form
 %
+% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| \dot{h}-\dot{h}_{\mathrm{Meas}} \| $$ 
+%
+% where 
+%
+% $$ \dot{h} = a - \partial_x (u h ) - \partial_y (v h) $$
+%
+% that is 
+%
+% $$I= \|u-u_{\mathrm{Meas}} \| +  \|v-v_{\mathrm{Meas}} \| + \| (\left ( a - \partial_x (u h ) - \partial_y (v h)  \right ) -\dot{h}_{\mathrm{Meas}} \| $$ 
+%
+% Thus, the misfit term is not an explicit function of $\dot{h}$
+%
+% $$I=I(u(p),v(p)) $$
+%
+% where $p$ are the parameters we want to invert for, i.e. any or all of $A$, $B$ and $C$.  
+%
+% Since $\dot{h}$ is already expressed directly in terms of $u$ and $v$ using the mass-conservation equation, the forward
+% model consists of the momentum equations only.
+%
+% Solving the forward model is
+%
+% $$\partial F /\partial u = \partial I/\partial u $$
+%
+% The partial derivatives of $I$ are straightforward to calculate, apart from 
+% 
+% $$\partial I_{\dot{h}} / \partial u$$
+%
+% which more correctly should be written as
+%
+% $$\delta I_{\dot{h}} \, \delta u $$
 %
 %%
 
@@ -373,7 +404,7 @@ if CtrlVar.Inverse.CalcGradI
     end
 
 
-    % Hessians
+    %% Hessians
 
     if isfield(CtrlVar.Inverse.DataMisfit,'HessianEstimate')
         error(' field no longer used ')
@@ -439,7 +470,7 @@ if CtrlVar.Inverse.CalcGradI
 
     %% Commented out and changed on 22 Feb 2026
     % switch CtrlVar.Inverse.InvertForField
-    % 
+    %
     %     case "A"
     %         dIdp=DAI;
     %         ddIdpp=ddIdAA ;
@@ -452,42 +483,42 @@ if CtrlVar.Inverse.CalcGradI
     %         ddIdpp=ddIdCC ;
     %     case "AC"
     %         dIdp=[DAI;DCI];
-    % 
+    %
     %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian") &&  ~contains(CtrlVar.Inverse.MinimisationMethod,"-DirectAdjointHessian-")
-    % 
+    %
     %             % N=MUA.Nnodes;
     %             % ddIdpp = spalloc(N+N,N+N,nnz(ddIdAA)+nnz(ddIdCC));
     %             % ddIdpp(1:N,1:N) = ddIdAA;
     %             % ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-    % 
+    %
     %             ddIdpp=blkdiag(ddIdAA,ddIdCC);  % 2026 Feb, I think this is the same
     %         end
-    % 
+    %
     %     case "BC"
-    % 
+    %
     %         % DCI=DCI*0;
     %         dIdp=[DBI;DCI];
-    % 
+    %
     %         if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
     %             N=MUA.Nnodes;
     %             ddIdBB=speye(N,N);  % I have not thought about a good Hessian estimate here, so just enter the identity matrix.
     %             ddIdBB=MUA.M;           % I have not thought about a good Hessian estimate here, so just enter the mass matrix
-    % 
-    % 
-    % 
+    %
+    %
+    %
     %             ddIdBB=speye(N,N);
     %             ddIdCC=speye(N,N);
-    % 
+    %
     %             ddIdpp = spalloc(N+N,N+N,nnz(ddIdBB)+nnz(ddIdCC));
     %             ddIdpp(1:N,1:N) = ddIdBB;
     %             ddIdpp(N+1:N+N,N+1:N+N) = ddIdCC;
-    % 
+    %
     %         end
-    % 
+    %
     %     otherwise
-    % 
+    %
     %         error("sdfsa")
-    % 
+    %
     % end
 
 

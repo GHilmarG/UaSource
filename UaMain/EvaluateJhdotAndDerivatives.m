@@ -37,7 +37,7 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 % where $\dot{h}$=F.dhdt. Doing so ensures that $h$ boundary conditions have been accounted for.
 %
 % 
-%
+% see also: dhdtExplicit.m
 %
 %%
 

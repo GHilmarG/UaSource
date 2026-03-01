@@ -36,7 +36,15 @@ function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs)
 %
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$ 
 % 
-% 
+% If, as is generally the case, I have several $q$ variables then 
+%
+% $$ \frac{\partial F_u}{\partial u} \; \frac{\partial u }{ \partial C}    +  \frac{\partial F_u}{\partial v} \; \frac{\partial v }{ \partial C} + \frac{\partial F_u}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial C} = - \frac{\partial F_u }{ \partial C}  $$
+%
+% $$ \frac{\partial F_v}{\partial u} \; \frac{\partial u }{ \partial C}    +  \frac{\partial F_v}{\partial v} \; \frac{\partial v }{ \partial C} + \frac{\partial F_v}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial C} = - \frac{\partial F_v }{ \partial C}  $$
+%
+% $$ \frac{\partial F_{\dot{h}}}{\partial u} \; \frac{\partial u }{ \partial C}    +  \frac{\partial F_{\dot{h}}}{\partial v} \; \frac{\partial v }{ \partial C} + \frac{\partial F_{\dot{h}}}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial C} = - \frac{\partial F_{\dot{h}} }{ \partial C}  $$
+%
+%
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called
 % 

@@ -36,6 +36,83 @@ function [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$ 
 % 
+% If, as is generally the case, I have several $q$ variables then 
+%
+% $$ \frac{\partial F_u}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_u}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_u}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_u }{ \partial A}  $$
+%
+% $$ \frac{\partial F_v}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_v}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_v}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_v }{ \partial A}  $$
+%
+% $$ \frac{\partial F_{\dot{h}}}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_{\dot{h}}}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_{\dot{h}}}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_{\dot{h}} }{ \partial A}  $$
+%
+% or
+%
+% $$
+% \left (\begin{array}{ccc} 
+% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v}  & \frac{\partial F_u}{\partial \dot{h}} \\
+% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}  & \frac{\partial F_v}{\partial \dot{h}} \\
+% \frac{F_{\dot{h}}} {\partial u}  & \frac{F_{\dot{h}}}{\partial v}  & \frac{\partial F_{\dot{h}}}{\partial \dot{h}} 
+% \end{array}\right ) 
+% \left (\begin{array}{c} 
+%  \frac{\partial u}{\partial A} \\
+%  \frac{\partial v}{\partial A} \\ 
+%  \frac{\partial \dot{h}}{\partial A} 
+% \end{array} \right )
+% = - \left ( \begin{array}{c}
+%   \frac{\partial F_u}{\partial A} \\
+%   \frac{\partial F_v}{\partial A} \\
+%   \frac{\partial F_{\dot{h}}}{\partial A}  
+%   \end{array} \right )
+% $$
+%
+% The momentum equations are not explicit functions of $\dot{h}$ and the mass-conservation equation is not a function of $A$.
+% Therefore the system above simplifies to
+%
+% $$
+% \left (\begin{array}{ccc} 
+% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v}  & 0 \\
+% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}  & 0 \\
+% \frac{F_{\dot{h}}} {\partial u}  & \frac{F_{\dot{h}}}{\partial v}  & I
+% \end{array}\right ) 
+% \left (\begin{array}{c} 
+%  \frac{\partial u}{\partial A} \\
+%  \frac{\partial v}{\partial A} \\ 
+%  \frac{\partial \dot{h}}{\partial A} 
+% \end{array} \right )
+% = - \left ( \begin{array}{c}
+%   \frac{\partial F_u}{\partial A} \\
+%   \frac{\partial F_v}{\partial A} \\
+%   0
+%   \end{array} \right )
+% $$
+%
+% Note that $I$ is here not the identity matrix but the mass matrix.
+%
+%
+% One could therefore also first solve 
+%
+% $$
+% \left (\begin{array}{cc} 
+% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v} \\
+% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}  
+% \end{array}\right ) 
+% \left (\begin{array}{c} 
+%  \frac{\partial u}{\partial A} \\
+%  \frac{\partial v}{\partial A} 
+% \end{array} \right )
+% = - \left ( \begin{array}{c}
+%   \frac{\partial F_u}{\partial A} \\
+%   \frac{\partial F_v}{\partial A} 
+%   \end{array} \right )
+% $$
+%
+% and then determine $\partial{\dot{h}}/\partial{A}$ from
+%
+% $$
+%  \frac{\partial \dot{h}}{\partial A} = 
+% - \frac{\partial F_{\dot{h}}}{\partial u} \frac{\partial u}{\partial A} 
+% - \frac{\partial F_{\dot{h}}}{\partial v} \frac{\partial v}{\partial A} 
+% $$
+%
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called
 % 
@@ -53,12 +130,33 @@ if nargin<5 || isempty(Nodes)
 end
 
 
-dFdA=dFuvdA(CtrlVar,MUA,F);
+KdFuvdA=dFuvdA(CtrlVar,MUA,F);
+
 
 CtrlVar.uvAssembly.ZeroFields=false;
 CtrlVar.uvMatrixAssembly.Ronly=false;
 
-[~,dFduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+[~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+
+
+%%  To do for dh/dt meas
+%
+%   [KdFhdotdu,KdFhdotdv,KdFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ; 
+%
+% then solve:
+%
+%   [       KdFuvdu           0          ] [duv/dA ]  = - [ KdFuvdA   ]
+%   [KdFhdotdu KdFhdotdv KdFhdothdot     ] [dhdot/dA]     [ KdFhdotdA ] 
+%
+%
+% where 
+%
+%  KdFhdothdot = M 
+%  KdFhdotA    = 0 
+%
+% and need to add in BCs for u,v, and h
+%
+%%
 
 
 % if velocities are prescribed, the sensitivity of those velocities to changes in model parameters is zero.
@@ -79,18 +177,18 @@ else
 end
 
 if ~isempty(L)
-    frhs=-dFdA(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
+    frhs=-KdFuvdA(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
     %frhs=-dFdA(:,Node)-L'*l.ubvb; % if only calculate for one given node
     grhs=cuv-L*[F.ub;F.vb] ;
 else
-    frhs=-dFdA ;
+    frhs=-KdFuvdA ;
     grhs=[];
 end
 
 
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 CtrlVar.TestKApeSolve=false; 
-sol=solveKApe(dFduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+sol=solveKApe(KdFuvduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
 
 
 dudA=sol(1:MUA.Nnodes,:);
