@@ -1,8 +1,8 @@
 
-function [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,BCs)
+function [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs)
 
 
-narginchk(6,6)
+narginchk(7,7)
 
 dudA=[]; dvdA=[];
 dudB=[]; dvdB=[];
@@ -13,21 +13,21 @@ dudC=[]; dvdC=[];
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     tA=tic;
-    [dudA,dvdA]=duvdAFunc(CtrlVar,MUA,F,BCs) ;  % this has been tested against finite-differences and is good
+    [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs) ;  % this has been tested against finite-differences and is good
     tA=toc(tA);
     fprintf("dudA and dvdA sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
     tB=tic;
-    [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,BCs) ;  % this has been tested against finite-differences and is good
+    [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs) ;  % this has been tested against finite-differences and is good
     tB=toc(tB);
     fprintf("dudB and dvdB sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=tic;
-    [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs) ; % this has been tested against finite-differences and is good
+    [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
     fprintf("dudC and dvdC sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 end
@@ -69,69 +69,65 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
 
 end
 
-TestSensitivites=false;
+TestSensitivites=true;
 
 if TestSensitivites
 
     %% Test
 
-    S=d2Idpp;
-    upper=max(abs(S(:)));
-    lower=min(abs(S(:)));
-    Threshold=upper/1e10;
-    S(abs(S)<Threshold)=0;
-    S=sparse(S);
-    figure(10); spy(S) ; title("d2Idpp")
 
-    % Fxi=FindOrCreateFigure("xi=dq/dp") ; contourf(rot90(xi),LineStyle="none") ; axis equal ; colorbar
-    % title("abs(xi)")
-    % CM=cmocean('balanced',25,'pivot',0) ; colormap(Fxi,CM);
-    % 
-    % %set(gca,'ColorScale','log')
-    % 
-    % FindOrCreateFigure("d2Idpp") ; contourf(abs(rot90(d2Idpp)),LineStyle="none") ; axis equal ; colorbar
-    % title("abs(d2Idpp)")
-    % set(gca,'ColorScale','log')
 
     NodeTest=804;
 
     %% A 
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
-        % du/dA  But I need log10 sensitivities
+
+        
+        % du/dA  : these are now log10 sensitivities
         dudA=dudA(:,NodeTest);
         dvdA=dvdA(:,NodeTest);
 
 
+        %%
         A0=F.AGlen;
-        dA=F.AGlen(NodeTest)*0.00001;
+        dA=F.AGlen(NodeTest)*0.0001;
 
         Ap=A0;
         Ap(NodeTest)=Ap(NodeTest)+dA;
         F.AGlen=Ap;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        up=F.ub; vp=F.vb;
-
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        up=F.ub; vp=F.vb; dhdtp=dhdt;
+       
         F.AGlen=A0;
         Am=A0;
         Am(NodeTest)=Am(NodeTest)-dA;
         F.AGlen=Am;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        um=F.ub; vm=F.vb;
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        um=F.ub; vm=F.vb; dhdtm=dhdt; 
 
         F.AGlen=A0;
 
-        dudApert=(up-um)/(2*dA) ;  dvdApert=(vp-vm)/(2*dA) ;
+        dudApert=(up-um)/(2*dA) ;  
+        dvdApert=(vp-vm)/(2*dA) ; 
+        dhdotdApert=(dhdtp-dhdtm)/(2*dA) ; 
+
+        scale=log(10)*A0;   
+        dudApert=dudApert.*scale ; 
+        dvdApert=dvdApert.*scale ; 
+        dhdotdApert=dhdotdApert.*scale ; 
 
         % dv/dA
         figAu=FindOrCreateFigure("du/dA comparision");
         T=tiledlayout("flow");
 
         T1=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dudA,CreateNewFigure=false)  ; title("$du/dA$ sensitvity",Interpreter="latex") ; subtitle("")
+        cbar=UaPlots(CtrlVar,MUA,F,dudA,CreateNewFigure=false)  ; title("$du/dA$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
         title(cbar,"")
 
         T2=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dudApert,CreateNewFigure=false) ; title("$du/dA$ finite differences",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+        cbar=UaPlots(CtrlVar,MUA,F,dudApert,CreateNewFigure=false) ; title("$du/dA$ finite differences ($\log$ scale) ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
         T3=nexttile;
         UaPlots(CtrlVar,MUA,F,dudA-dudApert,CreateNewFigure=false) ; title("$du/dA$ differences",Interpreter="latex") ; subtitle("")
@@ -143,11 +139,11 @@ if TestSensitivites
         T=tiledlayout("flow");
 
         T1=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dvdA,CreateNewFigure=false)  ; title("$dv/dA$ sensitvity",Interpreter="latex") ; subtitle("")
+        cbar=UaPlots(CtrlVar,MUA,F,dvdA,CreateNewFigure=false)  ; title("$dv/dA$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
         title(cbar,"")
 
         T2=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dvdApert,CreateNewFigure=false) ; title("$dv/dA$ finite differences",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+        cbar=UaPlots(CtrlVar,MUA,F,dvdApert,CreateNewFigure=false) ; title("$dv/dA$ finite differences ($\log$ scale)",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
         T3=nexttile;
         UaPlots(CtrlVar,MUA,F,dvdA-dvdApert,CreateNewFigure=false) ; title("$dv/dA$ differences",Interpreter="latex") ; subtitle("")
@@ -155,6 +151,29 @@ if TestSensitivites
 
         T.Padding="loose";   T.TileSpacing="tight";
 
+
+        %% dhdot sensitivity to A
+
+        if ~isempty(dhdot)
+            % dhdot/dA
+            figAhdot=FindOrCreateFigure("dhdot/dA comparision"); clf(figAhdot)
+            T=tiledlayout("flow");
+
+            T1=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dhdotdA,CreateNewFigure=false)  ; title("$d\dot{h}/dA$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
+            title(cbar,"")
+
+            T2=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dudApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ finite differences ($\log$ scale) ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+
+            T3=nexttile;
+            UaPlots(CtrlVar,MUA,F,dhdotdA-dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ differences",Interpreter="latex") ; subtitle("")
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+            T.Padding="loose";   T.TileSpacing="tight";
+        end
+
+%%
     end
 
 
@@ -260,7 +279,7 @@ if TestSensitivites
         dudC=dudC(:,NodeTest);
         dvdC=dvdC(:,NodeTest);
 
-
+%%
         C0=F.C;
         dC=F.C(NodeTest)*0.00001;
 
@@ -280,18 +299,24 @@ if TestSensitivites
 
         F.C=C0;
 
-        dudCpert=(up-um)/(2*dC) ;  dvdCpert=(vp-vm)/(2*dC) ;
+        dudCpert=(up-um)/(2*dC) ;
+        dvdCpert=(vp-vm)/(2*dC) ;
+
+        scale=log(10)*C0;
+        dudCpert=dudCpert.*scale ;
+        dvdCpert=dvdCpert.*scale ;
+
 
         % dv/dC
-        figBu=FindOrCreateFigure("du/dC comparision");
+        figCu=FindOrCreateFigure("du/dC comparision"); clf(figCu)
         T=tiledlayout("flow");
 
         T1=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dudC,CreateNewFigure=false)  ; title("$du/dC$ sensitvity",Interpreter="latex") ; subtitle("")
+        cbar=UaPlots(CtrlVar,MUA,F,dudC,CreateNewFigure=false)  ; title("$du/dC$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
         title(cbar,"")
 
         T2=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dudCpert,CreateNewFigure=false) ; title("$du/dC$ finite differences",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+        cbar=UaPlots(CtrlVar,MUA,F,dudCpert,CreateNewFigure=false) ; title("$du/dC$ finite differences ($\log$ scale)",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
         T3=nexttile;
         UaPlots(CtrlVar,MUA,F,dudC-dudCpert,CreateNewFigure=false) ; title("$du/dC$ differences",Interpreter="latex") ; subtitle("")
@@ -299,21 +324,22 @@ if TestSensitivites
 
         T.Padding="loose";   T.TileSpacing="tight";
 
-        figAv=FindOrCreateFigure("dv/dC comparision");
+        figCv=FindOrCreateFigure("dv/dC comparision"); clf(figCv)
         T=tiledlayout("flow");
 
         T1=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dvdC,CreateNewFigure=false)  ; title("$dv/dC$ sensitvity",Interpreter="latex") ; subtitle("")
+        cbar=UaPlots(CtrlVar,MUA,F,dvdC,CreateNewFigure=false)  ; title("$dv/dC$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
         title(cbar,"")
 
         T2=nexttile;
-        cbar=UaPlots(CtrlVar,MUA,F,dvdCpert,CreateNewFigure=false) ; title("$dv/dA$ finite differences",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+        cbar=UaPlots(CtrlVar,MUA,F,dvdCpert,CreateNewFigure=false) ; title("$dv/dA$ finite differences ($\log$ scale)",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
         T3=nexttile;
         UaPlots(CtrlVar,MUA,F,dvdC-dvdCpert,CreateNewFigure=false) ; title("$dv/dA$ differences",Interpreter="latex") ; subtitle("")
         CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
         T.Padding="loose";   T.TileSpacing="tight";
+        %%
     end
 
 end

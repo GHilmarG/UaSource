@@ -11,6 +11,13 @@ Lh=MLC.hL;
 ch=MLC.hRhs;
 
 
+if nargin<4 || isempty(l)
+
+    l.ubvb=zeros(numel(cuv),1);
+    l.h=zeros(numel(ch),1) ; 
+
+end
+
 % Luv  : #uv constrains x 2MUA.Nnodes
 % Lh  : #h constrains x MUA.Nnodes
 % L=[Luv 0]

@@ -176,25 +176,25 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
         error('AugmentedLagrangianSolver:NaN','NaN in sol. All variables writen to TestSave.mat')
     end
     
-    x=sol(1:n) ; y=sol(n+1:end);
+    x=sol(1:n,:) ; y=sol(n+1:end,:);
     
     %[A B'] [x]=[f]
     %[B 0 ] [y]=[g]
-    resAbsolute=norm([A B' ; B sparse(m,m)]*sol-[f ; g])/norm([f;g]);
-    resRelative=resAbsolute/norm([f;g]);
+    resAbsolute=norm([A B' ; B sparse(m,m)]*sol-[f ; g],'fro')/norm([f;g],'fro');
+    resRelative=resAbsolute/norm([f;g],'fro');
     
     
-    yDiff=norm(y-y0)/norm(y);
-    xDiff=norm(x-x0)/norm(x);
+    yDiff=norm(y-y0,'fro')/norm(y,'fro');
+    xDiff=norm(x-x0,'fro')/norm(x,'fro');
     %res=norm([A B' ; B sparse(m,m)]*sol-[f ; g]);
     
     if CtrlVar.InfoLevelLinSolve>=10 
-        res1=norm(A*x+B'*y-f)/norm(f);
-        ng=norm(g);
+        res1=norm(A*x+B'*y-f,'fro')/norm(f,'fro');
+        ng=norm(g,'fro');
         if ng>0
-            res2=norm(B*x-g)/norm(g);
+            res2=norm(B*x-g,'fro')/norm(g,'fro');
         else
-            res2=norm(B*x-g);
+            res2=norm(B*x-g,'fro');
         end
         
         
@@ -238,13 +238,13 @@ if Iteration > IterationMax
 end
 
 if resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10
-    res1=norm(A*x+B'*y-f)/norm(f);
+    res1=norm(A*x+B'*y-f,'fro')/norm(f,'fro');
     
     ng=norm(g);
     if ng>0
-        res2=norm(B*x-g)/norm(g);
+        res2=norm(B*x-g,'fro')/norm(g,'fro');
     else
-        res2=norm(B*x-g);
+        res2=norm(B*x-g,'fro');
     end
     fprintf(' relative residuals=%-g \t absolute residuals=%-g \t first equation %-g \t second equation %-g \n',resRelative,resAbsolute,res1,res2);
     warning('ALS:MaxIterationReached','Augmented Lagrangian Solver did not fully converge to prescribed tolerance of %-g \n',CtrlVar.LinSolveTol)

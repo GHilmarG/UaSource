@@ -161,16 +161,16 @@ end
 
 if GetSensitivites
 
-    if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-        error("The DirectAdjoint Hessian calculation including dh/dt measurments not yet implemented.\n")
+    % if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+    %     error("The DirectAdjoint Hessian calculation including dh/dt measurments not yet implemented.\n")
+    % 
+    %     % To do
+    %     % [dudA,dvdA,dudB,dvdB,dudC,dvdC]=dhdotdABC(UserVar,CtrlVar,RunInfo,MUA,F,BCs);
+    % 
+    % end
 
-        % To do
-        % [dudA,dvdA,dudB,dvdB,dudC,dvdC]=dhdotdABC(UserVar,CtrlVar,RunInfo,MUA,F,BCs);
 
-    end
-
-
-    [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,BCs);
+    [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
 
 end
 

@@ -1,6 +1,6 @@
 
 
-function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,BCs)
+function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs)
 
 %% Calculates the sensitivity matrix duv/dC
 %

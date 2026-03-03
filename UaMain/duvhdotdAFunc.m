@@ -1,6 +1,15 @@
 
 
-function [dudA,dvdA,dhdotdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
+function [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,Nodes)
+
+narginchk(5,6)
+
+if nargin<6 || isempty(Nodes)
+    Nodes=1:MUA.Nnodes;
+end
+
+
+
 
 %% Calculates the sensitivity matrix duv/dA
 %
@@ -149,12 +158,6 @@ function [dudA,dvdA,dhdotdA]=duvdAFunc(CtrlVar,MUA,F,BCs,Nodes)
 %%
 
 
-error("use duvhdotdAFunc instead")
-
-if nargin<5 || isempty(Nodes)
-    Nodes=1:MUA.Nnodes;
-end
-
 
 dhdotdA=[];
 
@@ -183,7 +186,12 @@ CtrlVar.uvMatrixAssembly.Ronly=false;
 %
 %%
 
-Sensitivities="-dudA-dvdA-dhdotdA-";
+Sensitivities="-dudA-dvdA-";
+
+if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+    Sensitivities=Sensitivities+"-dhdotdA-" ;
+    Sensitivities=replace(Sensitivities,"--","-");
+end
 
 switch Sensitivities
 

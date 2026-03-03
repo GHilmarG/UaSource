@@ -118,14 +118,15 @@ for Inod=1:MUA.nod
         dFhdotdvXval(istak+1:istak+MUA.Nele)=dFhdotdv(:,Inod,Jnod);
         dFhdotdhdotXval(istak+1:istak+MUA.Nele)=dFhdotdhdot(:,Inod,Jnod);
 
+        istak=istak+MUA.Nele;
 
     end
 end
 
 
-dFhdotdu=sparseUA(Iind,Jind,dFhdotduXval,2*nNodes,nNodes);
-dFhdotdv=sparseUA(Iind,Jind,dFhdotdvXval,2*nNodes,nNodes);
-dFhdotdhdot=sparseUA(Iind,Jind,dFhdotdhdotXval,2*nNodes,nNodes);
+dFhdotdu=sparseUA(Iind,Jind,dFhdotduXval,nNodes,nNodes);
+dFhdotdv=sparseUA(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
+dFhdotdhdot=sparseUA(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
 
 end
 

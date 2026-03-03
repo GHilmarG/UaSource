@@ -1,6 +1,6 @@
 
 
-function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,BCs,Nodes)
+function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,Nodes)
 
 %% Calculates the sensitivity matrix duv/dB
 %
