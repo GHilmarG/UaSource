@@ -92,7 +92,7 @@ for Iint=1:MUA.nip
 
             dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) - (h.* Deriv(:,1,Inod) + fun(Jnod).*dhdx )   .*detJw;
             dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) - (h.* Deriv(:,2,Inod) + fun(Jnod).*dhdy )   .*detJw;
-            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Inod).*fun(Jnod) .*detJw;
+            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Inod).*fun(Jnod) .*detJw;  % I don't really need to do this as this is the Mass Matrix
 
         end
     end

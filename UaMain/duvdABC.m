@@ -57,8 +57,9 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
 
     scale=log(10)*F.AGlen';  % this has to be a row vector
     dudA=dudA.*scale ; % using implicit expansion
-
     dvdA=dvdA.*scale ; % using implicit expansion
+    dhdotdA=dhdotdA.*scale ;
+
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
@@ -66,6 +67,7 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     scale=log(10)*F.C';  % this has to be a row vector
     dudC=dudC.*scale ;   % using implicit expansion
     dvdC=dvdC.*scale ;   % using implicit expansion
+
 
 end
 
@@ -78,6 +80,7 @@ if TestSensitivites
 
 
     NodeTest=804;
+    NodeTest=1200;
 
     %% A 
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
@@ -87,10 +90,13 @@ if TestSensitivites
         dudA=dudA(:,NodeTest);
         dvdA=dvdA(:,NodeTest);
 
+        if ~isempty(dhdotdA)
+            dhdotdA=dhdotdA(:,NodeTest);
+        end
 
         %%
         A0=F.AGlen;
-        dA=F.AGlen(NodeTest)*0.0001;
+        dA=F.AGlen(NodeTest)*0.01;
 
         Ap=A0;
         Ap(NodeTest)=Ap(NodeTest)+dA;
@@ -117,6 +123,7 @@ if TestSensitivites
         dudApert=dudApert.*scale ; 
         dvdApert=dvdApert.*scale ; 
         dhdotdApert=dhdotdApert.*scale ; 
+        dhdotdApert=dhdotdApert*3; % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
 
         % dv/dA
         figAu=FindOrCreateFigure("du/dA comparision");
@@ -152,9 +159,11 @@ if TestSensitivites
         T.Padding="loose";   T.TileSpacing="tight";
 
 
-        %% dhdot sensitivity to A
+        % dhdot sensitivity to A
 
-        if ~isempty(dhdot)
+        if ~isempty(dhdotdA)
+            
+        
             % dhdot/dA
             figAhdot=FindOrCreateFigure("dhdot/dA comparision"); clf(figAhdot)
             T=tiledlayout("flow");
@@ -164,14 +173,65 @@ if TestSensitivites
             title(cbar,"")
 
             T2=nexttile;
-            cbar=UaPlots(CtrlVar,MUA,F,dudApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ finite differences ($\log$ scale) ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+            cbar=UaPlots(CtrlVar,MUA,F,dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ finite differences ($\log$ scale) ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
             T3=nexttile;
             UaPlots(CtrlVar,MUA,F,dhdotdA-dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ differences",Interpreter="latex") ; subtitle("")
             CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
             T.Padding="loose";   T.TileSpacing="tight";
+
+            
         end
+
+
+        figAgrad=FindOrCreateFigure("du/dA gradient test") ;  clf(figAgrad)
+        plot(dudA,dudApert,"or") ;
+        hold on
+        axis equal
+        AX=axis;
+        plot([min(dudA) max(dudA)],[min(dudA) max(dudA)],"--k") ;
+        axis equal tight ;
+        xlabel(" $du/dA$",Interpreter="latex")  ;
+        ylabel("Finite difference $du/dA$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision between adjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
+
+        figAgrad=FindOrCreateFigure("dv/dA gradient test") ;  clf(figAgrad)
+        plot(dvdA,dvdApert,"or") ;
+        hold on
+        axis equal
+        plot([min(dvdA) max(dvdA)],[min(dvdA) max(dvdA)],"--k") ;
+        axis equal tight ;
+        xlabel(" $dv/dA$",Interpreter="latex")  ;
+        ylabel("Finite difference $dv/dA$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision between adjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
+
+
+        if ~isempty(dhdotdA)
+
+            figAgrad=FindOrCreateFigure("dhdot/dA gradient test") ;  clf(figAgrad)
+            plot(dhdotdA,dhdotdApert,"or") ;
+            hold on
+            axis equal
+            plot([min(dhdotdA) max(dhdotdA)],[min(dhdotdA) max(dhdotdA)],"--k") ;
+            axis equal tight ;
+            xlabel(" $d\dot{h}/dA$",Interpreter="latex")  ;
+            ylabel("Finite difference $d\dot{h}/dA$",Interpreter="latex")
+            ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+            axis on ; axis equal tight ; box off
+            title("Comparision between adjoint and finite-differences gradient calculations")
+            set(gcf,'Color','white')
+
+        end
+
+
+
 
 %%
     end
