@@ -56,9 +56,9 @@ end
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v}  & \frac{\partial F_u}{\partial \dot{h}} \\
-% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}  & \frac{\partial F_v}{\partial \dot{h}} \\
-% \frac{F_{\dot{h}}} {\partial u}  & \frac{F_{\dot{h}}}{\partial v}  & \frac{\partial F_{\dot{h}}}{\partial \dot{h}}
+% \frac{\partial F_u}{\partial u}  & \frac{F_u}{\partial v}  & \frac{\partial F_u}{\partial \dot{h}} \\
+% \frac{\partial F_v}{\partial u}  & \frac{F_v}{\partial v}  & \frac{\partial F_v}{\partial \dot{h}} \\
+% \frac{\partial F_{\dot{h}}} {\partial u}  & \frac{\partial F_{\dot{h}}}{\partial v}  & \frac{\partial F_{\dot{h}}}{\partial \dot{h}}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
@@ -77,9 +77,9 @@ end
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v}  & 0 \\
-% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}  & 0 \\
-% \frac{F_{\dot{h}}} {\partial u}  & \frac{F_{\dot{h}}}{\partial v}  & I
+% \frac{\partial F_u}{\partial u}  & \frac{\partial F_u}{\partial v}  & 0 \\
+% \frac{\partial F_v}{\partial u}  & \frac{F_v}{\partial v}  & 0 \\
+% \frac{\partial F_{\dot{h}}} {\partial u}  & \frac{\partial F_{\dot{h}}}{\partial v}  & I
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
@@ -100,8 +100,8 @@ end
 %
 % $$
 % \left (\begin{array}{cc}
-% \frac{F_u}{\partial u}  & \frac{F_u}{\partial v} \\
-% \frac{F_v}{\partial u}  & \frac{F_v}{\partial v}
+% \frac{\partial F_u}{\partial u}  & \frac{\partial F_u}{\partial v} \\
+% \frac{\partial F_v}{\partial u}  & \frac{\partial F_v}{\partial v}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
@@ -117,8 +117,35 @@ end
 %
 % $$
 %  \frac{\partial \dot{h}}{\partial A} =
-% - \frac{\partial F_{\dot{h}}}{\partial u} \frac{\partial u}{\partial A}
+% -\frac{\partial F_{\dot{h}}}{\partial u} \frac{\partial u}{\partial A}
 % - \frac{\partial F_{\dot{h}}}{\partial v} \frac{\partial v}{\partial A}
+% $$
+%
+% Why not just calculate 
+% 
+% $$\partial \dot{h} / \partial u $$
+% 
+% directly, using 
+%
+% $$ \dot{h} = q - \partial_x (u h) - \partial_y (v h) $$
+% 
+% that is
+%
+% $$ 
+%  \langle \dot{h}  \, | \, \phi_i \rangle = \langle -( \partial_x u \, h + \partial h \, u ) \, | \, \phi_i \rangle  
+% $$
+%
+% and then 
+%
+% $$
+% \frac{\partial \dot{h}_i}{\partial u_j} = - \langle \partial \phi_j \,  h + \partial h \, \phi_j \,  | \, \phi_i \rangle
+% $$
+%
+% Then
+%
+% $$
+% \frac{ d \dot{h}}{d A }= \frac{\partial \dot{h}}{\partial A} 
+% + \frac{\partial \dot{h}}{\partial u} \frac{\partial u}{\partial A}
 % $$
 %
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
@@ -167,24 +194,7 @@ CtrlVar.uvMatrixAssembly.Ronly=false;
 [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 
 
-%%  To do for dh/dt meas
-%
-%   [KdFhdotdu,KdFhdotdv,KdFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
-%
-% then solve:
-%
-%   [       KdFuvdu           0          ] [duv/dA ]  = - [ KdFuvdA   ]
-%   [KdFhdotdu KdFhdotdv KdFhdothdot     ] [dhdot/dA]     [ KdFhdotdA ]
-%
-%
-% where
-%
-%  KdFhdothdot = M
-%  KdFhdotA    = 0
-%
-% and need to add in BCs for u,v, and h
-%
-%%
+
 
 Sensitivities="-dudA-dvdA-";
 

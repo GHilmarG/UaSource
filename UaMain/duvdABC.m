@@ -80,7 +80,8 @@ if TestSensitivites
 
 
     NodeTest=804;
-    NodeTest=1200;
+    NodeTest=1200; 
+    NodeTest=1500;
 
     %% A 
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
@@ -123,7 +124,7 @@ if TestSensitivites
         dudApert=dudApert.*scale ; 
         dvdApert=dvdApert.*scale ; 
         dhdotdApert=dhdotdApert.*scale ; 
-        dhdotdApert=dhdotdApert*3; % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
+        dhdotdApert=dhdotdApert*(-3); % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
 
         % dv/dA
         figAu=FindOrCreateFigure("du/dA comparision");

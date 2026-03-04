@@ -31,11 +31,11 @@ function [dFhdotdu,dFhdotdv,dFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F)
 % Therefore:
 %
 % $$
-% \langle \partial_u F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle - h \, \partial_x \phi_i - \phi_i \, \partial_x h | \phi_k \rangle
+% \langle \partial_u F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle -h \, \partial_x \phi_i + \phi_i \, \partial_x h | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial_v F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle - h \, \partial_y \phi_i - \phi_i \, \partial_y h | \phi_k \rangle
+% \langle \partial_v F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle  h \, \partial_y \phi_i + \phi_i \, \partial_y h | \phi_k \rangle
 % $$
 %
 % $$
@@ -90,8 +90,8 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) - (h.* Deriv(:,1,Inod) + fun(Jnod).*dhdx )   .*detJw;
-            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) - (h.* Deriv(:,2,Inod) + fun(Jnod).*dhdy )   .*detJw;
+            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (h.* Deriv(:,1,Inod) + fun(Jnod).*dhdx )   .*detJw;
+            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (h.* Deriv(:,2,Inod) + fun(Jnod).*dhdy )   .*detJw;
             dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Inod).*fun(Jnod) .*detJw;  % I don't really need to do this as this is the Mass Matrix
 
         end
