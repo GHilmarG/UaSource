@@ -93,6 +93,9 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 % $$p_k=Q_k h_k$$ 
 %
 % see https://www.numerical.rl.ac.uk/media/people/nick-gould/GoulLuciRomaToin99_siopt.pdf
+%
+% Also see: https://people.maths.ox.ac.uk/nakatsukasa/preprints/TRSrev2.pdf
+%
 %%
 
 if isempty(E)
