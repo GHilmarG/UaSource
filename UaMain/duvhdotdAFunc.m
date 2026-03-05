@@ -44,21 +44,32 @@ end
 %
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
 %
-% If, as is generally the case, I have several $q$ variables and several forward models, then
+% If, as is generally the case, I have several $q$ variables and several forward models, 
+% 
+% $$ F^{uv}_x =0 $$
+% 
+% $$ F^{uv}_y =0 $$
 %
-% $$ \frac{\partial F_u}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_u}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_u}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_u }{ \partial A}  $$
+% $$ F^{h} =0 $$
 %
-% $$ \frac{\partial F_v}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_v}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_v}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_v }{ \partial A}  $$
+% 
+% 
+% 
+% then
 %
-% $$ \frac{\partial F_{\dot{h}}}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F_{\dot{h}}}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F_{\dot{h}}}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F_{\dot{h}} }{ \partial A}  $$
+% $$ \frac{\partial F^{uv}_x}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_x}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_x}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_x }{ \partial A}  $$
+%
+% $$ \frac{\partial F^{uv}_y}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_y}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_y}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_y }{ \partial A}  $$
+%
+% $$ \frac{\partial F^h}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^h}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^h}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^h }{ \partial A}  $$
 %
 % or
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{\partial F_u}{\partial u}  & \frac{F_u}{\partial v}  & \frac{\partial F_u}{\partial \dot{h}} \\
-% \frac{\partial F_v}{\partial u}  & \frac{F_v}{\partial v}  & \frac{\partial F_v}{\partial \dot{h}} \\
-% \frac{\partial F_{\dot{h}}} {\partial u}  & \frac{\partial F_{\dot{h}}}{\partial v}  & \frac{\partial F_{\dot{h}}}{\partial \dot{h}}
+% \frac{\partial F^{uv}_x}{\partial u}  & \frac{F^{uv}_x}{\partial v}  & \frac{\partial F^{uv}_x}{\partial \dot{h}} \\
+% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & \frac{\partial F^{uv}_y}{\partial \dot{h}} \\
+% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & \frac{\partial F^h}{\partial \dot{h}}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
@@ -66,9 +77,9 @@ end
 %  \frac{\partial \dot{h}}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
-%   \frac{\partial F_u}{\partial A} \\
-%   \frac{\partial F_v}{\partial A} \\
-%   \frac{\partial F_{\dot{h}}}{\partial A}
+%   \frac{\partial F^{uv}_x}{\partial A} \\
+%   \frac{\partial F^{uv}_y}{\partial A} \\
+%   \frac{\partial F^h}{\partial A}
 %   \end{array} \right )
 % $$
 %
@@ -77,9 +88,9 @@ end
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{\partial F_u}{\partial u}  & \frac{\partial F_u}{\partial v}  & 0 \\
-% \frac{\partial F_v}{\partial u}  & \frac{F_v}{\partial v}  & 0 \\
-% \frac{\partial F_{\dot{h}}} {\partial u}  & \frac{\partial F_{\dot{h}}}{\partial v}  & I
+% \frac{\partial F^{uv}_x}{\partial u}  & \frac{\partial F^{uv}_x}{\partial v}  & 0 \\
+% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & 0 \\
+% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & I
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
@@ -87,8 +98,8 @@ end
 %  \frac{\partial \dot{h}}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
-%   \frac{\partial F_u}{\partial A} \\
-%   \frac{\partial F_v}{\partial A} \\
+%   \frac{\partial F^{uv}_x}{\partial A} \\
+%   \frac{\partial F^{uv}_y}{\partial A} \\
 %   0
 %   \end{array} \right )
 % $$
@@ -100,16 +111,16 @@ end
 %
 % $$
 % \left (\begin{array}{cc}
-% \frac{\partial F_u}{\partial u}  & \frac{\partial F_u}{\partial v} \\
-% \frac{\partial F_v}{\partial u}  & \frac{\partial F_v}{\partial v}
+% \frac{\partial F^{uv}_x}{\partial u}  & \frac{\partial F^{uv}_x}{\partial v} \\
+% \frac{\partial F^{uv}_y}{\partial u}  & \frac{\partial F^{uv}_y}{\partial v}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
 %  \frac{\partial v}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
-%   \frac{\partial F_u}{\partial A} \\
-%   \frac{\partial F_v}{\partial A}
+%   \frac{\partial F^{uv}_x}{\partial A} \\
+%   \frac{\partial F^{uv}_y}{\partial A}
 %   \end{array} \right )
 % $$
 %
@@ -117,8 +128,8 @@ end
 %
 % $$
 %  \frac{\partial \dot{h}}{\partial A} =
-% -\frac{\partial F_{\dot{h}}}{\partial u} \frac{\partial u}{\partial A}
-% - \frac{\partial F_{\dot{h}}}{\partial v} \frac{\partial v}{\partial A}
+% -\frac{\partial F^h}{\partial u} \frac{\partial u}{\partial A}
+% - \frac{\partial F^h}{\partial v} \frac{\partial v}{\partial A}
 % $$
 %
 % Why not just calculate 
@@ -132,13 +143,13 @@ end
 % that is
 %
 % $$ 
-%  \langle \dot{h}  \, | \, \phi_i \rangle = \langle -( \partial_x u \, h + \partial h \, u ) \, | \, \phi_i \rangle  
+%  \langle \dot{h}  \, | \, \phi_i \rangle = \langle -( \partial_x u \, h + \partial_x h \, u ) \, | \, \phi_i \rangle  
 % $$
 %
 % and then 
 %
 % $$
-% \frac{\partial \dot{h}_i}{\partial u_j} = - \langle \partial \phi_j \,  h + \partial h \, \phi_j \,  | \, \phi_i \rangle
+% \langle \delta_{u_j} \dot{h} \, \phi_j | \phi_i \rangle = - \langle \partial_x \phi_j \,  h + \partial_x h \, \phi_j \,  | \, \phi_i \rangle
 % $$
 %
 % Then

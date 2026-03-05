@@ -9,7 +9,10 @@ function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(Us
 %
 %
 % Does not depend on s or b, only h, S and B
-
+%
+% K is dFuvh/duvh
+%
+%
 
 %
 % Tint   : vector of internal nodal forces
@@ -22,7 +25,8 @@ nargoutchk(4,8)
 
 
 %
-% K= [Kxu Kxv Kxh]
+% K=
+%  [Kxu Kxv Kxh]
 %    [Kyu Kyv Kyh]
 %    [Khu Khv Khh]
 

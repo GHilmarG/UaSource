@@ -53,14 +53,14 @@ if nargin<5 || isempty(Nodes)
 end
 
 
-dFdB=dFuvdB(CtrlVar,MUA,F);
+KdFuvdB=dFuvdB(CtrlVar,MUA,F);
 
 
 
 CtrlVar.uvAssembly.ZeroFields=false;
 CtrlVar.uvMatrixAssembly.Ronly=false;
 
-[~,dFduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+[~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 
 
 % if velocities are prescribed, the sensitivity of those velocities to changes in model parameters is zero.
@@ -81,18 +81,18 @@ else
 end
 
 if ~isempty(L)
-    frhs=-dFdB(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdB matrix
+    frhs=-KdFuvdB(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdB matrix
     %frhs=-dFdB(:,Node)-L'*l.ubvb; % if only calculate for one given node
     grhs=cuv-L*[F.ub;F.vb] ;
 else
-    frhs=-dFdB ;
+    frhs=-KdFuvdB ;
     grhs=[];
 end
 
 
 dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 CtrlVar.TestKApeSolve=false; 
-sol=solveKApe(dFduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+sol=solveKApe(KdFuvduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
 
 
 dudB=sol(1:MUA.Nnodes,:);

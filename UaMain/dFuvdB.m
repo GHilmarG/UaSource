@@ -177,8 +177,8 @@ snod=reshape(F.s(MUA.connectivity,1),MUA.Nele,MUA.nod);
 ubnod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vbnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+% mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
