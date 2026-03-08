@@ -1,6 +1,6 @@
 
 
-function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,Nodes)
+function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
 %% Calculates the sensitivity matrix duv/dB
 %
@@ -48,20 +48,19 @@ function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,Nodes)
 % 
 %%
 
-if nargin<5 || isempty(Nodes)
+narginchk(5,7)
+
+if nargin<7 || isempty(Nodes)
     Nodes=1:MUA.Nnodes;
 end
 
+if nargin < 6 || isempty(KdFuvduv)
+    CtrlVar.uvAssembly.ZeroFields=false;
+    CtrlVar.uvMatrixAssembly.Ronly=false;
+    [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+end
 
 KdFuvdB=dFuvdB(CtrlVar,MUA,F);
-
-
-
-CtrlVar.uvAssembly.ZeroFields=false;
-CtrlVar.uvMatrixAssembly.Ronly=false;
-
-[~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
-
 
 % if velocities are prescribed, the sensitivity of those velocities to changes in model parameters is zero.
 % make sure that the BCs reflect this.

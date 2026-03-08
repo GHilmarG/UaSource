@@ -1,6 +1,6 @@
 
 
-function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs)
+function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
 %% Calculates the sensitivity matrix duv/dC
 %
@@ -56,18 +56,25 @@ function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs)
 % see also: dFuvdA.m, dFuvdC.m , TestSensitivityMatrixCalculations.m
 % 
 %%
+narginchk(5,7)
+
+if nargin<7 || isempty(Nodes)
+    Nodes=1:MUA.Nnodes;
+end
+
+if nargin < 6 || isempty(KdFuvduv)
+    CtrlVar.uvAssembly.ZeroFields=false;
+    CtrlVar.uvMatrixAssembly.Ronly=false;
+    [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+end
+
+
 
 dFdC=dFuvdC(CtrlVar,MUA,F) ;
 dFdC=-dFdC; % there is actually a different sign convention inside of this...
 
-CtrlVar.uvAssembly.ZeroFields=false;
-CtrlVar.uvMatrixAssembly.Ronly=false;
 
-[~,dFduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 
-% test for one particular node and compare to finite-differences 
-
-% if velocities are prescribed, the sensitivity of those velocities to changes in model parameters is zero.
 % make sure that the BCs reflect this.
 if numel(BCs.ubFixedValue) > 0
     BCs.ubFixedValue=BCs.ubFixedValue*0;
@@ -94,7 +101,7 @@ end
 
 duvb=zeros(2*MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
 CtrlVar.TestKApeSolve=false; 
-sol=solveKApe(dFduv,L,frhs,grhs,duvb,dl,CtrlVar);
+sol=solveKApe(KdFuvduv,L,frhs,grhs,duvb,dl,CtrlVar);
 
 %l.ubvb=dl; 
 

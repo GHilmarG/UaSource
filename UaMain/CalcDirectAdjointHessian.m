@@ -134,6 +134,10 @@ narginchk(13,13)
 %
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
 %
+%
+%
+% https://www.sciencedirect.com/science/article/pii/S0377042708006523
+%
 %%
 
 %% Get the sensitivity matrices
@@ -158,19 +162,16 @@ else
 end
 
 
+CtrlVar.Inverse.InvertFor="-logAGlen-logC-B-";  
 
 if GetSensitivites
 
-    % if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
-    %     error("The DirectAdjoint Hessian calculation including dh/dt measurments not yet implemented.\n")
-    % 
-    %     % To do
-    %     % [dudA,dvdA,dudB,dvdB,dudC,dvdC]=dhdotdABC(UserVar,CtrlVar,RunInfo,MUA,F,BCs);
-    % 
-    % end
 
-
-    [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
+    if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+        [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duvhdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs) ;
+    else
+        [KdudA,KdvdA,dudB,KdvdB,KdudC,KdvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs);
+    end
 
 end
 
@@ -184,7 +185,7 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")
     %
     %
     %
-    xi=[dudA dudB dudC ; dvdA dvdB dvdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
+    xi=[KdudA dudB KdudC ; KdvdA KdvdB KdvdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
 
     d2Jdqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
 

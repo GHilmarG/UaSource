@@ -37,7 +37,7 @@ if ~isempty(B)
         fprintf('x0 must have same number of elements as there are rows in A\n')
         error('error in solveKApe')
     end
-    
+
     if ny0~=nB
         fprintf('y0 must have same number of elements as there are rows in B\n')
         error('solveKApe:InputsIncompatable','error in solveKApe')
@@ -90,39 +90,39 @@ tSolve=tic;
 
 switch CtrlVar.AsymmSolver
     case 'Bempty'
-        
+
         x=A\f; y=[];
-        
+
     case 'Backslash'
-        
+
         m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
         sol=AA\bb; x=sol(1:n) ; y=sol(n+1:end);
         if CtrlVar.InfoLevelLinSolve>=1
             fprintf(' Constraint matrix NOT empty. Solving system directly using the backslash operator \n ')
         end
-        
+
     case 'EliminateBCsSolveSystemDirectly'
-    
-        
-         [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
-    
+
+
+        [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
+
     case 'AugmentedLagrangian'
-        
-        
+
+
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
-        
+
     case 'EliminateBCsSolveSystemIterativly'
-        
+
         if CtrlVar.InfoLevelLinSolve>2; fprintf(' Eliminating constraints and solving system iterativly \n') ; end
-        
+
         [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
         iFreeDOF=setdiff(1:n,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
-        
-        
+
+
         AA=A; ff=f; xx0=x0;
         AA(iConstrainedDOF,:)=[]; AA(:,iConstrainedDOF)=[]; ff(iConstrainedDOF)=[];
         xx0(iConstrainedDOF)=[];
-        
+
         tstart=tic;
 
 
@@ -130,13 +130,13 @@ switch CtrlVar.AsymmSolver
         %setup.type = 'crout'; setup.milu = 'off'; setup.droptol = 0.1;
         %setup.type = 'ilutp'; setup.milu = 'off'; setup.droptol = 0.15;
         setup.type = 'nofill'; setup.milu = 'off';
-        
+
         [L1,U1] = ilu(AA,setup);
         tluinc=toc(tluinc);
-        
-        
+
+
         tol=1e-6 ; maxit=20;
-        
+
 
 
         t1=tic ;
@@ -144,22 +144,22 @@ switch CtrlVar.AsymmSolver
         restart=10;
         [sol,flag,relres,iter,resvec]=gmres(AA,ff,restart,tol,maxit,L1,U1,xx0);
         t2=toc(t1);
-        
+
         %sol=AA\ff;
         x=zeros(n,1) ; x(iConstrainedDOF)=g ; x(iFreeDOF)=sol; y=B*(f-A*x);
-        
-        
+
+
         tend=toc(tstart);
-        
+
         if CtrlVar.InfoLevelLinSolve>=1
             disp([' ilu in  ',num2str(tluinc),' sec '])
             disp([' gmres  ',num2str(t2),' sec '])
             disp([' total solution time  ',num2str(tend),' sec '])
         end
-        
+
         if CtrlVar.InfoLevelLinSolve>=10
-            
-            
+
+
             figure
             fprintf(' flag=%-i, iter=%-g, relres=%-g \n ',flag,iter,relres)
             nnn=numel(resvec);
@@ -167,11 +167,11 @@ switch CtrlVar.AsymmSolver
             xlabel('Iteration Number')
             ylabel('Relative Residual')
         end
-        
+
     otherwise
-        
+
         error(' which case ? ')
-        
+
 end
 
 tSolve=toc(tSolve);
@@ -189,10 +189,10 @@ if  CtrlVar.TestKApeSolve
     tTesting=tic;
     fNorm=norm(f,"fro");
     if isempty(B)
-        if norm(f)>eps
-            res=norm(A*x-f)/fNorm;
+        if norm(f,'fro')>eps
+            res=norm(A*x-f,"fro")/fNorm;
         else
-            res=norm(A*x-f);
+            res=norm(A*x-f,"fro");
         end
         if res>1e-5
             fprintf('solveKApe: Solution residual appears too large! %g \n',res)

@@ -3,7 +3,7 @@
 
 
 
-function [UserVar,RunInfo,R,K,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
+function [UserVar,RunInfo,R,KdFuvhduvh,tauxInt,tauyInt,etaInt,HeInt]=uvhMatrixAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1)
 
 % [UserVar,RunInfo,R,K,Tint,Fext]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,ZeroFields)
 %
@@ -26,7 +26,7 @@ nargoutchk(4,8)
 
 %
 % K=
-%  [Kxu Kxv Kxh]
+%    [Kxu Kxv Kxh]
 %    [Kyu Kyv Kyh]
 %    [Khu Khv Khh]
 
@@ -34,7 +34,7 @@ ZeroFields=CtrlVar.uvhMatrixAssembly.ZeroFields;
 Ronly=CtrlVar.uvhMatrixAssembly.Ronly;
 
 if Ronly
-    K=[];
+    KdFuvhduvh=[];
 end
 % 
 % if nargin<7
@@ -390,7 +390,7 @@ end
 
 if CtrlVar.OnlyCalcBasalDragAndEffectiveViscosity
 
-    R=[] ; K=[] ; 
+    R=[] ; KdFuvhduvh=[] ; 
     return
 
 end
@@ -510,14 +510,14 @@ if ~Ronly
         end
         
         
-        K=sparseUA(Iind,Jind,Xval,neq,neq);
+        KdFuvhduvh=sparseUA(Iind,Jind,Xval,neq,neq);
         
         
         %%
         
     else
         Iind=zeros(9*MUA.nod*MUA.Nele,1); Jind=zeros(9*MUA.nod*MUA.Nele,1);Xval=zeros(9*MUA.nod*MUA.Nele,1);
-        K=sparseUA(neq,neq);
+        KdFuvhduvh=sparseUA(neq,neq);
         
         for Inod=1:MUA.nod
             istak=0;
@@ -550,7 +550,7 @@ if ~Ronly
                 Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+2*neqx; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*neqx; Xval(istak+1:istak+MUA.Nele)=Khh(:,Inod,Jnod);
                 istak=istak+MUA.Nele;
             end
-            K=K+sparseUA(Iind,Jind,Xval,neq,neq);
+            KdFuvhduvh=KdFuvhduvh+sparseUA(Iind,Jind,Xval,neq,neq);
         end
     end
 end
@@ -564,7 +564,7 @@ if CtrlVar.IncludeTG3uvhBoundaryTerm && CtrlVar.TG3
     [Ktest,Rtest]=BoundaryIntegralFullyImplicitTG3(MUA.coordinates,MUA.connectivity,MUA.Boundary,F0.h,F1.h,F0.ub,F0.vb,F1.ub,F1.uv,F0.as+F0.ab,F1.as+F1.ab,CtrlVar.dt,CtrlVar);
     R=R+Rtest;
     if ~Ronly
-        K=K+Ktest;
+        KdFuvhduvh=KdFuvhduvh+Ktest;
     end
 end
 
@@ -577,7 +577,7 @@ if minh<2*CtrlVar.ThickMin && CtrlVar.InfoLevelNonLinIt>1000   % if min thicknes
 end
 
 if ~Ronly
-    if full(any(isnan(diag(K))))
+    if full(any(isnan(diag(KdFuvhduvh))))
         error(' NaN in K ' ) ;
     end 
 end

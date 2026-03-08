@@ -8,26 +8,29 @@ dudA=[]; dvdA=[];
 dudB=[]; dvdB=[];
 dudC=[]; dvdC=[];
 
-
+CtrlVar.uvAssembly.ZeroFields=false;
+CtrlVar.uvMatrixAssembly.Ronly=false;
+[~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     tA=tic;
-    [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs) ;  % this has been tested against finite-differences and is good
+    [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
     tA=toc(tA);
     fprintf("dudA and dvdA sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
     tB=tic;
-    [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs) ;  % this has been tested against finite-differences and is good
+    [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
+
     tB=toc(tB);
     fprintf("dudB and dvdB sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=tic;
-    [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs) ; % this has been tested against finite-differences and is good
+    [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
     fprintf("dudC and dvdC sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 end
@@ -78,15 +81,15 @@ if TestSensitivites
     %% Test
 
 
-
+    Funperturbed=F; 
     NodeTest=804;
-    NodeTest=1200; 
-    NodeTest=1500;
+    % NodeTest=1200;
+    %NodeTest=1500;
 
-    %% A 
+    %% A
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
 
-        
+
         % du/dA  : these are now log10 sensitivities
         dudA=dudA(:,NodeTest);
         dvdA=dvdA(:,NodeTest);
@@ -105,26 +108,26 @@ if TestSensitivites
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
         up=F.ub; vp=F.vb; dhdtp=dhdt;
-       
+
         F.AGlen=A0;
         Am=A0;
         Am(NodeTest)=Am(NodeTest)-dA;
         F.AGlen=Am;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
-        um=F.ub; vm=F.vb; dhdtm=dhdt; 
+        um=F.ub; vm=F.vb; dhdtm=dhdt;
 
         F.AGlen=A0;
 
-        dudApert=(up-um)/(2*dA) ;  
-        dvdApert=(vp-vm)/(2*dA) ; 
-        dhdotdApert=(dhdtp-dhdtm)/(2*dA) ; 
+        dudApert=(up-um)/(2*dA) ;
+        dvdApert=(vp-vm)/(2*dA) ;
+        dhdotdApert=(dhdtp-dhdtm)/(2*dA) ;
 
-        scale=log(10)*A0;   
-        dudApert=dudApert.*scale ; 
-        dvdApert=dvdApert.*scale ; 
-        dhdotdApert=dhdotdApert.*scale ; 
-        dhdotdApert=dhdotdApert*(-3); % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
+        scale=log(10)*A0;
+        dudApert=dudApert.*scale ;
+        dvdApert=dvdApert.*scale ;
+        dhdotdApert=dhdotdApert.*scale ;
+        % dhdotdApert=dhdotdApert*(-3); % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
 
         % dv/dA
         figAu=FindOrCreateFigure("du/dA comparision");
@@ -163,8 +166,8 @@ if TestSensitivites
         % dhdot sensitivity to A
 
         if ~isempty(dhdotdA)
-            
-        
+
+
             % dhdot/dA
             figAhdot=FindOrCreateFigure("dhdot/dA comparision"); clf(figAhdot)
             T=tiledlayout("flow");
@@ -182,7 +185,7 @@ if TestSensitivites
 
             T.Padding="loose";   T.TileSpacing="tight";
 
-            
+
         end
 
 
@@ -234,19 +237,20 @@ if TestSensitivites
 
 
 
-%%
+        %%
     end
 
 
-      %% B
+    %% B
     if contains(CtrlVar.Inverse.InvertFor,"-B-")
-        % du/dB  
-          
-        CtrlVar.Calculate.Geometry="bh-FROM-sBS" ; 
+        % du/dB
+        F=Funperturbed;
+       
+        CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
         dudB=dudB(:,NodeTest);
         dvdB=dvdB(:,NodeTest);
-     
+
         B0=F.B;
         dB=1;
 
@@ -256,14 +260,14 @@ if TestSensitivites
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         up=F.ub; vp=F.vb;
 
-        
+
         Bm=B0;
         Bm(NodeTest)=Bm(NodeTest)-dB;
         F.B=Bm;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
         um=F.ub; vm=F.vb;
 
-        F.B=B0;
+        F=Funperturbed;
 
         dudBpert=(up-um)/(2*dB) ;  dvdBpert=(vp-vm)/(2*dB) ;
 
@@ -336,13 +340,15 @@ if TestSensitivites
 
     %% C
     if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
-         % du/dC
+        % du/dC
         dudC=dudC(:,NodeTest);
         dvdC=dvdC(:,NodeTest);
 
-%%
+        %%
+        F=Funperturbed;
+
         C0=F.C;
-        dC=F.C(NodeTest)*0.00001;
+        dC=F.C(NodeTest)*0.00001; 
 
         Cp=C0;
         Cp(NodeTest)=Cp(NodeTest)+dC;
@@ -400,6 +406,40 @@ if TestSensitivites
         CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
         T.Padding="loose";   T.TileSpacing="tight";
+
+
+        figCgrad=FindOrCreateFigure("du/dC gradient test") ;  clf(figCgrad)
+        plot(dudC,dudCpert,"or") ;
+        hold on
+        axis equal
+        AX=axis;
+        plot([min(dudC) max(dudC)],[min(dudC) max(dudC)],"--k") ;
+        axis equal tight ;
+        xlabel(" $du/dC$",Interpreter="latex")  ;
+        ylabel("Finite difference $du/dC$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision between adjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
+
+        figCgrad=FindOrCreateFigure("dv/dC gradient test") ;  clf(figCgrad)
+        plot(dvdC,dvdCpert,"or") ;
+        hold on
+        axis equal
+        plot([min(dvdC) max(dvdC)],[min(dvdC) max(dvdC)],"--k") ;
+        axis equal tight ;
+        xlabel(" $dv/dC$",Interpreter="latex")  ;
+        ylabel("Finite difference $dv/dC$",Interpreter="latex")
+        ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+        axis on ; axis equal tight ; box off
+        title("Comparision between adjoint and finite-differences gradient calculations")
+        set(gcf,'Color','white')
+
+        norm(dudC-dudCpert)/norm(dudC)
+
+
+
+
         %%
     end
 

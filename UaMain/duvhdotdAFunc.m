@@ -1,14 +1,18 @@
 
 
-function [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,Nodes)
+function [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
-narginchk(5,6)
+narginchk(5,7)
 
-if nargin<6 || isempty(Nodes)
+if nargin<7 || isempty(Nodes)
     Nodes=1:MUA.Nnodes;
 end
 
-
+if nargin < 6 || isempty(KdFuvduv)
+    CtrlVar.uvAssembly.ZeroFields=false;
+    CtrlVar.uvMatrixAssembly.Ronly=false;
+    [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+end
 
 
 %% Calculates the sensitivity matrix duv/dA
@@ -127,10 +131,12 @@ end
 % and then determine $\partial{\dot{h}}/\partial{A}$ from
 %
 % $$
-%  \frac{\partial \dot{h}}{\partial A} =
-% -\frac{\partial F^h}{\partial u} \frac{\partial u}{\partial A}
-% - \frac{\partial F^h}{\partial v} \frac{\partial v}{\partial A}
+%  \frac{\partial \dot{h}}{\partial A} = - M^{-1} 
+%  \left ( \frac{\partial F^h}{\partial u} \frac{\partial u}{\partial A}
+%   +  \frac{\partial F^h}{\partial v} \frac{\partial v}{\partial A} \right )
 % $$
+%
+% In fact this gives the same answer as I have tested.
 %
 % Why not just calculate 
 % 
@@ -199,10 +205,8 @@ end
 
 dhdotdA=[];
 
-CtrlVar.uvAssembly.ZeroFields=false;
-CtrlVar.uvMatrixAssembly.Ronly=false;
 
-[~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
+
 
 
 
@@ -263,10 +267,11 @@ switch Sensitivities
         KdFuvdA=dFuvdA(CtrlVar,MUA,F);
         [KdFhdotdu,KdFhdotdv,KdFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
 
-        Z=sparse(2*MUA.Nnodes,MUA.Nnodes);
-        KdFdq=[KdFuvduv Z ; KdFhdotdu KdFhdotdv KdFhdotdhdot];  % not sure if this is an efficient way of doing this
+        O2n1n=sparse(2*MUA.Nnodes,MUA.Nnodes);
+        KdFdq=[KdFuvduv O2n1n ; KdFhdotdu KdFhdotdv KdFhdotdhdot];  % not sure if this is an efficient way of doing this
 
-        KdFdp=[KdFuvdA ; sparse(MUA.Nnodes,MUA.Nnodes)] ;
+        Onn=sparse(MUA.Nnodes,MUA.Nnodes);
+        KdFdp=[KdFuvdA ; Onn] ;
 
         % BCs
         if numel(BCs.ubFixedValue) > 0
@@ -298,6 +303,16 @@ switch Sensitivities
         dvdA=sol(MUA.Nnodes+1:2*MUA.Nnodes,:);
         dhdotdA=sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);
 
+
+%% 
+%
+% I compared with dhdot/dA = -M \ [KdFhdotdu KdFhdotdv]*[dudA;dvdA];  
+% 
+% dhdotdA=-MUA.M\ ( [KdFhdotdu KdFhdotdv]*[dudA;dvdA]) ;  
+% 
+% and it is exactly the same (although this will not be quite the same if h-BCs are involved)
+% 
+%%
     otherwise
 
         error(" case not found ")

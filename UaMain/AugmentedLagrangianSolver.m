@@ -255,14 +255,14 @@ end
 
 if CtrlVar.InfoLevelLinSolve>=10
     fprintf(' --------------------------- AugmentedLagrangianLinSolver: ----------------------------------------------------------------------------------------------\n ')
-    fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iterativily \n')
+    fprintf(' solves a system on the form [A B'' ; B 0] [x;y] =[f;g]  iteratively \n')
     fprintf(' starting with [A B'' ; B iW]=[f;g]  , where iW=1/10^(k+CtrlVar.ALSpower)  using k=%g and CtrlVar.ALSpower=%g \n ',...
         full(k),CtrlVar.ALSpower)
     ng=norm(g);
     if ng>0
-        fprintf(' Iteration           |x-x0|/|x|                  |y-y0|/|y|           |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|    |A*x+B''*y-f|/|f|        |B*x-g|/|g| \n')
+        fprintf(' Iteration           |x-x0|/|x|           \t       |y-y0|/|y|       \t    |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|  \t  |A*x+B''*y-f|/|f|        |B*x-g|/|g| \n')
     else
-        fprintf(' Iteration           |x-x0|/|x|                  |y-y0|/|y|           |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|    |A*x+B''*y-f|/|f|        |B*x-g|\n')
+        fprintf(' Iteration           |x-x0|/|x|           \t       |y-y0|/|y|       \t    |[A B'' ; B 0]*sol-[f;g]|/|[f;g]|  \t  |A*x+B''*y-f|/|f|        |B*x-g|\n')
     end
     for I=1:Iteration
         fprintf('%10i \t %20.10g \t \t %20.10g \t \t %30.10g \t %20.10g \t %20.10g \n',...

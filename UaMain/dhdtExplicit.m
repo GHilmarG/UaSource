@@ -17,6 +17,32 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 % prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined
 % between nodes, those same times will be applied to dh/dt.
 %
+% $$
+% F_{\dot{h}}=\dot{h}+\partial (u h) + \partial (v h) - a = 0
+% $$
+%
+% $$
+% \langle F_{\dot{h}} \, | \, \phi_j \rangle = 0 
+% $$
+%
+% for 
+%
+% $$k=1\ldots n $$
+%
+%
+%
+% NR-system to solve 
+%
+% $$
+% \langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle 
+% $$
+%
+% where
+%
+% $$ \dot{h} \to \dot{h} + \Delta \dot{h} $$
+%
+% until right-hand side small enough.
+%
 %%
 
 

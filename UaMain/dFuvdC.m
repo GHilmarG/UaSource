@@ -4,16 +4,19 @@ function K=dFuvdC(CtrlVar,MUA,F)
 
 %%
 %
-% assembles the matrix K which is the FE form of 
-% 
+% Note: There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... 
+%
+%
+% assembles the matrix K which is the FE form of
+%
 % $$d_{\mathbf{C}} \mathbf{F}_{\mathbf{v}}$$
 %
 % where
-% 
+%
 % $$\mathbf{F}_{\mathbf{v}}$$
 %
 % is the forward model.
-% 
+%
 %
 %
 % \p F/\p_C = [ \p F_1^x/\p C_1    \p F_1^x/\p C_2   ...  \p F_1^x/\p C_n ]
@@ -29,7 +32,7 @@ function K=dFuvdC(CtrlVar,MUA,F)
 % $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
 %
 % $$ F_y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
-% 
+%
 % with
 %
 % $$ t_x = t_x(C,u,v) $$
@@ -44,7 +47,7 @@ function K=dFuvdC(CtrlVar,MUA,F)
 % $$ \partial F_x /\partial C = \partial t_x/\partial C $$
 %
 %
-% The function BasalDrag.m can return a quantity dFuvdC from which we can calculate the partial derivatives as 
+% The function BasalDrag.m can return a quantity dFuvdC from which we can calculate the partial derivatives as
 %
 % dF_x/dC = dFuvdC  u
 % dF_y/dC = dFuvdC  v
@@ -54,7 +57,7 @@ function K=dFuvdC(CtrlVar,MUA,F)
 %%
 
 
-ndim=2; 
+ndim=2;
 nNodes=MUA.Nnodes ;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -134,7 +137,7 @@ for Iint=1:MUA.nip
     end
 end
 
-Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32'); 
+Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32');
 Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32');
 Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1);
 
