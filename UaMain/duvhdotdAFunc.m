@@ -158,7 +158,20 @@ end
 % \langle \delta_{u_j} \dot{h} \, \phi_j | \phi_i \rangle = - \langle \partial_x \phi_j \,  h + \partial_x h \, \phi_j \,  | \, \phi_i \rangle
 % $$
 %
-% Then
+% But need to take into account that the perturbation in velocities is due to a perturbation in $A$.
+%
+% $$ \frac{1}{\Delta t} (h_1-h_0) = -\partial_x ( u(A) \, h_0) + a $$
+%
+% $$ u \to \bar{u} + \Delta u $$
+%
+% $$ \Delta u_i= \frac{\partial u_i}{\partial A_k} \, \Delta A_k $$
+%
+% $$ \frac{1}{\Delta t} (h_1+\Delta h - h_0) = -\partial_x ( \bar{u} h_0) - \partial_x (\Delta u \, h_0) $$
+%
+% $$ 
+% \frac{\Delta u}{\Delta t} = - \frac{\partial}{\partial x} \left ( \frac{\partial u_i}{\partial A_k} \, \Delta A_k \, h^0_i \right )
+% $$
+%
 %
 % $$
 % \frac{ d \dot{h}}{d A }= \frac{\partial \dot{h}}{\partial A} 
