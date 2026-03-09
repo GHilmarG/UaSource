@@ -169,8 +169,10 @@ end
 % $$ \frac{1}{\Delta t} (h_1+\Delta h - h_0) = -\partial_x ( \bar{u} h_0) - \partial_x (\Delta u \, h_0) $$
 %
 % $$ 
-% \frac{\Delta u}{\Delta t} = - \frac{\partial}{\partial x} \left ( \frac{\partial u_i}{\partial A_k} \, \Delta A_k \, h^0_i \right )
+% \frac{\Delta u_i}{\Delta t} = - \frac{\partial}{\partial x} \left ( \frac{\partial u_i}{\partial A_k} \, \Delta A_k \, h^0_i \right )
 % $$
+%
+% No summation over $i$
 %
 %
 % $$
