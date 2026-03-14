@@ -1,6 +1,6 @@
 
 
-function [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
+function [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
 narginchk(5,7)
 
@@ -15,22 +15,41 @@ if nargin < 6 || isempty(KdFuvduv)
 end
 
 
-%% Calculates the sensitivity matrix duv/dA
+
+%% Calculates the sensitivity matrices du/dA, dv/dA, dh/dA
 %
 %
 % The $k$-column contains the response in u and v to a perturbation in $A_k$
 %
 %
-% $$\left[\begin{array}{cccc}
+% $$
+% \left[\begin{array}{cccc}
 % \partial u_1 /\partial A_1  & \partial u_1 /\partial A_2  & \ldots & \partial u_1 /\partial A_n  \\
 % \partial u_2 /\partial A_1  & \partial u_2 /\partial A_2  & \ldots & \partial u_2 /\partial A_n  \\
 %              .              &              .              &  .  &    .                          \\
+% \partial u_n /\partial A_1  & \partial u_n /\partial A_2  & \ldots & \partial u_n /\partial A_n  \\
+% \end{array}\right] 
+% $$
+%
+% $$
+% \left[\begin{array}{cccc}
 % \partial v_1 /\partial A_1  & \partial v_1 /\partial A_2 & \ldots & \partial v_1 /\partial A_n  \\
 % \partial v_2 /\partial A_1  & \partial v_2 /\partial A_2 & \ldots & \partial v_2 /\partial A_n  \\
 %              .              &              .              &  .  &    .                          \\
-% \end{array}\right] $$
+% \partial v_n /\partial A_1  & \partial v_n /\partial A_2 & \ldots & \partial v_n /\partial A_n  \\
+% \end{array}\right] 
+% $$
 %
-% Approach:
+% $$
+% \left[\begin{array}{cccc}
+% \partial h_1 /\partial A_1  & \partial h_1 /\partial A_2 & \ldots & \partial h_1 /\partial A_n  \\
+% \partial h_2 /\partial A_1  & \partial h_2 /\partial A_2 & \ldots & \partial h_2 /\partial A_n  \\
+%              .              &              .              &  .  &    .                          \\
+% \partial h_n /\partial A_1  & \partial h_n /\partial A_2 & \ldots & \partial h_n /\partial A_n  \\
+% \end{array}\right] 
+% $$
+%
+%% Approach:
 %
 % If the forward model is
 %
@@ -48,37 +67,34 @@ end
 %
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
 %
-% If, as is generally the case, I have several $q$ variables and several forward models, 
-% 
+% If, as is generally the case, I have several $q$ variables and several forward models,
+%
 % $$ F^{uv}_x =0 $$
-% 
+%
 % $$ F^{uv}_y =0 $$
 %
 % $$ F^{h} =0 $$
 %
-% 
-% 
-% 
 % then
 %
-% $$ \frac{\partial F^{uv}_x}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_x}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_x}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_x }{ \partial A}  $$
+% $$ \frac{\partial F^{uv}_x}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_x}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_x}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^{uv}_x }{ \partial A}  $$
 %
-% $$ \frac{\partial F^{uv}_y}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_y}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_y}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^{uv}_y }{ \partial A}  $$
+% $$ \frac{\partial F^{uv}_y}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^{uv}_y}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^{uv}_y}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^{uv}_y }{ \partial A}  $$
 %
-% $$ \frac{\partial F^h}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^h}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^h}{\partial \dot{h}} \; \frac{\partial \dot{h} }{ \partial A} = - \frac{\partial F^h }{ \partial A}  $$
+% $$ \frac{\partial F^h}{\partial u} \; \frac{\partial u }{ \partial A}    +  \frac{\partial F^h}{\partial v} \; \frac{\partial v }{ \partial A} + \frac{\partial F^h}{\partial h} \; \frac{\partial h }{ \partial A} = - \frac{\partial F^h }{ \partial A}  $$
 %
 % or
 %
 % $$
 % \left (\begin{array}{ccc}
-% \frac{\partial F^{uv}_x}{\partial u}  & \frac{F^{uv}_x}{\partial v}  & \frac{\partial F^{uv}_x}{\partial \dot{h}} \\
-% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & \frac{\partial F^{uv}_y}{\partial \dot{h}} \\
-% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & \frac{\partial F^h}{\partial \dot{h}}
+% \frac{\partial F^{uv}_x}{\partial u}  & \frac{F^{uv}_x}{\partial v}  & \frac{\partial F^{uv}_x}{\partial h} \\
+% \frac{\partial F^{uv}_y}{\partial u}  & \frac{F^{uv}_y}{\partial v}  & \frac{\partial F^{uv}_y}{\partial h} \\
+% \frac{\partial F^h} {\partial u}  & \frac{\partial F^h}{\partial v}  & \frac{\partial F^h}{\partial h}
 % \end{array}\right )
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
 %  \frac{\partial v}{\partial A} \\
-%  \frac{\partial \dot{h}}{\partial A}
+%  \frac{\partial h}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
 %   \frac{\partial F^{uv}_x}{\partial A} \\
@@ -87,7 +103,7 @@ end
 %   \end{array} \right )
 % $$
 %
-% The momentum equations are not explicit functions of $\dot{h}$ and the mass-conservation equation is not a function of $A$.
+% The momentum equations are not explicit functions of $h$ and the mass-conservation equation is not a function of $A$.
 % Therefore the system above simplifies to
 %
 % $$
@@ -99,7 +115,7 @@ end
 % \left (\begin{array}{c}
 %  \frac{\partial u}{\partial A} \\
 %  \frac{\partial v}{\partial A} \\
-%  \frac{\partial \dot{h}}{\partial A}
+%  \frac{\partial h}{\partial A}
 % \end{array} \right )
 % = - \left ( \begin{array}{c}
 %   \frac{\partial F^{uv}_x}{\partial A} \\
@@ -128,39 +144,44 @@ end
 %   \end{array} \right )
 % $$
 %
-% and then determine $\partial{\dot{h}}/\partial{A}$ from
+% and then determine $\partial{h}/\partial{A}$ from
 %
 % $$
-%  \frac{\partial \dot{h}}{\partial A} = - M^{-1} 
+%  \frac{\partial h}{\partial A} = - M^{-1}
 %  \left ( \frac{\partial F^h}{\partial u} \frac{\partial u}{\partial A}
 %   +  \frac{\partial F^h}{\partial v} \frac{\partial v}{\partial A} \right )
 % $$
 %
 % In fact this gives the same answer as I have tested.
 %
-% Why not just calculate 
-% 
-% $$\partial \dot{h} / \partial u $$
-% 
-% directly, using 
-%
-% $$ \dot{h} = q - \partial_x (u h) - \partial_y (v h) $$
-% 
-% that is
-%
-% $$ 
-%  \langle \dot{h}  \, | \, \phi_i \rangle = \langle -( \partial_x u \, h + \partial_x h \, u ) \, | \, \phi_i \rangle  
-% $$
-%
-% and then 
+%% More details on how to calculate $dh/dA$ sensitivities:
 %
 % $$
-% \langle \delta_{u_j} \dot{h} \, \phi_j | \phi_i \rangle = - \langle \partial_x \phi_j \,  h + \partial_x h \, \phi_j \,  | \, \phi_i \rangle
+% F^h(u(A)) = h(u(A))- h_0 +\Delta t \, ( \partial_x (u(A) h_0) - a ) = 0
 % $$
 %
-% But need to take into account that the perturbation in velocities is due to a perturbation in $A$.
+% and
 %
-% $$ \frac{1}{\Delta t} (h_1-h_0) = -\partial_x ( u(A) \, h_0) + a $$
+% $$
+% 0=\frac{\partial F^h}{\partial h} \frac{\partial h}{\partial u} + \frac{\partial F_{1}}{\partial u}
+% $$
+%
+%
+% or
+%
+% $$
+%  \langle h \, | \, \phi_k  \rangle  - \langle h_0 \, | \, \phi_k \rangle  + \Delta t \, \langle  \partial_x (u h_0) - a
+%  \, | \, \phi_k \rangle  =0
+% $$
+%
+% and
+%
+% $$
+%  \langle \phi_i \, | \, \phi_k  \rangle  \; \delta_{u_i} h  + \Delta t \, \langle  \partial_x (\phi_i h_0) \, | \, \phi_k \rangle  =0
+% $$
+%
+%
+% $$ \frac{1}{\Delta t} (h-h_0) = -\partial_x ( u(A) \, h_0) + a $$
 %
 % $$ u \to \bar{u} + \Delta u $$
 %
@@ -168,7 +189,7 @@ end
 %
 % $$ \frac{1}{\Delta t} (h_1+\Delta h - h_0) = -\partial_x ( \bar{u} h_0) - \partial_x (\Delta u \, h_0) $$
 %
-% $$ 
+% $$
 % \frac{\Delta u_i}{\Delta t} = - \frac{\partial}{\partial x} \left ( \frac{\partial u_i}{\partial A_k} \, \Delta A_k \, h^0_i \right )
 % $$
 %
@@ -176,8 +197,8 @@ end
 %
 %
 % $$
-% \frac{ d \dot{h}}{d A }= \frac{\partial \dot{h}}{\partial A} 
-% + \frac{\partial \dot{h}}{\partial u} \frac{\partial u}{\partial A}
+% \frac{ d h}{d A }= \frac{\partial h}{\partial A}
+% + \frac{\partial h}{\partial u} \frac{\partial u}{\partial A}
 % $$
 %
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
@@ -188,7 +209,7 @@ end
 % and the F provided as an input to this function must be this solution to the forward problem.
 %
 %
-% Boundary conditions:
+%% Boundary conditions:
 %
 % I assume that where we have boundary conditions on u, v and h, the corresponding sensitives are zero, as any change in p
 % (A, B, C) can not affect q (u,v, dh/dt) at those nodes.
@@ -217,14 +238,7 @@ end
 %%
 
 
-
-dhdotdA=[];
-
-
-
-
-
-
+dhdA=[];
 
 Sensitivities="-dudA-dvdA-";
 
@@ -258,11 +272,8 @@ switch Sensitivities
         end
 
         if ~isempty(L)
-
-
-            frhs=-KdFuvdA(:,Nodes) ; 
+            frhs=-KdFuvdA(:,Nodes) ;
             grhs=repmat(cuv,1,size(frhs,2));
-
         else
             frhs=-KdFuvdA ;
             grhs=[];
@@ -280,10 +291,12 @@ switch Sensitivities
     case "-dudA-dvdA-dhdotdA-"
 
         KdFuvdA=dFuvdA(CtrlVar,MUA,F);
-        [KdFhdotdu,KdFhdotdv,KdFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
+        [KdFhdotduvhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
 
         O2n1n=sparse(2*MUA.Nnodes,MUA.Nnodes);
-        KdFdq=[KdFuvduv O2n1n ; KdFhdotdu KdFhdotdv KdFhdotdhdot];  % not sure if this is an efficient way of doing this
+        %KdFdq=[KdFuvduv O2n1n ; KdFhdotdu KdFhdotdv KdFhdotdhdot];  
+
+        KdFdq=[KdFuvduv O2n1n ; KdFhdotduvhdot];  
 
         Onn=sparse(MUA.Nnodes,MUA.Nnodes);
         KdFdp=[KdFuvdA ; Onn] ;
@@ -316,18 +329,18 @@ switch Sensitivities
 
         dudA=sol(1:MUA.Nnodes,:);
         dvdA=sol(MUA.Nnodes+1:2*MUA.Nnodes,:);
-        dhdotdA=sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);
+        dhdA=sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);
 
 
-%% 
-%
-% I compared with dhdot/dA = -M \ [KdFhdotdu KdFhdotdv]*[dudA;dvdA];  
-% 
-% dhdotdA=-MUA.M\ ( [KdFhdotdu KdFhdotdv]*[dudA;dvdA]) ;  
-% 
-% and it is exactly the same (although this will not be quite the same if h-BCs are involved)
-% 
-%%
+        %%
+        %
+        % I compared with dhdot/dA = -M \ [KdFhdotdu KdFhdotdv]*[dudA;dvdA];
+        %
+        % dhdotdA=-MUA.M\ ( [KdFhdotdu KdFhdotdv]*[dudA;dvdA]) ;
+        %
+        % and it is exactly the same (although this will not be quite the same if h-BCs are involved)
+        %
+        %%
     otherwise
 
         error(" case not found ")

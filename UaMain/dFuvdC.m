@@ -1,6 +1,6 @@
 
 
-function K=dFuvdC(CtrlVar,MUA,F)
+function KdFuvdC=dFuvdC(CtrlVar,MUA,F)
 
 %%
 %
@@ -116,7 +116,7 @@ for Iint=1:MUA.nip
 
 
     CtrlVar.Inverse.dFuvdClambda=true;
-    Ctemp= ...
+    dtaudC= ...
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
 
@@ -130,8 +130,8 @@ for Iint=1:MUA.nip
             %  Fx_i =taux.*fun(Inod);
             % \p Fx_i/\p C_j = (\p taux/\p C_j) fun(Inod)  = Ctemp uint fun(Inod) fun(Jnod)
 
-            dFxdC(:,Inod,Jnod)=dFxdC(:,Inod,Jnod)+Ctemp.*uint.*fun(Inod).*fun(Jnod).*detJw;
-            dFydC(:,Inod,Jnod)=dFydC(:,Inod,Jnod)+Ctemp.*vint.*fun(Inod).*fun(Jnod).*detJw;
+            dFxdC(:,Inod,Jnod)=dFxdC(:,Inod,Jnod)+dtaudC.*uint.*fun(Inod).*fun(Jnod).*detJw;
+            dFydC(:,Inod,Jnod)=dFydC(:,Inod,Jnod)+dtaudC.*vint.*fun(Inod).*fun(Jnod).*detJw;
 
         end
     end
@@ -148,7 +148,7 @@ for Inod=1:MUA.nod
 
     for Jnod=1:MUA.nod
 
-        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFxdC(:,Inod,Jnod);
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFxdC(:,Inod,Jnod);
         istak=istak+MUA.Nele;
 
         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+nNodes; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFydC(:,Inod,Jnod);
@@ -157,7 +157,7 @@ for Inod=1:MUA.nod
     end
 end
 
-K=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+KdFuvdC=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
 
 end
 

@@ -1,23 +1,33 @@
 
 
-function [dFhdotdu,dFhdotdv,dFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F)
+function [KdFhdotduvhdot]=dFhdot_duvhdot(CtrlVar,MUA,F)
+
+narginchk(3,3)
+nargoutchk(1,1)
 
 
-
-
-%%  Provides derivatives with respect to $u$, $v$, and $\dot{h}$ of $F_{\dot{h}}$
+%%  Provides derivatives of $F^{\dot{h}}$ with respect to $u$, $v$, and $\dot{h}$.
 %
-% $$F_{\dot{h}} = \dot{h} + ( \partial_x (u h ) + \partial (v h) ) -a = 0 $$
+% $$
+% \left (\begin{array}{ccc}
+% \frac{\partial F^{\dot{h}}}{\partial u}  & \frac{\partial F^{\dot{h}}}{\partial v}  & \frac{\partial F^{\dot{h}}}{\partial h}
+% \end{array}\right )
+% $$
+%
+% This is a $n \times 3n$ matrix
+%
+%
+% $$F^{\dot{h}} = \dot{h} + ( \partial_x (u h ) + \partial (v h) ) -a = 0 $$
 %
 % The FE formulation is
 %
-% $$ \langle F_{\dot{h}} \, |\, \phi_k \rangle = 0 $$
+% $$ \langle F^{\dot{h}} \, |\, \phi_k \rangle = 0 $$
 %
 % for $k=1\ldots n$
 %
-% And the $u$ derivataive is
+% And the $u$ derivative is
 %
-% $$ \langle \partial_u F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle $$
+% $$ \langle \partial_u F{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle $$
 %
 % where
 %
@@ -31,15 +41,15 @@ function [dFhdotdu,dFhdotdv,dFhdotdhdot]=dFhdot_duvhdot(CtrlVar,MUA,F)
 % Therefore:
 %
 % $$
-% \langle \partial_u F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle -h \, \partial_x \phi_i + \phi_i \, \partial_x h | \phi_k \rangle
+% \langle \partial_u F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle -h \, \partial_x \phi_i + \phi_i \, \partial_x h | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial_v F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle  h \, \partial_y \phi_i + \phi_i \, \partial_y h | \phi_k \rangle
+% \langle \partial_v F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle  h \, \partial_y \phi_i + \phi_i \, \partial_y h | \phi_k \rangle
 % $$
 %
 % $$
-% \langle \partial_{\dot{h}}  F_{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle \phi_i | \phi_ k \rangle
+% \langle \partial^{\dot{h}}  F^{\dot{h}} \, \phi_i \, | \, \phi_k  \rangle = \langle \phi_i | \phi_ k \rangle
 % $$
 %
 % see also: dhdtExplicit.m
@@ -90,43 +100,84 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (h.* Deriv(:,1,Inod) + fun(Jnod).*dhdx )   .*detJw;
-            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (h.* Deriv(:,2,Inod) + fun(Jnod).*dhdy )   .*detJw;
-            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Inod).*fun(Jnod) .*detJw;  % I don't really need to do this as this is the Mass Matrix
+            dFhdotdu(:,Inod,Jnod)=dFhdotdu(:,Inod,Jnod) + (h.* Deriv(:,1,Jnod) + fun(Jnod).*dhdx).*fun(Inod).*detJw;
+            dFhdotdv(:,Inod,Jnod)=dFhdotdv(:,Inod,Jnod) + (h.* Deriv(:,2,Jnod) + fun(Jnod).*dhdy).*fun(Inod) .*detJw;
+            dFhdotdhdot(:,Inod,Jnod)=dFhdotdhdot(:,Inod,Jnod) + fun(Jnod).*fun(Inod) .*detJw;  % I don't really need to do this as this is the Mass Matrix
 
         end
     end
 end
 
-Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
-Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
 
-dFhdotduXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-dFhdotdvXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-dFhdotdhdotXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+%% This is if I want three matrices as an output
+% Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
+% Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
+% 
+% dFhdotduXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+% dFhdotdvXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+% dFhdotdhdotXval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+% 
+% istak=0;
+% 
+% for Inod=1:MUA.nod
+%     %istak=0;
+% 
+%     for Jnod=1:MUA.nod
+% 
+%         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); 
+%         Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+% 
+%         dFhdotduXval(istak+1:istak+MUA.Nele)=dFhdotdu(:,Inod,Jnod);
+%         dFhdotdvXval(istak+1:istak+MUA.Nele)=dFhdotdv(:,Inod,Jnod);
+%         dFhdotdhdotXval(istak+1:istak+MUA.Nele)=dFhdotdhdot(:,Inod,Jnod);
+% 
+%         istak=istak+MUA.Nele;
+% 
+%     end
+% end
+% 
+% 
+% KdFhdotdu=sparseUA(Iind,Jind,dFhdotduXval,nNodes,nNodes);
+% KdFhdotdv=sparseUA(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
+% KdFhdotdhdot=sparseUA(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
+% 
+
+
+
+%% This creates one $n \times 3n$ matrix
+Iind=zeros(MUA.nod*MUA.nod*3*MUA.Nele,1,'uint32');
+Jind=zeros(MUA.nod*MUA.nod*3*MUA.Nele,1,'uint32');
+dFhduvhXval=zeros(MUA.nod*MUA.nod*3*MUA.Nele,1);
 
 istak=0;
 
 for Inod=1:MUA.nod
-    %istak=0;
-
     for Jnod=1:MUA.nod
 
-        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); 
+        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
+        dFhduvhXval(istak+1:istak+MUA.Nele)=dFhdotdu(:,Inod,Jnod);
+        
+        
+        istak=istak+MUA.Nele;
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); 
+        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+nNodes; 
+        dFhduvhXval(istak+1:istak+MUA.Nele)=dFhdotdv(:,Inod,Jnod);
 
-        dFhdotduXval(istak+1:istak+MUA.Nele)=dFhdotdu(:,Inod,Jnod);
-        dFhdotdvXval(istak+1:istak+MUA.Nele)=dFhdotdv(:,Inod,Jnod);
-        dFhdotdhdotXval(istak+1:istak+MUA.Nele)=dFhdotdhdot(:,Inod,Jnod);
+     
+        istak=istak+MUA.Nele;
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); 
+        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod)+2*nNodes; 
+        dFhduvhXval(istak+1:istak+MUA.Nele)=dFhdotdhdot(:,Inod,Jnod);
 
         istak=istak+MUA.Nele;
 
     end
 end
 
+KdFhdotduvhdot=sparseUA(Iind,Jind,dFhduvhXval,nNodes,3*nNodes);
 
-dFhdotdu=sparseUA(Iind,Jind,dFhdotduXval,nNodes,nNodes);
-dFhdotdv=sparseUA(Iind,Jind,dFhdotdvXval,nNodes,nNodes);
-dFhdotdhdot=sparseUA(Iind,Jind,dFhdotdhdotXval,nNodes,nNodes);
+
 
 end
 

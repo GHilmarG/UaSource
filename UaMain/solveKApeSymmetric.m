@@ -22,7 +22,7 @@ end
 % end
 
 [nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;  
-%[nx0,mx0]=size(x0) ; 
+
 
 if isempty(y0)
   y0=zeros(nB,1); % This is a special case, allowing for the initial estimate for y to be empty

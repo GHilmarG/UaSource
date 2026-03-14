@@ -1,21 +1,21 @@
 
 
-function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
+function [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
 %% Calculates the sensitivity matrix duv/dB
 %
-% If $n$ is the number of nodes, the matrix returned is $2 n \times n$ 
+% If $n$ is the number of nodes, the matrix returned is $2 n \times n$
 %
 % The $k$-column contains the response in u and v to a perturbation in $B_k$
 %
 %
-% $$\left[\begin{array}{cccc} 
-% \partial u_1 /\partial B_1  & \partial u_1 /\partial B_2  & \ldots & \partial u_1 /\partial B_n  \\  
-% \partial u_2 /\partial B_1  & \partial u_2 /\partial B_2  & \ldots & \partial u_2 /\partial B_n  \\  
-%              .              &              .              &  .  &    .                          \\  
+% $$\left[\begin{array}{cccc}
+% \partial u_1 /\partial B_1  & \partial u_1 /\partial B_2  & \ldots & \partial u_1 /\partial B_n  \\
+% \partial u_2 /\partial B_1  & \partial u_2 /\partial B_2  & \ldots & \partial u_2 /\partial B_n  \\
+%              .              &              .              &  .  &    .                          \\
 % \partial v_1 /\partial B_1  & \partial v_1 /\partial B_2 & \ldots & \partial v_1 /\partial B_n  \\
 % \partial v_2 /\partial B_1  & \partial v_2 /\partial B_2 & \ldots & \partial v_2 /\partial B_n  \\
-%              .              &              .              &  .  &    .                          \\  
+%              .              &              .              &  .  &    .                          \\
 % \end{array}\right] $$
 %
 % Approach:
@@ -34,21 +34,23 @@ function [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 %
 % which can be solved for the sensitives
 %
-% $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$ 
-% 
+% $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
+%
 % Note: It is here assumed that the forward problem has already been solved. So ahead of a call to this function one needs to
 % have called
-% 
+%
 %  [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 %
 %
 % and the F provided as an input to this function must be this solution to the forward problem.
 %
 % see also: duvdCFunc.m, dFuvdA.m, dFuvdC.m, dFuvdB.m , TestSensitivityMatrixCalculations.m
-% 
+%
 %%
 
 narginchk(5,7)
+nargoutchk(3,3)
+
 
 if nargin<7 || isempty(Nodes)
     Nodes=1:MUA.Nnodes;
@@ -59,6 +61,15 @@ if nargin < 6 || isempty(KdFuvduv)
     CtrlVar.uvMatrixAssembly.Ronly=false;
     [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 end
+
+
+Sensitivities="-dudB-dvdB-";
+
+if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+    Sensitivities=Sensitivities+"-dhdotdB-" ;
+    Sensitivities=replace(Sensitivities,"--","-");
+end
+
 
 KdFuvdB=dFuvdB(CtrlVar,MUA,F);
 
@@ -71,31 +82,51 @@ if numel(BCs.vbFixedValue) > 0
     BCs.vbFixedValue=BCs.vbFixedValue*0;
 end
 
-[L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
+if contains(Sensitivities,"dhdotdB")
+    if numel(BCs.hFixedValue) > 0
+        BCs.hFixedValue=BCs.hFixedValue*0;
+    end
+    [LBCs,cBCs]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs);
 
-if isempty(cuv)
-    l.ubvb=[];
+    [KdFhdotduvhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
+
+    O2n1n=sparse(2*MUA.Nnodes,MUA.Nnodes);
+    %KdFdq=[KdFuvduv O2n1n ; KdFhdotdu KdFhdotdv KdFhdotdhdot];
+
+    KdFdq=[KdFuvduv O2n1n ; KdFhdotduvhdot];
+
+    Onn=sparse(MUA.Nnodes,MUA.Nnodes);
+    KdFdp=[KdFuvdB ; Onn] ;
+
+
 else
-    l.ubvb=zeros(numel(cuv),1) ;
+    KdFdq=KdFuvduv ; 
+    KdFdp=KdFuvdB;
+    [LBCs,cBCs]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 end
 
-if ~isempty(L)
-    frhs=-KdFuvdB(:,Nodes)-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdB matrix
-    %frhs=-dFdB(:,Node)-L'*l.ubvb; % if only calculate for one given node
-    grhs=cuv-L*[F.ub;F.vb] ;
+
+if ~isempty(LBCs)
+    frhs=-KdFdp ;
+    grhs=repmat(cBCs,1,size(frhs,2));
 else
-    frhs=-KdFuvdB ;
+    frhs=-KdFdp ;
     grhs=[];
 end
 
 
-dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
-CtrlVar.TestKApeSolve=false; 
-sol=solveKApe(KdFuvduv,L,frhs,grhs,[dub;dvb],dl,CtrlVar);
+CtrlVar.TestKApeSolve=false;
+sol=solveKApe(KdFdq,LBCs,frhs,grhs,[],[],CtrlVar);
 
 
 dudB=sol(1:MUA.Nnodes,:);
-dvdB=sol(MUA.Nnodes+1:end,:);
+dvdB=sol(MUA.Nnodes+1:2*MUA.Nnodes,:);
+if contains(Sensitivities,"dhdotdB")
+    dhdB=sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);
+else
+    dhdB=[];
+end
 
+ 
 
 end

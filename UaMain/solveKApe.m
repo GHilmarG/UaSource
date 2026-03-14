@@ -11,6 +11,16 @@ narginchk(7,7)
 % A does not have to be symmetrical
 
 [nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;
+
+if isempty(x0)
+  x0=zeros(mA,1);
+end
+
+if isempty(y0)
+    y0=zeros(nB,1);
+end
+
+
 [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 
 if nA~=mA
@@ -33,8 +43,8 @@ if ng~=nB
 end
 
 if ~isempty(B)
-    if nx0~=nA
-        fprintf('x0 must have same number of elements as there are rows in A\n')
+    if nx0~=mA
+        fprintf('x0 must have same number of elements as there are columns in A\n')
         error('error in solveKApe')
     end
 

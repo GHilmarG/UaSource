@@ -1,6 +1,6 @@
 
 
-function [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
+function [dudC,dvdC,dhdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv,Nodes)
 
 %% Calculates the sensitivity matrix duv/dC
 %
@@ -68,14 +68,17 @@ if nargin < 6 || isempty(KdFuvduv)
     [~,KdFuvduv]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs);
 end
 
+Sensitivities="-dudC-dvdC-";
+
+if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+    Sensitivities=Sensitivities+"-dhdotdC-" ;
+    Sensitivities=replace(Sensitivities,"--","-");
+end
 
 
-dFdC=dFuvdC(CtrlVar,MUA,F) ;
-dFdC=-dFdC; % there is actually a different sign convention inside of this...
+KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this...
 
 
-
-% make sure that the BCs reflect this.
 if numel(BCs.ubFixedValue) > 0
     BCs.ubFixedValue=BCs.ubFixedValue*0;
 end
@@ -83,30 +86,44 @@ if numel(BCs.vbFixedValue) > 0
     BCs.vbFixedValue=BCs.vbFixedValue*0;
 end
 
-[L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
-if isempty(cuv)
-    l.ubvb=[];
+if contains(Sensitivities,"dhdotdC")
+    if numel(BCs.hFixedValue) > 0
+        BCs.hFixedValue=BCs.hFixedValue*0;
+    end
+    [LBCs,cBCs]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs);
+    [KdFhdotduvhdot]=dFhdot_duvhdot(CtrlVar,MUA,F) ;
+    O2n1n=sparse(2*MUA.Nnodes,MUA.Nnodes);
+    KdFdq=[KdFuvduv O2n1n ; KdFhdotduvhdot];
+    Onn=sparse(MUA.Nnodes,MUA.Nnodes);
+    KdFdp=[KdFuvdC ; Onn] ;
+
 else
-    l.ubvb=zeros(numel(cuv),1) ;
+    KdFdq=KdFuvduv ; 
+    KdFdp=KdFuvdC;
+    [LBCs,cBCs]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 end
 
-if ~isempty(L)
-    frhs=-dFdC-L'*l.ubvb; % Note, this uses Matlab automatic implicit expansion to expand the L'*l column to match the dimensions of the dFdA matrix
-    grhs=cuv-L*[F.ub;F.vb] ;
+
+if ~isempty(LBCs)
+    frhs=-KdFdp ;
+    grhs=repmat(cBCs,1,size(frhs,2));
 else
-    frhs=-dFdC ;
+    frhs=-KdFdp ;
     grhs=[];
 end
 
-duvb=zeros(2*MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
-CtrlVar.TestKApeSolve=false; 
-sol=solveKApe(KdFuvduv,L,frhs,grhs,duvb,dl,CtrlVar);
+CtrlVar.TestKApeSolve=false;
+sol=solveKApe(KdFdq,LBCs,frhs,grhs,[],[],CtrlVar);
 
-%l.ubvb=dl; 
 
 dudC=sol(1:MUA.Nnodes,:);
-dvdC=sol(MUA.Nnodes+1:end,:);
+dvdC=sol(MUA.Nnodes+1:2*MUA.Nnodes,:);
+if contains(Sensitivities,"dhdotdC")
+    dhdC=sol(2*MUA.Nnodes+1:3*MUA.Nnodes,:);
+else
+    dhdC=[];
+end
 
 
 

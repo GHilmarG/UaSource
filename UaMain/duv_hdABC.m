@@ -1,12 +1,13 @@
 
-function [dudA,dvdA,dudB,dvdB,dudC,dvdC]=duvdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs)
+function [dudA,dvdA,dhdA,dudB,dvdB,dhdB,dudC,dvdC,dhdC]=duv_hdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs)
 
 
 narginchk(7,7)
+nargoutchk(9,9)
 
-dudA=[]; dvdA=[];
-dudB=[]; dvdB=[];
-dudC=[]; dvdC=[];
+dudA=[]; dvdA=[]; dhdA=[];
+dudB=[]; dvdB=[]; dhdB=[];
+dudC=[]; dvdC=[]; dhdC=[];
 
 CtrlVar.uvAssembly.ZeroFields=false;
 CtrlVar.uvMatrixAssembly.Ronly=false;
@@ -15,22 +16,21 @@ CtrlVar.uvMatrixAssembly.Ronly=false;
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     tA=tic;
-    [dudA,dvdA,dhdotdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
+    [dudA,dvdA,dhdA]=duvhdotdAFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good, also for dhdotdA
     tA=toc(tA);
-    fprintf("dudA and dvdA sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
+    fprintf("A sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tA)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
     tB=tic;
-    [dudB,dvdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
-
+    [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
     tB=toc(tB);
     fprintf("dudB and dvdB sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=tic;
-    [dudC,dvdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
+    [dudC,dvdC,dhdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
     fprintf("dudC and dvdC sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 end
@@ -61,7 +61,7 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     scale=log(10)*F.AGlen';  % this has to be a row vector
     dudA=dudA.*scale ; % using implicit expansion
     dvdA=dvdA.*scale ; % using implicit expansion
-    dhdotdA=dhdotdA.*scale ;
+    dhdA=dhdA.*scale ;
 
 end
 
@@ -70,20 +70,20 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     scale=log(10)*F.C';  % this has to be a row vector
     dudC=dudC.*scale ;   % using implicit expansion
     dvdC=dvdC.*scale ;   % using implicit expansion
-
+    dhdC=dhdC.*scale ;
 
 end
 
-TestSensitivites=true;
+TestSensitivites=false;
 
 if TestSensitivites
 
     %% Test
 
 
-    Funperturbed=F; 
+    Funperturbed=F;
     NodeTest=804;
-    % NodeTest=1200;
+    NodeTest=1200;
     %NodeTest=1500;
 
     %% A
@@ -94,8 +94,8 @@ if TestSensitivites
         dudA=dudA(:,NodeTest);
         dvdA=dvdA(:,NodeTest);
 
-        if ~isempty(dhdotdA)
-            dhdotdA=dhdotdA(:,NodeTest);
+        if ~isempty(dhdA)
+            dhdA=dhdA(:,NodeTest);
         end
 
         %%
@@ -127,7 +127,7 @@ if TestSensitivites
         dudApert=dudApert.*scale ;
         dvdApert=dvdApert.*scale ;
         dhdotdApert=dhdotdApert.*scale ;
-        % dhdotdApert=dhdotdApert*(-3); % I'm puzzled by this but my estimate is off by exactly a factor of 3?!
+
 
         % dv/dA
         figAu=FindOrCreateFigure("du/dA comparision");
@@ -165,7 +165,7 @@ if TestSensitivites
 
         % dhdot sensitivity to A
 
-        if ~isempty(dhdotdA)
+        if ~isempty(dhdA)
 
 
             % dhdot/dA
@@ -173,14 +173,14 @@ if TestSensitivites
             T=tiledlayout("flow");
 
             T1=nexttile;
-            cbar=UaPlots(CtrlVar,MUA,F,dhdotdA,CreateNewFigure=false)  ; title("$d\dot{h}/dA$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
+            cbar=UaPlots(CtrlVar,MUA,F,dhdA,CreateNewFigure=false)  ; title("$d\dot{h}/dA$ sensitvity ($\log$ scale)",Interpreter="latex") ; subtitle("")
             title(cbar,"")
 
             T2=nexttile;
             cbar=UaPlots(CtrlVar,MUA,F,dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ finite differences ($\log$ scale) ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
 
             T3=nexttile;
-            UaPlots(CtrlVar,MUA,F,dhdotdA-dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ differences",Interpreter="latex") ; subtitle("")
+            UaPlots(CtrlVar,MUA,F,dhdA-dhdotdApert,CreateNewFigure=false) ; title("$d\dot{h}/dA$ differences",Interpreter="latex") ; subtitle("")
             CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
             T.Padding="loose";   T.TileSpacing="tight";
@@ -189,7 +189,7 @@ if TestSensitivites
         end
 
 
-        figAgrad=FindOrCreateFigure("du/dA gradient test") ;  clf(figAgrad)
+        figAgradu=FindOrCreateFigure("du/dA gradient test") ;  clf(figAgradu)
         plot(dudA,dudApert,"or") ;
         hold on
         axis equal
@@ -203,7 +203,7 @@ if TestSensitivites
         title("Comparision between adjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
 
-        figAgrad=FindOrCreateFigure("dv/dA gradient test") ;  clf(figAgrad)
+        figAgradv=FindOrCreateFigure("dv/dA gradient test") ;  clf(figAgradv)
         plot(dvdA,dvdApert,"or") ;
         hold on
         axis equal
@@ -217,13 +217,13 @@ if TestSensitivites
         set(gcf,'Color','white')
 
 
-        if ~isempty(dhdotdA)
+        if ~isempty(dhdA)
 
-            figAgrad=FindOrCreateFigure("dhdot/dA gradient test") ;  clf(figAgrad)
-            plot(dhdotdA,dhdotdApert,"or") ;
+            figAgradh=FindOrCreateFigure("dhdot/dA gradient test") ;  clf(figAgradh)
+            plot(dhdA,dhdotdApert,"or") ;
             hold on
             axis equal
-            plot([min(dhdotdA) max(dhdotdA)],[min(dhdotdA) max(dhdotdA)],"--k") ;
+            plot([min(dhdA) max(dhdA)],[min(dhdA) max(dhdA)],"--k") ;
             axis equal tight ;
             xlabel(" $d\dot{h}/dA$",Interpreter="latex")  ;
             ylabel("Finite difference $d\dot{h}/dA$",Interpreter="latex")
@@ -245,11 +245,14 @@ if TestSensitivites
     if contains(CtrlVar.Inverse.InvertFor,"-B-")
         % du/dB
         F=Funperturbed;
-       
+
         CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
         dudB=dudB(:,NodeTest);
         dvdB=dvdB(:,NodeTest);
+        if ~isempty(dhdB)
+            dhdB=dhdB(:,NodeTest);
+        end
 
         B0=F.B;
         dB=1;
@@ -258,18 +261,22 @@ if TestSensitivites
         Bp(NodeTest)=Bp(NodeTest)+dB;
         F.B=Bp;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        up=F.ub; vp=F.vb;
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        up=F.ub; vp=F.vb; dhdtp=dhdt;
 
 
         Bm=B0;
         Bm(NodeTest)=Bm(NodeTest)-dB;
         F.B=Bm;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        um=F.ub; vm=F.vb;
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        um=F.ub; vm=F.vb; dhdtm=dhdt;
 
         F=Funperturbed;
 
-        dudBpert=(up-um)/(2*dB) ;  dvdBpert=(vp-vm)/(2*dB) ;
+        dudBpert=(up-um)/(2*dB) ;
+        dvdBpert=(vp-vm)/(2*dB) ;
+        dhdotdBpert=(dhdtp-dhdtm)/(2*dB) ;
 
         % dv/dB
         figBu=FindOrCreateFigure("du/dB comparision");
@@ -305,7 +312,31 @@ if TestSensitivites
         T.Padding="loose";   T.TileSpacing="tight";
 
 
-        figBgrad=FindOrCreateFigure("du/dB gradient test") ;  clf(figBgrad)
+        if ~isempty(dhdB)
+
+
+            % dhdot/dB
+            figBhdot=FindOrCreateFigure("dhdot/dB comparision"); clf(figBhdot)
+            T=tiledlayout("flow");
+
+            T1=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dhdB,CreateNewFigure=false)  ; title("$d\dot{h}/dB$ sensitvity ",Interpreter="latex") ; subtitle("")
+            title(cbar,"")
+
+            T2=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dhdotdBpert,CreateNewFigure=false) ; title("$d\dot{h}/dB$ finite differences ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+
+            T3=nexttile;
+            UaPlots(CtrlVar,MUA,F,dhdB-dhdotdBpert,CreateNewFigure=false) ; title("$d\dot{h}/dB$ differences",Interpreter="latex") ; subtitle("")
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+            T.Padding="loose";   T.TileSpacing="tight";
+
+
+        end
+
+
+        figBgradu=FindOrCreateFigure("du/dB gradient test") ;  clf(figBgradu)
         plot(dudB,dudBpert,"or") ;
         hold on
         axis equal
@@ -319,7 +350,7 @@ if TestSensitivites
         title("Comparision between adjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
 
-        figBgrad=FindOrCreateFigure("dv/dB gradient test") ;  clf(figBgrad)
+        figBgradv=FindOrCreateFigure("dv/dB gradient test") ;  clf(figBgradv)
         plot(dvdB,dvdBpert,"or") ;
         hold on
         axis equal
@@ -333,6 +364,22 @@ if TestSensitivites
         set(gcf,'Color','white')
 
 
+        if ~isempty(dhdB)
+
+            figBgradh=FindOrCreateFigure("dhdot/dB gradient test") ;  clf(figBgradh)
+            plot(dhdB,dhdotdBpert,"or") ;
+            hold on
+            axis equal
+            plot([min(dhdB) max(dhdB)],[min(dhdB) max(dhdB)],"--k") ;
+            axis equal tight ;
+            xlabel(" $d\dot{h}/dB$",Interpreter="latex")  ;
+            ylabel("Finite difference $d\dot{h}/dB$",Interpreter="latex")
+            ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+            axis on ; axis equal tight ; box off
+            title("Comparision between adjoint and finite-differences gradient calculations")
+            set(gcf,'Color','white')
+
+        end
 
 
 
@@ -343,35 +390,41 @@ if TestSensitivites
         % du/dC
         dudC=dudC(:,NodeTest);
         dvdC=dvdC(:,NodeTest);
-
+        if ~isempty(dhdC)
+            dhdC=dhdC(:,NodeTest);
+        end
         %%
         F=Funperturbed;
 
         C0=F.C;
-        dC=F.C(NodeTest)*0.00001; 
+        dC=F.C(NodeTest)*1e-1;
 
         Cp=C0;
         Cp(NodeTest)=Cp(NodeTest)+dC;
 
         F.C=Cp;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        up=F.ub; vp=F.vb;
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        up=F.ub; vp=F.vb; dhdtp=dhdt;
 
         F.C=C0;
         Cm=C0;
         Cm(NodeTest)=Cm(NodeTest)-dC;
         F.C=Cm;
         [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-        um=F.ub; vm=F.vb;
+        [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
+        um=F.ub; vm=F.vb; dhdtm=dhdt;
 
         F.C=C0;
 
         dudCpert=(up-um)/(2*dC) ;
         dvdCpert=(vp-vm)/(2*dC) ;
+        dhdotdCpert=(dhdtp-dhdtm)/(2*dC) ;
 
         scale=log(10)*C0;
         dudCpert=dudCpert.*scale ;
         dvdCpert=dvdCpert.*scale ;
+        dhdotdCpert=dhdotdCpert.*scale ;
 
 
         % dv/dC
@@ -407,8 +460,29 @@ if TestSensitivites
 
         T.Padding="loose";   T.TileSpacing="tight";
 
+        if ~isempty(dhdC)
 
-        figCgrad=FindOrCreateFigure("du/dC gradient test") ;  clf(figCgrad)
+
+            figChdot=FindOrCreateFigure("dhdot/dC comparision"); clf(figChdot)
+            T=tiledlayout("flow");
+
+            T1=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dhdC,CreateNewFigure=false)  ; title("$d\dot{h}/dC$ sensitvity ",Interpreter="latex") ; subtitle("")
+            title(cbar,"")
+
+            T2=nexttile;
+            cbar=UaPlots(CtrlVar,MUA,F,dhdotdCpert,CreateNewFigure=false) ; title("$d\dot{h}/dC$ finite differences ",Interpreter="latex") ; subtitle("") ; title(cbar,"")
+
+            T3=nexttile;
+            UaPlots(CtrlVar,MUA,F,dhdC-dhdotdCpert,CreateNewFigure=false) ; title("$d\dot{h}/dC$ differences",Interpreter="latex") ; subtitle("")
+            CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+
+            T.Padding="loose";   T.TileSpacing="tight";
+
+
+        end
+
+        figCgradu=FindOrCreateFigure("du/dC gradient test") ;  clf(figCgradu)
         plot(dudC,dudCpert,"or") ;
         hold on
         axis equal
@@ -422,7 +496,7 @@ if TestSensitivites
         title("Comparision between adjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
 
-        figCgrad=FindOrCreateFigure("dv/dC gradient test") ;  clf(figCgrad)
+        figCgradv=FindOrCreateFigure("dv/dC gradient test") ;  clf(figCgradv)
         plot(dvdC,dvdCpert,"or") ;
         hold on
         axis equal
@@ -435,12 +509,28 @@ if TestSensitivites
         title("Comparision between adjoint and finite-differences gradient calculations")
         set(gcf,'Color','white')
 
-        norm(dudC-dudCpert)/norm(dudC)
 
 
+        if ~isempty(dhdC)
+
+            figCgradh=FindOrCreateFigure("dhdot/dC gradient test") ;  clf(figCgradh)
+            plot(dhdC,dhdotdCpert,"or") ;
+            hold on
+            axis equal
+            plot([min(dhdC) max(dhdC)],[min(dhdC) max(dhdC)],"--k") ;
+            axis equal tight ;
+            xlabel(" $d\dot{h}/dC$",Interpreter="latex")  ;
+            ylabel("Finite difference $d\dot{h}/dC$",Interpreter="latex")
+            ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
+            axis on ; axis equal tight ; box off
+            title("Comparision between adjoint and finite-differences gradient calculations")
+            set(gcf,'Color','white')
+
+        end
 
 
         %%
     end
+
 
 end

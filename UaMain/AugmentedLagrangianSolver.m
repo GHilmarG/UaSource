@@ -57,7 +57,7 @@ IterationMax=CtrlVar.ALSIterationMax;
 n=size(A,1) ; m=size(B,1);
 x0=zeros(n,1);
 
-
+[nf,mf]=size(f); 
 
 % The following seems a good way of selecting iW
 %k=round(log10(mean(abs(diag(A))))) ; w=10^(k+ALSpower);  % w=1;
@@ -76,7 +76,7 @@ luvector=CtrlVar.Solve.LUvector;
 
 if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
     [L,D,p,S]=ldl(T,'vector');   % LDL factorisation using MA57, MA57 is a multifrontal sparse direct solver using AMD ordering
-    sol=zeros(m+n,1);
+    sol=zeros(m+n,mf);
 elseif luvector
     
     if isdistributed(T)
@@ -88,7 +88,7 @@ elseif luvector
         % sol(q)=U\(L\(R(:,p)\fg)) ;
     end
     
-    sol=zeros(m+n,1);
+    sol=zeros(m+n,mf);
     
 else
     
@@ -155,7 +155,9 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
     % sol=Q*(U\(L\(P*(R\fg))));
     
     if isUpperLeftBlockMatrixSymmetrical &&  CtrlVar.TestForRealValues
-        fg=S*fg ; sol(p)=L'\(D\(L\(fg(p)))); sol=S*sol;  % if using the vector format
+        fg=S*fg ; 
+        sol(p,:)=L'\(D\(L\(fg(p,:))));      % this does works for multiple right-hand sides
+        sol=S*sol;  % if using the vector format
         
     elseif luvector
         if isdistributed(T)
@@ -167,7 +169,8 @@ while (resRelative > CtrlVar.LinSolveTol &&  resAbsolute > 1e-10 && Iteration <=
         if isdistributed(T)
             sol=U\(L\(P*fg)) ;  % not sure if correct, could not test because lu not yet implemented for distributed sparse matrices!
         else
-            sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.
+            sol=Q*(U\(L\(P*(R\fg))));   % P*(R\A)*Q = L*U for sparse non-empty A.  This works for multiple right-hand sides
+                           
         end
     end
     
