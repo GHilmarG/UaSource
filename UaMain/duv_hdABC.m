@@ -25,14 +25,14 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     tB=tic;
     [dudB,dvdB,dhdB]=duvdBFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ;  % this has been tested against finite-differences and is good
     tB=toc(tB);
-    fprintf("dudB and dvdB sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
+    fprintf("B sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tB)
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     tC=tic;
     [dudC,dvdC,dhdC]=duvdCFunc(CtrlVar,MUA,F,l,BCs,KdFuvduv) ; % this has been tested against finite-differences and is good
     tC=toc(tC);
-    fprintf("dudC and dvdC sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
+    fprintf("C sensitivities for %i nodes calculated in %f sec\n",MUA.Nnodes,tC)
 end
 
 
