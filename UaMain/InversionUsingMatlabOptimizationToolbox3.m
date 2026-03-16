@@ -5,7 +5,7 @@
 
 function   [p,RunInfo]=InversionUsingMatlabOptimizationToolbox3(UserVar,CtrlVar,RunInfo,MUA,func,p0,plb,pub,Hfunc,Aineq,bineq)
 
-   
+
 
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'MaxIterations',CtrlVar.Inverse.Iterations);
 CtrlVar.Inverse.MatlabOptimisationGradientParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationGradientParameters,'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance);
@@ -18,9 +18,17 @@ CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inver
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance);
 CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'StepTolerance',CtrlVar.Inverse.StepTolerance);
 
+if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-reflective"
+    % I don't think this is needed when using the trust-region-reflective, because this algorithm uses the third
+    % argument of @func which here is JGH
+    
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
 
 
-CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
+else
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);
+end
+
 
 Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
 
@@ -28,49 +36,49 @@ Test=CtrlVar.Inverse.MatlabOptimisationGradientParameters;
 
 
 if isa(Test,'optim.options.Fminunc')
-    
+
     [p,J,exitflag,output] = fminunc(func,p0,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
-    
+
     if isfield(RunInfo.Inverse,'fminunc')
         RunInfo.Inverse.fminunc=output;
     end
-    
+
 elseif isa(Test,'optim.options.Fmincon')
-    
-  
+
+
     Aeq = [];
     beq = [];
     nonlcon = [];
-    
-    
+
+
     if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
-  
-        
-        
+
+
+
         [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
-        
+
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
-        
-        
+
+
         [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationGradientParameters);
-        
+
     else
 
-        fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ") 
+        fprintf("The variable CtrlVar.Inverse.MinimisationMethod has an invalid value. ")
         error("InversionUsingMatlabOptimizationToolbox3:InvalidParameters","CtrlVar.Inverse.MinimisationMethod invalid.")
-        
+
     end
-    
+
     if isfield(RunInfo.Inverse,'fmincon')
         RunInfo.Inverse.fmincon=output;
     end
-    
+
 else
-    
+
     fprintf('Matlab Optimization selected, but Matlab optimization routine not recognized.\n')
     fprintf(' Either select fminunc or fmincon. \n')
     error(' invalid input parameters ')
-    
+
 end
 
 [stop,Outs] = fminuncOutfun();

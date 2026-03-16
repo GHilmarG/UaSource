@@ -66,6 +66,7 @@ dIdp=[] ;
 ddIdpp=sparse(1,1);
 ddIdppDA=[];
 ddIdAA=[];
+ddIdBB=[]; 
 ddIdCC=[];
 
 

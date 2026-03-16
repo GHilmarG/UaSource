@@ -138,11 +138,23 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 % handle to the Hessian.
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
-Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H). 
+                                                                                                      % The Hessian
+                                                                                                      % output is used
+                                                                                                      % with the
+                                                                                                      % UaOptimisation
+                                                                                                      % toolbox, and
+                                                                                                      % when using the
+                                                                                                      % trust-region-reflective
+                                                                                                      % algorithm 
+                                                                                                  
+Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H) for the interior-point method 
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
 % a separate function, so I can't use JGH (!?). The function HessianAC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
+%
+% But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the
+% Hfunc is not needed.
 
 %%
 
