@@ -59,25 +59,25 @@ while true
 
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
-
-    L=chol(Hfull) ; 
-    tol=1e-6; maxit=30 ; 
-    [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hfull,-g0,tol,maxit,L,L');
-    Fig=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
-
-    L=chol(Hfull) ; 
-    tol=1e-6; maxit=30 ; 
-
-    afun=@(x) HVP(x,Hfull) ; 
-    [dpTest,fl,rr,it,rv1,rvcgl]=minres(afun,-g0,tol,maxit,L,L');
-    FigHVP=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
-
- 
-
-    function y=HVP(x,Hfull)
-        y=Hfull*x; 
-
-    end
+    % 
+    % L=chol(Hfull) ; 
+    % tol=1e-6; maxit=30 ; 
+    % [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hfull,-g0,tol,maxit,L,L');
+    % Fig=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
+    % 
+    % L=chol(Hfull) ; 
+    % tol=1e-6; maxit=30 ; 
+    % 
+    % afun=@(x) HVP(x,Hfull) ; 
+    % [dpTest,fl,rr,it,rv1,rvcgl]=minres(afun,-g0,tol,maxit,L,L');
+    % FigHVP=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
+    % 
+    % 
+    % 
+    % function y=HVP(x,Hfull)
+    %     y=Hfull*x; 
+    % 
+    % end
      % HVP=HessianVectorProduct(p,d,func)
 
     %    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
