@@ -23,7 +23,7 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
     % argument of @func which here is JGH
     
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
-
+    CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn', @(Hinfo,v) HessianVectorProduct(Hinfo,v,func));
 
 else
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',Hfunc);

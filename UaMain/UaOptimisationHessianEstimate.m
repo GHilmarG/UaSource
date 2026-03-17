@@ -60,12 +60,32 @@ while true
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
 
-    %    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    L=chol(Hfull) ; 
+    tol=1e-6; maxit=30 ; 
+    [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hfull,-g0,tol,maxit,L,L');
+    Fig=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
+
+    L=chol(Hfull) ; 
+    tol=1e-6; maxit=30 ; 
+
+    afun=@(x) HVP(x,Hfull) ; 
+    [dpTest,fl,rr,it,rv1,rvcgl]=minres(afun,-g0,tol,maxit,L,L');
+    FigHVP=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
 
  
 
+    function y=HVP(x,Hfull)
+        y=Hfull*x; 
+
+    end
+     % HVP=HessianVectorProduct(p,d,func)
+
+    %    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+
+
+
     %  D=norm(dp) ;   H=Hfull ; l=0 ; g=g0;  E=blkdiag(MUA.M,MUA.M) ; l=TrustRegionSubproblem(H,E,g,l,D) ;
-    
+
     
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
@@ -247,7 +267,7 @@ while true
     gammaSDLast=min(gammaSDLast,gamma);
 
     CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
-    [gammaSD,JSD,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+    [gammaSD,JSD]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     gammaSDLast=gammaSD;
 
     fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)

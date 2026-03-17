@@ -176,7 +176,11 @@ else
     JGHouts=[];
 end
 
+if  CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianVectorProduct-"
+    % This is when using trust-region-reflective and Hessian-Vector-Product
+    Hessian=p ;
 
+end
 
 end
 
