@@ -61,7 +61,11 @@ if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
     scale=log(10)*F.AGlen';  % this has to be a row vector
     dudA=dudA.*scale ; % using implicit expansion
     dvdA=dvdA.*scale ; % using implicit expansion
-    dhdA=dhdA.*scale ;
+    if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+        dhdA=dhdA.*scale ;
+    else
+        dhdA=[];
+    end
 
 end
 
@@ -70,7 +74,11 @@ if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
     scale=log(10)*F.C';  % this has to be a row vector
     dudC=dudC.*scale ;   % using implicit expansion
     dvdC=dvdC.*scale ;   % using implicit expansion
-    dhdC=dhdC.*scale ;
+    if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+        dhdC=dhdC.*scale ;
+    else
+        dhdC=[];
+    end
 
 end
 

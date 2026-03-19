@@ -419,9 +419,13 @@ if CtrlVar.Inverse.CalcGradI
 
         vErr2=spdiags(Meas.usCov);
         d2Idvv=MUA.M./vErr2/Area;
-
-        dhdtErr2=spdiags(Meas.dhdtCov) ;
-        d2Idhdothdot=MUA.M./dhdtErr2/Area;
+ 
+        if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+            dhdtErr2=spdiags(Meas.dhdtCov) ;
+            d2Idhdothdot=MUA.M./dhdtErr2/Area;
+        else
+            d2Idhdothdot=[];
+        end
 
         ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,uAdjoint,vAdjoint);
 

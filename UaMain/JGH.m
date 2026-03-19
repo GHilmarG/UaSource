@@ -48,33 +48,37 @@ end
 %% Reflection?
 
 
+if contains(CtrlVar.Inverse.MinimisationMethod,"Ua")
+    % pub and plb are enforced by the MATLAB optimization toolbox in a different way
+    if CtrlVar.ReflectiveTransformation
 
-if CtrlVar.ReflectiveTransformation
+        if ~isempty(pub)  && isempty(plb)
 
-    if ~isempty(pub)  && isempty(plb)
+            iu=p>pub;
+            p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
 
-        iu=p>pub;
-        p(iu)=pub(iu)+2*p(iu) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+        elseif isempty(pub)  && ~isempty(plb)
 
-    elseif isempty(pub)  && ~isempty(plb)
+            il=p>plb;
+            p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
 
-        il=p>plb;
-        p(il)=pub(il)+2*p(il) ; % so if we had p(il)=plb(il) we get p(il)=plb(il)-2*p(il)=plb(il)
+        elseif ~isempty(pub)  && ~isempty(plb)
 
-    elseif ~isempty(pub)  && ~isempty(plb)
+            %%
+            % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
 
-        %%
-        % pub=[10 8]; plb=[1 2] ; p=[1 9] ;
+            d=pub-plb;
+            t=mod(p-plb,2*d);
+            p=plb+min(t,2*d-t);
+            %%
 
-        d=pub-plb;
-        t=mod(p-plb,2*d);
-        p=plb+min(t,2*d-t);
-        %%
-
+        end
+    else
+       
+        p=kk_proj(p,pub,plb);
     end
 
 end
-
 
 
 %%
@@ -149,7 +153,7 @@ if RunInfo.Forward.uvConverged
     ubP=F.ub;
     vbP=F.vb;
 else
-    warning('JGH:returninNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
+    warning('JGH:returnsNaN',' uv solution did not converge. Returning NaN in cost function.\n ') ;
     ubP=[];
     vbP=[];
     I=NaN;

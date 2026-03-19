@@ -134,8 +134,7 @@ CtrlVar.Inverse.ResetPersistentVariables=0;
 
 
 % Function handles are created to the functions calculating the cost function, J, the gradient, dJdp, and the Hessian.
-% This is then passed to the optimization libraries. For some reason the MATLAB optimization library requires a separate
-% handle to the Hessian.
+% This is then passed to the optimization libraries. 
 
 func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);   % returns the cost (J), gradient (G) and Hessian (H)
                                                                                                       % The Hessian
@@ -150,7 +149,7 @@ func=@(p) JGH(p,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,B
 Hfunc=@(p,lambda) HessianABC(p,lambda,plb,pub,UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo); % returns the Hessian (H) for the interior-point method 
 
 % Somewhat annoyingly when using the interior-point algorithm, the MATLAB optimisation toolbox wants the Hessian returned in
-% a separate function, so I can't use JGH (!?). The function HessianAC is just a wrapper around JGH and returns the same
+% a separate function, so I can't use JGH (!?). The function HessianABC is just a wrapper around JGH and returns the same
 % Hessian as JGH.
 %
 % But when using the trust-region-reflective algorithm, the Hessian is returned as the third output to JGH and the
