@@ -2,6 +2,19 @@ function B=MismBed(x,y)
 
 narginchk(2,2)
 
+% The bedgeometry was defined over a area extending from xmin=0 to xmax=640e3 and ymin=0 to ymax=80e3
+
+
+%% Here the xy coordinates are scaled, this may, or may not, be what you want...?!
+Lx0=640e3; Ly0=80e3; 
+xMin=min(x) ; xMax=max(x) ; Lx=xMax-xMin;
+yMin=min(y) ; yMax=max(y) ; Ly=yMax-yMin;
+
+x= (x-xMin)/Lx *Lx0;  
+y= (y-yMin)/Ly *Ly0;
+%%
+
+
 Ly=80e3;
 B0=-150 ;
 B2=-728.8 ;

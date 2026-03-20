@@ -3,6 +3,8 @@
 
 function [B,UserVar,CtrlVar,MUA,F]=AnalyticalBedgeometries(UserVar,CtrlVar,MUA,F,options)
 
+% F can be a structure or [x y] array
+% function [B,UserVar,CtrlVar,MUA,F]=AnalyticalBedgeometries(UserVar,CtrlVar,MUA,[x y],options)
 
 
 arguments
@@ -13,6 +15,7 @@ arguments
     options.Plot  logical = false
     options.BedName string="-Thule-"
 end
+
 
 
 if nargin == 0 || isempty(MUA)  || isempty(F)
@@ -50,8 +53,18 @@ if nargin == 0 || isempty(MUA)  || isempty(F)
 
 end
 
+if isa(F,"struct")
 
-B=Bfunc(F.x,F.y,options.BedName) ;
+    x=F.x ; y=F.y ;
+  
+else
+
+    x=F(:,1);
+    y=F(:,2);
+
+end
+
+B=Bfunc(x,y,options.BedName) ;
 
 if options.Plot
 
@@ -60,10 +73,10 @@ if options.Plot
     [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,B);
     xlabel("x (km)",Interpreter="latex") ;
     ylabel("y (km)",Interpreter="latex")
-    colormap(othercolor("Mdarkterrain",25)) 
+    colormap(othercolor("Mdarkterrain",25))
     axis tight
     title(cbar,"(m a.s.l.)",Interpreter="latex")
-    
+
     %ax=gca; exportgraphics(ax,'ThuleB.pdf')
 
     x=linspace(0,1000e3,100) ; y=x*0;
@@ -91,7 +104,7 @@ end
 
 
 
-%% local function 
+%% local function
 
 function B=Bfunc(x,y,BedName)
 
