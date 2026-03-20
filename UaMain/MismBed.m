@@ -1,5 +1,6 @@
 function B=MismBed(x,y)
 
+narginchk(2,2)
 
 Ly=80e3;
 B0=-150 ;

@@ -129,6 +129,10 @@ switch BedName
         a=Bc - (Bc-Bl)*(r-rc).^2./(R-rc).^2;  % quadratic term in r
         B=Ba*cos(3*pi*r./l)+a ;
 
+    case "-MismBed-"
+
+        B=MismBed(x,y);
+
     otherwise
 
         error("Case not found")

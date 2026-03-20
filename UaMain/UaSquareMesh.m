@@ -110,7 +110,7 @@ ymax=CtrlVar.UaSquareMesh.ymax;
 nx=CtrlVar.UaSquareMesh.nx;
 ny=CtrlVar.UaSquareMesh.ny;
 
-% If the user only defines nx, than calculate a reasonable ny
+% If the user only defines nx, then calculate a reasonable ny
 if isfinite(nx) && isnan(ny)
     ny=round((CtrlVar.UaSquareMesh.ymax-CtrlVar.UaSquareMesh.ymin)/(CtrlVar.UaSquareMesh.xmax-CtrlVar.UaSquareMesh.xmin))*CtrlVar.UaSquareMesh.nx;
 end
