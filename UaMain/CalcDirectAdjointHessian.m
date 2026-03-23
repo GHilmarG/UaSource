@@ -168,7 +168,7 @@ if GetSensitivites
 
     if  ~contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
 
-        fprintf("Currenlty, when calculating the Hessian using the Direct-Adjoint method, measurement must include surface velocities.\ n")
+        fprintf("Currently, when calculating the Hessian using the Direct-Adjoint method, measurement must include surface velocities.\ n")
         fprintf("One can either only use velocity measurements (uv), or measurements of both velocity and rate of thickness changes (uv and dhdt), but not thickness changes alone. \n")
         error("CalcDirectAdjointHessian:noVelMeas","Measurements must include surface velocities")
 
