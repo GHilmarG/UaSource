@@ -109,6 +109,7 @@ for Iint=1:MUA.nip
 
         term=(aint-tx-ty).*fun(Inod).*detJw;
 
+        
         b(:,Inod)=b(:,Inod)+term;
 
 
