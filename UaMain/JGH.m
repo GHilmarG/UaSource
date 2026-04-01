@@ -19,10 +19,37 @@ function [J,dJdp,Hessian,JGHouts,F,RunInfo]=JGH(p,plb,pub,UserVar,CtrlVar,MUA,BC
 %
 %%
 
-persistent ubP vbP
+persistent ubP vbP JGH1 JGH2 JGH3
 
 narginchk(14,14)
 CtrlVar.nargoutJGH=nargout;
+
+if isempty(JGH1)
+    JGH1=0;
+    JGH2=0;
+    JGH3=0;
+end
+
+if nargout==3
+
+    JGH1=JGH1+1;
+    JGH2=JGH2+1;
+    JGH3=JGH3+1;
+
+elseif nargout==2
+
+    JGH1=JGH1+1;
+    JGH2=JGH2+1;
+
+elseif nargout==1
+
+    JGH1=JGH1+1;
+
+end
+
+fprintf("JGH: 1 %i \t 2 %i \t 3 %i \n",JGH1,JGH2,JGH3)
+
+
 
 if nargout==1
     CtrlVar.Inverse.CalcGradI=false;
