@@ -31,7 +31,7 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %
 %
 %
-% NR-system to solve 
+% The NR-system to solve 
 %
 % $$
 % \langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle 
@@ -41,7 +41,7 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %
 % $$ \dot{h} \to \dot{h} + \Delta \dot{h} $$
 %
-% until right-hand side small enough.
+% until right-hand side small enough. However, as the equation is linear in $\dot{h}$ it is solved directly.
 %
 %%
 

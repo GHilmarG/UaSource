@@ -141,6 +141,9 @@ end
 [UserVar,RunInfo,F,l,dFduv]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
 
 if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
+    if isempty(F.as) || isempty(F.ab)
+        [UserVar,F]=GetMassBalance(UserVar,CtrlVar,MUA,F);
+    end
     [~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ;
 end
 

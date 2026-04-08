@@ -216,8 +216,8 @@ if contains(upper(CtrlVar.Inverse.InvertFor),'C')
     title("Change in $C$ during current inversion run",Interpreter="latex") ;
     subtitle("$\log(C_{\mathrm{End}})-\log(C_{\mathrm{Start}})$",Interpreter="latex")
     title(cbar, '($\mathrm{m}\,\mathrm{yr}^{-1}\,\mathrm{kPa}^{-m}$)','interpreter','latex');
- 
-   set(figCeI,CurrentAxes=T3) ;
+
+    set(figCeI,CurrentAxes=T3) ;
     CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
 
     T.Padding="tight";   T.TileSpacing="tight";
@@ -296,6 +296,37 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     subtitle("")
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
+
+    if ~isempty(Meas.B)
+
+        figBmeas=FindOrCreateFigure("Direct measurements of B") ; clf(figBmeas)
+
+        T=tiledlayout("flow");
+
+        T1=nexttile ;
+        cbar=UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
+        title("Direct $B$ Measurements",Interpreter="latex")
+        subtitle("")
+        title(cbar, '(m)')
+        xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+        colormap(othercolor("Mdarkterrain",32))
+
+        T2=nexttile ;
+
+        Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
+        cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false);
+        title("Direct $B$ Measurement Errors",Interpreter="latex")
+        subtitle("")
+        title(cbar, '(m)')
+        xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+   
+        T.Padding="tight";   T.TileSpacing="tight";
+
+        set(figBmeas,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
+        set(figBmeas,CurrentAxes=T2) ;  colormap(T2,parula)
+     
+
+    end
 
 
 end
@@ -889,7 +920,7 @@ else
     if ~isempty(InvFinalValues.dJdB)
 
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
-        figdJdB=FindOrCreateFigure("dJdB"+PM); clf(figdJdB)
+        figdJdB=FindOrCreateFigure(PM+"\dJdB"); clf(figdJdB)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         if PM=="M"
             T="$\nabla_B J = M^{-1} dJ/dB$";
