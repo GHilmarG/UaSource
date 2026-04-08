@@ -46,13 +46,15 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
        %HessPattern=speye(numel(p0),numel(p0));    % diagonal
        % HessPattern=spdiags([1 1 1],-1:1,numel(p0),numel(p0));  % tri-diagonal 
 
-        n=3; 
+       % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
+       % and the convergence was always linear. 
+        n=2001; 
         HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal 
         
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceType','central');
-        %v=zeros(numel(p0),1)+1e-9;
-        %CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceStepSize',v);
+        % v=zeros(numel(p0),1)+1e100;
+        % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceStepSize',v);
         
 
 
@@ -88,7 +90,7 @@ elseif isa(Test,'optim.options.Fmincon')
 
 
 
-        [p,J,exitflag,output] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
+        [p,J,exitflag,output,lambda,grad,hessian] = fmincon(func,p0,Aineq,bineq,Aeq,beq,plb,pub,nonlcon,CtrlVar.Inverse.MatlabOptimisationHessianParameters);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Gradient")
 

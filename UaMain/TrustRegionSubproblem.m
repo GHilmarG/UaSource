@@ -33,7 +33,7 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 % $$ \| p \| \le \Delta $$
 %
-% The algorithm proves an almost exact solution of this problem, but does potentially require several (2 to 3) factorizations of
+% The algorithm proves an almost exact solution of this problem, but does potentially require several (2 to 3) factorization of
 % $H + \alpha E$ , and also needs to be guarded against the system becoming positive indefinite.
 %
 % The most relevant paper appears to be:  https://digital.library.unt.edu/ark:/67531/metadc283525/m2/1/high_res_d/metadc283525.pdf
@@ -80,7 +80,7 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 % This is sometimes referred to as the degenerate or the hard case.
 %
 % In the degenerate case, if $\lambda_n>0$ we can select $\alpha=0$ since $H$ is then positive definite and $\|p\|$, and if
-% $\lamnbda_n$ is negative or zero, we can select $\alpha=\lambda_n \ge 0 $.
+% $\lambda_n$ is negative or zero, we can select $\alpha=\lambda_n \ge 0 $.
 %
 %
 % For step size close to the full Newton step, the alpha values approach zero and Cholesky decomposition may not always work
