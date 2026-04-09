@@ -520,15 +520,26 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     cbar=UaPlots(CtrlVar,MUA,F,(F.dhdt-Meas.dhdt)./dhdtError,CreateNewFigure=false);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
-    title("$\dot{h}_{\mathrm{Modelled}}-\dot{h}_{\mathrm{Measured}}$",Interpreter="latex") ;
+    title("$(\dot{h}_{\mathrm{Modelled}}-\dot{h}_{\mathrm{Measured}})/\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
     subtitle("")
     CLdiff=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
-    title(cbar,"$\Delta \dot{h}$",interpreter="latex")
+    %title(cbar,"$\Delta \dot{h}/\dot{h}_{\mathrm{Error}}$",interpreter="latex")
+
+    axdhdt4=nexttile;
+ 
+    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false);
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    title("$\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
+    subtitle("")
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
+    title(cbar,"$\dot{h}_{\mathrm{Error}}$",interpreter="latex")
 
     axis(axdhdt1); clim(CLmeas)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
     axis(axdhdt2); clim(CLmod)   ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); clim(CLdiff)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
+    axis(axdhdt4);    ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
     %%
     T.Padding="tight";   T.TileSpacing="tight";
 end
