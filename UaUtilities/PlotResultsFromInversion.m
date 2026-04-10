@@ -314,7 +314,8 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         T2=nexttile ;
 
         Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
-        cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false);
+        cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false,logColorbar=true);
+        
         title("Direct $B$ Measurement Errors",Interpreter="latex")
         subtitle("")
         title(cbar, '(m)')
@@ -528,18 +529,17 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     axdhdt4=nexttile;
  
-    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false);
+    cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
     title("$\dot{h}_{\mathrm{Error}}$",Interpreter="latex") ;
     subtitle("")
-    CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
     title(cbar,"$\dot{h}_{\mathrm{Error}}$",interpreter="latex")
 
     axis(axdhdt1); clim(CLmeas)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
     axis(axdhdt2); clim(CLmod)   ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); clim(CLdiff)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
-    axis(axdhdt4);    ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt4,CM);
+   
     %%
     T.Padding="tight";   T.TileSpacing="tight";
 end

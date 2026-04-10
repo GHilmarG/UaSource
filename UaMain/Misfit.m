@@ -428,6 +428,11 @@ if CtrlVar.Inverse.CalcGradI
         end
 
         ddIdppDA = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,uAdjoint,vAdjoint);
+    
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
+
+        np=numel([DAI;DBI;DCI]) ;  
+        ddIdppDA=sparse(np,np);
 
     elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 

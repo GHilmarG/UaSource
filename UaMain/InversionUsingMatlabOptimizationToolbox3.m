@@ -48,7 +48,7 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
 
        % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
        % and the convergence was always linear. 
-        n=2001; 
+        n=11; 
         HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal 
         
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);

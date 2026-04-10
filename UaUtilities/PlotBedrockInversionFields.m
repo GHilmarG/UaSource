@@ -162,8 +162,8 @@ if ~isempty(Meas.B)
     UaPlots(CtrlVar,MUA,F,BDiff,CreateNewFigure=false);
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
-    %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("B estimated - B measured") ; subtitle("")
+    title("$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$",Interpreter="latex")
+    subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$";
     lg.Interpreter="latex";

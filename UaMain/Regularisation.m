@@ -468,7 +468,10 @@ else  % Andrey Tikhonov regularization
 
         RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
 
-        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+            N=MUA.Nnodes;
+            ddRdAA=sparse(N,N);
+        elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
             if contains(CtrlVar.Inverse.Hessian,"RHA=E")
                 ddRdAA=NA.*dAfactor;
@@ -507,8 +510,10 @@ else  % Andrey Tikhonov regularization
 
 
         RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
-
-        if contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
+        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+            N=MUA.Nnodes;
+            ddRdAA=sparse(N,N);
+        elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             if contains(CtrlVar.Inverse.Hessian,"RHC=E")
 
                 ddRdCC=NC.*dCfactor;
@@ -603,6 +608,10 @@ else  % Andrey Tikhonov regularization
 
         end
 
+        if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
+            N=MUA.Nnodes;
+            ddRdBB=sparse(N,N);
+        end
         %
 
         %%
