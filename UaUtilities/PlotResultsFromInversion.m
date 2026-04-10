@@ -267,7 +267,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     subtitle("")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    colormap(othercolor("Mdarkterrain",32))
+    colormap(T1,othercolor("Mdarkterrain",32))
 
     T2=nexttile;
     cbar=UaPlots(CtrlVar,MUA,F,InvStartValues.B,CreateNewFigure=false);
@@ -275,7 +275,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     subtitle("")
     title(cbar, '(m)')
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-    colormap(othercolor("Mdarkterrain",32))
+    colormap(T2,othercolor("Mdarkterrain",32))
 
     T3=nexttile ;
     cbar=UaPlots(CtrlVar,MUA,F,InvFinalValues.B-InvStartValues.B,CreateNewFigure=false);
@@ -284,9 +284,12 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     title(cbar, '(m)');
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
 
-    set(figB,CurrentAxes=T3) ;
-    CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+    set(figB,CurrentAxes=T3) ; CM=cmocean('balanced',25,'pivot',0) ; colormap(T3,CM);
+    set(figB,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
+    set(figB,CurrentAxes=T2) ;  colormap(T2,othercolor("Mdarkterrain",32))
+
     T.Padding="tight";   T.TileSpacing="tight";
+    
 
 
     AspectRatio=1;

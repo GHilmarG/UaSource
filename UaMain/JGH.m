@@ -47,8 +47,7 @@ elseif nargout==1
 
 end
 
-fprintf("JGH: 1 %i \t 2 %i \t 3 %i \n",JGH1,JGH2,JGH3)
-
+fprintf("\rJGH: 1 %i \t 2 %i \t 3 %i",JGH1,JGH2,JGH3)
 
 
 if nargout==1

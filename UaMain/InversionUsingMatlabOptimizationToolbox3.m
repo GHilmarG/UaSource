@@ -23,7 +23,7 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
     % I don't think this is needed when using the trust-region-reflective, because this algorithm uses the third
     % argument of @func which here is JGH
 
-    if CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-DirectAdjointHessian-"
+    if contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-DirectAdjointHessian-")
 
 
         %% Hessian provided
@@ -31,14 +31,14 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn','objective');
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
 
-    elseif CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianVectorProduct-"
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianVectorProduct-")
 
         %% Hessian-vector product
 
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn', @(Hinfo,v) HessianVectorProduct(Hinfo,v,func));
 
-    elseif CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianFiniteDifferences-"
+    elseif contains(CtrlVar.Inverse.MinimisationMethod,"-MatlabOptimization-HessianFiniteDifferences-")
 
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianFcn',[]);
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessianMultiplyFcn',[]);
@@ -47,11 +47,18 @@ if CtrlVar.Inverse.MatlabOptimisationHessianParameters.Algorithm=="trust-region-
        % HessPattern=spdiags([1 1 1],-1:1,numel(p0),numel(p0));  % tri-diagonal 
 
        % As expected, the convergence does improve as the Hessian sparsity is decreased (higher n), however, not significantly so
-       % and the convergence was always linear. 
-        n=11; 
-        HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal 
-        
-        CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);
+       % and the convergence was always linear.
+
+
+       if contains(CtrlVar.Inverse.MinimisationMethod,"-BandWidth")
+           n=str2double(extractBetween(CtrlVar.Inverse.MinimisationMethod,"-BandWidth","-")) ;
+       else
+           n=5;
+       end
+
+       HessPattern=spdiags(ones(1,n),-(n-1)/2:(n-1)/2,numel(p0),numel(p0));  % n-diagonal
+
+       CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'HessPattern',HessPattern);
         CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceType','central');
         % v=zeros(numel(p0),1)+1e100;
         % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions(CtrlVar.Inverse.MatlabOptimisationHessianParameters,'FiniteDifferenceStepSize',v);
