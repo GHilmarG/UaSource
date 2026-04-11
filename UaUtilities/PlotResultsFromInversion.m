@@ -289,7 +289,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
     set(figB,CurrentAxes=T2) ;  colormap(T2,othercolor("Mdarkterrain",32))
 
     T.Padding="tight";   T.TileSpacing="tight";
-    
+
 
 
     AspectRatio=1;
@@ -318,17 +318,17 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
         Berr=full(sqrt(diag(Meas.BCov)))  ; Berr(~isfinite(Berr))=nan ;
         cbar=UaPlots(CtrlVar,MUA,F,Berr,CreateNewFigure=false,logColorbar=true);
-        
+
         title("Direct $B$ Measurement Errors",Interpreter="latex")
         subtitle("")
         title(cbar, '(m)')
         xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
-   
+
         T.Padding="tight";   T.TileSpacing="tight";
 
         set(figBmeas,CurrentAxes=T1) ;  colormap(T1,othercolor("Mdarkterrain",32))
         set(figBmeas,CurrentAxes=T2) ;  colormap(T2,parula)
-     
+
 
     end
 
@@ -438,7 +438,7 @@ CL=clim;
 if CL(1)< 0 && CL(2) > 0
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(TS4,CM);
 end
-   
+
 T.Padding="tight";   T.TileSpacing="tight";
 
 %%
@@ -531,7 +531,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     %title(cbar,"$\Delta \dot{h}/\dot{h}_{\mathrm{Error}}$",interpreter="latex")
 
     axdhdt4=nexttile;
- 
+
     cbar=UaPlots(CtrlVar,MUA,F,dhdtError,CreateNewFigure=false,logColorbar=true);
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
@@ -542,9 +542,96 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     axis(axdhdt1); clim(CLmeas)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt1,CM);
     axis(axdhdt2); clim(CLmod)   ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt2,CM);
     axis(axdhdt3); clim(CLdiff)  ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(axdhdt3,CM);
-   
-    %%
+
+
     T.Padding="tight";   T.TileSpacing="tight";
+
+    %%
+
+    figflux=FindOrCreateFigure("flux divergence etc") ; clf(figdhdt)
+
+    T=tiledlayout("flow");
+
+    flux1=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.ab,CreateNewFigure=false);
+    title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
+    title("$\rho\,a_b$",interpreter="latex")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
+    CLmeas=clim;
+
+
+
+    flux2=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,F.rho.*F.as,CreateNewFigure=false);
+    title("$\rho \,\dot{a}_s$",Interpreter="latex") ;
+    title(cbar,"$(\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",interpreter="latex")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux2,CM);
+    CLmeas=clim;
+
+    qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
+    [dqxdx,dqxdy]=calcFEderivativesMUA(qx,MUA,CtrlVar);
+    [dqydx,dqydy]=calcFEderivativesMUA(qy,MUA,CtrlVar);
+    qdiv=dqxdx+dqydy;
+    qdiv=ProjectFintOntoNodes(CtrlVar,MUA,qdiv) ;
+
+    flux3=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,qdiv,CreateNewFigure=false);
+    title("$\nabla q  \; (\mathrm{kg}\,\mathrm{m^{-2}}\,\mathrm{a^{-1}})$",Interpreter="latex") ;
+    title(cbar,"")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
+
+
+    qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
+    [dudx,dudy]=calcFEderivativesMUA(F.ub,MUA,CtrlVar);
+    [dvdx,dvdy]=calcFEderivativesMUA(F.vb,MUA,CtrlVar);
+    vdiv=dudx+dvdy;
+    vdiv=ProjectFintOntoNodes(CtrlVar,MUA,vdiv) ;
+
+    flux4=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,vdiv,CreateNewFigure=false);
+    title("$\nabla \cdot v  \; (\mathrm{a^{-1}})$",Interpreter="latex") ;
+    title(cbar,"")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+
+    dhdtEst=(F.rho.*(F.as+F.ab)-qdiv)./F.rho ;
+
+    flux5=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,dhdtEst,CreateNewFigure=false);
+    title("$a - (\nabla \cdot q )/\rho  \; (\mathrm{m}\;\mathrm{a^{-1}})$",Interpreter="latex") ;
+    title(cbar,"")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
+
+
+    axis(flux1); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
+    axis(flux2); CM=cmocean('-ice',25) ; colormap(flux2,CM);
+    axis(flux3); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
+    axis(flux4); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+
+    T.Padding="tight";   T.TileSpacing="tight";
+
+    %%
+
+
 end
 
 
