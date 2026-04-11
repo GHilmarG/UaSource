@@ -560,9 +560,9 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    T1clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-    CLmeas=clim;
-
+   
 
 
     flux2=nexttile;
@@ -573,6 +573,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    T2clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux2,CM);
     CLmeas=clim;
 
@@ -590,10 +591,9 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    T3clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
 
-
-    qx=F.rho.*F.ub.*F.h ; qy=F.rho.*F.vb.*F.h;
     [dudx,dudy]=calcFEderivativesMUA(F.ub,MUA,CtrlVar);
     [dvdx,dvdy]=calcFEderivativesMUA(F.vb,MUA,CtrlVar);
     vdiv=dudx+dvdy;
@@ -607,6 +607,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    T4clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
 
     dhdtEst=(F.rho.*(F.as+F.ab)-qdiv)./F.rho ;
@@ -619,13 +620,42 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
     hold on ;
     xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
     axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+    T5clim=clim;
     CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
 
 
-    axis(flux1); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
-    axis(flux2); CM=cmocean('-ice',25) ; colormap(flux2,CM);
-    axis(flux3); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
-    axis(flux4); CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+    [dbdx,dbdy]=calcFEderivativesMUA(F.b,MUA,CtrlVar);
+    [dbdx,dbdy]=ProjectFintOntoNodes(CtrlVar,MUA,dbdx,dbdy) ;
+    db=sqrt(dbdx.*dbdx+dbdy.*dbdy); 
+    flux6=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,db,CreateNewFigure=false,logColorbar=true);
+    title("Norm of lower ice surface gradients $\| \nabla b \|$",Interpreter="latex") ;
+    title(cbar,"")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+ 
+  
+    [dsdx,dsdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar);
+    [dsdx,dsdy]=ProjectFintOntoNodes(CtrlVar,MUA,dsdx,dsdy) ;
+    ds=sqrt(dsdx.*dsdx+dsdy.*dsdy); 
+    flux7=nexttile;
+    cbar=UaPlots(CtrlVar,MUA,F,ds,CreateNewFigure=false,logColorbar=true);
+    title("Norm of upper ice surface gradients $\| \nabla s \|$",Interpreter="latex") ;
+    title(cbar,"")
+    subtitle("")
+    hold on ;
+    xlabel(CtrlVar.PlotsXaxisLabel);  ylabel(CtrlVar.PlotsYaxisLabel);
+    axis([min(x) max(x) min(y) max(y)]/CtrlVar.PlotXYscale)
+
+
+
+    axis(flux1); clim(T1clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux1,CM);
+    axis(flux2); clim(T2clim) ; CM=cmocean('-ice',25) ; colormap(flux2,CM);
+    axis(flux3); clim(T3clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux3,CM);
+    axis(flux4); clim(T4clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux4,CM);
+    axis(flux5); clim(T5clim) ; CM=cmocean('-balanced',25,'pivot',0) ; colormap(flux5,CM);
 
     T.Padding="tight";   T.TileSpacing="tight";
 
