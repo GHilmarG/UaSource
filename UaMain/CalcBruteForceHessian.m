@@ -25,6 +25,11 @@ narginchk(4,4)
 %
 % assuming one is inverting for A, B and C.
 %
+% see also color.m in \MATLAB\R2025b\toolbox\shared\optimlib\private\color.m 
+% which seems to do color partition for sparse finite differences. 
+%
+% The finite differences are then done by sfd
+%
 %%
 
 

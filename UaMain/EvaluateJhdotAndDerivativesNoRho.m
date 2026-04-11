@@ -4,7 +4,7 @@
 
 
 
-function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,CtrlVar,MUA,F,BCs,Meas)
+function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivativesNoRho(UserVar,CtrlVar,MUA,F,BCs,Meas)
 
 %%  Provides cost function and derivatives with respect to $u$, $v$, and $h$, of the cost function term involving $\dot{h}$
 %
@@ -12,45 +12,31 @@ function [Jhdot,duJhdot,dvJhdot,dhJhdot]=EvaluateJhdotAndDerivatives(UserVar,Ctr
 %
 % where
 %
-% $$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$
-%
-% or
-%
-% $$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$
-%
-% Here
-%
-% $$\nabla \cdot \mathbf{q} = \partial_x (\rho h u ) + \partial_y (\rho h v) $$
+% $$\dot{h} = a - ( \partial_x (u h ) + \partial (v h) ) $$ 
 %
 % and
 %
-% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  ( \frac{\dot{h} - \hat{\dot{h}}}{h_{err}}  \right )^2 \; dx \, dy $$ 
+% $$ J_{\dot{h}} = \frac{1}{2 \mathcal{A}} \int \! \int \left  (\dot{h} - \hat{\dot{h}} \right )^2 \; dx \, dy $$ 
 %
-% $$ \delta_u J_{\dot{h}} = \frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \delta_u \dot{h} \; dx \, dy $$ 
 %
-% For
+% $$ d_u J_{\dot{h}} = \frac{1}{\mathcal{A}} \int \! \int (\dot{h} - \hat{\dot{h}} ) \, (\partial_u \dot{h} ) \; \delta u \; dx \, dy $$ 
 %
-% $$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$
 %
-% we find
+% $$ \partial_u \dot{h} = \partial_ u  (  a - ( \partial_x (u h ) + \partial (v h) )) = - \partial_ u  \,  \partial_x (u h ) $$ 
 %
-% $$ 
-% \delta_u \dot{h} = \lim_{\epsilon \to 0} \frac{d}{d\epsilon} ( a- \frac{1}{\rho} (\partial_x (\rho \, h \, ( u+ \epsilon \delta u ) + \partial_y ( \rho \, h \, v ) ) 
-% = -\frac{1}{\rho} \partial_x ( \rho \, h \, \delta u ) 
-% $$
+% or
+%
+% $$ \partial_u \dot{h} = - \partial_x  \,  \partial_u (u h ) = -\partial_x (\delta u \, h) = - h \, \partial_x \delta u - \delta u \, \partial_x h $$ 
+%
+% $$ d_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int (\dot{h} - \hat{\dot{h}} ) \, ( h \partial_x \delta u - \delta u \, \partial_x h ) \; dx \, dy $$ 
+%
+% Note: if F.dhdt is available, then one can simply calculate 
+%
+% $$ J_{\dot{h}} =  \frac{1}{2 \mathcal{A}}  (\dot{h}-\hat{\dot{h}})' \, M \, (\dot{h}-\hat{\dot{h}}) $$
+%
+% where $\dot{h}$=F.dhdt. Doing so ensures that $h$ boundary conditions have been accounted for.
+%
 % 
-% that is
-%
-% $$ \delta_u \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  $$
-%
-% $$ \delta_v \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, h \, \delta v )  $$
-%
-% $$ \delta_h \dot{h} = -\frac{1}{\rho} \partial_x ( \rho \, u \delta h + \rho \, v \, \delta h)  $$
-%
-% And therefore
-%
-% $$ \delta_u J_{\dot{h}} = -\frac{1}{\mathcal{A}} \int \! \int \frac{\dot{h} - \hat{\dot{h}}}{h_{err}^2}  \, \frac{1}{\rho} \partial_x ( \rho \, h \, \delta u )  \; dx \, dy $$ 
-%
 % see also: dhdtExplicit.m
 %
 %%
@@ -62,9 +48,8 @@ anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connect
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
-rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-[~,F.dhdt]=dhdtExplicit2(UserVar,CtrlVar,MUA,F,BCs) ; 
+[~,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs) ; 
 
 if ~isempty(F.dhdt) || ~isnan(F.dhdt)
     dhdtnod=reshape(F.dhdt(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -97,36 +82,31 @@ for Iint=1:MUA.nip
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    rhoint=rhonod*fun;
 
 
-    hdotMeasint=dhdtMeasnod*fun;
-    hdotErrInt=dhdtErrnod*fun;
-
+    dhdtMeasint=dhdtMeasnod*fun;
+    dhdtErrInt=dhdtErrnod*fun;
+    
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
     dudx=zeros(MUA.Nele,1);
     dvdy=zeros(MUA.Nele,1);
-    drhodx=zeros(MUA.Nele,1);
-    drhody=zeros(MUA.Nele,1);
     % derivatives at one integration point for all elements
     for Inod=1:MUA.nod
-
+        
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-
+        
         dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-
-        drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
-        drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
+        
     end
 
 
-    if ~isnan(dhdtnod)
+     if ~isnan(dhdtnod)
         hdot=dhdtnod*fun;
     else
-        hdot=aint-(rhoint.*dhdx.*uint+rhoint.*hint.*dudx+drhodx.*hint.*uint+rhoint.*dhdy.*vint+rhoint.*hint.*dvdy+drhody.*hint.*vint)./rhoint ;
+        hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ;
      end
 
 
@@ -134,30 +114,24 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
     
   
-    JhdotIntSum=JhdotIntSum+((hdot-hdotMeasint)./hdotErrInt).^2 .*detJw/2/Area; 
+    JhdotIntSum=JhdotIntSum+((hdot-dhdtMeasint)./dhdtErrInt).^2 .*detJw/2/Area; 
     
     for Inod=1:MUA.nod
         
         % hdot=aint-(dhdx.*uint+hint.*dudx +dhdy.*vint+hint.*dvdy) ; 
         
-        R=(hdot-hdotMeasint)./hdotErrInt; 
-
-        duJhdotInt=-R...
-            .*(drhodx.*hint.*fun(Inod)+rhoint.*dhdx.*fun(Inod)+rhoint.*hint.*Deriv(:,1,Inod))./(hdotErrInt.*rhoint)...
+        duJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
+            .*((dhdx.*fun(Inod)+hint.*Deriv(:,1,Inod))./dhdtErrInt)...
             .*detJw/Area;
         
         
-        dvJhdotInt=-R...
-            .*(drhody.*hint.*fun(Inod)+rhoint.*dhdy.*fun(Inod)+rhoint.*hint.*Deriv(:,2,Inod))./(hdotErrInt.*rhoint)...
+        dvJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
+            .*((dhdy.*fun(Inod)+hint.*Deriv(:,2,Inod))./dhdtErrInt)...
             .*detJw/Area;
         
-        dhJhdotInt=-R...
-            .*( ...
-             drhodx.*uint.*fun(Inod)+rhoint.*dudx.*fun(Inod)+rhoint.*uint.*Deriv(:,1,Inod)...
-            +drhody.*vint.*fun(Inod)+rhoint.*dvdy.*fun(Inod)+rhoint.*vint.*Deriv(:,2,Inod) ...
-            )./(hdotErrInt.*rhoint)...
+        dhJhdotInt=-((hdot-dhdtMeasint)./dhdtErrInt)...
+            .*((dudx.*fun(Inod)+uint.*Deriv(:,1,Inod)+dvdy.*fun(Inod)+vint.*Deriv(:,2,Inod))./dhdtErrInt)...
             .*detJw/Area;
-
         
         
         duJhdotIntSum(:,Inod)=duJhdotIntSum(:,Inod)+duJhdotInt;
