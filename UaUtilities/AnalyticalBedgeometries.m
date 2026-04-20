@@ -1,6 +1,5 @@
 
 
-
 function [B,UserVar,CtrlVar,MUA,F]=AnalyticalBedgeometries(UserVar,CtrlVar,MUA,F,options)
 
 % F can be a structure or [x y] array
@@ -33,8 +32,8 @@ if nargin == 0 || isempty(MUA)  || isempty(F)
     % Note; When creating this mesh using Úa, only the following
     % three lines are required in the Ua2D_InitialUserInput.m
     CtrlVar.MeshSizeMax=50e3;
-    CtrlVar.MeshSizeMin=10e3;
-    CtrlVar.MeshSize=10e3 ;
+    CtrlVar.MeshSizeMin=50e3;
+    CtrlVar.MeshSize=50e3 ;
 
     MeshBoundaryCoordinates=[x(:) y(:)];
 
@@ -44,8 +43,7 @@ if nargin == 0 || isempty(MUA)  || isempty(F)
 
 
     [UserVar,MUA]=genmesh2d(UserVar,CtrlVar);
-    figure ; PlotMuaMesh(CtrlVar,MUA); drawnow
-
+    FindOrCreateFigure("Mesh") ; PlotMuaMesh(CtrlVar,MUA); drawnow
 
     F.x= MUA.coordinates(:,1); F.y= MUA.coordinates(:,2);
 

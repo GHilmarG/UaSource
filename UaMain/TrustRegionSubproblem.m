@@ -96,6 +96,10 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 % Also see: https://people.maths.ox.ac.uk/nakatsukasa/preprints/TRSrev2.pdf
 %
+% https://www.numerical.rl.ac.uk/media/people/nick-gould/ConnGoulSartToin97.pdf
+%
+% https://nmayorov.wordpress.com/2015/07/01/2d-subspace-trust-region-method/
+%
 %%
 
 if isempty(E)
