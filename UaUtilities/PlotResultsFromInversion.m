@@ -548,7 +548,7 @@ if ~isempty(Meas.dhdt)  && contains(CtrlVar.Inverse.Measurements,"-dhdt")
 
     %%
 
-    figflux=FindOrCreateFigure("flux divergence etc") ; clf(figdhdt)
+    figflux=FindOrCreateFigure("flux divergence etc") ; clf(figflux)
 
     T=tiledlayout("flow");
 
