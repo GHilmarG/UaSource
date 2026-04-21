@@ -11,6 +11,9 @@ function M=MassMatrix2D1dof(MUA)
 %  [UserVar,M,D,rc,rd]=GeneralizedMassAndStiffnessAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
 %
 %
+% see also:
+%
+%  [UserVar,M,D,rc,rd]=GeneralizedMassAndStiffnessAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
 %
 %%
 

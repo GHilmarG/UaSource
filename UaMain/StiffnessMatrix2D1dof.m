@@ -1,6 +1,13 @@
 function [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA)
-
+%%
+%
 % calculates the stiffness matrix, ie : Dxx_{pq}=<\partial_x N_p , \partial_x N_q>
+%
+% see also:
+%
+%  [UserVar,M,D,rc,rd]=GeneralizedMassAndStiffnessAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
+%
+%%
 
 neq=MUA.Nnodes;
 
