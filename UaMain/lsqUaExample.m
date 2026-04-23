@@ -55,27 +55,27 @@ x0=[-5 ; 2] ;
 %  R=(x1,x2)
 
 %                                                               lsq                      H            lsq                      H
-%                                                                       constraint                           unconstrained
-problemtype="[x1,x2]" ;                     %                   24.5                   24.5
-problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
-problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
-% problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
- problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
-% problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
+%                                                                         constraint                           unconstrained
+problemtype="[x1,x2]" ;                      %      sym          24.5                   24.5
+problemtype="[x1+x2,x2]";                    %     ~sym          25.0                    50              0                      0
+% problemtype="[x1^2+x2,x2]";                %     ~sym          40.915              49.999              0                      0
+% problemtype="[x1^2,x2]";                   %      sym          16.5015             20.5917             0                      0
+% problemtype="[x1^2+x2,x2^2+x1]";           %                   153.125             153.125             0                      0
+problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;  %   ~sym            1737.89             4052.71             0                   not conv
+% problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
 % problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
 % problemtype="[x1^2,x2^2]" ;
 % problemtype="[x1^-100 x1,0]" ;
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
 % problemtype="Beale" ; x0=[2 ; 0] ; % This is asymmetrical, can only be solved using lsq
 
-isConstraint=false;
+isConstraint=true;
 
 
 CtrlVar.lsqUa.ItMax=50 ;
 
-CtrlVar.lsqUa.gTol=1e-20 ;
-CtrlVar.lsqUa.dR2Tol=1e-10 ;
+CtrlVar.lsqUa.gTol=1e-22 ;
+CtrlVar.lsqUa.dR2Tol=1e-20 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
 
 
@@ -84,8 +84,8 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 % isLSQ=true and CostMeasure="r2" AND % isLSQ=false and CostMeasure="R2"
 %
 
-CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
-% CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
+CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="r2" ;
+%CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
@@ -102,10 +102,10 @@ CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ;
 CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
 
 
-CompareWithMatlabOpt=false;
+CompareWithMatlabOpt=true;
 
 CtrlVar.InfoLevelBackTrack=1;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
-
+CtrlVar.Parallel.isTest=false; CtrlVar.Parallel.Distribute=false;
 
 % xSol =
 %
@@ -172,7 +172,7 @@ if numel(xSol)==2
     end
 
 
-    flsqUa=FindOrCreateFigure("lsqUa test") ; 
+    flsqUa=FindOrCreateFigure("lsqUa test") ; clf(flsqUa)
     
     f=log10(RR); 
     contourf(x1Vector,x2Vector,f',50,LineStyle="none") ; 
@@ -264,11 +264,15 @@ if CompareWithMatlabOpt
 
 
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
-        'FunctionTolerance',1e-10,'Algorithm','interior-point',PlotFcn=@optimplotresnormUa);
+        'FunctionTolerance',1e-10,'Algorithm','interior-point',PlotFcn=@optimplotresnorm);
     options.OptimalityTolerance = 1.000000e-20 ; options.StepTolerance = 1.000000e-20 ;
-    [x1,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
+    [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
 
-x1
+fprintf("x solution Ua and MATLAB \n")
+[xSol xSolMatlab]
+
+fprintf("resnom Ua and MATLAB")
+[R2 resnorm]
 
 end
 

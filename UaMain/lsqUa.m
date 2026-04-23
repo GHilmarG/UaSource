@@ -7,29 +7,36 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 %%
 %
 % Minimizes the norm or R where R is a vector subject to the
-% constraints
+% constraints, i.e. 
 %
-%   $$L x = c$$
+%
+% $$ \| R(x) \|^2 =  R^{\prime}  R $$ 
+%
+% subject to
+%
+% $$L x = c$$
 %
 %  The function 'fun' should provide both R and the Jacobian, i.e.
 %
 %   [R,K]=fun(x)
 %
-% where   K=grad R
+% where   
+% 
+% $$ K=\nabla R $$
 %
+% that is
+%
+% $$K_{ij}= \frac{\partial R_i}{\partial x_j} $$
 %
 %  fun = @(x) FunctionThatReturnsRandK(x, ...other variables which values do not change as the function is called repeatedly...)  ;
 %
 %
-% Note that R is a vector and K a matrix.  The value that is minimized is
-%
-%   R'*R
 %
 % *Algorithm:* 
 % 
 % Solves repeatedly the linearized min problem:
 %
-%  |R0+J dx|^2
+% $$ \| R_0+K \Delta x \|^2 $$
 %
 %
 %
@@ -97,6 +104,8 @@ function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(
 % $$ K' \mathbf{R} $$
 %
 % and not simply along $\mathbf{R}$ 
+%
+% The matrix $K^{\prime} K$ is positive definite if and only if $K$ is full rank.
 %
 % Various exit criteria are possible.
 %

@@ -2687,6 +2687,7 @@ CtrlVar.Abort.Message="" ;
  CtrlVar.uvhMakeInitialIterateFeasible=true; 
  CtrlVar.uvMakeInitialIterateFeasible=true; 
  
+ CtrlVar.TestForPosDefAlongNewtonDirection=false;
 
 end
 

@@ -164,8 +164,8 @@ else
     h=[];
 end
 
-R2=full(R'*R);
-r2=full([g;h]'*[g;h])/Normalisation ;
+R2=full(R'*R);    % This is the value of the cost function, this will not always go to zero for constrained optimisation problems. 
+r2=full([g;h]'*[g;h])/Normalisation ;   % this is the norm of the right-hand side, sometimes referred to as first-order optimality. This should approach zero. 
 
 
 r2Array(1)=r2;
