@@ -143,7 +143,7 @@ if ~isempty(Meas.B)
     UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
     climMeasured=clim;
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Measured B (projected onto nodes)")
+    title("$B_{\mathrm{Meas}} (projected onto nodes)$",Interpreter="latex")
     subtitle("")
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
@@ -154,7 +154,8 @@ if ~isempty(Meas.B)
     ax2=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B,CreateNewFigure=false);
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("Retrieved B") ; subtitle("")
+    title("$B_{\mathrm{Retrieved}}$",Interpreter="latex")
+    subtitle("")
     clim(climMeasured);
 
 
@@ -162,7 +163,7 @@ if ~isempty(Meas.B)
     UaPlots(CtrlVar,MUA,F,BDiff,CreateNewFigure=false);
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
-    title("$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$",Interpreter="latex")
+    title("$B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}}$",Interpreter="latex")
     subtitle("")
     lg=legend;
     lg.String{1}="$(B_{\mathrm{Retrieved}}-B_{\mathrm{Meas}})$";
@@ -185,11 +186,13 @@ if ~isempty(Meas.B)
 
     ax5=nexttile;
     UaPlots(CtrlVar,MUA,F,Priors.B,CreateNewFigure=false);
-    title("B prior") ;  subtitle("");
+    title("$B_{\mathrm{Prior}}$",Interpreter="latex")
+    subtitle("");
 
     ax6=nexttile;
     UaPlots(CtrlVar,MUA,F,InvFinalValues.B-Priors.B,CreateNewFigure=false);
-    title("Retrieved B -  Prior B ")   ; subtitle("");
+    title("$B_{\mathrm{Retrieved}}-B_{\mathrm{Prior}}$",Interpreter="latex")
+    subtitle("");
 
 
     % feels a bit clumsy way of ensuring that each tile as its own colorbar, but I can't think of a simpler approach
