@@ -2,7 +2,7 @@
 
 
 
-function [x,l,R2,r2,Slope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlVar,fun,x,l,Aeq,beq)
+function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlVar,fun,x,l,Aeq,beq)
 
 
 
@@ -23,13 +23,10 @@ ItMax=5;
 gTol=1e-20;
 dR2Tol=1e-3;
 dxTol=1e-20;
-isLSQ=true;
 Normalize=false ;
 SaveIterate=false;
-lsqDogLeg="-Newton-Cauchy-";
 CostMeasure="R2" ; % "r2"
 StepString="  ";
-InfoLevelNonLinIt= 1;
 
 if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
 
@@ -50,10 +47,7 @@ if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
         dxTol=CtrlVar.lsqUa.dxTol ;
     end
 
-    if isfield(CtrlVar.lsqUa,"isLSQ")
-        isLSQ=CtrlVar.lsqUa.isLSQ ;
-    end
-
+  
     if isfield(CtrlVar.lsqUa,"Normalize")
         Normalize=CtrlVar.lsqUa.Normalize;
     end
@@ -61,20 +55,10 @@ if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
         SaveIterate=CtrlVar.lsqUa.SaveIterate;
     end
 
-    if isfield(CtrlVar.lsqUa,"InfoLevelNonLinIt")
-        InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
-    end
-
-    if isfield(CtrlVar.lsqUa,"DogLeg")
-        lsqDogLeg=CtrlVar.lsqUa.DogLeg ;
-    end
+ 
 
     if isfield(CtrlVar.lsqUa,"CostMeasure")
         CostMeasure=CtrlVar.lsqUa.CostMeasure;
-    end
-
-    if isfield(CtrlVar,"CtrlVar.InfoLevelNonLinIt")
-        InfoLevelNonLinIt=CtrlVar.InfoLevelNonLinIt;
     end
 
 end
@@ -86,7 +70,7 @@ QArray=nan(ItMax+1,1) ;   % lsq quadratic approximation
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
 % WorkArray=nan(ItMax+1,1) ;
-dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
+dR2=[inf ; inf ] ; % stores the changes in R2=0.5*R'*R  over last two iterations
 
 
 
@@ -127,7 +111,7 @@ end
 
 
 
-g =- (2*K'*R + LTl) ;
+g =- (K'*R + LTl) ;
 
 if ~isempty(Aeq)
     h =- (Aeq*x-beq);
@@ -135,7 +119,7 @@ else
     h=[];
 end
 
-R2=full(R'*R);
+R2=0.5*full(R'*R);
 r2 = full([g;h]'*[g;h])/Normalisation;
 
 if CostMeasure=="R2"
@@ -168,7 +152,7 @@ while iteration <= ItMax
     R20=R2;  r20=r2 ;  J0=J ;
     g0=g ; h0=h ; 
  
-    KK0=2*(K0'*K0);
+    KK0=(K0'*K0);
 
     gamma=nan; 
    
@@ -192,28 +176,28 @@ while iteration <= ItMax
     CtrlVar.InfoLevelBackTrack=10000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
 
  
-
+  
     gammaNewton=1; 
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
     
-    [R,K]=fun(x) ;
+    [R,K]=fun(x) ; % This is the only call withing the NR loop.
     [Qslope0,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x,l,dx,dl,gammamin) ; % this is the slope at the end of the line search in the direction of [dx;dl]
 
-    
+
     if ~isempty(Aeq)
         h =- (Aeq*x-beq);
-        g =- (2*K'*R + Aeq'*l) ;
+        g =- (K'*R + Aeq'*l) ;
     else
-       g =- 2*K'*R  ;
+        g =- K'*R  ;
         h=[];
     end
 
-    R2=full(R'*R);
-    r2 = full([g;h]'*[g;h])/Normalisation;
+    R2=0.5*full(R'*R);
+    r2 = 0.5*full([g;h]'*[g;h])/Normalisation;
 
-    
+
     r2Ratio=r2/r20 ;
     R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
@@ -282,8 +266,8 @@ while iteration <= ItMax
 
 end
 
-Slope0=full(2*R'*K*dx) ;
-Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based on final R and K values
+
+Slope0Array(iteration+1)=Qslope0;  % This is the slope in the direction dx based on final R and K values
 
 % fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
 
@@ -317,6 +301,7 @@ ylabel("$r^2$, first-order optimality",Interpreter="latex")
 hold on 
 yyaxis right
 plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")  
+FigNL.CurrentAxes.YScale="log"   ;
 ylabel("$\|R\|^2$",Interpreter="latex")
 lg=legend(Interpreter="latex");
 

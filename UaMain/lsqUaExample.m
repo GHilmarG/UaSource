@@ -89,7 +89,7 @@ CtrlVar.NLtol=CtrlVar.lsqUa.gTol ;
 % isLSQ=true and CostMeasure="r2" AND % isLSQ=false and CostMeasure="R2"
 %
 
-CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="r2" ;
+CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
 %CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
@@ -102,7 +102,9 @@ CtrlVar.InfoLevelNonLinIt=1;
 CtrlVar.lsqUa.Algorithm="DogLeg" ; % ["LevenbergMarquardt"|"DogLeg"]
 %CtrlVar.lsqUa.Algorithm="LevenbergMarquardt";
 CtrlVar.lsqUa.Algorithm="NewtonLSQ";
-CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
+
+
+% CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
 % CtrlVar.lsqUa.DogLeg="-Newton-" ; 
 % CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
 
@@ -300,10 +302,10 @@ if CompareWithMatlabOpt
     lb=[] ; ub=[] ; A=[] ; b=[] ;   nonlcon=[] ;
 
 
-
+    % trus-region-reflective is much faster than interior-point, at least if the problem is well behaved
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
-        'FunctionTolerance',1e-10,'Algorithm','interior-point',PlotFcn={@optimplotfirstorderopt,@optimplotresnorm});
-    options.OptimalityTolerance = 1.000000e-20 ; options.StepTolerance = 1.000000e-20 ;
+        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderopt,@optimplotresnorm});
+    options.OptimalityTolerance = 1.000000e-15 ; options.StepTolerance = 1.000000e-20 ;
     [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
 
     flsqUa=FindOrCreateFigure("lsqUa |R|^2") ;

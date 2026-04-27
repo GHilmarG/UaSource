@@ -17,7 +17,7 @@ x=x0+gamma*dx;
 if CostMeasure=="R2"
 
     R=fun(x) ;
-    J=full(R'*R) ;
+    J=0.5*full(R'*R) ;
 
 elseif CostMeasure=="r2"
 
@@ -33,14 +33,14 @@ elseif CostMeasure=="r2"
 
     if isLSQ
         [R,K]=fun(x) ;
-        g =- (2*K'*R + LTlambda) ;
+        g =- (K'*R + LTlambda) ;
     else
         R=fun(x) ;
         g =- (R + LTlambda) ;
     end
 
     d=[g;h];
-    J=full(d'*d);
+    J=0.5*full(d'*d);
 
 
 end

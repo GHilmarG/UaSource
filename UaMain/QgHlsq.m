@@ -25,10 +25,10 @@ end
 if isempty(Aeq)
 
     % Note that the search direction is [dx;dl]
-    slope0=2*F'*J*dx;
+    slope0=F'*J*dx;
 
 else
-    slope0=2*F'*J*dx+(Aeq'*l0)'*dx+(Aeq*x0 -beq)'*dl;
+    slope0=F'*J*dx+(Aeq'*l0)'*dx+(Aeq*x0 -beq)'*dl;
 end
 
 slope0=full(slope0);

@@ -166,7 +166,7 @@ if ~isLSQ && nK~= mK
 end
 
 if isLSQ
-    g =- (2*K'*R + LTlambda) ;
+    g =- (K'*R + LTlambda) ;
 else
     g =- (R + LTlambda) ;
 end
@@ -177,7 +177,7 @@ else
     h=[];
 end
 
-R2=full(R'*R);
+R2=0.5*full(R'*R);
 r2 = full([g;h]'*[g;h])/Normalisation;
 
 if CostMeasure=="R2"
@@ -379,7 +379,7 @@ while iteration <= ItMax
     end
 
 
-    R2=full(R'*R);
+    R2=0.5*full(R'*R);
 
     if ~isempty(L)
         LTlambda=L'*lambda ;
@@ -390,7 +390,7 @@ while iteration <= ItMax
     end
 
     if isLSQ
-        g =- (2*K'*R + LTlambda) ;
+        g =- (K'*R + LTlambda) ;
     else
         g =- (R + LTlambda) ;
     end
@@ -398,7 +398,7 @@ while iteration <= ItMax
     r2=full([g;h]'*[g;h])/Normalisation ;
 
     if isLSQ
-        Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
+        Q=R'*K*dx+0.5*dx'*KK*dx ;  % Quad approximation, based on unperturbed H
     else
         Q=R'*dx+dx'*H*dx/2 ;
     end
@@ -492,7 +492,7 @@ while iteration <= ItMax
 
 end
 
-Slope0=full(2*R'*K*dx) ;
+Slope0=full(R'*K*dx) ;
 Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based on final R and K values
 
 % fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
