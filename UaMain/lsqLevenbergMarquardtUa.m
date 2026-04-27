@@ -243,7 +243,7 @@ while iteration <= ItMax
     R2=full(R'*R);
 
 
-    rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+    rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
     r2Ratio=r2/r20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
     R2Ratio=R2/R20 ;

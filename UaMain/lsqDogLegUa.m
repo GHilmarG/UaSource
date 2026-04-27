@@ -366,7 +366,7 @@ while iteration <= ItMax
         end
     end
     
-    dx=x-x0 ; dlambda=lambda-lambda0 ;
+    dx=x-x0 ; dlambda=lambda-lambda0 ; % this is the final change in x and lambda, after backtracking, and here gammaMin has already been used.
 
 
 
@@ -397,19 +397,28 @@ while iteration <= ItMax
 
     r2=full([g;h]'*[g;h])/Normalisation ;
 
-
-    Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
     if isLSQ
-        rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+        Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
     else
-        % if isempty(L)
-        %     Q=R0'*dx + dx'*H0*dx/2 ;
-        % else
-        %     Q=(R0+L'*lambda0)'*dx/2+(L*x0-c)'*dlambda/2 ...
-        %         + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
-        % end
-        rho=(r2-r20)/Q;      % Actual reduction / Modelled Reduction
+        Q=R'*dx+dx'*H*dx/2 ;
     end
+
+    rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
+    % r2Ratio=r2/r20 ;
+    % dR2=[abs(R2-R20); dR2(1)] ;
+    % R2Ratio=R2/R20 ;
+ 
+    % if isLSQ
+    %     rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
+    % else
+    %     % if isempty(L)
+    %     %     Q=R0'*dx + dx'*H0*dx/2 ;
+    %     % else
+    %     %     Q=(R0+L'*lambda0)'*dx/2+(L*x0-c)'*dlambda/2 ...
+    %     %         + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
+    %     % end
+    %     rho=(r2-r20)/Q;      % Actual reduction / Modeled Reduction
+    % end
 
 
 
@@ -506,6 +515,24 @@ output.Slope0Array=Slope0Array;
 output.xVector=xVector;
 output.nIt=iteration;
 output.fun=funOuts ; 
+
+
+%%
+FigNL=FindOrCreateFigure("Non-lin Convergence") ;  clf(FigNL)
+hold off
+yyaxis left
+plot(0:iteration,output.r2Array(1:iteration+1),"bo-",DisplayName="$r^2$ (first-order optimality)")  
+FigNL.CurrentAxes.YScale="log"   ;
+ylabel("$r^2$, first-order optimality",Interpreter="latex")
+hold on 
+yyaxis right
+plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")  
+ylabel("$\|R\|^2$",Interpreter="latex")
+lg=legend(Interpreter="latex");
+
+%%
+
+
 
 end
 

@@ -2,19 +2,51 @@
 
 
 
-function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,L,c)
+function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x,lambda,Aeq,beq)
 
 %%
 %
-% Minimizes the norm or R where R is a vector subject to the
+% Minimizes the norm of R where R is a vector subject to the
 % constraints, i.e. 
 %
+% $$\min_{x}  R^2(x)  $$
+% 
+% $$\mathbf{L} \mathbf{x} = \mathbf{c}$$
 %
-% $$ \| R(x) \|^2 =  R^{\prime}  R $$ 
+% where
 %
-% subject to
+% $$\mathbf{L} \in \mathcal{R}^{p \times n} $$
 %
-% $$L x = c$$
+% Here
+%
+% $$ R^2=  \| \mathbf{R} \|^2 =\mathbf{R}^{\prime} \cdot \mathbf{R} =\sum_{i=1}^n R_i^2(x_1,x_2,\ldots,x_m) $$
+%
+% with 
+% 
+% $$\mathbf{R} \in \mathcal{R}^n$$
+%
+% and
+%
+% $$\mathbf{x} \in \mathcal{R}^m$$
+%
+% Note that in FE context, we typically have the situation where $n=m$.
+%
+% We assume we know
+%
+% $$K=\nabla \mathbf{R}$$
+%
+% that is
+%
+% $$K_{ij}= \frac{\partial R_i}{\partial x_j} $$
+%
+% The derivative of $R^2$ with respect to $x_j$ is
+%
+% $$ \frac{\partial R^2}{\partial x_j} = \sum_{i=1}^n 2 R_i \, \frac{\partial R_i}{\partial x_j} =  \sum_{i=1}^n 2 R_i \, K_{ij} = 2 \mathbf{R}^{\prime} \, \mathbf{K} = 2 \mathbf{K}^{\prime} \, \mathbf{R} $$
+%
+%
+%
+%
+% where
 %
 %  The function 'fun' should provide both R and the Jacobian, i.e.
 %
@@ -142,15 +174,19 @@ end
 
 switch Algorithm
 
+    case "NewtonLSQ"
+
+        [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqNewton(CtrlVar,fun,x,lambda,Aeq,beq) ;
+
     case "LevenbergMarquardt"
 
-        [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c) ;
+        [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,Aeq,beq) ;
         
 
     case "DogLeg"
 
 
-        [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,L,c) ;
+        [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqDogLegUa(CtrlVar,fun,x,lambda,Aeq,beq) ;
 
 
     otherwise
