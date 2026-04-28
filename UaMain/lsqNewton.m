@@ -150,17 +150,33 @@ while iteration <= ItMax
 
     K0=K ; R0=R; x0=x ; l0=l ;
     R20=R2;  r20=r2 ;  J0=J ;
-    g0=g ; h0=h ; 
- 
+    g0=g ; h0=h ;
+
     KK0=(K0'*K0);
 
-    gamma=nan; 
-   
+    gamma=nan;
+
+
 
     % Solve the KKT Newton system. [dx;dl] is the Newton direction
     [dx,dl]=solveKApeSymmetric(KK0,Aeq,g0,h0,x0,l0,CtrlVar);
 
-   [Qslope0,QgammaMin]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gamma) ;
+    [Qslope0,QgammaMin,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gamma) ;
+
+
+    TrustRegionSubProblem=true;
+    if TrustRegionSubProblem
+        % trust-region subproblem
+        % I think the trust-region subproblem relates to the quadratic model alone, and once I've found alpha I resolve the system
+        % using KK0 -> KK0+alpha E
+
+        Delta=norm(dx);
+        E=speye(size(KK0)) ; alpha= 0 ;
+        alpha=TrustRegionSubproblem(KK0,E,g0,alpha,Delta)
+        KK0=KK0+alpha*E;
+        [dx,dl]=solveKApeSymmetric(KK0,Aeq,g0,h0,x0,l0,CtrlVar);
+
+    end
 
     CtrlVar.BacktrackIteration=iteration  ;
 
@@ -173,17 +189,19 @@ while iteration <= ItMax
     J0=funcBackTrack(0) ; 
     J1=funcBackTrack(1) ; 
 
-    CtrlVar.InfoLevelBackTrack=10000;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
+    CtrlVar.InfoLevelBackTrack=100;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
 
  
   
     gammaNewton=1; 
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
+    
+    [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
     
     [R,K]=fun(x) ; % This is the only call withing the NR loop.
-    [Qslope0,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x,l,dx,dl,gammamin) ; % this is the slope at the end of the line search in the direction of [dx;dl]
+  
 
 
     if ~isempty(Aeq)
@@ -202,7 +220,7 @@ while iteration <= ItMax
     R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
 
-    rho=(R20-R2)/Qreduction;
+    rho=(R2-R20)/Qreduction;
 
     dxNorm=norm(dx);
     dlNorm=norm(dl);

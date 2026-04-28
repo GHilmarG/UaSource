@@ -673,7 +673,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
         parfevalOnAll(gcp(), @warning, 0, 'off','MATLAB:decomposition:SaveNotSupported');
     end
 
-    if CtrlVar.InfoLevelBackTrack>=1000
+    if CtrlVar.InfoLevelBackTrack>=100
         nnn=10 ;
 
         rTestVector=zeros(nnn,1)+NaN ;
@@ -722,7 +722,7 @@ if CtrlVar.InfoLevelBackTrack>=100 && CtrlVar.doplots==1
 
     [gammaTestVector,Ind]=sort(gammaTestVector) ; rTestVector=rTestVector(Ind) ; 
 
-    if CtrlVar.InfoLevelBackTrack>=1000
+    if CtrlVar.InfoLevelBackTrack>=100
        plot(gammaTestVector,rTestVector,'xk-',DisplayName="cost curve") 
         
     end

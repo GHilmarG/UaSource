@@ -62,11 +62,11 @@ x0=[-5 ; 2] ;
 %                                                               lsq                      H            lsq                      H
 %                                                                         constraint                           unconstrained
 problemtype="[x1,x2]" ;                     %      sym          24.5                   24.5
-problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
+% problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
 
 % this is an interesting case, works with Newton and agrees with matlab opt, but the first-order optimal measure is not
 % small...?
-problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
+% problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
 
 
 % problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0

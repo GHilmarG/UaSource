@@ -34,12 +34,43 @@ end
 slope0=full(slope0);
 gammaMin=-slope0/((J*dx)'*(J*dx));
 
+Q=Qlsq(F,J,Aeq,beq,x0,l0,dx,dl,gamma);
 
-if ~isnan(gamma)
 
 
-    dx=gamma*dx;
-    dl=gamma*dl;
+% doPlots=true;
+% 
+% % Plot Q along [dx;dl] direction
+% 
+% gammaMax=1;
+% gammaVector=linspace(0,gammaMax,100); gammaVector=gammaVector(:); 
+% Qvector=nan(numel(gammaVector),1);
+% 
+% 
+% for I=1:numel(gammaVector)
+%     Qvector(I)=Qlsq(F,J,Aeq,beq,x0,l0,dx,dl,gammaVector(I)) ;
+% end
+% FigQ=FindOrCreateFigure("Qlsq along search direcion") ; clf(FigQ)
+% 
+% plot(gammaVector,Qvector)
+% 
+% 
+% 
+
+
+end
+
+
+
+
+
+function Q=Qlsq(F,J,Aeq,beq,x0,l0,dx,dl,g)
+
+if ~isnan(g)
+
+
+    dx=g*dx;
+    dl=g*dl;
 
     Q=0.5*(J*dx)'*(J*dx)+F'*(J*dx) ;
 
@@ -52,7 +83,9 @@ else
 end
 
 
-
-
-
 end
+
+
+
+
+

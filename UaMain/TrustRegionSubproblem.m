@@ -3,8 +3,8 @@
 function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 
 %%
-% Solves a trust-region problem, i.e. finds a $\alpha$ such that 
-% 
+% Solves a trust-region problem, i.e. finds a $\alpha$ such that
+%
 % $$\|p\| =  \Delta $$
 %
 % where
@@ -13,23 +13,23 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 % for given matrices $H$, $E$ and a vector $g$.
 %
-% $H$ and $E$ must be symmetrical matrices. 
+% $H$ and $E$ must be symmetrical matrices.
 %
 % The above formulation is for $E$ being a diagonal matrix.
 %
-% If $E$ is not a diagonal matrix, the solution is to 
+% If $E$ is not a diagonal matrix, the solution is to
 %
 % $$ ( E^{-1} ( H + \alpha E ) ) \; p = - E^{-1}  g $$
-% 
-% with 
+%
+% with
 %
 % $$\| p \| = \Delta $$
 %
-% This is equivalent to  solving the constraint quadratic minimization problem 
+% This is equivalent to  solving the constraint quadratic minimization problem
 %
 % $$ \min Q(p) = f + g' p + \frac{1}{2} p' H p $$
 %
-% subject to 
+% subject to
 %
 % $$ \| p \| \le \Delta $$
 %
@@ -37,17 +37,17 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 % $H + \alpha E$ , and also needs to be guarded against the system becoming positive indefinite.
 %
 % The most relevant paper appears to be:  https://digital.library.unt.edu/ark:/67531/metadc283525/m2/1/high_res_d/metadc283525.pdf
-% 
-% But the method is also described in section 4.5 of Numerical Optimizations by Jorge Nocedal and Stephen J, Wright 
+%
+% But the method is also described in section 4.5 of Numerical Optimizations by Jorge Nocedal and Stephen J, Wright
 %
 % https://www.ccom.ucsd.edu/~peg/papers/trust.pdf
 %
 %
 %
-% In the limiting case for $\alpha=0$ the system 
+% In the limiting case for $\alpha=0$ the system
 %
 % $$ ( E^{-1} ( H + \alpha E ) ) \; p = - E^{-1}  g $$
-% 
+%
 % becomes
 %
 % $$ H  p = - g $$
@@ -59,21 +59,21 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 %
 % $$ \alpha \;  E   \; p = -  g $$
-% 
-% which give the direction of steepest descent. 
+%
+% which give the direction of steepest descent.
 %
 %
 % The initial $\alpha$ value entered in the call may have to be a reasonable value for $\alpha$ for the method to converge.
 %
-% If the eigenvalues of $H$ are the set ${\lambda_i}$ where $\lambda_n \le \lambda_{n-1} \le \ldots \le \lambda_1$, 
+% If the eigenvalues of $H$ are the set ${\lambda_i}$ where $\lambda_n \le \lambda_{n-1} \le \ldots \le \lambda_1$,
 % then $\alpha$ is in the interval $(-\lambda_n, +\infty)$.  Note that $H$ may not be positive definite and therefore
 % we could have that $\lambda_1<0$.
 %
 % If $\alpha$ converge to a negative root in $(-\lambda_n, +\infty)$ the Newton step is inside the trust region and we can
 % set $\alpha=0$ on return. This is, for example, the case when $\lambda_n>0$ and $H$ is positive definite and the Newton
-% step inside the trust region. 
+% step inside the trust region.
 %
-% There is an additional special case when the gradient $g$ is perpendicular to the eigenspace, $S_n$,  of the smallest $H$ eigenvalue, i.e. 
+% There is an additional special case when the gradient $g$ is perpendicular to the eigenspace, $S_n$,  of the smallest $H$ eigenvalue, i.e.
 %
 % $$ S_n= \{z : Hz =\lambda_n z \, , \, z \not = 0 \}$$
 %
@@ -84,13 +84,13 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 %
 % For step size close to the full Newton step, the alpha values approach zero and Cholesky decomposition may not always work
-% if the smallest eigenvalue of H are numerically small, yet positive. 
+% if the smallest eigenvalue of H are numerically small, yet positive.
 %
 %
 %
 % Expansion on this using sub-space minimisation is the truncated Lanczos approach where $p$ is found as
 %
-% $$p_k=Q_k h_k$$ 
+% $$p_k=Q_k h_k$$
 %
 % see https://www.numerical.rl.ac.uk/media/people/nick-gould/GoulLuciRomaToin99_siopt.pdf
 %
@@ -102,26 +102,26 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 %
 %%
 
-if isempty(E)
+% if isempty(E)
+%
+%     nNodes=size(MUA.M,1);
+%     nH=size(H,1);
+%
+%     if nH==nNodes
+%         E=MUA.M ;
+%     elseif nH==2*nNodes
+%         E=blkdiag(MUA.M,MUA.M) ;
+%     else
+%         error("wrong dimentions")
+%     end
+%
+% end
 
-    nNodes=size(MUA.M,1);
-    nH=size(H,1);
-
-    if nH==nNodes
-        E=MUA.M ;
-    elseif nH==2*nNodes
-        E=blkdiag(MUA.M,MUA.M) ;
-    else
-        error("wrong dimentions")
-    end
-
-end
 
 
+%% saveguarding
 
-%% saveguarding 
-
-lambdaMin=-1 ; % This should be the smallest eigenvalue of H, but this takes time to calculate...
+alphaMin=0 ; % This should be the smallest eigenvalue of H, but this takes time to calculate...
 alphaU=+inf;  % this should be smaller or equal to the smallest eigenvalue of H
 alphaL=-inf ;
 
@@ -144,12 +144,12 @@ if ~isEdiag
 end
 
 
-phiTol=1e-3; 
+phiTol=1e-3;
 %alpha=max(alpha,alphaL);
 
 phiVector=nan(10,1);
 alphaVector=nan(10,1);
-phi=NaN; 
+phi=NaN;
 
 for iLoop=1:10
 
@@ -182,41 +182,46 @@ for iLoop=1:10
     phi=1/Delta-1/pNorm;
 
     phiVector(iLoop)=phi;
-    alphaVector(iLoop)=alpha ; 
+    alphaVector(iLoop)=alpha ;
 
-    if isEdiag
-        dphidalpha=-(qNorm/pNorm)^2 * Delta/(pNorm-Delta) *phi;
-    else
-        dphidalpha=(phi-phiLast)/(alpha-alphaLast);
-    end
+
+    dalpha=(pNorm/qNorm)^2 * (pNorm-Delta)/Delta;
+
+    % not sure what I was doing here...
+    % if isEdiag
+    %     dphidalpha=-(qNorm/pNorm)^2 * Delta/(pNorm-Delta) *phi;
+    % else
+    %     dphidalpha=(phi-phiLast)/(alpha-alphaLast);
+    % end
 
     phiLast=phi; alphaLast=alpha;
 
 
     fprintf("===== it %i: phi=%-15g \t |p|=%-10g \t |q|=%-10g \t alpha=%g \n",iLoop,phi,pNorm,qNorm,alpha)
 
+    alpha=alpha+dalpha ;
+    %
+    % if ~isnan(dphidalpha)
+    %     alpha=alpha-phi/dphidalpha;
+    % else
+    %     dalpha=1;
+    %     alpha=alpha+dalpha;
+    % end
 
 
-    if ~isnan(dphidalpha)
-        alpha=alpha-phi/dphidalpha;
-    else
-        dalpha=1;
-        alpha=alpha+dalpha;
-    end
+    % the idea is to bracket the solution using the fact that phi is a monotonically decreasing function of alpha
+    %
+    % If phi >0 then I am to the left of the minimum, and I can set the lower bound for alpha, i.e. alphaL, to alphaLast;
+    % If phi<0 then I am to the right of the minimum, and I can set the upper bound for alpha, i.e. alphaU, to alphaLast
+    %
 
-
-% the idea is to bracket the solution using the fact that phi is a monotonically decreasing function of alpha
-%
-% If phi >0 then I am to the left of the minimum, and I can set the lower bound for alpha, i.e. alphaL, to alphaLast; 
-% If phi<0 then I am to the right of the minimum, and I can set the upper bound for alpha, i.e. alphaU, to alphaLast 
-%
-
+    % phi is the function we are trying to find the root of
     if phi< 0 && alphaLast<alphaU
         alphaU=alphaLast;
     end
 
 
-    if phi > 0 && alphaLast > alphaL % 
+    if phi > 0 && alphaLast > alphaL %
         alphaL=alphaLast;
     end
 
@@ -228,11 +233,20 @@ for iLoop=1:10
         alpha=alphaL;
     end
 
-    % alpha=max(alpha,alphaL);
-    % alpha=min(alpha,alphaU);
+    alpha=max(alpha,alphaL);
+    alpha=min(alpha,alphaU);
     % if alpha <= alphaS
     %     alpha=max(1e-6*alphaU,sqrt(alphaL*alphaU));
     % end
+
+    if phi< 0 &&  alpha > alphaMin   % phi is negative so the correct alpha must be smaller than the current alpha, and I can reduce alphaU
+        alphaU=min(alphaU,alpha) ;
+    else  % phi is positive so alpha must be greater than the current value, so I can increase alphaL
+        alphaL=max(alphaL,alpha) ;
+    end
+
+
+
 
     if abs(phi)<phiTol
         fprintf("Tolerance for abs(phi) met. Exiting seach loop. \n")
@@ -247,64 +261,73 @@ fprintf("Returning alpha=%g with phi=%g after %i iterations \n \n \n ",alpha,phi
 
 %% plot phi
 
-N=10;
-alphaMax=1.5*alpha; 
-alphaPlotVector=linspace(alphaL,alphaMax,N);
-phiPlotVector=NaN(N,1);
+doPlots=true;
 
-for ILoop=1:N
+if doPlots
 
 
-    HlE = H + alphaPlotVector(ILoop) * E;
+    N=10;
+    alphaMax=1.5*alpha;
+    alphaPlotVector=linspace(alphaL,alphaMax,N);
+    phiPlotVector=NaN(N,1);
 
-    [R, flag] = chol(HlE);  % change this later to use permutation matrix P
+
+    alphaPlotVector=linspace(0,10,N);
+
+    for ILoop=1:N
 
 
-    if flag~=0
-        fprintf("H+ alpha E not pos definite for alpha=%g.\n",alpha)
-        continue
+        HlE = H + alphaPlotVector(ILoop) * E;
+
+        [R, flag] = chol(HlE);  % change this later to use permutation matrix P
+
+
+        if flag~=0
+            fprintf("H+ alpha E not pos definite for alpha=%g.\n",alpha)
+            continue
+        end
+
+        p=R\(R'\(-g)) ;
+
+        pNorm=norm(p);
+
+        phiPlotVector(ILoop)=1/Delta-1/pNorm;
+
+
     end
 
-    p=R\(R'\(-g)) ;
+    FIG=FindOrCreateFigure("phi(alpha)") ; clf(FIG)
+    hold off
+    plot(alphaVector,phiVector,Color="r",Marker="o",MarkerFaceColor="b",LineStyle="none")
+    hold on
 
-    pNorm=norm(p);
+    plot(alphaPlotVector,phiPlotVector,"or")
 
-    phiPlotVector(ILoop)=1/Delta-1/pNorm;
 
+    xlabel("$\alpha$",Interpreter="latex")
+    ylabel("$1/\Delta-1/\|p\|$",Interpreter="latex")
+    title("$ (H+\alpha E) p = -g $",Interpreter="latex")
+    yline(0,"--")
+
+    alphaPlotVector=[alphaPlotVector(:);alphaVector(:)];
+    phiPlotVector=[phiPlotVector(:);phiVector(:)];
+    I=~isnan(alphaPlotVector) | ~isnan(phiPlotVector);
+    alphaPlotVector=alphaPlotVector(I);
+    phiPlotVector=phiPlotVector(I);
+    [alphaPlotVector,I]=sort(alphaPlotVector);
+    phiPlotVector=phiPlotVector(I);
+
+    plot(alphaPlotVector,phiPlotVector,"-k")
+
+
+    plot(alpha,phi,Color="r",Marker="pentagram",MarkerFaceColor="b",MarkerEdgeColor="r",MarkerSize=22)
+
+    xline(alpha,"--","$\alpha^{\star}$",Interpreter="latex")
+
+    % XL=xlim;
+    % xline(alphaU,"--","$\alpha_U$",Interpreter="latex")
+    % xline(alphaL,"--","$\alpha_L$",Interpreter="latex")
+    % xlim(XL)
 
 end
-
-FIG=FindOrCreateFigure("phi(alpha)") ; clf(FIG)
-hold off
-plot(alphaVector,phiVector,Color="r",Marker="o",MarkerFaceColor="b",LineStyle="none")
-hold on
-
-plot(alphaPlotVector,phiPlotVector,"or")
-
-
-xlabel("$\alpha$",Interpreter="latex")
-ylabel("$1/\Delta-1/\|p\|$",Interpreter="latex")
-title("$ (H+\alpha E) p = -g $",Interpreter="latex")
-yline(0,"--")
-
-alphaPlotVector=[alphaPlotVector(:);alphaVector(:)];
-phiPlotVector=[phiPlotVector(:);phiVector(:)];
-I=~isnan(alphaPlotVector) | ~isnan(phiPlotVector);
-alphaPlotVector=alphaPlotVector(I);
-phiPlotVector=phiPlotVector(I);
-[alphaPlotVector,I]=sort(alphaPlotVector);
-phiPlotVector=phiPlotVector(I);
-
-plot(alphaPlotVector,phiPlotVector,"-k")
-
-
-plot(alpha,phi,Color="r",Marker="pentagram",MarkerFaceColor="b",MarkerEdgeColor="r",MarkerSize=22)
-
-xline(alpha,"--","$\alpha^{\star}$",Interpreter="latex")
-
-% XL=xlim;
-% xline(alphaU,"--","$\alpha_U$",Interpreter="latex")
-% xline(alphaL,"--","$\alpha_L$",Interpreter="latex")
-% xlim(XL)
-
 end
