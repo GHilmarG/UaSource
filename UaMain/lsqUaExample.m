@@ -62,8 +62,13 @@ x0=[-5 ; 2] ;
 %                                                               lsq                      H            lsq                      H
 %                                                                         constraint                           unconstrained
 problemtype="[x1,x2]" ;                     %      sym          24.5                   24.5
-% problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
-% problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
+problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
+
+% this is an interesting case, works with Newton and agrees with matlab opt, but the first-order optimal measure is not
+% small...?
+problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
+
+
 % problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
 % problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
 % problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
@@ -74,7 +79,7 @@ problemtype="[x1,x2]" ;                     %      sym          24.5            
 % problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
 % problemtype="Beale" ; x0=[2 ; 0] ; % This is asymmetrical, can only be solved using lsq
 
-isConstraint=false;
+isConstraint=true;
 
 
 CtrlVar.lsqUa.ItMax=50 ;
@@ -246,7 +251,7 @@ if numel(xSol)==2
 
 end
 
-[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ;
+[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ; clf(flsqUaProg1)
 
 
 ls="-"; ms="o";
@@ -261,16 +266,19 @@ npoints=numel(output.R2Array);
 itVector=0:npoints-1;
 
 yyaxis left
-semilogy(itVector, output.R2Array,'-',color='b',Marker=ms)
-ylabel("$\|R\|^2$",Interpreter="latex")
-
+plot(itVector, output.R2Array,'-',color='b',Marker=ms,DisplayName="Norm of residuals, $\|R\|^2/2$")
+ylabel("Resnorm: $\|R\|^2/2$",Interpreter="latex")
+flsqUaProg1.CurrentAxes.YScale="log"   ;
 yyaxis right
-semilogy(itVector, output.r2Array,LineStyle=ls,color='r',Marker=ms)
-ylabel("$\|r\|^2$",Interpreter="latex")
+plot(itVector, output.r2Array,LineStyle=ls,color='r',Marker=ms,DisplayName="First-order optimality, $r^2/2$")
+ylabel("First-order optimality: $\|r\|^2/2$",Interpreter="latex")
+flsqUaProg1.CurrentAxes.YScale="log"   ;
 
 
 xlabel("iteration",Interpreter="latex")
 title(sprintf("$\\|R\\|^2$ =%g, $\\|r\\|^2$=%g",R2,r2),Interpreter="latex")
+
+lg=legend(Interpreter="latex"); 
 
 [flsqUaProg,FigFound2]=FindOrCreateFigure("lsqUa progress:dx") ;
 
@@ -316,7 +324,7 @@ fprintf("x solution Ua and MATLAB \n")
 [xSol xSolMatlab]
 
 fprintf("resnom Ua and MATLAB")
-[R2 resnorm]
+[2*R2 resnorm]
 
 end
 
