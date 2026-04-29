@@ -144,6 +144,10 @@ iteration=0 ;
 
 %
 
+Delta=nan ; % trust-region radius (if used)
+alpha=0;
+TrustRegionSubProblem=false;
+
 while iteration <= ItMax
 
     iteration=iteration+1 ;
@@ -156,36 +160,35 @@ while iteration <= ItMax
 
     gamma=nan;
 
+   
 
+    if TrustRegionSubProblem
+        if ~isnan(Delta)
+            E=speye(size(KK0))  ;
+            alpha=TrustRegionSubproblem(KK0,E,g0,alpha,Delta);
+            E=speye(size(KK0)) ;
+            KK0=KK0+alpha*E;
+        end
+    end
 
     % Solve the KKT Newton system. [dx;dl] is the Newton direction
     [dx,dl]=solveKApeSymmetric(KK0,Aeq,g0,h0,x0,l0,CtrlVar);
 
+    if isnan(Delta) || alpha==0 
+        Delta=norm(dx); % If I have not set the trust-region radius, set it to the norm of the previous solution, which here will be the full Newton step
+    end
+
     [Qslope0,QgammaMin,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gamma) ;
 
 
-    TrustRegionSubProblem=true;
-    if TrustRegionSubProblem
-        % trust-region subproblem
-        % I think the trust-region subproblem relates to the quadratic model alone, and once I've found alpha I resolve the system
-        % using KK0 -> KK0+alpha E
-
-        Delta=norm(dx);
-        E=speye(size(KK0)) ; alpha= 0 ;
-        alpha=TrustRegionSubproblem(KK0,E,g0,alpha,Delta)
-        KK0=KK0+alpha*E;
-        [dx,dl]=solveKApeSymmetric(KK0,Aeq,g0,h0,x0,l0,CtrlVar);
-
-    end
-
     CtrlVar.BacktrackIteration=iteration  ;
 
-    
+
     CtrlVar.BacktrackingGammaMin=0.001;
 
     funcBackTrack=@(gamma) Jlsqfunc(CtrlVar,gamma,dx,dl,fun,Aeq,beq,x0,l0) ;
 
-    
+
     J0=funcBackTrack(0) ; 
     J1=funcBackTrack(1) ; 
 
@@ -194,6 +197,7 @@ while iteration <= ItMax
  
   
     gammaNewton=1; 
+      CtrlVar.LineSearchAllowedToUseExtrapolation=true;
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
     
     [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
@@ -212,6 +216,10 @@ while iteration <= ItMax
         h=[];
     end
 
+    dxNorm=norm(dx);
+    dlNorm=norm(dl);
+    BCsNorm=norm(h) ;
+
     R2=0.5*full(R'*R);
     r2 = 0.5*full([g;h]'*[g;h])/Normalisation;
 
@@ -220,11 +228,16 @@ while iteration <= ItMax
     R2Ratio=R2/R20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
 
-    rho=(R2-R20)/Qreduction;
 
-    dxNorm=norm(dx);
-    dlNorm=norm(dl);
-    BCsNorm=norm(h) ;
+    if gammamin==0 || Qreduction==0
+        rho=0;
+    else
+        rho=(R2-R20)/Qreduction;
+    end
+    if TrustRegionSubProblem
+        Delta=TrustRegionRadiusUpdate(Delta,rho) ;
+    end
+
 
 
     r2Array(iteration+1)=r2;

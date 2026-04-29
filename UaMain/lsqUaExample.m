@@ -56,7 +56,7 @@ function lsqUaExample
 
 x0=[-10 ; 15] ;
 x0=[-5 ; 2] ;
-% x0=[0 ;-5];
+%x0=[0 ;-5];
 %  R=(x1,x2)
 
 %                                                               lsq                      H            lsq                      H
@@ -69,15 +69,14 @@ problemtype="[x1,x2]" ;                     %      sym          24.5            
 % problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
 
 
-% problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
-% problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
-% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
-% problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
-% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
-% problemtype="[x1^2,x2^2]" ;
-% problemtype="[x1^-100 x1,0]" ;
-% problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
-% problemtype="Beale" ; x0=[2 ; 0] ; % This is asymmetrical, can only be solved using lsq
+%problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
+%problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
+%problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
+%problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
+%problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
+%problemtype="[x1^2,x2^2]" ;
+%problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
+%problemtype="Beale" ; x0=[1 ; 0] ; % This is asymmetrical, can only be solved using lsq
 
 isConstraint=true;
 
@@ -185,7 +184,7 @@ if numel(xSol)==2
             RR(I,J)=R'*R ;
             dx=x-xSol;
             Qlsq(I,J)=(K'*R)'*dx+0.5*(K*dx)'*K*dx;  % This is the local quadratic approximation based on least-squares
-            Qroot(I,J)=R'*dx+0.5*dx'*K*dx;          % This is the local quadratic valid if K symmetric and pos def.
+          %  Qroot(I,J)=R'*dx+0.5*dx'*K*dx;          % This is the local quadratic valid if K symmetric and pos def.
         end
     end
 
@@ -215,7 +214,7 @@ if numel(xSol)==2
     for I=1:output.nIt
 
         % plot(output.xVector(1,I),output.xVector(2,I),'+r')
-        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color=Col)
+        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color="k")
 
         % txt = input("RET to continue\n") ;
 
@@ -235,13 +234,13 @@ if numel(xSol)==2
     
     axis([xmin xmax ymin ymax])
 
-    QFigRoot=FindOrCreateFigure("local root model") ; clf(QFigRoot)
-    contourf(x1Vector,x2Vector,Qroot',50,LineStyle="none") ;
-    colorbar
-    hold on 
-    plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
-    title("local quadradic model $Q(\Delta x)$",Interpreter="latex")
-    subtitle("$Q(\Delta x)= F^T \Delta x +  \frac{1}{2} (\Delta x)^{T} \, J \Delta x$",Interpreter="latex") 
+    % QFigRoot=FindOrCreateFigure("local root model") ; clf(QFigRoot)
+    % contourf(x1Vector,x2Vector,Qroot',50,LineStyle="none") ;
+    % colorbar
+    % hold on 
+    % plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
+    % title("local quadradic model $Q(\Delta x)$",Interpreter="latex")
+    % subtitle("$Q(\Delta x)= F^T \Delta x +  \frac{1}{2} (\Delta x)^{T} \, J \Delta x$",Interpreter="latex") 
 
     if isConstraint
         plot(x1Vector,c-a*x1Vector,Col)
@@ -251,7 +250,7 @@ if numel(xSol)==2
 
 end
 
-[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ; clf(flsqUaProg1)
+[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa optimisation") ; clf(flsqUaProg1)
 
 
 ls="-"; ms="o";
@@ -312,7 +311,7 @@ if CompareWithMatlabOpt
 
     % trus-region-reflective is much faster than interior-point, at least if the problem is well behaved
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
-        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderopt,@optimplotresnorm});
+        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderopt,@optimplotresnormUa});
     options.OptimalityTolerance = 1.000000e-15 ; options.StepTolerance = 1.000000e-20 ;
     [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
 
@@ -323,7 +322,7 @@ if CompareWithMatlabOpt
 fprintf("x solution Ua and MATLAB \n")
 [xSol xSolMatlab]
 
-fprintf("resnom Ua and MATLAB")
+fprintf("resnom Ua and MATLAB\n")
 [2*R2 resnorm]
 
 end

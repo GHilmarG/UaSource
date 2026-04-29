@@ -121,12 +121,14 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 
 %% saveguarding
 
-alphaMin=0 ; % This should be the smallest eigenvalue of H, but this takes time to calculate...
-alphaU=+inf;  % this should be smaller or equal to the smallest eigenvalue of H
-alphaL=-inf ;
+LambdaMin=0 ; % This should be the smallest eigenvalue of H, but this takes time to calculate...
+             % We know that since the least-squares matrix is J'*J it is pos-definite, so the smallest eigenvalue is greater than
+             % 0.
 
-alphaLast=nan ;
-phiLast=nan;
+
+alphaU=+inf       ;  % this upper bound is reduced and set to alpha if phi is negative for that alpha
+alphaL=-LambdaMin  ;  % this lower bound is increased and set to alpha if phi is positive for that alpha
+
 
 n=numel(g);
 
@@ -139,7 +141,7 @@ if ~isEdiag
     g=E\g;
     H=0.5*(H+H');
     E=sparse(1:n,1:n,ones(n,1));
-    isEdiag=true;
+
 
 end
 
@@ -194,20 +196,13 @@ for iLoop=1:10
     %     dphidalpha=(phi-phiLast)/(alpha-alphaLast);
     % end
 
-    phiLast=phi; alphaLast=alpha;
+    alphaLast=alpha;
 
 
     fprintf("===== it %i: phi=%-15g \t |p|=%-10g \t |q|=%-10g \t alpha=%g \n",iLoop,phi,pNorm,qNorm,alpha)
 
     alpha=alpha+dalpha ;
-    %
-    % if ~isnan(dphidalpha)
-    %     alpha=alpha-phi/dphidalpha;
-    % else
-    %     dalpha=1;
-    %     alpha=alpha+dalpha;
-    % end
-
+ 
 
     % the idea is to bracket the solution using the fact that phi is a monotonically decreasing function of alpha
     %
@@ -216,46 +211,51 @@ for iLoop=1:10
     %
 
     % phi is the function we are trying to find the root of
-    if phi< 0 && alphaLast<alphaU
+    if phi< 0 
         alphaU=alphaLast;
     end
 
 
-    if phi > 0 && alphaLast > alphaL %
+    if phi > 0 
         alphaL=alphaLast;
     end
 
-    if alpha > alphaU
-        alpha=alphaU;
-    end
-
-    if alpha < alphaL
-        alpha=alphaL;
-    end
-
+  
     alpha=max(alpha,alphaL);
     alpha=min(alpha,alphaU);
     % if alpha <= alphaS
     %     alpha=max(1e-6*alphaU,sqrt(alphaL*alphaU));
     % end
 
-    if phi< 0 &&  alpha > alphaMin   % phi is negative so the correct alpha must be smaller than the current alpha, and I can reduce alphaU
-        alphaU=min(alphaU,alpha) ;
-    else  % phi is positive so alpha must be greater than the current value, so I can increase alphaL
-        alphaL=max(alphaL,alpha) ;
+    if alpha==0 && phi<0
+
+        % If alpha=0 and phi<0 for that alpha, we conclude that the norm of the Newton step is within the trust-region and we can exit the iteration
+        % with alpha=0, since we always want to take the Newton step if we trust the local quadratic model up to the length of the Newton
+        % step.
+
+        fprintf("For alpha=0 (Newton step) the solution is within the trust-region \n")
+        break
+
     end
-
-
 
 
     if abs(phi)<phiTol
-        fprintf("Tolerance for abs(phi) met. Exiting seach loop. \n")
+        fprintf("Tolerance for abs(phi) met. Exiting search loop. \n")
         break
     end
 
+    if alpha==alphaLast
+        fprintf("alpha did not change, Exiting search loop. \n")
+        break
+    end
+
+
+% If alpha=-LambdMin and phi<0 then we also have a solution vector p within the trust region. 
+
+
 end
 
-alpha=alphaLast;
+
 fprintf("Returning alpha=%g with phi=%g after %i iterations \n \n \n ",alpha,phi,iLoop)
 
 
@@ -267,12 +267,14 @@ if doPlots
 
 
     N=10;
-    alphaMax=1.5*alpha;
-    alphaPlotVector=linspace(alphaL,alphaMax,N);
+    alphaMax=max(10*alpha,1);
+    alphaPlotVector=linspace(LambdaMin,alphaMax,N);
+   %alphaPlotVector=linspace(0,10,N);
+
+
     phiPlotVector=NaN(N,1);
 
 
-    alphaPlotVector=linspace(0,10,N);
 
     for ILoop=1:N
 
