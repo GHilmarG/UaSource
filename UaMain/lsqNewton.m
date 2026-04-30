@@ -186,7 +186,7 @@ while iteration <= ItMax
 
     if Qslope0>0
     
-        fprintf("Slope of quadradic model at origina in the search direction is positive, with slope0=%g \n",Qslope0)
+        fprintf("Slope of quadradic model at origin in the search direction is positive, with slope0=%g \n",Qslope0)
 
     end
 
@@ -203,17 +203,34 @@ while iteration <= ItMax
 
     CtrlVar.InfoLevelBackTrack=100;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
 
- 
-  
-    gammaNewton=1; 
-      CtrlVar.LineSearchAllowedToUseExtrapolation=true;
+
+
+    gammaNewton=1;
+    CtrlVar.LineSearchAllowedToUseExtrapolation=true;
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
-    
+
     if isnan(gammamin)
-        gammamin=0;  % this can happen if, for example, the slope at gamma=0 is positive. 
-                     % this might also be a numerical issue if the slope is very small
-                     % Basically, either exit the iteration, or try new Delta/alpha update when using the Trust-Region algorithm 
+        gammamin=0;  % this can happen if, for example, the slope at gamma=0 is positive.
+        % this might also be a numerical issue if the slope is very small
+        % Basically, either exit the iteration, or try new Delta/alpha update when using the Trust-Region algorithm
+        rho=0;
+        if TrustRegionSubProblem
+            Delta=TrustRegionRadiusUpdate(Delta,rho) ;
+            fprintf("Backtracking resulted in gamma=%g . Decreasing trust-region radius to Delta=%g and repeating step. \n",gammamin,Delta)
+
+            r2Array(iteration+1)=r2;
+            R2Array(iteration+1)=R2;
+            dxArray(iteration)=dxNorm ;
+
+            continue
+        else
+            fprintf("Backtracking resulted in gamma=%g . Exiting Newton iteration. \n",gammamin)
+            break
+        end
+
     end
+
+
     [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
@@ -251,9 +268,7 @@ while iteration <= ItMax
         rho=(R2-R20)/Qreduction;
     end
 
-    if TrustRegionSubProblem
-        Delta=TrustRegionRadiusUpdate(Delta,rho) ;
-    end
+  
 
 
 

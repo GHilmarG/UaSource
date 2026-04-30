@@ -1,3 +1,13 @@
+
+
+
+
+
+
+
+
+
+
 function  [x,y,dAtilde]=solveKApeSymmetric(A,B,f,g,x0,y0,CtrlVar,dAtilde)
 
 
@@ -97,7 +107,7 @@ switch CtrlVar.SymmSolver
     case 'Backslash'
         
         C=sparse(nB,nB);
-        AA=[A B' ;B -C] ; bb=[f;g];
+        AA=[A B' ;B C] ; bb=[f;g];
         sol=AA\bb;
         x=sol(1:nA) ; y=sol(nA+1:nA+nB);
         

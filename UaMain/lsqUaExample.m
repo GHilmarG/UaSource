@@ -224,7 +224,7 @@ if numel(xSol)==2
       [R,K]=fRK(xSol,problemtype);
       grad=K'*R+Aeq'*lambda; grad=grad(:) ; 
       normal=[Aeq(1) ; -Aeq(2)];
-      derivativeAlongConstraint=grad'*Aeq;
+      derivativeAlongConstraint=grad'*normal;
 
 
     QFig=FindOrCreateFigure("local quadradic model") ; clf(QFig)
