@@ -26,13 +26,21 @@ if isempty(Aeq)
 
     % Note that the search direction is [dx;dl]
     slope0=F'*J*dx;
+    Jdx=J'*dx; 
+    gammaMin=-slope0/((Jdx)'*(Jdx));
 
 else
-    slope0=F'*J*dx+(Aeq'*l0)'*dx+(Aeq*x0 -beq)'*dl;
+
+    % If the iterate is feasible the slopes at origin, and the step size to the minimum, are identical for the constraint and
+    % unconstrained problems. However for numerical reasons I use the full expression here.
+
+    slope0=F'*J*dx+(Aeq'*l0)'*dx+(Aeq*x0 -beq)'*dl;  
+    Jdx=J'*dx; 
+    gammaMin=-slope0/((Jdx)'*(Jdx)+2*(Aeq*dx)'*dl);
+
 end
 
 slope0=full(slope0);
-gammaMin=-slope0/((J*dx)'*(J*dx));
 
 Q=Qlsq(F,J,Aeq,beq,x0,l0,dx,dl,gamma);
 

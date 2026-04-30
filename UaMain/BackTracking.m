@@ -152,7 +152,7 @@ else
     NoSlopeInformation=0;
     if slope0>0
         warning('Backtracking:SlopeAtZeroNotNegative','BackTracking: slope at x=0 must be negative')
-        gmin=nan;  fmin=nan; 
+        gmin=nan;  fmin=nan; % maybe it would make more sense to return gmin=0 and fmin=fa ?
         return
     end
 end

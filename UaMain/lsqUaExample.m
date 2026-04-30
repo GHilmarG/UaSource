@@ -56,17 +56,17 @@ function lsqUaExample
 
 x0=[-10 ; 15] ;
 x0=[-5 ; 2] ;
-%x0=[0 ;-5];
+x0=[0 ;-5];
 %  R=(x1,x2)
 
 %                                                               lsq                      H            lsq                      H
 %                                                                         constraint                           unconstrained
 problemtype="[x1,x2]" ;                     %      sym          24.5                   24.5
-% problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
+problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
 
 % this is an interesting case, works with Newton and agrees with matlab opt, but the first-order optimal measure is not
 % small...?
-% problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
+problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
 
 
 %problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
@@ -141,16 +141,16 @@ if isConstraint
 
     % x2= c - a x1
     a=1 ;
-    L=[a 1 ];  c= 5  ;
+    Aeq=[a 1 ];  beq= 5  ;
     factor=1;
-    L=factor*L ; c=factor*c ;
+    Aeq=factor*Aeq ; beq=factor*beq ;
 
 else
-    L=[]; c=[];
+    Aeq=[]; beq=[];
 end
 
  
-[xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
+[xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,Aeq,beq) ;
 
 
 if numel(xSol)==2
@@ -206,7 +206,7 @@ if numel(xSol)==2
     end
 
     if isConstraint
-        plot(x1Vector,c-a*x1Vector,Col)
+        plot(x1Vector,beq-a*x1Vector,Col)
     end
 
     plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
@@ -220,6 +220,13 @@ if numel(xSol)==2
 
     end
 
+
+      [R,K]=fRK(xSol,problemtype);
+      grad=K'*R+Aeq'*lambda; grad=grad(:) ; 
+      normal=[Aeq(1) ; -Aeq(2)];
+      derivativeAlongConstraint=grad'*Aeq;
+
+
     QFig=FindOrCreateFigure("local quadradic model") ; clf(QFig)
     contourf(x1Vector,x2Vector,Qlsq',50,LineStyle="none") ;
     colorbar
@@ -229,7 +236,7 @@ if numel(xSol)==2
     subtitle("$Q(\Delta x)=(J^T F)^T \Delta x +  \frac{1}{2} (\Delta x)^T \, J^T J \Delta x$",Interpreter="latex") 
 
     if isConstraint
-        plot(x1Vector,c-a*x1Vector,Col)
+        plot(x1Vector,beq-a*x1Vector,Col)
     end
     
     axis([xmin xmax ymin ymax])
@@ -243,7 +250,7 @@ if numel(xSol)==2
     % subtitle("$Q(\Delta x)= F^T \Delta x +  \frac{1}{2} (\Delta x)^{T} \, J \Delta x$",Interpreter="latex") 
 
     if isConstraint
-        plot(x1Vector,c-a*x1Vector,Col)
+        plot(x1Vector,beq-a*x1Vector,Col)
     end
 
     axis([xmin xmax ymin ymax])
@@ -311,9 +318,9 @@ if CompareWithMatlabOpt
 
     % trus-region-reflective is much faster than interior-point, at least if the problem is well behaved
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
-        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderopt,@optimplotresnormUa});
+        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderoptUa,@optimplotresnormUa});
     options.OptimalityTolerance = 1.000000e-15 ; options.StepTolerance = 1.000000e-20 ;
-    [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
+    [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,Aeq,beq,nonlcon,options);
 
     flsqUa=FindOrCreateFigure("lsqUa |R|^2") ;
     hold on ; plot(xSolMatlab(1),xSolMatlab(2),Marker="square",MarkerFaceColor="m",MarkerSize=10)

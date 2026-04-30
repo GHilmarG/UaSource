@@ -146,17 +146,20 @@ iteration=0 ;
 
 Delta=nan ; % trust-region radius (if used)
 alpha=0;
-TrustRegionSubProblem=false;
+TrustRegionSubProblem=true;
 
 while iteration <= ItMax
 
     iteration=iteration+1 ;
 
-    K0=K ; R0=R; x0=x ; l0=l ;
-    R20=R2;  r20=r2 ;  J0=J ;
-    g0=g ; h0=h ;
+    x0=x ;
+    l0=l ;
 
-    KK0=(K0'*K0);
+    R20=R2;
+    r20=r2 ;
+
+
+    KK=K'*K;
 
     gamma=nan;
 
@@ -164,15 +167,15 @@ while iteration <= ItMax
 
     if TrustRegionSubProblem
         if ~isnan(Delta)
-            E=speye(size(KK0))  ;
-            alpha=TrustRegionSubproblem(KK0,E,g0,alpha,Delta);
-            E=speye(size(KK0)) ;
-            KK0=KK0+alpha*E;
+            E=speye(size(KK))  ;
+            alpha=TrustRegionSubproblem(KK,E,g,alpha,Delta);
+            E=speye(size(KK)) ;
+            KK=KK+alpha*E;
         end
     end
 
     % Solve the KKT Newton system. [dx;dl] is the Newton direction
-    [dx,dl]=solveKApeSymmetric(KK0,Aeq,g0,h0,x0,l0,CtrlVar);
+    [dx,dl]=solveKApeSymmetric(KK,Aeq,g,h,x0,l0,CtrlVar);
 
     if isnan(Delta) || alpha==0 
         Delta=norm(dx); % If I have not set the trust-region radius, set it to the norm of the previous solution, which here will be the full Newton step
@@ -180,6 +183,12 @@ while iteration <= ItMax
 
     [Qslope0,QgammaMin,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gamma) ;
 
+
+    if Qslope0>0
+    
+        fprintf("Slope of quadradic model at origina in the search direction is positive, with slope0=%g \n",Qslope0)
+
+    end
 
     CtrlVar.BacktrackIteration=iteration  ;
 
@@ -200,12 +209,19 @@ while iteration <= ItMax
       CtrlVar.LineSearchAllowedToUseExtrapolation=true;
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
     
+    if isnan(gammamin)
+        gammamin=0;  % this can happen if, for example, the slope at gamma=0 is positive. 
+                     % this might also be a numerical issue if the slope is very small
+                     % Basically, either exit the iteration, or try new Delta/alpha update when using the Trust-Region algorithm 
+    end
     [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
     
-    [R,K]=fun(x) ; % This is the only call withing the NR loop.
+    % Now I've updated x and I need to recalculate K and R
+    [R,K]=fun(x) ; % This is the only call within the NR loop.
   
+    
 
 
     if ~isempty(Aeq)
@@ -234,6 +250,7 @@ while iteration <= ItMax
     else
         rho=(R2-R20)/Qreduction;
     end
+
     if TrustRegionSubProblem
         Delta=TrustRegionRadiusUpdate(Delta,rho) ;
     end
@@ -257,12 +274,12 @@ while iteration <= ItMax
 
     if CostMeasure=="R2"
 
-        fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+        fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
             iteration,StepString,R2,R2Ratio,gammamin,r2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
 
     elseif CostMeasure=="r2"
 
-        fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
+        fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
             iteration,StepString,r2,r20,r2Ratio,gammamin,R2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
 
     else
