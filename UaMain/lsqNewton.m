@@ -148,6 +148,10 @@ Delta=nan ; % trust-region radius (if used)
 alpha=0;
 TrustRegionSubProblem=true;
 
+
+
+useMATLABquadprog=true;
+
 while iteration <= ItMax
 
     iteration=iteration+1 ;
@@ -163,7 +167,7 @@ while iteration <= ItMax
 
     gamma=nan;
 
-   
+
 
     if TrustRegionSubProblem
         if ~isnan(Delta)
@@ -174,9 +178,27 @@ while iteration <= ItMax
         end
     end
 
-    % Solve the KKT Newton system. [dx;dl] is the Newton direction
-    [dx,dl]=solveKApeSymmetric(KK,Aeq,g,h,x0,l0,CtrlVar);
 
+
+
+    if useMATLABquadprog
+
+        options=optimoptions('quadprog',display='iter') ;
+
+        [dx,fval,exitflag,output,lambda]=quadprog(KK,-g,[],[],Aeq,h,[],[],[],options);
+        dl=lambda.eqlin;
+
+    else
+
+        % Solve the KKT Newton system. [dx;dl] is the Newton direction
+
+        [dx,dl]=solveKApeSymmetric(KK,Aeq,g,h,x0,l0,CtrlVar);
+
+        dl=full(dl);
+    end
+
+
+  
     if isnan(Delta) || alpha==0 
         Delta=norm(dx); % If I have not set the trust-region radius, set it to the norm of the previous solution, which here will be the full Newton step
     end

@@ -315,7 +315,7 @@ if CompareWithMatlabOpt
 
     lb=[] ; ub=[] ; A=[] ; b=[] ;   nonlcon=[] ;
 
-
+    x0=xSol;  % Using the solution I found as a starting point
     % trus-region-reflective is much faster than interior-point, at least if the problem is well behaved
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
         'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderoptUa,@optimplotresnormUa});

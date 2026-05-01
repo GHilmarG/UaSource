@@ -119,7 +119,7 @@ function alpha=TrustRegionSubproblem(H,E,g,alpha,Delta)
 
 
 
-%% saveguarding
+%% safeguarding
 
 LambdaMin=0 ; % This should be the smallest eigenvalue of H, but this takes time to calculate...
              % We know that since the least-squares matrix is J'*J it is pos-definite, so the smallest eigenvalue is greater than
@@ -203,7 +203,12 @@ for iLoop=1:10
 
     alpha=alpha+dalpha ;
  
+    if abs(phi)<phiTol
+        fprintf("Tolerance for abs(phi) met. Exiting search loop. \n")
+        break
+    end
 
+    
     % the idea is to bracket the solution using the fact that phi is a monotonically decreasing function of alpha
     %
     % If phi >0 then I am to the left of the minimum, and I can set the lower bound for alpha, i.e. alphaL, to alphaLast;
@@ -239,10 +244,7 @@ for iLoop=1:10
     end
 
 
-    if abs(phi)<phiTol
-        fprintf("Tolerance for abs(phi) met. Exiting search loop. \n")
-        break
-    end
+
 
     if alpha==alphaLast
         fprintf("alpha did not change, Exiting search loop. \n")
