@@ -7,8 +7,12 @@ function  J=Jlsqfunc(CtrlVar,gamma,dx,dlambda,fun,L,c,x0,lambda0)
 
 
 
-isLSQ=CtrlVar.lsqUa.isLSQ ;
-CostMeasure=CtrlVar.lsqUa.CostMeasure;
+% isLSQ=CtrlVar.lsqUa.isLSQ ;
+% CostMeasure=CtrlVar.lsqUa.CostMeasure;
+
+CostMeasure="R2";
+isLSQ=true; 
+
 
 x=x0+gamma*dx;
 

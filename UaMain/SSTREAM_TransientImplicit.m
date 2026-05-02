@@ -410,8 +410,8 @@ while true
         O=sparse(size(L,1),size(L,1)) ;
         H=[K L' ; L O];
 
-        PD1=duvh'*K*duvh ;
-        PD2=[duvh;dl]'*H*[duvh;dl] ;
+        PD1=full(duvh'*K*duvh) ;
+        PD2=full([duvh;dl]'*H*[duvh;dl]) ;
         fprintf("Pos def test: %g \t %g \n",PD1,PD2)
         if PD1 <0 || PD2 < 0
 

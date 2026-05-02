@@ -46,7 +46,7 @@ function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlV
 %%
 
 
-ItMax=5;
+ItMax=50;
 gTol=1e-20;
 dR2Tol=1e-3;
 dxTol=1e-20;
