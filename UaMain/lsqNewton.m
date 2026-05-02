@@ -8,13 +8,40 @@ function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlV
 
 %%
 %
+% Solves the least-squares non-linear problem
+%
+% $$ \min_x \| \mathbf{f}(\mathbf{x}) \|^2 $$
+%
+% where $\mathbf{f}$ is a vector-valued function and $\mathbf{x}$ a vector.
+%
+% subject to
+%
+% $$ \mathbf{A}_{\mathrm{eq}} \mathbf{x} = \mathbf{b}_{\mathrm{eq}} $$
+%
+% and where
+%
+% $$ \mathbf{A} \in R^{m\times n}$$
+%
+% $$ \mathbf{f} \in R^{n} $$
+%
+% On return:
+%
+% x is the solution.
+%
+% l is the vector of Lagrange multipliers.
+%
+% R2 is the residual norm
+%
+% r2 is the norm of the right-hand side of the KKT equations. This a a first-order optimality measure.
+%
+% Qslope0 is the slope at origin of the local quadratic approximation along the search direction.
+%
 % The function fun returns
 %
-% [R,K,outs]=fun(x)
+% [f,J,outs]=fun(x)
 %
-% where R is a vector valued function, and the objective function if R'*R
 %
-% K is the Jacobian of R
+% $J$ is the Jacobian of $f$
 %
 %%
 
@@ -25,7 +52,7 @@ dR2Tol=1e-3;
 dxTol=1e-20;
 Normalize=false ;
 SaveIterate=false;
-CostMeasure="R2" ; % "r2"
+
 StepString="  ";
 
 if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
@@ -56,22 +83,17 @@ if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
     end
 
 
-
-    if isfield(CtrlVar.lsqUa,"CostMeasure")
-        CostMeasure=CtrlVar.lsqUa.CostMeasure;
-    end
-
 end
 
 
 R2Array=nan(ItMax+1,1) ;  % value of the sum of squares of the FE right-hand system
 r2Array=nan(ItMax+1,1) ;  % right-hand side of the lsq KKT system, first-order optimality
-QArray=nan(ItMax+1,1) ;   % lsq quadratic approximation
+
 dxArray=nan(ItMax+1,1) ;
 Slope0Array=nan(ItMax+1,1) ;
 % WorkArray=nan(ItMax+1,1) ;
 dR2=[inf ; inf ] ; % stores the changes in R2=0.5*R'*R  over last two iterations
-dxNorm=0 ; dlNorm=0; 
+dxNorm=0 ; dlNorm=0;
 
 
 %% If constraints provided, make iterate feasible
@@ -122,13 +144,6 @@ end
 R2=0.5*full(R'*R);
 r2 = full([g;h]'*[g;h])/Normalisation;
 
-if CostMeasure=="R2"
-    J=R2;
-elseif CostMeasure=="r2"
-    J=r2;
-else
-    error("what cost measure?")
-end
 
 r2Array(1)=r2;
 R2Array(1)=R2;
@@ -279,15 +294,13 @@ while iteration <= ItMax
     end
 
 
-  
+
     [~,~,Qreduction]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,gammamin) ;
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
 
     % Now I've updated x and I need to recalculate K and R
     [R,K]=fun(x) ; % This is the only call within the NR loop.
-
-
 
 
     if ~isempty(Aeq)
@@ -328,12 +341,8 @@ while iteration <= ItMax
         Delta=gammamin*Delta;
         %Delta=TrustRegionRadiusUpdate(Delta,rho) ;
         fprintf("Backtracking resulted in gamma=%g . Decreasing trust-region radius to Delta=%g and repeating step. \n",gammamin,Delta)
-    
+
     end
-
-
-
-
 
 
     r2Array(iteration+1)=r2;
@@ -351,21 +360,9 @@ while iteration <= ItMax
     end
 
 
-    if CostMeasure=="R2"
+    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
+        iteration,StepString,R2,R2Ratio,gammamin,r2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
 
-        fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
-            iteration,StepString,R2,R2Ratio,gammamin,r2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
-
-    elseif CostMeasure=="r2"
-
-        fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t gamma=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
-            iteration,StepString,r2,r20,r2Ratio,gammamin,R2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
-
-    else
-
-        error("what cost measure?")
-
-    end
 
     if r2 < gTol
         fprintf("lsqUa: Exiting iteration because |g|^2=%g within set tolerance of %g \n",r2,gTol)
@@ -398,13 +395,9 @@ Slope0Array(iteration+1)=Qslope0;  % This is the slope in the direction dx based
 
 % fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
 
-if CostMeasure=="R2"
-    residual=R2;
-elseif CostMeasure=="r2"
-    residual=r2;
-else
-    error("what cost measure?")
-end
+
+residual=R2;
+
 
 
 output.r2Array=r2Array;

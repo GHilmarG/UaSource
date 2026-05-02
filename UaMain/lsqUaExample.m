@@ -103,6 +103,10 @@ CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.ScaleProblem=true;
 CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
+
+
+
+% 2026-05-02: The NewtonLSQ is in good shape, the others are a bit outdated, and I do not intent to use them
 CtrlVar.lsqUa.Algorithm="DogLeg" ; % ["LevenbergMarquardt"|"DogLeg"]
 %CtrlVar.lsqUa.Algorithm="LevenbergMarquardt";
 CtrlVar.lsqUa.Algorithm="NewtonLSQ";
