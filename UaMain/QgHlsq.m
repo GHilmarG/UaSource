@@ -26,7 +26,7 @@ if isempty(Aeq)
 
     % Note that the search direction is [dx;dl]
     slope0=F'*J*dx;
-    Jdx=J'*dx; 
+    Jdx=J*dx; 
     gammaMin=-slope0/((Jdx)'*(Jdx));
 
 else
@@ -35,7 +35,7 @@ else
     % unconstrained problems. However for numerical reasons I use the full expression here.
 
     slope0=F'*J*dx+(Aeq'*l0)'*dx+(Aeq*x0 -beq)'*dl;  
-    Jdx=J'*dx; 
+    Jdx=J*dx; 
     gammaMin=-slope0/((Jdx)'*(Jdx)+2*(Aeq*dx)'*dl);
 
 end

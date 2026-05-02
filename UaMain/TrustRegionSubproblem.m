@@ -311,6 +311,7 @@ if doPlots
     xlabel("$\alpha$",Interpreter="latex")
     ylabel("$1/\Delta-1/\|p\|$",Interpreter="latex")
     title("$ (H+\alpha E) p = -g $",Interpreter="latex")
+    subtitle(sprintf("$\\alpha$=%g",alpha),Interpreter="latex")
     yline(0,"--")
 
     alphaPlotVector=[alphaPlotVector(:);alphaVector(:)];

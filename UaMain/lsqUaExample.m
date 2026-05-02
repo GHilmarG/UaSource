@@ -62,17 +62,17 @@ x0=[0 ;-5];
 %                                                               lsq                      H            lsq                      H
 %                                                                         constraint                           unconstrained
 problemtype="[x1,x2]" ;                     %      sym          24.5                   24.5
-problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
+%problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
 
 % this is an interesting case, works with Newton and agrees with matlab opt, but the first-order optimal measure is not
 % small...?
-problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
+% problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
 
 
-%problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
-%problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
-%problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
-%problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
+% problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
+% problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
+% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
+% problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
 %problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
 %problemtype="[x1^2,x2^2]" ;
 %problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
@@ -81,7 +81,7 @@ problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915          
 isConstraint=true;
 
 
-CtrlVar.lsqUa.ItMax=50 ;
+CtrlVar.lsqUa.ItMax=150 ;
 
 CtrlVar.lsqUa.gTol=1e-22 ;
 CtrlVar.lsqUa.dR2Tol=1e-20 ;
@@ -221,10 +221,12 @@ if numel(xSol)==2
     end
 
 
-      [R,K]=fRK(xSol,problemtype);
-      grad=K'*R+Aeq'*lambda; grad=grad(:) ; 
-      normal=[Aeq(1) ; -Aeq(2)];
-      derivativeAlongConstraint=grad'*normal;
+    [R,K]=fRK(xSol,problemtype);
+    if ~isempty(Aeq)
+        grad=K'*R+Aeq'*lambda; grad=grad(:) ;
+        normal=[Aeq(1) ; -Aeq(2)];
+        derivativeAlongConstraint=grad'*normal;
+    end
 
 
     QFig=FindOrCreateFigure("local quadradic model") ; clf(QFig)
@@ -331,6 +333,10 @@ fprintf("x solution Ua and MATLAB \n")
 
 fprintf("resnom Ua and MATLAB\n")
 [2*R2 resnorm]
+
+fprintf("first-order feasability Ua and MATLAB\n")
+
+[sqrt(r2)  outputM.firstorderopt ]
 
 end
 
