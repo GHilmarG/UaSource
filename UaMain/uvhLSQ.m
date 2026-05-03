@@ -24,10 +24,16 @@ scale=sqrt(1/(R0'*R0/2));
 fun = @(x) uvhRK(x,UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1,scale) ;
 
 
-options = optimoptions('lsqnonlin','Display','iter','MaxIterations',25,'SpecifyObjectiveGradient',true,...
-    'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective');
+options = optimoptions('lsqnonlin','Display','iter','MaxIterations',25,'SpecifyObjectiveGradient',true);
 %options.PlotFcn={@optimplotfirstorderoptUa,@optimplotresnormUa};
-options.OptimalityTolerance = 1.000000e-15 ; options.StepTolerance = 1.000000e-20 ;
+
+options.Algorithm="interior-point" ;
+options.Algorithm="trust-region-reflective";
+options.Algorithm="levenberg-marquardt";
+options.OptimalityTolerance = 1.000000e-15 ; 
+options.StepTolerance = 1.000000e-15 ;
+options.FunctionTolerance=1e-15;
+
 lb=[] ; ub=[] ; A=[] ; b=[] ;   nonlcon=[] ;
 [x,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x,lb,ub,A,b,Aeq,beq,nonlcon,options);
 
