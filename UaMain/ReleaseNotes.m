@@ -2,6 +2,9 @@
 
 %%
 %
+%
+%
+% 
 % *Release Notes* _January 2025_
 %
 % When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
