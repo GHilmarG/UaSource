@@ -47,8 +47,9 @@ function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlV
 
 
 ItMax=50;
-gTol=1e-20;
-dR2Tol=1e-3;
+FirstOrderOptimialityTol=1e-20;
+ResnormTol=1e-20; 
+dR2Tol=1e-3;    % change in Resnorm between iterations. 
 dxTol=1e-20;
 Normalize=false ;
 SaveIterate=false;
@@ -62,7 +63,7 @@ if ~isempty(CtrlVar) && isstruct(CtrlVar) && isfield(CtrlVar,"lsqUa")
     end
 
     if isfield(CtrlVar.lsqUa,"gTol")
-        gTol=CtrlVar.lsqUa.gTol ;
+        FirstOrderOptimialityTol=CtrlVar.lsqUa.gTol ;
     end
 
     if isfield(CtrlVar.lsqUa,"dR2Tol")
@@ -161,7 +162,7 @@ iteration=0 ;
 
 Delta=nan ; % trust-region radius (if used)
 alpha=0;
-TrustRegionSubProblem=true; rho=1;
+TrustRegionSubProblem=false; % the current approach works only for small problems
 dx=[];
 
 
@@ -205,7 +206,7 @@ while iteration <= ItMax
 
         optionsQuad=optimoptions('quadprog',display='none') ;
 
-        [dx,fval,exitflag,output,lambda]=quadprog(KK,-g,[],[],Aeq,h,[],[],dx,optionsQuad);
+        [dx,fval,exitflag,outputMAT,lambda]=quadprog(KK,-g,[],[],Aeq,h,[],[],dx,optionsQuad);
         dl=lambda.eqlin;
         % KK*dx+Aeq'*dl - g ; % this should be zero
 
@@ -251,7 +252,7 @@ while iteration <= ItMax
     J0=funcBackTrack(0) ;
     J1=funcBackTrack(1) ;
 
-    CtrlVar.InfoLevelBackTrack=100;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ;
+  
 
 
 
@@ -260,36 +261,32 @@ while iteration <= ItMax
     [gammamin,Jmin,BackTrackInfo]=BackTracking(Qslope0,gammaNewton,J0,J1,funcBackTrack,CtrlVar);
 
 
-    % There is a special case when the backtracking does not find a minimum and either returns gamma as nan or as zero
-    % In case of the trust-region approach, one could try to decrease the trust-region radius.
-    % Otherwise, one need to exit the optimization loop
 
-    if TrustRegionSubProblem
+    if isnan(gammamin) || gammamin ==0
+        % There is a special case when the backtracking does not find a minimum and either returns gamma as nan or as zero
+        % In case of the trust-region approach, one could try to decrease the trust-region radius.
+        % Otherwise, one need to exit the optimization loop
 
-        if isnan(gammamin)
+        if TrustRegionSubProblem
+
             gammamin=0;  % this can happen if, for example, the slope at gamma=0 is positive.
             % this might also be a numerical issue if the slope is very small
             % Basically, either exit the iteration, or try new Delta/alpha update when using the Trust-Region algorithm
-            rho=0;
-        end
 
+            Delta=0.01*Delta;
+            fprintf("Backtracking resulted in gamma=%g . Trust-region radius set to Delta=%g and repeating step. \n",gammamin,Delta)
 
-        Delta=TrustRegionRadiusUpdate(Delta,rho) ;
-        fprintf("Backtracking resulted in gamma=%g . Decreasing trust-region radius to Delta=%g and repeating step. \n",gammamin,Delta)
-
-
-        if gammamin==0
             r2Array(iteration+1)=r2;
             R2Array(iteration+1)=R2;
             dxArray(iteration)=dxNorm ;
 
             continue
-        end
 
-    else
-        if isnan(gammamin)  || gammamin==0
-            fprintf("Backtracking resulted in gamma=%g . Exiting Newton iteration. \n",gammamin)
-            break
+        else
+            if isnan(gammamin)  || gammamin==0
+                fprintf("Backtracking resulted in gamma=%g . Exiting Newton iteration. \n",gammamin)
+                break
+            end
         end
     end
 
@@ -299,8 +296,21 @@ while iteration <= ItMax
 
     x=x0+gammamin*dx ; l=l0+gammamin*dl ;
 
+    if Jmin < ResnormTol
+        fprintf("lsqUa: Exiting iteration because resnorm, |R|^2=%g, is within set tolerance of %g \n",Jmin,ResnormTol)
+        R2=Jmin;
+        r2Array(iteration+1)=nan;
+        R2Array(iteration+1)=R2;
+        dxArray(iteration)=norm(dx);
+        Slope0Array(iteration)=Qslope0;   % This is the slope based on R0, K0 and dx. Note the slope in dx direction at the end of the step
+        break
+    end
+
+
+
+
     % Now I've updated x and I need to recalculate K and R
-    [R,K]=fun(x) ; % This is the only call within the NR loop.
+    [R,K]=fun(x) ; % This is the only call within the NR loop. But I guess I could check if the returned J from line minimization already fulfills exit criterion?
 
 
     if ~isempty(Aeq)
@@ -315,7 +325,7 @@ while iteration <= ItMax
     dlNorm=norm(dl);
     BCsNorm=norm(h) ;
 
-    R2=0.5*full(R'*R);
+    R2=0.5*full(R'*R); % If all goes well, this should be same a Jmin returned by backtracking
     r2 = 0.5*full([g;h]'*[g;h])/Normalisation;
 
 
@@ -337,10 +347,10 @@ while iteration <= ItMax
         % However, I found by experimentation, in combination with my great insight and intelligence, that the step size in the
         % backtracking can be used to update the trust-region radius. Must allow for extrapolation. This works wonders for difficult
         % problems such as the Rosenbrock function where this leads in the end to full Newton steps being taken. The Matlab
-        % optimisation could not improve on this resuls.
+        % optimization could not improve on this results.
         Delta=gammamin*Delta;
         %Delta=TrustRegionRadiusUpdate(Delta,rho) ;
-        fprintf("Backtracking resulted in gamma=%g . Decreasing trust-region radius to Delta=%g and repeating step. \n",gammamin,Delta)
+        fprintf("Backtracking resulted in gamma=%g . Setting trust-region radius to Delta=%g. \n",gammamin,Delta)
 
     end
 
@@ -360,24 +370,29 @@ while iteration <= ItMax
     end
 
 
-    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t gamma=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t rho=%-5f \t slope0 =%g \n",...
-        iteration,StepString,R2,R2Ratio,gammamin,r2,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
+    fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-7g \t gamma=%-13g \t |r|^2=%-13g \t |r|^2/|r0|^2=%-7g \t |dx|=%-13g \t |dl|=%-7g \t |BCs|=%-5g \t rho=%-5f \t slope0 =%g \n",...
+        iteration,StepString,R2,R2Ratio,gammamin,r2,r2Ratio,dxNorm,dlNorm,BCsNorm,rho,Qslope0)
 
 
-    if r2 < gTol
-        fprintf("lsqUa: Exiting iteration because |g|^2=%g within set tolerance of %g \n",r2,gTol)
+    if R2 < ResnormTol
+        fprintf("lsqUa: Exiting iteration because resnorm, |R|^2=%g, is within set tolerance of %g \n",r2,ResnormTol)
+        break
+    end
+
+    if r2 < FirstOrderOptimialityTol
+        fprintf("lsqUa: Exiting iteration because firstorder optimality measure, |r|^2=%g, is within set tolerance of %g \n",r2,FirstOrderOptimialityTol)
         break
     end
 
     if dxNorm < dxTol
-        fprintf("lsqUa: Exiting iteration because change in |x|=%g within the set tolerance of %g \n",dxNorm,dxTol)
+        fprintf("lsqUa: Exiting iteration because change in step size |x|=%g within the set tolerance of %g \n",dxNorm,dxTol)
         break
     end
 
 
     maxdR2=max(dR2);
     if maxdR2 < dR2Tol
-        fprintf("lsqUa: Exiting iteration because max change in |R|^2=%g over last two iterations, less than the set tolerance of %g \n",maxdR2,dR2Tol)
+        fprintf("lsqUa: Exiting iteration because max change in resnorm, |R|^2=%g over last two iterations, less than the set tolerance of %g \n",maxdR2,dR2Tol)
         break
     end
 
@@ -412,19 +427,20 @@ output.nIt=iteration;
 
 
 %%
-FigNL=FindOrCreateFigure("Non-lin Convergence") ;  clf(FigNL)
-hold off
-yyaxis left
-plot(0:iteration,output.r2Array(1:iteration+1),"bo-",DisplayName="$r^2$ (first-order optimality)")
-FigNL.CurrentAxes.YScale="log"   ;
-ylabel("$r^2$, first-order optimality",Interpreter="latex")
-hold on
-yyaxis right
-plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")
-FigNL.CurrentAxes.YScale="log"   ;
-ylabel("$\|R\|^2$",Interpreter="latex")
-lg=legend(Interpreter="latex");
-
+if CtrlVar.InfoLevelNonLinIt>= 10 && CtrlVar.doplots
+    FigNL=FindOrCreateFigure("Non-lin Convergence") ;  clf(FigNL)
+    hold off
+    yyaxis left
+    plot(0:iteration,output.r2Array(1:iteration+1),"bo-",DisplayName="$r^2$ (first-order optimality)")
+    FigNL.CurrentAxes.YScale="log"   ;
+    ylabel("$r^2$, first-order optimality",Interpreter="latex")
+    hold on
+    yyaxis right
+    plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")
+    FigNL.CurrentAxes.YScale="log"   ;
+    ylabel("Resnorm $\|R\|^2$",Interpreter="latex")
+    lg=legend(Interpreter="latex");
+end
 %%
 
 
