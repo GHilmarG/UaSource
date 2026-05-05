@@ -27,9 +27,12 @@ fun = @(x) uvhRK(x,UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1,scale) ;
 options = optimoptions('lsqnonlin','Display','iter','MaxIterations',25,'SpecifyObjectiveGradient',true);
 %options.PlotFcn={@optimplotfirstorderoptUa,@optimplotresnormUa};
 
+% on an unconstrained problem (RadialIceCap) the interior-point and 
 options.Algorithm="interior-point" ;
-options.Algorithm="trust-region-reflective";
-options.Algorithm="levenberg-marquardt";
+%options.Algorithm="trust-region-reflective";
+
+% options.Algorithm="levenberg-marquardt"; options.ScaleProblem='jacobian'; options.InitDamping=1e-12;
+
 options.OptimalityTolerance = 1.000000e-15 ; 
 options.StepTolerance = 1.000000e-15 ;
 options.FunctionTolerance=1e-15;
@@ -53,6 +56,13 @@ end
 
 function [Ruvh,K]=uvhRK(x,UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1,scale)
 
+persistent nCalls
+
+if isempty(nCalls)
+    nCalls.rhs=0;
+    nCalls.Assembly=0;
+end
+
 
 n=MUA.Nnodes;
 F1.ub=x(1:n) ;
@@ -64,9 +74,15 @@ CtrlVar.uvhMatrixAssembly.ZeroFields=0 ;
 
 if nargout==1
     CtrlVar.uvhMatrixAssembly.Ronly=1;
+    nCalls.rhs=nCalls.rhs+1;
 else
     CtrlVar.uvhMatrixAssembly.Ronly=0;
+    nCalls.rhs=nCalls.rhs+1;
+    nCalls.Assembly=nCalls.Assembly+1;
+
 end
+
+fprintf("calls: rhs %i \t assembly %i \n %",nCalls.rhs,nCalls.Assembly)
 
 [UserVar,RunInfo,Ruvh,K]=uvhAssembly(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
