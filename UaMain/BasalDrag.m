@@ -127,6 +127,12 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
                 % (U^(1/m - 1)*He(h - hf))/(m*(C + C0)^(1/m + 1))
                 
                 dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
+                %
+                % Note: The actual expression is
+                %
+                % dFxdC= - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um.* u 
+                % dFydC= - He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um.* v 
+                %
                 
             case {"B","Budd","W-N0"}
     
@@ -437,7 +443,8 @@ function [taubxi,taubyi,dtaubxdui,dtaubxdvi,dtaubydui,dtaubydvi,dtaubxdhi,dtauby
     
     if Nouts > 2
         
-
+        dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
+        dtaubydvi=He.*(beta2i+Dbeta2i.*vb.*vb);
         
         dtaubxdvi=He.*Dbeta2i.*ub.*vb;
         dtaubydui=dtaubxdvi;
