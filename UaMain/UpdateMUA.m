@@ -245,9 +245,7 @@ if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(
         [MUA.MC,~,MUA.Mp]=chol(MUA.M,"vector");
 
     end
-else
 
-    MUA.M=[] ; MUA.dM=[] ; MUA.MC=[] ; MUA.Mp=[] ;
 
 end
 
