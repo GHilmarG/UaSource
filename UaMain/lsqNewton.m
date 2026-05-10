@@ -46,10 +46,10 @@ function [x,l,R2,r2,Qslope0,dxNorm,dlNorm,residual,g,h,output] = lsqNewton(CtrlV
 %%
 
 
-ItMax=50;
+ItMax=250;
 FirstOrderOptimialityTol=1e-20;
 ResnormTol=1e-20; 
-dR2Tol=1e-3;    % change in Resnorm between iterations. 
+dR2Tol=1e-7;    % change in Resnorm between iterations. 
 dxTol=1e-20;
 Normalize=false ;
 SaveIterate=false;
@@ -115,7 +115,8 @@ if ~isempty(Aeq)
 else
     LTl=0;
 end
-%%
+%% test
+l=l*0; 
 
 %% Normalisation
 if Normalize
