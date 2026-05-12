@@ -8,7 +8,7 @@ function [UserVar,RunInfo,F1,l1,BCs1,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l
 narginchk(9,9)
 
 Solver="Root-Finding Newton";
-Solver="Least-Squares Gauss-Newton";
+%Solver="Least-Squares Gauss-Newton";
 
 switch Solver
 
