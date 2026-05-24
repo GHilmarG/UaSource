@@ -10,7 +10,7 @@ function [b,h,GF]=Calc_bh_From_sBS(CtrlVar,MUA,s,B,S,rho,rhow,G0)
 narginchk(7,8)
 nargoutchk(1,3)
 
-if nargin < 8
+if nargin < 8 || isempty(G0)
     G0=nan;
 end
 
@@ -123,7 +123,9 @@ while I < ItMax && J > tol
     F1 =    b - G.*B - (1-G).*(rho.*s-rhow.*S)./(rho-rhow) ;
     
     JLast=J ;
-    J=sum(F1.^2)/2 ;
+%    J=sum(F1.^2)/2 ;
+    J=norm(F1)^2/2/numel(F1) ;
+
     if CtrlVar.MapOldToNew.Test
         fprintf('\t %i : \t %g \t %g \t %g \n ',I,max(abs(db)),J,J/JLast)
     end

@@ -30,11 +30,11 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 % Par.VelPlotIntervalSpacing='lin'|'log10'   : lin or log10 vel scale
 % Par.MaxPlottedSpeed                        : When plotting, speed above this value is set equal to this value, i.e. this is the maximum plotted speed
 %                                                  Default is max(speed(:))
-% Par.MinPlottedSpeed                        : When plotting, speed below this value is set equal to this value, i.e. this is the mainimum plotted speed
+% Par.MinPlottedSpeed                        : When plotting, speed below this value is set equal to this value, i.e. this is the minimum plotted speed
 %                                                  Default is min(speed(:)).
 %                                                  However, if using log10 the minimum plotted speed is never smaller than 10^QshouldiverColorPowRange times MaxPlottedSpeed
 % Par.SpeedTickLabels                        : numerical array of values
-% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the creates possible range of magnitudes shown in colobar.
+% Par.QuiverColorPowRange                    : when using log10 velocity bar, this is the creates possible range of magnitudes shown in colorbar.
 %                                              Default is
 %                                              Par.QuiverColorPowRange=3, i.e.
 %                                              the smallest colored speed is
@@ -103,7 +103,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %
 % Note: When doing further contour plots on top of velocity plot, MATLAB will possibly change the
-% limits of the colorbar and the position of the ticklables will no longer be correct.
+% limits of the colorbar and the position of the tick lables will no longer be correct.
 % If this happens then reset range and ticks, for example:
 %
 %   [~,~,Par]=QuiverColorGHG(x,y,ub,vb);

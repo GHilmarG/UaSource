@@ -71,7 +71,7 @@ y1=ylim(1)+(ylim(2)-ylim(1))*ScalePosition(2);
 
 
 hold on
-ScaleLineHandle=line([x1 x2],[y1 y1],9999*[1 1],color=ScaleColor,linewidth=ScaleWidth);
+ScaleLineHandle=line([x1 x2],[y1 y1],color=ScaleColor,linewidth=ScaleWidth);
 
 ScaleTextHandle=text(mean([x1 x2]),y1,ScaleLabel,...
     horizontalalignment="center",...
