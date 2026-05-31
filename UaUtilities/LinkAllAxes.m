@@ -18,14 +18,21 @@ end
 
 axHandles = findall(FigHandle, 'Type', 'axes') ;
 
-linkaxes(axHandles) ; % this should do it for all the axes, by default this works for xy 
+linkaxes(axHandles) ; % this should do it for all the axes, by default this works for xy
 
 axHandles(1).Visible="on"; % it is better to have this on for all axes, in that way one can see if the axes are really overlapping and identical.
-                           % afterwards this can be turned off
+% afterwards this can be turned off
 
 for I=2:numel(axHandles)
     axHandles(I).Position = axHandles(1).Position;
+    axHandles(I).InnerPosition = axHandles(1).InnerPosition;
+    axHandles(I).OuterPosition = axHandles(1).OuterPosition;
     axHandles(I).Visible="on";
+end
+
+
+return
+
 end
 
 %%

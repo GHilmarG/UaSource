@@ -1,4 +1,4 @@
-function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
+function [cbar,QuiverHandle,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 
 %% Plot velocity using colours/colors
 %
@@ -14,7 +14,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %   Par.RelativeVelArrowSize                   : affects the size of the velocity arrows.
 %                                                by default Par.RelativeVelArrowSize=1.
-%                                                Increase value for larger arrows.
+%                                                Increase value for larger arrows.quiver
 %   Par.QuiverColorSpeedLimits=[min max]        : Speed range being colored, leave empty for auto.
 %                                                Note however that when plotting
 %                                                using log10 scaling the min speed
@@ -127,7 +127,7 @@ function [cbar,QuiverHandel,Par]=QuiverColorGHG(x,y,u,v,Par,varargin)
 %
 %%
 
-persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
+% persistent SpeedPlotIntervals uvPlotScale QuiverTickLabels QuiverTicks QuiverCmap
 
 if nargin<5
     Par=[];
@@ -135,30 +135,26 @@ end
 
 if ~isfield(Par,"QuiverSameVelocityScalingsAsBefore") || ~Par.QuiverSameVelocityScalingsAsBefore
 
+
+
     SpeedPlotIntervals=[];
     uvPlotScale=[];
     QuiverTickLabels=[];
     QuiverTicks=[];
     QuiverCmap=[];
 
-    % if nargin>4
-    % 
-    %     Par.MaxPlottedSpeed=[] ;
-    %     Par.MinPlottedSpeed=[] ;
-    %     % Par.QuiverColorSpeedLimits=[] ; 
-    %     % Par.VelPlotIntervalSpacing=[] ; 
-    %     % Par.VelArrowColorSteps=[] ; 
-    %     % Par.VelColorMap =[] ; 
-    %     % Par.SpeedTickLabels=[] ; 
-    % 
-    % end
+elseif Par.QuiverSameVelocityScalingsAsBefore
 
-
+    uvPlotScale=Par.uvPlotScale ;
+    SpeedPlotIntervals=Par.SpeedPlotIntervals ;
+    QuiverTickLabels=Par.QuiverTickLabels;
+    QuiverTicks=Par.QuiverTicks ;
+    QuiverCmap=Par.QuiverCmap;
 
 end
 
 cbar=[];
-QuiverHandel=[];
+QuiverHandle=[];
 
 if isempty(x) || isempty(y) || isempty(u)   || isempty(v)
     return
@@ -475,8 +471,10 @@ for J=1:numel(Par.SpeedPlotIntervals)-1
 
     if numel(x(I))>0  % This should not really be needed, but
         % results in errors in Matlab2016a
-        QuiverHandel=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
+        QuiverHandle=quiver(x(I)/Par.PlotXYscale,y(I)/Par.PlotXYscale,uplot(I),vplot(I),0,...
             'color',Par.QuiverCmap(J,:),varargin{:}) ; hold on
+        
+       QuiverHandle.Annotation.LegendInformation.IconDisplayStyle='off'; 
     end
 end
 
@@ -611,6 +609,7 @@ SpeedPlotIntervals=Par.SpeedPlotIntervals ;
 QuiverTickLabels=Par.QuiverTickLabels;
 QuiverTicks=Par.QuiverTicks ;
 QuiverCmap=Par.QuiverCmap;
+
 
 
 end
