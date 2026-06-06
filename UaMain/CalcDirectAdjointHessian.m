@@ -31,7 +31,7 @@ narginchk(13,13)
 %   \frac{\partial^2 J}{\partial p_i \, \partial p_j}
 % $$
 %
-% is easy, and is done in Regulaisation.m
+% is easy, and is done in Regularisation.m
 %
 %
 % The term
