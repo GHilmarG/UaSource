@@ -24,33 +24,33 @@ end
 [nx0,mx0]=size(x0) ; [ny0,my0]=size(y0);
 
 if nA~=mA
-    fprintf(' A must be square ')
+    fprintf(" A must be square ")
 end
 
 if mB~=0 && (nA~=mB || mA ~= mB)
-    fprintf('size of A (%-i,%-i) and B (%-i,%-i) matrices not consistent \n',nA,mA,nB,mB)
-    error('error in solveKApe')
+    fprintf("size of A (%-i,%-i) and B (%-i,%-i) matrices not consistent \n",nA,mA,nB,mB)
+    error("error in solveKApe")
 end
 
 if nf~=nA
-    fprintf('f must have same number of elements as there are rows in A \n')
-    error('error in solveKApe')
+    fprintf("f must have same number of elements as there are rows in A \n")
+    error("error in solveKApe")
 end
 
 if ng~=nB
-    fprintf('g has %g but must have same number of elements as there are rows in B ie %g \n ',ng,nB)
-    error('error in solveKApe')
+    fprintf("g has %g but must have same number of elements as there are rows in B ie %g \n ",ng,nB)
+    error("error in solveKApe")
 end
 
 if ~isempty(B)
     if nx0~=mA
-        fprintf('x0 must have same number of elements as there are columns in A\n')
-        error('error in solveKApe')
+        fprintf("x0 must have same number of elements as there are columns in A\n")
+        error("error in solveKApe")
     end
 
     if ny0~=nB
-        fprintf('y0 must have same number of elements as there are rows in B\n')
-        error('solveKApe:InputsIncompatable','error in solveKApe')
+        fprintf("y0 must have same number of elements as there are rows in B\n")
+        error("solveKApe:InputsIncompatable","error in solveKApe")
     end
 end
 
@@ -58,21 +58,21 @@ n=size(A,1) ; m=size(B,1);
 
 %
 % if isempty(B) || numel(B)==0
-%     CtrlVar.AsymmSolver='Bempty';
+%     CtrlVar.AsymmSolver="Bempty";
 % elseif all(full(sum(B~=0,2))==1)
 %     %isequal(B*B',sparse(1:m,1:m,1))  % if only one node is constrained in each constraint, then pre-eliminate and solve directly
-%     CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+%     CtrlVar.AsymmSolver="EliminateBCsSolveSystemDirectly";
 % end
 
 if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
-    CtrlVar.AsymmSolver='auto';
+    CtrlVar.AsymmSolver="auto";
     CtrlVar.InfoLevelLinSolve=0 ;
     CtrlVar.TestForRealValues=0;
 
 else
     if ~isfield(CtrlVar,"AsymmSolver")
-        CtrlVar.AsymmSolver='auto';
+        CtrlVar.AsymmSolver="auto";
     end
 
     if ~isfield(CtrlVar,"InfoLevelLinSolve")
@@ -82,14 +82,15 @@ else
     CtrlVar.TestForRealValues=0;
 end
 
-if isequal(lower(CtrlVar.AsymmSolver),'auto')
+if isequal(lower(CtrlVar.AsymmSolver),"auto")
 
     if isempty(B) || numel(B)==0
-        CtrlVar.AsymmSolver='Bempty';
+        CtrlVar.AsymmSolver="Bempty";
     elseif isdiag(B*B')
-        CtrlVar.AsymmSolver='EliminateBCsSolveSystemDirectly';
+        CtrlVar.AsymmSolver="EliminateBCsSolveSystemDirectly";
     else
-        CtrlVar.AsymmSolver='AugmentedLagrangian';
+        CtrlVar.AsymmSolver="AugmentedLagrangian";
+         CtrlVar.AsymmSolver="NullSpace";    % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
     end
 
 end
@@ -99,31 +100,35 @@ end
 tSolve=tic;
 
 switch CtrlVar.AsymmSolver
-    case 'Bempty'
+    case "Bempty"
 
         x=A\f; y=[];
 
-    case 'Backslash'
+    case "Backslash"
 
         m=size(B,1); C=sparse(m,m); AA=[A B' ;B -C] ; bb=[f;g];
         sol=AA\bb; x=sol(1:n) ; y=sol(n+1:end);
         if CtrlVar.InfoLevelLinSolve>=1
-            fprintf(' Constraint matrix NOT empty. Solving system directly using the backslash operator \n ')
+            fprintf(" Constraint matrix NOT empty. Solving system directly using the backslash operator \n ")
         end
 
-    case 'EliminateBCsSolveSystemDirectly'
+    case "EliminateBCsSolveSystemDirectly"
 
 
         [x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g);
 
-    case 'AugmentedLagrangian'
+    case "AugmentedLagrangian"
 
 
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
 
-    case 'EliminateBCsSolveSystemIterativly'
+    case "NullSpace"
 
-        if CtrlVar.InfoLevelLinSolve>2; fprintf(' Eliminating constraints and solving system iterativly \n') ; end
+        [x, y] = KKT_null_space_lu(A, f, B, g);
+
+    case "EliminateBCsSolveSystemIterativly"
+
+        if CtrlVar.InfoLevelLinSolve>2; fprintf(" Eliminating constraints and solving system iterativly \n") ; end
 
         [I,iConstrainedDOF]=ind2sub(size(B),find(B==1)); iConstrainedDOF=iConstrainedDOF(:);
         iFreeDOF=setdiff(1:n,iConstrainedDOF); iFreeDOF=iFreeDOF(:);
@@ -137,9 +142,9 @@ switch CtrlVar.AsymmSolver
 
 
         tluinc=tic;
-        %setup.type = 'crout'; setup.milu = 'off'; setup.droptol = 0.1;
-        %setup.type = 'ilutp'; setup.milu = 'off'; setup.droptol = 0.15;
-        setup.type = 'nofill'; setup.milu = 'off';
+        %setup.type = "crout"; setup.milu = "off"; setup.droptol = 0.1;
+        %setup.type = "ilutp"; setup.milu = "off"; setup.droptol = 0.15;
+        setup.type = "nofill"; setup.milu = "off";
 
         [L1,U1] = ilu(AA,setup);
         tluinc=toc(tluinc);
@@ -162,31 +167,31 @@ switch CtrlVar.AsymmSolver
         tend=toc(tstart);
 
         if CtrlVar.InfoLevelLinSolve>=1
-            disp([' ilu in  ',num2str(tluinc),' sec '])
-            disp([' gmres  ',num2str(t2),' sec '])
-            disp([' total solution time  ',num2str(tend),' sec '])
+            disp([" ilu in  ",num2str(tluinc)," sec "])
+            disp([" gmres  ",num2str(t2)," sec "])
+            disp([" total solution time  ",num2str(tend)," sec "])
         end
 
         if CtrlVar.InfoLevelLinSolve>=10
 
 
             figure
-            fprintf(' flag=%-i, iter=%-g, relres=%-g \n ',flag,iter,relres)
+            fprintf(" flag=%-i, iter=%-g, relres=%-g \n ",flag,iter,relres)
             nnn=numel(resvec);
-            semilogy((0:nnn-1)/2,resvec,'-o')
-            xlabel('Iteration Number')
-            ylabel('Relative Residual')
+            semilogy((0:nnn-1)/2,resvec,"-o")
+            xlabel("Iteration Number")
+            ylabel("Relative Residual")
         end
 
     otherwise
 
-        error(' which case ? ')
+        error(" which case ? ")
 
 end
 
 tSolve=toc(tSolve);
 if CtrlVar.InfoLevelLinSolve>=10
-    fprintf('solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t Nr of rhs=%-i \t time=%-g sec \t method=%s \n ',...
+    fprintf("solveKApe: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t Nr of rhs=%-i \t time=%-g sec \t method=%s \n ",...
         n+m,n,m,mf,tSolve,CtrlVar.AsymmSolver)
 end
 
@@ -205,7 +210,7 @@ if  CtrlVar.TestKApeSolve
             res=norm(A*x-f,"fro");
         end
         if res>1e-5
-            fprintf('solveKApe: Solution residual appears too large! %g \n',res)
+            fprintf("solveKApe: Solution residual appears too large! %g \n",res)
         end
     else
         if fNorm>1e-10
@@ -240,6 +245,55 @@ if  CtrlVar.TestKApeSolve
     if CtrlVar.InfoLevelLinSolve>=10
         fprintf("Testing in %g sec \n",tTesting)
     end
+end
+
+
+Compare_KKT_SolutionApproaches=true;
+
+if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
+
+    if isdiag(B*B')
+        tPE=tic;
+        [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
+        tPE=toc(tPE);
+        fprintf("EliminateBCsSolveSystemDirectly: %f sec\n",tPE);
+    else
+        tPE=nan;
+    end
+
+    tAL=tic;
+    CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
+    [xAL,yAL] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
+    tAL=toc(tAL);
+
+    fprintf("       AugmentedLagrangianSolver: %f sec\n",tAL);
+
+  
+    tNS=tic ;
+    [xTestNullSpace, yTestNullSpace] = KKT_null_space_lu(A, f, B, g);
+    tNS=toc(tNS);
+    fprintf("                      Null Space: %f sec\n",tNS);
+
+
+    % tRS=tic ;
+    % [xTestRangeSpace, yTestRangeSpace] = KKT_range_space_unsymmetric(A, f, B, g);
+    % tRS=toc(tRS);
+    % fprintf("                     Range Space: %f sec\n",tRS);
+
+
+
+    % if ~isnan(tPE)
+    %     [norm(xPreEliminate-xAL) norm(xPreEliminate-xTestNullSpace) norm(xPreEliminate-xTestRangeSpace)]/norm(xPreEliminate)
+    %     [norm(yPreEliminate-yAL) norm(yPreEliminate-yTestNullSpace) norm(yPreEliminate-yTestRangeSpace)]/norm(yPreEliminate)
+    % end
+    % 
+
+end
+
+
+
+return
+
 end
 
 

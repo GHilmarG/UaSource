@@ -31,18 +31,18 @@ end
 %     y0=zeros(size(B,1),1);
 % end
 
-[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;  
+[nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;
 
 
 if isempty(y0)
-  y0=zeros(nB,1); % This is a special case, allowing for the initial estimate for y to be empty
-                  % in which case the initial estimate is set to zero.
+    y0=zeros(nB,1); % This is a special case, allowing for the initial estimate for y to be empty
+    % in which case the initial estimate is set to zero.
 end
 
 [ny0,my0]=size(y0);
 
 if nA~=mA
-    fprintf(' A must be square ')
+    fprintf(" A must be square " )
 end
 
 if mB~=0 && (nA~=mB || mA ~= mB)
@@ -74,52 +74,66 @@ if ny0~=nB
 end
 
 if ~isfield(CtrlVar,"Symmsolver")
-   CtrlVar.SymmSolver='auto' ;
+    CtrlVar.SymmSolver="auto" ;
 end
 
 
-if isequal(lower(CtrlVar.SymmSolver),'auto')
-    
+if isequal(lower(CtrlVar.SymmSolver),"auto")
+
     if isempty(B) || numel(B)==0
-        CtrlVar.SymmSolver='Bempty';
+        CtrlVar.SymmSolver="Bempty";
     elseif isdiag(B*B')
-        CtrlVar.SymmSolver='EliminateBCsSolveSystemDirectly';
+        CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+        CtrlVar.SymmSolver="NullSpace";  % changed to NullSpace on 6 June 2026 from EliminateBCsSolveSystemDirectly
     else
-        CtrlVar.SymmSolver='AugmentedLagrangian';
+        CtrlVar.SymmSolver="AugmentedLagrangian";
+        CtrlVar.SymmSolver="NullSpace";   % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
+
     end
-    
+
 end
 
-tSolve=tic; 
+tSolve=tic;
 
 switch CtrlVar.SymmSolver
-    case 'Bempty'
+    case "Bempty"
         x=A\f;
         y=[];
-        
-    case 'AugmentedLagrangian'
 
-   
+    case "AugmentedLagrangian"
+
+
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
         [x,y] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
 
-        
-    case 'Backslash'
-        
+
+
+    case "Backslash"
+
         C=sparse(nB,nB);
         AA=[A B' ;B C] ; bb=[f;g];
         sol=AA\bb;
         x=sol(1:nA) ; y=sol(nA+1:nA+nB);
-        
-    case 'EliminateBCsSolveSystemDirectly'
-     
+
+    case "EliminateBCsSolveSystemDirectly"
+
         %[x,y]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde);
-        [x,y,dAtilde]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde) ; 
+        [x,y,dAtilde]=ABfgPreEliminate(CtrlVar,A,B,f,g,dAtilde) ;
+
+    case "NullSpace"
+
+        %[x, y] = KKT_null_space_chol(A, f, B, g);
+        [x, y] = KKT_null_space_decomposition(A, f, B, g);
+
+    case "RangeSpace"
+
+        %[x, y] = KKT_range_space_symmetric(A, f, B, g);
+        [x, y] = KKT_range_space_decomposition_scaled(A, f, B, g);
 
     otherwise
-        
-        error('case not reckognised ')
-        
+
+        error("case not reckognised ")
+
 end
 
 
@@ -127,12 +141,69 @@ tSolve=toc(tSolve);
 
 if isfield(CtrlVar,"InfoLevelLinSolve")
     if CtrlVar.InfoLevelLinSolve>=10
-        fprintf('solveKApeSymmetric: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ',...
+        fprintf("solveKApeSymmetric: # unknowns=%-i \t # variables=%-i \t # Lagrange mult=%-i \t time=%-g \t method=%s \n ",...
             nA+nB,nA,nB,tSolve,CtrlVar.SymmSolver)
     end
 end
 
+%%
+Compare_KKT_SolutionApproaches=true;
 
+if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
+
+    fprintf("\n\n---------------\n")
+    if isdiag(B*B')
+        tPE=tic;
+        [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
+        tPE=toc(tPE);
+           fprintf("EliminateBCsSolveSystemDirectly: %f sec\n\n",tPE);
+    else
+        tPE=nan;
+    end
+
+    tAL=tic;
+    CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
+    [xAL,yAL] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
+    tAL=toc(tAL);
+    fprintf("       AugmentedLagrangianSolver: %f sec\n\n",tAL);
+
+
+    tNS=tic ;
+    [xTestNullSpace, yTestNullSpace] = KKT_null_space_chol(A, f, B, g);
+    tNS=toc(tNS);
+    fprintf("                      Null Space: %f sec\n\n",tNS);
+
+
+    tNSD=tic ;
+    [xTestNullSpace, yTestNullSpace] = KKT_null_space_decomposition(A, f, B, g);
+    tNSD=toc(tNSD);
+    fprintf("               Null Space Decompositon: %f sec\n\n",tNSD);
+
+    tNSDS=tic ;
+    [xTestNullSpaceScaled, yTestNullSpaceScaled] = KKT_null_space_decomposition_scaled(A, f, B, g);
+    tNSDS=toc(tNSDS);
+    fprintf("               Null Space Decompositon Scaled: %f sec\n\n",tNSDS);
+
+
+     tRSD=tic ;
+     [xTestRangeSpaceDecomposition, yTestRangeSpaceDecomposition] = KKT_range_space_decomposition(A, f, B, g);
+     tRSD=toc(tRSD);
+     fprintf("        Range Space Decompositon: %f sec\n\n",tRSD);
+
+    tRSDS=tic ;
+    [xTestRangeSpaceDecompositionScaled, yTestRangeSpaceDecompositionScaled] = KKT_range_space_decomposition_scaled(A, f, B, g);
+    tRSDS=toc(tRSDS);
+    fprintf("        Range Space Decompositon Scaled: %f sec\n \n",tRSDS);
+
+    options = optimoptions("quadprog",Display="off",Algorithm="interior-point-convex");
+    tQ=tic ;
+    [xQ,fval,exitflag,output,yQ]=quadprog(A,-f,[],[],B,g,[],[],[],options);
+    tQ=toc(tQ);
+    fprintf("        Matlab quadprog %f sec\n \n",tQ);
+
+    fprintf("---------------\n")
+end
+%%
 return
 
 end

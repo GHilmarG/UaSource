@@ -3,8 +3,37 @@
 %%
 %
 %
+% *Release Notes* _June 2025_
 %
+% The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was   
 % 
+%   CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+% 
+% and this was used if the user used the default option
+%
+%    CtrlVar.SymmSolver='Auto'; 
+% 
+% This symmetrical solver preserves the symmetry of the reduced KKT system, whereas the 'EliminateBCsSolveSystemDirectly' did
+% not. Additionally, the new Null-Space solver solves (n-m) x (n-m) system where n is the degrees of freedom and m is the
+% number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The
+% 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster.
+% How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only
+% applies to the solution of the KKT system. If there are not boundary conditions, the same default backslash solver is used before. 
+%
+% For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically
+% the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix Aeq
+% does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used. 
+% 
+% One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
+% typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually
+% setting 
+%
+%   CtrlVar.AsymmSolver="NullSpace";  
+%
+% might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
+% requires the construction of a basis for the null-space of Aeq.
+%
+%
 % *Release Notes* _January 2025_
 %
 % When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if

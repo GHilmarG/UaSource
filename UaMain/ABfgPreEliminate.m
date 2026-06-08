@@ -164,9 +164,16 @@ else
 
         error('ABfgPreEliminate:B','B*B^T not diagonal')
     end
-
+    % --- Diagnostic residuals (comment out in production) ---
+    if nargout<=3
+        A=A/factor ;
+        f=f/factor ;
+    end
+    res1 = norm(A*x + B'*y - f)/norm(x);
+    res2 = norm(B*x - g)/norm(x);
+    fprintf('Stationarity  ||H*x + A''*lambda - g||/||x||= %.2e\n', res1);
+    fprintf('Feasibility   ||A*x - b||/||x||             = %.2e\n', res2);
 end
 
 end
-
 
