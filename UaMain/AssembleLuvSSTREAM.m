@@ -35,6 +35,11 @@ if CtrlVar.LinFEbasis && ( numel(Luv)>0 || numel(cuv)>0 )
  
 end
 
+[Luv,row_idx,flag] = RowSubsetSelection(Luv); 
+
+cuv=cuv(row_idx); 
+
+
 
 end
 

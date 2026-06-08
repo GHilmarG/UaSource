@@ -206,6 +206,7 @@ end
 %%
 
 if CtrlVar.doplots && CtrlVar.PlotBCs
+
     fig=FindOrCreateFigure("Boundary Conditions");
     clf(fig)
     hold off
@@ -213,9 +214,22 @@ if CtrlVar.doplots && CtrlVar.PlotBCs
 end
 
 
+% % Test if uv boundary conditions contain redundancy 
+% L=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
+% [K,flag] = RowSubsetSelection(L);
+% 
+% if flag==1
+% 
+%     % "Boundary conditions as defined by user contain redundancy.
+% 
+%     fprintf("Boundary conditions as defined by user contain redudancy. ")
+% %    error("GetBoundaryConditions:BCsRedundant","Some of the BCs defined are redundant. Redefine BCS in DefineBoundaryConditions.m")
+% 
+% end
 
 
 end
+
 
 
 
