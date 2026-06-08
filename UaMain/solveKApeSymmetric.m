@@ -147,11 +147,12 @@ if isfield(CtrlVar,"InfoLevelLinSolve")
 end
 
 %%
-Compare_KKT_SolutionApproaches=true;
+Compare_KKT_SolutionApproaches=false;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
-    fprintf("\n\n---------------\n")
+  
+    fprintf("\n\n--------------- Comparing KKT solution approaches ------------------- \n")
     if isdiag(B*B')
         tPE=tic;
         [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;

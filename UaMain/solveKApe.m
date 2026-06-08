@@ -13,7 +13,7 @@ narginchk(7,7)
 [nA,mA]=size(A) ; [nB,mB]=size(B) ; [nf,mf]=size(f) ; [ng,mb]=size(g) ;
 
 if isempty(x0)
-  x0=zeros(mA,1);
+    x0=zeros(mA,1);
 end
 
 if isempty(y0)
@@ -90,7 +90,7 @@ if isequal(lower(CtrlVar.AsymmSolver),"auto")
         CtrlVar.AsymmSolver="EliminateBCsSolveSystemDirectly";
     else
         CtrlVar.AsymmSolver="AugmentedLagrangian";
-         CtrlVar.AsymmSolver="NullSpace";    % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
+        CtrlVar.AsymmSolver="NullSpace";    % changed to NullSpace on 6 June 2026 from AugmentedLagrangian
     end
 
 end
@@ -252,42 +252,32 @@ Compare_KKT_SolutionApproaches=true;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
+      fprintf("\n\n--------------- Comparing KKT solution approaches (H unsymmetrical) ------------------- \n")
     if isdiag(B*B')
         tPE=tic;
         [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
         tPE=toc(tPE);
         fprintf("EliminateBCsSolveSystemDirectly: %f sec\n",tPE);
-    else
-        tPE=nan;
     end
 
     tAL=tic;
     CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
     [xAL,yAL] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
     tAL=toc(tAL);
-
     fprintf("       AugmentedLagrangianSolver: %f sec\n",tAL);
 
-  
+
     tNS=tic ;
-    [xTestNullSpace, yTestNullSpace] = KKT_null_space_lu(A, f, B, g);
+    [xTestNullSpace, yTestNullSpace] = KKT_null_space_decomposition_lu(A, f, B, g);
     tNS=toc(tNS);
     fprintf("                      Null Space: %f sec\n",tNS);
 
 
-    % tRS=tic ;
-    % [xTestRangeSpace, yTestRangeSpace] = KKT_range_space_unsymmetric(A, f, B, g);
-    % tRS=toc(tRS);
-    % fprintf("                     Range Space: %f sec\n",tRS);
-
-
-
-    % if ~isnan(tPE)
-    %     [norm(xPreEliminate-xAL) norm(xPreEliminate-xTestNullSpace) norm(xPreEliminate-xTestRangeSpace)]/norm(xPreEliminate)
-    %     [norm(yPreEliminate-yAL) norm(yPreEliminate-yTestNullSpace) norm(yPreEliminate-yTestRangeSpace)]/norm(yPreEliminate)
-    % end
-    % 
-
+    tRSDS=tic ;
+    [xTestRangeSpaceDecompositionScaled, yTestRangeSpaceDecompositionScaled] = KKT_range_space_decomposition_scaled(A, f, B, g);
+    tRSDS=toc(tRSDS);
+    fprintf("        Range Space Decompositon Scaled: %f sec\n \n",tRSDS);
+    fprintf("---------------\n")
 end
 
 

@@ -1,3 +1,9 @@
+
+
+
+
+
+
 function [x, lambda] = KKT_range_space_decomposition_scaled(H, g, A, b)
 % KKT_RANGE_SPACE_SCALED  Solves the KKT system using the range space method
 %                         with diagonal scaling and the MATLAB decomposition
@@ -54,9 +60,6 @@ assert(m <= n,          'System must not be over-determined (m <= n)');
 %dx = 1 ./ sqrt(abs(diag(H)));        % n x 1
 dx = 1./sqrt(sum(H.^2,2));
 dc = 1 ./ sqrt(sum(A.^2, 2));        % m x 1
-
-
-
 
 
 
