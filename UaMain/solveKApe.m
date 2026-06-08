@@ -252,25 +252,25 @@ Compare_KKT_SolutionApproaches=true;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
-      fprintf("\n\n--------------- Comparing KKT solution approaches (H unsymmetrical) ------------------- \n")
+      fprintf("\n\n--------------- Comparing KKT solution approaches (H asymmetrical) ------------------- \n")
     if isdiag(B*B')
         tPE=tic;
         [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
         tPE=toc(tPE);
-        fprintf("EliminateBCsSolveSystemDirectly: %f sec\n",tPE);
+        fprintf("EliminateBCsSolveSystemDirectly: %f sec\n\n",tPE);
     end
 
     tAL=tic;
     CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=1;
     [xAL,yAL] = AugmentedLagrangianSolver(A,B,f,g,y0,CtrlVar);
     tAL=toc(tAL);
-    fprintf("       AugmentedLagrangianSolver: %f sec\n",tAL);
+    fprintf("       AugmentedLagrangianSolver: %f sec\n\n",tAL);
 
 
     tNS=tic ;
     [xTestNullSpace, yTestNullSpace] = KKT_null_space_decomposition_lu(A, f, B, g);
     tNS=toc(tNS);
-    fprintf("                      Null Space: %f sec\n",tNS);
+    fprintf("                      Null Space: %f sec\n\n",tNS);
 
 
     tRSDS=tic ;

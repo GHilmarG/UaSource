@@ -123,7 +123,8 @@ switch CtrlVar.SymmSolver
     case "NullSpace"
 
         %[x, y] = KKT_null_space_chol(A, f, B, g);
-        [x, y] = KKT_null_space_decomposition(A, f, B, g);
+        % [x, y] = KKT_null_space_decomposition(A, f, B, g);
+        [x, y] = KKT_null_space_decomposition_chol(A, f, B, g);
 
     case "RangeSpace"
 
@@ -147,7 +148,7 @@ if isfield(CtrlVar,"InfoLevelLinSolve")
 end
 
 %%
-Compare_KKT_SolutionApproaches=false;
+Compare_KKT_SolutionApproaches=true;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
@@ -170,15 +171,12 @@ if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
 
     tNS=tic ;
-    [xTestNullSpace, yTestNullSpace] = KKT_null_space_chol(A, f, B, g);
+    [xTestNullSpace, yTestNullSpace] = KKT_null_space_decomposition_chol(A, f, B, g);
     tNS=toc(tNS);
     fprintf("                      Null Space: %f sec\n\n",tNS);
 
 
-    tNSD=tic ;
-    [xTestNullSpace, yTestNullSpace] = KKT_null_space_decomposition(A, f, B, g);
-    tNSD=toc(tNSD);
-    fprintf("               Null Space Decompositon: %f sec\n\n",tNSD);
+
 
     tNSDS=tic ;
     [xTestNullSpaceScaled, yTestNullSpaceScaled] = KKT_null_space_decomposition_scaled(A, f, B, g);
