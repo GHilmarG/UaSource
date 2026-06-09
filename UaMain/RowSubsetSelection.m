@@ -1,6 +1,6 @@
 
 
-function [K,row_idx,flag] = RowSubsetSelection(L, tol)
+function [K,row_idx,flag] = RowSubsetSelection(Aeq, tol)
 
 % ROW_SUBSET_SELECTION  Select p linearly independent rows from L (m x n, rank p <= m)
 % If L already has full row rank (p == m), K = L is returned unchanged.
@@ -10,10 +10,10 @@ if nargin < 2
     tol = [];   % auto-detect
 end
 
-[m, n] = size(L);
+[m, n] = size(Aeq);
 
 % Column-pivoted QR of L'
-[~, R, E] = qr(L', 'vector');
+[~, R, E] = qr(Aeq', 'vector');
 
 % Estimate rank from diagonal of R
 d = abs(diag(R));
@@ -22,20 +22,21 @@ if isempty(tol)
 end
 p = full(sum(d > tol));
 
-fprintf('L is %d x %d,  detected rank = %d\n', m, n, p);
+fprintf('\t Aeq is %d x %d,  detected rank = %d\n', m, n, p);
 
 % If L has full row rank, no selection needed
 if p == m
-    fprintf('L has full row rank — returning L unchanged.\n');
-    K = L;
+    fprintf('Aeq has full row rank — returning L unchanged.\n');
+    K = Aeq;
     flag=0;
+    row_idx=[];
     return
 end
 flag=1; 
 
 % Otherwise select the p most linearly independent rows
 row_idx = sort(E(1:p));
-K = L(row_idx, :);
+K = Aeq(row_idx, :);
 
-fprintf('K is %d x %d,  rank(K) = %d\n', size(K,1), size(K,2), p);
+fprintf('\t After row subselection: Aeq is %d x %d,  rank(Aeq) = %d\n', size(K,1), size(K,2), p);
 end

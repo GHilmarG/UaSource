@@ -35,11 +35,18 @@ if CtrlVar.LinFEbasis && ( numel(Luv)>0 || numel(cuv)>0 )
  
 end
 
-[Luv,row_idx,flag] = RowSubsetSelection(Luv); 
+if CtrlVar.BCsRowSubsetSelection
 
-cuv=cuv(row_idx); 
+    fprintf("AssembleLuvSSTREAM: Checking if uv boundary conditions are linearly independent.\n")
+    [Luv,row_idx,flag] = RowSubsetSelection(Luv);
 
+    if flag==1
+        cuv=cuv(row_idx);
+        fprintf("AssembleLuvSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
+        fprintf("This has now been sorted, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
+    end
 
+end
 
 end
 

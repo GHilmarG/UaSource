@@ -172,9 +172,28 @@ CtrlVar.SlidingLaw="Weertman" ;
 CtrlVar.MustBe.SlidingLaw=["Weertman","Budd","Tsai","Coulomb","Cornford","Umbi","Joughin","W","W-N0","minCW-N0","C","rpCW-N0","rCW-N0","rCW-V0"]  ;
 %% Boundary conditions
 CtrlVar.UpdateBoundaryConditionsAtEachTimeStep=0;  % if true, `DefineBoundaryConditions.m' is called at the beginning of each time step to update the boundary conditions.
-                                                   % otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
-                                                   % Note that whenever the finite-element mesh is modified (for example during mesh refinement),
-                                                   % the boundary conditions are updated through a call to DefineBoundaryConditions.m
+% otherwise boundary conditions are only updated at the beginning of the run (also at the beginning or a restart run).
+% Note that whenever the finite-element mesh is modified (for example during mesh refinement),
+% the boundary conditions are updated through a call to DefineBoundaryConditions.m
+
+CtrlVar.BCsRowSubsetSelection=false;  % Checks if the boundary conditions (as defined by the user) contain some redundancy, and if so, eliminates it.
+                                      % Internally, the boundary conditions are represented as a constraint matrix 
+                                      %
+                                      % Aeq x = b
+                                      %
+                                      % The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+                                      % However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
+                                      % 
+                                      % By setting
+                                      %
+                                      % CtrlVar.BCsRowSubsetSelection=true; 
+                                      %
+                                      % Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+                                      % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not required.  
+                                      %
+                                      %
+                                      %
+
 CtrlVar.BCsWeights=1;     % test parameter, do not change
 CtrlVar.LinFEbasis=false;  % test parameter, do not change
 %

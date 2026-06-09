@@ -148,7 +148,7 @@ if isfield(CtrlVar,"InfoLevelLinSolve")
 end
 
 %%
-Compare_KKT_SolutionApproaches=true;
+Compare_KKT_SolutionApproaches=false;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 

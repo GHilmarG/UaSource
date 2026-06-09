@@ -5,7 +5,31 @@
 %
 % *Release Notes* _June 2025_
 %
-% The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was   
+% * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
+% indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
+%
+%
+% Internally, the boundary conditions are represented as a constraint matrix 
+%
+% $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A \in R^{m\times n} $$
+%
+% where m is the number of constraints, and n the number of degrees of freedom.
+% 
+% The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+% However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
+% 
+% By setting
+%
+%   CtrlVar.BCsRowSubsetSelection=true; 
+%
+% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+% usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
+% required in the first place by ensuring that the boundary conditions contain no redundancies. 
+%
+%
+%
+%
+% * The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was   
 % 
 %   CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
 % 
@@ -18,11 +42,13 @@
 % number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The
 % 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster.
 % How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only
-% applies to the solution of the KKT system. If there are not boundary conditions, the same default backslash solver is used before. 
+% applies to the solution of the KKT system. If there are not boundary conditions, the same default backslash solver is used
+% before. 
 %
 % For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically
 % the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix Aeq
-% does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used. 
+% does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented
+% Lagrangian solver. 
 % 
 % One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
 % typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually
