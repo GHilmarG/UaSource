@@ -124,7 +124,7 @@ switch CtrlVar.AsymmSolver
 
     case "NullSpace"
 
-        [x, y] = KKT_null_space_lu(A, f, B, g);
+         [x, y] = KKT_null_space_decomposition_lu(A, f, B, g);
 
     case "EliminateBCsSolveSystemIterativly"
 
@@ -248,7 +248,7 @@ if  CtrlVar.TestKApeSolve
 end
 
 
-Compare_KKT_SolutionApproaches=true;
+Compare_KKT_SolutionApproaches=false;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 

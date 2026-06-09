@@ -42,17 +42,17 @@
 % number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The
 % 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster.
 % How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only
-% applies to the solution of the KKT system. If there are not boundary conditions, the same default backslash solver is used
-% before. 
+% applies to the solution of the KKT system. If there are no boundary conditions, the same default backslash solver is used
+% before.
 %
-% For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is typically
-% the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other hand, the constraint matrix Aeq
-% does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of the previous Augmented
-% Lagrangian solver. 
+% For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is
+% typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other
+% hand, the constraint matrix Aeq does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of
+% the previous Augmented Lagrangian solver.
 % 
 % One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
 % typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually
-% setting 
+% setting
 %
 %   CtrlVar.AsymmSolver="NullSpace";  
 %

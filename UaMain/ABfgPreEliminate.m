@@ -169,9 +169,9 @@ else
         A=A/factor ;
         f=f/factor ;
     end
-    res1 = norm(A*x + B'*y - f)/norm(x);
+    res1 = norm(A*x + B'*y - f)/(norm(x)+norm(y));
     res2 = norm(B*x - g)/norm(x);
-    fprintf('Stationarity  ||H*x + A''*lambda - g||/||x||= %.2e\n', res1);
+    fprintf('Stationarity  ||H*x + A''*lambda - g||/(||x||+||lambda||)= %.2e\n', res1);
     fprintf('Feasibility   ||A*x - b||/||x||             = %.2e\n', res2);
 end
 
