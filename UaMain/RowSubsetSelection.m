@@ -12,6 +12,7 @@ end
 
 [m, n] = size(Aeq);
 
+
 % Column-pivoted QR of L'
 [~, R, E] = qr(Aeq', 'vector');
 
