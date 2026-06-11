@@ -249,6 +249,13 @@ if  (CtrlVar.MUA.MassMatrix || CtrlVar.MUA.DecomposeMassMatrix ) &&  ( ~isfield(
 
 end
 
+%% It is possible that the decomposition object has somehow become invalid. Not sure how, but if, for example a mesh is re-read then possibly the decomposition object is still there but invalid
+%
+if CtrlVar.MUA.DecomposeMassMatrix  &&   ( ~isfield(MUA,'dM') ||  any(MUA.dM.MatrixSize==[0 0]))
+    
+        MUA.dM=decomposition(MUA.M,'chol','upper') ;
+   
+end
 
 
 if CtrlVar.MUA.StiffnessMatrix &&  (~isfield(MUA,'Dxx')  || MUADerivHasChanged)

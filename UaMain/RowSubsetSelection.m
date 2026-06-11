@@ -23,11 +23,11 @@ if isempty(tol)
 end
 p = full(sum(d > tol));
 
-fprintf('\t Aeq is %d x %d,  detected rank = %d\n', m, n, p);
+% fprintf('\t Aeq is %d x %d,  detected rank = %d\n', m, n, p);
 
 % If L has full row rank, no selection needed
 if p == m
-    fprintf('Aeq has full row rank — returning L unchanged.\n');
+ %   fprintf('Aeq has full row rank — returning L unchanged.\n');
     K = Aeq;
     flag=0;
     row_idx=[];
@@ -39,5 +39,5 @@ flag=1;
 row_idx = sort(E(1:p));
 K = Aeq(row_idx, :);
 
-fprintf('\t After row subselection: Aeq is %d x %d,  rank(Aeq) = %d\n', size(K,1), size(K,2), p);
+% fprintf('\t After row subselection: Aeq is %d x %d,  rank(Aeq) = %d\n', size(K,1), size(K,2), p);
 end

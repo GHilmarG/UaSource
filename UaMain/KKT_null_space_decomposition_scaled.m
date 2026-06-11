@@ -101,10 +101,10 @@ lambdas = dAAsT \ (As * (gs - Hs * xs));
 x      = Dx * xs;
 lambda = Dc * lambdas;
 
-% --- Diagnostic residuals (comment out in production) ---
-res1 = norm(H*x + A'*lambda - g)/norm(x);
-res2 = norm(A*x - b)/norm(x);
-fprintf('Stationarity  ||H*x + A''*lambda - g||/||x|| = %.2e\n', res1);
-fprintf('Feasibility   ||A*x - b||/||x||              = %.2e\n', res2);
+% % --- Diagnostic residuals (comment out in production) ---
+% res1 = norm(H*x + A'*lambda - g)/norm(x);
+% res2 = norm(A*x - b)/norm(x);
+% fprintf('Stationarity  ||H*x + A''*lambda - g||/||x|| = %.2e\n', res1);
+% fprintf('Feasibility   ||A*x - b||/||x||              = %.2e\n', res2);
 
 end

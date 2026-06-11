@@ -16,9 +16,20 @@ end
 varargout=varargin;
 
 
+%% Using BCs when calculating/projecting the gradient
+%
+% This is not finalized, and is here as a test. The uv BCs are already used in the adjoint calculation, the question is if the
+% h-BCs should also be used in combination with the use of dh/dt in the data. Something to think more about.
+UseBCs=true;
+UseBCs=false;
+
+%%
+
+
 
 if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
-    if isa(MUA.dM,"decomposition")
+    if isa(MUA.dM,"decomposition") && ~UseBCs  % No need for the decomposition object in combination with the BCs, because the KKT system does not use 
+                                               % the dM.
         P=MUA.dM/MUA.Area ;
     else
         P=MUA.M/MUA.Area ;
@@ -36,8 +47,6 @@ elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ...
     return
 end
 
-
-UseBCs=true;
 
 
 for k=1:numel(varargin)
