@@ -11,7 +11,7 @@
 %
 % Internally, the boundary conditions are represented as a constraint matrix 
 %
-% $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A \in R^{m\times n} $$
+% $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$
 %
 % where m is the number of constraints, and n the number of degrees of freedom.
 % 
