@@ -125,7 +125,7 @@ end
 
 
 GLele=false(Nele,1);
-GLgeo=zeros(Nele,10)+NaN ;  % I'm being a bit wastefull here with memory, but only for a short while as
+GLgeo=zeros(Nele,10)+NaN ;  % I'm being a bit wasteful here with memory, but only for a short while as
 % this variable is later resized
 
 

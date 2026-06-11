@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>CalcNodalStrainRates</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-07-04"><meta name="DC.source" content="CalcNodalStrainRates.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>CalcNodalStrainRates</title>
+<meta name="generator" content="MATLAB 25.2">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2025-12-05">
+<meta name="DC.source" content="CalcNodalStrainRates.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,10 +72,23 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
-</pre><p>Calculates horizontal strain rates given horizontal velocities.</p><pre>  [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)</pre><p>Returns nodal values.</p><p>Note: The strain rates are calculated at integration points and then projected onto nodes.</p><p>The projection does not conserve positivity and positve integration values can become negative at nodes. The effectiv strain rate , e, is for this reason calculated directly from nodal values, ensuring that e is always positive.</p><p>Example:</p><p>Read data, calculate nodal strain rates, and then plot over FE mesh at roughly equal spaced grid.</p><pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
+  </style>
+</head>
+<body>
+<div class="content">
+<pre class="codeinput">
+<span class="keyword">function</span> [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
+</pre>
+<p>Calculates horizontal strain rates given horizontal velocities.</p>
+<pre>  [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)</pre>
+<p>Returns nodal values.</p>
+<p>Note: The strain rates are calculated at integration points and then projected onto nodes.</p>
+<p>The projection does not conserve positivity and positve integration values can become negative at nodes. The effective strain rate , e, is for this reason calculated directly from nodal values, ensuring that e is always positive.</p>
+<p>Example:</p>
+<p>Read data, calculate nodal strain rates, and then plot over FE mesh at roughly equal spaced grid.</p>
+<pre class="language-matlab">load (<span class="string">'GaussPeak_Example_Restartfile.mat'</span>,<span class="string">'MUA'</span>,<span class="string">'CtrlVarInRestartFile'</span>,<span class="string">'F'</span>,<span class="string">'GF'</span>,<span class="string">'BCs'</span>);  <span class="comment">% load data</span>
 CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
-[exx,eyy,exy]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             <span class="comment">% calculate strain rates</span>
+[exx,eyy,exy]=CalcNodalStrainRates(MUA,F.ub,F.vb);                             <span class="comment">% calculate strain rates</span>
 [X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
 I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  <span class="comment">% find nodes within computational grid closest to the regularly scape X and Y grid points.</span>
 figure
@@ -78,14 +97,22 @@ hold <span class="string">on</span>
 scale=1e5; LineWidth=2 ;
 PlotTensor(x(I)/CtrlVar.PlotXYscale,y(I)/CtrlVar.PlotXYscale,exx(I),exy(I),eyy(I),scale,LineWidth);  <span class="comment">% plot strain rates</span>
 axis <span class="string">equal</span>
-</pre><p>See also CalcNodalStrainRatesAndStresses</p><pre class="codeinput"><span class="keyword">if</span> ~nargin==4 || ~nargin==6
+</pre>
+<p>See also CalcNodalStrainRatesAndStresses</p>
+<pre class="codeinput">narginchk(3,5)
+
+<span class="keyword">if</span> nargin==4
+       fprintf(<span class="string">"The parameter list no longer contains CtrlVar \n"</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> ~nargin==3 || ~nargin==5
     error(<span class="string">'Ua:CalcNodalStrainRates'</span>,<span class="string">'Wrong number of input arguments'</span>)
 <span class="keyword">end</span>
 
 <span class="keyword">if</span> ~isempty(ub)
 
-    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA,CtrlVar);
-    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA,CtrlVar);
+    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA);
+    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA);
     exxb=dubdx;
     eyyb=dvbdy;
     exyb=0.5*(dubdy+dvbdx);
@@ -94,10 +121,10 @@ axis <span class="string">equal</span>
     exxb=[] ; eyyb=[] ; exyb=[];
 <span class="keyword">end</span>
 
-<span class="keyword">if</span> nargin == 6
+<span class="keyword">if</span> nargin == 5
     <span class="keyword">if</span> ~isempty(ud)
-        [duddx,duddy]=calcFEderivativesMUA(ud,MUA,CtrlVar);
-        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA,CtrlVar);
+        [duddx,duddy]=calcFEderivativesMUA(ud,MUA);
+        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA);
 
         exxd=duddx;
         eyyd=dvddy;
@@ -108,17 +135,26 @@ axis <span class="string">equal</span>
 <span class="keyword">else</span>
     exxd=[] ; eyyd=[] ; exyd=[];
 <span class="keyword">end</span>
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+</pre>
+<pre class="codeinput">
+<span class="keyword">end</span>
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2025b</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
-function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
+function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 
 
 %%
 %  
 % Calculates horizontal strain rates given horizontal velocities. 
 %
-%    [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,ud,vd)
+%    [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 %
 % Returns nodal values.
 %
@@ -126,7 +162,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 % onto nodes. 
 %
 % The projection does not conserve positivity and positve integration
-% values can become negative at nodes. The effectiv strain rate , e, is for
+% values can become negative at nodes. The effective strain rate , e, is for
 % this reason calculated directly from nodal values, ensuring that e is
 % always positive.
 %
@@ -136,7 +172,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 %
 %   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
 %   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
-%   [exx,eyy,exy]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [exx,eyy,exy]=CalcNodalStrainRates(MUA,F.ub,F.vb);                             % calculate strain rates
 %   [X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
 %   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
 %   figure
@@ -149,16 +185,20 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(CtrlVar,MUA,ub,vb,
 %
 % See also CalcNodalStrainRatesAndStresses
 
+narginchk(3,5)
 
+if nargin==4 
+       fprintf("The parameter list no longer contains CtrlVar \n")
+end
 
-if ~nargin==4 || ~nargin==6
+if ~nargin==3 || ~nargin==5
     error('Ua:CalcNodalStrainRates','Wrong number of input arguments')
 end
 
 if ~isempty(ub)
     
-    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA,CtrlVar);
-    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA,CtrlVar);
+    [dubdx,dubdy]=calcFEderivativesMUA(ub,MUA);
+    [dvbdx,dvbdy]=calcFEderivativesMUA(vb,MUA);
     exxb=dubdx;
     eyyb=dvbdy;
     exyb=0.5*(dubdy+dvbdx);
@@ -167,10 +207,10 @@ else
     exxb=[] ; eyyb=[] ; exyb=[]; 
 end
 
-if nargin == 6
+if nargin == 5
     if ~isempty(ud)
-        [duddx,duddy]=calcFEderivativesMUA(ud,MUA,CtrlVar);
-        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA,CtrlVar);
+        [duddx,duddy]=calcFEderivativesMUA(ud,MUA);
+        [dvddx,dvddy]=calcFEderivativesMUA(vd,MUA);
         
         exxd=duddx;
         eyyd=dvddy;
@@ -188,4 +228,6 @@ end
 
 
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

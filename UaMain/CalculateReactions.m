@@ -91,7 +91,7 @@ arguments
     CtrlVar struct
     MUA     struct
     BCs     {mustBeA(BCs,{'struct','BoundaryConditions'})}
-    l       struct
+    l       {mustBeA(l,{'struct','UaLagrangeVariables'})}
     options.hReactionsExcludeActiveSet  logical = false   % this allows for h reactions to exclude those of the active thickness constraints
                                                             % only the reactions due to the user-defined thickness constraints are then calculated
 

@@ -36,7 +36,7 @@ end
 
 %% Special case:  Check if there are no previous thickness constraints, in which case new should be introduced based on ice thickness
 % possibly all thickness constraints were eliminated in AdapMesh when deactivating/activating elements
-% so I check if there are no thickness constrains but h1 is at the min thick.
+% so I check if there are no thickness constraints but h1 is at the min thick.
 % if so then I introduce an initial active set based on h1
 %!if isempty(Lhpos)
 

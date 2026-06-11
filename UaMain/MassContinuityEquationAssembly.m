@@ -44,6 +44,7 @@ a1=F1.as+F1.ab;
 a0=F0.as+F0.ab;
 da1dh=F1.dasdh+F1.dabdh;
 
+
 h0nod=reshape(F0.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 h1nod=reshape(F1.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -276,7 +277,7 @@ for Iint=1:MUA.nip  %Integration points
                     +(rhoint.*fun(Jnod)...
                     -dt*theta*rhoint.*da1dhint.*fun(Jnod)...
                     +dt*theta.*(rhoint.*exx1.*fun(Jnod)+drhodx.*ub1int.*fun(Jnod)+rhoint.*ub1int.*Deriv1(:,Jnod)...
-                    +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
+                               +rhoint.*eyy1.*fun(Jnod)+drhody.*vb1int.*fun(Jnod)+rhoint.*vb1int.*Deriv2(:,Jnod)))...
                     .*SUPG.*detJw;
 
             end

@@ -212,17 +212,18 @@ for Inod=1:nod
     qterm=  dt*(theta*qx1dx+(1-theta)*qx0dx+theta*qy1dy+(1-theta)*qy0dy).*SUPG;
     dhdt=  rhoint.*(h0int-hint+dt*(1-theta)*h0barr+dt*theta*h1barr).*SUPG;
     accterm=  dt*rhoint.*((1-theta)*a0int+theta*a1int).*SUPG;
-    
+
     th=-dhdt;
     fh=  accterm - qterm;
-    
+
+
     % R is calculated as R=th-fh  and then I solve K x = -R
     % thus: th has opposite sign but fh not
     % second and third-order Taylor terms
-    
+
     %
     Th(:,Inod)=Th(:,Inod)+th.*detJw;
     Fh(:,Inod)=Fh(:,Inod)+fh.*detJw;
-    
-    
+
+
 end

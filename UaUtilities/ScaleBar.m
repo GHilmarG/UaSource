@@ -45,13 +45,14 @@ if nargin==0
 
     elseif diff(xlim)< 2000
 
-        Scale=500;
-        ScaleLabel="500 km";
+        Scale=250;
+        ScaleLabel="250 km";
 
 
     else
-        Scale=1000;
-        ScaleLabel="1000 km";
+
+        Scale=500;
+        ScaleLabel="500 km";
 
 
     end
@@ -71,7 +72,7 @@ y1=ylim(1)+(ylim(2)-ylim(1))*ScalePosition(2);
 
 
 hold on
-ScaleLineHandle=line([x1 x2],[y1 y1],9999*[1 1],color=ScaleColor,linewidth=ScaleWidth);
+ScaleLineHandle=line([x1 x2],[y1 y1],color=ScaleColor,linewidth=ScaleWidth,HandleVisibility="off");
 
 ScaleTextHandle=text(mean([x1 x2]),y1,ScaleLabel,...
     horizontalalignment="center",...

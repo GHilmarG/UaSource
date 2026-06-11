@@ -13,7 +13,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 % onto nodes. 
 %
 % The projection does not conserve positivity and positve integration
-% values can become negative at nodes. The effectiv strain rate , e, is for
+% values can become negative at nodes. The effective strain rate , e, is for
 % this reason calculated directly from nodal values, ensuring that e is
 % always positive.
 %
@@ -23,7 +23,7 @@ function [exxb,eyyb,exyb,exxd,eyyd,exyd]=CalcNodalStrainRates(MUA,ub,vb,ud,vd)
 %
 %   load ('GaussPeak_Example_Restartfile.mat','MUA','CtrlVarInRestartFile','F','GF','BCs');  % load data
 %   CtrlVar=CtrlVarInRestartFile; x=MUA.coordinates(:,1) ; y=MUA.coordinates(:,2);
-%   [exx,eyy,exy]=CalcNodalStrainRates(CtrlVar,MUA,F.ub,F.vb);                             % calculate strain rates
+%   [exx,eyy,exy]=CalcNodalStrainRates(MUA,F.ub,F.vb);                             % calculate strain rates
 %   [X,Y]=ndgrid(linspace(min(x),max(x),10),linspace(min(y),max(y),10));
 %   I=nearestNeighbor(MUA.TR,[X(:) Y(:)]);  % find nodes within computational grid closest to the regularly scape X and Y grid points.
 %   figure
@@ -53,7 +53,8 @@ if ~isempty(ub)
     exxb=dubdx;
     eyyb=dvbdy;
     exyb=0.5*(dubdy+dvbdx);
-    [exxb,eyyb,exyb]=ProjectFintOntoNodes(MUA,exxb,eyyb,exyb);
+    CtrlVar=[]; 
+    [exxb,eyyb,exyb]=ProjectFintOntoNodes(CtrlVar,MUA,exxb,eyyb,exyb);
 else
     exxb=[] ; eyyb=[] ; exyb=[]; 
 end

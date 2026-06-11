@@ -1,3 +1,5 @@
+
+
 function [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F,BCs)
 %%
 % Calculates dh/dt from flux divergence as
@@ -54,6 +56,10 @@ tauSUPGnod=reshape(tauSUPG(MUA.connectivity,1),MUA.Nele,MUA.nod);
 dd=zeros(MUA.Nele,MUA.nod,MUA.nod);
 b=zeros(MUA.Nele,MUA.nod);
 
+if isempty(MUA.Deriv)  || anynan(MUA.Deriv)
+    CtrlVar.CalcMUA_Derivatives=true;
+    MUA=UpdateMUA(CtrlVar,MUA);
+end
 
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
@@ -141,7 +147,23 @@ for Inod=1:MUA.nod
 end
 
 Msupg=sparseUA(Iind,Jind,Xval,neq,neq);
-[hL,hRhs]=createLh(MUA.Nnodes,BCs.dhdtFixedNode,BCs.dhdtFixedValue,BCs.dhdtTiedNodeA,BCs.dhdtTiedNodeB);
+
+
+%% BCs
+%
+% Since this is an explicit estimate, it seems right to use the BCs for h.
+% If h is fixed, the the explicit estimate should be dh/dt=0 for those nodes
+%
+% Also, if there is a nodal link (tie) for h, then the same nodal tie should be used for dh/dt
+%
+% So for all BCs.hFixed nodes, set BCs.hFixedValue=0, and use the h ties.
+
+
+[hL,hRhs]=createLh(MUA.Nnodes,BCs.hFixedNode,BCs.hFixedValue*0,BCs.hTiedNodeA,BCs.hTiedNodeB);
+
+%% Solve system
+
+
 
 % CtrlVar.SymmSolver='AugmentedLagrangian';
 x0=zeros(MUA.Nnodes,1) ; y0=hRhs*0;

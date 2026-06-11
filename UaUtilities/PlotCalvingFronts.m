@@ -40,16 +40,27 @@ function [xc,yc]=PlotCalvingFronts(CtrlVar,MUA,F,varargin)
 if nargin==0
 
     CtrlVar=[];
-    MUA="ITS-LIVE" ;
+
 
 end
 
+if nargin<2
+    MUA="ITS-LIVE" ;
+end
+
+
 if isempty(CtrlVar)
     CtrlVar(1).PlotXYscale=1000;
+    CtrlVar.PlotGLs=true;
 end
 
 if ~isfield(CtrlVar,"DisplayName")
     CtrlVar.DisplayName="Calving fronts"; 
+end
+
+if ~isfield(CtrlVar,"PlotGLs")
+      CtrlVar.PlotGLs=true;
+ 
 end
 
 
@@ -75,24 +86,25 @@ if isstring(MUA)
 
 
 
-            otherwise
+        otherwise
 
             error("case not found")
 
     end
 
-    tt=axis;
-    if isempty(varargin)
-        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'b',DisplayName="calving fronts") ;
-    else
-        plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,varargin{:},DisplayName="calving fronts") ;
-    end
-    ax=gca; ax.DataAspectRatio=[1 1 1];
+    if CtrlVar.PlotGLs
+        tt=axis;
+        if isempty(varargin)
+            plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,'b',DisplayName="calving fronts") ;
+        else
+            plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,varargin{:},DisplayName="calving fronts") ;
+        end
+        ax=gca; ax.DataAspectRatio=[1 1 1];
 
-    if ~isequal(tt,[0 1 0 1])
-        axis(tt)
+        if ~isequal(tt,[0 1 0 1])
+            axis(tt)
+        end
     end
-
     return
 
 end

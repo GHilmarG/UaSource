@@ -36,9 +36,10 @@ narginchk(4,4)
 %
 % Example:
 % 
-%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','MUA','F','BCs','GF')
+%   load('CrackRestartfileExample.mat','CtrlVarInRestartFile','UserVarInRestartFile','MUA','F','BCs','GF')
 %   CtrlVar=CtrlVarInRestartFile;
-%   UserVar=UserVarInRestartFile
+%   CtrlVar.etaZero=10;
+%   UserVar=UserVarInRestartFile;
 %   [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,UserVar,MUA,F);
 %   x=MUA.coordinates(:,1);  y=MUA.coordinates(:,2); 
 %   [X,Y]=ndgrid(linspace(min(x),max(x),20),linspace(min(y),max(y),20));

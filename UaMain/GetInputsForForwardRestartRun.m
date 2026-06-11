@@ -5,16 +5,20 @@ nargoutchk(7,7)
 
 fprintf('\n\n ---------  Reading restart file %s.\n',CtrlVar.NameOfRestartFiletoRead)
 
-try
-    Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
-    
-catch exception
-    fprintf(CtrlVar.fidlog,'%s \n',exception.message);
-    error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
-end
+% For some reason the 'whos' statement sometimes fails even if the file does exist and can be loaded. So this approach, which was
+% intended to make things more robust, just causes issues. 
+% 
+%
+% try
+%     Contents=whos('-file',CtrlVar.NameOfRestartFiletoRead) ;
+% 
+% catch exception
+%     fprintf(CtrlVar.fidlog,'%s \n',exception.message);
+%     error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
+% end
 
 
-if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
+%if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
     
     try
         
@@ -27,26 +31,26 @@ if any(arrayfun(@(x) isequal(x.name,'F'),Contents))
         error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
     end
     
-else
-    
-    try
-        
-        load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h',...
-            'ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
-            'Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
-            'GLdescriptors','l','alpha','g');
-        Co=[] ; mo=[] ; Ca=[] ; ma=[] ; dasdh=[] ; dabdh=[] ; uo=[] ; vo=[];
-        MUAold=MUA;
-        F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dubdt,dvbdt,duddt,dvddt,g,alpha);
-        
-        RunInfo=UaRunInfo;
-        
-    catch exception
-        fprintf(CtrlVar.fidlog,'%s \n',exception.message);
-        error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
-    end
-    
-end
+% else
+% 
+%     try
+% 
+%         load(CtrlVar.NameOfRestartFiletoRead,'CtrlVarInRestartFile','MUA','BCs','time','dt','s','b','S','B','h',...
+%             'ub','vb','ud','vd','dhdt','dsdt','dbdt','C','AGlen','m','n','rho','rhow','as','ab','GF',...
+%             'Itime','dhdtm1','dubdt','dvbdt','dubdtm1','dvbdtm1','duddt','dvddt','duddtm1','dvddtm1',...
+%             'GLdescriptors','l','alpha','g');
+%         Co=[] ; mo=[] ; Ca=[] ; ma=[] ; dasdh=[] ; dabdh=[] ; uo=[] ; vo=[];
+%         MUAold=MUA;
+%         F=Vars2UaFields(ub,vb,ud,vd,uo,vo,s,b,h,S,B,AGlen,C,m,n,rho,rhow,Co,mo,Ca,ma,as,ab,dasdh,dabdh,dhdt,dsdt,dbdt,dubdt,dvbdt,duddt,dvddt,g,alpha);
+% 
+%         RunInfo=UaRunInfo;
+% 
+%     catch exception
+%         fprintf(CtrlVar.fidlog,'%s \n',exception.message);
+%         error('could not load restart file %s',CtrlVar.NameOfRestartFiletoRead)
+%     end
+% 
+% end
 
 F.time=CtrlVar.time ; F.dt=CtrlVar.dt ; 
 
@@ -111,29 +115,16 @@ if nRunInfo < CtrlVarInRestartFile.CurrentRunStepNumber
 end
 
 
-
-
-
-
-
-
-
-
 if CtrlVar.ResetTime==1
     CtrlVarInRestartFile.time=CtrlVar.RestartTime;
     fprintf(CtrlVar.fidlog,' Time reset to CtrlVar.RestartTime=%-g \n',CtrlVarInRestartFile.time);
 end
 
 
-
-
-
-
 if CtrlVar.ResetTimeStep==1
     CtrlVarInRestartFile.dt=CtrlVar.dt;
     fprintf(CtrlVar.fidlog,' Time-step reset to CtrlVar.dt=%-g \n',CtrlVarInRestartFile.dt);
 end
-
 
 
 if CtrlVar.ResetRunStepNumber

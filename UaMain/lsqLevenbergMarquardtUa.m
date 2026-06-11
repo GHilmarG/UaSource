@@ -1,11 +1,18 @@
-function [x,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,lambda,L,c)
+
+
+
+
+
+
+
+function [x,l,R2,r2,Slope0,dxNorm,dlNorm,residual,g,h,output] = lsqLevenbergMarquardtUa(CtrlVar,fun,x,l,Aeq,beq)
 
 %%
 %
 % Minimizes the norm of R where R is a vector subject the the
 % constraints
 %
-%   L x = c
+%   Aeq x = beq
 %
 %  The function 'fun' should provide both R and the Jacobian, i.e.
 %
@@ -107,26 +114,26 @@ R2Array=nan(ItMax+1,1) ;
 r2Array=nan(ItMax+1,1) ;
 dxArray=nan(ItMax+1,1) ;
 
-dR2=[inf ; inf ] ; % stores the changes in R2=R'*R  over last two iterations
+dR2=[inf ; inf ] ; % stores the changes in R2=0.5*R'*R  over last two iterations
 
 Slope0=nan ; % need to calculate final slope
 nx=numel(x);
 
 %% If constraints provided, make iterate feasible
-if ~isempty(L) && ~isempty(c)   % if the user has not provided an initial estimate of lambda, but specifies constraints, set lambda=0
+if ~isempty(Aeq) && ~isempty(beq)   % if the user has not provided an initial estimate of lambda, but specifies constraints, set lambda=0
 
-    BCres=norm(L*x-c);
+    BCres=norm(Aeq*x-beq);
     if BCres>1e-6   % make feasible
-        x=L\c ;
+        x=Aeq\beq ;
     end
-    if isempty(lambda)  || any(isnan(lambda))
-        lambda=c*0;
+    if isempty(l)  || any(isnan(l))
+        l=beq*0;
     end
 end
 
 
-if ~isempty(L)
-    LTlambda=L'*lambda ;
+if ~isempty(Aeq)
+    LTlambda=Aeq'*l ;
 else
     LTlambda=0;
 end
@@ -153,19 +160,19 @@ if ~isLSQ && nK~= mK
 end
 
 if isLSQ
-    g =- (2*K'*R + LTlambda) ;
+    g =- (K'*R + LTlambda) ;
 else
     g =- (R + LTlambda) ;
 end
 
-if ~isempty(L)
-    h =- (L*x-c);
+if ~isempty(Aeq)
+    h =- (Aeq*x-beq);
 else
     h=[];
 end
 
-R2=full(R'*R);
-r2=full([g;h]'*[g;h])/Normalisation ;
+R2=0.5*full(R'*R);    % This is the value of the cost function, this will not always go to zero for constrained optimisation problems. 
+r2=full([g;h]'*[g;h])/Normalisation ;   % this is the norm of the right-hand side, sometimes referred to as first-order optimality. This should approach zero. 
 
 
 r2Array(1)=r2;
@@ -189,7 +196,7 @@ while iteration <= ItMax
     % I don't think this has been done for the ~isLSQ case, looks like LMlambda is never modified if ~isLSQ
     if isLSQ
         KK=K'*K;
-        H=2*KK;
+        H=KK;
         if LMlambda > 0
             if ScaleProblem
                 D=sparse(1:nx,1:nx,spdiags(H,0));
@@ -202,19 +209,20 @@ while iteration <= ItMax
         H=K;
     end
 
-    [dx,dlambda]=solveKApe(H,L,g,h,x,lambda,CtrlVar);
+    [dx,dl]=solveKApe(H,Aeq,g,h,x,l,CtrlVar);
 
 
     if isLSQ
-        Q=2*R'*K*dx+dx'*KK*dx ;  % Quad approximation, based on unperturbed H
+        Q=R'*K*dx+0.5*dx'*KK*dx ;  % Quad approximation, based on unperturbed H
+        [slope0,gammaMin,Q]=QgHlsq(R,K,Aeq,beq,x0,l0,dx,dl,1) ; 
     else
         Q=R'*dx+dx'*H*dx/2 ;
     end
 
-    x0=x ; lambda0=lambda ;
+    x0=x ; lambda0=l ;
 
     x=x+dx ;
-    lambda=lambda+dlambda ;
+    l=l+dl ;
 
 
 
@@ -222,16 +230,16 @@ while iteration <= ItMax
 
     [R,K,funOuts]=fun(x) ;
 
-    if ~isempty(L)
-        LTlambda=L'*lambda ;
-        h =- (L*x-c);
+    if ~isempty(Aeq)
+        LTlambda=Aeq'*l ;
+        h =- (Aeq*x-beq);
     else
         LTlambda=0;
         h=[];
     end
 
     if isLSQ
-        g =- (2*K'*R + LTlambda) ;
+        g =- (K'*R + LTlambda) ;
     else
         g =- (R + LTlambda) ;
     end
@@ -240,16 +248,16 @@ while iteration <= ItMax
     r20=r2;  R20=R2;
     % r2=full(g'*g)/Normalisation ;
     r2=full([g;h]'*[g;h])/Normalisation ;
-    R2=full(R'*R);
+    R2=0.5*full(R'*R);
 
 
-    rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+    rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
     r2Ratio=r2/r20 ;
     dR2=[abs(R2-R20); dR2(1)] ;
     R2Ratio=R2/R20 ;
 
     if r2 > r20  % reject step
-        x=x0 ; lambda=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; r2=r20 ; R2=R20 ;
+        x=x0 ; l=lambda0 ; R=R0 ; K=K0 ; g=g0 ; h=h0 ; r2=r20 ; R2=R20 ;
 
         if LMlambda==0
             LMlambda=1;
@@ -263,7 +271,7 @@ while iteration <= ItMax
 
 
     dxNorm=norm(dx);
-    dlambdaNorm=norm(dlambda);
+    dlNorm=norm(dl);
     BCsNorm=norm(h) ;
 
     if isLSQ  && LevenbergMarquardt == "auto"
@@ -306,17 +314,17 @@ while iteration <= ItMax
 
 
     fprintf("lsqUa: \t it=%2i  \t     g0=%-13g \t     g1=%-13g \t         g1/g0=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t LMlambda=%g \n",...
-        iteration,r20,r2,r2Ratio,R2,dxNorm,dlambdaNorm,BCsNorm,rho,LMlambda)
+        iteration,r20,r2,r2Ratio,R2,dxNorm,dlNorm,BCsNorm,rho,LMlambda)
 
     if CostMeasure=="R2"
 
         fprintf("lsqUa: \t it=%2i%s  \t     |R|^2=%-13g \t     |R|^2/|R0|^2=%-13g \t LMlambda=%-13g \t |r|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
-            iteration,StepString,R2,R2Ratio,LMlambda,r2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+            iteration,StepString,R2,R2Ratio,LMlambda,r2,dxNorm,dlNorm,BCsNorm,rho,Slope0)
 
     elseif CostMeasure=="r2"
 
         fprintf("lsqUa:%2i%s  \t     |r|^2=%-13g \t   |r0|^2=%-13g \t   |r|^2/|r0|^2=%-13g \t LMlambda=%-13g \t |R|^2=%-13g \t |dx|=%-13g \t |dl|=%-13g \t |BCs|=%-13g \t dr/Q=%-5f \t slope0 =%g \n",...
-            iteration,StepString,r2,r20,r2Ratio,LMlambda,R2,dxNorm,dlambdaNorm,BCsNorm,rho,Slope0)
+            iteration,StepString,r2,r20,r2Ratio,LMlambda,R2,dxNorm,dlNorm,BCsNorm,rho,Slope0)
 
     else
 

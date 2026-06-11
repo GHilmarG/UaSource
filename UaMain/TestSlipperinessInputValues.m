@@ -24,7 +24,7 @@ end
 
 
 if isscalar(C)
-    %fprintf(' C given by user is a scalar. Assuming that C is same everywhere. \n')
+    %fprintf(' C given by user is a scalar. Assuming that C is spatially constant. \n')
     if  CtrlVar.CisElementBased
         C=C+zeros(MUA.Nele,1);
     else

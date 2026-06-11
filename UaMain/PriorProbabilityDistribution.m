@@ -31,7 +31,9 @@ classdef PriorProbabilityDistribution
         % These fields are for saving the `true' values, generally only makes sense if doing some synthetic inversion
         % experiments, in which case these fields are those used to generate the synthetic measurements. 
         TrueC=[];
+        Truem=nan;
         TrueAGlen=[];
+        Truen=nan; 
         Trueb=[];
         TrueB=[];
         Trueh=[];

@@ -260,6 +260,9 @@ F.h=F.s-F.b;
 F0=F;
 
 %% CPU and wall-time RunInfo variables
+if isempty(RunInfo.WallTime.tic)
+    RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
+end
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
 if isempty(RunInfo.WallTime.Total)
     RunInfo.WallTime.Total=RunInfo.WallTime.toc-RunInfo.WallTime.tic;
@@ -315,7 +318,7 @@ if CtrlVar.doInverseStep   % -inverse
 
 
     [UserVar,RunInfo,F,l]= uv(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l);
-
+    [UserVar,F.dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs);
 
 
 
@@ -325,9 +328,9 @@ if CtrlVar.doInverseStep   % -inverse
 
     end
     
-    % inverse plots
+    % inverse plots , inversion plots
     if CtrlVar.doplots
-        PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        PlotResultsFromInversion(UserVar,CtrlVar,MUA,BCs,F,l,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
     end
     
     CtrlVar.DefineOutputsInfostring="End of Inverse Run";
@@ -732,6 +735,7 @@ while 1
 
        
             [UserVar,RunInfo,F,l,BCs,dt]=uvh(UserVar,RunInfo,CtrlVar,MUA,F0,F,l,l,BCs);
+            %[norm(F.ub(BCs.ubFixedNode)-BCs.ubFixedValue) norm(F.vb(BCs.vbFixedNode)-BCs.vbFixedValue) norm(F.h(BCs.hFixedNode)-BCs.hFixedValue)]
 
             if  isfield(CtrlVar,"CompareCalculationsOfRatesOfThicknessChanges") &&  CtrlVar.CompareCalculationsOfRatesOfThicknessChanges
                 CompareCalculationsOfRatesOfThicknessChanges(UserVar,RunInfo,CtrlVar,MUA,F,F0,BCs,l)

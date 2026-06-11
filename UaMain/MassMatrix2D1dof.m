@@ -1,6 +1,22 @@
 function M=MassMatrix2D1dof(MUA)
 
+%%
+%
 % calculates the mass matrix, ie : M_{pq}=<N_p , N_q>
+%
+%
+% see also: 
+%
+%  [Dxx,Dyy]=StiffnessMatrix2D1dof(MUA), 
+%  [UserVar,M,D,rc,rd]=GeneralizedMassAndStiffnessAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
+%
+%
+% see also:
+%
+%  [UserVar,M,D,rc,rd]=GeneralizedMassAndStiffnessAssembly(UserVar,CtrlVar,MUA,a,b,c,d)
+%
+%%
+
 
 ndim=2;  neq=MUA.Nnodes;
 
@@ -40,7 +56,7 @@ for Inod=1:MUA.nod
 end
 
 M=sparseUA(Iind,Jind,Xval,neq,neq);
-M=(M+M.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strickly so
+M=(M+M.')/2 ; % I know that the matrix must be symmetric, but numerically this may not be strictly so
 
 
 end

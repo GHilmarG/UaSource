@@ -60,7 +60,7 @@ else
 
         Q=speye(nA,nA)-BtB ;
         Atilde=Q*A+ BtB ;
-        btilde=(Q*f+B'*g) ;
+        btilde=(Q*f+B'*g) ; % when solving for multiple right-hand sides, this will use automatic implicit expansion to expand B'*g to match Q*f
 
 
         if CtrlVar.Parallel.isTest
@@ -135,6 +135,7 @@ else
 
 
 
+        
         y=B*(f-A*x);
 
         % Now the solution of the scaled system has been found.
@@ -163,9 +164,16 @@ else
 
         error('ABfgPreEliminate:B','B*B^T not diagonal')
     end
-
+    % % --- Diagnostic residuals (comment out in production) ---
+    % if nargout<=3
+    %     A=A/factor ;
+    %     f=f/factor ;
+    % end
+    % res1 = norm(A*x + B'*y - f)/(norm(x)+norm(y));
+    % res2 = norm(B*x - g)/norm(x);
+    % fprintf('Stationarity  ||H*x + A''*lambda - g||/(||x||+||lambda||)= %.2e\n', res1);
+    % fprintf('Feasibility   ||A*x - b||/||x||             = %.2e\n', res2);
 end
 
 end
-
 

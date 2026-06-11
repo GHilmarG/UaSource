@@ -6,7 +6,7 @@ function [PatchObject,ColorbarHandel,tri]=PlotNodalBasedQuantities(tri,coordinat
 %
 % uses patch, varargin is passed on to patch
 %
-% tri is a 3-node triangulation. if tri is given as connectivity for 6 or 10 node elemets
+% tri is a 3-node triangulation. if tri is given as connectivity for 6 or 10 node elements
 % then a 3-node triangulation is created prior to plotting, and this triangulation is returned as tri
 %
 % Examples:

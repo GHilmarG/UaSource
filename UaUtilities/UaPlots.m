@@ -102,6 +102,7 @@ arguments
     % CM=cmocean('ice',25,'pivot',0) ; colormap(CM);
     % CM=cmocean('ice',150) ; colormap(CM);
     %
+    
     % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
     % colormap(othercolor("Mtemperaturemap",20) )
     % CM=cmocean('-ice',15) ; colormap(CM);
@@ -267,7 +268,38 @@ if isnumeric(Variable) && options.Plot ==""
 else
 
 
-    switch lower(options.Plot)
+    switch options.Plot
+
+        case {"B","-B-"}
+
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.B);
+
+            if any(F.B < 0 )  && any(F.B>0)
+                CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
+            else
+                CM=cmocean('-balanced',25) ; colormap(CM);
+            end
+
+            title("Bedrock")
+            subtitle("")
+            title(cbar,"(m a.s.l.)")
+
+        case {"s","-s-"}
+
+
+            [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.s);
+
+            if any(F.B < 0 )  && any(F.B>0)
+                CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
+            else
+                CM=cmocean('-balanced',25) ; colormap(CM);
+            end
+
+            title("Ice upper surface")
+            subtitle("")
+            title(cbar,"(m a.s.l.)")
+
 
         case {"speed","-speed-"}
 
@@ -300,6 +332,7 @@ else
 
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,F.dhdt);
+            CM=cmocean('-balanced',25,'pivot',0) ; colormap(CM);
             title(cbar,"(m/a)",Interpreter="latex")
             title(sprintf("$dh/dt$ at t=%g",CtrlVar.time),Interpreter="latex")
             title(cbar,"$(\mathrm{m\,yr^{-1}})$",interpreter="latex")

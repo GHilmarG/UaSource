@@ -34,7 +34,7 @@ if ~isCorrectDimensions
     fprintf(' Priors do not have right dimensions at restart. \n')
     fprintf(' Modify DefineInputsForInverseRun to ensure that dimensions are correct.\n')
     error('Ua:GetInputForInverseRun:incorrectdimentisons','incorrect dimensions')
-    
+
 end
 
 if isempty(InvStartValues.AGlen) ; save TestSave ; error('GetInputsForInverseRun:empty','InvStartValues.AGlen is empty') ; end
@@ -69,55 +69,62 @@ if isempty(Priors.Bmin)
 end
 
 %%
-isE=false ; 
+isE=false ;
 switch CtrlVar.Inverse.Regularize.Field
     case '-logAGlen-logC-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.logAGlen.gs) ||  ...
             isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
-        
-        
-        
+
+
+
     case '-logAGlen-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.logAGlen.gs);
-        
+
     case '-logC-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
-        
+
     case '-AGlen-C-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.AGlen.gs) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.gs) ;
-        
-        
+
+
     case '-AGlen-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.AGlen.gs);
-        
+
     case '-C-'
-        
+
         isE=...
             isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
             isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+
+    case '-B-'
+
+        isE=...
+            isempty(CtrlVar.Inverse.Regularize.B.ga) ||  ...
+            isempty(CtrlVar.Inverse.Regularize.B.gs) ;
+
 end
 
 
 if isE
-    
+
     fprintf(' Input Error: Some or all Tikhonov regularisation parameters not defined! \n')
     fprintf(' The Tikhonov regularisation parameters are: \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.ga \n')
@@ -128,9 +135,42 @@ if isE
     fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.gs \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.C.ga \n')
     fprintf(' \t CtrlVar.Inverse.Regularize.C.gs \n')
-    
+    fprintf(' \t CtrlVar.Inverse.Regularize.B.ga \n')
+    fprintf(' \t CtrlVar.Inverse.Regularize.B.gs \n')
+
+
     error(' Some or all Tikhonov regularisation parameters not defined. \n')
 end
+
+%% special test for B inversion
+
+if contains(CtrlVar.Inverse.InvertFor,"-B-")
+
+
+    if isempty(Meas.as)
+
+        fprintf('Meas.as can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.asIsNotDefined')
+
+    end
+
+    if isempty(Meas.ab)
+
+        fprintf('Meas.ab can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:Meas.abIsNotDefined')
+        
+
+    end
+
+
+    if isempty(InvStartValues.B)
+
+        fprintf('InvStartValues.B can not be left empty when inverting for B.\n')
+        error('GetInputsForInverseRun:InvStartValues.BIsNotDefined')
+        
+
+    end
+
 
 
 end

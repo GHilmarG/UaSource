@@ -3,10 +3,16 @@
 function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l)
     
     
-    % Solves SSA/SSTREAM for u and v
+%% Solves SSA/SSTREAM for u and v
+%
+%
+% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
+%
+% $$ F_y=\partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
+% 
+%%
 
-
-    nargoutchk(7,7)
+nargoutchk(7,7)
     narginchk(7,7)
     
     
@@ -58,7 +64,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
     
     if anynan(F.S) ; save TestSave ; error( ' S nan ') ; end
-    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
+%    if anynan(F.h) ; save TestSave  ; error( ' h nan ') ; end
     if anynan(F.ub) ; save TestSave ; error( ' ub nan ') ; end
     if anynan(F.vb) ; save TestSave ; error( ' vb nan ') ; end
     if anynan(l.ubvb) ; save TestSave ; error( ' ubvbLambda nan ') ; end
@@ -96,12 +102,15 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     % [Luv   0    ]  [dl]      [cuv-Luv uv]
     %
     
-    
-    %% Make sure iterate is feasible
-    F.ub(BCs.ubFixedNode)=BCs.ubFixedValue; F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+
+    %% Make sure iterate is feasible, at least with respect to directs BCs
+    if isfield(CtrlVar,"uvMakeInitialIterateFeasible") &&  CtrlVar.uvMakeInitialIterateFeasible
+        F.ub(BCs.ubFixedNode)=BCs.ubFixedValue;
+        F.vb(BCs.vbFixedNode)=BCs.vbFixedValue;
+    end
     %%
-    
-    
+
+
     dub=zeros(MUA.Nnodes,1) ; dvb=zeros(MUA.Nnodes,1) ; dl=zeros(numel(l.ubvb),1);
     
     
@@ -219,8 +228,7 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
             if ~isreal(L) ; save TestSave L ; error('SSTREAM2dNR: L not real') ;  end
         end
         
-        if anynan(Kuv) ; save TestSave Kuv ; error('SSTREAM2dNR: K nan') ;  end
-        if anynan(L) ; save TestSave L ; error('SSTREAM2dNR: L nan') ;  end
+     
         
         CtrlVar.Solver.isUpperLeftBlockMatrixSymmetrical=issymmetric(Kuv) ;
 
@@ -319,8 +327,6 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
         if BackTrackInfo.Converged==0
             fprintf(CtrlVar.fidlog,' SSTREAM2dNR backtracking step did not converge \n ') ;
             warning('SSTREAM2NR:didnotconverge',' SSTREAM2dNR backtracking step did not converge \n ')
-            fprintf(CtrlVar.fidlog,' saving variables in SSTREAM2dNRDump \n ') ;
-            save SSTREAM2dNRDump
             RunInfo.Forward.uvConverged=0; 
             break
         end
@@ -329,17 +335,19 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
         %%
 
-        %% If requested, plot residual as function of steplength
+        %% If requested, plot residual as function of step-length
         if CtrlVar.InfoLevelNonLinIt>=10 && CtrlVar.doplots==1
             nnn=50;
-            gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1); rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
+            rForceTestvector=zeros(nnn,1); rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
             
-            Up=2;
-            if gamma>0.7*Up ; Up=2*gamma; end
+            Upper=2; Lower=-0.5 ; 
+            if gamma>0.7*Upper ; Upper=2*gamma; end
+
+            gammaTestVector=linspace(Lower,Upper,nnn);
             for I=1:nnn
-                gammaTest=Up*(I-1)/(nnn-1)+gamma/1000;
+                gammaTest=gammaTestVector(I);
                 [rTest,~,~,rForceTest,rWorkTest,D2Test]=Func(gammaTest);
-                gammaTestVector(I)=gammaTest ; rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
+                rForceTestvector(I)=rForceTest; rWorkTestvector(I)=rWorkTest; rD2Testvector(I)=D2Test; 
             end
             
             [gammaTestVector,ind]=unique(gammaTestVector) ; rForceTestvector=rForceTestvector(ind) ; rWorkTestvector=rWorkTestvector(ind) ;  rD2Testvector=rD2Testvector(ind) ;

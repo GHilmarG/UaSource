@@ -68,7 +68,7 @@ function GLQ=GroundingLineQuantities(F,xGL,yGL,nxGL,nyGL)
 
     % Theta<1 implies normal extensional stress at the grounding line that is less than for the unconfined ice shelf case
 
-    % 'High'/'strong' butterssing is \theta < 0.5 or so.
+    % 'High'/'strong' buttressing is \theta < 0.5 or so.
 
     % If theta>1, the ice is 'pulled' out
     

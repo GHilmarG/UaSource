@@ -13,14 +13,17 @@ warning('off','MATLAB:structOnObject')
 % objects outside of �a.
 %
 
-
+if isa(RunInfo.WallTime.Total,"datetime")
+    RunInfo.WallTime.Total=duration(string(RunInfo.WallTime.Total),Format="dd:hh:mm:ss.SSS");
+end
 
 RunInfo.WallTime.toc=datetime("now",Format="dd:hh:mm:ss.SSS");
-RunInfo.WallTime.Total=duration(RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS");
+%RunInfo.WallTime.Total=duration(RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic,Format="dd:hh:mm:ss.SSS"); % does not work
+RunInfo.WallTime.Total+RunInfo.WallTime.toc-RunInfo.WallTime.tic; 
 RunInfo.WallTime.tic=datetime("now",Format="dd:hh:mm:ss.SSS");
 
 RunInfo.CPU.toc=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
-RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic; 
+RunInfo.CPU.Total= RunInfo.CPU.Total+RunInfo.CPU.toc-RunInfo.CPU.tic;
 RunInfo.CPU.tic=duration(0,0,cputime,Format="dd:hh:mm:ss.SSS") ;
 
 l=struct(l);

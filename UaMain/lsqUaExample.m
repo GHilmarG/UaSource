@@ -7,14 +7,19 @@ function lsqUaExample
 % Examples of solving a least-squares problem such as
 %
 % 
-% $$\min_{x}  R^2 = \| \mathbf{R} \|^2 $$
+% $$\min_{x}  R^2(x)  $$
 % 
+% where
+%
+% $$ \mathbf{R}^2=  \| \mathbf{R} \|^2 =\mathbf{R}^{\prime} \cdot \mathbf{R} =\sum_{i=1}^n R_i^2(x) $$
+%
 % with $\mathbf{R}$ being a vector.
 %
 % We assume we know
 %
 % $$K=\nabla \mathbf{R}$$
 %
+% where
 %
 % And we find that 
 %
@@ -51,33 +56,37 @@ function lsqUaExample
 
 x0=[-10 ; 15] ;
 x0=[-5 ; 2] ;
-
+x0=[0 ;-5];
 %  R=(x1,x2)
 
 %                                                               lsq                      H            lsq                      H
-%                                                                       constraint                           unconstrained
-problemtype="[x1,x2]" ;                     %                   24.5                   24.5
-problemtype="[x1+x2,x2]";                   %                   25.0                    50              0                      0
-problemtype="[x1^2+x2,x2]";               %                   40.915              49.999              0                      0
-problemtype="[x1^2,x2]";                  %                   16.5015             20.5917             0                      0
-% problemtype="[x1^2+x2,x2^2+x1]";            %                   153.125             153.125             0                      0
- problemtype="[x1^3-100 x2,-x2^2+10 x1]" ; %                     1737.89             4052.71             0                   not conv
-% problemtype="Rosenbrock" ;                  %                   1.78794              5.4718
-% problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
-% problemtype="[x1^2,x2^2]" ;
-% problemtype="[x1^-100 x1,0]" ;
-% problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
-% problemtype="Beale" ; x0=[2 ; 0] ; % This is asymmetrical, can only be solved using lsq
+%                                                                         constraint                           unconstrained
+problemtype="[x1,x2]" ;                     %      sym          24.5                   24.5
+%problemtype="[x1+x2,x2]";                   %     ~sym          25.0                    50              0         0 
 
-isConstraint=false;
+% this is an interesting case, works with Newton and agrees with matlab opt, but the first-order optimal measure is not
+% small...?
+% problemtype="[x1^2+x2,x2]";                 %     ~sym          40.915              49.999              0                      0 (not working with dogleg)
 
 
-CtrlVar.lsqUa.ItMax=50 ;
+% problemtype="[x1^2,x2]";                    %      sym          16.5015             20.5917             0                      0
+% problemtype="[x1^2+x2,x2^2+x1]";            %      sym          153.125             153.125             0                      0
+% problemtype="[x1^3-100 x2,-x2^2+10 x1]" ;    %   ~sym            1737.89             4052.71             0                   
+% problemtype="Rosenbrock" ;                  %                  1.78794              5.4718
+%problemtype="lsqRosenbrock" ;      x0=[-5; -8] ;     x0=[-5; 2] ;     x0=[-5; 4] ;
+%problemtype="[x1^2,x2^2]" ;
+%problemtype="[x1^-100 x1,x2^2]" ;   x0=[-5; 8] ;
+%problemtype="Beale" ; x0=[1 ; 0] ; % This is asymmetrical, can only be solved using lsq
 
-CtrlVar.lsqUa.gTol=1e-20 ;
-CtrlVar.lsqUa.dR2Tol=1e-10 ;
+isConstraint=true;
+
+
+CtrlVar.lsqUa.ItMax=150 ;
+
+CtrlVar.lsqUa.gTol=1e-22 ;
+CtrlVar.lsqUa.dR2Tol=1e-20 ;
 CtrlVar.lsqUa.dxTol=1e-20 ;
-
+CtrlVar.NLtol=CtrlVar.lsqUa.gTol ;
 
 % Consistent are both:
 %
@@ -85,7 +94,7 @@ CtrlVar.lsqUa.dxTol=1e-20 ;
 %
 
 CtrlVar.lsqUa.isLSQ=true ; CtrlVar.lsqUa.CostMeasure="R2" ;
-% CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
+%CtrlVar.lsqUa.isLSQ=false ; CtrlVar.lsqUa.CostMeasure="r2" ;
 
 CtrlVar.lsqUa.LevenbergMarquardt="auto" ; % "fixed"
 CtrlVar.lsqUa.LMlambda0=0 ;
@@ -94,18 +103,24 @@ CtrlVar.lsqUa.Normalize=false;
 CtrlVar.lsqUa.ScaleProblem=true;
 CtrlVar.lsqUa.SaveIterate=true;
 CtrlVar.InfoLevelNonLinIt=1;
+
+
+
+% 2026-05-02: The NewtonLSQ is in good shape, the others are a bit outdated, and I do not intent to use them
 CtrlVar.lsqUa.Algorithm="DogLeg" ; % ["LevenbergMarquardt"|"DogLeg"]
-CtrlVar.lsqUa.Algorithm="LevenbergMarquardt";
+%CtrlVar.lsqUa.Algorithm="LevenbergMarquardt";
+CtrlVar.lsqUa.Algorithm="NewtonLSQ";
 
-CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
+
+% CtrlVar.lsqUa.DogLeg="-Newton-Cauchy-" ; 
 % CtrlVar.lsqUa.DogLeg="-Newton-" ; 
-CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
+% CtrlVar.lsqUa.DogLeg="-Cauchy-" ; 
 
 
-CompareWithMatlabOpt=false;
+CompareWithMatlabOpt=true;
 
 CtrlVar.InfoLevelBackTrack=1;  CtrlVar.InfoLevelNonLinIt=10 ;  CtrlVar.doplots=1 ; 
-
+CtrlVar.Parallel.isTest=false; CtrlVar.Parallel.Distribute=false;
 
 % xSol =
 %
@@ -130,16 +145,16 @@ if isConstraint
 
     % x2= c - a x1
     a=1 ;
-    L=[a 1 ];  c= 5  ;
+    Aeq=[a 1 ];  beq= 5  ;
     factor=1;
-    L=factor*L ; c=factor*c ;
+    Aeq=factor*Aeq ; beq=factor*beq ;
 
 else
-    L=[]; c=[];
+    Aeq=[]; beq=[];
 end
 
  
-[xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,L,c) ;
+[xSol,lambda,R2,r2,Slope0,dxNorm,dlambdaNorm,residual,g,h,output] = lsqUa(CtrlVar,fun,x0,lambda,Aeq,beq) ;
 
 
 if numel(xSol)==2
@@ -163,16 +178,22 @@ if numel(xSol)==2
 
     RR=nan(numel(x1Vector),numel(x2Vector));
 
+    Qlsq=nan(numel(x1Vector),numel(x2Vector));
+    Qroot=nan(numel(x1Vector),numel(x2Vector));
+
     for I=1:numel(x1Vector)
         for J=1:numel(x2Vector)
-            x=[x1Vector(I) x2Vector(J)];
-            R=fRK(x,problemtype);
+            x=[x1Vector(I) ; x2Vector(J)];
+            [R,K]=fRK(x,problemtype);
             RR(I,J)=R'*R ;
+            dx=x-xSol;
+            Qlsq(I,J)=(K'*R)'*dx+0.5*(K*dx)'*K*dx;  % This is the local quadratic approximation based on least-squares
+          %  Qroot(I,J)=R'*dx+0.5*dx'*K*dx;          % This is the local quadratic valid if K symmetric and pos def.
         end
     end
 
 
-    flsqUa=FindOrCreateFigure("lsqUa test") ; 
+    flsqUa=FindOrCreateFigure("lsqUa |R|^2") ; clf(flsqUa)
     
     f=log10(RR); 
     contourf(x1Vector,x2Vector,f',50,LineStyle="none") ; 
@@ -189,7 +210,7 @@ if numel(xSol)==2
     end
 
     if isConstraint
-        plot(x1Vector,c-a*x1Vector,Col)
+        plot(x1Vector,beq-a*x1Vector,Col)
     end
 
     plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
@@ -197,21 +218,57 @@ if numel(xSol)==2
     for I=1:output.nIt
 
         % plot(output.xVector(1,I),output.xVector(2,I),'+r')
-        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color=Col)
+        text(output.xVector(1,I),output.xVector(2,I),num2str(I-1),color="k")
 
         % txt = input("RET to continue\n") ;
 
     end
 
+
+    [R,K]=fRK(xSol,problemtype);
+    if ~isempty(Aeq)
+        grad=K'*R+Aeq'*lambda; grad=grad(:) ;
+        normal=[Aeq(1) ; -Aeq(2)];
+        derivativeAlongConstraint=grad'*normal;
+    end
+
+
+    QFig=FindOrCreateFigure("local quadradic model") ; clf(QFig)
+    contourf(x1Vector,x2Vector,Qlsq',50,LineStyle="none") ;
+    colorbar
+    hold on 
+    plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
+    title("local quadradic model $Q(\Delta x)$",Interpreter="latex")
+    subtitle("$Q(\Delta x)=(J^T F)^T \Delta x +  \frac{1}{2} (\Delta x)^T \, J^T J \Delta x$",Interpreter="latex") 
+
+    if isConstraint
+        plot(x1Vector,beq-a*x1Vector,Col)
+    end
     
+    axis([xmin xmax ymin ymax])
+
+    % QFigRoot=FindOrCreateFigure("local root model") ; clf(QFigRoot)
+    % contourf(x1Vector,x2Vector,Qroot',50,LineStyle="none") ;
+    % colorbar
+    % hold on 
+    % plot(xSol(1),xSol(2),'o',MarkerFaceColor=Col,MarkerEdgeColor="w",MarkerSize=12)
+    % title("local quadradic model $Q(\Delta x)$",Interpreter="latex")
+    % subtitle("$Q(\Delta x)= F^T \Delta x +  \frac{1}{2} (\Delta x)^{T} \, J \Delta x$",Interpreter="latex") 
+
+    if isConstraint
+        plot(x1Vector,beq-a*x1Vector,Col)
+    end
+
+    axis([xmin xmax ymin ymax])
+
 end
 
-[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa progress: |R| and slope") ;
+[flsqUaProg1,FigFound]=FindOrCreateFigure("lsqUa optimisation") ; clf(flsqUaProg1)
 
 
 ls="-"; ms="o";
 if FigFound
-    hold on    % to be able to compare with previous resutls, overplots and change marker
+    hold on    % to be able to compare with previous results, overplots and change marker
     ls="--" ;
     ms="v";
 end
@@ -221,16 +278,19 @@ npoints=numel(output.R2Array);
 itVector=0:npoints-1;
 
 yyaxis left
-semilogy(itVector, output.R2Array,'-',color='b',Marker=ms)
-ylabel("$\|R\|^2$",Interpreter="latex")
-
+plot(itVector, output.R2Array,'-',color='b',Marker=ms,DisplayName="Norm of residuals, $\|R\|^2/2$")
+ylabel("Resnorm: $\|R\|^2/2$",Interpreter="latex")
+flsqUaProg1.CurrentAxes.YScale="log"   ;
 yyaxis right
-semilogy(itVector, output.r2Array,LineStyle=ls,color='r',Marker=ms)
-ylabel("$\|r\|^2$",Interpreter="latex")
+plot(itVector, output.r2Array,LineStyle=ls,color='r',Marker=ms,DisplayName="First-order optimality, $r^2/2$")
+ylabel("First-order optimality: $\|r\|^2/2$",Interpreter="latex")
+flsqUaProg1.CurrentAxes.YScale="log"   ;
 
 
 xlabel("iteration",Interpreter="latex")
 title(sprintf("$\\|R\\|^2$ =%g, $\\|r\\|^2$=%g",R2,r2),Interpreter="latex")
+
+lg=legend(Interpreter="latex"); 
 
 [flsqUaProg,FigFound2]=FindOrCreateFigure("lsqUa progress:dx") ;
 
@@ -261,14 +321,26 @@ if CompareWithMatlabOpt
 
     lb=[] ; ub=[] ; A=[] ; b=[] ;   nonlcon=[] ;
 
-
-
+    x0=xSol;  % Using the solution I found as a starting point
+    % trus-region-reflective is much faster than interior-point, at least if the problem is well behaved
     options = optimoptions('lsqnonlin','Display','iter','MaxIterations',30,'SpecifyObjectiveGradient',true,...
-        'FunctionTolerance',1e-10,'Algorithm','interior-point',PlotFcn=@optimplotresnormUa);
-    options.OptimalityTolerance = 1.000000e-20 ; options.StepTolerance = 1.000000e-20 ;
-    [x1,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,L,c,nonlcon,options);
+        'FunctionTolerance',1e-10,'Algorithm','trust-region-reflective',PlotFcn={@optimplotfirstorderoptUa,@optimplotresnormUa});
+    options.OptimalityTolerance = 1.000000e-15 ; options.StepTolerance = 1.000000e-20 ;
+    [xSolMatlab,resnorm,residual,exitflag,outputM] = lsqnonlin(fun,x0,lb,ub,A,b,Aeq,beq,nonlcon,options);
 
-x1
+    flsqUa=FindOrCreateFigure("lsqUa |R|^2") ;
+    hold on ; plot(xSolMatlab(1),xSolMatlab(2),Marker="square",MarkerFaceColor="m",MarkerSize=10)
+
+    format long g
+fprintf("x solution Ua and MATLAB \n")
+[xSol xSolMatlab]
+
+fprintf("resnom Ua and MATLAB\n")
+[2*R2 resnorm]
+
+fprintf("first-order feasability Ua and MATLAB\n")
+
+[sqrt(r2)  outputM.firstorderopt ]
 
 end
 

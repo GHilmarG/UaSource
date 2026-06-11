@@ -166,7 +166,7 @@ if ~isLSQ && nK~= mK
 end
 
 if isLSQ
-    g =- (2*K'*R + LTlambda) ;
+    g =- (K'*R + LTlambda) ;
 else
     g =- (R + LTlambda) ;
 end
@@ -177,7 +177,7 @@ else
     h=[];
 end
 
-R2=full(R'*R);
+R2=0.5*full(R'*R);
 r2 = full([g;h]'*[g;h])/Normalisation;
 
 if CostMeasure=="R2"
@@ -366,7 +366,7 @@ while iteration <= ItMax
         end
     end
     
-    dx=x-x0 ; dlambda=lambda-lambda0 ;
+    dx=x-x0 ; dlambda=lambda-lambda0 ; % this is the final change in x and lambda, after backtracking, and here gammaMin has already been used.
 
 
 
@@ -379,7 +379,7 @@ while iteration <= ItMax
     end
 
 
-    R2=full(R'*R);
+    R2=0.5*full(R'*R);
 
     if ~isempty(L)
         LTlambda=L'*lambda ;
@@ -390,26 +390,35 @@ while iteration <= ItMax
     end
 
     if isLSQ
-        g =- (2*K'*R + LTlambda) ;
+        g =- (K'*R + LTlambda) ;
     else
         g =- (R + LTlambda) ;
     end
 
     r2=full([g;h]'*[g;h])/Normalisation ;
 
-
-    Q=2*R0'*K0*dx+dx'*KK0*dx ;  % Quad approximation, based on unperturbed H
     if isLSQ
-        rho=(R2-R20)/Q;      % Actual reduction / Modelled Reduction
+        Q=R'*K*dx+0.5*dx'*KK*dx ;  % Quad approximation, based on unperturbed H
     else
-        % if isempty(L)
-        %     Q=R0'*dx + dx'*H0*dx/2 ;
-        % else
-        %     Q=(R0+L'*lambda0)'*dx/2+(L*x0-c)'*dlambda/2 ...
-        %         + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
-        % end
-        rho=(r2-r20)/Q;      % Actual reduction / Modelled Reduction
+        Q=R'*dx+dx'*H*dx/2 ;
     end
+
+    rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
+    % r2Ratio=r2/r20 ;
+    % dR2=[abs(R2-R20); dR2(1)] ;
+    % R2Ratio=R2/R20 ;
+ 
+    % if isLSQ
+    %     rho=(R2-R20)/Q;      % Actual reduction / Modeled Reduction
+    % else
+    %     % if isempty(L)
+    %     %     Q=R0'*dx + dx'*H0*dx/2 ;
+    %     % else
+    %     %     Q=(R0+L'*lambda0)'*dx/2+(L*x0-c)'*dlambda/2 ...
+    %     %         + dx'*(H0*dx+L'*dlambda)/2 + dlambda'*L*dx/2;
+    %     % end
+    %     rho=(r2-r20)/Q;      % Actual reduction / Modeled Reduction
+    % end
 
 
 
@@ -483,7 +492,7 @@ while iteration <= ItMax
 
 end
 
-Slope0=full(2*R'*K*dx) ;
+Slope0=full(R'*K*dx) ;
 Slope0Array(iteration+1)=Slope0;  % This is the slope in the direction dx based on final R and K values
 
 % fprintf("\n\t Exit lsqUa: \t  |g|^2=%g \t    slope=%g \t     |R|^2=%g \n \n",r2,Slope0,R2)
@@ -506,6 +515,24 @@ output.Slope0Array=Slope0Array;
 output.xVector=xVector;
 output.nIt=iteration;
 output.fun=funOuts ; 
+
+
+%%
+FigNL=FindOrCreateFigure("Non-lin Convergence") ;  clf(FigNL)
+hold off
+yyaxis left
+plot(0:iteration,output.r2Array(1:iteration+1),"bo-",DisplayName="$r^2$ (first-order optimality)")  
+FigNL.CurrentAxes.YScale="log"   ;
+ylabel("$r^2$, first-order optimality",Interpreter="latex")
+hold on 
+yyaxis right
+plot(0:iteration,output.R2Array(1:iteration+1),"ro-",DisplayName="$\|R\|^2$")  
+ylabel("$\|R\|^2$",Interpreter="latex")
+lg=legend(Interpreter="latex");
+
+%%
+
+
 
 end
 

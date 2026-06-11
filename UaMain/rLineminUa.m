@@ -1,9 +1,21 @@
 
 
 
+
 function [gammamin,rmin,du,dv,dh,dl,BackTrackInfo,rForce,rWork,D2] = rLineminUa(CtrlVar,UserVar,func,r0,r1,K,L,du0,dv0,dh0,dl0,dJdu,dJdv,dJdh,dJdl,Normalisation,M)
 
 %%
+% Does a dog-leg line search.
+%
+% First tries the Newton step with backtracking. If the Newton step length is less than 0.75 and reduction-ratio greater than 0.7
+% it tries line-search in the M-Cauchy direction. If the reduction here is also judge to be too small, the M-Cauchy to Newton
+% direction is then tried.
+%
+% Newton direction is [du0;dv0;dh0;dl0] ;
+%  
+% Cauchy direction is [dJdu;dJdv,dJdh;dJdl] ; i.e. steepest descent
+%
+% Cauchy M-direction is M\steepest descent 
 %
 %   r=func(gamma,Du,Dv,Dh,Dl)
 %

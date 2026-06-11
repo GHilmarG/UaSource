@@ -6,5 +6,20 @@
 *.png
 *.geo
 *.html
+*.avs
 resources/
 
+
+
+
+*.msh
+
+*.asv
+
+*.mat
+
+*.fig
+
+*.avi
+
+*.log

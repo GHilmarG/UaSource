@@ -7,7 +7,7 @@
 %
 % To run individual examples you can use the matlab option of running code sections from within editor. 
 % See: 'doc run code sections'
-% Just click on some part of the code using the mouse, the text will be highligted in yellow, then press ctrl ret
+% Just click on some part of the code using the mouse, the text will be highlighted in yellow, then press ctrl ret
 %
 %% Example: A simple polygon 
 % mesh boundary coordinates should go clockwise around the domain
@@ -820,7 +820,7 @@ Box=[-7.02e+05  -6.4314e+05   1.4651e+06   1.505e+06];
 I=CtrlVar.Gmsh.Points(:,1) > Box(1) & CtrlVar.Gmsh.Points(:,1) < Box(2) ...
     & CtrlVar.Gmsh.Points(:,2) > Box(3) & CtrlVar.Gmsh.Points(:,2) < Box(4) ;
 
-% now must line 1 into two lines, with one convering the BIS-SW chasm outlines only
+% now must line 1 into two lines, with one converting the BIS-SW chasm outlines only
 
 x=CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},1);
 y=CtrlVar.Gmsh.Points(CtrlVar.Gmsh.Lines{1},2);
@@ -906,8 +906,11 @@ MeshBoundaryCoordinates=...
 
 CtrlVar=Ua2D_DefaultParameters(); 
 CtrlVar.WhenPlottingMesh_PlotMeshBoundaryCoordinatesToo=false; 
-CtrlVar.MeshSizeMin=10; 
+CtrlVar.MeshSize=5;
+CtrlVar.MeshSizeMin=1; 
+CtrlVar.MeshSizeMax=10;
 CtrlVar.MeshBoundaryCoordinates=MeshBoundaryCoordinates;
+CtrlVar.MeshGenerator='mesh2d';
 [UserVar,MUA]=genmesh2d([],CtrlVar); 
 
 
@@ -925,4 +928,4 @@ FindOrCreateFigure("Ua Logo Mesh") ; PlotMuaMesh([],MUA) ; axis xy
 % save("UaLogoMUA.mat","MUA")
 
 
-
+%%

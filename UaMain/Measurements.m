@@ -14,6 +14,10 @@ classdef Measurements
 
         s=[] ; sCov=[];
         B=[]; BCov=[];
+        
+        as=[] ;
+        ab=[] ; 
+
 
     end
 

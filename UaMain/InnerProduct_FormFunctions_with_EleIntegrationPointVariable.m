@@ -9,6 +9,8 @@ function P=InnerProduct_FormFunctions_with_EleIntegrationPointVariable(CtrlVar,M
 %        
 % On output P has the dimensions MUA.Nnodes x 1
 %
+% Note: CtrlVar is never used and can be left empty (2025 Dec)
+%
 
 narginchk(3,3)
 

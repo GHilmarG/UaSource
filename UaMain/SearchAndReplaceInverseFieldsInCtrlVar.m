@@ -13,7 +13,7 @@ status=true;
 
 InvertString=string(InvertString) ;
 
-InvertString=replace(lower(InvertString),"aglen","a") ; 
+InvertString=replace(InvertString,"Aglen","A") ; 
 
 % first replace Aglen with A, although later I will return AGlen
 % doing this replacement reduces the number of cases to look at
@@ -60,15 +60,48 @@ switch lower(InvertString)
         
         InvertString="-AGlen-logC-";
         
-    case {"-b-logc-"}
+    case {"-b-logc-","-logc-b-"}
 
         InvertString="-B-logC-";
 
     otherwise
         
         status=false;
-        
+
 end
+
+%% This is a newer and simpler approach 
+if ~status
+    InvertStringOut="";
+
+    if contains(InvertString,"logA")
+        InvertStringOut=InvertStringOut+"-logAGlen-";
+    end
+
+
+    if contains(InvertString,"B")
+        InvertStringOut=InvertStringOut+"-B-";
+    end
+
+
+    if contains(InvertString,"logC")
+        InvertStringOut=InvertStringOut+"-logC-";
+    end
+
+    InvertStringOut=replace(InvertStringOut,"--","-");
+
+    if InvertStringOut==""
+        status=false;
+    else
+        InvertString=InvertStringOut ; 
+        status=true;
+    end
+
+
+end
+
+
+
 
 % does the string contain a but not aglen?  If so then something went wrong
 if contains(lower(InvertString),"a") && ~contains(InvertString,"AGlen")

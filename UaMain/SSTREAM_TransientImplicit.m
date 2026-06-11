@@ -194,14 +194,17 @@ nlubvb=numel(l1.ubvb) ;
 
 [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 dl=luvh*0;
-%% Make sure iterate is feasible, at least with respect to direct BCs
-F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue; 
-F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
-F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+
+if CtrlVar.uvhMakeInitialIterateFeasible
+    %% Make sure iterate is feasible, at least with respect to direct BCs
+    F1.ub(BCs1.ubFixedNode)=BCs1.ubFixedValue;
+    F1.vb(BCs1.vbFixedNode)=BCs1.vbFixedValue;
+    F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+end
 %%
 if ~isempty(L)
     cuvhNorm=norm(cuvh);
-    if cuvhNorm<eps
+    if cuvhNorm< eps(cuvhNorm)
         cuvhNorm=1;
     end
     BCsRelativeError=norm(L*[F1.ub;F1.vb;F1.h]-cuvh)/cuvhNorm;
@@ -383,6 +386,42 @@ while true
     dub=duvh(1:MUA.Nnodes) ;  dvb=duvh(MUA.Nnodes+1:2*MUA.Nnodes); dh=duvh(2*MUA.Nnodes+1:end);
 
 
+    CtrlVar.TestForPosDefAlongNewtonDirection=true;
+
+    if CtrlVar.TestForPosDefAlongNewtonDirection
+
+        %% Testing for pos definiteness along Newton direction
+        % 
+        % 
+        % General pos. def is here defined as x'H x > 0 for any x
+        %
+        % This definition does NOT require H to be symmetric, only that the symmetric part of H is pos definite in the
+        % sense that all eigenvalues are real and positive.
+        %
+        % For minimization along a given direction, the condition required is usually only that x'H x >0 in the search
+        % direction x. When using trust region methods, this is not required.
+        %
+        % H is positive definite if and only if its symmetrical part, (H+H')/2, is positive definite.
+        %
+        % It is possible that while H is not pos. def, that x'Hx>0 for x selected as the Newton direction.
+        %
+        %%
+
+        O=sparse(size(L,1),size(L,1)) ;
+        H=[K L' ; L O];
+
+        % PD1=full(duvh'*K*duvh) ;
+        % PD2=full([duvh;dl]'*H*[duvh;dl]) ;
+        % fprintf("Pos def test: %g \t %g \n",PD1,PD2)
+        % if PD1 <0 || PD2 < 0
+        % 
+        %     fprintf("Newton direction not pos def! \n")
+        %     fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
+        %     save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
+        % 
+        % end
+    end
+
     Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;
     gamma=0 ; [~,UserVar,RunInfo,rForce0,rWork0,D20]=Func(gamma);
 
@@ -428,7 +467,7 @@ while true
 
 
     %% If desired, plot residual along search direction
-    if CtrlVar.InfoLevelNonLinIt>=1000 && CtrlVar.doplots==1
+    if CtrlVar.InfoLevelNonLinIt>=2 && CtrlVar.doplots==1
         nnn=50;
         gammaTestVector=zeros(nnn,1) ; rForceTestvector=zeros(nnn,1);  rWorkTestvector=zeros(nnn,1); rD2Testvector=zeros(nnn,1);
         Upper=2.2;

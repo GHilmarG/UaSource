@@ -27,7 +27,10 @@ function [UserVar,RunInfo,ub,vb,ud,vd,h]=ExplicitEstimationForUaFields(UserVar,R
 
 
 
-            [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs0);
+            % [UserVar,dhdt]=dhdtExplicitSUPG(UserVar,CtrlVar,MUA,F0,BCs0);
+
+            [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F0,BCs0); % this now includes rho (2026-04)
+            
             h=F0.h+dhdt.*CtrlVar.dt ;
             h(h<=CtrlVar.ThickMin)=CtrlVar.ThickMin ;
 

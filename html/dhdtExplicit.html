@@ -1,13 +1,18 @@
-
-<!DOCTYPE html
-  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head>
-      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-   <!--
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>dhdtExplicit</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-01-03"><meta name="DC.source" content="dhdtExplicit.m"><style type="text/css">
-html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+      -->
+<title>dhdtExplicit</title>
+<meta name="generator" content="MATLAB 26.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2026-04-20">
+<meta name="DC.source" content="dhdtExplicit.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
 html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
@@ -23,7 +28,7 @@ a:visited { color:#004aa0; text-decoration:none; }
 
 p { padding:0px; margin:0px 0px 20px; }
 img { padding:0px; margin:0px 0px 20px; border:none; }
-p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
 
 ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
 ul li { padding:0px; margin:0px 0px 7px 0px; }
@@ -52,6 +57,7 @@ span.comment { color:#228B22 }
 span.string { color:#A020F0 }
 span.untermstring { color:#B20000 }
 span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
 
 .footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
 .footer p { margin:0px; }
@@ -66,27 +72,86 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
-</pre><p>Calculates dhdt from flux divergence as</p><pre class="language-matlab">dh/dt = a -  ( dqx/dx + dqy/dy)
-</pre><pre class="language-matlab">[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
-</pre><p>uses u=F.ub, and hence only correct for plug flow, e.g. SSA</p><p>Projects the values directly onto nodes.</p><p>see also : ProjectFintOntoNodes</p><pre class="codeinput">ndim=2; dof=1; neq=dof*MUA.Nnodes;
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#5">BCs</a>
+</li>
+<li>
+<a href="#6">Solve system</a>
+</li>
+</ul>
+</div>
+<pre class="codeinput">
+<span class="keyword">function</span> [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
+</pre>
+<p>Calculates dh/dt from flux divergence as</p>
+<p>
+<img src="dhdtExplicit_eq17612408397514367881.png" alt="$$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$" style="width:102px;height:18px;"></p>
+<p>or</p>
+<p>
+<img src="dhdtExplicit_eq08518174394821555690.png" alt="$$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$" style="width:90px;height:31px;"></p>
+<p>where</p>
+<p>
+<img src="dhdtExplicit_eq04700056972749755846.png" alt="$$\nabla \cdot \mathbf{q} = \partial_x (\rho h u ) + \partial_y (\rho h v) $$" style="width:154px;height:15px;"></p>
+<pre class="language-matlab">[UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
+</pre>
+<p>uses u=F.ub, and hence only correct for plug flow, e.g. SSA</p>
+<p>Projects the values directly onto nodes.</p>
+<p>see also : ProjectFintOntoNodes</p>
+<p>Note: Homogenized thickness (h) boundary conditions are applied to the dh/dt solve. So if thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined between nodes, those same times will be applied to dh/dt.</p>
+<p>
+<img src="dhdtExplicit_eq17678371695159911508.png" alt="$$&#10;F_{\dot{h}} =\rho \, \dot{h}+\partial_x (\rho u h) + \partial_y (\rho v h) - \rho \, a = 0&#10;$$" style="width:235px;height:20px;"></p>
+<p>Solve for <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> as:</p>
+<p>
+<img src="dhdtExplicit_eq11521166655178050388.png" alt="$$ \delta_{\dot{h}} F_h + F_h(h_0) = 0 $$" style="width:106px;height:16px;"></p>
+<p>leading to</p>
+<p>
+<img src="dhdtExplicit_eq14540062364522912465.png" alt="$$ \partial_{\dot{h}} F_{\dot{h}} \, \Delta h = -F(h_0) $$" style="width:108px;height:16px;"></p>
+<p>
+<img src="dhdtExplicit_eq13652079158836056282.png" alt="$$&#10;\langle \rho \phi_i \, | \phi_j \rangle \, \Delta \dot{h}_i   =  \langle \rho \, a \, | \phi_j \rangle&#10;- \langle \partial_x (\rho u h ) \, | \phi_j \rangle&#10;- \langle \partial_y (\rho v h ) \, | \phi_j \rangle&#10;$$" style="width:334px;height:19px;"></p>
+<p>The NR-system to solve</p>
+<p>
+<img src="dhdtExplicit_eq06025639390171426369.png" alt="$$&#10;\langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle&#10;$$" style="width:146px;height:20px;"></p>
+<p>where</p>
+<p>
+<img src="dhdtExplicit_eq03455788307115638391.png" alt="$$ \dot{h} \to \dot{h} + \Delta \dot{h} $$" style="width:72px;height:15px;"></p>
+<p>until right-hand side small enough. However, as the equation is linear, in effect <img src="dhdtExplicit_eq06208703435412521533.png" alt="$\dot{h}$" style="width:8px;height:14px;"> it is solved directly, or in just one iteration.</p>
+<pre class="codeinput">narginchk(5,5)
+
+<span class="keyword">if</span> nargin&lt;5
+    BCs=[];
+<span class="keyword">end</span>
+
+
+ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample(<span class="string">'triangle'</span>,MUA.nip,ndim);
+<span class="comment">% [points,weights]=sample('triangle',MUA.nip,ndim);</span>
 
 b=zeros(MUA.Nele,MUA.nod);
 
 
+<span class="keyword">if</span> isempty(MUA.Deriv)  || anynan(MUA.Deriv)
+    CtrlVar.CalcMUA_Derivatives=true;
+    MUA=UpdateMUA(CtrlVar,MUA);
+<span class="keyword">end</span>
+
 <span class="comment">% vector over all elements for each integration point</span>
 <span class="keyword">for</span> Iint=1:MUA.nip
-
-
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+</pre>
+<pre class="codeinput">    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
 
@@ -94,11 +159,14 @@ b=zeros(MUA.Nele,MUA.nod);
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
+    rhoint=rhonod*fun;
 
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
     dudx=zeros(MUA.Nele,1);
     dvdy=zeros(MUA.Nele,1);
+    drhodx=zeros(MUA.Nele,1);
+    drhody=zeros(MUA.Nele,1);
     <span class="comment">% derivatives at one integration point for all elements</span>
     <span class="keyword">for</span> Inod=1:MUA.nod
 
@@ -108,46 +176,93 @@ b=zeros(MUA.Nele,MUA.nod);
         dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
 
+        drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
+        drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
+
     <span class="keyword">end</span>
 
-    detJw=detJ*weights(Iint);
+    <span class="comment">% % these are the flux gradients at integration this integration point, Iint, for all elements</span>
+    <span class="comment">% dqxdx=rhoint.*dudx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;</span>
+    <span class="comment">% dqydy=rhoint.*dvdy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;</span>
+    <span class="comment">%</span>
+    <span class="comment">% rhs=aint.*rhoint-dqxdx-dqydy;</span>
+
+    <span class="comment">% these are the flux gradients at integration this integration point, Iint, for all elements, divided by rho</span>
+    dqxdx=dudx.*hint+uint.*dhdx+drhodx.*uint.*hint./rhoint;
+    dqydy=dvdy.*hint+vint.*dhdy+drhody.*vint.*hint./rhoint;
+
+    rhs=aint-dqxdx-dqydy;  <span class="comment">% here I have already divided by rho</span>
+
+
+
+    detJw=detJ*MUA.weights(Iint);
 
     <span class="keyword">for</span> Inod=1:MUA.nod
 
-
-        tx=(dhdx.*uint+hint.*dudx);
-        ty=(dhdy.*vint+hint.*dvdy);
-
-        term=(aint-tx-ty).*fun(Inod).*detJw;
-
-        b(:,Inod)=b(:,Inod)+term;
-
+        b(:,Inod)=b(:,Inod)+rhs.*fun(Inod).*detJw;
 
     <span class="keyword">end</span>
+
+
+
+    <span class="comment">% assemble right-hand side</span>
+
+    rh=sparseUA(neq,1);
+    <span class="keyword">for</span> Inod=1:MUA.nod
+        rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> ~isfield(MUA,<span class="string">'M'</span>)
+        MUA.M=MassMatrix2D1dof(MUA);
+    <span class="keyword">end</span>
+</pre>
+<h2 id="5">BCs</h2>
+<p>Since this is an explicit estimate, it seems right to use the BCs for h. If h is fixed, the the explicit estimate should be dh/dt=0 for those nodes</p>
+<p>Also, if there is a nodal link (tie) for h, then the same nodal tie should be used for dh/dt</p>
+<p>So for all BCs.hFixed nodes, set BCs.hFixedValue=0, and use the h ties.</p>
+<pre class="codeinput">    [hL,hRhs]=createLh(MUA.Nnodes,BCs.hFixedNode,BCs.hFixedValue*0,BCs.hTiedNodeA,BCs.hTiedNodeB);
+</pre>
+<h2 id="6">Solve system</h2>
+<pre class="codeinput">    <span class="comment">%CtrlVar.SymmSolver='AugmentedLagrangian';</span>
+    x0=[] ; y0=hRhs*0;
+
+    <span class="keyword">if</span> isempty(MUA.M)
+        MUA.M=MassMatrix2D1dof(MUA);
+    <span class="keyword">end</span>
+
+    [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
+    dhdt=full(dhdt);
+
+    <span class="comment">% Now there is an issue here regarding what to do about dhdt&lt;0 when h&lt;=thickmin</span>
+
+    I=(F.h&lt;=CtrlVar.ThickMin)  &amp; (dhdt&lt; 0) ;
+    dhdt(I)=0 ;
+</pre>
+<pre class="codeinput">
 <span class="keyword">end</span>
-
-<span class="comment">% assemble right-hand side</span>
-
-rh=sparseUA(neq,1);
-<span class="keyword">for</span> Inod=1:MUA.nod
-    rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
-<span class="keyword">end</span>
-
-<span class="keyword">if</span> ~isfield(MUA,<span class="string">'M'</span>)
-    MUA.M=MassMatrix2D1dof(MUA);
-<span class="keyword">end</span>
-
-dhdt=MUA.M\rh;
-dhdt=full(dhdt);
-</pre><pre class="codeinput"><span class="keyword">end</span>
-</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2026a</a>
+<br>
+</p>
+</div>
+<!--
 ##### SOURCE BEGIN #####
 
-function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
+function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F,BCs)
 %%
-% Calculates dhdt from flux divergence as
+% Calculates dh/dt from flux divergence as
 %
-%   dh/dt = a -  ( dqx/dx + dqy/dy)
+% $$ \rho \, \dot{h}  = \rho \, a -  \nabla \cdot \mathbf{q} $$
+%
+% or
+%
+% $$ \dot{h}  = a -  \frac{1}{\rho} \nabla \cdot \mathbf{q} $$
+%
+% where
+%
+% $$\nabla \cdot \mathbf{q} = \partial_x (\rho h u ) + \partial_y (\rho h v) $$
 %
 %   [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
 %
@@ -157,78 +272,171 @@ function [UserVar,dhdt]=dhdtExplicit(UserVar,CtrlVar,MUA,F)
 %
 % see also : ProjectFintOntoNodes
 %
+% Note: Homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if thickness is set to some
+% prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if thickness links/ties are defined
+% between nodes, those same times will be applied to dh/dt.
 %
+% $$
+% F_{\dot{h}} =\rho \, \dot{h}+\partial_x (\rho u h) + \partial_y (\rho v h) - \rho \, a = 0
+% $$
+%
+% Solve for $\dot{h}$ as:
+%
+% $$ \delta_{\dot{h}} F_h + F_h(h_0) = 0 $$
+%
+% leading to
+%
+% $$ \partial_{\dot{h}} F_{\dot{h}} \, \Delta h = -F(h_0) $$
+%
+% $$
+% \langle \rho \phi_i \, | \phi_j \rangle \, \Delta \dot{h}_i   =  \langle \rho \, a \, | \phi_j \rangle
+% - \langle \partial_x (\rho u h ) \, | \phi_j \rangle
+% - \langle \partial_y (\rho v h ) \, | \phi_j \rangle
+% $$
+%
+%
+% The NR-system to solve
+%
+% $$
+% \langle \phi_i \, | \phi_k \rangle \, \Delta \dot{h}_i = -   \langle F_{\dot{h}} \, | \, \phi_j \rangle
+% $$
+%
+% where
+%
+% $$ \dot{h} \to \dot{h} + \Delta \dot{h} $$
+%
+% until right-hand side small enough. However, as the equation is linear, in effect $\dot{h}$ it is solved directly, or in
+% just one iteration.
+%
+%%
+
+
+narginchk(5,5)
+
+if nargin<5
+    BCs=[];
+end
+
+
 ndim=2; dof=1; neq=dof*MUA.Nnodes;
 
 anod=reshape(F.as(MUA.connectivity,1),MUA.Nele,MUA.nod)+reshape(F.ab(MUA.connectivity,1),MUA.Nele,MUA.nod);
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
-[points,weights]=sample('triangle',MUA.nip,ndim);
+% [points,weights]=sample('triangle',MUA.nip,ndim);
 
 b=zeros(MUA.Nele,MUA.nod);
 
 
+if isempty(MUA.Deriv)  || anynan(MUA.Deriv)
+    CtrlVar.CalcMUA_Derivatives=true;
+    MUA=UpdateMUA(CtrlVar,MUA);
+end
+
 % vector over all elements for each integration point
 for Iint=1:MUA.nip
-    
-    
-    fun=shape_fun(Iint,ndim,MUA.nod,points) ;
+
+
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
     Deriv=MUA.Deriv(:,:,:,Iint);
     detJ=MUA.DetJ(:,Iint);
-    
+
     aint=anod*fun;
     hint=hnod*fun;
     uint=unod*fun;
     vint=vnod*fun;
-    
+    rhoint=rhonod*fun;
+
     dhdx=zeros(MUA.Nele,1);
     dhdy=zeros(MUA.Nele,1);
     dudx=zeros(MUA.Nele,1);
     dvdy=zeros(MUA.Nele,1);
+    drhodx=zeros(MUA.Nele,1);
+    drhody=zeros(MUA.Nele,1);
     % derivatives at one integration point for all elements
     for Inod=1:MUA.nod
-        
+
         dhdx=dhdx+Deriv(:,1,Inod).*hnod(:,Inod);
         dhdy=dhdy+Deriv(:,2,Inod).*hnod(:,Inod);
-        
+
         dudx=dudx+Deriv(:,1,Inod).*unod(:,Inod);
         dvdy=dvdy+Deriv(:,2,Inod).*vnod(:,Inod);
-        
+
+        drhodx=drhodx+Deriv(:,1,Inod).*rhonod(:,Inod);
+        drhody=drhody+Deriv(:,2,Inod).*rhonod(:,Inod);
+
     end
-    
-    detJw=detJ*weights(Iint);
-    
+
+    % % these are the flux gradients at integration this integration point, Iint, for all elements
+    % dqxdx=rhoint.*dudx.*hint+rhoint.*uint.*dhdx+drhodx.*uint.*hint;
+    % dqydy=rhoint.*dvdy.*hint+rhoint.*vint.*dhdy+drhody.*vint.*hint;
+    %
+    % rhs=aint.*rhoint-dqxdx-dqydy;
+
+    % these are the flux gradients at integration this integration point, Iint, for all elements, divided by rho
+    dqxdx=dudx.*hint+uint.*dhdx+drhodx.*uint.*hint./rhoint;
+    dqydy=dvdy.*hint+vint.*dhdy+drhody.*vint.*hint./rhoint;
+
+    rhs=aint-dqxdx-dqydy;  % here I have already divided by rho
+
+
+
+    detJw=detJ*MUA.weights(Iint);
+
     for Inod=1:MUA.nod
-        
 
-        tx=(dhdx.*uint+hint.*dudx);
-        ty=(dhdy.*vint+hint.*dvdy);
-        
-        term=(aint-tx-ty).*fun(Inod).*detJw;
+        b(:,Inod)=b(:,Inod)+rhs.*fun(Inod).*detJw;
 
-        b(:,Inod)=b(:,Inod)+term;
-        
-        
     end
-end
 
-% assemble right-hand side
 
-rh=sparseUA(neq,1);
-for Inod=1:MUA.nod
-    rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
-end
 
-if ~isfield(MUA,'M')
-    MUA.M=MassMatrix2D1dof(MUA);
-end
+    % assemble right-hand side
 
-dhdt=MUA.M\rh;
-dhdt=full(dhdt);
+    rh=sparseUA(neq,1);
+    for Inod=1:MUA.nod
+        rh=rh+sparseUA(MUA.connectivity(:,Inod),ones(MUA.Nele,1),b(:,Inod),neq,1);
+    end
+
+    if ~isfield(MUA,'M')
+        MUA.M=MassMatrix2D1dof(MUA);
+    end
+
+    %% BCs
+    %
+    % Since this is an explicit estimate, it seems right to use the BCs for h.
+    % If h is fixed, the the explicit estimate should be dh/dt=0 for those nodes
+    %
+    % Also, if there is a nodal link (tie) for h, then the same nodal tie should be used for dh/dt
+    %
+    % So for all BCs.hFixed nodes, set BCs.hFixedValue=0, and use the h ties.
+
+
+    [hL,hRhs]=createLh(MUA.Nnodes,BCs.hFixedNode,BCs.hFixedValue*0,BCs.hTiedNodeA,BCs.hTiedNodeB);
+
+    %% Solve system
+    %CtrlVar.SymmSolver='AugmentedLagrangian';
+    x0=[] ; y0=hRhs*0;
+
+    if isempty(MUA.M)
+        MUA.M=MassMatrix2D1dof(MUA);
+    end
+
+    [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
+    dhdt=full(dhdt);
+
+    % Now there is an issue here regarding what to do about dhdt<0 when h<=thickmin
+
+    I=(F.h<=CtrlVar.ThickMin)  & (dhdt< 0) ;
+    dhdt(I)=0 ;
+
 
 end
 ##### SOURCE END #####
---></body></html>
+-->
+</body>
+</html>

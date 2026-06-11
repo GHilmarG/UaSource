@@ -1,15 +1,15 @@
 function [ll,ei] = minlen2(pp,tt)
-%MINLEN2 return the minimum length edge for each triangle in 
+%MINLEN2 return the minimum length edge for each triangle in
 %a two-dimensional triangulation.
 %   [ELEN,IMIN] = MINLEN2(VERT,TRIA) returns the minimum le-
 %   ngth ELEN and local edge index IMIN for all triangles in
 %   the triangulation {VERT,TRIA}.
 
 %   Darren Engwirda : 2017 --
-%   Email           : de2363@columbia.edu
+%   Email           : d.engwirda@gmail.com
 %   Last updated    : 16/01/2017
 
-%---------------------------------------------- basic checks    
+%---------------------------------------------- basic checks
     if (~isnumeric(pp) || ~isnumeric(tt) )
         error('minlen2:incorrectInputClass' , ...
             'Incorrect input class.') ;
@@ -33,7 +33,7 @@ function [ll,ei] = minlen2(pp,tt)
         error('minlen2:invalidInputs', ...
             'Invalid TRIA input array.') ;
     end
-    
+
 %------------------------------------------ compute edge-len
     l1 = sum((pp(tt(:,2),:) ...
              -pp(tt(:,1),:)).^2,2);

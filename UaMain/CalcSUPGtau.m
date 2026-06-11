@@ -47,9 +47,9 @@ tau1=K.*l./speed/2;
 % And now I must consider the possibility that speed is zero, in which case
 % the above expression fails and must be replaced by the correct limit which is
 % tau1 -> dt/6 as speed -> 0
-I=speed<100*eps ; tau1(I)=dt/6;
+I=speed<100*eps(speed) ; tau1(I)=dt/6;
 
-taut=dt/2+eps++zeros(size(u),'like',u);
+taut=dt/2+eps+zeros(size(u),'like',u);
 taus=0.5*l./(speed+CtrlVar.SpeedZero);  % Now this must go down to zero gracefully...
 tau2=1./(1./taut+1./taus);
        
@@ -70,13 +70,15 @@ end
 
 if CtrlVar.doplots  && CtrlVar.PlotSUPGparameter && ~isempty(MUA)
 
-
-     
     FindOrCreateFigure("taus SUPG") ;
-    subplot(2,2,1) ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
-    subplot(2,2,2) ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
-    subplot(2,2,3) ; PlotMeshScalarVariable(CtrlVar,MUA,tau1) ; title('tau1')
-    subplot(2,2,4) ; PlotMeshScalarVariable(CtrlVar,MUA,tau2) ; title('tau2')
+    TileSUPG=tiledlayout("flow");
+
+    nexttile ; PlotMeshScalarVariable(CtrlVar,MUA,taut) ; title('taut')
+    nexttile ; PlotMeshScalarVariable(CtrlVar,MUA,taus) ; title('taus')
+    nexttile ; PlotMeshScalarVariable(CtrlVar,MUA,tau1) ; title('tau1')
+    nexttile ; PlotMeshScalarVariable(CtrlVar,MUA,tau2) ; title('tau2')
+    TileSUPG.TileSpacing='tight';
+    TileSUPG.Padding='tight';
 end
 
 

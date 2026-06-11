@@ -2,19 +2,96 @@
 
 %%
 %
+%
+% *Release Notes* _June 2025_
+%
+% * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
+% indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
+%
+%
+% Internally, the boundary conditions are represented as a constraint matrix 
+%
+% $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A \in R^{m\times n} $$
+%
+% where m is the number of constraints, and n the number of degrees of freedom.
+% 
+% The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+% However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
+% 
+% By setting
+%
+%   CtrlVar.BCsRowSubsetSelection=true; 
+%
+% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+% usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
+% required in the first place by ensuring that the boundary conditions contain no redundancies. 
+%
+%
+%
+%
+% * The default KKT solver for symmetrical matrices is now the Null-Space method. Previously the default was   
+% 
+%   CtrlVar.SymmSolver="EliminateBCsSolveSystemDirectly";
+% 
+% and this was used if the user used the default option
+%
+%    CtrlVar.SymmSolver='Auto'; 
+% 
+% This symmetrical solver preserves the symmetry of the reduced KKT system, whereas the 'EliminateBCsSolveSystemDirectly' did
+% not. Additionally, the new Null-Space solver solves (n-m) x (n-m) system where n is the degrees of freedom and m is the
+% number of constraints. Typically n is twice the number of nodes (uv solve) and m is the number of boundary conditions. The
+% 'EliminateBCsSolveSystemDirectly', on the other hand, always solves an n times n system. The new solver is always faster.
+% How much faster depends on the problem but one can expect it always to be at least twice as fact. Note that this only
+% applies to the solution of the KKT system. If there are no boundary conditions, the same default backslash solver is used
+% before.
+%
+% For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is
+% typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other
+% hand, the constraint matrix Aeq does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of
+% the previous Augmented Lagrangian solver.
+% 
+% One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
+% typically, be no difference in performance, even with BCs. It is possible that if one has a large number of BCs, manually
+% setting
+%
+%   CtrlVar.AsymmSolver="NullSpace";  
+%
+% might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
+% requires the construction of a basis for the null-space of Aeq.
+%
+%
+% *Release Notes* _January 2025_
+%
+% When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
+% thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if
+% thickness links/ties are defined between nodes, those same ties will be applied to dh/dt. This has no effect on dh/dt
+% values obtained in transient runs. But this will affect calculated/modeled dh/dt values used in an inversion when compared
+% against measured dh/dt values, in combination with thickness boundary conditions.
+%
+%
+%
+% *Release Notes* _December 2025_
+%
+% * When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated
+% explicitly using those BCs. Previously, when evaluating the sensitivities of the dh/dt-cost function term at integration
+% points as part of the adjoint approach, this was not the case. 
+%
+% 
+%
 % *Release Notes* _November 2025_
 %
 % * The file structure of the Ua folder on github has been changed so that all key m-files are now in the sub-folder UaMain.
-%   This should not cause any changes, however, there were two m-files with the name "inpoly2.m", one in the previous top
-%   folder, and one inside of the Mesh2d folder. If you were using inpoly2.m in your own m-files, you must now use UaInpoly.m
-%   to get the same behaviour as before, i.e. rename/replace all calls to inpoly2 with UaInpoly2
+%
+% * The mesh2d package updated to latest version.
+%
+% * SuiteSparse folder deleted, as now is part of core MATLAB functionality (since R2024a)
 %
 % * MATLAB seems to have been busy working on their optimization functions, and the performance of using
 %
 %    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
 %
 % now appears improved. This option actually stop working in Matlab 2021b and 2022a, and this may have been due to
-% some genuine bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
+% a bug in the optimisation toolbox. From at least 2024a onward this now works again, and based on some numerical tests,
 % appears much improved. This is currently not the default option, but users might consider setting
 %
 %    CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-GradientBased";  
@@ -27,10 +104,11 @@
 %
 % and set to either 
 %
-% 
 % # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
 % time-independent run, or as a diagnostic run.)
+%
 % # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
+%
 % # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
 % implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
 % the time step. This is not a recommended option, and is slower than the -uvh- option. 
@@ -177,20 +255,7 @@
 %
 % *Release Notes* _March 2024_
 %
-% The utility
-%   
-%   [tbx,tby,tb,eta] = CalcBasalTraction(CtrlVar,UserVar,MUA,F,options)
-%
-% has been updated to allow for calculation at integration points (before only calculated nodal values).
-%
-% An inconsistent input parameter test when using different sliding laws for basal drag and ocean drag calculations
-% corrected. Thanks to Sainan Sun for point this out. 
-%
-% A situation where a composite variable was used inside of spmd, resulting in a warning but no errors, has been corrected.
-%
-% *Release Notes* _March 2024_
-%
-% Positive thickness constraints --- added dynamically when using the active-set option --- are not added to nodes already
+% * Positive thickness constraints --- added dynamically when using the active-set option --- are now not added to nodes already
 % contained in a user-defined constraint. Hence, any user-defined thickness constraints are respected, even if this means
 % that some thickness go below the minimum specified thickness. Previously, thickness constraints were added to all nodes
 % with thickness less than CtrlVar.ThicMin.
