@@ -42,8 +42,8 @@ if CtrlVar.BCsRowSubsetSelection
 
     if flag==1
         cuv=cuv(row_idx);
-        fprintf("AssembleLuvSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
-        fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
+     %   fprintf("AssembleLuvSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
+     %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
     end
 
 end

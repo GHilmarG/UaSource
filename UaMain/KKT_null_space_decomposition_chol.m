@@ -46,8 +46,8 @@ Z = Q(:, m+1:end);                   % n x (n-m) orthonormal null space basis
 % --- Step 2: Compute particular solution xp satisfying A*xp = b ---
 % Minimum norm solution via A'*(A*A')^{-1}*b.
 % Factorise A*A' once and reuse in Step 6 for multiplier recovery.
-%dAAT = decomposition(A*A','chol');
-dAAT = decomposition(A*A');
+dAAT = decomposition(A*A','chol');
+%dAAT = decomposition(A*A');
 xp   = A' * (dAAT \ b);             % n x 1 particular solution
 
 % --- Step 3: Form and factorise reduced Hessian Hr = Z'*H*Z ---
@@ -71,13 +71,13 @@ x = xp + Z * u;
 lambda = dAAT \ (A * (g - H * x));
 
 
-
-% --- Diagnostic residuals (comment out in production) ---
-res1 = norm(H*x + A'*lambda - g)/(norm(x)+norm(lambda)+eps);
-res2 = norm(A*x - b)/norm(x);
-fprintf('Stationarity  ||H*x + A''*lambda - g||/(||x||+||lambda||)= %g\n', res1);
-fprintf('            Feasibility   ||A*x - b||/||x||             = %g\n', res2);
-
+% 
+% % --- Diagnostic residuals (comment out in production) ---
+% res1 = norm(H*x + A'*lambda - g)/(norm(x)+norm(lambda)+eps);
+% res2 = norm(A*x - b)/norm(x);
+% fprintf('Stationarity  ||H*x + A''*lambda - g||/(||x||+||lambda||)= %g\n', res1);
+% fprintf('            Feasibility   ||A*x - b||/||x||             = %g\n', res2);
+% 
 
 
 

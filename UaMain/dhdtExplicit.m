@@ -169,12 +169,14 @@ for Iint=1:MUA.nip
 
     %% Solve system
     %CtrlVar.SymmSolver='AugmentedLagrangian';
-    x0=[] ; y0=hRhs*0;
+
 
     if isempty(MUA.M)
         MUA.M=MassMatrix2D1dof(MUA);
     end
 
+    
+    x0=[] ; y0=hRhs*0;
     [dhdt,dhdtlambda]=solveKApeSymmetric(MUA.M,hL,rh,hRhs,x0,y0,CtrlVar);
     dhdt=full(dhdt);
 

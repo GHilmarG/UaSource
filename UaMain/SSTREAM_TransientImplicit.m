@@ -410,16 +410,16 @@ while true
         O=sparse(size(L,1),size(L,1)) ;
         H=[K L' ; L O];
 
-        PD1=full(duvh'*K*duvh) ;
-        PD2=full([duvh;dl]'*H*[duvh;dl]) ;
-        fprintf("Pos def test: %g \t %g \n",PD1,PD2)
-        if PD1 <0 || PD2 < 0
-
-            fprintf("Newton direction not pos def! \n")
-            fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
-            save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
-
-        end
+        % PD1=full(duvh'*K*duvh) ;
+        % PD2=full([duvh;dl]'*H*[duvh;dl]) ;
+        % fprintf("Pos def test: %g \t %g \n",PD1,PD2)
+        % if PD1 <0 || PD2 < 0
+        % 
+        %     fprintf("Newton direction not pos def! \n")
+        %     fprintf("Saving data for inspection in NewtonDirectionNotPosDef.mat \n")
+        %     save("NewtonDirectionNotPosDef.mat","UserVar","RunInfo","CtrlVar","MUA","F0","F1","l1","BCs1","K","L","duvh","dl","frhs","grhs")
+        % 
+        % end
     end
 
     Func=@(gamma) CalcCostFunctionNRuvh(UserVar,RunInfo,CtrlVar,MUA,F1,F0,l1,BCs1,dub,dvb,dh,dl,L,luvh,cuvh,gamma,Fext0) ;

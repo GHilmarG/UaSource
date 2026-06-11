@@ -1487,8 +1487,8 @@ CtrlVar.MaxNumberOfElementsLowerLimitFactor=0.0;
 %% Options related to the Ua mesh structure variable MUA
 CtrlVar.MUA.MassMatrix=true ;       % true if the mass matrix is to be computed and stored as a part of MUA
 CtrlVar.MUA.StiffnessMatrix=false ;  % true if the stiffness matrices is to be computed and stored as a part of MUA
-CtrlVar.MUA.DecomposeMassMatrix=false;
-CtrlVar.MUA.CholeskyMassMatrix=true;
+CtrlVar.MUA.DecomposeMassMatrix=true;
+CtrlVar.MUA.CholeskyMassMatrix=false;
 CtrlVar.CalcMUA_Derivatives=1;
 CtrlVar.FindMUA_Boundary=1;
 %% Pos. thickness constraints,          (-active set-)
