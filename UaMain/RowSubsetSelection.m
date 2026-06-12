@@ -6,6 +6,14 @@ function [K,row_idx,flag] = RowSubsetSelection(Aeq, tol)
 % If L already has full row rank (p == m), K = L is returned unchanged.
 % Otherwise returns K (p x n), full rank, rows are a subset of rows of L.
 
+if isempty(Aeq)
+    K=[];
+    flag=0;
+    row_idx=[];
+    return
+end
+
+
 if nargin < 2
     tol = [];   % auto-detect
 end

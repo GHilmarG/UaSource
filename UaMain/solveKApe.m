@@ -64,6 +64,19 @@ n=size(A,1) ; m=size(B,1);
 %     CtrlVar.AsymmSolver="EliminateBCsSolveSystemDirectly";
 % end
 
+%%
+
+if CtrlVar.BCsRowSubsetSelection
+
+    [B,row_idx,flag] = RowSubsetSelection(B) ;
+    if flag==1
+        g=g(row_idx);
+    end
+end
+%
+
+
+
 if isempty(CtrlVar) || ~isstruct(CtrlVar)
 
     CtrlVar.AsymmSolver="auto";

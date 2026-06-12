@@ -2,13 +2,56 @@
 
 
 
-function [L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs,l)
+function [Luvh,cuvh,luvh,l]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs,l)
+
+
+
+if nargin==4 && nargout~=4
+
+    error("AssembleLuvhSSTREAM:IncorrectNumberOfArguments","If number of input arguments is 4 the number of output arguments must also be 4")
+end
 
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
+
+
+if CtrlVar.BCsRowSubsetSelection
+
+    fprintf("AssembleLuvhSSTREAM: Checking if uv boundary conditions are linearly independent.\n")
+    [MLC.ubvbL,row_idx,flag] = RowSubsetSelection(MLC.ubvbL);
+
+    if flag==1
+        MLC.ubvbRhs=MLC.ubvbRhs(row_idx);
+        l.ubvb=l.ubvb(row_idx);
+    
+ 
+        %   fprintf("AssembleLuvhSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
+        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
+    end
+
+
+    fprintf("AssembleLuvhSSTREAM: Checking if h boundary conditions are linearly independent.\n")
+    [MLC.hL,row_idx,flag] = RowSubsetSelection(MLC.hL);
+
+    if flag==1
+        MLC.hRhs=MLC.hRhs(row_idx);
+        l.h=l.h(row_idx);
+
+        %   fprintf("AssembleLuvhSSTREAM: h boundary conditions were found NOT to be linearly independent.\n")
+        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
+    end
+
+
+
+end
+
+
 Luv=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
+
 Lh=MLC.hL;
 ch=MLC.hRhs;
+
+
 
 
 if nargin<4 || isempty(l)
@@ -59,21 +102,37 @@ end
 
 
 if isempty(Lh) && ~isempty(Luv)
-    L=[Luv sparse(nu,MUA.Nnodes)] ;
+    Luvh=[Luv sparse(nu,MUA.Nnodes)] ;
     cuvh=cuv ;
     luvh=l.ubvb;
 elseif ~isempty(Lh) && isempty(Luv)
-    L=[sparse(nh,2*MUA.Nnodes) Lh] ;
+    Luvh=[sparse(nh,2*MUA.Nnodes) Lh] ;
     cuvh=ch ;
     luvh=l.h;
 elseif ~isempty(Lh) && ~isempty(Luv)
     
-    L=[ Luv sparse(nu,MUA.Nnodes) ; sparse(nh,2*MUA.Nnodes) Lh];
+    Luvh=[ Luv sparse(nu,MUA.Nnodes) ; sparse(nh,2*MUA.Nnodes) Lh];
     cuvh=[cuv;ch];
     luvh=[l.ubvb;l.h];
 else
-    L=[] ; cuvh=[] ; luvh=[];
+    Luvh=[] ; cuvh=[] ; luvh=[];
 end
+
+
+if CtrlVar.BCsRowSubsetSelection
+
+    fprintf("AssembleLuvhSSTREAM: Checking if uv boundary conditions are linearly independent.\n")
+    [Luvh,row_idx,flag] = RowSubsetSelection(Luvh);
+
+    if flag==1
+        cuvh=cuvh(row_idx);
+        luvh=luvh(row_idx); 
+        %   fprintf("AssembleLuvSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
+        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
+    end
+
+end
+
 
 
 end
