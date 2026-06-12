@@ -92,7 +92,8 @@ CtrlVar.InfoLevelNonLinIt=2 ; CtrlVar.doplots=1 ;
 [UserVar,RunInfo,F1,l1,BCs1]=SSTREAM_TransientImplicit(UserVar,RunInfo,CtrlVar,MUA,F0,F1,l1,BCs1);
 
 
-x1=[F1.ub;F1.vb;F1.h]; [L,cuvh,luvh1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+x1=[F1.ub;F1.vb;F1.h]; 
+[L,cuvh,luvh1,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 
 R1=uvhRK(x1,UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
 g1=-(R1 + L'*luvh1) ;
@@ -130,7 +131,7 @@ x0=[F1.ub;F1.vb;F1.h];
 
 fun = @(x) uvhRK(x,UserVar,RunInfo,CtrlVar,MUA,F0,F1) ;
 
-[L,cuvh,luvh0]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+[L,cuvh,luvh0,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 if isempty(luvh0)
     luvh0=cuvh*0 ;
 end
@@ -156,7 +157,7 @@ isLSQ=true ;
 
 
 
-[L,cuvh,luvh0]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+[L,cuvh,luvh0,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 if isempty(luvh0)
     luvh0=cuvh*0 ; 
 end

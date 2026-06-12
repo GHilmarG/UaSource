@@ -179,10 +179,6 @@ end
 
 
 
-
-
-
-
 %% assemble global Lagrange constraint matrix
 MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 
@@ -190,10 +186,13 @@ MLC=BCs2MLC(CtrlVar,MUA,BCs1);
 
 if numel(l1.ubvb)~=numel(MLC.ubvbRhs) ; l1.ubvb=zeros(numel(MLC.ubvbRhs),1) ; end
 if numel(l1.h)~=numel(MLC.hRhs) ; l1.h=zeros(numel(MLC.hRhs),1) ; end
-nlubvb=numel(l1.ubvb) ;
 
-[L,cuvh,luvh]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
+
+[L,cuvh,luvh,l1]=AssembleLuvhSSTREAM(CtrlVar,MUA,BCs1,l1);
 dl=luvh*0;
+
+nlubvb=numel(l1.ubvb) ; % I need to do this after the Luvh assembly, because l1 might have changed if linearly dependent BCs are discovered and corrected for.
+
 
 if CtrlVar.uvhMakeInitialIterateFeasible
     %% Make sure iterate is feasible, at least with respect to direct BCs
