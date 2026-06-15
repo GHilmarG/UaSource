@@ -87,10 +87,10 @@ if contains(CtrlVar.Inverse.InvertFor,'-B-')
 
     ubB=max(lbB,ubB) ; % make sure ubB >= lbB
 
-    UaPlots(CtrlVar,MUA,F,lbB,FigureTitle="lbB")
-    UaPlots(CtrlVar,MUA,F,ubB,FigureTitle="ubB")
-    UaPlots(CtrlVar,MUA,F,ubB-lbB,FigureTitle="ubB-lbB") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
-    UaPlots(CtrlVar,MUA,F,"-B-",FigureTitle="B")
+    % UaPlots(CtrlVar,MUA,F,lbB,FigureTitle="lbB")
+    % UaPlots(CtrlVar,MUA,F,ubB,FigureTitle="ubB")
+    % UaPlots(CtrlVar,MUA,F,ubB-lbB,FigureTitle="ubB-lbB") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
+    % UaPlots(CtrlVar,MUA,F,"-B-",FigureTitle="B")
 
 end
 
