@@ -324,7 +324,15 @@ else
             CtrlVar.VelColorMap=jet(100) ;
             [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ub,F.vb,CtrlVar) ;
             title(cbar,"(m/a)",Interpreter="latex")
-            title("velocities",Interpreter="latex")
+            title("SSTREAM velocities",Interpreter="latex")
+            subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
+
+        case {"udvd","-udvd-"}
+
+            CtrlVar.VelColorMap=jet(100) ;
+            [cbar,~,CtrlVar]=QuiverColorGHG(F.x,F.y,F.ud,F.vd,CtrlVar) ;
+            title(cbar,"(m/a)",Interpreter="latex")
+            title("SIA velocities",Interpreter="latex")
             subtitle(sprintf("$t=%g \\quad  \\Delta t$=%g ",F.time,F.dt),Interpreter="latex")
 
 
