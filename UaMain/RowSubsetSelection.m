@@ -6,6 +6,7 @@ function [K,row_idx,flag] = RowSubsetSelection(Aeq, tol)
 % If L already has full row rank (p == m), K = L is returned unchanged.
 % Otherwise returns K (p x n), full rank, rows are a subset of rows of L.
 
+% check if there is nothing to be done, as Aeq is empty 
 if isempty(Aeq)
     K=[];
     flag=0;
@@ -13,9 +14,9 @@ if isempty(Aeq)
     return
 end
 
-
+% if not tolerance is prescribed, set tol to empty 
 if nargin < 2
-    tol = [];   % auto-detect
+    tol = [];  
 end
 
 [m, n] = size(Aeq);
@@ -27,7 +28,7 @@ end
 % Estimate rank from diagonal of R
 d = abs(diag(R));
 if isempty(tol)
-    tol = max(m, n) * eps(d(1));
+    tol = max(m, n) * eps(d(1));  % this is a plausible default tolerance
 end
 p = full(sum(d > tol));
 
