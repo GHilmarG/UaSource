@@ -14,43 +14,11 @@ end
 MLC=BCs2MLC(CtrlVar,MUA,BCs);
 
 
-if CtrlVar.BCsRowSubsetSelection
-
-    fprintf("AssembleLuvhSSTREAM: Checking if uv boundary conditions are linearly independent.\n")
-    [MLC.ubvbL,row_idx,flag] = RowSubsetSelection(MLC.ubvbL);
-
-    if flag==1
-        MLC.ubvbRhs=MLC.ubvbRhs(row_idx);
-        l.ubvb=l.ubvb(row_idx);
-    
- 
-        %   fprintf("AssembleLuvhSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
-        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
-    end
-
-
-    fprintf("AssembleLuvhSSTREAM: Checking if h boundary conditions are linearly independent.\n")
-    [MLC.hL,row_idx,flag] = RowSubsetSelection(MLC.hL);
-
-    if flag==1
-        MLC.hRhs=MLC.hRhs(row_idx);
-        l.h=l.h(row_idx);
-
-        %   fprintf("AssembleLuvhSSTREAM: h boundary conditions were found NOT to be linearly independent.\n")
-        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
-    end
-
-
-
-end
-
-
 Luv=MLC.ubvbL;
 cuv=MLC.ubvbRhs;
 
 Lh=MLC.hL;
 ch=MLC.hRhs;
-
 
 
 
@@ -119,19 +87,6 @@ else
 end
 
 
-if CtrlVar.BCsRowSubsetSelection
-
-    fprintf("AssembleLuvhSSTREAM: Checking if uv boundary conditions are linearly independent.\n")
-    [Luvh,row_idx,flag] = RowSubsetSelection(Luvh);
-
-    if flag==1
-        cuvh=cuvh(row_idx);
-        luvh=luvh(row_idx); 
-        %   fprintf("AssembleLuvSSTREAM: uv boundary conditions were found NOT to be linearly independent.\n")
-        %   fprintf("This has now been corrected internally using row-subset selection, but it might be good to reconsider how the BCs were defined in DefineBoundaryConditions.m \n")
-    end
-
-end
 
 
 
