@@ -120,7 +120,7 @@ if CtrlVar.InitialDiagnosticStep   % if not a restart step, and if not explicitl
 
         
         InvStartValues=[] ; InvFinalValues=[] ; Priors=[] ; Meas=[] ; BCsAdjoint=[] ; 
-        UserVar=CreateOutputs(UserVar,CtrlVar,MUA,BCs1,F0,l0,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
+        [UserVar,RunInfo]=CreateOutputs(UserVar,CtrlVar,MUA,BCs1,F0,l0,InvStartValues,InvFinalValues,Priors,Meas,BCsAdjoint,RunInfo);
         if CtrlVar.DefineOutputsCounter>=CtrlVar.DefineOutputsMaxNrOfCalls
             fprintf(' Exiting because number of calls to DefineOutputs (%i) >= CtrlVar.DefineOutputsMaxNrOfCalls (%i) /n',...
                 CtrlVar.DefineOutputsCounter,CtrlVar.DefineOutputsMaxNrOfCalls)

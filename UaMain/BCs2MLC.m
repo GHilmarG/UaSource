@@ -36,6 +36,35 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 [LSFL,LSFRhs]=createLh(MUA.Nnodes,BCs.LSFFixedNode,BCs.LSFFixedValue,BCs.LSFTiedNodeA,BCs.LSFTiedNodeB);
 
+%% Optional RowSubsetSelection
+
+if CtrlVar.BCsRowSubsetSelection
+
+    fprintf("BCs2MLC: Checking ifboundary conditions are linearly independent.\n")
+
+    [ubvbL,row_idx,flag] = RowSubsetSelection(ubvbL);
+    if flag==1
+        ubvbRhs=ubvbRhs(row_idx);
+    end
+  
+    [udvdL,row_idx,flag] = RowSubsetSelection(udvdL);
+    if flag==1
+        udvdRhs=udvdRhs(row_idx);
+    end
+
+    [hL,row_idx,flag] = RowSubsetSelection(hL);
+    if flag==1
+        hRhs=hRhs(row_idx);
+    end
+
+    [LSFL,row_idx,flag] = RowSubsetSelection(LSFL);
+    if flag==1
+        LSFRhs=LSFRhs(row_idx);
+    end
+end
+
+%%
+
 
 MLC.ubvbL=ubvbL ; MLC.ubvbRhs=ubvbRhs ;
 MLC.udvdL=udvdL ; MLC.udvdRhs=udvdRhs ;
@@ -43,6 +72,8 @@ MLC.hL=hL; MLC.hRhs=hRhs;
 MLC.LSFL=LSFL; MLC.LSFRhs=LSFRhs;
 
 %LastBCs=BCs ; LastMLC=MLC;
+
+
 
 %% scale L
 
