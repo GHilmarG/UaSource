@@ -15,11 +15,11 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar,lg]=UaPlots(CtrlVar,MUA,F,Variable,option
 %
 % Note: Sometimes the default labels on the plots assume some typical
 %       physical dimensions such as m/yr for velocities, and kPa for stresses.
-% 
+%
 %
 % Note:  To produce two velocity plots with the same scaling, use the CtrlVar from previous call again, but in the second
 % call set
-% 
+%
 %   CtrlVar.QuiverSameVelocityScalingsAsBefore=true;
 %
 %
@@ -47,12 +47,12 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar,lg]=UaPlots(CtrlVar,MUA,F,Variable,option
 %
 % Plotting velocities other than those in F:
 %
-%     dub=F1.ub-F0.ub ; dvb=F1.vb-F0.vb ; 
+%     dub=F1.ub-F0.ub ; dvb=F1.vb-F0.vb ;
 %     UaPlots(CtrlVar,MUA,F1,[dub dvb],FigureTitle="(duv)")
 %
 % Log color scale:
-% 
-%    cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log') 
+%
+%    cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log')
 %
 % Basal melt distribution, using log scale:
 %
@@ -85,13 +85,13 @@ arguments
     options.PlotUnderMesh=false;
     options.PlotMuaBoundary=true;
     options.ShowMinIcethicknessLocations=false;
-    options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title 
-    options.CreateNewFigure logical = true ; 
-    options.FigurePosition=[]; 
+    options.FigureTitle string="UaPlots";  % this is the figure title, not the plot title
+    options.CreateNewFigure logical = true ;
+    options.FigurePosition=[];
     options.MeshColor char="k"
     options.logColorbar=false;
     options.Plot string = ""
-    
+
 
     % options.ColorMap double=othercolor('YlGnBu6',1028)
     % options.ColorMap double=othercolor("Mlightterrain",1028)
@@ -102,11 +102,11 @@ arguments
     % CM=cmocean('ice',25,'pivot',0) ; colormap(CM);
     % CM=cmocean('ice',150) ; colormap(CM);
     %
-    
+
     % colormap(othercolor("Mdarkterrain",25))  ; % reasonably good for topography
     % colormap(othercolor("Mtemperaturemap",20) )
     % CM=cmocean('-ice',15) ; colormap(CM);
-    
+
     options.ColorMap double=othercolor("YlGnBu8",25)  % See othercolor.m for more options
 end
 
@@ -137,8 +137,8 @@ if ~isa(F,"UaFields")
         F.GF=[];
     end
 else
-    
-   if isempty(F.x)
+
+    if isempty(F.x)
         F.x=MUA.coordinates(:,1);
         F.y=MUA.coordinates(:,2);
     end
@@ -146,29 +146,29 @@ else
 end
 %%
 
-lg=[]; % this will be a handle to the legend (if created). 
+lg=[]; % this will be a handle to the legend (if created).
 %%
 
 % if fig title has not been set, use by default the variable name
 if options.FigureTitle=="UaPlots"
     if isstring(Variable)
-       options.FigureTitle=Variable;
+        options.FigureTitle=Variable;
     elseif ~isempty(inputname(4))
-        options.FigureTitle=inputname(4) ; 
+        options.FigureTitle=inputname(4) ;
     end
 
 end
 
 
 if options.CreateNewFigure
-    fFig=FindOrCreateFigure(options.FigureTitle,options.FigurePosition)  ; 
-    
+    fFig=FindOrCreateFigure(options.FigureTitle,options.FigurePosition)  ;
+
     clf(fFig)  ;
 end
 
 if isstring(Variable)
 
-        options.Plot=Variable;
+    options.Plot=Variable;
 
 end
 
@@ -198,15 +198,15 @@ if isempty(F)
 end
 
 if isstring(options.Plot)
-% {"-eta-","eta int","etaint","-eta int-"}
+    % {"-eta-","eta int","etaint","-eta int-"}
     if contains(options.Plot,"int") || contains(options.Plot,"eta") || contains(options.Plot,"-e-") ...
-            || contains(options.Plot,"tau")  || contains(options.Plot,"basal drag") 
+            || contains(options.Plot,"tau")  || contains(options.Plot,"basal drag")
         options.GetRidOfValuesDownStreamOfCalvingFronts=false;
     end
 
 end
 
- 
+
 
 if options.GetRidOfValuesDownStreamOfCalvingFronts  && ~isempty(F.LSF)
 
@@ -228,7 +228,7 @@ end
 
 if options.GetRidOfValuesDownStreamOfGroundingLines  && ~isempty(F.GF.node)  && options.Plot~="-strain rates-"
 
- 
+
 
     F.ub(F.GF.node<0.5)=NaN;
     F.vb(F.GF.node<0.5)=NaN;
@@ -315,7 +315,7 @@ else
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
             title(cbar,["$\log_{10}(\| \mathbf{v} \|)$","(m/yr)"],Interpreter="latex")
-            
+
             set(gca,'ColorScale','log')
             CM=cmocean('-ice',15) ; colormap(CM);
 
@@ -340,7 +340,7 @@ else
         case {"basal drag","taub"}
 
 
-            [tbx,tby] = CalcBasalTraction(CtrlVar,[],MUA,F) ; 
+            [tbx,tby] = CalcBasalTraction(CtrlVar,[],MUA,F) ;
 
             % [txzb,tyzb,txx,tyy,txy,exx,eyy,exy,e,eta]=CalcNodalStrainRatesAndStresses(CtrlVar,[],MUA,F) ;
 
@@ -373,31 +373,31 @@ else
 
         case "-strain rates-"
 
-           [~,xint,yint,exx,eyy,exy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
+            [~,xint,yint,exx,eyy,exy]=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
-           if options.GetRidOfValuesDownStreamOfGroundingLines
+            if options.GetRidOfValuesDownStreamOfGroundingLines
 
-               II=F.GF.ElementsDownstreamOfGroundingLines;
-               exx(II,:)=0;
-               eyy(II,:)=0;
-               exy(II,:)=0;
-    
+                II=F.GF.ElementsDownstreamOfGroundingLines;
+                exx(II,:)=0;
+                eyy(II,:)=0;
+                exy(II,:)=0;
 
-           end
 
-           
-           scale=0.1 ; 
-           LineWidth=1; 
-           nLocationsPlotted=10;
-           nLocations=ceil(size(xint,1));
-           nStride=nLocations/nLocationsPlotted; 
-           xint=xint(1:nStride:end,1);
-           yint=yint(1:nStride:end,1);
-           exx=exx(1:nStride:end,1);
-           eyy=eyy(1:nStride:end,1);
-           exy=exy(1:nStride:end,1);
+            end
 
-           PlotTensor(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,exx,exy,eyy,scale,LineWidth)
+
+            scale=0.1 ;
+            LineWidth=1;
+            nLocationsPlotted=10;
+            nLocations=ceil(size(xint,1));
+            nStride=nLocations/nLocationsPlotted;
+            xint=xint(1:nStride:end,1);
+            yint=yint(1:nStride:end,1);
+            exx=exx(1:nStride:end,1);
+            eyy=eyy(1:nStride:end,1);
+            exy=exy(1:nStride:end,1);
+
+            PlotTensor(xint/CtrlVar.PlotXYscale,yint/CtrlVar.PlotXYscale,exx,exy,eyy,scale,LineWidth)
 
         case "eta node"  % effective strain rate
 
@@ -417,22 +417,22 @@ else
             etaInt=calcStrainRatesEtaInt(CtrlVar,MUA,F.ub,F.vb,F.AGlen,F.n); % returns integration point values
 
 
-            fFigHist=FindOrCreateFigure(options.FigureTitle+"Hist")  ; clf(fFigHist)  ; 
-            histogram((log10(etaInt(:))),Normalization="probability") ; 
-            hold on ; 
+            fFigHist=FindOrCreateFigure(options.FigureTitle+"Hist")  ; clf(fFigHist)  ;
+            histogram((log10(etaInt(:))),Normalization="probability") ;
+            hold on ;
             xline(log10(CtrlVar.etaZero),'r',LineWidth=2)
 
 
-            fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ; 
+            fFig=FindOrCreateFigure(options.FigureTitle)  ; clf(fFig)  ;
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,log10(etaInt));
             title(cbar,"(kPa yr)",Interpreter="latex")
             title(sprintf("log10 of effective viscosity at integration points \n t=%g",CtrlVar.time),Interpreter="latex")
 
 
 
-    
 
-        case {"surface slope","-surface slope-"} 
+
+        case {"surface slope","-surface slope-"}
 
             [dfdx,dfdy]=calcFEderivativesMUA(F.s,MUA,CtrlVar) ;
             slope=sqrt(dfdx.*dfdx+dfdy.*dfdy) ;
@@ -444,7 +444,7 @@ else
         case {"log(ab)","-log(ab)-"}
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,-F.ab);
-            set(gca,'ColorScale','log') 
+            set(gca,'ColorScale','log')
             title(cbar,"$-a_b$ (m/yr)",Interpreter="latex")
             title("\textbf{Basal melt rates}",Interpreter="latex",FontSize=16)
             CM=cmocean('-thermal',20) ; CM(1,:)=[0.9 0.9 0.9]  ; colormap(CM);
@@ -512,10 +512,10 @@ if options.ShowMinIcethicknessLocations
 
     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,CtrlVar.ThickMin+eps(CtrlVar.ThickMin));
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=2,DisplayName="Min thick")
-     [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,2*CtrlVar.ThickMin);
+    [xc,yc]=CalcMuaFieldsContourLine(CtrlVar,MUA,F.h,2*CtrlVar.ThickMin);
     plot(xc/CtrlVar.PlotXYscale,yc/CtrlVar.PlotXYscale,"g",LineWidth=1,DisplayName="Twice min thick")
-   
-    
+
+
     title(sprintf("Nodes at/less than min thick (%i/%i)",nAtMinThick,nLessThanMinThick))
     lg=legend();
 
