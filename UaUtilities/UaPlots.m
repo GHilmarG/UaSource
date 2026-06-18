@@ -303,7 +303,9 @@ else
 
         case {"speed","-speed-"}
 
-            speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
+            us=F.ub+F.ud;
+            vs=F.vb+F.vd;
+            speed=sqrt(us.*us+vs.*vs) ;
 
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\| \mathbf{v} \|$",Interpreter="latex")
@@ -311,7 +313,11 @@ else
 
         case {"log10speed","-log10speed-"}
 
-            speed=sqrt(F.ub.*F.ub+F.vb.*F.vb) ;
+            us=F.ub+F.ud;
+            vs=F.vb+F.vd;
+            speed=sqrt(us.*us+vs.*vs) ;
+
+         
             [~,cbar]=PlotMeshScalarVariable(CtrlVar,MUA,speed);
             title("$\log_{10}(\| \mathbf{v} \|)$",Interpreter="latex")
             title(cbar,["$\log_{10}(\| \mathbf{v} \|)$","(m/yr)"],Interpreter="latex")
