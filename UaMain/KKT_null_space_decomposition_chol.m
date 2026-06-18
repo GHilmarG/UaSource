@@ -2,6 +2,8 @@
 
 
 function [x, lambda] = KKT_null_space_decomposition_chol(H, g, A, b)
+
+%%
 % KKT_NULL_SPACE_CHOL  Solves the KKT system using the null space method
 %                      with sparse Cholesky factorisation via the MATLAB
 %                      decomposition object.
@@ -28,9 +30,24 @@ function [x, lambda] = KKT_null_space_decomposition_chol(H, g, A, b)
 % Outputs:
 %   x      - (n x 1) primal solution vector
 %   lambda - (m x 1) dual solution vector (KKT multipliers)
+%%
+
+
 
 % --- Input validation ---
 [m, n] = size(A);
+
+
+if isempty(A) || ( m==0 && n==0)   % In this case there is no A matrix and I just use the backslash operator. 
+    % This is here to cover this special case and make it possible to call this
+    % function even if there is not KKT system as such.
+
+    x=H\g; lambda=[];
+
+    return
+end
+
+
 assert(n == size(H,1),  'H and A must have compatible dimensions');
 assert(n == size(H,2),  'H must be square');
 assert(m == length(b),  'A and b must have compatible dimensions');
