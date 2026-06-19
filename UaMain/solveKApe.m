@@ -291,6 +291,9 @@ if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
     tRSDS=toc(tRSDS);
     fprintf("        Range Space Decompositon Scaled: %f sec\n \n",tRSDS);
     fprintf("---------------\n")
+
+    fprintf("Projected/Null Space=%f \t Range Space/Null Space=%f \n",tAL/tNS,tRSDS/tNS)
+
 end
 
 

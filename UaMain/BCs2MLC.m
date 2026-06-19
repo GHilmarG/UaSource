@@ -40,7 +40,7 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 if CtrlVar.BCsRowSubsetSelection
 
-    fprintf("BCs2MLC: Checking ifboundary conditions are linearly independent.\n")
+    fprintf("BCs2MLC: Checking if boundary conditions are linearly independent.\n")
 
     [ubvbL,row_idx,flag] = RowSubsetSelection(ubvbL);
     if flag==1
