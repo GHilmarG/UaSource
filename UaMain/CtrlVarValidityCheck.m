@@ -525,8 +525,18 @@ if isfield(CtrlVar,"ThicknessBarrierMassBalanceFeedbackCoeffCubic")
 
 end
 
+if CtrlVar.ForwardTimeIntegration=="-uv-h-" && CtrlVar.FlowApproximation=="SSHEET"
 
+    fprintf("-------------> WARNING: The combination: \n")
+    fprintf(" CtrlVar.ForwardTimeIntegration=%s \n", CtrlVar.ForwardTimeIntegration)
+    fprintf(" CtrlVar.FlowApproximation=%s \n", CtrlVar.FlowApproximation)
+    fprintf("\t is not recommended. \n")
+    fprintf("Instead solve transient flow in the SSHEET approximaton set: \n ")  
+    fprintf('CtrlVar.ForwardTimeIntegration=="-uvh-" \n')
+    fprintf("This does a fully implicit solve with respect to h and provides uv as well.\n")
+    warning("CtrlVarValidityCheck:SSHEET","parameter combination not recommended, see above. \n")
 
+end
 
 end
 
