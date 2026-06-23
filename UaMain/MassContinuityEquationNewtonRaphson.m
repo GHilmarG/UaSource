@@ -13,7 +13,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 %
 % subject to 
 %
-% $$h(x,y,t)  h_{\min} 0$$
+% $$h(x,y,t) \ge h_{\min} $$
 %
 % for $h$, using an implicit approach with respect to $h$.
 %
