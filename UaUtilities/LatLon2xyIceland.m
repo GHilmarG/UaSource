@@ -1,4 +1,4 @@
-function [lat,lon]=LatLon2xyIceland(x,y)
+function [x,y]=LatLon2xyIceland(lat,lon)
 
 %%
 %
@@ -27,7 +27,7 @@ mstruct=defaultm(mstruct);
 
 
 
-[lat,lon]=projfwd(mstruct,x,y) ;
+[x,y]=projfwd(mstruct,lat,lon) ;
 
 
 
