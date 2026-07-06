@@ -143,7 +143,7 @@ if ~isempty(Meas.B)
     UaPlots(CtrlVar,MUA,F,Meas.B,CreateNewFigure=false);
     climMeasured=clim;
     %hold on ; PlotGroundingLines(); PlotCalvingFronts();
-    title("$B_{\mathrm{Meas}} (projected onto nodes)$",Interpreter="latex")
+    title("$B_{\mathrm{Meas}}$ (projected onto nodes)",Interpreter="latex")
     subtitle("")
     hold on
     plot(F.x(I)/CtrlVar.PlotXYscale,F.y(I)/CtrlVar.PlotXYscale,".k",MarkerSize=3,DisplayName="Meas. locations")
