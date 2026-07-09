@@ -50,7 +50,7 @@ function [cbar,xGL,yGL,xCF,yCF,CtrlVar,lg]=UaPlots(CtrlVar,MUA,F,Variable,option
 %     dub=F1.ub-F0.ub ; dvb=F1.vb-F0.vb ;
 %     UaPlots(CtrlVar,MUA,F1,[dub dvb],FigureTitle="(duv)")
 %
-% Log color scale:
+% Log color scale: set(gca,'ColorScale','log')
 %
 %    cbar=UaPlots(CtrlVar,MUA,F,abs(F.ab)); set(gca,'ColorScale','log')
 %
