@@ -7,6 +7,67 @@
 function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
 
 %%
+%
+% Remark: Noticed in July 2026, that this was done for $$\tau=1$$, which is OK, but not the most general expression
+%
+% If we solve the equation:
+%
+% $$\tau \; (\kappa^2 - \Delta)^{\alpha/2} \;  B(x) = W(x) $$
+%
+% $$x \in \mathcal{R}^d $$ 
+%
+% with $$W(x)$$ uncorrelated Gaussian white noise. Then the resulting covariance is 
+%
+% $$ C(h) = \frac{\sigma^2}{2^{\nu - 1}\, \Gamma(\nu)} \left(\kappa \|h\|\right)^{\nu} K_{\nu}\!\left(\kappa  \|h\|\right) $$
+%
+% where
+%
+% $$h=(x-x_0,y-y_0) $$ as the covariance is isotropic. 
+%
+%
+% Here we have
+%
+% $$\nu = \alpha - \frac{d}{2}$$
+%
+% where $$d$$ is the dimension, i.e $$d=2$$ in the xy plane, and the marginal variance is
+%
+% $$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$
+%
+% The correlation function $$\rho(h)$$ is simply the covariance normalized to give $\rho(h=0)=1$$ and is
+%
+% $$ \rho(h) = \frac{C(h)}{\sigma^2} $$
+% 
+%
+% We have several parameters that need to be selected. Of those $$d$$ is not really a free parameter but given by
+% the physical dimension of the problem. 
+%
+% I can select $$\kappa$$, $$\alpha$$ and $$\tau$$ with $$d=2$$ and then set
+%
+%
+% $$\nu = \alpha - \frac{d}{2}$$
+% 
+% and 
+%
+% $$\sigma^2 = \frac{\Gamma(\nu)}{\Gamma(\alpha)\, (4\pi)^{d/2}\, \kappa^{2\nu}\, \tau^2} $$
+%
+% This makes sense if I'm thinking about the parameters of the differential operator as independent. 
+%
+% Alternatively, I can select $$\sigma^2$$ and $\alpha$ with $$d=2$$, but this is not enough and I will additionally
+% need to fix $$\kappa$$. This is often done by selecting the distance over which the correlation drops to 0.1 which
+% turns out to be related to $$\kappa$$ and $\nu$$, so this is really just another way of selecting $$\kappa$$. This
+% gives
+%
+% $$\kappa=\frac{\sqrt{8 \nu}}{\rho}$$
+%
+% where $$\rho$$ in this expression is the distance at which the correlation drops to 0.1
+% 
+% This is arguably the most physical way of thinking about this.I select $$\alpha$$ which controls the smoothness. This
+% gives me $$\nu$$ since $$d$ is not really a free parameter. Then fix a correlation length $$\rho$$ which gives me
+% $$\kappa$$ from the above equation. I now also need to select $$\sigma^2$$, which relates to the uncertainty in the
+% magnitude of the prior. I can then calculate $$\tau$$ from the expression for $$\sigma^2$$.
+%
+%
+% 
 %  [r,nu,kappa,sigma2,Cov,Realisation]=Matern(alpha,rho,d,x,sigma2,DoPlots)
 %
 % Calculates the Matern covariance defined as
@@ -15,27 +76,27 @@ function [r,nu,kappa,sigma2Helmholtz,Cov,Realisation]=Matern(alpha,rho,d,x,sigma
 %
 % Inputs:
 %
-%    alpha   :   alpha/2 is the exponent in the fractional Helmholtz eqaution
+%    alpha   :   alpha/2 is the exponent in the fractional Helmholtz equation
 %    rho     :   distance where correlation falls to 0.1
-%    d       :   spatial dimention
+%    d       :   spatial dimension
 %
 %    sigma2  :   marginal variance, (optional input)
-%   DoPlots  :   plots of realisations if set to true (optional input)
+%   DoPlots  :   plots of realizations if set to true (optional input)
 %
 % Outputs: 
 %
 %       nu              :   nu=alpha-d/2; 
-%    kappa              :   the wave-number inthe Helmholtz equation
+%    kappa              :   the wave-number in the Helmholtz equation
 %    sigma2Helmholtz    :   marginal variance of the Helmholtz equation for the given
 %                           kappa and alpha values 
 %    Cov                :   covariance matrix with the marginal covariance
 %                           sigma2, if sigma2 is provided, otherwise with the
 %                           marginal covariance sigma2Helmholtz
-%    Realisation        :   One realisation of a Matern process. 
+%    Realisation        :   One realization of a Matern process. 
 % 
 % $$\nu=\alpha-d/2$$
 %
-% for d=2 (i.e. two spatial dimentions) we have nu=2-1=1
+% for d=2 (i.e. two spatial dimensions) we have nu=2-1=1
 %
 %  rho=sqrt(8 nu)/kappa then given rho 
 %
@@ -77,7 +138,8 @@ nu=alpha-d/2;  % ie nu=1 for alpha=2 and dimension=2
 
 kappa=sqrt(8*nu)/rho;
 
-sigma2Helmholtz=gamma(nu) /  ( gamma(nu+d/2)*(4*pi)^(d/2)*kappa^(2*nu));
+% sigma^2 : the marginal variance 
+sigma2Helmholtz=gamma(nu) /  ( gamma(alpha)*(4*pi)^(d/2)*kappa^(2*nu));
 
 if nargin<5 || isempty(sigma2)
     % Eq 1
@@ -88,7 +150,7 @@ dist=x ; % for plotting purposes
 x=kappa * x ;
 
 % this sigma2 should be referred to as sigma^2
-% some other sources appear to use a different defintion of rho 
+% some other sources appear to use a different definition of rho 
 % for example rho in https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function
 % appear to be 1/2 of the rho I use here
 % My notation is based on: 

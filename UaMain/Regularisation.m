@@ -458,15 +458,19 @@ else  % Andrey Tikhonov regularization
 
     if isA
 
+        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
+
         NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-        %RAGlen=dpA'*NA*dpA/2;
+       
         dRdAGlen=(NA*dpA).*dAfactor;
 
-        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
+        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
+                                              % can be used for L-curve analysis. These do not include gaA and gsA
         RAa= dpA'    *M    *dpA   /(2*Area);
         RAGlen=gsA.^2*RAs+gaA.^2*RAa;
-
         RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+
+
 
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
@@ -556,6 +560,7 @@ else  % Andrey Tikhonov regularization
         % 1) The 'usual' large-scale correlation which here is a Marten covariance,
         % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
         %
+        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
         NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
         dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
@@ -567,6 +572,9 @@ else  % Andrey Tikhonov regularization
 
             % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+            %
+            % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
+            % distinction is simply rhetorical as these terms are all added up
 
             Berr=sqrt(spdiags(Meas.BCov));
 
