@@ -456,6 +456,10 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
 
 else  % Andrey Tikhonov regularization
 
+    % the expression for the prior, is
+    %
+    % $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
+
     if isA
 
         %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
@@ -561,10 +565,12 @@ else  % Andrey Tikhonov regularization
         % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
         %
         %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
-        NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
-        dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
-        ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+
+        
+        QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+        RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
+        dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+        ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
         % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
 
 
