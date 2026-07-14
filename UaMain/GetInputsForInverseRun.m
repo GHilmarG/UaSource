@@ -171,6 +171,13 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
     end
 
+    if anynan(Meas.B)
+
+        fprintf('Meas.B contains NaN.\n')
+        error('GetInputsForInverseRun:Meas.BHasNaNs')
+
+
+    end
 
 
 end

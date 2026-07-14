@@ -9,10 +9,11 @@ function [x,y]=LatLon2xyIceland(lat,lon)
 %  mstruct = projcrs(326??);  % e.g. EPSG 32627 is the standard EPSG code for WGS84 / UTM zone 27N
 %  [Lat, Lon] = projinv(mstruct, X, Y);
 %
+% the Icelandic system is know as: EPSG 3057
+%
 % requires the MATLAB mapping toolbox
 %
 % see also: xy2LatLonIceland
-%
 %%
 
 mstruct=defaultm('lambertstd');

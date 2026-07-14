@@ -9,6 +9,10 @@ function [lat,lon]=xy2LatLonIceland(x,y)
 %
 % requires the MATLAB mapping toolbox
 %
+% 
+% the Icelandic system is know as: EPSG 3057
+% 
+% 
 % see also: LatLon2xyIceland
 %
 %

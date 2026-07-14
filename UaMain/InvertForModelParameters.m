@@ -80,6 +80,29 @@ narginchk(11,11)
 %
 % $$ d_B J = \langle (d_B F)^* | \lambda \rangle + \partial_B J $$
 %
+% * $$B$$ inversion
+%
+%
+% $$J(B) = \frac{1}{2}\left(d_{obs}-d_{modelled} \right)^{T}C_d^{-1}\left(d_{obs}-d_{modelled}\right) + \frac{1}{2}\left(B_{obs}-G_{obs}B\right)^{T}C_{B_{obs}}^{-1}\left(B_{obs}-G_{obs}B\right) + \frac{1}{2}\left(B-B_{prior}\right)^{T}Q\;\left(B-B_{prior}\right)$$
+%
+% Gauss-Newton system
+%
+% $$\left(J_f^{T}C_d^{-1}J_f + G_{obs}^{T}C_{B_{obs}}^{-1}G_{obs} + Q\;\right) \;\Delta B = J_f^{T}C_d^{-1}\left(d_{obs}-d_{modelled}\right) + G_{obs}^{T}C_{B_{obs}}^{-1}\left(B_{obs}-G_{obs}B\right) + Q\;\left(B_{prior}-B\right)$$
+%
+% $$J_f$$ is the directional derivative of the forward model
+%
+% $$d_{modelled} = f(B) $$
+%
+% that is
+%
+%
+% $$D_{\delta B}f(B) = J_f\,\delta B = \lim_{\epsilon\to0}\frac{f(B+\epsilon\,\delta B)-f(B)}{\epsilon} $$
+%
+% $$\langle J_f\,\delta B,\, w\rangle_Y = \langle \delta B,\, J_f^{*}w\rangle_X$$
+% 
+% where $X$ and $Y$ are infinite-dimensional Hilbert spaces. The adjoint PDE is derived from the (continuous) forward model
+% before it is discretized. 
+%
 %%
 
 if isempty(CtrlVar.Inverse.InitialLineSearchStepSize) ||  CtrlVar.Inverse.InitialLineSearchStepSize==0

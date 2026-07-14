@@ -456,17 +456,25 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
 
 else  % Andrey Tikhonov regularization
 
+    % the expression for the prior, is
+    %
+    % $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
+
     if isA
 
+        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
+
         NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-        %RAGlen=dpA'*NA*dpA/2;
+       
         dRdAGlen=(NA*dpA).*dAfactor;
 
-        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
+        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
+                                              % can be used for L-curve analysis. These do not include gaA and gsA
         RAa= dpA'    *M    *dpA   /(2*Area);
         RAGlen=gsA.^2*RAs+gaA.^2*RAa;
-
         RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+
+
 
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
@@ -492,31 +500,27 @@ else  % Andrey Tikhonov regularization
 
     if isC
 
-        % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
-        % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
-        % two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
-        % would be to add eps to the diagonal of Dxx and Dyy.
+   
 
-        Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
-        Dxx=Dxx+Ieps ; Dyy=Dyy+Ieps ;
+        %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
 
-        NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-        %RC=dpC'*NC*dpC/2;
-        dRdC=(NC*dpC).*dCfactor;
+        QC=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaC,gsC,CtrlVar.Inverse.Methodology);
+        RC=0.5*dpC'*QC*dpC;           % costs function term
+        dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
 
-        RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
-        RCa= dpC'    *M    *dpC   /(2*Area);
-        RC=gsC.^2*RCs+gaC.^2*RCa;
+        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+            RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
+            RCa= dpC'    *M    *dpC   /(2*Area);
+            RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
+        end
 
-
-        RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
             ddRdAA=sparse(N,N);
         elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             if contains(CtrlVar.Inverse.Hessian,"RHC=E")
 
-                ddRdCC=NC.*dCfactor;
+                ddRdCC=QC.*dCfactor;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
                 ddRdCC=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
@@ -556,10 +560,13 @@ else  % Andrey Tikhonov regularization
         % 1) The 'usual' large-scale correlation which here is a Marten covariance,
         % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
         %
-        NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
-        dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
-        ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
+
+        QB=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaB,gsB,CtrlVar.Inverse.Methodology);
+        %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+        RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
+        dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+        ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
         % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
 
 
@@ -567,6 +574,9 @@ else  % Andrey Tikhonov regularization
 
             % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+            %
+            % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
+            % distinction is simply rhetorical as these terms are all added up
 
             Berr=sqrt(spdiags(Meas.BCov));
 
