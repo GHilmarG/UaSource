@@ -2,7 +2,7 @@
 
 
 
-function PrecisionMatrixMatern(CtrlVar,M,D,alpha,kappa,tau)
+function Q=PrecisionMatrixMatern(MUA,alpha,kappa,tau,ga,gs,Methodology)
 
 %%
 % *Precision matrix*
@@ -64,19 +64,45 @@ function PrecisionMatrixMatern(CtrlVar,M,D,alpha,kappa,tau)
 % Matern hyper-parameters and the $$\kappa$$ and $$\tau$$ parameters.
 %%
 
-%QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
-NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
-dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
-ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
-% To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
+% Area=MUA.Area;
+
+M=MUA.M;
+D=MUA.Dxx+MUA.Dyy;
+
+% I discovered that it can happen that the smallest eigenvalue of D is slightly
+% negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
+% two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
+% would be to add eps to the diagonal of Dxx and Dyy. This should not really be an issue, unless there is next-to-no
+% M contribution being added.
+
+Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
+D=D+Ieps ; 
+
+%  MUA.M=MassMatrix2D1dof(MUA);
+% [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
+
+
+if Methodology=="-Tikhonov-" 
+
+    %Q=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+    
+    alpha=1;
+    tau=gs/sqrt(Area);
+    kappa=ga/gs;
+
+end
+
+A = kappa^2*M + D;
 
 if alpha==1
 
-
+    % Q1
+    Q = tau^2 * A ;
 
 elseif alpha==2
 
+    % Q2
+    Q = tau^2 * A * sparse(1:n,1:n,1./row_sums,n,n) * A;
 
 else
 

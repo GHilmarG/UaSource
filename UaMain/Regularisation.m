@@ -500,31 +500,27 @@ else  % Andrey Tikhonov regularization
 
     if isC
 
-        % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
-        % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
-        % two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
-        % would be to add eps to the diagonal of Dxx and Dyy.
+   
 
-        Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
-        Dxx=Dxx+Ieps ; Dyy=Dyy+Ieps ;
+        %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
 
-        NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-        %RC=dpC'*NC*dpC/2;
-        dRdC=(NC*dpC).*dCfactor;
+        QC=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaC,gsC,CtrlVar.Inverse.Methodology);
+        RC=0.5*dpC'*QC*dpC;           % costs function term
+        dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
 
-        RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
-        RCa= dpC'    *M    *dpC   /(2*Area);
-        RC=gsC.^2*RCs+gaC.^2*RCa;
+        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+            RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
+            RCa= dpC'    *M    *dpC   /(2*Area);
+            RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
+        end
 
-
-        RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
             ddRdAA=sparse(N,N);
         elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             if contains(CtrlVar.Inverse.Hessian,"RHC=E")
 
-                ddRdCC=NC.*dCfactor;
+                ddRdCC=QC.*dCfactor;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
                 ddRdCC=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
@@ -566,8 +562,8 @@ else  % Andrey Tikhonov regularization
         %
         %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
 
-        
-        QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+        QB=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaB,gsB,CtrlVar.Inverse.Methodology);
+        %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
         dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
         ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term

@@ -34,7 +34,7 @@ function [C,nu,kappa,sigma2,tau,Cov,Realisation,coords]=Matern(sigma2,alpha,rho,
 %
 % $$W(x)$$ is not a function, but a generalized field defined by its action on test functions,
 %
-% $$\mathbb{E}\left[\langle\mathcal{W},\phi_i\rangle\langle\mathcal{W},\phi_j\rangle\right] = (\phi_i,\phi_j)_{L^2} =  M_{ij}$$
+% $$E \left[\langle\mathcal{W},\phi_i\rangle\langle\mathcal{W},\phi_j\rangle\right] = (\phi_i,\phi_j)_{L^2} =  M_{ij}$$
 %
 % Here we have
 %
