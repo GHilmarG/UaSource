@@ -88,10 +88,14 @@ D=D+Ieps ;
 if Methodology=="-Tikhonov-" 
 
     %Q=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-    
+
     alphaMatern=1;
     tauMatern=gs/sqrt(Area);
-    kappaMatern=ga/gs;
+    if ga==0
+        kappaMatern=0;
+    else
+        kappaMatern=ga/(gs+eps(gs));
+    end
 
 end
 
@@ -105,6 +109,7 @@ if alphaMatern==1
 elseif alphaMatern==2
 
     % Q2
+    row_sums = sum(M,2);
     Q = tauMatern^2 * A * sparse(1:n,1:n,1./row_sums,n,n) * A;
 
 else

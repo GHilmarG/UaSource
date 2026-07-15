@@ -1043,15 +1043,15 @@ CtrlVar.Inverse.Regularize.B.ga=[];
 %
 CtrlVar.Inverse.Matern.logAGlen.alpha=[];
 CtrlVar.Inverse.Matern.logAGlen.kappa=[];
-CtrlVar.Inverse.Matern.logAGlen.sigma=[];
+CtrlVar.Inverse.Matern.logAGlen.tau=[];
 
 CtrlVar.Inverse.Matern.logC.alpha=[];
 CtrlVar.Inverse.Matern.logC.kappa=[];
-CtrlVar.Inverse.Matern.logC.sigma=[];
+CtrlVar.Inverse.Matern.logC.tau=[];
 
 CtrlVar.Inverse.Matern.B.alpha=[];
 CtrlVar.Inverse.Matern.B.kappa=[];
-CtrlVar.Inverse.Matern.B.sigma=[];
+CtrlVar.Inverse.Matern.B.tau=[];
 
 
 

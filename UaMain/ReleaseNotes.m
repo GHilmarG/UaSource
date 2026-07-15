@@ -2,8 +2,25 @@
 
 %%
 %
+% *Release Notes* _July 2026_
 %
-% *Release Notes* _June 2025_
+% * An option added to use Matern covariance matrices in an inversion. The resulting precision matrices are either:
+%
+%
+% $$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$
+%
+% or
+%
+% $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$
+%
+% where $M$ is the mass matrix, $\tilde{M}$ the lumped mass matrix, $D$ the stiffness matrix, and $\alpha$, $\kappa$ and $\tau$ are (hyper) parameters.  This option
+% is activated by setting:
+%
+%  CtrlVar.Inverse.Methodology="-Matern-" ;
+%
+% and there is extensive description of this approach in the UaCompendium.
+%
+% *Release Notes* _June 2026_
 %
 % * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
 % indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
@@ -22,7 +39,7 @@
 %
 %   CtrlVar.BCsRowSubsetSelection=true; 
 %
-% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a QR decomposition of Aeq, but since Aeq is
 % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
 % required in the first place by ensuring that the boundary conditions contain no redundancies. 
 %
@@ -60,7 +77,7 @@
 % requires the construction of a basis for the null-space of Aeq.
 %
 %
-% *Release Notes* _January 2025_
+% *Release Notes* _January 2026_
 %
 % When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
 % thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if
@@ -84,7 +101,7 @@
 %
 % * The mesh2d package updated to latest version.
 %
-% * SuiteSparse folder deleted, as now is part of core MATLAB functionality (since R2024a)
+% * SuiteSparse folder deleted, as it is now part of core MATLAB functionality (since R2024a)
 %
 % * MATLAB seems to have been busy working on their optimization functions, and the performance of using
 %
@@ -187,12 +204,12 @@
 % product to the integration points.
 %
 % * Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
-% ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
+% ahead of a call to Ua. However, note that this might also depend on user settings for the parallel pool. For example if the
 % user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
 % all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
 % * Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
+% done to reduce then umber of calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
 % called within the assembly loop and then the mass balance will not lag behind.
 %

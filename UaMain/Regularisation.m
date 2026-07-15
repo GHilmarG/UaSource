@@ -462,29 +462,16 @@ else  % Andrey Tikhonov regularization or Matern
 
     if isA
 
+     
+
         alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
-        kappaMatern=nan;
-        tauMatern=nan; 
-
-        CtrlVar.Inverse.Matern.logAGlen.alpha=[];
-        CtrlVar.Inverse.Matern.logAGlen.rho=[];
-        CtrlVar.Inverse.Matern.logAGlen.sigma=[];
-
-        CtrlVar.Inverse.Matern.logC.alpha=[];
-        CtrlVar.Inverse.Matern.logC.rho=[];
-        CtrlVar.Inverse.Matern.logC.sigma=[];
-
-        CtrlVar.Inverse.Matern.B.alpha=[];
-        CtrlVar.Inverse.Matern.B.rho=[];
-        CtrlVar.Inverse.Matern.B.sigma=[];
-
-
-
+        kappaMatern=CtrlVar.Inverse.Matern.logAGlen.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.logAGlen.tau;
 
 
         QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
         RA=0.5*dpA'*QA*dpA;           % costs function term
-        dRdA=(QA*dpA).*dafactor;      % derivative, accounting for possible log
+        dRdA=(QA*dpA).*dAfactor;      % derivative, accounting for possible log
 
         if nargout > 3  % this is here for a possible info, and useful when calculating L curves
             RA= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
@@ -510,7 +497,7 @@ else  % Andrey Tikhonov regularization or Matern
         elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
             if contains(CtrlVar.Inverse.Hessian,"RHA=E")
-                ddRdAA=NA.*dAfactor;
+                ddRdAA=QA.*dAfactor;
             elseif contains(CtrlVar.Inverse.Hessian,"RHA=M")
                 ddRdAA=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.Hessian,"RHA=I") || contains(CtrlVar.Inverse.Hessian,"RHA=1")
@@ -531,6 +518,10 @@ else  % Andrey Tikhonov regularization or Matern
    
 
         %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
+
+        alphaMatern=CtrlVar.Inverse.Matern.logC.alpha;
+        kappaMatern=CtrlVar.Inverse.Matern.logC.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.logC.tau;
 
         QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
         RC=0.5*dpC'*QC*dpC;           % costs function term
@@ -590,6 +581,9 @@ else  % Andrey Tikhonov regularization or Matern
         %
         %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
 
+        alphaMatern=CtrlVar.Inverse.Matern.B.alpha;
+        kappaMatern=CtrlVar.Inverse.Matern.B.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.B.tau;
         QB=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaB,gsB,CtrlVar.Inverse.Methodology);
         %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
