@@ -989,7 +989,7 @@ CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoin
 % Default is Tikhonov regularization on log(A) and log(C)
 %
 
-CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" 
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" or "-Matern-"
 %
 % If using Bayesian inverse methodology the covariance matrix of the priors MUST
 % be defined, and it can be dense (although computationally doing so might slow
@@ -1003,11 +1003,16 @@ CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
 %%
-% [ -- Parameters specific to Tikhonov regularization. See the above definition
-% of the regularization term R in the case of Tikhonov regularization. The
-% values of these parameters can be expected to be highly problem dependent. By
-% default regularization is switched on, but can the switched off by setting the
-% gs and the ga parameters to zero.
+% Parameters specific to Tikhonov regularization. See the above definition of the regularization term R in the case of
+% Tikhonov regularization. The values of these parameters can be expected to be highly problem dependent. By default
+% regularization is undefined.
+%
+% These Tikhonov regularization parameters are used by setting:
+%
+%   CtrlVar.Inverse.Methodology="-Tikhonov-" ;
+%
+%
+
 
 CtrlVar.Inverse.Regularize.AGlen.gs=[];
 CtrlVar.Inverse.Regularize.AGlen.ga=[];
@@ -1022,6 +1027,34 @@ CtrlVar.Inverse.Regularize.logC.gs=[] ;
 
 CtrlVar.Inverse.Regularize.B.gs=[];  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
 CtrlVar.Inverse.Regularize.B.ga=[];
+
+%%
+% Parameters specific to the use of Matern covariance for the priors.
+%
+% These Matern covariance parameters are used by setting:
+%
+%   CtrlVar.Inverse.Methodology="-Matern-" ;
+%
+% Note: One can not mix -Tikhonov- and -Matern- methodologies, and the same approach must be used for all inverted fields in
+% a given inversion. 
+%
+% There is an extensive discussion of this in the UaCompendium, where it is explained how one can calculate the Matern
+% parameters from the Tikhonov parameters, which is only possibly for alpha=1, and vice versa. 
+%
+CtrlVar.Inverse.Matern.logAGlen.alpha=[];
+CtrlVar.Inverse.Matern.logAGlen.kappa=[];
+CtrlVar.Inverse.Matern.logAGlen.sigma=[];
+
+CtrlVar.Inverse.Matern.logC.alpha=[];
+CtrlVar.Inverse.Matern.logC.kappa=[];
+CtrlVar.Inverse.Matern.logC.sigma=[];
+
+CtrlVar.Inverse.Matern.B.alpha=[];
+CtrlVar.Inverse.Matern.B.kappa=[];
+CtrlVar.Inverse.Matern.B.sigma=[];
+
+
+
  %  -]
 CtrlVar.Inverse.StoreSolutionAtEachIteration=0; % if true then inverse solution at each iteration is saved in the RunInfo variable.
 %%

@@ -228,8 +228,8 @@ end
 
 % Add up field by field
 
-RAGlen=0;
-dRdAGlen=[];
+RA=0;
+dRdA=[];
 ddRdAA=[];
 
 RC=0;
@@ -395,13 +395,13 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
     if isA
         npA=numel(dpA);
         temp=pPriorCovA\dpA;
-        RAGlen=dpA'*temp/(2*npA)   ;
-        dRdAGlen=temp/npA;
+        RA=dpA'*temp/(2*npA)   ;
+        dRdA=temp/npA;
         %ddRdAA=inv(Priors.CovC)/2/N;
         ddRAddpA=[];
     else
-        RAGlen=0;
-        dRdAGlen=[];
+        RA=0;
+        dRdA=[];
 
     end
 
@@ -449,12 +449,12 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
 
 
 
-    R=RAGlen+Rb+RC;
-    dRdp=[dRdAGlen;dRdb;dRdC];
+    R=RA+Rb+RC;
+    dRdp=[dRdA;dRdb;dRdC];
 
 
 
-else  % Andrey Tikhonov regularization
+else  % Andrey Tikhonov regularization or Matern
 
     % the expression for the prior, is
     %
@@ -462,17 +462,45 @@ else  % Andrey Tikhonov regularization
 
     if isA
 
-        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
+        alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
+        kappaMatern=nan;
+        tauMatern=nan; 
 
-        NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-       
-        dRdAGlen=(NA*dpA).*dAfactor;
+        CtrlVar.Inverse.Matern.logAGlen.alpha=[];
+        CtrlVar.Inverse.Matern.logAGlen.rho=[];
+        CtrlVar.Inverse.Matern.logAGlen.sigma=[];
 
-        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
-                                              % can be used for L-curve analysis. These do not include gaA and gsA
-        RAa= dpA'    *M    *dpA   /(2*Area);
-        RAGlen=gsA.^2*RAs+gaA.^2*RAa;
-        RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+        CtrlVar.Inverse.Matern.logC.alpha=[];
+        CtrlVar.Inverse.Matern.logC.rho=[];
+        CtrlVar.Inverse.Matern.logC.sigma=[];
+
+        CtrlVar.Inverse.Matern.B.alpha=[];
+        CtrlVar.Inverse.Matern.B.rho=[];
+        CtrlVar.Inverse.Matern.B.sigma=[];
+
+
+
+
+
+        QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
+        RA=0.5*dpA'*QA*dpA;           % costs function term
+        dRdA=(QA*dpA).*dafactor;      % derivative, accounting for possible log
+
+        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+            RA= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
+            RAa= dpA'    *M    *dpA   /(2*Area);
+            RegOuts.RAs=RA  ; RegOuts.RAa=RAa;
+        end
+
+        % %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
+        % 
+        % % NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
+        % dRdAGlen=(NA*dpA).*dAfactor;
+        % RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
+        %                                       % can be used for L-curve analysis. These do not include gaA and gsA
+        % RAa= dpA'    *M    *dpA   /(2*Area);
+        % RA=gsA.^2*RA+gaA.^2*RAa;
+        % RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
 
 
 
@@ -504,7 +532,7 @@ else  % Andrey Tikhonov regularization
 
         %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
 
-        QC=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaC,gsC,CtrlVar.Inverse.Methodology);
+        QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
         RC=0.5*dpC'*QC*dpC;           % costs function term
         dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
 
@@ -562,7 +590,7 @@ else  % Andrey Tikhonov regularization
         %
         %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
 
-        QB=PrecisionMatrixMatern(MUA,alpha,kappa,tau,gaB,gsB,CtrlVar.Inverse.Methodology);
+        QB=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaB,gsB,CtrlVar.Inverse.Methodology);
         %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
         RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
         dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
@@ -635,12 +663,12 @@ else  % Andrey Tikhonov regularization
 
 
     % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdAGlen);
+    dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdA);
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdC);
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdB);
 
-    R=RAGlen+RB+RC;
-    dRdp=[dRdAGlen;dRdB;dRdC];
+    R=RA+RB+RC;
+    dRdp=[dRdA;dRdB;dRdC];
     %
     % tic
     % [Am,An] = size(ddRdAA);
@@ -667,8 +695,8 @@ if nargout > 3
     RegOuts.ddRddp=ddRdpp;
 
 
-    RegOuts.RAGlen=RAGlen;
-    RegOuts.dRdAGlen=dRdAGlen;
+    RegOuts.RAGlen=RA;
+    RegOuts.dRdAGlen=dRdA;
 
     RegOuts.RC=RC;
     RegOuts.dRdC=dRdC;

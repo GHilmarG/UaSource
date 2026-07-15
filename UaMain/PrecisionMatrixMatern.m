@@ -2,7 +2,11 @@
 
 
 
-function Q=PrecisionMatrixMatern(MUA,alpha,kappa,tau,ga,gs,Methodology)
+function Q=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,ga,gs,Methodology)
+
+narginchk(7,7)
+nargoutchk(1,1)
+
 
 %%
 % *Precision matrix*
@@ -64,8 +68,7 @@ function Q=PrecisionMatrixMatern(MUA,alpha,kappa,tau,ga,gs,Methodology)
 % Matern hyper-parameters and the $$\kappa$$ and $$\tau$$ parameters.
 %%
 
-% Area=MUA.Area;
-
+Area=MUA.Area;
 M=MUA.M;
 D=MUA.Dxx+MUA.Dyy;
 
@@ -86,23 +89,23 @@ if Methodology=="-Tikhonov-"
 
     %Q=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
     
-    alpha=1;
-    tau=gs/sqrt(Area);
-    kappa=ga/gs;
+    alphaMatern=1;
+    tauMatern=gs/sqrt(Area);
+    kappaMatern=ga/gs;
 
 end
 
-A = kappa^2*M + D;
+A = kappaMatern^2*M + D;
 
-if alpha==1
+if alphaMatern==1
 
     % Q1
-    Q = tau^2 * A ;
+    Q = tauMatern^2 * A ;
 
-elseif alpha==2
+elseif alphaMatern==2
 
     % Q2
-    Q = tau^2 * A * sparse(1:n,1:n,1./row_sums,n,n) * A;
+    Q = tauMatern^2 * A * sparse(1:n,1:n,1./row_sums,n,n) * A;
 
 else
 
