@@ -908,7 +908,10 @@ CtrlVar.Inverse.MinimisationMethod="MatlabOptimization-HessianBased";      % Hes
 %                                  ="MatlabOptimization-GradientBased";     % gradient-based, MATLAB toolbox
 %                                  ="UaOptimization-GradientBased";         % gradient-based, Ua optimization toolbox
 %                                  ="UaOptimization-HessianBased";          % Hessian-based, Ua optimization toolbox
-
+%
+%   CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";
+%   CtrlVar.Inverse.Hessian="FiniteDifferences";
+%
 % If a Hessian-based optimization is used, the the expressions for the Hessians can be selected as follows:
 CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % Here R stands for Regularization and I stands for Misfit.
@@ -971,39 +974,22 @@ CtrlVar.Inverse.InvertFor='-logA-logC-' ; % {'-C-','-logC-','-A-','-logA-'}
 % iteration, which is often a very good initial approach. 
 CtrlVar.Inverse.DataMisfit.GradientCalculation='Adjoint' ; % {'Adjoint','FixPoint'}
 
-%%
-% Regularization can be applied on A and C or log(A) and log(C). Also possible
-% to use a covariance matrix for A and C. 
+%% Inverse methodology: Select either Tikhonov or Matern 
 %
-% Select Bayesian motivated regularization by setting 
+% The basic difference between Tikhonov and Matern relates to how the precision matrices for the priors are defined.
+% See documentation in UaCompendium for more information.
 %
-%   CtrlVar.Inverse.Regularize.Field='cov' 
-% 
-% and Tikhonov regularization
-% by setting 
 %
-%   CtrlVar.Inverse.Regularize.Field 
-%
-% to either '-C-','-logC-','-AGlen-','-logAGlen-',or '-logAGlen-logC-'
-%
-% Default is Tikhonov regularization on log(A) and log(C)
-%
+% Regularization can be applied on A and C or log(A) and log(C).
 
-CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or  "-Bayesian-" or "-Matern-"
-%
-% If using Bayesian inverse methodology the covariance matrix of the priors MUST
-% be defined, and it can be dense (although computationally doing so might slow
-% the run considerably.)
-%
-% If using Tikhonov inverse methodology the covariance matrix of the priors CAN
-% be defined, but must be diagonal.
-%
+
+CtrlVar.Inverse.Methodology="-Tikhonov-" ; % either "-Tikhonov-" or "-Matern-"
 
 
 CtrlVar.Inverse.Regularize.Field='-logAGlen-logC-' ; % {'-cov-','-C-','-logC-','-AGlen-','-logAGlen-','-logAGlen-logC-'}
 
-%%
-% Parameters specific to Tikhonov regularization. See the above definition of the regularization term R in the case of
+%% Parameters specific to Tikhonov regularization.
+% See the above definition of the regularization term R in the case of
 % Tikhonov regularization. The values of these parameters can be expected to be highly problem dependent. By default
 % regularization is undefined.
 %
@@ -1028,8 +1014,7 @@ CtrlVar.Inverse.Regularize.logC.gs=[] ;
 CtrlVar.Inverse.Regularize.B.gs=[];  % This is only relevant for a B inversion. Currently B inversion is being tested, do not use.
 CtrlVar.Inverse.Regularize.B.ga=[];
 
-%%
-% Parameters specific to the use of Matern covariance for the priors.
+%% Parameters specific to the use of Matern covariance for the priors.
 %
 % These Matern covariance parameters are used by setting:
 %
@@ -1130,10 +1115,10 @@ if license('test','Optimization_Toolbox')
     % These are the default parameters using gradient based inversion with the MATLAB optimisation toolbox
 
 
-    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option
-    % by redefining and simplifying the options, but this did not work
-    % either. Turned out this was an issue with R2022a. As of R2024b this
-    % is all working, and possibly this was fixed much sooner.
+    % 2022-05-21: tried to fix the error with R2022a when using the gradient-based option by redefining and simplifying the
+    % options, but this did not work either. Turned out this was an issue with R2022a. As of R2024b this is all working, and
+    % possibly this was fixed much sooner.
+    %
     % options=optimoptions("fmincon");
     % options.Algorithm="trust-region-reflective";
     % options.HessianApproximation="lbfgs";
@@ -1166,6 +1151,8 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','factorization');  
     
+
+
     % These are the default parameters using Hessian based inversion with the MATLAB optimisation toolbox
     Hfunc=@(p,lambda) p+lambda ;  % just needs to defined here, this is then later replaced with a function that returns the Hessian estimation.
     CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
@@ -1194,6 +1181,47 @@ if license('test','Optimization_Toolbox')
         'SpecifyObjectiveGradient',true,...
         'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which is better.
 
+
+    %% it is possible to use finite-difference approximation to the Hessian. This is done my differentiating the gradient provided by the first-order adjoint.
+    % This can be surprisingly fast as MATLAB uses node coloring to simultaneously solve for all independent nodal values. 
+    % To use this include the part below within %[  and %] in your DefineInitialInputs.m
+
+    %[ 
+    % CtrlVar.Inverse.MinimisationMethod="-MatlabOptimization-HessianFiniteDifferences-BandWidth5-";  
+    % % You can change the
+    % % BandWidth to some other value, but make sure it is not too large. 
+    % % If the BandWidth is k, then 2k calls to the gradient calculation are required each time the Hessian is approximated  
+    % 
+    % CtrlVar.Inverse.Hessian="FiniteDifferences";
+    % 
+    % CtrlVar.Inverse.MatlabOptimisationHessianParameters = optimoptions('fmincon',...
+    %     'Algorithm','trust-region-reflective',...
+    %     'ConstraintTolerance',1e-10,...
+    %     'HonorBounds',true,...
+    %     'Diagnostics','on',...
+    %     'DiffMaxChange',Inf,...
+    %     'DiffMinChange',0,...
+    %     'Display','iter-detailed',...
+    %     'FunValCheck','off',...
+    %     'MaxFunctionEvaluations',1e6,...
+    %     'MaxIterations',CtrlVar.Inverse.Iterations,...,...
+    %     'OptimalityTolerance',CtrlVar.Inverse.OptimalityTolerance,...
+    %     'OutputFcn',@fminuncOutfun,...
+    %     'PlotFcn',{@optimplotlogfval,@optimplotstepsize},...
+    %     'StepTolerance',CtrlVar.Inverse.StepTolerance,...
+    %     'FunctionTolerance',CtrlVar.Inverse.FunctionTolerance,...
+    %     'UseParallel',true,...
+    %     'HessianFcn',[],...     % uses finite differences, provided HessianMultiplyFcn is also empty
+    %     'HessianMultiplyFcn',[],...
+    %     'SpecifyConstraintGradient',false,...
+    %     'SpecifyObjectiveGradient',true,...
+    %     'InitBarrierParam',1e-7,...           % On a restart this might have to be reduced if objective function starts to increase
+    %     'ScaleProblem','none',...
+    %     'InitTrustRegionRadius',1,...         % set to smaller value if the forward problem is not converging
+    %     'SubproblemAlgorithm','cg');  % here the options are 'gc' and 'factorization', unclear which is better.
+    %]
+ 
+  
 else
     CtrlVar.Inverse.MatlabOptimisationParameters=[];
 end
@@ -1208,7 +1236,7 @@ CtrlVar.Inverse.InfoLevelBackTrack=1;  % info on backtracking within inverse ste
 
 % >=100 for further info and plots
 %
-% In an inversion it it generally better to set other infolevels to a low value. So
+% In an inversion it it generally better to set other info levels to a low value. So
 % consider setting:
 %
 %   CtrlVar.InfoLevelNonLinIt=0; CtrlVar.InfoLevel=0;

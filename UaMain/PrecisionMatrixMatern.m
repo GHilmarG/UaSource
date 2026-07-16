@@ -21,6 +21,8 @@ nargoutchk(1,1)
 %
 % $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + K)\; \tilde{M}^{-1} \; (\kappa^2 M + K)$$
 %
+% $$Q_{\alpha=3} = \tau^2 \; \left(\kappa^2M+D\right)\; \tilde{M}^{-1}\; \left(\kappa^2M+D\right)\; \tilde{M}^{-1}\; \left(\kappa^2M+D\right)$$
+%
 % where $$\tilde{M}$$ is a diagonal row-sum lumping
 %
 % $$\tilde{M}_{ik} = \delta_{ik} \, \sum_j M_{ij} $$
@@ -79,25 +81,18 @@ D=MUA.Dxx+MUA.Dyy;
 % M contribution being added.
 
 Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
-D=D+Ieps ; 
+D=D+Ieps ;
 
 %  MUA.M=MassMatrix2D1dof(MUA);
 % [MUA.Dxx,MUA.Dyy]=StiffnessMatrix2D1dof(MUA);
 
 
-if Methodology=="-Tikhonov-" 
+if Methodology=="-Tikhonov-"
 
-    %Q=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-
-    alphaMatern=1;
-    tauMatern=gs/sqrt(Area);
-    if ga==0
-        kappaMatern=0;
-    else
-        kappaMatern=ga/(gs+eps(gs));
-    end
+    [alphaMatern,tauMatern,kappaMatern]=Tikhonov2MaternParameters(ga,gs,Area);
 
 end
+
 
 A = kappaMatern^2*M + D;
 
@@ -108,13 +103,27 @@ if alphaMatern==1
 
 elseif alphaMatern==2
 
-    % Q2
     row_sums = sum(M,2);
-    Q = tauMatern^2 * A * sparse(1:n,1:n,1./row_sums,n,n) * A;
+    
+    n=MUA.Nnodes;
+    iM=sparse(1:n,1:n,1./row_sums,n,n);
+
+    % Q2
+    Q = tauMatern^2 * A * iM * A;
+
+elseif alphaMatern==3
+
+    row_sums = sum(M,2);
+
+     n=MUA.Nnodes;
+    iM=sparse(1:n,1:n,1./row_sums,n,n);
+
+    % Q3
+    Q = tauMatern^2 * A * iM * A * iM * A ; 
 
 else
 
-    error("alpha must be either equal to 1 or 2.\n")
+    error("alpha must be either equal to 1, 2 or 3.\n")
 
 end
 

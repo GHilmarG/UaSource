@@ -134,19 +134,30 @@ function [C,nu,kappa,sigma2,tau,Cov,Realisation,coords]=Matern(sigma2,alpha,rho,
 %
 %
 %
-% Example :
+% *Example:*
 %
 %
-%   sigma2=1; alpha=2 ;rho=1 ; h=linspace(0,4,100) ; DoPlots=true ;  [C,nu,kappa,sigma2,tau,Cov,Realisation]=Matern(sigma2,alpha,rho,h,DoPlots) ;
+%   sigma2=1; alpha=2 ;rho=1 ; h=linspace(0,5*rho,100) ; DoPlots=true ;  [C,nu,kappa,sigma2,tau,Cov,Realisation]=Matern(sigma2,alpha,rho,h,DoPlots) ;
 %
+%   alphaMatern=2 ; kappaMatern=1/1000 ; tauMatern=1; 
+%   [rhoMatern,sigmaMatern,nuMatern]=Matern_alpha_kappa_tau(alphaMatern,kappaMatern,tauMatern) ;  r=linspace(1,5*rhoMatern,50) ;  Matern(sigmaMatern^2,alphaMatern,rhoMatern,r,true,true)  ;
+%
+%
+% *See also:* 
+% 
+%   [rhoMatern,sigmaMatern,nuMatern]=Matern_alpha_kappa_tau(alphaMatern,kappaMatern,tauMatern) ;
+%   [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)          
+%
+%
+% 
 %%
 
 
-
+%%
 % $$\sigma^2$$, $$\alpha$$ and $$\rho$$ are considered free parameters and I set:
 d = 2;                      % physical dimension
 nu=alpha-d/2;               % ie nu=1 for alpha=2 and dimension=2
-alpha = nu + d/2;
+%alpha = nu + d/2;
 kappa=sqrt(8*nu)/rho;       % this gives a correlation of about 0.1 at the distance rho
 tau2 = gamma(nu) / (gamma(alpha) * (4*pi)^(d/2) * kappa^(2*nu) * sigma2);
 tau  = sqrt(tau2);
@@ -214,7 +225,7 @@ if CreateRealisations
 
     if DoPlots
         figure;
-        imagesc(Realisation); axis equal tight; colorbar;
+        imagesc(r,r,Realisation); axis equal tight; colorbar;
 
         title(sprintf("Mat\\'ern field realisation: $\\sigma^2=%g, \\alpha=%g, \\rho=%g$",sigma2,alpha,rho),Interpreter="latex");
         subtitle(sprintf("$d=%g, \\nu=%g, \\kappa=%g, \\tau=%g$",d,nu,kappa,tau),Interpreter="latex");
