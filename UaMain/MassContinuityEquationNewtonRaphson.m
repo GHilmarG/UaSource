@@ -13,7 +13,7 @@ function [UserVar,RunInfo,h1,l1,BCs1]=MassContinuityEquationNewtonRaphson(UserVa
 %
 % subject to 
 %
-% $$h(x,y,t)  h_{\min} 0$$
+% $$h(x,y,t) \ge h_{\min} $$
 %
 % for $h$, using an implicit approach with respect to $h$.
 %
@@ -164,8 +164,11 @@ BCsError=0;
 % make sure initial point is feasible
 F1.h(BCs1.hFixedNode)=BCs1.hFixedValue;
 F0.h(BCs1.hFixedNode)=BCs1.hFixedValue;
+F1.h(BCs1.hPosNode)=CtrlVar.ThickMin; 
 
 
+% F1.h=MakeSureIterateIsFeasible(L,Lrhs,F1.h);
+% F0.h=MakeSureIterateIsFeasible(L,Lrhs,F0.h);
 
 iteration=0 ; rWork=inf ; rForce=inf; CtrlVar.NRitmin=0 ; gamma=1; rRatio=1; r=Inf;
 RunInfo.Forward.hConverged=false;   BackTrackInfo.iarm=NaN;BackTrackInfo.Converged=0;

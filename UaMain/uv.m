@@ -182,13 +182,33 @@ end
 
 
 if  CtrlVar.TestForRealValues
-    if ~isreal(F.ub) ; save TestSave ; error('uv:ubNotReal','ub not real!') ; end
-    if ~isreal(F.vb) ; save TestSave ; error('uv:vbNotReal','vb not real!') ; end
-    if ~isreal(F.ud) ; save TestSave ; error('uv:udNotReal','ud not real!') ; end
-    if ~isreal(F.vd) ; save TestSave ; error('uv:vdNotReal','vd not real!') ; end
+    if ~isreal(F.ub) 
+        save TestSave ; 
+        error('uv:ubNotReal','ub not real!') ; 
+    end
+    
+    if ~isreal(F.vb)  
+        save TestSave ; 
+        error('uv:vbNotReal','vb not real!') ; 
+    end
+
+
+    if ~isreal(F.ud) 
+        save TestSave ; 
+        error('uv:udNotReal','ud not real!') ; 
+    end
+
+    if ~isreal(F.vd)  
+        save TestSave ; 
+        error('uv:vdNotReal','vd not real!') ; 
+    end
+    
     if ~isreal(l.ubvb) ; save TestSave ; error('uv:ubvbLambdaNotReal','ubvbLambda not real!') ; end
+    
     if ~isreal(l.udvd) ; save TestSave ; error('uv:udvdLambdaNotReal','udvdLambda not real!') ; end
+    
     if ~isreal(Kuv) ; save TestSave ; error('uv:kvNotReal','kv not real!') ; end
+    
     if ~isreal(Ruv) ; save TestSave ; error('uv:rhNotReal','rh not real!') ; end
 end
 

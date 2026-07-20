@@ -228,8 +228,8 @@ end
 
 % Add up field by field
 
-RAGlen=0;
-dRdAGlen=[];
+RA=0;
+dRdA=[];
 ddRdAA=[];
 
 RC=0;
@@ -395,13 +395,13 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
     if isA
         npA=numel(dpA);
         temp=pPriorCovA\dpA;
-        RAGlen=dpA'*temp/(2*npA)   ;
-        dRdAGlen=temp/npA;
+        RA=dpA'*temp/(2*npA)   ;
+        dRdA=temp/npA;
         %ddRdAA=inv(Priors.CovC)/2/N;
         ddRAddpA=[];
     else
-        RAGlen=0;
-        dRdAGlen=[];
+        RA=0;
+        dRdA=[];
 
     end
 
@@ -449,24 +449,47 @@ if contains(lower(CtrlVar.Inverse.Regularize.Field),'cov')  % Bayesian regulariz
 
 
 
-    R=RAGlen+Rb+RC;
-    dRdp=[dRdAGlen;dRdb;dRdC];
+    R=RA+Rb+RC;
+    dRdp=[dRdA;dRdb;dRdC];
 
 
 
-else  % Andrey Tikhonov regularization
+else  % Andrey Tikhonov regularization or Matern
+
+    % the expression for the prior, is
+    %
+    % $$-\log P(B) = \frac{1}{2}(B-B_{prior})^{T} Q (B-B_{prior}) + \frac{1}{2}\log\left|Q^{-1}\right| + \text{const} $$
 
     if isA
 
-        NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
-        %RAGlen=dpA'*NA*dpA/2;
-        dRdAGlen=(NA*dpA).*dAfactor;
+     
 
-        RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
-        RAa= dpA'    *M    *dpA   /(2*Area);
-        RAGlen=gsA.^2*RAs+gaA.^2*RAa;
+        alphaMatern=CtrlVar.Inverse.Matern.logAGlen.alpha;
+        kappaMatern=CtrlVar.Inverse.Matern.logAGlen.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.logAGlen.tau;
 
-        RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+
+        QA=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaA,gsA,CtrlVar.Inverse.Methodology);
+        RA=0.5*dpA'*QA*dpA;           % costs function term
+        dRdA=(QA*dpA).*dAfactor;      % derivative, accounting for possible log
+
+        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+            RA= dpA'*(Dxx+Dyy)*dpA   / (2*Area);
+            RAa= dpA'    *M    *dpA   /(2*Area);
+            RegOuts.RAs=RA  ; RegOuts.RAa=RAa;
+        end
+
+        % %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix 
+        % 
+        % % NA=(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area;
+        % dRdAGlen=(NA*dpA).*dAfactor;
+        % RAs= dpA'*(Dxx+Dyy)*dpA   / (2*Area); % I'm calculating this here so that these parts of the cost function
+        %                                       % can be used for L-curve analysis. These do not include gaA and gsA
+        % RAa= dpA'    *M    *dpA   /(2*Area);
+        % RA=gsA.^2*RA+gaA.^2*RAa;
+        % RegOuts.RAs=RAs  ; RegOuts.RAa=RAa;
+
+
 
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
@@ -474,7 +497,7 @@ else  % Andrey Tikhonov regularization
         elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
 
             if contains(CtrlVar.Inverse.Hessian,"RHA=E")
-                ddRdAA=NA.*dAfactor;
+                ddRdAA=QA.*dAfactor;
             elseif contains(CtrlVar.Inverse.Hessian,"RHA=M")
                 ddRdAA=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.Hessian,"RHA=I") || contains(CtrlVar.Inverse.Hessian,"RHA=1")
@@ -492,31 +515,31 @@ else  % Andrey Tikhonov regularization
 
     if isC
 
-        % RCs should always be positive. However, I discovered that it can happen that the smallest eigenvalue is slightly
-        % negative!!! This must be due to numerical rounding errors when assembling Dxx and Dyy. I for example found a case where the
-        % two smallest eigenvalues of Dyy were -1.14405445408737e-16 and  -8.99887803162969e-17. One approach of dealing with this
-        % would be to add eps to the diagonal of Dxx and Dyy.
+   
 
-        Ieps=sparse(1:MUA.Nnodes,1:MUA.Nnodes,eps);
-        Dxx=Dxx+Ieps ; Dyy=Dyy+Ieps ;
+        %QC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
 
-        NC=(gsC.^2.*(Dxx+Dyy)+gaC.^2.*M)/Area;
-        %RC=dpC'*NC*dpC/2;
-        dRdC=(NC*dpC).*dCfactor;
+        alphaMatern=CtrlVar.Inverse.Matern.logC.alpha;
+        kappaMatern=CtrlVar.Inverse.Matern.logC.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.logC.tau;
 
-        RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
-        RCa= dpC'    *M    *dpC   /(2*Area);
-        RC=gsC.^2*RCs+gaC.^2*RCa;
+        QC=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaC,gsC,CtrlVar.Inverse.Methodology);
+        RC=0.5*dpC'*QC*dpC;           % costs function term
+        dRdC=(QC*dpC).*dCfactor;      % derivative, accounting for possible log
 
+        if nargout > 3  % this is here for a possible info, and useful when calculating L curves
+            RCs= dpC'*(Dxx+Dyy)*dpC   / (2*Area);
+            RCa= dpC'    *M    *dpC   /(2*Area);
+            RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
+        end
 
-        RegOuts.RCs=RCs  ; RegOuts.RCa=RCa;
         if  contains(CtrlVar.Inverse.MinimisationMethod,"HessianFiniteDifferences")
             N=MUA.Nnodes;
             ddRdAA=sparse(N,N);
         elseif contains(CtrlVar.Inverse.MinimisationMethod,"Hessian")
             if contains(CtrlVar.Inverse.Hessian,"RHC=E")
 
-                ddRdCC=NC.*dCfactor;
+                ddRdCC=QC.*dCfactor;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=M")
                 ddRdCC=MUA.M/MUA.Area;
             elseif contains(CtrlVar.Inverse.Hessian,"RHC=I") || contains(CtrlVar.Inverse.Hessian,"RHC=1")
@@ -556,10 +579,16 @@ else  % Andrey Tikhonov regularization
         % 1) The 'usual' large-scale correlation which here is a Marten covariance,
         % 2) A 'nugget' effect which is related to uncorrelated errors in the (direct) measurements of B.
         %
-        NB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
-        RB=dpB'*NB*dpB/2;               %       R: Regularisation term for B (a scalar)
-        dRdB=(NB*dpB).*dBfactor;        %   dR/dB:  (a vector)
-        ddRdBB=NB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
+        %QA=0.5*(gsA.^2.*(Dxx+Dyy)+gaA.^2.*M)/Area; % This is the precision matrix
+
+        alphaMatern=CtrlVar.Inverse.Matern.B.alpha;
+        kappaMatern=CtrlVar.Inverse.Matern.B.kappa;
+        tauMatern=CtrlVar.Inverse.Matern.B.tau;
+        QB=PrecisionMatrixMatern(MUA,alphaMatern,kappaMatern,tauMatern,gaB,gsB,CtrlVar.Inverse.Methodology);
+        %QB=(gsB.^2.*(Dxx+Dyy)+gaB.^2.*M)/Area;
+        RB=dpB'*QB*dpB/2;               %       R: Regularisation term for B (a scalar)
+        dRdB=(QB*dpB).*dBfactor;        %   dR/dB:  (a vector)
+        ddRdBB=QB.*dBfactor;            % exact, or simply the correct, Hessian of the regularization term
         % To do: I could add "RHB=E" to CtrlVar.Inverse.Hessian. Right now I do the exact (E) Hessian evaluation here.
 
 
@@ -567,6 +596,9 @@ else  % Andrey Tikhonov regularization
 
             % Adding a cost term giving the deviation of inverted B from direct measurements of B. This has the same form as a data
             % misfit term used for velocities and dh/dt. But here this is applied to the inverted field.
+            %
+            % It could be argued that this term should be added to the likelihood (i.e. the misfit term) but here this
+            % distinction is simply rhetorical as these terms are all added up
 
             Berr=sqrt(spdiags(Meas.BCov));
 
@@ -625,12 +657,12 @@ else  % Andrey Tikhonov regularization
 
 
     % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdAGlen=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdAGlen);
+    dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdA);
     dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdC);
     dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdB);
 
-    R=RAGlen+RB+RC;
-    dRdp=[dRdAGlen;dRdB;dRdC];
+    R=RA+RB+RC;
+    dRdp=[dRdA;dRdB;dRdC];
     %
     % tic
     % [Am,An] = size(ddRdAA);
@@ -657,8 +689,8 @@ if nargout > 3
     RegOuts.ddRddp=ddRdpp;
 
 
-    RegOuts.RAGlen=RAGlen;
-    RegOuts.dRdAGlen=dRdAGlen;
+    RegOuts.RAGlen=RA;
+    RegOuts.dRdAGlen=dRdA;
 
     RegOuts.RC=RC;
     RegOuts.dRdC=dRdC;

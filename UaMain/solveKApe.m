@@ -137,7 +137,7 @@ switch CtrlVar.AsymmSolver
 
     case "NullSpace"
 
-         [x, y] = KKT_null_space_decomposition_lu(A, f, B, g);
+        [x, y] = KKT_null_space_decomposition_lu(A, f, B, g);
 
     case "EliminateBCsSolveSystemIterativly"
 
@@ -265,7 +265,8 @@ Compare_KKT_SolutionApproaches=false;
 
 if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
 
-      fprintf("\n\n--------------- Comparing KKT solution approaches (H asymmetrical) ------------------- \n")
+    fprintf("\n\n--------------- Comparing KKT solution approaches (H asymmetrical) ------------------- \n")
+    tPE=nan;
     if isdiag(B*B')
         tPE=tic;
         [xPreEliminate,yPreEliminate]=ABfgPreEliminate(CtrlVar,A,B,f,g) ;
@@ -291,6 +292,10 @@ if Compare_KKT_SolutionApproaches && ~(isempty(B) || numel(B)==0)
     tRSDS=toc(tRSDS);
     fprintf("        Range Space Decompositon Scaled: %f sec\n \n",tRSDS);
     fprintf("---------------\n")
+
+   
+    fprintf("Projected/Null Space=%f \t Augmented Lagrangian/Null Space=%f \t Range Space/Null Space=%f \n",tPE/tNS,tAL/tNS,tRSDS/tNS)
+
 end
 
 

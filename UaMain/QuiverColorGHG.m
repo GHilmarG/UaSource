@@ -206,6 +206,11 @@ x=x(:) ; y=y(:) ; u=u(:) ; v=v(:);
 
 speed=sqrt(u.*u+v.*v); % speed is never scaled, so I can use speed to color velocity field based on values
 
+if all(isnan(speed))
+    return
+end
+
+
 if isinf(max(speed))
 
     fprintf(' Max of speed is infinite\n')
@@ -578,6 +583,8 @@ if ~Par.QuiverSameVelocityScalingsAsBefore
         if ~any(isnan(tickpos))
             Ticks=tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
             %cbar.Ticks=Ticks; % tickpos*(cbar.Limits(2)-cbar.Limits(1))+cbar.Limits(1);
+        else
+            Ticks=nan;
         end
 
         axis equal

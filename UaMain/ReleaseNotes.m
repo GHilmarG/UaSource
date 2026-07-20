@@ -2,10 +2,38 @@
 
 %%
 %
+% *Release Notes* _July 2026_
 %
-% *Release Notes* _June 2025_
+% An option added to use Matérn covariance matrices in an inversion. The resulting precision matrices are either:
 %
-% * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
+%
+% $$ Q_{\alpha=1} = \tau^2\left(\kappa^2 M + D\right) $$
+%
+% $$Q_{\alpha=2} = \tau^2 \; (\kappa^2 M + D)\; \tilde{M}^{-1} \; (\kappa^2 M + D)$$
+%
+% or
+%
+% $$Q_{\alpha=3} = \tau^2\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)\,\tilde{M}^{-1}\left(\kappa^2M+D\right)$$
+%
+% where $M$ is the mass matrix, $\tilde{M}$ the lumped mass matrix, $D$ the stiffness matrix, and $\alpha$, $\kappa$ and $\tau$ are (hyper) parameters.  This option
+% is activated by setting:
+%
+%  CtrlVar.Inverse.Methodology="-Matern-" ;
+%
+% and there is extensive description of this approach in the UaCompendium. The Matérn covariance function is:
+%
+% $$\left(C_M\right)_{ij} = C(r_{ij}) = \frac{\sigma^2}{2^{\nu-1}\Gamma(\nu)}\left(\kappa r_{ij}\right)^{\nu}\, K_{\nu}\!\left(\kappa r_{ij}\right) $$
+%
+% where
+%
+% $$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$
+%
+% Previously only the $\alpha=1$ option was implemented.
+% 
+%
+% *Release Notes* _June 2026_
+%
+% An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
 % indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
 %
 %
@@ -13,16 +41,16 @@
 %
 % $$A_{\mathrm{eq}} \; x = b \quad ,  \quad A_{\mathrm{eq}} \in R^{m\times n} $$
 %
-% where m is the number of constraints, and n the number of degrees of freedom.
+% where $m$ is the number of constraints, and $n$ the number of degrees of freedom.
 % 
-% The matrix Aeq should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
+% The matrix $A_{\mathrm{eq}}$ should have full row rank. It is really up to the user to make sure the BCs are in this sense consistent.
 % However, it can be a bit tricky to ensure that this is the case for complicated BCs involving multiple links/ties etc.
 % 
 % By setting
 %
 %   CtrlVar.BCsRowSubsetSelection=true; 
 %
-% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a qr decomposition of Aeq, but since Aeq is
+% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a QR decomposition of Aeq, but since Aeq is
 % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
 % required in the first place by ensuring that the boundary conditions contain no redundancies. 
 %
@@ -59,21 +87,39 @@
 % might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
 % requires the construction of a basis for the null-space of Aeq.
 %
+% *Release Notes* _March 2026_
+% 
+% An elementary additional mesh-generator is available. This one creates regular square meshes only (it is very basic
+% indeed!). This can be useful when, for example, when using some simple computational domains, or to generate an initial
+% mesh. All mesh refinements can then be applied to this mesh afterwards. 
 %
-% *Release Notes* _January 2025_
+% Example:
 %
-% When calculating dh/dt explicitly,  homogenized  thickness (h) boundary conditions are applied to the dh/dt solve. So if
-% thickness is set to some prescribed value at some nodes, dh/dt at those nodes will be forced to be equal to zero. And if
-% thickness links/ties are defined between nodes, those same ties will be applied to dh/dt. This has no effect on dh/dt
-% values obtained in transient runs. But this will affect calculated/modeled dh/dt values used in an inversion when compared
-% against measured dh/dt values, in combination with thickness boundary conditions.
+%   CtrlVar.MeshGenerator="UaSquareMesh";
+%   CtrlVar.UaSquareMesh.xmin=-650e3;
+%   CtrlVar.UaSquareMesh.xmax=900e3;
+%   CtrlVar.UaSquareMesh.ymin=-3400e3;
+%   CtrlVar.UaSquareMesh.ymax=-600e3;
+%   CtrlVar.UaSquareMesh.nx=100;
+%
+% Note that MeshCoordinates are not used above. By specifying MeshCoordinates, all elements outside of the square are
+% then automatically deactivated at the beginning of the run. An example for the use of this approach is in the Greenland
+% sub-folder of Examples. 
+%
+% *Release Notes* _January 2026_
+%
+% When calculating $\dot{h}$ explicitly,  homogenized  thickness ($h$) boundary conditions are applied to the $\dot{h}$ solve. So if
+% thickness is set to some prescribed value at some nodes, $\dot{h}$ at those nodes will be forced to be equal to zero. And if
+% thickness links/ties are defined between nodes, those same ties will be applied to $\dot{h}$. This has no effect on $\dot{h}$
+% values obtained in transient runs. But this will affect calculated/modeled $\dot{h}$ values used in an inversion when compared
+% against measured $\dot{h}$ values, in combination with thickness boundary conditions.
 %
 %
 %
 % *Release Notes* _December 2025_
 %
-% * When using dh/dt measurements in with boundary conditions applied to h, the adjoint now uses the dh/dt calculated
-% explicitly using those BCs. Previously, when evaluating the sensitivities of the dh/dt-cost function term at integration
+% * When using $\dot{h}$ measurements in with boundary conditions applied to h, the adjoint now uses the $\dot{h}$ calculated
+% explicitly using those BCs. Previously, when evaluating the sensitivities of the $\dot{h}$-cost function term at integration
 % points as part of the adjoint approach, this was not the case. 
 %
 % 
@@ -84,7 +130,7 @@
 %
 % * The mesh2d package updated to latest version.
 %
-% * SuiteSparse folder deleted, as now is part of core MATLAB functionality (since R2024a)
+% * SuiteSparse folder deleted, as it is now part of core MATLAB functionality (since R2024a)
 %
 % * MATLAB seems to have been busy working on their optimization functions, and the performance of using
 %
@@ -106,9 +152,7 @@
 %
 % # "-uv-"   for a velocity solve only, i.e. no evolution of ice thickness (h). (Sometimes this is referred to as
 % time-independent run, or as a diagnostic run.)
-%
 % # "-uvh-"  for an implicit velocity and thickness solve, i.e. time dependent run 
-%
 % # "-uv-h-"  for a semi-implicit velocity and thickness solve, i.e. time dependent run where the thickness is solved
 % implicitly, and an outer iteration loop is used to ensure that the velocities and thickness are consistent at the end of
 % the time step. This is not a recommended option, and is slower than the -uvh- option. 
@@ -187,12 +231,12 @@
 % product to the integration points.
 %
 % * Calls to gcp have been replaced with gcp('nocreate'). The implication is that a parallel pool should be defined and started
-% ahead of a call to Ua. However, not that this might also depend on user settings for the parallel pool. For example if the
+% ahead of a call to Ua. However, note that this might also depend on user settings for the parallel pool. For example if the
 % user setting imply automated start of a parallel pool whenever parfor or smpd is encountered. If no parallel pool is found,
 % all parallel options are turned off, and the run proceeds in non-parallel mode.
 %
 % * Unless the mass balance/thickness feedback is activated, MassBalance evaluation now lags behind by one time step. This was
-% done to reduce calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
+% done to reduce then umber of calls to DefineMassBalance, and to make sure that the mass balance of the Úa fields, F0, was same as the
 % F from previous time step.  Note that when the mass balance/thickness feedback is activated, the mass balance function is
 % called within the assembly loop and then the mass balance will not lag behind.
 %

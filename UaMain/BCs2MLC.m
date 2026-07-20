@@ -1,6 +1,16 @@
 function MLC=BCs2MLC(CtrlVar,MUA,BCs)
 
+
+persistent nInfo
+
+
+if isempty(nInfo)
+    nInfo=0;
+end
+
 narginchk(3,3)
+
+
 
 
 
@@ -40,26 +50,47 @@ BCs.ubFixedNode=ubFixedNodet; BCs.vbFixedNode=vbFixedNodet;
 
 if CtrlVar.BCsRowSubsetSelection
 
-    fprintf("BCs2MLC: Checking ifboundary conditions are linearly independent.\n")
+    if nInfo==0
+        fprintf("BCs2MLC: Checking if boundary conditions are linearly independent.\n")
+    end
+
 
     [ubvbL,row_idx,flag] = RowSubsetSelection(ubvbL);
     if flag==1
         ubvbRhs=ubvbRhs(row_idx);
+        if nInfo==0
+            fprintf("BCs2MLC: Found linear dependent (ub,vb) boundary conditions. This was corrected by selecting an independent subset. \n")
+        end
     end
-  
+
     [udvdL,row_idx,flag] = RowSubsetSelection(udvdL);
     if flag==1
         udvdRhs=udvdRhs(row_idx);
+        if nInfo==0
+            fprintf("BCs2MLC: Found linear dependent (ud,vd) boundary conditions. This was corrected by selecting an independent subset. \n")
+        end
     end
 
     [hL,row_idx,flag] = RowSubsetSelection(hL);
     if flag==1
         hRhs=hRhs(row_idx);
+        if nInfo==0
+            fprintf("BCs2MLC: Found linear dependent h boundary conditions. This was corrected by selecting an independent subset. \n")
+        end
     end
 
     [LSFL,row_idx,flag] = RowSubsetSelection(LSFL);
     if flag==1
         LSFRhs=LSFRhs(row_idx);
+        if nInfo==0
+            fprintf("BCs2MLC: Found linear dependent level-set boundary conditions. This was corrected by selecting an independent subset. \n")
+        end
+    end
+
+    nInfo=nInfo+1;
+    if nInfo==1
+        fprintf("BCs2MLC: No further information about correcting for linear dependent BCs will be provided. \n")
+        fprintf("BCs2MLC: and any further corrections will be done silently. \n")
     end
 end
 
@@ -77,10 +108,10 @@ MLC.LSFL=LSFL; MLC.LSFRhs=LSFRhs;
 
 %% scale L
 
-[MLC.ubvbL,MLC.ubvbRhs,isLLubvb]=ScaleL(CtrlVar,MLC.ubvbL,MLC.ubvbRhs) ; 
-[MLC.udvdL,MLC.udvdRhs,isLLudvd]=ScaleL(CtrlVar,MLC.udvdL,MLC.udvdRhs) ; 
-[MLC.hL,MLC.hRhs,isLLh]=ScaleL(CtrlVar,MLC.hL,MLC.hRhs) ; 
-[MLC.LSFL,MLC.LSFRhs,isLLLSF]=ScaleL(CtrlVar,MLC.LSFL,MLC.LSFRhs) ; 
+[MLC.ubvbL,MLC.ubvbRhs,isLLubvb]=ScaleL(CtrlVar,MLC.ubvbL,MLC.ubvbRhs) ;
+[MLC.udvdL,MLC.udvdRhs,isLLudvd]=ScaleL(CtrlVar,MLC.udvdL,MLC.udvdRhs) ;
+[MLC.hL,MLC.hRhs,isLLh]=ScaleL(CtrlVar,MLC.hL,MLC.hRhs) ;
+[MLC.LSFL,MLC.LSFRhs,isLLLSF]=ScaleL(CtrlVar,MLC.LSFL,MLC.LSFRhs) ;
 
 
 end
