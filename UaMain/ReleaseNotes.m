@@ -106,6 +106,13 @@
 % then automatically deactivated at the beginning of the run. An example for the use of this approach is in the Greenland
 % sub-folder of Examples. 
 %
+% 
+% 
+% <<HoffSquareMeshExample.PNG>>
+% 
+%
+%
+%
 % *Release Notes* _January 2026_
 %
 % When calculating $\dot{h}$ explicitly,  homogenized  thickness ($h$) boundary conditions are applied to the $\dot{h}$ solve. So if
