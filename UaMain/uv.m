@@ -93,15 +93,19 @@ end
 if any(F.h<CtrlVar.ThickMin)
 
     indh0=find(F.h<CtrlVar.ThickMin);
-    fprintf('uv: Found ice thicknesses below the min desired ice thickness of hmin=%f, in a diagnostic forward run.\n',CtrlVar.ThickMin)
-    fprintf('In total %-i ice nodal values found with too small ice thicknesses, and the min ice thickness in the domain is %f. \n ',numel(indh0),min(F.h));
+    ThicknessViolation=max(abs(F.h(indh0)-CtrlVar.ThickMin))/(CtrlVar.ThickMin+eps(CtrlVar.ThickMin));
+
+    if ThicknessViolation>0.01  % only report on thickness violation if it is more than 1%, but always correct
+        fprintf('uv: Found ice thicknesses below the min desired ice thickness of hmin=%f, in a diagnostic forward run.\n',CtrlVar.ThickMin)
+        fprintf('In total %-i ice nodal values found with too small ice thicknesses, and the min ice thickness in the domain is %f. \n ',numel(indh0),min(F.h));
+    end
 
     if CtrlVar.ResetThicknessToMinThickness==0
         CtrlVar.ResetThicknessToMinThickness=1;
     end
 
 
-    fprintf('For the purpose of the uv solve, these thickness values will be set to %f \n',CtrlVar.ThickMin)
+ 
     [F.b,F.s,F.h,F.GF]=Calc_bs_From_hBS(CtrlVar,MUA,F.h,F.S,F.B,F.rho,F.rhow);
 
 end
