@@ -825,11 +825,11 @@ else
         figdJdB=FindOrCreateFigure(PM+"\dJdB"); clf(figdJdB)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
         if PM=="M"
-            T="($\nabla_B J, \delta B)_{L_2} =  \delta_B J$";
+            T="($\nabla_B J, \delta B)_{L^2} =  \delta_B J[\delta B]$";
         elseif PM=="H1"
-            T="($\nabla_B J, \delta B)_{H_1} =  \delta_B J$";
+            T="($\nabla_B J, \delta B)_{H^1} =  \delta_B J[\delta B]$";
         else
-            T="($\nabla_B J, \delta B)_{l_2} =  \delta_B J$";
+            T="($\nabla_B J, \delta B)_{l^2} =  \delta_B J[\delta B]$";
         end
         title(T,Interpreter="latex")
         subtitle("")
