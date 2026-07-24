@@ -184,7 +184,15 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
         InvStartValues.B=InvStartValues.B+zeros(MUA.Nnodes,1);
     end
         
-   
+   Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
+
+   if any(Ind)
+
+       fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
+       fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
+       InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+   end
 
 end
 

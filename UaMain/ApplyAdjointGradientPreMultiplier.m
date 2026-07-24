@@ -49,7 +49,7 @@ elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
 
     P=gs*(MUA.Dxx+MUA.Dyy)+ga*MUA.M;
 
-    P=P/MUA.Area;
+   
 
 
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ||   CtrlVar.Inverse.AdjointGradientPreMultiplier=="l2" .....

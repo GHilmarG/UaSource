@@ -784,11 +784,11 @@ else
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
 
         if PM=="M" || PM=="L2"
-            T="($\nabla_C J, \delta C)_{L^2} =  \delta_C J[\delta C]$";
+            T="($\nabla_C J, \delta C)_{L^2} =  \delta_C J[\delta C]$ (log)";
         elseif PM=="H1"
-            T="($\nabla_C J, \delta C)_{H^1} =  \delta_C J[\delta C]$";
+            T="($\nabla_C J, \delta C)_{H^1} =  \delta_C J[\delta C] (log)$";
         else
-            T="($\nabla_C J, \delta C)_{l^2} =  \delta_C J[\delta C]$";
+            T="($\nabla_C J, \delta C)_{l^2} =  \delta_C J[\delta C] (log)$";
         end
 
 
