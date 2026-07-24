@@ -654,12 +654,12 @@ else  % Andrey Tikhonov regularization or Matern
         dRdB=[];
         ddRdBB=[];
     end
-
+ 
 
     % if CtrlVar.Inverse.MinimisationMethod contains "Hessian", then the pre-multipler is simply I, so this has no effect.
-    dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdA);
-    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdC);
-    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dRdB);
+    dRdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dRdA);
+    dRdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dRdC);
+    dRdB=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dRdB);
 
     R=RA+RB+RC;
     dRdp=[dRdA;dRdB;dRdC];

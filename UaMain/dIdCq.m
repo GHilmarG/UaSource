@@ -181,7 +181,7 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
 end
 
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dIdC);
+dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
 
 
 

@@ -782,11 +782,15 @@ else
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
         figPMdJdC=FindOrCreateFigure(PM+"\dJdC "); clf(figPMdJdC)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdC,CreateNewFigure=false);
-        if PM=="M"
-            T="$\nabla_C J = M^{-1} dJ/dC$";
+
+        if PM=="M" || PM=="L2"
+            T="($\nabla_C J, \delta C)_{L^2} =  \delta_C J[\delta C]$";
+        elseif PM=="H1"
+            T="($\nabla_C J, \delta C)_{H^1} =  \delta_C J[\delta C]$";
         else
-            T="$\nabla_C J=dJ/dC$";
+            T="($\nabla_C J, \delta C)_{l^2} =  \delta_C J[\delta C]$";
         end
+
 
         title(T,Interpreter="latex")
         subtitle("")
@@ -824,7 +828,7 @@ else
         PM=CtrlVar.Inverse.AdjointGradientPreMultiplier;
         figdJdB=FindOrCreateFigure(PM+"\dJdB"); clf(figdJdB)
         UaPlots(CtrlVar,MUA,F,InvFinalValues.dJdB,CreateNewFigure=false);
-        if PM=="M"
+        if PM=="M" || PM=="L2"
             T="($\nabla_B J, \delta B)_{L^2} =  \delta_B J[\delta B]$";
         elseif PM=="H1"
             T="($\nabla_B J, \delta B)_{H^1} =  \delta_B J[\delta B]$";

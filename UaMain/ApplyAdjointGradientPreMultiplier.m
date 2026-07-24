@@ -4,9 +4,9 @@
 
 
 
-function varargout=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,varargin)
+function varargout=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,UseBCs,varargin)
 
-narginchk(4,inf)
+narginchk(5,inf)
 
 
 if ~isa(BCsAdjoint,"BoundaryConditions")
@@ -15,19 +15,22 @@ end
 
 varargout=varargin;
 
+if isempty(varargin{:}) 
+    return
+end
+
 
 %% Using BCs when calculating/projecting the gradient
 %
 % This is not finalized, and is here as a test. The uv BCs are already used in the adjoint calculation, the question is if the
 % h-BCs should also be used in combination with the use of dh/dt in the data. Something to think more about.
-UseBCs=true;
-UseBCs=false;
+
 
 %%
 
 
 
-if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
+if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M" || CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
     if isa(MUA.dM,"decomposition") && ~UseBCs  % No need for the decomposition object in combination with the BCs, because the KKT system does not use
         % the dM.
         P=MUA.dM/MUA.Area ;
@@ -37,24 +40,19 @@ if CtrlVar.Inverse.AdjointGradientPreMultiplier=="M"
 
 
 
-elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="D"
-
-    l=1e-10;
-    P=MUA.Dxx+MUA.Dyy+l*MUA.M;
-
 elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
 
-    CtrlVar.Inverse.AdjointGradientPreMultiplier="H1"; 
+    CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
     ga=CtrlVar.Inverse.PreMultiplier.H1.ga;
     gs=CtrlVar.Inverse.PreMultiplier.H1.gs;
 
-    
-    P=gs*(MUA.Dxx+MUA.Dyy)+ga*MUA.M; 
 
-   
+    P=gs*(MUA.Dxx+MUA.Dyy)+ga*MUA.M;
+
+    P=P/MUA.Area;
 
 
-elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ...
+elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="I" ||   CtrlVar.Inverse.AdjointGradientPreMultiplier=="l2" .....
         || CtrlVar.Inverse.AdjointGradientPreMultiplier=="Hanalytical"
 
     varargout=varargin;

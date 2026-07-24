@@ -267,72 +267,104 @@ if CtrlVar.InverseRun
 
     if contains(CtrlVar.Inverse.InvertFor,"logA")
 
-        if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is empty, but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+        if CtrlVar.Inverse.Methodology=="-Matern-"
 
+
+            if isempty(CtrlVar.Inverse.Matern.logAglen.alpha) || isempty(CtrlVar.Inverse.Matern.logAGlen.kappa) || isempty(CtrlVar.Inverse.Matern.logAGlen.tau)
+
+                fprintf("\n\n======> In a logAGlenb inversion using the Matern methodology following, these following variables can not be left emtpy: \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.alpha \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.kappa \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logAGlen.tau \n")
+
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+        else
+
+            if isempty(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is empty, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is empty, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logAGlen.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is NaN but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logAGlen.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is NaN, but needs to be defined in a logA inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
         end
-
-        if isempty(CtrlVar.Inverse.Regularize.logAGlen.gs)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is empty, but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-        if isnan(CtrlVar.Inverse.Regularize.logAGlen.ga)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.ga is NaN but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-        if isnan(CtrlVar.Inverse.Regularize.logAGlen.gs)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logAGlen.gs is NaN, but needs to be defined in a logA inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-
-
     end
+
+
+
 
     if contains(CtrlVar.Inverse.InvertFor,"logC")
 
-        if isempty(CtrlVar.Inverse.Regularize.logC.ga)
 
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is empty, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
+        if CtrlVar.Inverse.Methodology=="-Matern-"
 
+
+            if isempty(CtrlVar.Inverse.Matern.logC.alpha) || isempty(CtrlVar.Inverse.Matern.logC.kappa) || isempty(CtrlVar.Inverse.Matern.logC.tau)
+
+                fprintf("\n\n======> In a logC inversion using the Matern methodology following, these following variables can not be left emtpy: \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.alpha \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.kappa \n")
+                fprintf("======>  CtrlVar.Inverse.Matern.logC.tau \n")
+
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+        else
+
+            if isempty(CtrlVar.Inverse.Regularize.logC.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is empty, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isempty(CtrlVar.Inverse.Regularize.logC.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is empty, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+
+            if isnan(CtrlVar.Inverse.Regularize.logC.ga)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is NaN, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
+
+            if isnan(CtrlVar.Inverse.Regularize.logC.gs)
+
+                fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is NaN, but needs to be defined in a logC inversion.\n")
+                error("CtrlVarValidityCheck: missing input ")
+
+            end
         end
-
-        if isempty(CtrlVar.Inverse.Regularize.logC.gs)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is empty, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-
-        if isnan(CtrlVar.Inverse.Regularize.logC.ga)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.ga is NaN, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-        if isnan(CtrlVar.Inverse.Regularize.logC.gs)
-
-            fprintf("\n\n ======> The variable CtrlVar.Inverse.Regularize.logC.gs is NaN, but needs to be defined in a logC inversion.\n")
-            error("CtrlVarValidityCheck: missing input ")
-
-        end
-
-
-
-
     end
 
 

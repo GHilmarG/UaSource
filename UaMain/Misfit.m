@@ -379,7 +379,7 @@ if CtrlVar.Inverse.CalcGradI
 
                 dBI=dhdp.*dhIhdot;  % The Ihdot misfit term includes an explicit dependency on B, which is here accounted for.
 
-                dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dBI); % added 7 Jan 2025
+                dBI=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.B,dBI); % added 7 Jan 2025
 
                 DBI=dBFuvLambda+dBI;
                 %
