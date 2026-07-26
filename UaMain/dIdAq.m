@@ -210,7 +210,8 @@ if contains(lower(CtrlVar.Inverse.InvertFor),'logaglen')
 end
 
 
-dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,dIdA);
+
+dIdA=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.A,dIdA);
 
 end
 

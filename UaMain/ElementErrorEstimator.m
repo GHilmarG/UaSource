@@ -15,13 +15,19 @@ function R=ElementErrorEstimator(CtrlVar,MUA,F)
 % refers to as "Recovery-based error estimator"
 %
 %
-% The idea is that the size of the step in gradients across element boundaries can be used as a measure of how inaccurate the
-% solution is.
+% The idea is that difference in integrated effective strains rates over each element when using:
+% 
+% # integration-point values, and
+% # nodal values, 
+% 
+% is a reasonable measure of relative discretization errors. 
 % 
 % Calculate field gradients at integration points (IP), and integrate over elements.
 %
 % Then L2 project the IP gradients onto nodal points (NP), and the integrate those over elements.
 %
+% 
+% 
 % 
 %
 %%

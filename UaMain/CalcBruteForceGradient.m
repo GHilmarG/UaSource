@@ -1,6 +1,6 @@
-function dJ = CalcBruteForceGradient(func,p0,CtrlVar,iRange)
+function dJ = CalcBruteForceGradient(func,p0,plb,pub,CtrlVar,iRange)
 
-
+ 
 
 %%
 %
@@ -48,68 +48,97 @@ parfevalOnAll(gcp('nocreate'), @warning, 0, 'off','MATLAB:decomposition:SaveNotS
 switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
     
     case {"forward-first-order"}
-        
-        
+
+
         parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             p1(I)=p1(I)+deltaStep(I);
-            J1=func(p1);
-            dJtemp(k)=(J1-J0)/deltaStep(I);
-            
+
+
+            % what to do if upper or lower bounds are not respected?
+            % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
+            ind= p1<plb | p1>pub ;
+
+            if any(ind)
+                dJtemp(k)=nan;
+            else
+
+                J1=func(p1);
+                dJtemp(k)=(J1-J0)/deltaStep(I);
+            end
+
         end
-        
+
         for k=1:numel(iRange)
             dJ(iRange(k))=dJtemp(k);
         end
-        
+
     case {"central-second-order"}
-        
-        
+
+
         parfor k=1:numel(iRange)
             I=iRange(k);
             p1=p0;
             pm1=p0;
             p1(I)=p1(I)+deltaStep(I);
-            J1=func(p1);
-            
             pm1(I)=pm1(I)-deltaStep(I);
-            Jm1=func(pm1);
-            
-            dJtemp(k)=(J1-Jm1)/deltaStep(I)/2;
+
+
+            % what to do if upper or lower bounds are not respected?
+            % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
+            ind= p1<plb | p1>pub | pm1<plb | pm1 > pub ;
+
+            if any(ind)
+                dJtemp(k)=nan;
+            else
+
+                J1=func(p1);
+                Jm1=func(pm1);
+                dJtemp(k)=(J1-Jm1)/deltaStep(I)/2;
+            end
         end
-        
+
         for k=1:numel(iRange)
             dJ(iRange(k))=dJtemp(k);
         end
-        
-        
+
+
     case {"forward-second-order"}
         
         parfor k=1:numel(iRange)
+
             I=iRange(k);
             pp1=p0;
             pp2=p0;
-         
-            
+
             pp1(I)=pp1(I)+deltaStep(I);
-            Jp1=func(pp1);
-            
             pp2(I)=pp2(I)+2*deltaStep(I);
-            Jp2=func(pp2);
-            
-            dJtemp(k)=(-3*J0+4*Jp1-Jp2)/deltaStep(I)/2;
+
+            % what to do if upper or lower bounds are not respected?
+            % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
+            ind= pp1<plb | pp1>pub | pp2<plb | pp2 > pub ;
+
+            if any(ind)
+                dJtemp(k)=nan;
+            else
+
+                Jp1=func(pp1);
+                Jp2=func(pp2);
+                dJtemp(k)=(-3*J0+4*Jp1-Jp2)/deltaStep(I)/2;
+            end
+
         end
         
         for k=1:numel(iRange)
             dJ(iRange(k))=dJtemp(k);
         end
-        
+
     case "central-fourth-order"
-        
+
         parfor k=1:numel(iRange)
             I=iRange(k);
-            
+
             p1=p0;
             pm1=p0;
             p2=p0;
@@ -118,16 +147,24 @@ switch  lower(CtrlVar.TestAdjointFiniteDifferenceType)
             p2(I)=p2(I)+2*deltaStep(I);
             pm1(I)=pm1(I)-deltaStep(I);
             pm2(I)=pm2(I)-2*deltaStep(I);
-            
-            J1=func(p1);
-            J2=func(p2);
-            Jm1=func(pm1);
-            Jm2=func(pm2);
-            
-            dJtemp(k)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep(I);
+
+            % what to do if upper or lower bounds are not respected?
+            % Here I decide not to try to be too clever, I just test for this and do not calculate if bounds violated
+            ind= p1<plb | p1>pub | p2<plb | p2 > pub | pm1 < plb | pm1>pub | pm2 < plb | pm2 > pub; 
+            if any(ind)
+                dJtemp(k)=nan;
+            else
+
+                J1=func(p1);
+                J2=func(p2);
+                Jm1=func(pm1);
+                Jm2=func(pm2);
+
+                dJtemp(k)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep(I);
+            end
             %dJ(I)=(Jm2/12-2*Jm1/3+2*J1/3-J2/12)/deltaStep(I);  % not allowed in parfor
         end
-        
+
         for k=1:numel(iRange)
             dJ(iRange(k))=dJtemp(k);
         end

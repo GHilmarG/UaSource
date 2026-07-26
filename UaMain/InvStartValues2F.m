@@ -27,23 +27,24 @@ end
 
 if  contains(CtrlVar.Inverse.InvertForField,'b') 
     error('b inversion is no longer supported, do B inversion instead.')
-    
+
 end
 
 if    contains(CtrlVar.Inverse.InvertForField,'B')
-    
-    
+
+
     if isempty(InvStartValues.B)
-        
+
         fprintf('InvStartValues.B can not be left empty when inverting for B.\n')
         error('InvStartValues2F:InvStartValues.b')
-        
+
     end
-    
+
+
     F.B=InvStartValues.B ;
     F.Bmin=Priors.Bmin;
     F.Bmax=Priors.Bmax;
-    
+
     % F.b=InvStartValues.b ;
     fprintf(' Note:  In a B inversion, the upper ice surface (s) is set equal to Meas.s .\n')
     fprintf('        The user must ensure that Meas.s is consistent with floatation. \n')
@@ -52,6 +53,9 @@ if    contains(CtrlVar.Inverse.InvertForField,'B')
     
     F.as=Meas.as ;
     F.ab=Meas.ab ;
+
+
+
 
     % First calculate b from s, B and S given rho and rhow.
     G0 = F.GF.node;

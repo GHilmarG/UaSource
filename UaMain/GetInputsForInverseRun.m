@@ -13,7 +13,6 @@ InvStartValues=InversionValues;
 
 [UserVar,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo]=DefineInputsForInverseRun(UserVar,CtrlVar,MUA,BCs,F,l,F.GF,InvStartValues,Priors,Meas,BCsAdjoint,RunInfo);
 
-InvStartValues.h=F.s-F.b; % this is only used for plotting purposes, do not allow user to set these values
 
 BCsAdjoint=CreatePlausibleBCsForAdjointProblem(BCs,BCsAdjoint);
 
@@ -69,77 +68,79 @@ if isempty(Priors.Bmin)
 end
 
 %%
-isE=false ;
-switch CtrlVar.Inverse.Regularize.Field
-    case '-logAGlen-logC-'
+if CtrlVar.Inverse.Methodology=="-Tikhonov-"
+    isE=false ;
+    switch CtrlVar.Inverse.Regularize.Field
+        case '-logAGlen-logC-'
 
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.logAGlen.gs) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
-
-
-
-    case '-logAGlen-'
-
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.logAGlen.gs);
-
-    case '-logC-'
-
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
-
-    case '-AGlen-C-'
-
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.AGlen.gs) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.logAGlen.gs) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
 
 
-    case '-AGlen-'
 
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.AGlen.gs);
+        case '-logAGlen-'
 
-    case '-C-'
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.logAGlen.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.logAGlen.gs);
 
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+        case '-logC-'
 
-    case '-B-'
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.logC.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.logC.gs) ;
 
-        isE=...
-            isempty(CtrlVar.Inverse.Regularize.B.ga) ||  ...
-            isempty(CtrlVar.Inverse.Regularize.B.gs) ;
+        case '-AGlen-C-'
 
-end
-
-
-if isE
-
-    fprintf(' Input Error: Some or all Tikhonov regularisation parameters not defined! \n')
-    fprintf(' The Tikhonov regularisation parameters are: \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.ga \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.gs \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.logC.ga \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.logC.gs \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.ga \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.gs \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.C.ga \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.C.gs \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.B.ga \n')
-    fprintf(' \t CtrlVar.Inverse.Regularize.B.gs \n')
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.AGlen.gs) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.C.gs) ;
 
 
-    error(' Some or all Tikhonov regularisation parameters not defined. \n')
+        case '-AGlen-'
+
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.AGlen.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.AGlen.gs);
+
+        case '-C-'
+
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.C.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.C.gs) ;
+
+        case '-B-'
+
+            isE=...
+                isempty(CtrlVar.Inverse.Regularize.B.ga) ||  ...
+                isempty(CtrlVar.Inverse.Regularize.B.gs) ;
+
+    end
+
+
+    if isE
+
+        fprintf(' Input Error: Some or all Tikhonov regularisation parameters not defined! \n')
+        fprintf(' The Tikhonov regularisation parameters are: \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.ga \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.logAGlen.gs \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.logC.ga \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.logC.gs \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.ga \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.AGlen.gs \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.C.ga \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.C.gs \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.B.ga \n')
+        fprintf(' \t CtrlVar.Inverse.Regularize.B.gs \n')
+
+
+        error(' Some or all Tikhonov regularisation parameters not defined. \n')
+    end
 end
 
 %% special test for B inversion
@@ -179,6 +180,19 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 
     end
 
+    if isscalar(InvStartValues.B)
+        InvStartValues.B=InvStartValues.B+zeros(MUA.Nnodes,1);
+    end
+        
+   Ind=(Meas.s-InvStartValues.B) < CtrlVar.ThickMin;
+
+   if any(Ind)
+
+       fprintf("Start values for B were in places below measured surface, i.e. (Meas.s-InvStartValues.B) < CtrlVar.ThickMin) \n")
+       fprintf("Start values for B are shifted to make sure initial thickness is positive. \n")
+       InvStartValues.B(Ind)=Meas.s(Ind)-1.1*CtrlVar.ThickMin;
+
+   end
 
 end
 
