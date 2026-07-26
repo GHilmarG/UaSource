@@ -28,12 +28,27 @@
 %
 % $$ r_{ij}=\|\mathbf{x}_i-\mathbf{y}_j\| $$
 %
-% Previously only the $\alpha=1$ option was implemented.
+% Previously only the $\alpha=1$ option was implemented, through
+%
+%   CtrlVar.Inverse.Methodology="-Tikhonov-" 
+%  
+% which still is the default option. 
+%
+% When using the "-Tikhonov-" option, the parameters are entered as $\gamma_s$ and $\gamma_a$ in
+%
+% $$ Q_{\alpha=1} =  \gamma_a M + \gamma_s D  $$
+%
+% When using the new "-Matern-" option for $\alpha=1$ you can get the same behavior by selecting 
+% $\tau$ and $\kappa$ in terms of $\gamma_s$ and $\gamma_a$ for $\alpha=1$. You can find the formulas in the UaCompendium or
+% use the function: 
+%
+%   [alphaMatern,tauMatern,kappaMatern,sigma2Matern,nuMatern,rhoMatern]=Tikhonov2MaternParameters(ga,gs,Area)
 % 
+% Note that the relationship depends on the area of the computational domain. 
 %
 % *Release Notes* _June 2026_
 %
-% An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
+% * An option added to test if prescribed boundary conditions (as prescribed by the user in DefineBoundaryConditions.m) are
 % indeed linearly independent, and if not, uses a row-subselection to find the rows which are maximally independent. 
 %
 %
@@ -50,7 +65,7 @@
 %
 %   CtrlVar.BCsRowSubsetSelection=true; 
 %
-% the matrix Aeq will be modified using a row-subset selection algorithm. This does involve a QR decomposition of Aeq, but since Aeq is
+% the matrix $A_{\mathrm{eq}}$ will be modified using a row-subset selection algorithm. This does involve a QR decomposition of $A_{\mathrm{eq}}$, but since $A_{\mathrm{eq}}$ is
 % usually quite small, (few rows) this is fast. However, the best approach is for the user to make sure that this is not
 % required in the first place by ensuring that the boundary conditions contain no redundancies. 
 %
@@ -75,7 +90,7 @@
 %
 % For the unsymmetrical KKT case, the solver has not changed, provided the BCs form a fat orthogonal system (This is
 % typically the case if, for example, each degree of freedom is only involved in one boundary condition). If, on the other
-% hand, the constraint matrix Aeq does not fulfill Aeq Aeq'=I_m, a new unsymmetrical Null-Space solver is now used instead of
+% hand, the constraint matrix $A_{\mathrm{eq}}$ does not fulfill $A_{\mathrm{eq}} \, A_{\mathrm{eq}}^T = I_m$, a new unsymmetrical Null-Space solver is now used instead of
 % the previous Augmented Lagrangian solver.
 % 
 % One can expect the speed-up to be noticeable in uv solves involving boundary conditions. For the uvh solve there will,
@@ -85,7 +100,7 @@
 %   CtrlVar.AsymmSolver="NullSpace";  
 %
 % might speed up the solve, as the Null Space solver solves a reduced (n-m) x (n-m) system. However, the Null-Space solver
-% requires the construction of a basis for the null-space of Aeq.
+% requires the construction of a basis for the null-space of $A_{\mathrm{eq}}$.
 %
 % *Release Notes* _March 2026_
 % 
