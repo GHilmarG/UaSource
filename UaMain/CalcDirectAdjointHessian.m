@@ -219,16 +219,35 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")
 % $$
 %
 %
-%
+%  
 %%
 
+
+% the numerical sparsity of xi is close to 1 (ie not sparse at all)
+% much better to use full matrix in the multiplication
+%
+%
+%
+
+    % tMult=tic;
+    % H=xi'*(d2Jdqq*xi)+H ;
+    % 
+    % H=0.5*(H+H');
+    % tMult=toc(tMult);
+    % fprintf(" Multiplication calculated in %f sec\n",tMult)
+
+    xiNumericalSparsity=nnz(xi)/numel(xi);
+    if xiNumericalSparsity>0.5
+        xi=full(xi);
+    end
+
+ 
     tMult=tic;
     H=xi'*(d2Jdqq*xi)+H ;
 
     H=0.5*(H+H');
     tMult=toc(tMult);
     fprintf(" Multiplication calculated in %f sec\n",tMult)
-
 end
 
 if contains(HessianTerms,"-Psi d2F/dpdp-")

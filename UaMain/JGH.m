@@ -217,7 +217,7 @@ if  CtrlVar.Inverse.MinimisationMethod=="-MatlabOptimization-HessianVectorProduc
 end
 
 if isnan(J)
-    error("JGH:ObjectivFunctionIsNaN")
+    error("JGH:ObjectivFunctionIsNaN","objective function if nan")
 end
 
 

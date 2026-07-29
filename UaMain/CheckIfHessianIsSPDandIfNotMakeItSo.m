@@ -21,8 +21,8 @@ if l==0
     if flag==0
 
         fprintf("H is pos def, i.e.  for l=0 \n")
-        HlE=H ; 
-        lEnd=0; 
+        HlE=H ;
+        lEnd=0;
         return
     end
 

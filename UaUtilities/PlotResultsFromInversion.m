@@ -886,12 +886,16 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueAGlen,CreateNewFigure=false) ;
-            title('True AGlen') ; set(gca,'ColorScale','log')
+            title("True $A$",Interpreter="latex") ; 
+            set(gca,'ColorScale','log')
+            CL=clim;
             subtitle("")
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.AGlen,CreateNewFigure=false) ;
-            title('Retrieved AGlen') ; set(gca,'ColorScale','log')
+            title("Retrieved $A$",Interpreter="latex") ; 
+            set(gca,'ColorScale','log')
+            clim(CL);
             subtitle("")
 
             nexttile
@@ -904,7 +908,8 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.AGlen,CreateNewFigure=false) ;
-            title('Prior AGlen') ; set(gca,'ColorScale','log')
+            title("Prior $A$",Interpreter="latex") ; 
+            set(gca,'ColorScale','log')
             subtitle("")
 
             T.Padding="tight";   T.TileSpacing="tight";
@@ -926,13 +931,17 @@ else
 
             nexttile
             UaPlots(CtrlVar,MUA,F,Priors.TrueC,CreateNewFigure=false) ;
-            title("True $C$",interpreter="latex") ; set(gca,'ColorScale','log')
+            title("True $C$",interpreter="latex") ; 
+            set(gca,'ColorScale','log')
             subtitle("")
+            CL=clim;
 
             nexttile
             UaPlots(CtrlVar,MUA,F,InvFinalValues.C,CreateNewFigure=false) ;
-            title("Retrieved $C$",interpreter="latex") ; set(gca,'ColorScale','log')
+            title("Retrieved $C$",interpreter="latex") ; 
+            set(gca,'ColorScale','log')
             subtitle("")
+            clim(CL)
 
             nexttile
 

@@ -56,29 +56,35 @@ while true
 
 
     [Hfull,lStart]=CheckIfHessianIsSPDandIfNotMakeItSo(Hfull,MUA,lStart) ;
+    lCondition=1e-5; lConditionMin=0;
+    Hfull=ImproveMatrixCondition(Hfull,MUA.M,lCondition,lConditionMin) ;
 
     dp=Hfull\(-g0);  % Here I need to add in the BCs, I need BCs on dp, i.e. dA and dC
+
+
+
+
     %   [L,cuv]=AssembleLuvSSTREAM(CtrlVar,MUA,BCs) ;
-    % 
-    % L=chol(Hfull) ; 
-    % tol=1e-6; maxit=30 ; 
+    %
+    % L=chol(Hfull) ;
+    % tol=1e-6; maxit=30 ;
     % [dpTest,fl,rr,it,rv1,rvcgl]=minres(Hfull,-g0,tol,maxit,L,L');
     % Fig=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
-    % 
-    % L=chol(Hfull) ; 
-    % tol=1e-6; maxit=30 ; 
-    % 
-    % afun=@(x) HVP(x,Hfull) ; 
+    %
+    % L=chol(Hfull) ;
+    % tol=1e-6; maxit=30 ;
+    %
+    % afun=@(x) HVP(x,Hfull) ;
     % [dpTest,fl,rr,it,rv1,rvcgl]=minres(afun,-g0,tol,maxit,L,L');
     % FigHVP=figure ; plot(0:length(rv1)-1,rv1/norm(g0),"-or") ; ax=gca ; ax.YScale="log";
-    % 
-    % 
-    % 
+    %
+    %
+    %
     % function y=HVP(x,Hfull)
-    %     y=Hfull*x; 
-    % 
+    %     y=Hfull*x;
+    %
     % end
-     % HVP=HessianVectorProduct(p,d,func)
+    % HVP=HessianVectorProduct(p,d,func)
 
     %    UaPlots(CtrlVar,MUA,[],dp,FigureTitle="Newton dp") ; CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
 
@@ -86,7 +92,7 @@ while true
 
     %  D=norm(dp) ;   H=Hfull ; l=0 ; g=g0;  E=blkdiag(MUA.M,MUA.M) ; l=TrustRegionSubproblem(H,E,g,l,D) ;
 
-    
+
     if anynan(dp)
         fprintf("Solving the Newton system resulted in nan. \n")
         error("UaOptimisationHessianEstimate:dpIsNaN","NaN in dp")
@@ -207,7 +213,7 @@ while true
     slope0=g0'*dp;
 
     if slope0<0
-        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001;
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
         [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     else
         fprintf("Slope at origin in Newton direction is positive! \n")
@@ -215,60 +221,90 @@ while true
         JNewton=inf;
     end
 
+    doSteepestDecent=true;
+    if doSteepestDecent
+
+        % I also do Steepest decent, and then compare.
+        % This is because calculating the Hessian is so expensive and, in comparison, the line-search cheap
+
+        % Then maybe modify H and solve until slope negative, or just go for the gradient direction
+        nNodes=size(MUA.M,1);
+        nH=size(Hfull,1);
+        M=MUA.M ;
+        D=MUA.Dxx+MUA.Dyy;
+        
+        if nH==nNodes
+          
+        elseif nH==2*nNodes
+            M=blkdiag(M,M) ;
+            D=blkdiag(D,D) ;
+
+        else
+            error("wrong dimentions")
+        end
+
+        CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
 
-    % I also do Steepest decent, and then compare.
-    % This is because calculating the Hessian is so expensive and, in comparison, the line-search cheap
+        if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
+            
+            P=M;
 
-    % Then maybe modify H and solve until slope negative, or just go for the gradient direction
-    nNodes=size(MUA.M,1);
-    nH=size(Hfull,1);
-    if nH==nNodes
-        EYE=MUA.M ;
-    elseif nH==2*nNodes
-        EYE=blkdiag(MUA.M,MUA.M) ;
+        elseif CtrlVar.Inverse.AdjointGradientPreMultiplier=="H1"
+
+            ga=CtrlVar.Inverse.PreMultiplier.H1.ga;
+            gs=CtrlVar.Inverse.PreMultiplier.H1.gs;
+            P=gs*D+ga*M;
+        end
+
+        g0SD=P\(-g0); % pre-multiplying, note that I must use the inverse...!
+
+
+        Func=@(gamma) func(p+gamma*g0SD);
+
+        slope0=g0'*g0SD;
+        gammaSlope0=-0.1*J0/slope0;
+
+        % calculate maximum step-size that does not violate upper limit
+        %if CtrlVar.GradientReflective
+
+        gammaUpperVector=(pub-p)./g0SD;
+        gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
+
+        gammaSDMax=min(gammaUpperVector);
+
+        %else
+        %    gammaSDMax=inf;
+        %end
+
+        % gamma=max(gammaSlope0,gammaSDMax);
+
+        % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
+
+
+
+        % J1=Func(gamma);
+        
+        gamma=min(2*gammaSDLast,gammaSDMax);   
+        J1=Func(gamma);
+        while isnan(J1)
+            gamma=gamma/10;
+            J1=func(p+gamma*g0SD);
+        end
+
+        gammaSDLast=min(gammaSDLast,gamma);
+
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
+        [gammaSD,JSD]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
+        gammaSDLast=gammaSD;
+
     else
-        error("wrong dimentions")
+
+        JSD=inf;
+        gammaSD=nan;
+
+
     end
-
-    g0SD=EYE\(-g0); % pre-multiplying, note that I must use the inverse...!
-
-
-    Func=@(gamma) func(p+gamma*g0SD);
-
-    slope0=g0'*g0SD;
-    gammaSlope0=-0.1*J0/slope0;
-
-    % calculate maximum step-size that does not violate upper limit
-    %if CtrlVar.GradientReflective
-
-    gammaUpperVector=(pub-p)./g0SD;
-    gammaUpperVector(gammaUpperVector<eps)=nan ;  % where this is negative, there is no constraint on the gamma
-
-    gammaSDMax=min(gammaUpperVector);
-
-    %else
-    %    gammaSDMax=inf;
-    %end
-
-    gamma=max(gammaSlope0,gammaSDMax);
-
-    % gamma=gammaSDMax ; pUpperViolation=pub-(p+gamma*g0SD) ;  UaPlots(CtrlVar,MUA,[],pUpperViolation,FigureTitle="pUpperViolation SD")  ;  CM=cmocean('balanced',25,'pivot',0) ; colormap(CM); min(pUpperViolation)
-
-
-
-    J1=Func(gamma);
-
-    while isnan(J1)
-        gamma=gamma/10;
-        J1=func(p+gamma*g0SD);
-    end
-
-    gammaSDLast=min(gammaSDLast,gamma);
-
-    CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gammaSDLast/1e6;
-    [gammaSD,JSD]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
-    gammaSDLast=gammaSD;
 
     fprintf("====> JNewton/J0=%g \t JSD/J=%g \n",JNewton/J0,JSD/J0)
 
