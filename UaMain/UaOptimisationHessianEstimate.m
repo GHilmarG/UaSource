@@ -31,7 +31,7 @@ SubOptimalityTolerance=0;
 dJTolerance=0.0;
 dpTolerance=0.0;
 
-iNewton=0; lStart=0 ; gammaSDLast=inf;
+iNewton=0; lStart=0 ; gammaSDLast=inf; gammaNewtonLast=1; 
 
 while true
 
@@ -158,7 +158,8 @@ while true
     end
     %%
 
-    if gammaNewtonMax< 1
+    gamma=min(2*gammaNewtonLast,1);  %take last estimate for the min found in backtracking, and expand the radius by a factor of two each time.
+    if gammaNewtonMax< gamma 
         gamma=gammaNewtonMax;
         CtrlVar.LineSearchAllowedToUseExtrapolation=false;
         pUpperViolation=pub-(p+gamma*dp) ;
@@ -166,8 +167,6 @@ while true
         CM=cmocean('balanced',25,'pivot',0) ; colormap(CM);
         min(pUpperViolation)
 
-    else
-        gamma=1;
     end
 
 
@@ -214,12 +213,15 @@ while true
 
     if slope0<0
         CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+         CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
         [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     else
         fprintf("Slope at origin in Newton direction is positive! \n")
         gammaNewton=nan;
         JNewton=inf;
     end
+
+    gammaNewtonLast=gammaNewton;
 
     doSteepestDecent=true;
     if doSteepestDecent

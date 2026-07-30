@@ -148,9 +148,9 @@ CtrlVar.BackTrackContinueIfLastReductionRatioLessThan=0.5;
 Infovector=zeros(MaxIterations+3,2)+NaN;
 gamma=nan;
 fgamma=nan;
-f0=nan; 
+f0=nan;
 xStart=nan;
-fStart=nan; 
+fStart=nan;
 iarm=nan;
 Extrapolation=nan;
 
@@ -774,6 +774,12 @@ BackTrackingPlot()
 
             if isfield(CtrlVar,"time")
                 subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
+            end
+
+            xline(CtrlVar.BacktrackingGammaMin,LineStyle="--",Label="min",DisplayName="min allowed step size") 
+
+            if ~NoSlopeInformation
+                plot([0 2*gamma],[f0 f0+beta*slope0*2*gamma],'m','LineWidth',2,LineStyle="--",DisplayName="Armijo condition")
             end
 
             drawnow
