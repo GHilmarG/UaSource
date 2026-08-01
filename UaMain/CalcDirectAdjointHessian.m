@@ -151,7 +151,7 @@ HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good conve
                                     % the cost function goes from 1e5 to 1e-25 in 4 iterations
 % HessianTerms="-Psi d2F/dpdp-";    % While this does work, the performance is not particularly good, maybe 50% reduction per
                                     % iteration, and often not much better than the gradient descent. 
-% HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % when adding "-Psi d2Fdpdp-" the inversion performs worse...! I suspect
+%HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % when adding "-Psi d2Fdpdp-" the inversion performs worse...! I suspect
                                                  % that something is not quite right with the -Pis d2F/dpdp-" calculations 
 
 

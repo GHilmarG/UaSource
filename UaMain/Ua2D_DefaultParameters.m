@@ -929,10 +929,13 @@ CtrlVar.Inverse.Hessian="RHA=E RHC=E IHC=FP IHA=FP";
 % if, for example, dJdC is the directional derivative of the cost function J with respect to C, specifying
 % CtrlVar.Inverse.AdjointGradientPreMultiplier="M" results in dJdC being recalculated as dJdC=M\dJdC ; 
 %
-CtrlVar.Inverse.AdjointGradientPreMultiplier="M"; % {"l2","L2","H1"}
+CtrlVar.Inverse.AdjointGradientPreMultiplier="L2"; % {"l2","L2","H1"}
 CtrlVar.Inverse.AdjointGradient.UseBCs.A=false;
 CtrlVar.Inverse.AdjointGradient.UseBCs.B=false;
 CtrlVar.Inverse.AdjointGradient.UseBCs.C=false;
+
+CtrlVar.Inverse.PreMultiplier.H1.ga=nan;  % These are the values for ga and gs when using the H1 inner product to define the gradient 
+CtrlVar.Inverse.PreMultiplier.H1.gs=nan; 
 
 % If a Hessian-based approach is used, the pre-multiplier is not of relevance, and not used.
 % If a gradient-based approach is used, the gradient is defined with respect to the L2 inner produce when using the M pre-multiplier,

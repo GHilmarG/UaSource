@@ -245,7 +245,7 @@ while true
             error("wrong dimentions")
         end
 
-        CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
+       % CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
 
         if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
@@ -257,6 +257,10 @@ while true
             ga=CtrlVar.Inverse.PreMultiplier.H1.ga;
             gs=CtrlVar.Inverse.PreMultiplier.H1.gs;
             P=gs*D+ga*M;
+
+        else
+
+            P=1;
         end
 
         g0SD=P\(-g0); % pre-multiplying, note that I must use the inverse...!
