@@ -1,0 +1,178 @@
+
+
+
+function KdFuvdC=dFuvdCWeertman(CtrlVar,MUA,F)
+
+%%
+%
+% Note: There is a sign issue here, actually this has the incorrect sign, but this is dealt with later in the solve... 
+%
+%
+% assembles the matrix K which is the FE form of
+%
+% $$d_{\mathbf{C}} \mathbf{F}_{\mathbf{v}}$$
+%
+% where
+%
+% $$\mathbf{F}_{\mathbf{v}}=0$$
+%
+% is the forward model.
+%
+%
+%
+% $$d_{\mathbf{C}} \mathbf{F}_{\mathbf{v}}=
+% \left[\begin{array}{c} 
+% \frac{\partial F^x_i}{\partial C_j} \\  
+% \frac{\partial F^y_i}{\partial C_j} \\  
+% \end{array}\right] $$
+%
+%
+% $$i=1\ldots 2 $$
+%
+% and 
+%
+% $$j=1\ldots n $$
+%
+%
+%
+% $$ F^x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
+%
+% $$ F^y = \partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
+%
+% with
+%
+% $$ t_x = t_x(C,u,v) $$
+%
+% $$ t_y = t_y(C,u,v) $$
+%
+% and
+%
+% $$ \eta=\eta(A,u,v) $$
+%
+%
+% $$ \partial F_x /\partial C = \partial t_x/\partial C $$
+%
+% Here this is done for Weertman sliding law where
+%
+% $$ \mathbf{t}_b = \mathcal{G} \, \beta^2 \, \mathbf{v} $$ 
+%
+% $$ \beta^2 = (C+C_0)^{-1/m} \, (u^2+v^2 + u_0)^{(1-m)/2m} $$
+%
+% The only relevant parts of the forward model, i.e. those dependent on $$C$$ are
+%
+% $$F^x= -\mathcal{G} \, \beta^2 \, v_x + \mathrm{const.}$$
+%
+% and therefore
+%
+%
+% $$ \frac{\partial F^x_i}{\partial C_j} = \mathcal{G} \, \frac{1}{m} (C+C_0)^{-1/m-1} \,  (u^2+v^2 + u_0)^{(1-m)/2m} \; v_x $$
+%
+% In Finite-Elements we have
+%
+% $$F_i^x=\langle F^x \mid \phi_i \rangle $$
+%
+% and taking the variation with respect to $C$ gives
+%
+% $$\delta_C F_i^x=\langle \frac{\partial F^x}{\partial C}  \, \delta C\mid \phi_i \rangle $$
+%
+% or
+%
+% $$\delta_{C_j} F_i^x= \langle  \mathcal{G} \, \frac{1}{m} (C+C_0)^{-1/m-1} \, (u^2+v^2 + u_0)^{(1-m)/2m} \, v_x  \, \phi_j \, \mid \, \phi_i \rangle $$
+%
+%
+%
+% The function BasalDrag.m can return a quantity dFuvdC from which we can calculate the partial derivatives as
+%
+% dF_x/dC = dFuvdC  u
+% dF_y/dC = dFuvdC  v
+%
+% see also: duvdAFunc.m, duvdBFunc.m, duvdCFunc.m, dFuvdA.m, dFuvdB.m, dFuvdC.m, TestSensitivityMatrixCalculations.m
+%
+%%
+
+
+ndim=2;
+nNodes=MUA.Nnodes ;
+
+C0=CtrlVar.Czero;
+u0=CtrlVar.SpeedZero;
+
+hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
+unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
+mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
+rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
+
+dFxdC=zeros(MUA.Nele,MUA.nod,MUA.nod);
+dFydC=zeros(MUA.Nele,MUA.nod,MUA.nod);
+
+for Iint=1:MUA.nip
+
+    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
+    detJ=MUA.DetJ(:,Iint);
+
+    uint=unod*fun;
+    vint=vnod*fun;
+    Cint=Cnod*fun; Cint(Cint<CtrlVar.Cmin)=CtrlVar.Cmin;
+    mint=mnod*fun;
+    hint=hnod*fun;
+    Bint=Bnod*fun;
+    Sint=Snod*fun;
+    Hint=Sint-Bint;
+    rhoint=rhonod*fun;
+
+    hfint=F.rhow*Hint./rhoint;                                   % this is linear, so fine to evaluate at int in this manner
+    G = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);      % important to calculate Heint and deltaint in a consistent manner
+
+    speed=sqrt(uint.*uint+vint.*vint+u0^2);
+    Um=speed.^(1./mint-1) ;
+    dtaudC=(1./mint).*G.*(Cint+C0).^(-1./mint-1) .* Um;       %    dFuvdC =  He.*    (1./m).*(C+C0).^(-1./m-1)   .*Um;  % Um=speed.^(1./m-1) ;
+
+    detJw=detJ*MUA.weights(Iint);
+
+    for Inod=1:MUA.nod
+        for Jnod=1:MUA.nod
+
+        
+
+            dFxdC(:,Inod,Jnod)=dFxdC(:,Inod,Jnod)+dtaudC.*uint.*fun(Inod).*fun(Jnod).*detJw;
+            dFydC(:,Inod,Jnod)=dFydC(:,Inod,Jnod)+dtaudC.*vint.*fun(Inod).*fun(Jnod).*detJw;
+
+        end
+    end
+end
+
+Iind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32');
+Jind=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1,'uint32');
+Xval=zeros(MUA.nod*MUA.nod*MUA.Nele*2,1);
+
+istak=0;
+
+for Inod=1:MUA.nod
+    %istak=0;
+
+    for Jnod=1:MUA.nod
+
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFxdC(:,Inod,Jnod);
+        istak=istak+MUA.Nele;
+
+        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod)+nNodes; Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); Xval(istak+1:istak+MUA.Nele)=dFydC(:,Inod,Jnod);
+        istak=istak+MUA.Nele;
+
+    end
+end
+
+KdFuvdC=sparseUA(Iind,Jind,Xval,2*nNodes,nNodes);
+
+end
+
+
+
+
+
