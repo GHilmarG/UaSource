@@ -6,13 +6,20 @@
 
 
 
-function [dudField,dvdField,dhdotdField]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,Node,DeltaRel)
+function [dudField,dvdField,dhdotdField]=FiniteDifferenceSensitivities(UserVar,RunInfo,CtrlVar,MUA,BCs,F,l,Field,Node,DeltaRel,DeltaAbs)
 
 
+if nargin< 10
+    DeltaAbs=nan;
+end
 
 Field0=F.(Field);
 
-DeltaField=F.(Field)(Node)*DeltaRel;  % perturbation 
+if isnan(DeltaAbs)
+    DeltaField=F.(Field)(Node)*DeltaRel;  % perturbation
+else
+    DeltaField=DeltaAbs;
+end
 
 
 % positive perturbation 
@@ -62,11 +69,14 @@ dhdotdField=(dhdtp-dhdtm)/(2*DeltaField) ;
 %
 %
 
-% 
-scale=log(10)*Field0;
-dudField=dudField.*scale ;
-dvdField=dvdField.*scale ;
-dhdotdField=dhdotdField.*scale ;
+%
+
+if Field~="B"
+    scale=log(10)*Field0;
+    dudField=dudField.*scale ;
+    dvdField=dvdField.*scale ;
+    dhdotdField=dhdotdField.*scale ;
+end
 
 
 end

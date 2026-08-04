@@ -135,8 +135,107 @@ narginchk(13,13)
 % $$ \xi_{ij} : = \frac{\partial q_i}{\partial p_j} $$
 %
 %
+% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi_i \right \rangle
+%     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
+%    + \langle t_x | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  - \langle \rho g \sin(\alpha) \, h  | \phi_i \rangle   =0
+% $$
+%
+% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi_i \rangle
+%     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
+%    + \langle t_y | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
+% $$
+% 
+% Here we use
+%
+% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
+%
+% For Weertman:
+%
+% $$t_x=\mathcal{G} \beta^2  u$$
+%
+% $$t_y=\mathcal{G} \beta^2  v$$
+%
+% $$ \beta^2 = (C+C_0)^{-1/m} \; (u^2+v^2+v_0^2)^{(1/m-1)/2} $$ 
+%
+%
+% *Terms:* 
+%
+% The whole expression is:
+%
+% $$
+%   H_{ij} = \frac{\partial^2 J}{\partial p_i \, \partial p_j}
+%   + \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j}
+%   +\frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj}
+%   +\frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj}
+%   +\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki}
+%   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
+% $$
+%
+% *First term:* 
+%
+% $$ \frac{\partial^2 J}{\partial p_i \, \partial p_j} $$
+%
+% This is simple and only involves explicit dependency on p. In the case of $A$, $B$ and $C$ this involves the precision matrix of the prior.
+% And in the case of $B$ there is an additional contribution from the direct measurements misfit term and this is done in the
+% misfit function. 
+%
+% *Second term:* 
+%
+% $$ \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j} $$
+%
+% This is done in separate m-files for A, B and C
+%
+% *Third term:* 
+%
+% $$ \frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj} $$
+%
+% This involves second-order derivatives of $J$ with respect to A and C which are the misfit precision matrices. This is
+% (almost) always a very important term and should be included. It is implemented.
+%
+% *Forth term*
+%
+% $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial q_m} \xi_{ki} \, \xi_{mj} $$
+%
+% This involves second-order (explicit) derivatives of the forward model with respect to u,v, and h.
+%
+% *Fifth term*
+%
+% $$ \frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj} $$
+%
+% This involves a mixed derivative of the cost function. The $J$ terms typically either involve only $p$ or $q$ but not both. 
+% For example $C$ will be involved in the prior and $u$ in the misfit term, but those are separate terms. Therefore this term
+% in the Hessian is zero.
+%
+% *Sixth term*
+%
+% $$  \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
+%
+% Here we have mixed derivatives of the forward model. These are not zero, unless the problem is linear.
+%
+%
+% *Seventh term*
+%
+% $$\frac{\partial^2 J}{\partial q_k \, \partial p_j} \xi_{ki} $$
+%
+% Mixed derivatives of the const function. As above, this term is zero.
+%
+% *eighth term*
+%
+% $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
+% 
+% This term also involves mixed derivatives of the forward model, and is not zero
 %
 % https://www.sciencedirect.com/science/article/pii/S0377042708006523
+%
+% 
+%
+%
 %
 %%
 
@@ -147,12 +246,12 @@ narginchk(13,13)
 %CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
 H=0 ;
-HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test 
-                                    % the cost function goes from 1e5 to 1e-25 in 4 iterations
+HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test
+% the cost function goes from 1e5 to 1e-25 in 4 iterations
 % HessianTerms="-Psi d2F/dpdp-";    % While this does work, the performance is not particularly good, maybe 50% reduction per
-                                    % iteration, and often not much better than the gradient descent. 
+% iteration, and often not much better than the gradient descent.
 %HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % when adding "-Psi d2Fdpdp-" the inversion performs worse...! I suspect
-                                                 % that something is not quite right with the -Pis d2F/dpdp-" calculations 
+% that something is not quite right with the -Pis d2F/dpdp-" calculations
 
 
 if contains(HessianTerms,"-xi d2J/dqdq xi-")
@@ -176,7 +275,7 @@ if GetSensitivites
     end
 
 
-  
+
     %
     % if contains(CtrlVar.Inverse.Measurements,"-dhdt-")
     %     [KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC]=duvhdABC(UserVar,CtrlVar,RunInfo,MUA,F,l,BCs) ;
@@ -212,26 +311,26 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")
 
     end
 
-%%
-%
-% $$ 
-% \xi^T \frac{\partial^2 J }{\partial q \, \partial q} \, \xi
-% $$
-%
-%
-%  
-%%
+    %%
+    %
+    % $$
+    % \xi^T \frac{\partial^2 J }{\partial q \, \partial q} \, \xi
+    % $$
+    %
+    %
+    %
+    %%
 
 
-% the numerical sparsity of xi is close to 1 (ie not sparse at all)
-% much better to use full matrix in the multiplication
-%
-%
-%
+    % the numerical sparsity of xi is close to 1 (ie not sparse at all)
+    % much better to use full matrix in the multiplication
+    %
+    %
+    %
 
     % tMult=tic;
     % H=xi'*(d2Jdqq*xi)+H ;
-    % 
+    %
     % H=0.5*(H+H');
     % tMult=toc(tMult);
     % fprintf(" Multiplication calculated in %f sec\n",tMult)
@@ -241,7 +340,7 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")
         xi=full(xi);
     end
 
- 
+
     tMult=tic;
     H=xi'*(d2Jdqq*xi)+H ;
 

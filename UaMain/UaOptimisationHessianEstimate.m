@@ -159,6 +159,9 @@ while true
     %%
 
     gamma=min(2*gammaNewtonLast,1);  %take last estimate for the min found in backtracking, and expand the radius by a factor of two each time.
+    if gamma == 0 % this could have happened if previous line-search was not successful 
+        gamma=1;
+    end
     if gammaNewtonMax< gamma 
         gamma=gammaNewtonMax;
         CtrlVar.LineSearchAllowedToUseExtrapolation=false;
@@ -212,7 +215,7 @@ while true
     slope0=g0'*dp;
 
     if slope0<0
-        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=0.001; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
+        CtrlVar.NewtonAcceptRatio=0.1 ;CtrlVar.BacktrackingGammaMin=gamma/1e5; CtrlVar.LineSearchAllowedToUseExtrapolation=false;
          CtrlVar.InfoLevelBackTrack=100 ; CtrlVar.doplots=1 ;
         [gammaNewton,JNewton,BackTrackInfo]=BackTracking(slope0,gamma,J0,J1,Func,CtrlVar);
     else
@@ -242,10 +245,10 @@ while true
             D=blkdiag(D,D) ;
 
         else
-            error("wrong dimentions")
+            error("wrong dimensions")
         end
 
-       % CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
+       CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
 
         if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"

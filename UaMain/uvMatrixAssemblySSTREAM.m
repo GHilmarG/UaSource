@@ -40,21 +40,26 @@ function [Ruv,Kuv,Tint,Fext]=uvMatrixAssemblySSTREAM(CtrlVar,MUA,F,BCs)
 % $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
 %
 %
-% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi \right \rangle
+% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi_i \right \rangle
 %     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
 %    + \langle t_x | \phi_i \rangle
 %    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
-%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  + \langle \rho g \sin(\alpha) \, h  | \phi \rangle   =0
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  - \langle \rho g \sin(\alpha) \, h  | \phi_i \rangle   =0
 % $$
 %
-% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi \rangle
+% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi_i \rangle
 %     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
 %    + \langle t_y | \phi_i \rangle
 %    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
 %    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
 % $$
 %
-%
+% $$
+% \left ( \begin{array}{cc}
+%    \partial_u F^x & \partial_v F^x \\
+%    \partial_u F^v  & \partial_v F^y 
+% \end{array} \right )
+% $$
 %
 %%
 
@@ -502,12 +507,12 @@ for Iint=1:MUA.nip
         end
 
 
-
-        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);
-        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);
-        t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);
-        t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);
-        t5=taux.*fun(Inod);
+        % R=Tint-Fext 
+        t1=-F.g*    (rhoint.*hint-F.rhow*dint).*dbdx.*fun(Inod)*ca+ rhoint.*F.g.*hint.*sa.*fun(Inod);  % Fext
+        t2=0.5*F.g.*ca*(rhoint.*hint.^2-F.rhow.*dint.^2).*Deriv(:,1,Inod);                             % Fext
+        t3=hint.*etaint.*(4*exx+2*eyy).*Deriv(:,1,Inod);                                               % Tint
+        t4=hint.*etaint.*2.*exy.*Deriv(:,2,Inod);                                                      % Tint
+        t5=taux.*fun(Inod);                                                                            % Tint
 
         Tx(:,Inod)=Tx(:,Inod)+(t3+t4+t5).*detJw;
         Fx(:,Inod)=Fx(:,Inod)+(t1+t2).*detJw;

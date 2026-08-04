@@ -5,11 +5,33 @@ function  [UserVar,RunInfo,F,l,Kuv,Ruv,L]=SSTREAM2dNR2(UserVar,RunInfo,CtrlVar,M
     
 %% Solves SSA/SSTREAM for u and v
 %
+% $$ F^x_i=\left \langle  h \eta ( 4 \partial_x u + 2 \partial_y v) | \partial_x \phi_i \right \rangle
+%     +\langle   h \eta (\partial_y u + \partial_x v)  | \partial_y \phi_i \rangle
+%    + \langle t_x | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \,  (\rho h^2 -  \rho_o d^2)  \big\vert \partial_x \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_x B | \phi_i \rangle  - \langle \rho g \sin(\alpha) \, h  | \phi_i \rangle   =0
+% $$
 %
-% $$ F_x=\partial_x ( h \eta ( 4 \partial_x u + 2 \partial_y v)) + \partial_y ( h \eta (\partial_y u + \partial_x v) ) - t_x -   \frac{1}{2} g \partial_x (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_x B =0 $$
-%
-% $$ F_y=\partial_y ( h \eta ( 4 \partial_y v + 2 \partial_x u)) + \partial_x ( h \eta (\partial_x v + \partial_y y) ) - t_y -   \frac{1}{2} g \partial_y (\rho h^2 -  \rho_o d^2)- g\,\mathcal{H}(h-h_f) (\rho h -\rho_o H^{+}) \partial_y B =0 $$
+% $$ F^y_i=\langle  h \eta ( 4 \partial_y v + 2 \partial_x u) | \partial_y \phi_i \rangle
+%     +\langle   h \eta (\partial_x v + \partial_y u)  | \partial_x \phi_i \rangle
+%    + \langle t_y | \phi_i \rangle
+%    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
+%    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
+% $$
 % 
+% Here we use
+%
+% $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
+%
+% $\mathcal{G}$ is the floating mask, 1 if grounded, 0 if afloat.
+%
+% $$\eta=\eta(u,v)$$
+%
+% $$t_x=t_x(u,v,h) = \mathcal{G}(h) \, \tau_x(u,v) $$
+%
+%
+% $$\mathcal{G}=\mathcal{G}(h-h_f) $$
+%
 %%
 
 nargoutchk(7,7)

@@ -79,7 +79,7 @@ function [taubx,tauby,dtaubxdu,dtaubxdv,dtaubydu,dtaubydv,dtaubxdh,dtaubydh,taub
 
    end
 
-    speed=(sqrt(ub.*ub+vb.*vb+u0^2)); 
+    speed=sqrt(ub.*ub+vb.*vb+u0^2); 
     Um=speed.^(1./m-1) ;
     beta2i=(C+C0).^(-1./m).*Um ; %   (sqrt(ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^(1./m-1) ;
 

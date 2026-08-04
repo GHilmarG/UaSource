@@ -12,7 +12,7 @@ narginchk(5,5)
 % $$\Psi_n \frac{\partial^2 F_n}{\partial C_i \, \partial C_j} $$
 %
 %
-% $$ \langle \Psi(x) | \delta^2_{CC} F(x) \rangle $$
+% $$ \langle \Psi(x) \mid \delta^2_{CC} F(x) \rangle = \langle \Psi(x) \mid \partial^2_{CC} F(x) \, \delta C \, \delta C \rangle $$
 %
 % Or in a discrete form:
 %
@@ -24,10 +24,10 @@ narginchk(5,5)
 %
 % $$F_y=- t_y=-\mathcal{G} \beta^2 \, v_y $$
 %
-% $$\beta^2=(C+C_0)^{-1/m} \; U^{1/m-1} $$
-% 
-% $$ v=\sqrt{v_x^2+v_y^2+v_0} $$
 %
+% $$ \beta^2 = (C+C_0)^{-1/m} \, (v_x^2+v_y^2 + v_0)^{(1-m)/2m} $$
+%
+% $$F_x= -\mathcal{G} \; (C+C_0)^{-1/m} \;  (v_x^2+v_y^2+v_0^2)^{(1-m)/2m}  \, v_x $$
 %
 % we have
 %
@@ -60,13 +60,17 @@ narginchk(5,5)
 %
 %%
 
+if CtrlVar.SlidingLaw~="Weertman" 
 
+    error("PsiTimesddFuvdCdC:NotImplemented","only implemented for Weertman sliding law.")
+
+end
 
 ndim=2; 
 nNodes=MUA.Nnodes ;
 
 C0=CtrlVar.Cmin;
-U0=CtrlVar.SpeedZero;
+u0=CtrlVar.SpeedZero;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 
@@ -101,7 +105,7 @@ for Iint=1:MUA.nip
     u=unod*fun;
     v=vnod*fun;
 
-    U=sqrt(u.*u + v.*v+U0) ; 
+    U=sqrt(u.*u + v.*v+u0^2) ; 
 
     C=Cnod*fun; 
     C(C<C0)=C0;
@@ -122,7 +126,7 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            H(:,Inod,Jnod)=H(:,Inod,Jnod) - Temp .*fun(Inod) .*fun(Jnod).*detJw;
+            H(:,Inod,Jnod)=H(:,Inod,Jnod) - Temp .*fun(Inod) .*fun(Jnod).*detJw;  % not sure I understand the sign here, 
             
         end
     end

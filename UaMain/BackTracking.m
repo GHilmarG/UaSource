@@ -738,7 +738,7 @@ BackTrackingPlot()
             plot(Infovector(:,1),Infovector(:,2),'or-',DisplayName="backtracking values") ;
 
             xlabel('$\gamma$',Interpreter='latex') ;
-            ylabel('Cost',Interpreter='latex') ;
+            ylabel('$J$',Interpreter='latex') ;
 
             hold on
             plot(gamma,fgamma,'o',MarkerFaceColor="b",MarkerSize=10,DisplayName="estimated minimum")
@@ -772,11 +772,11 @@ BackTrackingPlot()
 
             title(ItText+sprintf('backtracking/extrapolation steps %-i/%-i',iarm,Extrapolation),Interpreter="latex")
 
-            if isfield(CtrlVar,"time")
-                subtitle(sprintf("t=%g   dt=%g",CtrlVar.time,CtrlVar.dt),Interpreter="latex")
-            end
 
-            xline(CtrlVar.BacktrackingGammaMin,LineStyle="--",Label="min",DisplayName="min allowed step size") 
+            subtitle(sprintf("$\\gamma$=%g   $J(\\gamma)$=%g",gamma,fgamma),Interpreter="latex")
+
+
+            xline(CtrlVar.BacktrackingGammaMin,LineStyle="--",Label="min",DisplayName="min allowed step size")
 
             if ~NoSlopeInformation
                 plot([0 2*gamma],[f0 f0+beta*slope0*2*gamma],'m','LineWidth',2,LineStyle="--",DisplayName="Armijo condition")
