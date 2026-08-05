@@ -189,14 +189,15 @@ narginchk(13,13)
 %
 % $$ \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j} $$
 %
-% This is done in separate m-files for A, B and C
+% This is done in separate m-files for A, B and C. It is zero if the problem is linear in $p$. The forward problem is not
+% linear in neither $A$ or $C$, even for $n=1$ and $m=1$.
 %
 % *Third term:* 
 %
 % $$ \frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj} $$
 %
 % This involves second-order derivatives of $J$ with respect to A and C which are the misfit precision matrices. This is
-% (almost) always a very important term and should be included. It is implemented.
+% (almost) always a very important term and should be included. It is currently implemented for $A$, $B$ and $C$.
 %
 % *Forth term*
 %
@@ -216,7 +217,7 @@ narginchk(13,13)
 %
 % $$  \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
 %
-% Here we have mixed derivatives of the forward model. These are not zero, unless the problem is linear.
+% Here we have mixed derivatives of the forward model. These are not zero, even if the problem is linear in both $p$ and $q$.
 %
 %
 % *Seventh term*
@@ -230,6 +231,22 @@ narginchk(13,13)
 % $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
 % 
 % This term also involves mixed derivatives of the forward model, and is not zero
+%
+% If
+%
+% $$ H^{\#8}_{ij}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
+%
+% and
+%
+% $$ H^{\#6}_{ij} = \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial q_k} \, \xi_{kj} $$
+%
+% then
+%
+% $$ [H^{\#8}]^T=H^{\#8}_{ji}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_i} \xi_{kj} =\Psi_n \frac{\partial^2 F_n}{\partial p_i \,\partial q_k} \xi_{kj} = H^{\#6}_{ij}= [H^{\#6}] $$
+%
+% then the transpose is
+%
+%
 %
 % https://www.sciencedirect.com/science/article/pii/S0377042708006523
 %
@@ -355,5 +372,10 @@ if contains(HessianTerms,"-Psi d2F/dpdp-")
 
 end
 
+if contains(HessianTerms,"-Psi d2F/dpdq xi-")
+
+    H=H+Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+
+end
 
 end
