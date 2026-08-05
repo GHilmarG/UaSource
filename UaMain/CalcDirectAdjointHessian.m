@@ -244,8 +244,6 @@ narginchk(13,13)
 %
 % $$ [H^{\#8}]^T=H^{\#8}_{ji}=\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_i} \xi_{kj} =\Psi_n \frac{\partial^2 F_n}{\partial p_i \,\partial q_k} \xi_{kj} = H^{\#6}_{ij}= [H^{\#6}] $$
 %
-% then the transpose is
-%
 %
 %
 % https://www.sciencedirect.com/science/article/pii/S0377042708006523
@@ -265,10 +263,8 @@ narginchk(13,13)
 H=0 ;
 HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test
 % the cost function goes from 1e5 to 1e-25 in 4 iterations
-% HessianTerms="-Psi d2F/dpdp-";    % While this does work, the performance is not particularly good, maybe 50% reduction per
-% iteration, and often not much better than the gradient descent.
-%HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % when adding "-Psi d2Fdpdp-" the inversion performs worse...! I suspect
-% that something is not quite right with the -Pis d2F/dpdp-" calculations
+
+HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-Psi d2F/dpdq xi-"; % 
 
 
 if contains(HessianTerms,"-xi d2J/dqdq xi-")

@@ -58,20 +58,20 @@ end
 
 HlE = H + l * E;
 [~, flag] = chol(HlE);
-
+ factor=100;
 
 if flag==0 % H + l E is positive definite, but can I reduce l?
 
     while ~flag  && l > lmin    % decreasing case
 
-        l=l/100;
+        l=l/factor;
         HlE = H + l * E;
         [~, flag] = chol(HlE);
         fprintf(sprintf("Decreasing l until no longer positive definite. l=%g \n",l));
 
     end
 
-    lEnd=l*100;  % this was the value before it failed.
+    lEnd=l*factor;  % this was the value before it failed.
     fprintf("Hessian is positive definite for l=%g \n",l);
 
 else
