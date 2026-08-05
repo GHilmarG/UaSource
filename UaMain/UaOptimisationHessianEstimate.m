@@ -248,7 +248,7 @@ while true
             error("wrong dimensions")
         end
 
-       CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
+    %   CtrlVar.Inverse.AdjointGradientPreMultiplier="H1";
 
 
         if CtrlVar.Inverse.AdjointGradientPreMultiplier=="L2"
