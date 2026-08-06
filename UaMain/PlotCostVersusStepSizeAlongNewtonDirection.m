@@ -43,6 +43,7 @@ plot(gammaNewton,JNewton,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10)
 xlabel("$\gamma$",Interpreter="latex")
 ylabel("$J$",Interpreter="latex")
 title("Cost function ($J$) along Newton (dp) direction",Interpreter="latex")
+subtitle(sprintf("$J(\\gamma)$=%g   $\\gamma$=%g",JNewton,gammaNewton),Interpreter="latex") 
 
 %% gradient direction
 
