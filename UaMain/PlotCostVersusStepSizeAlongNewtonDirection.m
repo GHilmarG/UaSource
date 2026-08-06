@@ -4,7 +4,7 @@
 
 
 
-function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax)
+function   Fig=PlotCostVersusStepSizeAlongNewtonDirection(func,p0,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDmax,doSteepestDecent)
 
 %   PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,gammaSD,JSD);
 
@@ -45,47 +45,52 @@ ylabel("$J$",Interpreter="latex")
 title("Cost function ($J$) along Newton (dp) direction",Interpreter="latex")
 
 %% gradient direction
-nPoints=13;
 
-slope0=g0'*g0SD;
-gammaUp=-0.1*J0/slope0;
 
-if isnan(gammaSD)
-    gammaSD=gammaUp;
-else
-    gammaUp=1.1*gammaSD;
+if doSteepestDecent
+
+    nPoints=13;
+
+    slope0=g0'*g0SD;
+    gammaUp=-0.1*J0/slope0;
+
+    if isnan(gammaSD)
+        gammaSD=gammaUp;
+    else
+        gammaUp=1.1*gammaSD;
+    end
+
+    gammaUp=min(gammaUp,gammaSDmax) ;
+
+    gammaVector=linspace(0,gammaUp,nPoints);
+
+    gammaVector=unique([gammaVector 0 gammaSD]) ;
+    nPoints=numel(gammaVector);
+    JVector=nan(nPoints,1);
+
+
+    parfor I=1:nPoints
+
+        p=p0+gammaVector(I)*g0SD;
+        JVector(I)=func(p);
+
+    end
+
+
+
+    Fig=FindOrCreateFigure("J grad") ; clf(Fig)
+    plot(gammaVector,JVector,"or-")
+    hold on
+    dgamma=0.1*gammaUp;
+    plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2)
+
+    plot(gammaSD,JSD,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10)
+
+    xlabel("$\gamma$",Interpreter="latex")
+    ylabel("$J$",Interpreter="latex")
+    title("Cost function ($J$) along negative grad direction",Interpreter="latex")
+
 end
-
-gammaUp=min(gammaUp,gammaSDmax) ;
-
-gammaVector=linspace(0,gammaUp,nPoints);
-
-gammaVector=unique([gammaVector 0 gammaSD]) ;
-nPoints=numel(gammaVector);
-JVector=nan(nPoints,1);
-
-
-parfor I=1:nPoints
-
-    p=p0+gammaVector(I)*g0SD;
-    JVector(I)=func(p);
-
-end
-
-
-
-Fig=FindOrCreateFigure("J grad") ; clf(Fig)
-plot(gammaVector,JVector,"or-")
-hold on
-dgamma=0.1*gammaUp;
-plot([0 dgamma],[J0 J0+dgamma*slope0],"k--",LineWidth=2)
-
-plot(gammaSD,JSD,Marker="hexagram",MarkerFaceColor="b",MarkerSize=10)
-
-xlabel("$\gamma$",Interpreter="latex")
-ylabel("$J$",Interpreter="latex")
-title("Cost function ($J$) along negative grad direction",Interpreter="latex")
-
 %%
 
 

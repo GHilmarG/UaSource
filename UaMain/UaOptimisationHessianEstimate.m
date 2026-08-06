@@ -226,7 +226,7 @@ while true
 
     gammaNewtonLast=gammaNewton;
 
-    doSteepestDecent=true;
+    doSteepestDecent=false;
     if doSteepestDecent
 
         % I also do Steepest decent, and then compare.
@@ -311,7 +311,8 @@ while true
 
         JSD=inf;
         gammaSD=nan;
-
+        g0SD=nan; 
+        gammaSDMax=nan;
 
     end
 
@@ -334,7 +335,7 @@ while true
 
 
 
-    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDMax);
+    PlotCostVersusStepSizeAlongNewtonDirection(func,p,dp,g0,gammaNewton,JNewton,g0SD,gammaSD,JSD,gammaNewtonMax,gammaSDMax,doSteepestDecent);
 
     dJ=J0-J;
 
