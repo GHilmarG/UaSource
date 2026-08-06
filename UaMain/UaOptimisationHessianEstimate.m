@@ -403,6 +403,10 @@ semilogy(itVector,GradNormVector,"or-",LineWidth=2) ;
 ylabel("$\|\nabla J \|$",Interpreter="latex") ;
 xlabel("Iteration")
 
+figItgamma=FindOrCreateFigure("gamma iteration") ; semilogy(itVector,gammaVector,"-k",MarkerFaceColor="r",MarkerEdgeColor="b",Marker="diamond")
+ylabel("$\gamma$",Interpreter="latex") ;
+xlabel("iteration")
+title("step size in backtracking")
 
 itRestart=max(RunInfo.Inverse.Iterations);
 

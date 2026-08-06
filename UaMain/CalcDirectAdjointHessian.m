@@ -263,8 +263,9 @@ narginchk(13,13)
 H=0 ;
 HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test
 % the cost function goes from 1e5 to 1e-25 in 4 iterations
+% HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % 
 
-%HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-Psi d2F/dpdq xi-"; % 
+%HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdq xi-"; % 
 
 
 if contains(HessianTerms,"-xi d2J/dqdq xi-")

@@ -88,14 +88,14 @@ if TestSensitivites
 
     Funperturbed=F;
     NodeTest=804;
-    NodeTest=1200;
+    NodeTest=500;
     %NodeTest=1500;
 
     %% A
     if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
 
 
-        NodeTest=2500;
+   
         F=Funperturbed;
         DeltaRel=0.01;
         
@@ -115,7 +115,7 @@ if TestSensitivites
 
         CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
-        NodeTest=2500;
+  
         F=Funperturbed;
         DeltaRel=nan;
         DeltaAbs=1;
@@ -132,7 +132,7 @@ if TestSensitivites
     %% C
     if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
 
-        NodeTest=2500;
+    
         F=Funperturbed;
         DeltaRel=0.1;
         Field="C";

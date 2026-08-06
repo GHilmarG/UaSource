@@ -72,6 +72,10 @@ axis on ; axis equal tight ; box off
 title("Comparision between adjoint and finite-differences gradient calculations")
 set(gcf,'Color','white')
 
+[fitobject,gof]=fit(dudField,dudFieldpert,'poly1');
+coeff=coeffvalues(fitobject);
+subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
+
 figCgradv=FindOrCreateFigure("dvF/d"+Field+" gradient test") ;  clf(figCgradv)
 plot(dvdField,dvdFieldpert,"or") ;
 hold on
@@ -84,7 +88,9 @@ ax=gca ; ax.XAxisLocation = 'origin'; ax.YAxisLocation = 'origin';
 axis on ; axis equal tight ; box off
 title("Comparision between adjoint and finite-differences gradient calculations")
 set(gcf,'Color','white')
-
+[fitobject,gof]=fit(dvdField,dvdFieldpert,'poly1');
+coeff=coeffvalues(fitobject);
+subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
 
 
 if ~isempty(dhdField)
@@ -101,7 +107,9 @@ if ~isempty(dhdField)
     axis on ; axis equal tight ; box off
     title("Comparision between adjoint and finite-differences gradient calculations")
     set(gcf,'Color','white')
-
+    [fitobject,gof]=fit(dhdField,dhdotdFieldpert,'poly1');
+    coeff=coeffvalues(fitobject);
+    subtitle(sprintf("slope=%f R2=%g",coeff(1),gof.rsquare))
 end
 
 
