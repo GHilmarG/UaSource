@@ -166,13 +166,20 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
 
     e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
-    d2etadAdA=real( (A.^(-1./n-2)) .* (e.^(1./n-1)) .* 0.5.*(1./(n.^2)+(1./n)) )  ;
-    Temp=d2etadAdA.*h.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx) .* (log(10).*A).^2; 
+    detadA=   real(  A.^(-1./n-1) .* e.^(1./n-1) .* 0.5* (-1./n)            ); 
+    d2etadAdA=real(  A.^(-1./n-2) .* e.^(1./n-1) .* 0.5.*(1./(n.^2)+(1./n)) );
+ %   Temp=d2etadAdA.*h.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx) .* (log(10).*A).^2; 
 
+    Temp=-h.*( (4*exx+2*eyy).*dlxdx + 2*exy.*dlxdy + (4*eyy+2*exx).*dlydy + 2*exy.*dlydx);
+
+    dfdx=detadA.*Temp;
+    d2fdxdx=d2etadAdA.*Temp; 
+
+    d2fdyy=log(10)^2 .* ( A.^2 .* d2fdxdx + A.*dfdx);
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            H(:,Inod,Jnod)=H(:,Inod,Jnod) - Temp .*fun(Inod) .*fun(Jnod).*detJw;
+            H(:,Inod,Jnod)=H(:,Inod,Jnod) + d2fdyy .*fun(Inod) .*fun(Jnod).*detJw;
 
         end
     end

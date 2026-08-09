@@ -1,7 +1,7 @@
 
 
 
-function [Psi_d2FduvdCC]=Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC)
+function [Psi_d2FdCC]=Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC)
 
 narginchk(14,14)
 
@@ -16,7 +16,7 @@ narginchk(14,14)
 % $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
 %
 %
-% which is a part of the Hessian. 
+% which is a part of the Hessian.
 %
 % This term also involves mixed derivatives of the forward model, and is not zero
 %
@@ -36,10 +36,13 @@ narginchk(14,14)
 % So these two terms are just the transpose of each other, and both are calculated here.
 %
 % Also, here $q$ is both $u$ and $v$
-% 
-% $$ H^{\#8}_{ij}=\Psi^u_n \frac{\partial^2 F_n}{ \partial p_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} 
-% + \Psi^v_n \frac{\partial^2 F_n}{ \partial p_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
+%
+% $$ H^{\#8}_{ij}=
+% \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^x_n \frac{\partial^2 F^x_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
+% +\Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial u_k} \frac{\partial u_k}{\partial C_j} + \Psi^y_n \frac{\partial^2 F^y_n}{ \partial C_i \, \partial v_k} \frac{\partial v_k}{\partial C_j}
 % $$
+%
+%
 %
 % $$ \langle \Psi(x) \mid \delta^2_{uC} F(x) \rangle = \langle \Psi(x) \mid \partial^2_{uC} F(x) \, \delta u \, \delta C \rangle $$
 %
@@ -88,15 +91,17 @@ narginchk(14,14)
 %
 %
 %
-% $$ \langle \Psi_x | \delta^2_{v_x C} F \rangle =
+% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle =
 %  -\int  \Psi_x \,  \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \left  (\frac{1-m}{m} (v_x^2+v_y^2 + v_0)^{(1-3m)/2m} \, v_x \, v_x +  (v_x^2+v_y^2 + v_0^2)^{(1-m)/2m} \right )    \; \phi_i \, \phi_j \; dx \, dy
 % $$
 %
 % which is a $n \times n$ matrix, which then needs to be multiplied with the $n \times n$ sensitivity matrix $\partial
 % v_x/\partial C$
 %
-% Note: I tested doing the C to log(C) change of variables either within the int loop, or afterwards on nodes. As far as I
-% could see, the reduction in the Newton step was identical.
+% There are two components to $F=(F^x,F^y)$ and two components to $q=(v_x,v_y)$, so we get
+%
+% $$ \langle \Psi_x | \delta^2_{v_x C} F_x \rangle \, \delta_c v_x + \langle  \Psi_x | \delta^2_{v_y C} F_x   \rangle \, \delta_C v_y   
+% +  \langle \Psi_y | \delta^2_{v_x C} F_y \rangle \, \delta_C v_x + \langle  \Psi_y | \delta^2_{v_y C} F_y   \rangle \, \delta_C v_y $$
 %
 %
 %%
@@ -138,9 +143,8 @@ mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 
-Hx=zeros(MUA.Nele,MUA.nod,MUA.nod);
-Hy=zeros(MUA.Nele,MUA.nod,MUA.nod);
-
+Hu=zeros(MUA.Nele,MUA.nod,MUA.nod);
+Hv=zeros(MUA.Nele,MUA.nod,MUA.nod);
 
 for Iint=1:MUA.nip
 
@@ -169,22 +173,28 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
 
 
+    
+    % dcFx=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*u ;
+    % dcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*v ;
 
-    % Temp= (1./(m.^2) + 1./m) .*  G.*  ((C+C0).^(-1./m-2)) .* ( U.^(1./m-1)) .*(lx.*u+ly.*v).* (log(10).*C).^2; % at int
 
-    %  beta2i=(C+C0).^(-1./m).*Um ; %   ((ub.*ub+vb.*vb+CtrlVar.SpeedZero^2)).^((1-m)/(2m)) ;
-    % Dbeta2i=(1./m-1).*(C+C0).^(-1./m).*(ub.^2+vb.^2+u0^2).^((1-3*m)./(2*m));
-    % dtaubxdui=He.*(beta2i+Dbeta2i.*ub.*ub);
+    ducFx=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*u.*u + (u.^2+v.^2 + v0^2).^((1-m)./(2.*m))  ) ;
+    dvcFx=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*v.*u  ) ;
 
-    % Psid2FdudC = lx.*(1./m) * (C+C0).^(-1./m-1)   .*G  .* (beta2i+Dbeta2i * uv * ub ) % I can get this from BasalDrag.m
-    Psid2FdudC=- lx.*(1./m) .* G.* (C+C0).^(-1./m-1) .*((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-3*m)./(2*m)) .* u.*u+  (u.^2+v.^2 + v0.^2).^((1-m)./(2*m))).*(log(10).*C).^2;
-    Psid2FdvdC=- ly.*(1./m) .* G.* (C+C0).^(-1./m-1) .*((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-3*m)./(2*m)) .* v.*v+  (u.^2+v.^2 + v0.^2).^((1-m)./(2*m))).*(log(10).*C).^2;
+    ducFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*u.*v  ) ;
+    dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + v0^2).^((1-m)./(2.*m))  ) ;
+
+
+
+    l_d2FdudC=(lx.*ducFx+ly.*ducFy).*C.*log(10);  % There is only one derivative with respect to C, so chain rule is only used once
+    l_d2FdvdC=(lx.*dvcFx+ly.*dvcFy).*C.*log(10);
+
 
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            Hx(:,Inod,Jnod)=Hx(:,Inod,Jnod) + Psid2FdudC .*fun(Inod) .*fun(Jnod).*detJw;  % not sure I understand the sign here,
-            Hy(:,Inod,Jnod)=Hx(:,Inod,Jnod) + Psid2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;  % not sure I understand the sign here,
+            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) + l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
+            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) + l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
 
         end
     end
@@ -192,8 +202,8 @@ end
 
 Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
 Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
-Xval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-Yval=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+HuVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
+HvVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
 
 istak=0;
 
@@ -204,26 +214,29 @@ for Inod=1:MUA.nod
 
         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
         Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-        Xval(istak+1:istak+MUA.Nele)=Hx(:,Inod,Jnod);
-        Yval(istak+1:istak+MUA.Nele)=Hy(:,Inod,Jnod);
-     
+        HuVal(istak+1:istak+MUA.Nele)=Hu(:,Inod,Jnod);
+        HvVal(istak+1:istak+MUA.Nele)=Hv(:,Inod,Jnod);
+
 
         istak=istak+MUA.Nele;
 
     end
 end
 
+Psid2FdCdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
+Psid2FdCdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
 
-Psi_d2FdudCC=sparseUA(Iind,Jind,Xval,nNodes,nNodes)*KdudC;  % this will be full matrix, 
-Psi_d2FdvdCC=sparseUA(Iind,Jind,Yval,nNodes,nNodes)*KdvdC;
 
-Psi_d2FdudCC=full(Psi_d2FdudCC);
-Psi_d2FdvdCC=full(Psi_d2FdvdCC);
+Psi_d2FduC_dudC=Psid2FdCdu*KdudC;  % this will be full matrix,
+Psi_d2FdvC_dvdC=Psid2FdCdv*KdvdC;
 
-Psi_d2FdudCC=Psi_d2FdudCC+Psi_d2FdudCC';
-Psi_d2FdvdCC=Psi_d2FdvdCC+Psi_d2FdvdCC';
+Psi_d2FduC_dudC=full(Psi_d2FduC_dudC);
+Psi_d2FdvC_dvdC=full(Psi_d2FdvC_dvdC);
 
-Psi_d2FduvdCC=Psi_d2FdudCC+Psi_d2FdvdCC;
+Psi_d2FduC_dudC=Psi_d2FduC_dudC+Psi_d2FduC_dudC';
+Psi_d2FdvC_dvdC=Psi_d2FdvC_dvdC+Psi_d2FdvC_dvdC';
+
+Psi_d2FdCC=Psi_d2FduC_dudC+Psi_d2FdvC_dvdC;
 
 
 end

@@ -263,9 +263,9 @@ narginchk(13,13)
 H=0 ;
 HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test
 % the cost function goes from 1e5 to 1e-25 in 4 iterations
-% HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % 
+HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % 
 
-%HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdq xi-"; % 
+HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-Psi d2F/dpdq xi-"; % 
 
 
 if contains(HessianTerms,"-xi d2J/dqdq xi-")
@@ -301,7 +301,7 @@ if GetSensitivites
 end
 
 
-if contains(HessianTerms,"-xi d2J/dqdq xi-")
+if contains(HessianTerms,"-xi d2J/dqdq xi-")  % this is from $\delta^2_{qq} J$ 
 
     % This requires too large memory, possible approach is to calculate Hessian-vector product and only one row of the Hessian at
     % a time.
@@ -363,13 +363,13 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")
     fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-if contains(HessianTerms,"-Psi d2F/dpdp-")
+if contains(HessianTerms,"-Psi d2F/dpdp-")  % this is from $\delta^2_{pp} F$ 
 
     H=H+PsiTimesddFuvdpdp(CtrlVar,MUA,F,uAdjoint,vAdjoint);
 
 end
 
-if contains(HessianTerms,"-Psi d2F/dpdq xi-")
+if contains(HessianTerms,"-Psi d2F/dpdq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
     H=H+Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
 

@@ -114,12 +114,15 @@ for Iint=1:MUA.nip
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
     detJw=detJ*MUA.weights(Iint);
-    Temp= (1./(m.^2) + 1./m) .*  G.*  ((C+C0).^(-1./m-2)) .* ( U.^(1./m-1)) .*(lx.*u+ly.*v).* (log(10).*C).^2; % at int
+    dfdx=   G.* (-1./m)            .* (C+C0).^(-1./m-1) .* U.^(1./m-1) .*(lx.*u+ly.*v); 
+    d2fdxdx=G.* (1./(m.^2) + 1./m) .* (C+C0).^(-1./m-2) .* U.^(1./m-1) .*(lx.*u+ly.*v); 
+
+    d2fdydy= log(10)^2 .*(C.^2.*d2fdxdx+C.*dfdx);  
 
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
-            H(:,Inod,Jnod)=H(:,Inod,Jnod) + Temp .*fun(Inod) .*fun(Jnod).*detJw; 
+            H(:,Inod,Jnod)=H(:,Inod,Jnod) + d2fdydy .*fun(Inod) .*fun(Jnod).*detJw; 
             
         end
     end
