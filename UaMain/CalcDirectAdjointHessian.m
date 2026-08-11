@@ -325,6 +325,9 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")  % this is from $\delta^2_{qq} J$
 
     end
 
+    KFqq=Fqq(UserVar,CtrlVar,RunInfo,MUA,F,uAdjoint,vAdjoint);
+
+
     %%
     %
     % $$
