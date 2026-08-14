@@ -226,7 +226,7 @@ while true
 
     gammaNewtonLast=gammaNewton;
 
-    doSteepestDecent=false;
+    doSteepestDecent=true;
     if doSteepestDecent
 
         % I also do Steepest decent, and then compare.

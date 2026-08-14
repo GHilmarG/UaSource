@@ -1,7 +1,10 @@
 
 
 
-function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,uAdjoint,vAdjoint)
+
+
+
+function H = CalcDirectAdjointHessian(UserVar,CtrlVar,RunInfo,MUA,F,BCs,l,BCsAdjoint,d2Iduu,d2Idvv,d2Idhdothdot,Psi_x,Psi_y)
 
 narginchk(13,13)
 
@@ -261,14 +264,10 @@ narginchk(13,13)
 %CtrlVar.Calculate.Geometry="bh-FROM-sBS" ;
 
 H=0 ;
-HessianTerms="-xi d2J/dqdq xi-" ;   % this often results in amazingly good convergence! Many order of magnitude decrease per iteration, for example in the AC inversion test
-% the cost function goes from 1e5 to 1e-25 in 4 iterations
-HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-"; % 
 
-HessianTerms="-xi d2J/dqdq xi-Psi d2F/dpdp-Psi d2F/dpdq xi-"; % 
+HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ; 
 
-
-if contains(HessianTerms,"-xi d2J/dqdq xi-")
+if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     GetSensitivites=true;
 else
     GetSensitivites=false;
@@ -301,42 +300,34 @@ if GetSensitivites
 end
 
 
-if contains(HessianTerms,"-xi d2J/dqdq xi-")  % this is from $\delta^2_{qq} J$ 
+if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
 
-    % This requires too large memory, possible approach is to calculate Hessian-vector product and only one row of the Hessian at
-    % a time.
-    %
-    % https://arxiv.org/html/2410.22575v1
-    %
-    %
-    %
+    KJqq=0 ; KFqq=0;
 
     if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
         xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC ; KdhdA KdhdB KdhdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
 
-        d2Jdqq=blkdiag(d2Iduu,d2Idvv,d2Idhdothdot);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
+        KJqq=blkdiag(d2Iduu,d2Idvv,d2Idhdothdot);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
 
     else
 
         xi=[KdudA KdudB KdudC ; KdvdA KdvdB KdvdC] ; % 2 Nnodes \times nP Nnodes where nP is the number of fields inverted for, e.g. 2 if inverting for A and C, 1 if only inverting for B
 
-        d2Jdqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
+        KJqq=blkdiag(d2Iduu,d2Idvv);  % d2Iduv and d2Idvu are zeros, 2 Nnodes \times 2 Nnodes
 
     end
 
-    KFqq=Fqq(UserVar,CtrlVar,RunInfo,MUA,F,uAdjoint,vAdjoint);
 
 
-    %%
-    %
-    % $$
-    % \xi^T \frac{\partial^2 J }{\partial q \, \partial q} \, \xi
-    % $$
-    %
-    %
-    %
-    %%
+    if contains(HessianTerms,"-xi Fqq xi-")
+        if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
+            error("Case not implemented")
+        end
+        KFqq=Fqq(CtrlVar,MUA,F,Psi_x,Psi_y);
+    end
+
+    KJqqFqq=KJqq+KFqq;
 
 
     % the numerical sparsity of xi is close to 1 (ie not sparse at all)
@@ -359,22 +350,22 @@ if contains(HessianTerms,"-xi d2J/dqdq xi-")  % this is from $\delta^2_{qq} J$
 
 
     tMult=tic;
-    H=xi'*(d2Jdqq*xi)+H ;
+    H=xi'*((KJqqFqq)*xi)+H ;
 
     H=0.5*(H+H');
     tMult=toc(tMult);
     fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-if contains(HessianTerms,"-Psi d2F/dpdp-")  % this is from $\delta^2_{pp} F$ 
+if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$ 
 
-    H=H+PsiTimesddFuvdpdp(CtrlVar,MUA,F,uAdjoint,vAdjoint);
+    H=H+PsiTimesddFuvdpdp(CtrlVar,MUA,F,Psi_x,Psi_y);
 
 end
 
-if contains(HessianTerms,"-Psi d2F/dpdq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
+if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
-    H=H+Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+    H=H+Psi_d2Fdpdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
 
 end
 

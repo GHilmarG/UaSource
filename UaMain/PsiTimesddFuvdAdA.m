@@ -165,17 +165,32 @@ for Iint=1:MUA.nip
 
     detJw=detJ*MUA.weights(Iint);
 
-    e=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
-    detadA=   real(  A.^(-1./n-1) .* e.^(1./n-1) .* 0.5* (-1./n)            ); 
-    d2etadAdA=real(  A.^(-1./n-2) .* e.^(1./n-1) .* 0.5.*(1./(n.^2)+(1./n)) );
- %   Temp=d2etadAdA.*h.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx) .* (log(10).*A).^2; 
+   %  eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
+   %  detadA=   real(  A.^(-1./n-1) .* eEff.^(1./n-1) .* 0.5.* (-1./n)            );
+   %  d2etadAdA=real(  A.^(-1./n-2) .* eEff.^(1./n-1) .* 0.5.*(1./(n.^2)+(1./n)) );
+   % 
+   %  d2etadlogAdlogA=log(10)^2 *(A.^2 .*d2etadAdA+A.*detadA) ;     % =   delta2_logAlogA_eta
+   % % There is a neat little simplification that happens here, it turns out that
+   %  eta0=CtrlVar.etaZero;
+   %  eta=real(0.5*A.^(-1./n).*eEff.^((1-n)./n))+CtrlVar.etaZero ;
+   %  delta2_logAlogA_eta= log(10)^2.*(eta-eta0)./n.^2;  % equals d2eta_dlogA_dlogA
+   % 
+   %  Temp=-h.*( (4*exx+2*eyy).*dlxdx + 2*exy.*dlxdy + (4*eyy+2*exx).*dlydy + 2*exy.*dlydx); % why did I have this minus there?
+   %  dfdx=detadA.*Temp;
+   %  d2fdxdx=d2etadAdA.*Temp;
+   %  d2fdyyTest=log(10)^2 .* ( A.^2 .* d2fdxdx + A.*dfdx);
 
-    Temp=-h.*( (4*exx+2*eyy).*dlxdx + 2*exy.*dlxdy + (4*eyy+2*exx).*dlydy + 2*exy.*dlydx);
 
-    dfdx=detadA.*Temp;
-    d2fdxdx=d2etadAdA.*Temp; 
+    E_1 = 4*exx+2*eyy ; %  4.*dudx+2.*dvdy;
+    E_2 = 2*exy ;       %  dudy+dvdx;
+    F_1 = 4*eyy+2*exx ; %  4.*dvdy+2.*dudx;
+    eta0=CtrlVar.etaZero;
+    eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
+    eta=real(0.5*A.^(-1./n).*eEff.^((1-n)./n))+CtrlVar.etaZero ;
+    delta2_logAlogA_eta= log(10)^2.*(eta-eta0)./n.^2;
+    d2fdyy=delta2_logAlogA_eta.*h.*(E_1.*dlxdx+E_2.*dlxdy+F_1.*dlydy+E_2.*dlydx) ;
 
-    d2fdyy=log(10)^2 .* ( A.^2 .* d2fdxdx + A.*dfdx);
+
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
 
@@ -200,7 +215,7 @@ for Inod=1:MUA.nod
         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
         Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
         Xval(istak+1:istak+MUA.Nele)=H(:,Inod,Jnod);
-        %Xval(istak+1:istak+MUA.Nele)=H(:,Inod,Jnod).* (log(10).*F.AGlen(MUA.connectivity(:,Inod))) .*(log(10).*F.AGlen(MUA.connectivity(:,Jnod))) ; % At nodes
+     
 
         istak=istak+MUA.Nele;
 

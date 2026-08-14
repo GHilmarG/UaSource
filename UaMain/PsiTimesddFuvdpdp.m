@@ -4,7 +4,7 @@ function HPsiddFdpdp=PsiTimesddFuvdpdp(CtrlVar,MUA,F,uAdjoint,vAdjoint)
 
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true)
-    HPsiddFdAdA=PsiTimesddFuvdAdA(CtrlVar,MUA,F,uAdjoint,vAdjoint);
+    HPsiddFdAdA=PsiTimesddFuvdAdA(CtrlVar,MUA,F,uAdjoint,vAdjoint); %F^{pp}_{AA}
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"-B-")
@@ -12,7 +12,7 @@ if contains(CtrlVar.Inverse.InvertFor,"-B-")
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
-    HPsiddFdCdC=PsiTimesddFuvdCdC(CtrlVar,MUA,F,uAdjoint,vAdjoint);
+    HPsiddFdCdC=PsiTimesddFuvdCdC(CtrlVar,MUA,F,uAdjoint,vAdjoint); % F^{p}_{CC}
 end
 
 if contains(CtrlVar.Inverse.InvertFor,"logaglen",IgnoreCase=true) && contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)

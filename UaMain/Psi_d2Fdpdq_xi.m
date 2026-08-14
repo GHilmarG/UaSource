@@ -1,7 +1,7 @@
 
 
 
-function [Psi_d2FdCC]=Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC)
+function [Psi_d2Fdpq]=Psi_d2Fdpdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC)
 
 narginchk(14,14)
 
@@ -112,132 +112,26 @@ if CtrlVar.SlidingLaw~="Weertman"
 
 end
 
-if ~contains(CtrlVar.Inverse.InvertFor,"logc",IgnoreCase=true)
+if ~contains(CtrlVar.Inverse.InvertFor,"logC",IgnoreCase=true)
 
     error("Psi_d2Fdpdq_xi:NotImplemented","only implemented for log(C) .")
 
 end
 
 
-ndim=2;
-nNodes=MUA.Nnodes ;
+if contains(CtrlVar.Inverse.InvertFor,"logC",IgnoreCase=true)
 
-C0=CtrlVar.Cmin;
-v0=CtrlVar.SpeedZero;
-
-hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
-
-Bnod=reshape(F.B(MUA.connectivity,1),MUA.Nele,MUA.nod);
-Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
-rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
-hfnod=F.rhow*(Snod-Bnod)./rhonod;
-
-unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-
-Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
-mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
+    [Psi_d2FdCq]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint,KdudC,KdvdC,KdhdC);
 
 
-
-Hu=zeros(MUA.Nele,MUA.nod,MUA.nod);
-Hv=zeros(MUA.Nele,MUA.nod,MUA.nod);
-
-for Iint=1:MUA.nip
-
-    fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
-    % Deriv=MUA.Deriv(:,:,:,Iint);  % Deriv at integration points
-    detJ=MUA.DetJ(:,Iint);
-
-    h=hnod*fun;
-    hf=hfnod*fun;
-
-    u=unod*fun;
-    v=vnod*fun;
-
-
-
-    C=Cnod*fun;
-    C(C<C0)=C0;
-
-    m=mnod*fun;
-
-    lx=uAdjointnod*fun;
-    ly=vAdjointnod*fun;
-
-    G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
-
-    detJw=detJ*MUA.weights(Iint);
-
-
-    
-    % dcFx=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*u ;
-    % dcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .*  (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)).*v ;
-
-
-    ducFx=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*u.*u + (u.^2+v.^2 + v0^2).^((1-m)./(2.*m))  ) ;
-    dvcFx=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*v.*u  ) ;
-
-    ducFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*u.*v  ) ;
-    dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + v0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + v0^2).^((1-m)./(2.*m))  ) ;
-
-
-
-    l_d2FdudC=(lx.*ducFx+ly.*ducFy).*C.*log(10);  % There is only one derivative with respect to C, so chain rule is only used once
-    l_d2FdvdC=(lx.*dvcFx+ly.*dvcFy).*C.*log(10);
-
-
-    for Inod=1:MUA.nod
-        for Jnod=1:MUA.nod
-
-            Hu(:,Inod,Jnod)=Hu(:,Inod,Jnod) + l_d2FdudC .*fun(Inod) .*fun(Jnod).*detJw;
-            Hv(:,Inod,Jnod)=Hv(:,Inod,Jnod) + l_d2FdvdC .*fun(Inod) .*fun(Jnod).*detJw;
-
-        end
-    end
 end
 
-Iind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
-Jind=zeros(MUA.nod*MUA.nod*MUA.Nele,1,'uint32');
-HuVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-HvVal=zeros(MUA.nod*MUA.nod*MUA.Nele,1);
-
-istak=0;
-
-for Inod=1:MUA.nod
-    %istak=0;
-
-    for Jnod=1:MUA.nod
-
-        Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod);
-        Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod);
-        HuVal(istak+1:istak+MUA.Nele)=Hu(:,Inod,Jnod);
-        HvVal(istak+1:istak+MUA.Nele)=Hv(:,Inod,Jnod);
 
 
-        istak=istak+MUA.Nele;
-
-    end
-end
-
-Psid2FdCdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
-Psid2FdCdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
+Psi_d2Fdpq=Psi_d2FdCq; 
 
 
-Psi_d2FduC_dudC=Psid2FdCdu*KdudC;  % this will be full matrix,
-Psi_d2FdvC_dvdC=Psid2FdCdv*KdvdC;
-
-Psi_d2FduC_dudC=full(Psi_d2FduC_dudC);
-Psi_d2FdvC_dvdC=full(Psi_d2FdvC_dvdC);
-
-Psi_d2FduC_dudC=Psi_d2FduC_dudC+Psi_d2FduC_dudC';
-Psi_d2FdvC_dvdC=Psi_d2FdvC_dvdC+Psi_d2FdvC_dvdC';
-
-Psi_d2FdCC=Psi_d2FduC_dudC+Psi_d2FdvC_dvdC;
-
+ [Psid2FdCdu,Psid2FdCdv]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint) ; 
 
 end
 

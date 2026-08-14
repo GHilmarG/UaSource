@@ -1,7 +1,7 @@
 
 
 
-function HPsiddFdCdC=PsiTimesddFuvdCdC(CtrlVar,MUA,F,uAdjoint,vAdjoint)
+function HPsiddFdCdC=PsiTimesddFuvdCdC(CtrlVar,MUA,F,Psi_x,Psi_y)
 
 narginchk(5,5)
 
@@ -89,8 +89,8 @@ rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 hfnod=F.rhow*(Snod-Bnod)./rhonod;
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+uAdjointnod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
+vAdjointnod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -105,7 +105,7 @@ for Iint=1:MUA.nip
     hf=hfnod*fun;
     u=unod*fun;
     v=vnod*fun;
-    U=sqrt(u.*u + v.*v+u0^2) ; 
+    u_e=sqrt(u.*u + v.*v+u0^2) ; 
     C=Cnod*fun; 
     C(C<C0)=C0;
     m=mnod*fun;
@@ -114,10 +114,15 @@ for Iint=1:MUA.nip
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
     detJw=detJ*MUA.weights(Iint);
-    dfdx=   G.* (-1./m)            .* (C+C0).^(-1./m-1) .* U.^(1./m-1) .*(lx.*u+ly.*v); 
-    d2fdxdx=G.* (1./(m.^2) + 1./m) .* (C+C0).^(-1./m-2) .* U.^(1./m-1) .*(lx.*u+ly.*v); 
+    dfdx=   G.* (-1./m)            .* (C+C0).^(-1./m-1) .* u_e.^(1./m-1) .*(lx.*u+ly.*v); % G \delta_C \beta^2 
+    d2fdxdx=G.* ((1+m)./m.^2) .* (C+C0).^(-1./m-2) .* u_e.^(1./m-1) .*(lx.*u+ly.*v);  % G \delta^2_{CC} 
 
     d2fdydy= log(10)^2 .*(C.^2.*d2fdxdx+C.*dfdx);  
+
+    
+  %  Test=(log(10)^2)./(m.^2) .* G .* (u.*lx+v.*ly) .* C.* (C-m.*C0) .* (C+C0).^(-1./m-2) .* U.^((1-m)./m) ;  % same as d2fdyd
+
+ 
 
     for Inod=1:MUA.nod
         for Jnod=1:MUA.nod
