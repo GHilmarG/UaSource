@@ -323,7 +323,7 @@ if CtrlVar.Inverse.CalcGradI
 
             if contains(lower(CtrlVar.Inverse.InvertFor),"c")
 
-                dCFuvLambda=dIdCq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas);
+                dCFuvLambda=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint);
 
                 dCI=0 ;               % This is the explicit derivative of I with respect to C.
                 % The misfit term I is not an explicit function of C, so this equals to zero.
@@ -336,7 +336,7 @@ if CtrlVar.Inverse.CalcGradI
             if contains(lower(CtrlVar.Inverse.InvertFor),"aglen")
 
 
-                dAFuvLambda=dIdAq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas);
+                dAFuvLambda=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint);
 
                 dAI=0 ; % No explicit dependency of the misfit term I on A.
 

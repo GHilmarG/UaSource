@@ -76,7 +76,7 @@ if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 end
 
 
-KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this...
+KdFuvdC=-dFuvdC(CtrlVar,MUA,F) ; % there is actually a different sign convention inside of this... (sign issue)
 
 
 if numel(BCs.ubFixedValue) > 0

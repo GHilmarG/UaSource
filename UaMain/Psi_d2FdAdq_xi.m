@@ -3,7 +3,7 @@
 
 function [Psid2FdAdu,Psid2FdAdv]=Psi_d2FdAdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y)
 
-narginchk(8,8)
+narginchk(5,5)
 
 
 
@@ -35,6 +35,9 @@ hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
+AGlennod=reshape(F.AGlen(MUA.connectivity,1),MUA.Nele,MUA.nod);
+nnod=reshape(F.n(MUA.connectivity,1),MUA.Nele,MUA.nod);
+
 Psi_xnod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Psi_ynod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
@@ -43,6 +46,9 @@ Psi_ynod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 Hu=zeros(MUA.Nele,MUA.nod,MUA.nod);
 Hv=zeros(MUA.Nele,MUA.nod,MUA.nod);
 
+Eps0=CtrlVar.EpsZero; 
+eta0=CtrlVar.etaZero ; 
+
 for Iint=1:MUA.nip
 
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
@@ -50,7 +56,9 @@ for Iint=1:MUA.nip
     Deriv=MUA.Deriv(:,:,:,Iint);
 
     h=hnod*fun;
-
+    n=nnod*fun;
+    A=AGlennod*fun;
+    A(A<CtrlVar.AGlenmin)=CtrlVar.AGlenmin;
 
     dudx=zeros(MUA.Nele,1);
     dudy=zeros(MUA.Nele,1);
@@ -81,8 +89,10 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
     
   
-    eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
-    eta0=CtrlVar.etaZero; 
+    %eEff=real(sqrt(CtrlVar.EpsZero^2+exx.^2+eyy.^2+exx.*eyy+exy.^2));
+   
+    eEff = sqrt((dudx).^2+(dvdy).^2+dudx .* dvdy+0.25.*(dvdx+dudy).^2+Eps0.^2);
+    
     eta=real(0.5*A.^(-1./n).*eEff.^((1-n)./n))+eta0 ; 
 
 

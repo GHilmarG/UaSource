@@ -151,7 +151,7 @@ narginchk(13,13)
 %    - \left \langle \frac{1}{2} g \cos(\alpha) \, (\rho h^2 -  \rho_o d^2) | \partial_y \phi_i \right \rangle
 %    + \langle g\, \mathcal{G} \, (\rho h -\rho_o H^{+}) \partial_y B | \phi_i \rangle=0
 % $$
-% 
+%
 % Here we use
 %
 % $$g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y B =g\, \mathcal{G} \,  (\rho h -\rho_o H^{+}) \, \partial_y b $$
@@ -162,10 +162,10 @@ narginchk(13,13)
 %
 % $$t_y=\mathcal{G} \beta^2  v$$
 %
-% $$ \beta^2 = (C+C_0)^{-1/m} \; (u^2+v^2+v_0^2)^{(1/m-1)/2} $$ 
+% $$ \beta^2 = (C+C_0)^{-1/m} \; (u^2+v^2+v_0^2)^{(1/m-1)/2} $$
 %
 %
-% *Terms:* 
+% *Terms:*
 %
 % The whole expression is:
 %
@@ -180,22 +180,22 @@ narginchk(13,13)
 %   +\Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki}
 % $$
 %
-% *First term:* 
+% *First term:*
 %
 % $$ \frac{\partial^2 J}{\partial p_i \, \partial p_j} $$
 %
 % This is simple and only involves explicit dependency on p. In the case of $A$, $B$ and $C$ this involves the precision matrix of the prior.
 % And in the case of $B$ there is an additional contribution from the direct measurements misfit term and this is done in the
-% misfit function. 
+% misfit function.
 %
-% *Second term:* 
+% *Second term:*
 %
 % $$ \Psi_n \frac{\partial^2 F_n}{\partial p_i \, \partial p_j} $$
 %
 % This is done in separate m-files for A, B and C. It is zero if the problem is linear in $p$. The forward problem is not
 % linear in neither $A$ or $C$, even for $n=1$ and $m=1$.
 %
-% *Third term:* 
+% *Third term:*
 %
 % $$ \frac{\partial^2 J}{\partial q_k\, \partial q_m} \xi_{ki} \, \xi_{mj} $$
 %
@@ -212,7 +212,7 @@ narginchk(13,13)
 %
 % $$ \frac{\partial^2 J}{\partial p_i \, \partial q_k} \xi_{kj} $$
 %
-% This involves a mixed derivative of the cost function. The $J$ terms typically either involve only $p$ or $q$ but not both. 
+% This involves a mixed derivative of the cost function. The $J$ terms typically either involve only $p$ or $q$ but not both.
 % For example $C$ will be involved in the prior and $u$ in the misfit term, but those are separate terms. Therefore this term
 % in the Hessian is zero.
 %
@@ -232,7 +232,7 @@ narginchk(13,13)
 % *eighth term*
 %
 % $$ \Psi_n \frac{\partial^2 F_n}{\partial q_k \, \partial p_j} \xi_{ki} $$
-% 
+%
 % This term also involves mixed derivatives of the forward model, and is not zero
 %
 % If
@@ -251,7 +251,7 @@ narginchk(13,13)
 %
 % https://www.sciencedirect.com/science/article/pii/S0377042708006523
 %
-% 
+%
 %
 %
 %
@@ -265,7 +265,7 @@ narginchk(13,13)
 
 H=0 ;
 
-HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ; 
+HessianTerms="-xi Jqq xi-xi Fqq xi-Fpp-Fpq xi-" ;
 
 if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     GetSensitivites=true;
@@ -275,7 +275,7 @@ end
 
 
 
-
+%% sensitivity matrix, \xi = \partial q / \partial p
 if GetSensitivites
 
     if  ~contains(CtrlVar.Inverse.Measurements,'-uv-','IgnoreCase',true)
@@ -299,10 +299,13 @@ if GetSensitivites
 
 end
 
-
+%% H^{qq}
+%
+% $$\xi^T (J^{qq}+\mathcal{F}^{qq} )\xi$$
+%
 if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
 
-    KJqq=0 ; KFqq=0;
+    KFqq=0;
 
     if contains(CtrlVar.Inverse.Measurements,'-dhdt-','IgnoreCase',true)
 
@@ -357,15 +360,38 @@ if contains(HessianTerms,"-xi Jqq xi-") || contains(HessianTerms,"-xi Fqq xi-")
     fprintf(" Multiplication calculated in %f sec\n",tMult)
 end
 
-if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$ 
+%%
+% H^{pp}  (but only the F^pp contribution)
+%
+% $$H^{p}=J^{pp}+\mathcal{F}^{pp}$$
+%
+%
+if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
-    H=H+PsiTimesddFuvdpdp(CtrlVar,MUA,F,Psi_x,Psi_y);
+    %Fpp=PsiTimesddFuvdpdp(CtrlVar,MUA,F,Psi_x,Psi_y);
+
+    % must replace this with a call to Fpp
+    KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
+
+    H=H+KFpp; % Here missing is the Jpp contribution, but this is added in the Regularisation.m function
+
+    FppFiniteDifferences(CtrlVar,MUA,F,BCs,l,BCsAdjoint,Psi_x,Psi_y);
+
 
 end
 
+
+%% H^{pq}+H^{qp}
+%
+% $$H^{pq}+H^{qp}=\big(J^{pq}+\mathcal{F}^{pq}\big)\xi \;+\; \Big[\big(J^{pq}+\mathcal{F}^{pq}\big)\xi\Big]^T$$
+%
+% The J^{pq} contribution is missing, but this is likely to be zero as each term in the cost function is only an explicit
+% function of either p or q, not both.
+%
 if contains(HessianTerms,"-Fpq xi-") % this is from $\delta^2_{pq} F$ and $\delta^2_{qp} F $
 
-    H=H+Psi_d2Fdpdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+    KHess_qp=Hess_qp(CtrlVar,MUA,F,Psi_x,Psi_y,KdudA,KdvdA,KdhdA,KdudB,KdvdB,KdhdB,KdudC,KdvdC,KdhdC);
+    H=H+KHess_qp ;
 
 end
 

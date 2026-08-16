@@ -1,15 +1,15 @@
 
 
 
-function dIdC=dIdCq(CtrlVar,UserVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint,Meas)
+function dIdC=dIdCq(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y)
 
-narginchk(9,9)
+narginchk(7,7)
 
 %%
 % Calculates:
 %
 %
-% $$ \langle  \delta_{C_i} F^x | \lambda_x \rangle + \langle  \delta_{C_i} F^y | \lambda_y \rangle $$
+% $$ \langle  \delta_{C_i} F^x | \Psi_x \rangle + \langle  \delta_{C_i} F^y | \Psi_y \rangle $$
 %
 %
 % For example, for Weertman
@@ -25,7 +25,7 @@ narginchk(9,9)
 % $$\delta_C F_x = \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; v^{1/m-1} \, u \; \delta C$$
 %
 % $$
-% \langle \lambda |  \delta_C F \rangle = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \lambda_x \, v_x + \lambda_y \, v_y \right ) \; dx \, dy
+% \langle \Psi |  \delta_C F \rangle = \int \frac{\mathcal{G}}{m} \,  (C+C_0)^{-1/m-1} \; \delta C \; v^{1/m-1} \, \left (  \Psi_x \, v_x + \Psi_y \, v_y \right ) \; dx \, dy
 % $$
 %
 % This is a vector.
@@ -50,7 +50,7 @@ narginchk(9,9)
 % measurements \tilde{d}.
 %
 %
-% Calculates the product: dFuv/dC  \lambda
+% Calculates the product: dFuv/dC  \Psi
 %
 % If we write:
 %
@@ -80,6 +80,9 @@ narginchk(9,9)
 %
 %%
 ndim=2;
+
+C0=CtrlVar.Czero;
+u0=CtrlVar.SpeedZero;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -111,8 +114,8 @@ Snod=reshape(F.S(MUA.connectivity,1),MUA.Nele,MUA.nod);
 rhonod=reshape(F.rho(MUA.connectivity,1),MUA.Nele,MUA.nod);
 hfnod=F.rhow*(Snod-Bnod)./rhonod;
 
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psi_x_nod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psi_y_nod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 
 % [points,weights]=sample('triangle',MUA.nip,ndim);
@@ -136,8 +139,8 @@ for Iint=1:MUA.nip
     Sint=Snod*fun;
     Hint=Sint-Bint;
     rhoint=rhonod*fun;
-    uAdjointint=uAdjointnod*fun;
-    vAdjointint=vAdjointnod*fun;
+    Psi_x_int=Psi_x_nod*fun;
+    Psi_y_int=Psi_y_nod*fun;
     hfint=hfnod*fun;
     %hfint=(Sint-Bint)*F.rhow./rhoint;
     Heint = HeavisideApprox(CtrlVar.kH,hint-hfint,CtrlVar.Hh0);
@@ -155,6 +158,15 @@ for Iint=1:MUA.nip
         BasalDrag(CtrlVar,MUA,Heint,[],hint,Bint,Hint,rhoint,F.rhow,uint,vint,Cint,mint,[],[],[],[],[],[],[],[],qint,F.g,mukint,V0int);
     CtrlVar.Inverse.dFuvdClambda=false;
 
+    %% this is a temporary change which only works for Weertman sliding law, done here to make all calculations as visible as
+    % possible for Claude 
+    speed=sqrt(uint.*uint+vint.*vint+u0^2);
+    Um=speed.^(1./mint-1) ;
+    Ctemp =  Heint.*    (1./mint).*(Cint+C0).^(-1./mint-1)   .*Um;  % Um=speed.^(1./m-1) ; This is the same Ctemp as returned by BasalDrag for Weertman sliding law, 
+    % but the BasalDrag function is more general and will return this quantity for various other sliding laws as well 
+    %%
+
+
     % Note: I include the u and v in the adjoint calculation itself below, so I just need the
     % derivative without the u and the v. Therefore 
     %
@@ -162,7 +174,7 @@ for Iint=1:MUA.nip
     for Inod=1:MUA.nod
 
 
-        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*uAdjointint+vint.*vAdjointint).*fun(Inod).*detJw;  
+        T(:,Inod)=T(:,Inod)+Ctemp.*(uint.*Psi_x_int+vint.*Psi_y_int).*fun(Inod).*detJw;  
 
     end
 end
@@ -177,11 +189,13 @@ end
 % change of variables should be done on nodal values!
 % I learned this the hard way by doing extensive tests on dJ/dgamma
 if contains(lower(CtrlVar.Inverse.InvertFor),'logc')
-    dIdC=log(10)*F.C.*dIdC;
+    if CtrlVar.log10Derivatives
+        dIdC=log(10)*F.C.*dIdC;
+    end
 end
 
 
-dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
+% dIdC=ApplyAdjointGradientPreMultiplier(CtrlVar,MUA,BCsAdjoint,CtrlVar.Inverse.AdjointGradient.UseBCs.C,dIdC);
 
 
 

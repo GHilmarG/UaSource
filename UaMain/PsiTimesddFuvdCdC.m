@@ -117,7 +117,11 @@ for Iint=1:MUA.nip
     dfdx=   G.* (-1./m)            .* (C+C0).^(-1./m-1) .* u_e.^(1./m-1) .*(lx.*u+ly.*v); % G \delta_C \beta^2 
     d2fdxdx=G.* ((1+m)./m.^2) .* (C+C0).^(-1./m-2) .* u_e.^(1./m-1) .*(lx.*u+ly.*v);  % G \delta^2_{CC} 
 
-    d2fdydy= log(10)^2 .*(C.^2.*d2fdxdx+C.*dfdx);  
+    if CtrlVar.log10Derivatives
+        d2fdydy= log(10)^2 .*(C.^2.*d2fdxdx+C.*dfdx);
+    else
+        d2fdydy=d2fdxdx;
+    end
 
     
   %  Test=(log(10)^2)./(m.^2) .* G .* (u.*lx+v.*ly) .* C.* (C-m.*C0) .* (C+C0).^(-1./m-2) .* U.^((1-m)./m) ;  % same as d2fdyd
@@ -147,7 +151,7 @@ for Inod=1:MUA.nod
         Iind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Inod); 
         Jind(istak+1:istak+MUA.Nele)=MUA.connectivity(:,Jnod); 
         Xval(istak+1:istak+MUA.Nele)=H(:,Inod,Jnod);
-        %Xval(istak+1:istak+MUA.Nele)=H(:,Inod,Jnod).* (log(10).*F.C(MUA.connectivity(:,Inod))) .*(log(10).*F.C(MUA.connectivity(:,Jnod))) ; % At nodes
+      
         
         istak=istak+MUA.Nele;
 
@@ -159,7 +163,7 @@ HPsiddFdCdC=sparseUA(Iind,Jind,Xval,nNodes,nNodes);
 
 HPsiddFdCdC=(HPsiddFdCdC'+HPsiddFdCdC)/2 ; 
 
-
+HPsiddFdCdC=-HPsiddFdCdC;
 
 
 end

@@ -3,9 +3,9 @@
 
 
 
-function [Psid2FdCdu,Psid2FdCdv]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,uAdjoint,vAdjoint)
+function [Psid2FdCdu,Psid2FdCdv]=Psi_d2FdCdq_xi(CtrlVar,MUA,F,Psi_x,Psi_y)
 
-narginchk(8,8)
+narginchk(5,5)
 
 %%
 %
@@ -143,8 +143,8 @@ hfnod=F.rhow*(Snod-Bnod)./rhonod;
 unod=reshape(F.ub(MUA.connectivity,1),MUA.Nele,MUA.nod);
 vnod=reshape(F.vb(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
-uAdjointnod=reshape(uAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
-vAdjointnod=reshape(vAdjoint(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psixnod=reshape(Psi_x(MUA.connectivity,1),MUA.Nele,MUA.nod);
+Psiynod=reshape(Psi_y(MUA.connectivity,1),MUA.Nele,MUA.nod);
 
 Cnod=reshape(F.C(MUA.connectivity,1),MUA.Nele,MUA.nod);
 mnod=reshape(F.m(MUA.connectivity,1),MUA.Nele,MUA.nod);
@@ -173,8 +173,8 @@ for Iint=1:MUA.nip
 
     m=mnod*fun;
 
-    lx=uAdjointnod*fun;
-    ly=vAdjointnod*fun;
+    Psix=Psixnod*fun;
+    Psiy=Psiynod*fun;
 
     G = HeavisideApprox(CtrlVar.kH,h-hf,CtrlVar.Hh0);
 
@@ -191,8 +191,8 @@ for Iint=1:MUA.nip
     dvcFy=G.*(-1./m).* (C+C0).^(-1./m-1) .* ((1./m-1) .* (u.^2+v.^2 + u0^2).^((1-m)./(2.*m)-1) .*v.*v + (u.^2+v.^2 + u0^2).^((1-m)./(2.*m))  ) ;
 
 
-    l_d2FdudC=(lx.*ducFx+ly.*ducFy).*C.*log(10);  % There is only one derivative with respect to C, so chain rule is only used once
-    l_d2FdvdC=(lx.*dvcFx+ly.*dvcFy).*C.*log(10);
+    l_d2FdudC=(Psix.*ducFx+Psiy.*ducFy).*C.*log(10);  % There is only one derivative with respect to C, so chain rule is only used once
+    l_d2FdvdC=(Psix.*dvcFx+Psiy.*dvcFy).*C.*log(10);
 
     %% Testing
     % u_e=sqrt(u.*u + v.*v+u0^2) ;
@@ -241,8 +241,8 @@ for Inod=1:MUA.nod
     end
 end
 
-Psid2FdCdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
-Psid2FdCdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  % this will be full matrix,
+Psid2FdCdu=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ;  
+Psid2FdCdv=sparseUA(Iind,Jind,HuVal,nNodes,nNodes) ; 
 
 return
 

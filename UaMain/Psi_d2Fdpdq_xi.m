@@ -106,6 +106,9 @@ narginchk(14,14)
 %
 %%
 
+error("Psi_d2Fdpdq_xi:deprecated","no longer used")
+
+
 if CtrlVar.SlidingLaw~="Weertman"
 
     error("Psi_d2Fdpdq_xi:NotImplemented","only implemented for Weertman sliding law.")

@@ -6,9 +6,10 @@
 
 
 
-function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
+function dIdA=dIdAq(CtrlVar,MUA,F,BCs,BCsAdjoint,uAdjoint,vAdjoint)
 
 
+narginchk(7,7)
 
 %%
 %
@@ -122,14 +123,6 @@ function dIdA=dIdAq(CtrlVar,UserVar,MUA,F,BCS,BCsAdjoint,uAdjoint,vAdjoint,Meas)
 %%
 
 
-
-
-
-
-
-
-narginchk(9,9)
-
 ndim=2;
 
 hnod=reshape(F.h(MUA.connectivity,1),MUA.Nele,MUA.nod);   % Nele x nod
@@ -147,13 +140,9 @@ T=zeros(MUA.Nele,MUA.nod);
 for Iint=1:MUA.nip
 
     fun=shape_fun(Iint,ndim,MUA.nod,MUA.points) ;
-
-    if isfield(MUA,'Deriv') && isfield(MUA,'DetJ') && ~isempty(MUA.Deriv) && ~isempty(MUA.DetJ)
-        detJ=MUA.DetJ(:,Iint);
-        Deriv=MUA.Deriv(:,:,:,Iint);
-    else
-        [Deriv,detJ]=derivVector(MUA.coordinates,MUA.connectivity,MUA.nip,Iint);
-    end
+    detJ=MUA.DetJ(:,Iint);
+    Deriv=MUA.Deriv(:,:,:,Iint);
+   
 
     hint=hnod*fun;
     nint=nnod*fun;
@@ -182,7 +171,7 @@ for Iint=1:MUA.nip
     detJw=detJ*MUA.weights(Iint);
 
 
-    [~,~,~,dEtadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
+    [~,~,~,detadA]=EffectiveViscositySSTREAM(CtrlVar,AGlenInt,nint,exx,eyy,exy);
     %dEtadA=dEtadA.*hint;
 
 
@@ -190,10 +179,7 @@ for Iint=1:MUA.nip
 
     for Inod=1:MUA.nod
         T(:,Inod)=T(:,Inod)...
-            -dEtadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
-        %-dEtadA.*((4*exx+2*eyy).*dlxdx+(dudy+dvdx).*dlxdy+(4*eyy+2*exx).*dlydy+(dudy+dvdx).*dlydx).*fun(Inod).*detJw;
-
-
+            -detadA.*hint.*((4*exx+2*eyy).*dlxdx+2*exy.*dlxdy+(4*eyy+2*exx).*dlydy+2*exy.*dlydx).*fun(Inod).*detJw;
 
     end
 end
