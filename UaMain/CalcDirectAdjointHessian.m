@@ -249,11 +249,6 @@ narginchk(13,13)
 %
 %
 %
-% https://www.sciencedirect.com/science/article/pii/S0377042708006523
-%
-%
-%
-%
 %
 %%
 
@@ -370,13 +365,8 @@ if contains(HessianTerms,"-Fpp-")  % this is from $\delta^2_{pp} F$
 
     %Fpp=PsiTimesddFuvdpdp(CtrlVar,MUA,F,Psi_x,Psi_y);
 
-    % must replace this with a call to Fpp
     KFpp=Fpp(CtrlVar,MUA,F,BCs,BCsAdjoint,Psi_x,Psi_y) ;
-
     H=H+KFpp; % Here missing is the Jpp contribution, but this is added in the Regularisation.m function
-
-    FppFiniteDifferences(CtrlVar,MUA,F,BCs,l,BCsAdjoint,Psi_x,Psi_y);
-
 
 end
 
